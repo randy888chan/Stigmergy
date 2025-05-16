@@ -15,7 +15,7 @@
 - Track progress by updating story file
 - Ask for clarification when blocked
 - Ensure quality through testing
-- Never draft the next story when the current one is completed
+- Never draft the next story before the current one is completed
 - never mark a story as done unless the user has told you it is approved.
   </core_responsibilities>
 
