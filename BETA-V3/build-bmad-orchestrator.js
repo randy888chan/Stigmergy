@@ -1,22 +1,19 @@
 #!/usr/bin/env node
 const fs = require("fs");
 const path = require("path");
+const yaml = require("js-yaml");
 
 // --- Configuration ---
-const DEFAULT_ASSET_FOLDER_ROOT = "./bmad-agent";
-const SUBDIRECTORIES_TO_PROCESS = {
-  checklists: "checklists.txt",
-  data: "data.txt",
-  personas: "personas.txt",
-  tasks: "tasks.txt",
-  templates: "templates.txt",
-};
-const BUILD_DIR_NAME = "build";
+const CONFIG_FILE_PATH = path.resolve(__dirname, "build-agent-cfg.yml");
 
 // --- Helper Functions ---
 function getBaseFilename(filePath) {
-  // Removes the last extension, e.g., "file.sample.txt" -> "file.sample"
-  return path.basename(filePath, path.extname(filePath));
+  const filenameWithExt = path.basename(filePath);
+  const lastExt = path.extname(filenameWithExt);
+  if (lastExt) {
+    return filenameWithExt.slice(0, -lastExt.length);
+  }
+  return filenameWithExt;
 }
 
 function ensureDirectoryExists(dirPath) {
@@ -27,14 +24,44 @@ function ensureDirectoryExists(dirPath) {
 
 // --- Main Script Logic ---
 async function main() {
-  // 1. Determine and validate asset folder root
-  const providedAssetRoot = process.argv[2]; // Get the first argument after script name
-  const assetFolderRootInput = providedAssetRoot || DEFAULT_ASSET_FOLDER_ROOT;
+  // 1. Load Configuration
+  console.log(`Loading configuration from: ${CONFIG_FILE_PATH}`);
+  let config;
+  try {
+    if (!fs.existsSync(CONFIG_FILE_PATH)) {
+      console.error(
+        `Error: Configuration file not found at '${CONFIG_FILE_PATH}'.`
+      );
+      process.exit(1);
+    }
+    const configFileContents = fs.readFileSync(CONFIG_FILE_PATH, "utf8");
+    config = yaml.load(configFileContents);
+  } catch (error) {
+    console.error(
+      `Error loading or parsing configuration file: ${error.message}`
+    );
+    process.exit(1);
+  }
 
-  console.log(`Initial asset folder root: ${assetFolderRootInput}`);
+  if (
+    !config ||
+    !config.asset_root ||
+    !config.build_dir ||
+    !config.orchestrator_agent_prompt
+  ) {
+    console.error(
+      "Error: Missing required fields (asset_root, build_dir, orchestrator_agent_prompt) in configuration file."
+    );
+    process.exit(1);
+  }
+
+  // 2. Determine and validate asset folder root and build directory
+  const workspaceRoot = path.resolve(__dirname, "../../");
+
+  const assetFolderRootInput = config.asset_root;
   let assetFolderRoot;
   try {
-    assetFolderRoot = path.resolve(assetFolderRootInput);
+    assetFolderRoot = path.resolve(workspaceRoot, assetFolderRootInput);
     if (
       !fs.existsSync(assetFolderRoot) ||
       !fs.statSync(assetFolderRoot).isDirectory()
@@ -52,40 +79,111 @@ async function main() {
   }
   console.log(`Using resolved asset folder root: ${assetFolderRoot}`);
 
-  const buildDir = path.join(assetFolderRoot, BUILD_DIR_NAME);
+  const buildDirInput = config.build_dir;
+  let buildDir;
+  try {
+    buildDir = path.resolve(workspaceRoot, buildDirInput);
+  } catch (error) {
+    console.error(
+      `Error: Could not resolve build directory '${buildDirInput}'. ${error.message}`
+    );
+    process.exit(1);
+  }
+  ensureDirectoryExists(buildDir);
+  console.log(`Build directory is: ${buildDir}`);
 
-  // 2. Perform pre-check for duplicate base filenames
-  console.log("\nPerforming pre-check for duplicate base filenames...");
-  for (const subdirName of Object.keys(SUBDIRECTORIES_TO_PROCESS)) {
-    const sourceSubdir = path.join(assetFolderRoot, subdirName);
+  const buildDirNameOnly = path.basename(buildDir);
 
+  // 3. Generate agent-prompt.txt
+  const orchestratorPromptPathInput = config.orchestrator_agent_prompt;
+  let orchestratorPromptPath;
+  try {
+    orchestratorPromptPath = path.resolve(
+      workspaceRoot,
+      orchestratorPromptPathInput
+    );
     if (
-      !fs.existsSync(sourceSubdir) ||
-      !fs.statSync(sourceSubdir).isDirectory()
+      !fs.existsSync(orchestratorPromptPath) ||
+      !fs.statSync(orchestratorPromptPath).isFile()
     ) {
-      // This directory might not exist, which is fine for the pre-check.
-      // The main processing loop will handle warnings for missing/empty dirs.
-      continue;
+      console.error(
+        `Error: Orchestrator agent prompt file '${orchestratorPromptPathInput}' (resolved to '${orchestratorPromptPath}') not found or not a file.`
+      );
+      process.exit(1);
     }
+  } catch (error) {
+    console.error(
+      `Error: Could not resolve orchestrator agent prompt file '${orchestratorPromptPathInput}'. ${error.message}`
+    );
+    process.exit(1);
+  }
+
+  const agentPromptOutputPath = path.join(buildDir, "agent-prompt.txt");
+  try {
+    const promptContent = fs.readFileSync(orchestratorPromptPath, "utf8");
+    fs.writeFileSync(agentPromptOutputPath, promptContent);
+    console.log(`
+Successfully generated '${agentPromptOutputPath}'`);
+  } catch (error) {
+    console.error(
+      `Error generating '${agentPromptOutputPath}': ${error.message}`
+    );
+    process.exit(1);
+  }
+
+  // 4. Discover subdirectories to process from asset_root
+  console.log(`
+Discovering source directories in '${assetFolderRoot}' (excluding '${buildDirNameOnly}')...`);
+  let sourceSubdirNames;
+  try {
+    sourceSubdirNames = fs
+      .readdirSync(assetFolderRoot, { withFileTypes: true })
+      .filter(
+        (dirent) => dirent.isDirectory() && dirent.name !== buildDirNameOnly
+      )
+      .map((dirent) => dirent.name);
+  } catch (error) {
+    console.error(
+      `Error reading asset folder root '${assetFolderRoot}': ${error.message}`
+    );
+    process.exit(1);
+  }
+
+  if (sourceSubdirNames.length === 0) {
+    console.warn(
+      `Warning: No source subdirectories found in '${assetFolderRoot}' (excluding '${buildDirNameOnly}'). No asset bundles will be created.`
+    );
+  } else {
+    console.log(
+      `Found source directories to process: ${sourceSubdirNames.join(", ")}`
+    );
+  }
+
+  // 5. Perform pre-check for duplicate base filenames in each discovered subdirectory
+  console.log("Performing pre-check for duplicate base filenames...");
+  for (const subdirName of sourceSubdirNames) {
+    const sourceSubdirPath = path.join(assetFolderRoot, subdirName);
 
     try {
-      const files = fs.readdirSync(sourceSubdir);
+      const files = fs.readdirSync(sourceSubdirPath);
       if (files.length === 0) {
-        // Empty directory, no duplicates possible.
+        console.log(
+          `  Directory '${sourceSubdirPath}' is empty. No duplicates possible.`
+        );
         continue;
       }
 
-      console.log(`  Checking for duplicates in '${sourceSubdir}'...`);
-      const baseFilenamesSeen = {}; // Using an object as a hash map
+      console.log(`  Checking for duplicates in '${sourceSubdirPath}'...`);
+      const baseFilenamesSeen = {};
 
       for (const filenameWithExt of files) {
-        const filePath = path.join(sourceSubdir, filenameWithExt);
+        const filePath = path.join(sourceSubdirPath, filenameWithExt);
         if (fs.statSync(filePath).isFile()) {
           const baseName = getBaseFilename(filenameWithExt);
 
           if (baseFilenamesSeen[baseName]) {
             console.error(
-              `Error: Duplicate base name '${baseName}' found in directory '${sourceSubdir}'.`
+              `Error: Duplicate base name '${baseName}' found in directory '${sourceSubdirPath}'.`
             );
             console.error(
               `       Conflicting files: '${baseFilenamesSeen[baseName]}' and '${filenameWithExt}'.`
@@ -99,57 +197,41 @@ async function main() {
           }
         }
       }
-      console.log(`    No duplicates found in '${sourceSubdir}'.`);
+      console.log(`    No duplicates found in '${sourceSubdirPath}'.`);
     } catch (error) {
       console.warn(
-        `Warning: Could not read directory '${sourceSubdir}' during pre-check. ${error.message}`
+        `Warning: Could not read directory '${sourceSubdirPath}' during pre-check. ${error.message}`
       );
-      // Continue to allow the main loop to handle it more formally.
     }
   }
   console.log(
-    "Pre-check completed successfully. No duplicate base filenames found."
+    "Pre-check completed. No critical duplicate base filenames found (or directories were empty/unreadable)."
   );
 
-  // 3. Create build directory
-  ensureDirectoryExists(buildDir);
-  console.log(`\nBuild directory is: ${buildDir}`);
-
-  // 4. Main processing loop
-  for (const [subdirName, outputFilename] of Object.entries(
-    SUBDIRECTORIES_TO_PROCESS
-  )) {
-    const sourceSubdir = path.join(assetFolderRoot, subdirName);
+  // 6. Main processing loop for discovered subdirectories
+  for (const subdirName of sourceSubdirNames) {
+    const sourceSubdirPath = path.join(assetFolderRoot, subdirName);
+    const outputFilename = `${subdirName}.txt`;
     const targetFile = path.join(buildDir, outputFilename);
 
-    console.log(`Processing '${subdirName}' directory into '${targetFile}'`);
+    console.log(`
+Processing '${subdirName}' directory into '${targetFile}'`);
 
-    // Delete target file if it exists, then create it empty
     if (fs.existsSync(targetFile)) {
       fs.unlinkSync(targetFile);
     }
-    fs.writeFileSync(targetFile, ""); // Create empty file
+    fs.writeFileSync(targetFile, "");
 
-    if (
-      !fs.existsSync(sourceSubdir) ||
-      !fs.statSync(sourceSubdir).isDirectory()
-    ) {
-      console.warn(
-        `Warning: Source directory '${sourceSubdir}' not found. '${targetFile}' will remain empty.`
-      );
-      continue;
-    }
-
-    const files = fs.readdirSync(sourceSubdir);
+    const files = fs.readdirSync(sourceSubdirPath);
     if (files.length === 0) {
       console.warn(
-        `Warning: Source directory '${sourceSubdir}' is empty. '${targetFile}' will remain empty.`
+        `Warning: Source directory '${sourceSubdirPath}' is empty. '${targetFile}' will remain empty.`
       );
       continue;
     }
 
     for (const filenameWithExt of files) {
-      const filePath = path.join(sourceSubdir, filenameWithExt);
+      const filePath = path.join(sourceSubdirPath, filenameWithExt);
       if (fs.statSync(filePath).isFile()) {
         const baseName = getBaseFilename(filenameWithExt);
         console.log(
@@ -158,12 +240,16 @@ async function main() {
 
         const fileContent = fs.readFileSync(filePath, "utf8");
 
-        const startMarker = `==================== START: ${baseName} ====================\n`;
-        const endMarker = `\n==================== END: ${baseName} ====================\n\n\n`; // Two blank lines after
+        const startMarker = `==================== START: ${baseName} ====================
+`;
+        const endMarker = `
+==================== END: ${baseName} ====================
+
+
+`;
 
         fs.appendFileSync(targetFile, startMarker);
         fs.appendFileSync(targetFile, fileContent);
-        // Ensure a newline before the end marker if fileContent doesn't end with one
         if (!fileContent.endsWith("\n")) {
           fs.appendFileSync(targetFile, "\n");
         }
@@ -173,9 +259,10 @@ async function main() {
     console.log(`Finished processing '${subdirName}'.`);
   }
 
-  console.log(`\nScript finished. Output files are in ${buildDir}`);
+  console.log(`
+Script finished. Output files are in ${buildDir}`);
   console.log(
-    "To run this script: node BETA-V3/build-bmad-assets.js [path/to/asset/folder]"
+    `To run this script: node ${path.relative(workspaceRoot, __filename)}`
   );
 }
 
