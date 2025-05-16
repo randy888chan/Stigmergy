@@ -166,7 +166,6 @@ test/: Contains all automated tests, mirroring the src/ structure where applicab
     // ... other properties
   }
   ```
-  _(Alternatively, use JSON Schema, class definitions, or other relevant format)_
 - **Validation Rules:** {List any specific validation rules beyond basic types - e.g., max length, format, range.}
 
 ### API Payload Schemas (If distinct)

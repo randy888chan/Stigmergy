@@ -1,4 +1,4 @@
-# The BMAD-Method (Breakthrough Method of Agile (ai-driven) Development)
+# The BMAD-Method (Breakthrough Method of Agile (ai-driven) Development) V3 Beta
 
 **BETA-V3 is the current focus of development and represents the latest iteration of the BMAD Method.** Find all V3 resources in the `BETA-V3/` directory.
 
