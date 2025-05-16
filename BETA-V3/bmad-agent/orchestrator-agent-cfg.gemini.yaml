@@ -91,14 +91,19 @@ agents:
       - "checklists#story-draft-checklist"
     operating_modes:
       - "Master Checklist"
-      - "Librarian"
       - "Story Creator"
     interaction_modes:
       - "Interactive"
       - "YOLO"
     templates:
       - "templates#story-tmpl"
-
+    available_tasks:
+      - task: "tasks#story-draft-task"
+        description: "Draft a story for a user story"
+        input: "checklists#story-draft-checklist"
+      - task: "tasks#doc-sharding-task"
+        description: "Extracts Epic files and shards the Architecture files into smaller, more manageable files"
+        input: "templates#doc-sharding-tmpl"
   - title: RTE
     name: Bob
     custom_instructions: ""
