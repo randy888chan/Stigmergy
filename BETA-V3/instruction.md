@@ -4,19 +4,105 @@
 - [IDE Agent Setup](#ide-agent-setup)
 - [Tasks Setup and Usage](#tasks)
 
-## Setting up Web-Mode Agents in Gemini Gem or ChatGPT Custom GPT
+## Setting up Agent Orchestrator
 
-To set up web-mode agents, please refer to the table below. It outlines the agent name, the source file for its description, and any checklist or template files that need to be attached.
+The Agent Orchestrator in V3 utilizes a build script to package various agent assets (personas, tasks, templates, etc.) into a structured format, primarily for use with web-based orchestrator agents that can leverage large context windows. This process involves consolidating files from specified source directories into bundled text files and preparing a main agent prompt.
 
-| Agent Name         | Description File Path                           | Attachment Files (Checklists/Templates)                                                                                                                                        |
-| ------------------ | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 0-bmad             | `BETA-V3/web-agent-modes/0-bmad.md`             |                                                                                                                                                                                |
-| 1-analyst          | `BETA-V3/web-agent-modes/1-analyst.md`          | `BETA-V3/templates/project-brief-tmpl.txt`                                                                                                                                     |
-| 2-pm               | `BETA-V3/web-agent-modes/2-pm.md`               | `BETA-V3/checklists/pm-checklist.txt`, `BETA-V3/templates/prd-tmpl.txt`                                                                                                        |
-| 3-architect        | `BETA-V3/web-agent-modes/3-architect.md`        | `BETA-V3/templates/architecture-tmpl.txt`, `BETA-V3/checklists/architect-checklist.txt`                                                                                        |
-| 4-design-architect | `BETA-V3/web-agent-modes/4-design-architect.md` | `BETA-V3/templates/front-end-architecture-tmpl.txt`, `BETA-V3/templates/front-end-spec-tmpl.txt`, `BETA-V3/checklists/frontend-architecture-checklist.txt`                     |
-| 5-posm             | `BETA-V3/web-agent-modes/5-posm.md`             | `BETA-V3/checklists/po-master-checklist.txt`, `BETA-V3/templates/story-tmpl.txt`, `BETA-V3/checklists/story-draft-checklist.txt`, `BETA-V3/checklists/story-dod-checklist.txt` |
-| 6-rte              | `BETA-V3/web-agent-modes/6-rte.md`              | `BETA-V3/checklists/rte-checklist.md`                                                                                                                                          |
+### Overview
+
+The build process is managed by the `BETA-V3/build-bmad-orchestrator.js` Node.js script. This script reads its configuration from `BETA-V3/build-agent-cfg.js`, processes files from an asset directory, and outputs the bundled assets into a designated build directory.
+
+### Prerequisites
+
+- **Node.js**: Ensure you have Node.js installed to run the build script.
+
+### Configuration (`BETA-V3/build-agent-cfg.js`)
+
+The build process is configured via `build-agent-cfg.js`. Key parameters include:
+
+- `orchestrator_agent_prompt`: Specifies the path to the main prompt file for the orchestrator agent. This file will be copied to `agent-prompt.txt` in the build directory.
+  - Example: `./bmad-agent/orchestrator-agent.md` (Path relative to `BETA-V3/`)
+- `asset_root`: Defines the root directory where your agent assets are stored. The script will look for subdirectories within this path.
+  - Example: `./bmad-agent/` (Path relative to `BETA-V3/`, meaning it will look for folders like `personas`, `tasks` inside `BETA-V3/bmad-agent/`)
+- `build_dir`: Specifies the directory where the bundled output files and the `agent-prompt.txt` will be created.
+  - Example: `./bmad-agent/build/` (Path relative to `BETA-V3/`, output will be in `BETA-V3/bmad-agent/build/`)
+- `agent_cfg`: Specifies the path to the YAML file that defines the agents the Orchestrator can embody.
+  - Example: `./samples/orchestrator-agent-cfg.gemini.yaml` (Path relative to `BETA-V3/`)
+
+Paths in the configuration file (`build-agent-cfg.js`) are relative to the `BETA-V3` directory (where `build-agent-cfg.js` and the build script `build-bmad-orchestrator.js` are located).
+
+### Asset Directory Structure
+
+The script expects a specific structure within the `asset_root` directory (e.g., `BETA-V3/bmad-agent/`):
+
+1.  **Subdirectories**: Create subdirectories directly under `asset_root` for each category of assets. Based on the `BMAD-METHOD/BETA-V3/bmad-agent` structure, these would be:
+    - `checklists/`
+    - `data/`
+    - `personas/`
+    - `tasks/`
+    - `templates/`
+2.  **Asset Files**: Place your individual asset files (e.g., `.md`, `.txt`) within these subdirectories.
+    - For example, persona definition files would go into `asset_root/personas/`, task files into `asset_root/tasks/`, etc.
+3.  **Filename Uniqueness**: Within each subdirectory, ensure that all files have unique base names (i.e., the filename without its final extension). For example, having `my-persona.md` and `my-persona.txt` in the _same_ subdirectory (e.g., `personas/`) will cause the script to halt with an error. However, `my-persona.md` and `another-persona.md` is fine.
+
+### Running the Build Script
+
+1.  **Navigate to the script's directory (optional but recommended for clarity)**:
+    ```bash
+    cd BETA-V3
+    ```
+2.  **Execute the script**:
+    ```bash
+    node build-bmad-orchestrator.js
+    ```
+    If you are in the workspace root, you would run:
+    ```bash
+    node BETA-V3/build-bmad-orchestrator.js
+    ```
+
+The script will log its progress, including discovered source directories, any issues found (like duplicate base filenames), and the output files being generated.
+
+### Output
+
+After running the script, the `build_dir` (e.g., `BETA-V3/bmad-agent/build/`) will contain:
+
+1.  **Bundled Asset Files**: For each subdirectory processed in `asset_root`, a corresponding `.txt` file will be created in `build_dir`. Each file concatenates the content of all files from its source subdirectory.
+    - Example: Files from `asset_root/personas/` will be bundled into `build_dir/personas.txt`.
+    - Each original file's content within the bundle is demarcated by `==================== START: [base_filename] ====================` and `==================== END: [base_filename] ====================`.
+2.  **`agent-prompt.txt`**: This file is a copy of the prompt specified by `orchestrator_agent_prompt` in the configuration.
+
+These bundled files and the agent prompt are then ready to be used by the Agent Orchestrator.
+
+### Orchestrator Agent Configuration (`BETA-V3/samples/orchestrator-agent-cfg.gemini.yaml`)
+
+While the `build-bmad-orchestrator.js` script handles the packaging of assets, the core behavior, agent definitions, and personality of the Orchestrator and its managed agents are defined in a separate YAML configuration file, typically `BETA-V3/samples/orchestrator-agent-cfg.gemini.yaml`. This file is **central** to the Orchestrator's power and flexibility.
+
+**Key Features and Configurability:**
+
+- **Agent Definitions**: This YAML file lists all the specialized agents the Orchestrator can embody. Each agent is defined with attributes such as:
+  - `title`: A user-friendly title (e.g., "Product Manager").
+  - `name`: A specific name for the agent (e.g., "John").
+  - `classification_label`: A label used for internal identification (e.g., "PM").
+  - `description`: A brief of the agent's purpose.
+  - `persona_core`: A reference to a specific section within a bundled asset file (e.g., `personas#pm` refers to the `pm` section in `personas.txt`). This defines the agent's core personality, instructions, and operational guidelines.
+  - `checklists`, `templates`, `data_sources`: Lists of references to specific sections in bundled asset files (e.g., `checklists#pm-checklist`) that provide the agent with its necessary knowledge base and tools.
+  - `operating_modes`: Defines different modes or phases the agent can operate in (e.g., "Outcome Focused PRD Generation", "Deep Research").
+  - `interaction_modes`: Specifies how the agent interacts (e.g., "Interactive", "YOLO" - which implies attempting to complete tasks autonomously).
+  - `available_tasks`: Links to specific task definitions (e.g., `tasks#story-draft-task`), imbuing the agent with the ability to perform predefined complex operations.
+- **Custom Instructions**: Each agent definition can include `custom_instructions`. This is a powerful feature allowing you to inject specific personality traits, quirks, or overriding behaviors directly into an agent. For example, an agent might be configured with `custom_instructions: "You are a bit of a know-it-all, and like to verbalize and emote as if you were a physical person."`
+  - As detailed in the `BETA-V3/bmad-agent/orchestrator-agent.md` (the main prompt for the orchestrator), these `custom_instructions` are layered on top of the agent's `persona_core` and take precedence if there are conflicts. This provides a fine-grained control over individual agent personalities without altering the base persona files.
+
+**How it Works (Conceptual Flow from `orchestrator-agent.md`):**
+
+1.  The Orchestrator (initially BMad) loads and parses `orchestrator-agent-cfg.gemini.yaml`.
+2.  When a user request matches an agent's `title`, `name`, `description`, or `classification_label`, the Orchestrator identifies the target agent.
+3.  It then loads the agent's `persona_core` and any associated `templates`, `checklists`, `data_sources`, and `tasks` by:
+    - Identifying the correct bundled `.txt` file (e.g., `personas.txt` for `personas#pm`).
+    - Extracting the specific content block (e.g., the `pm` section from `personas.txt`).
+4.  The `custom_instructions` from the YAML are applied, potentially modifying the agent's behavior.
+5.  The Orchestrator then _becomes_ that agent, adopting its complete persona, knowledge, and operational parameters defined in the YAML and the loaded asset sections.
+
+This system makes the Agent Orchestrator highly adaptable. You can easily define new agents, modify existing ones, tweak personalities with `custom_instructions` (in `orchestrator-agent-cfg.gemini.yaml`), or change their knowledge base, main prompt, and asset paths (in `build-agent-cfg.js` and the corresponding asset files), then re-running the build script if asset content was changed.
 
 ## IDE Agent Setup
 

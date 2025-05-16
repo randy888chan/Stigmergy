@@ -1,10 +1,28 @@
 #!/usr/bin/env node
-const fs = require("fs");
+const fs = require("fs"); // fs is still needed for other operations
 const path = require("path");
-const yaml = require("js-yaml");
+// const yaml = require("js-yaml"); // YAML is no longer needed for the main config
 
 // --- Configuration ---
-const CONFIG_FILE_PATH = path.resolve(__dirname, "build-agent-cfg.yml");
+// const CONFIG_FILE_PATH = path.resolve(__dirname, "build-agent-cfg.yml"); // Old way
+const configFilePath = "./build-agent-cfg.js"; // Path relative to this script (__dirname)
+let config;
+try {
+  config = require(configFilePath);
+} catch (error) {
+  console.error(
+    `Error loading configuration file '${configFilePath}': ${error.message}`
+  );
+  if (error.code === "MODULE_NOT_FOUND") {
+    console.error(
+      `Ensure '${path.resolve(
+        __dirname,
+        configFilePath
+      )}' exists and is a valid JavaScript module.`
+    );
+  }
+  process.exit(1);
+}
 
 // --- Helper Functions ---
 function getBaseFilename(filePath) {
@@ -24,24 +42,11 @@ function ensureDirectoryExists(dirPath) {
 
 // --- Main Script Logic ---
 async function main() {
-  // 1. Load Configuration
-  console.log(`Loading configuration from: ${CONFIG_FILE_PATH}`);
-  let config;
-  try {
-    if (!fs.existsSync(CONFIG_FILE_PATH)) {
-      console.error(
-        `Error: Configuration file not found at '${CONFIG_FILE_PATH}'.`
-      );
-      process.exit(1);
-    }
-    const configFileContents = fs.readFileSync(CONFIG_FILE_PATH, "utf8");
-    config = yaml.load(configFileContents);
-  } catch (error) {
-    console.error(
-      `Error loading or parsing configuration file: ${error.message}`
-    );
-    process.exit(1);
-  }
+  // 1. Load Configuration - ALREADY DONE ABOVE
+  console.log(
+    `Loading configuration from: ${path.resolve(__dirname, configFilePath)}`
+  );
+  // No need to check fs.existsSync(CONFIG_FILE_PATH) or read/parse, require() handles it.
 
   if (
     !config ||
@@ -61,7 +66,7 @@ async function main() {
   const assetFolderRootInput = config.asset_root;
   let assetFolderRoot;
   try {
-    assetFolderRoot = path.resolve(workspaceRoot, assetFolderRootInput);
+    assetFolderRoot = path.resolve(__dirname, assetFolderRootInput);
     if (
       !fs.existsSync(assetFolderRoot) ||
       !fs.statSync(assetFolderRoot).isDirectory()
@@ -82,7 +87,7 @@ async function main() {
   const buildDirInput = config.build_dir;
   let buildDir;
   try {
-    buildDir = path.resolve(workspaceRoot, buildDirInput);
+    buildDir = path.resolve(__dirname, buildDirInput);
   } catch (error) {
     console.error(
       `Error: Could not resolve build directory '${buildDirInput}'. ${error.message}`
@@ -99,7 +104,7 @@ async function main() {
   let orchestratorPromptPath;
   try {
     orchestratorPromptPath = path.resolve(
-      workspaceRoot,
+      __dirname,
       orchestratorPromptPathInput
     );
     if (
@@ -262,7 +267,10 @@ Processing '${subdirName}' directory into '${targetFile}'`);
   console.log(`
 Script finished. Output files are in ${buildDir}`);
   console.log(
-    `To run this script: node ${path.relative(workspaceRoot, __filename)}`
+    `To run this script: node ${path.relative(
+      path.resolve(__dirname, "../.."),
+      __filename
+    )}`
   );
 }
 
