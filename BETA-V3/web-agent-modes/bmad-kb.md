@@ -2,25 +2,37 @@
 
 ## INDEX OF TOPICS
 
-- [BMAD METHOD - VIBE CEOING & CORE PHILOSOPHY](#bmad-method---vibe-ceoing--core-philosophy)
-- [BMAD METHOD - AGILE METHODOLOGIES OVERVIEW](#bmad-method---agile-methodologies-overview)
-- [BMAD METHOD - ANALOGIES WITH AGILE PRINCIPLES](#bmad-method---analogies-with-agile-principles)
-- [BMAD METHOD - TOOLING AND RESOURCE LOCATIONS](#bmad-method---tooling-and-resource-locations)
-- [BMAD METHOD - COMMUNITY AND CONTRIBUTIONS](#bmad-method---community-and-contributions)
-- [BMAD METHOD - ETHOS & BEST PRACTICES](#bmad-method---ethos--best-practices)
-- [AGENT ROLES AND RESPONSIBILITIES](#agent-roles-and-responsibilities)
-  - [Analyst Agent (1-analyst.md)](#analyst-agent-1-analystmd)
-  - [PM Agent (Product Manager) (2-pm.md)](#pm-agent-product-manager-2-pmmd)
-  - [Architect Agent (3-architect.md)](#architect-agent-3-architectmd)
-  - [Design Architect Agent (4-design-architect.md)](#design-architect-agent-4-design-architectmd)
-  - [POSM Agent (Product Owner / Scrum Master - Technical) (5-posm.md)](#posm-agent-product-owner--scrum-master---technical-5-posmmd)
-  - [Developer Agents (Generic Role)](#developer-agents-generic---not-a-specific-md-file-but-a-role)
-  - [RTE-Agent (Release Train Engineer - Specialized) (6-rte.md)](#rte-agent-release-train-engineer---specialized-6-rtemd)
-- [NAVIGATING THE BMAD WORKFLOW - INITIAL GUIDANCE](#navigating-the-bmad-workflow---initial-guidance)
-- [SUGGESTED ORDER OF AGENT ENGAGEMENT (TYPICAL FLOW)](#suggested-order-of-agent-engagement-typical-flow)
-- [HANDLING MAJOR CHANGES](#handling-major-changes)
-- [IDE VS UI USAGE - GENERAL RECOMMENDATIONS](#ide-vs-ui-usage---general-recommendations)
-- [LEVERAGING IDE TASKS FOR EFFICIENCY](#leveraging-ide-tasks-for-efficiency)
+- [BMAD Knowledge Base](#bmad-knowledge-base)
+  - [INDEX OF TOPICS](#index-of-topics)
+  - [BMAD METHOD - VIBE CEOING \& CORE PHILOSOPHY](#bmad-method---vibe-ceoing--core-philosophy)
+  - [BMAD METHOD - AGILE METHODOLOGIES OVERVIEW](#bmad-method---agile-methodologies-overview)
+    - [CORE PRINCIPLES OF AGILE](#core-principles-of-agile)
+    - [KEY PRACTICES IN AGILE](#key-practices-in-agile)
+    - [BENEFITS OF AGILE](#benefits-of-agile)
+  - [BMAD METHOD - ANALOGIES WITH AGILE PRINCIPLES](#bmad-method---analogies-with-agile-principles)
+  - [BMAD METHOD - TOOLING AND RESOURCE LOCATIONS](#bmad-method---tooling-and-resource-locations)
+  - [BMAD METHOD - COMMUNITY AND CONTRIBUTIONS](#bmad-method---community-and-contributions)
+  - [BMAD METHOD - ETHOS \& BEST PRACTICES](#bmad-method---ethos--best-practices)
+  - [AGENT ROLES AND RESPONSIBILITIES](#agent-roles-and-responsibilities)
+    - [Analyst Agent (1-analyst.md)](#analyst-agent-1-analystmd)
+    - [PM Agent (Product Manager) (2-pm.md)](#pm-agent-product-manager-2-pmmd)
+    - [Architect Agent (3-architect.md)](#architect-agent-3-architectmd)
+    - [Design Architect Agent (4-design-architect.md)](#design-architect-agent-4-design-architectmd)
+    - [POSM Agent (Product Owner / Scrum Master - Technical) (5-posm.md)](#posm-agent-product-owner--scrum-master---technical-5-posmmd)
+    - [Developer Agents (Generic - Not a specific .md file, but a role)](#developer-agents-generic---not-a-specific-md-file-but-a-role)
+    - [RTE-Agent (Release Train Engineer - Specialized) (6-rte.md)](#rte-agent-release-train-engineer---specialized-6-rtemd)
+  - [NAVIGATING THE BMAD WORKFLOW - INITIAL GUIDANCE](#navigating-the-bmad-workflow---initial-guidance)
+    - [STARTING YOUR PROJECT - ANALYST OR PM?](#starting-your-project---analyst-or-pm)
+    - [UNDERSTANDING EPICS - SINGLE OR MULTIPLE?](#understanding-epics---single-or-multiple)
+  - [SUGGESTED ORDER OF AGENT ENGAGEMENT (TYPICAL FLOW)](#suggested-order-of-agent-engagement-typical-flow)
+  - [HANDLING MAJOR CHANGES](#handling-major-changes)
+  - [IDE VS UI USAGE - GENERAL RECOMMENDATIONS](#ide-vs-ui-usage---general-recommendations)
+    - [CONCEPTUAL AND PLANNING PHASES](#conceptual-and-planning-phases)
+    - [TECHNICAL DESIGN, DOCUMENTATION MANAGEMENT \& IMPLEMENTATION PHASES](#technical-design-documentation-management--implementation-phases)
+    - [BMAD METHOD FILES (\*.MD IN GEMS-AND-GPTS)](#bmad-method-files-md-in-gems-and-gpts)
+  - [LEVERAGING IDE TASKS FOR EFFICIENCY](#leveraging-ide-tasks-for-efficiency)
+    - [PURPOSE OF IDE TASKS](#purpose-of-ide-tasks)
+    - [EXAMPLES OF TASK FUNCTIONALITY](#examples-of-task-functionality)
 
 ---
 
@@ -261,9 +273,9 @@ _(Expanded from 0-bmad.md)_
 
 **OPERATIONAL_MODES:**
 
-1.  **UI/UX Specification Mode:** Focuses on user experience, visual design guidelines, and component definition.
-2.  **Frontend Architecture Mode:** Focuses on the technical structure of the frontend application.
-3.  **AI Frontend Generation Prompt Mode (Optional):** Creates a detailed prompt for an AI code generator to build the frontend.
+1. **UI/UX Specification Mode:** Focuses on user experience, visual design guidelines, and component definition.
+2. **Frontend Architecture Mode:** Focuses on the technical structure of the frontend application.
+3. **AI Frontend Generation Prompt Mode (Optional):** Creates a detailed prompt for an AI code generator to build the frontend.
 
 **KEY_ACTIVITIES (UI/UX Specification Mode):**
 
@@ -326,9 +338,9 @@ _(Expanded from 0-bmad.md)_
 
 **OPERATIONAL_MODES/PHASES:**
 
-1.  **Master Checklist Runner:** Validates all prior documentation against a comprehensive checklist.
-2.  **Librarian:** Processes validated documents into a granular, indexed structure.
-3.  **Story Creator:** Generates developer-ready story files from the granular documentation.
+1. **Master Checklist Runner:** Validates all prior documentation against a comprehensive checklist.
+2. **Librarian:** Processes validated documents into a granular, indexed structure.
+3. **Story Creator:** Generates developer-ready story files from the granular documentation.
 
 **KEY_ACTIVITIES (Master Checklist Runner):**
 
@@ -477,26 +489,26 @@ _(Expanded from 0-bmad.md)_
 
 **NOTE:** This is a general guideline. The BMAD method is iterative; phases/agents might be revisited.
 
-1.  **Analyst (Optional, Recommended for new/unclear ideas)**
+1. **Analyst (Optional, Recommended for new/unclear ideas)**
 
     - **FOCUS:** Brainstorming, research, Project Brief creation.
     - **OUTPUT:** Project Brief.
 
-2.  **PM (Product Manager)**
+2. **PM (Product Manager)**
 
     - **INPUT:** Project Brief or clear user idea.
     - **FOCUS:** Develop detailed PRD (Epics, User Stories).
     - **OUTPUT:** PRD.
     - **NOTE:** Recommends Design Architect if UI is involved.
 
-3.  **Architect**
+3. **Architect**
 
     - **INPUT:** PRD.
     - **FOCUS:** Design overall Technical Architecture Document (tech stack, data models, etc.).
     - **OUTPUT:** Technical Architecture Document.
     - **NOTE:** May provide specific prompt/context for Design Architect if UI is involved.
 
-4.  **Design Architect (If project has a UI)**
+4. **Design Architect (If project has a UI)**
 
     - **INPUT:** PRD, System Architecture consideration.
     - **FOCUS (Mode 1 - UI/UX Specification):** Create UI/UX Specification.
@@ -506,7 +518,7 @@ _(Expanded from 0-bmad.md)_
     - **FOCUS (Mode 3 - Optional):** Create AI Frontend Generation Prompt.
     - **OUTPUT (Mode 3):** Masterful prompt for AI code generation.
 
-5.  **POSM (Technical POSM)**
+5. **POSM (Technical POSM)**
 
     - **INPUT:** Completed & refined PRD, System Architecture, UI/UX Spec, Frontend Architecture.
     - **FOCUS (Phase 1 - Master Checklist):** Validate all documentation against `po-master-checklist.txt`.
@@ -517,13 +529,13 @@ _(Expanded from 0-bmad.md)_
     - **FOCUS (Phase 3 - Story Creator):** Generate developer-ready story files using granular docs.
     - **OUTPUT (Phase 3):** Developer-ready story files.
 
-6.  **Developer Agents**
+6. **Developer Agents**
 
     - **INPUT:** POSM-generated story files, granular documentation, architectures.
     - **FOCUS:** Implement the solution.
     - **ENVIRONMENT:** Typically IDE.
 
-7.  **Ongoing Advisory**
+7. **Ongoing Advisory**
     - **Architect (Master Architect Advisory mode):** For ongoing technical guidance, challenges, architectural changes.
     - **PM (Product Advisor Mode):** For product/PRD questions or updates.
 
