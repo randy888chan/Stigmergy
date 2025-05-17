@@ -24,8 +24,9 @@ po-master-checklist:
   checklist_file: docs/checklists/po-master-checklist.txt
   required_docs:
     - prd.md
-    - frontend-architecture.md
     - architecture.md
+  optional_docs:
+    - frontend-architecture.md
   default_locations:
     - docs/prd.md
     - docs/frontend-architecture.md

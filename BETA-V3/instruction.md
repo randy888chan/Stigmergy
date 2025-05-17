@@ -10,32 +10,32 @@ The Agent Orchestrator in V3 utilizes a build script to package various agent as
 
 ### Overview
 
-The build process is managed by the `BETA-V3/build-bmad-orchestrator.js` Node.js script. This script reads its configuration from `BETA-V3/build-agent-cfg.js`, processes files from an asset directory, and outputs the bundled assets into a designated build directory.
+The build process is managed by the `build-bmad-orchestrator.js` Node.js script. This script reads its configuration from `build-agent-cfg.js`, processes files from an asset directory, and outputs the bundled assets into a designated build directory.
 
 ### Prerequisites
 
-- **Node.js**: Ensure you have Node.js installed to run the build script.
+- **Node.js**: Ensure you have Node.js installed to run the build script. Python version coming soon...
 
-### Configuration (`BETA-V3/build-agent-cfg.js`)
+### Configuration (`build-agent-cfg.js`)
 
 The build process is configured via `build-agent-cfg.js`. Key parameters include:
 
 - `orchestrator_agent_prompt`: Specifies the path to the main prompt file for the orchestrator agent. This file will be copied to `agent-prompt.txt` in the build directory.
-  - Example: `./bmad-agent/orchestrator-agent.md` (Path relative to `BETA-V3/`)
+  - Example: `./bmad-agent/orchestrator-agent.md`
 - `asset_root`: Defines the root directory where your agent assets are stored. The script will look for subdirectories within this path.
-  - Example: `./bmad-agent/` (Path relative to `BETA-V3/`, meaning it will look for folders like `personas`, `tasks` inside `BETA-V3/bmad-agent/`)
+  - Example: `./bmad-agent/` meaning it will look for folders like `personas`, `tasks` inside `bmad-agent/`)
 - `build_dir`: Specifies the directory where the bundled output files and the `agent-prompt.txt` will be created.
-  - Example: `./bmad-agent/build/` (Path relative to `BETA-V3/`, output will be in `BETA-V3/bmad-agent/build/`)
+  - Example: `./bmad-agent/build/`
 - `agent_cfg`: Specifies the path to the YAML file that defines the agents the Orchestrator can embody.
-  - Example: `./samples/orchestrator-agent-cfg.gemini.yaml` (Path relative to `BETA-V3/`)
+  - Example: `./samples/orchestrator-agent-cfg.gemini.yaml`
 
 Paths in the configuration file (`build-agent-cfg.js`) are relative to the `BETA-V3` directory (where `build-agent-cfg.js` and the build script `build-bmad-orchestrator.js` are located).
 
 ### Asset Directory Structure
 
-The script expects a specific structure within the `asset_root` directory (e.g., `BETA-V3/bmad-agent/`):
+The script expects a specific structure within the `asset_root` directory:
 
-1.  **Subdirectories**: Create subdirectories directly under `asset_root` for each category of assets. Based on the `BMAD-METHOD/BETA-V3/bmad-agent` structure, these would be:
+1.  **Subdirectories**: Create subdirectories directly under `asset_root` for each category of assets. Based on the `bmad-agent/` folder, these would be:
     - `checklists/`
     - `data/`
     - `personas/`

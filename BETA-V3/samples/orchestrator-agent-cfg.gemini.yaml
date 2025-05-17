@@ -24,7 +24,7 @@ agents:
     templates:
       - "templates#project-brief-tmpl"
 
-  - title: Product Manager
+  - title: "Product Manager"
     name: John
     custom_instructions: ""
     classification_label: PM
@@ -32,11 +32,11 @@ agents:
     persona_core: "personas#pm"
     checklists:
       - "checklists#pm-checklist"
-    operating_modes:
-      - "Outcome Focused PRD Generation"
-      - "Very Technical PRD Generation"
-      - "Deep Research"
-      - "Product Advisor"
+      - "checklists#change-checklist"
+    available_tasks:
+      - "tasks#create-prd"
+      - "tasks#correct-course"
+      - "tasks#create-deep-research-prompt"
     interaction_modes:
       - "Interactive"
       - "YOLO"
@@ -51,17 +51,16 @@ agents:
     persona_core: "personas#architect"
     checklists:
       - "checklists#architect-checklist"
-    operating_modes:
-      - "Architecture Creation"
-      - "Master Architect Advisory"
-      - "Deep Research"
+    available_tasks:
+      - "tasks#create-architecture"
+      - "tasks#create-deep-research-prompt"
     interaction_modes:
       - "Interactive"
       - "YOLO"
     templates:
       - "templates#architecture-tmpl"
 
-  - title: Design Architect
+  - title: "Design Architect"
     name: Jane
     custom_instructions: ""
     classification_label: Design_Architect
@@ -69,10 +68,10 @@ agents:
     persona_core: "personas#design-architect"
     checklists:
       - "checklists#frontend-architecture-checklist"
-    operating_modes:
-      - "Frontend Architecture"
-      - "UI/UX Specification"
-      - "AI Frontend Generation Prompt"
+    available_tasks:
+      - "tasks#create-frontend-architecture"
+      - "tasks#create-ai-frontend-prompt"
+      - "tasks#create-uxui-spec"
     interaction_modes:
       - "Interactive"
       - "YOLO"
@@ -80,18 +79,15 @@ agents:
       - "templates#front-end-architecture-tmpl"
       - "templates#front-end-spec-tmpl"
 
-  - title: POSM
+  - title: PO
     name: Sarah
     custom_instructions: ""
-    classification_label: POSM
-    description: "For user stories, backlog management, agile ceremonies, PO/SM checklists."
-    persona_core: "personas#posm"
+    classification_label: PO
+    description: "Agile Product Owner."
+    persona_core: "personas#po"
     checklists:
       - "checklists#po-master-checklist"
       - "checklists#story-draft-checklist"
-    operating_modes:
-      - "Master Checklist"
-      - "Story Creator"
     interaction_modes:
       - "Interactive"
       - "YOLO"
@@ -104,16 +100,27 @@ agents:
       - task: "tasks#doc-sharding-task"
         description: "Extracts Epic files and shards the Architecture files into smaller, more manageable files"
         input: "templates#doc-sharding-tmpl"
-  - title: RTE
+
+  - title: SM
     name: Bob
     custom_instructions: ""
-    classification_label: RTE
-    description: "For release planning, cross-team coordination, RTE checklists."
-    persona_core: "personas#rte"
+    classification_label: SM
+    description: "A very Technical Scrum Master helps the team run the Scrum process."
+    persona_core: "personas#sm"
     checklists:
-      - "checklists#rte-checklist"
-    operating_modes:
-      - "Default"
+      - "checklists#change-checklist"
+      - "checklists#story-dod-checklist"
+      - "checklists#story-draft-checklist"
+    available_tasks:
+      - "tasks#checklist-run-task"
+      - "tasks#correct-course"
     interaction_modes:
       - "Interactive"
       - "YOLO"
+
+  - title: DEV
+    name: Dana
+    custom_instructions: ""
+    classification_label: DEV
+    description: "A very Technical Senior Software Developer."
+    persona_core: "personas#dev"

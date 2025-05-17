@@ -52,10 +52,11 @@ async function main() {
     !config ||
     !config.asset_root ||
     !config.build_dir ||
-    !config.orchestrator_agent_prompt
+    !config.orchestrator_agent_prompt ||
+    !config.agent_cfg
   ) {
     console.error(
-      "Error: Missing required fields (asset_root, build_dir, orchestrator_agent_prompt) in configuration file."
+      "Error: Missing required fields (asset_root, build_dir, orchestrator_agent_prompt, agent_cfg) in configuration file."
     );
     process.exit(1);
   }
@@ -212,6 +213,40 @@ Discovering source directories in '${assetFolderRoot}' (excluding '${buildDirNam
   console.log(
     "Pre-check completed. No critical duplicate base filenames found (or directories were empty/unreadable)."
   );
+
+  // NEW STEP: Copy agent_cfg to build_dir as agent-config.txt
+  const agentConfigPathInput = config.agent_cfg;
+  let agentConfigPath;
+  try {
+    agentConfigPath = path.resolve(__dirname, agentConfigPathInput);
+    if (
+      !fs.existsSync(agentConfigPath) ||
+      !fs.statSync(agentConfigPath).isFile()
+    ) {
+      console.error(
+        `Error: Agent config file '${agentConfigPathInput}' (resolved to '${agentConfigPath}') not found or not a file.`
+      );
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(
+      `Error: Could not resolve agent config file '${agentConfigPathInput}'. ${error.message}`
+    );
+    process.exit(1);
+  }
+
+  const agentConfigOutputPath = path.join(buildDir, "agent-config.txt");
+  try {
+    const configContent = fs.readFileSync(agentConfigPath, "utf8");
+    fs.writeFileSync(agentConfigOutputPath, configContent);
+    console.log(`
+Successfully copied agent configuration to '${agentConfigOutputPath}'`);
+  } catch (error) {
+    console.error(
+      `Error copying agent configuration to '${agentConfigOutputPath}': ${error.message}`
+    );
+    process.exit(1);
+  }
 
   // 6. Main processing loop for discovered subdirectories
   for (const subdirName of sourceSubdirNames) {
