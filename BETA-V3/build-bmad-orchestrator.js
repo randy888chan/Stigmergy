@@ -274,6 +274,15 @@ Processing '${subdirName}' directory into '${targetFile}'`);
       const filePath = path.join(sourceSubdirPath, filenameWithExt);
       if (fs.statSync(filePath).isFile()) {
         const baseName = getBaseFilename(filenameWithExt);
+
+        // Skip files like 'filename.ide.ext'
+        if (baseName.endsWith(".ide")) {
+          console.log(
+            `  Skipping IDE-specific file: '${filenameWithExt}' in '${subdirName}'`
+          );
+          continue; // Skip to the next file
+        }
+
         console.log(
           `  Appending content from '${filenameWithExt}' (as '${baseName}') to '${targetFile}'`
         );

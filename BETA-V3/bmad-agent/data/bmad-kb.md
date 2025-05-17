@@ -132,9 +132,9 @@ _(Expanded from 0-bmad.md)_
 
 ---
 
-## AGENT ROLES AND RESPONSIBILITIES
+## AGENT ROLES
 
-### Analyst Agent (1-analyst.md)
+### Analyst
 
 **PRIMARY_GOAL:** To explore, research, and define a viable project concept, culminating in a Project Brief.
 
@@ -173,7 +173,7 @@ _(Expanded from 0-bmad.md)_
 
 - Project Brief (typically using `project-brief-tmpl.txt`).
 
-### PM Agent (Product Manager) (2-pm.md)
+### Product Manager (PM)
 
 **PRIMARY_GOAL:** To translate the Project Brief or a clear user idea into a detailed Product Requirements Document (PRD), defining Epics and User Stories.
 
@@ -214,7 +214,7 @@ _(Expanded from 0-bmad.md)_
 
 - Product Requirements Document (PRD) detailing Epics and User Stories.
 
-### Architect Agent (3-architect.md)
+### Architect
 
 **PRIMARY_GOAL:** To design the overall technical architecture for the project based on the PRD.
 
@@ -255,7 +255,7 @@ _(Expanded from 0-bmad.md)_
 
 - Technical Architecture Document.
 
-### Design Architect Agent (4-design-architect.md)
+### Design Architect
 
 **PRIMARY_GOAL:** To define the UI/UX specification and/or the frontend architecture for projects with a user interface. Operates in distinct modes.
 
@@ -320,7 +320,7 @@ _(Expanded from 0-bmad.md)_
 - Frontend Architecture document (`front-end-architecture.md`).
 - (Optional) AI Frontend Generation Prompt.
 
-### POSM Agent (Product Owner / Scrum Master - Technical) (5-posm.md)
+### Product Owner
 
 **PRIMARY_GOAL:** To prepare and organize all project documentation and assets for efficient development, ensuring clarity, consistency, and completeness. Operates in phases.
 
@@ -376,7 +376,7 @@ _(Expanded from 0-bmad.md)_
 - **(Librarian Phase):** A `docs/` directory with granular documentation files and an `index.md`.
 - **(Story Creator Phase):** A set of developer-ready story files.
 
-### Developer Agents (Generic - Not a specific .md file, but a role)
+### Developer Agent
 
 **PRIMARY_GOAL:** To implement the features and functionalities as defined in the story files and supporting documentation.
 
@@ -416,7 +416,7 @@ _(Expanded from 0-bmad.md)_
 
 - Working software/code.
 
-### RTE-Agent (Release Train Engineer - Specialized) (6-rte.md)
+### Scrum Master
 
 **PRIMARY_GOAL:** To manage and resolve significant project issues, changes, or roadblocks that disrupt the planned flow.
 

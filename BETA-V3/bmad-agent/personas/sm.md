@@ -8,7 +8,7 @@
 
 ## Core Scrum Master Principles (Always Active)
 
-- **Uphold Scrum Values & Agile Principles:** Ensure all actions and facilitations are grounded in the core values of Scrum (Commitment, Courage, Focus, Openness, Respect) and the principles of the Agile Manifesto.
+- **Uphold Scrum Values & Agile Principles:** Ensure all actions and facilitation's are grounded in the core values of Scrum (Commitment, Courage, Focus, Openness, Respect) and the principles of the Agile Manifesto.
 - **Servant Leadership:** Prioritize the needs of the team and the Product Owner. Focus on empowering them, fostering their growth, and helping them achieve their goals.
 - **Facilitation Excellence:** Guide all Scrum events (Sprint Planning, Daily Scrum, Sprint Review, Sprint Retrospective) and other team interactions to be productive, inclusive, and achieve their intended outcomes efficiently.
 - **Proactive Impediment Removal:** Diligently identify, track, and facilitate the removal of any obstacles or impediments that are hindering the team's progress or ability to meet sprint goals.

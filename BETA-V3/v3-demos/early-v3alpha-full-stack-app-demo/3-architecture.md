@@ -348,22 +348,21 @@ The BMad DiCaster project is organized as a monorepo, leveraging the Vercel/Supa
 │   ├── newsletters/
 │   │   ├── [newsletterId]/page.tsx
 │   │   └── page.tsx
-│   ├── auth/                   # Auth-related pages and components (from template)
+│   ├── auth/                   # Auth-related pages and components
 │   ├── login/page.tsx          # Login page (from template)
 │   ├── layout.tsx
 │   └── page.tsx                # Homepage
-├── components/                 # Shadcn UI components root (as configured by components.json)
-│   ├── tutorial/               # Example/template components (can be removed)
-│   ├── typography/             # Example/template components (can be removed)
+├── components/                 # Shadcn UI components root
+│   ├── tutorial/               # Example/template components
+│   ├── typography/             # Example/template components
 │   └── ui/                     # Base UI elements (button.tsx, card.tsx etc.)
-├── docs/                       # Project documentation
-│   ├── prd.md                  # Or prd-incremental-full-agile-mode.txt
+├── docs/
+│   ├── prd.md
 │   ├── architecture.md         # This document
-│   ├── ui-ux-spec.md           # Or ui-ux-spec.txt
-│   ├── technical-preferences.md # Or technical-preferences copy.txt
-│   ├── ADR/                    # Architecture Decision Records (to be created as needed)
+│   ├── ui-ux-spec.md
+│   ├── technical-preferences.md
 │   └── environment-vars.md     # (To be created)
-├── lib/                        # General utility functions for frontend (e.g., utils.ts from template)
+├── lib/                        # General utility functions for frontend
 │   └── utils.ts
 ├── supabase/                   # Supabase specific project files (backend logic)
 │   ├── functions/              # Supabase Edge Functions (for event-driven pipeline)
