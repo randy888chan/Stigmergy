@@ -10,6 +10,8 @@ Orchestrator Uber BMad Agent that does it all - already [pre-built](./web-build-
 
 ![image info](./docs/images/gem-setup.png)
 
+If you are not sure what to do in the Web Agent - try /help to get a list of commands, and /agents to see what personas BMad can become.
+
 If you are going to use the IDE Agents in your project, after cloning the repo, you can copy the bmad-agent folder to your project as is if you like - this is the easiest. You can also from this cloned repo root folder execute the command with nodeJS to build and bundle your assets to easily program an ultra powerful Web Agent to handle all agile process from ideation to ready to develop (Recommended).
 
 So if you want to jump right in, here are the [Setup and Usage Instructions](./docs/instruction.md) for IDE, WEB and Task setup.
