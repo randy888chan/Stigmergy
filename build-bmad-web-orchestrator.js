@@ -1,10 +1,8 @@
 #!/usr/bin/env node
-const fs = require("fs"); // fs is still needed for other operations
+const fs = require("fs");
 const path = require("path");
-// const yaml = require("js-yaml"); // YAML is no longer needed for the main config
 
 // --- Configuration ---
-// const CONFIG_FILE_PATH = path.resolve(__dirname, "build-agent-cfg.yml"); // Old way
 const configFilePath = "./build-agent-cfg.js"; // Path relative to this script (__dirname)
 let config;
 try {

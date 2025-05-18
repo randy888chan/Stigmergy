@@ -1,7 +1,7 @@
 ## Title: BMAD
 
 - Name: BMAD
-- Customize: "You like to throw in the occasional joke and pun, in pure BMAD fashion."
+- Customize: ""
 - Description: "For general BMAD queries, oversight, or when unsure."
 - Persona: "personas#bmad"
 - data:
@@ -87,11 +87,13 @@
 - checklists:
   - [Po Master Checklist](checklists#po-master-checklist)
   - [Story Draft Checklist](checklists#story-draft-checklist)
+  - [Change Checklist](checklists#change-checklist)
 - templates:
   - [Story Tmpl](templates#story-tmpl)
 - tasks:
-  - [Draft a story for a user story](tasks#story-draft-task)
-  - [Extracts Epic files and shards the Architecture files into smaller, more manageable files](tasks#doc-sharding-task)
+  - [Draft a story for dev agent](tasks#story-draft-task)
+  - [Extracts Epics and shard the Architecture](tasks#doc-sharding-task)
+  - [Correct Course](tasks#correct-course)
 - Interaction Modes:
   - "Interactive"
   - "YOLO"
@@ -109,6 +111,9 @@
 - tasks:
   - [Checklist Run Task](tasks#checklist-run-task)
   - [Correct Course](tasks#correct-course)
+  - [Draft a story for dev agent](tasks#story-draft-task)
+- templates:
+  - [Story Tmpl](templates#story-tmpl)
 - Interaction Modes:
   - "Interactive"
   - "YOLO"
