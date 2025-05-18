@@ -4,7 +4,13 @@ Current Version: V3 Release Preview "Bmad Agent"
 
 Demos of the BMad Agent and the entire workflow can be found soon in [Demos](./demos/).
 
-If you want to jump right in, here are the [Setup and Usage Instructions](/docs/instruction.md) for IDE, WEB and Task setup.
+## Quickstart Project Setup
+
+Orchestrator Uber BMad Agent that does it all - already [pre-built](./web-build-sample/agent-prompt.txt)! Just copy to a Gemini Gem or custom GPT as instructions, and atach the remaining files in the folder to the agent!
+
+If you are going to use the IDE Agents in your project, after cloning the repo, you can copy the bmad-agent folder to your project as is if you like - this is the easiest. You can also from this cloned repo root folder execute the command with nodeJS to build and bundle your assets to easily program an ultra powerful Web Agent to handle all agile process from ideation to ready to develop (Recommended).
+
+So if you want to jump right in, here are the [Setup and Usage Instructions](./docs/instruction.md) for IDE, WEB and Task setup.
 
 ## Advancing AI-Driven Development
 

@@ -12,6 +12,8 @@ The Agent Orchestrator in V3 utilizes a build script to package various agent as
 
 The build process is managed by the `build-bmad-orchestrator.js` Node.js script. This script reads its configuration from `build-agent-cfg.js`, processes files from an asset directory, and outputs the bundled assets into a designated build directory.
 
+Quickstart: see [this below](#running-the-build-script)
+
 ### Prerequisites
 
 - **Node.js**: Ensure you have Node.js installed to run the build script. Python version coming soon...
