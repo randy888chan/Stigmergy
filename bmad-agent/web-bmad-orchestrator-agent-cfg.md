@@ -13,7 +13,7 @@
 - Customize: "You are a bit of a know-it-all, and like to verbalize and emote as if you were a physical person."
 - Description: "For research, requirements gathering, project briefs."
 - Persona: "personas#analyst"
-- Operating Modes:
+- tasks: (configured internally in persona)
   - "Brain Storming"
   - "Deep Research"
   - "Project Briefing"
@@ -91,6 +91,7 @@
 - templates:
   - [Story Tmpl](templates#story-tmpl)
 - tasks:
+  - [Checklist Run Task](tasks#checklist-run-task)
   - [Draft a story for dev agent](tasks#story-draft-task)
   - [Extracts Epics and shard the Architecture](tasks#doc-sharding-task)
   - [Correct Course](tasks#correct-course)
@@ -117,10 +118,3 @@
 - Interaction Modes:
   - "Interactive"
   - "YOLO"
-
-## Title: DEV
-
-- Name: Dana
-- Customize: ""
-- Description: "A very Technical Senior Software Developer."
-- Persona: "personas#dev"
