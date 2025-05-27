@@ -60,7 +60,6 @@ async function main() {
   }
 
   // 2. Determine and validate asset folder root and build directory
-  const _workspaceRoot = path.resolve(__dirname, ".");
 
   const assetFolderRootInput = config.asset_root;
   let assetFolderRoot;
