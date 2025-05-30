@@ -1,7 +1,11 @@
-# Memory-Orchestrated Context Management Task
+# Memory Operations Task
+<!-- Simplified task interface for memory operations -->
+<!-- Full architecture: memory/memory-system-architecture.md -->
+
+> **Note**: This is the executable memory operations task. For detailed integration guidance and implementation details, see `bmad-agent/memory/memory-system-architecture.md`.
 
 ## Purpose
-Seamlessly integrate OpenMemory MCP for intelligent context persistence and retrieval across all BMAD operations, creating a learning system that accumulates wisdom and provides proactive intelligence.
+Execute memory-aware context management for the current session, integrating historical insights and patterns to enhance decision-making and maintain continuity across interactions.
 
 ## Memory Categories & Schemas
 

@@ -1,7 +1,11 @@
-# Memory-Orchestrated Context Management
+# Memory System Architecture
+<!-- Comprehensive architectural blueprint for memory system implementation -->
+<!-- For executable memory operations, see tasks/memory-operations-task.md -->
+
+> **Note**: This is an architectural guide for memory system implementation, not an executable task. For the executable memory orchestration task, see `bmad-agent/tasks/memory-operations-task.md`.
 
 ## Purpose
-Seamlessly integrate OpenMemory for intelligent context persistence and retrieval across all BMAD operations, providing cognitive load reduction through learning and pattern recognition.
+This guide provides comprehensive instructions for integrating memory capabilities into the BMAD orchestrator and personas. It serves as a reference for developers implementing or extending memory functionality.
 
 ## Memory Categories & Schemas
 

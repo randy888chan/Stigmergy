@@ -1,0 +1,133 @@
+# BMAD Command Registry
+
+# Core Commands
+help:
+  description: Display help information
+  aliases: [h, ?]
+  usage: "/help [topic]"
+  topics:
+    - commands: List all available commands
+    - personas: Show available personas
+    - workflow: Explain BMAD workflow
+    - memory: Memory system help
+
+agents:
+  description: List available agents/personas
+  aliases: [personas, list]
+  usage: "/agents"
+  
+context:
+  description: Display current context with memory insights
+  aliases: [ctx, status]
+  usage: "/context"
+
+# Persona Commands
+analyst:
+  description: Switch to Analyst persona
+  shortcut: "/analyst"
+  
+pm:
+  description: Switch to Product Manager persona
+  shortcut: "/pm"
+  
+architect:
+  description: Switch to Architect persona
+  shortcut: "/architect"
+  
+dev:
+  description: Switch to Developer persona
+  shortcut: "/dev"
+  
+sm:
+  description: Switch to Scrum Master persona
+  shortcut: "/sm"
+
+po:
+  description: Switch to Product Owner persona
+  shortcut: "/po"
+
+quality:
+  description: Switch to Quality Enforcer persona
+  shortcut: "/quality"
+
+# Memory Commands
+remember:
+  description: Manually add to memory
+  usage: "/remember {content}"
+  aliases: [mem, save]
+  
+recall:
+  description: Search memories
+  usage: "/recall {query}"
+  aliases: [search, find]
+  
+insights:
+  description: Get proactive insights for current context
+  usage: "/insights"
+  
+patterns:
+  description: Show recognized patterns
+  usage: "/patterns"
+
+# Consultation Commands
+consult:
+  description: Start multi-persona consultation
+  usage: "/consult {type}"
+  types:
+    - design-review
+    - technical-feasibility
+    - product-strategy
+    - quality-assessment
+    - emergency-response
+    - custom
+
+# Quality Commands
+udtm:
+  description: Execute Ultra-Deep Thinking Mode
+  usage: "/udtm"
+  
+quality-gate:
+  description: Run quality gate validation
+  usage: "/quality-gate {phase}"
+  phases:
+    - pre-implementation
+    - implementation
+    - completion
+    
+anti-pattern-check:
+  description: Scan for anti-patterns
+  usage: "/anti-pattern-check"
+
+# Workflow Commands
+suggest:
+  description: Get AI-powered next step recommendations
+  usage: "/suggest"
+  
+handoff:
+  description: Structured persona transition
+  usage: "/handoff {persona}"
+  
+core-dump:
+  description: Save session state
+  usage: "/core-dump"
+
+# System Commands
+diagnose:
+  description: Run system health check
+  usage: "/diagnose"
+  
+optimize:
+  description: Performance analysis
+  usage: "/optimize"
+  
+yolo:
+  description: Toggle YOLO mode
+  usage: "/yolo"
+  
+exit:
+  description: Exit current persona
+  usage: "/exit"
+
+# Note: This is a placeholder registry. Additional commands and enhanced functionality
+# will be added as the BMAD method evolves. The orchestrator can use this registry
+# to provide contextual help and command validation. 

@@ -1,83 +1,193 @@
-# The BMAD-Method 3.1 (Breakthrough Method of Agile (ai-driven) Development)
+# BMAD METHOD - Build, Manage, Adapt & Deliver
 
-Demo of the BMad Agent entire workflow output from the web agent can be found in [Demos](./demos/readme.md) - and if you want to read a really long transcript of me talking to the multiple personality BMad Agent that produced the demo content - you can read the [full transcript](https://gemini.google.com/share/41fb640b63b0) here.
+A comprehensive Agent-based software development methodology that orchestrates specialized AI personas through the complete software lifecycle. The BMAD Method transforms how teams approach product development by providing memory-enhanced, quality-enforced workflows that adapt and improve over time.
 
-## Web Quickstart Project Setup (Recommended)
+## What is BMAD?
 
-Orchestrator Uber BMad Agent that does it all - already pre-compiled in the `./web-build-sample` folder. You can rebuild if you have node installed from the root of the project with the command `node ./build-web-agent.js`. The contents of agent-prompt.txt in the sample or build output folder should be copied and pasted into the Gemini Gem, or ChatPGT customGPT 'Instructions' field. The remaining files in this folder just need to be attached. Give it a name and save it, and you now have the BMad Agent available to help you brainstorm, research plan and execute on your vision.
+BMAD is more than a workflow—it's an intelligent development companion that:
+- 🎭 **Orchestrates specialized AI personas** for every development role
+- 🧠 **Learns from experience** through integrated memory systems
+- ✅ **Enforces quality standards** with zero-tolerance for anti-patterns
+- 🔄 **Adapts to your patterns** becoming more effective over time
+- 🤝 **Enables collaboration** through multi-persona consultations
 
-![image info](./docs/images/gem-setup.png)
+## Key Components
 
-If you are not sure what to do in the Web Agent - try `/help` to get a list of commands, and `/agents` to see what personas BMad can become.
+- 🎭 **Specialized Personas** - Expert agents for PM, Architect, Dev, QA, and more
+- 📋 **Smart Task System** - Context-aware task execution with quality gates
+- ✅ **Quality Enforcement** - Automated standards compliance and validation
+- 📝 **Templates** - Standardized document templates for consistent deliverables
+- 🧠 **Memory Integration** - Persistent learning and context management via OpenMemory MCP
+- ⚡ **Performance Optimization** - Smart caching and resource management
 
-## IDE Project Quickstart
+## Orchestrator Variations
 
-After you clone the project to your local machine, you can copy the `bmad-agent` folder to your project root. This will put the templates, checklists, and other assets the local agents will need to use the agents from your IDE instead of the Web Agent. Minimally to build your project you will want the sm.ide.md and dev.ide.md so you can draft and build your project incrementally.
+The BMAD Method includes two orchestrator implementations, each optimized for different contexts:
 
-Here are the more [Setup and Usage Instructions](./docs/instruction.md) for IDE, WEB and Task setup.
+### IDE Orchestrator (Primary)
+**Files**: `bmad-agent/ide-bmad-orchestrator.md` & `bmad-agent/ide-bmad-orchestrator.cfg.md`
 
-Starting with the latest version of the BMad Agents for the BMad Method is very easy - all you need to do is copy `bmad-agent` folder to your project. The dedicated dev and sm that existing in previous versions are still available and are in the `bmad-agent/personas` folder with the .ide.md extension. Copy and paste the contents into your specific IDE's method of configuring a custom agent mode. The dev and sm both are configured for architecture and prd artifacts to be in (project-root)/docs and stories will be generated and developed in/from your (project-root)/docs/stories.
+**Purpose**: Optimized for IDE integration with comprehensive memory enhancement and quality enforcement
 
-For all other agent use (including the dev and sm) you can set up the [ide orchestrator](bmad-agent/ide-bmad-orchestrator.md) - you can ask the orchestrator bmad to become any agent you have [configured](bmad-agent/ide-bmad-orchestrator.cfg.md).
+**Key Features**:
+- Memory-enhanced context continuity
+- Proactive intelligence and pattern recognition
+- Multi-persona consultation mode
+- Integrated quality enforcement framework
+- Performance optimization for IDE environments
 
-[General IDE Custom Mode Setup](./docs/ide-setup.md).
+**Best For**: Active development in IDE environments where memory persistence and quality enforcement are critical
 
-## Advancing AI-Driven Development
+### Web Orchestrator (Alternative)
+**Files**: `bmad-agent/web-bmad-orchestrator-agent.md` & `bmad-agent/web-bmad-orchestrator-agent.cfg.md`
 
-Welcome to the latest and most advanced yet easy to use version of the Web and IDE Agent Agile Workflow! This new version, called BMad Agent, represents a significant evolution that builds but vastly improves upon the foundations of [legacy V2](./legacy-archive/V2/), introducing a more refined and comprehensive suite of agents, templates, checklists, tasks - and the amazing BMad Orchestrator and Knowledge Base agent is now available - a master of every aspect of the method that can become any agent and even handle multiple tasks all within a single massive web context if so desired.
+**Purpose**: Streamlined for web-based or lightweight environments
 
-## What's New?
+**Key Features**:
+- Simplified persona management
+- Basic task orchestration
+- Minimal resource footprint
+- Web-friendly command structure
 
-All IDE Agents are now optimized to be under 6K characters, so they will work with windsurf's file limit restrictions.
+**Best For**: Web interfaces, demos, or resource-constrained environments
 
-The method now has an uber Orchestrator called BMAD - this agent will take your web or ide usage to the next level - this agent can morph and become the specific agent you want to work with! This makes Web usage super easy to use and set up. And in the IDE - you do not have to set up so many different agents if you do not want to!
+### Choosing an Orchestrator
+- Use **IDE Orchestrator** for full-featured development with memory and quality enforcement
+- Use **Web Orchestrator** for lightweight deployments or web-based interfaces
+- Both orchestrators share the same persona and task definitions for consistency
 
-There have been drastic improvements to the generation of documents and artifacts and the agents are now programmed to really help you build the best possible plans. Advanced LLM prompting techniques have been incorporated and programmed to help you help the agents produce amazing accurate artifacts, unlike anything seen before. Additionally agents are now configurable in what they can and cannot do - so you can accept the defaults, or set which personas are able to do what tasks. If you think the PO should be the one generating PRDs and the Scrum Master should be your course corrector - its all possible now! **Define agile the BMad way - or your way!**
+## Key Features
 
-While this is very powerful - you can get started with the default recommended set up as is in this repo, and basically use the agents as they are envisioned and will be explained. Detailed configuration and usage is outlined in the [Instructions](./docs/instruction.md)
+### 🧠 Memory-Enhanced Development
+- **Persistent Learning**: Remembers decisions, patterns, and outcomes across sessions
+- **Proactive Intelligence**: Warns about potential issues based on past experiences
+- **Context-Rich Handoffs**: Smooth transitions between personas with full historical context
+- **Pattern Recognition**: Identifies and suggests successful approaches from past projects
 
-## What is the BMad Method?
+### ✅ Quality Enforcement Framework
+- **Zero-Tolerance Anti-Patterns**: Automated detection and prevention of poor practices
+- **Ultra-Deep Thinking Mode (UDTM)**: Systematic multi-angle analysis for critical decisions
+- **Quality Gates**: Mandatory checkpoints before phase transitions
+- **Brotherhood Reviews**: Honest, specific peer feedback requirements
+- **Evidence-Based Decisions**: All choices backed by data and validation
 
-The BMad Method is a revolutionary approach that elevates "vibe coding" to advanced project planning to ensure your developer agents can start and completed advanced projects with very explicit guidance. It provides a structured yet flexible framework to plan, execute, and manage software projects using a team of specialized AI agents.
+### 🎭 Specialized Personas
+Each persona is an expert in their domain with specific skills, tasks, and quality standards:
+- **PM (Product Manager)**: Market research, requirements, prioritization
+- **Architect**: System design, technical decisions, patterns
+- **Dev**: Implementation with quality compliance
+- **QA/Quality Enforcer**: Standards enforcement, validation
+- **SM (Scrum Master)**: Story creation, sprint management
+- **Analyst**: Research, brainstorming, documentation
+- **PO (Product Owner)**: Validation, acceptance, delivery
 
-This method and tooling is so much more than just a task runner - this is a refined tool that will help you bring out your best ideas, define what you really are to build, and execute on it! From ideation, to PRD creation, to the technical decision making - this will help you do it all with the power of advanced LLM guidance.
+### 🔄 Intelligent Workflows
+- **Adaptive Recommendations**: Suggests next steps based on context
+- **Multi-Persona Consultations**: Coordinate multiple experts for complex decisions
+- **Workflow Templates**: Pre-defined paths for common scenarios
+- **Progress Tracking**: Real-time visibility into project status
 
-The method is designed to be tool-agnostic in principle, with agent instructions and workflows adaptable to various AI platforms and IDEs.
+## Getting Started
 
-## Agile Agents
+### Quick Start (IDE)
+1. Copy the BMAD agent folder to your project
+2. Open `bmad-agent/ide-bmad-orchestrator.md` in your AI assistant
+3. The orchestrator will initialize and guide you through available commands
+4. Start with `/start` to begin a new session
 
-Agents are programmed either directly self contained to drop right into an agent config in the ide - or they can be configured as programmable entities the orchestrating agent can become.
+### Quick Start (Web)
+1. Copy the BMAD agent folder to your web project
+2. Load `bmad-agent/web-bmad-orchestrator-agent.md` in your interface
+3. Use web-friendly commands to interact with personas
+4. Begin with `/help` to see available options
 
-### Web Agents
+### Core Commands
+- `/start` - Initialize a new session
+- `/status` - Check current state and active persona
+- `/[persona]` - Switch to a specific persona (e.g., `/pm`, `/dev`)
+- `/consult` - Start multi-persona consultation
+- `/memory-status` - View memory integration status
+- `/help` - Get context-aware assistance
 
-Gemini 2.5 or Open AI customGPTs are created by running the node build script to generate output to a build folder. This output is the full package to create the orchestrator web agent.
+## Example Workflow
 
-See the detailed [Web Orchestration Setup and Usage Instructions](./docs/instruction.md#setting-up-web-agent-orchestrator)
+```markdown
+# Starting a new feature
+/start
+/pm analyze "Payment processing feature"
+> PM analyzes market, creates requirements with UDTM
 
-### IDE Agents
+/architect design
+> Architect creates technical design with quality gates
 
-There are dedicated self contained agents that are stand alone, and also an IDE version of an orchestrator. For there standalone, there are:
+/consult pm, architect, dev
+> Multi-persona consultation validates approach
 
-- [Dev IDE Agent](bmad-agent/personas/dev.ide.md)
-- [Story Generating SM Agent](bmad-agent/personas/sm.ide.md)
+/sm create-stories
+> SM creates quality-validated user stories
 
-If you want to use the other agents, you can use the other agents from that folder - but some will be larger than Windsurf allows - and there are many agents. So its recommended to either use 1 off tasks - OR even better - use the IDE Orchestrator Agent. See these [set up and Usage instructions for IDE Orchestrator](./docs/instruction.md#ide-agent-setup-and-usage).
+/dev implement STORY-001
+> Dev implements with anti-pattern detection
 
-## Tasks
+/quality validate
+> Quality enforcer runs comprehensive validation
+```
 
-Located in `bmad-agent/tasks/`, these self-contained instruction sets allow IDE agents or the orchestrators configured agents to perform specific jobs. These also can be used as one off commands with a vanilla agent in the ide by just referencing the task and asking the agent to perform it.
+## Project Structure
 
-**Purpose:**
+```
+bmad-agent/
+├── personas/           # Persona definitions with quality standards
+├── tasks/             # Executable task definitions
+├── quality-tasks/     # Quality-specific validation tasks
+├── templates/         # Document templates
+├── checklists/        # Validation checklists
+├── memory/            # Memory integration guides
+├── workflows/         # Standard workflow definitions
+├── config/            # Performance and system configuration
+└── orchestrators/     # IDE and Web orchestrator files
+```
 
-- **Reduce Agent Bloat:** Avoid adding rarely used instructions to primary agents.
-- **On-Demand Functionality:** Instruct any capable IDE agent to execute a task by providing the task file content.
-- **Versatility:** Handles specific functions like running checklists, creating stories, sharding documents, indexing libraries, etc.
+## Memory System Integration
 
-Think of tasks as specialized mini-agents callable by your main IDE agents.
+BMAD integrates with OpenMemory MCP for persistent intelligence:
+- **Automated Learning**: Captures decisions, patterns, and outcomes
+- **Search & Retrieval**: Finds relevant past experiences
+- **Pattern Recognition**: Identifies successful approaches
+- **Continuous Improvement**: Gets smarter with each use
 
-## End Matter
+## Quality Metrics
 
-Interested in improving the BMAD Method? See the [contributing guidelines](docs/CONTRIBUTING.md).
+The framework tracks comprehensive quality metrics:
+- Code coverage requirements (>90%)
+- Technical debt ratios (<5%)
+- Anti-pattern detection rates
+- UDTM compliance scores
+- Brotherhood review effectiveness
+- Evidence-based decision percentages
 
-Thank you and enjoy - BMad!
-[License](./docs/LICENSE)
+## Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on:
+- Code standards and quality requirements
+- Persona development guidelines
+- Task creation best practices
+- Memory integration patterns
+
+## Documentation
+
+- [Full Documentation](./docs/)
+- [Persona Guide](./docs/personas.md)
+- [Task Development](./docs/tasks.md)
+- [Memory Integration](./docs/memory.md)
+- [Quality Framework](./docs/quality.md)
+
+## License
+
+[MIT License](./docs/LICENSE)
+
+---
+
+**Thank you and enjoy building amazing software with BMAD!**
+
+*- BMad*
