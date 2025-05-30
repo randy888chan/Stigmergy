@@ -1,0 +1,232 @@
+performance:
+  # Caching Configuration
+  caching:
+    enabled: true
+    max_cache_size_mb: 50
+    cache_ttl_hours: 24
+    preload_top_n: 3
+    cache_location: "bmad-agent/cache/"
+    compression_enabled: true
+    
+  # Resource Loading Strategy
+  loading:
+    lazy_loading: true
+    chunk_size_kb: 100
+    timeout_seconds: 10
+    retry_attempts: 3
+    preload_strategy: "usage-based"  # usage-based|workflow-based|aggressive|minimal
+    
+    # Persona loading behavior
+    persona_loading: "on-demand"     # immediate|on-demand|preload-frequent
+    task_loading: "lazy"            # immediate|lazy|cached
+    template_loading: "cached"      # immediate|lazy|cached|compressed
+    dependency_resolution: "smart"  # immediate|smart|lazy
+    
+  # Compression Settings
+  compression:
+    enable_gzip: true
+    min_file_size_kb: 5
+    compression_level: 6
+    compress_persona_files: true
+    compress_task_files: true
+    compress_template_files: true
+    
+  # Memory Integration Performance
+  memory_integration:
+    search_cache_enabled: true
+    search_cache_size: 100  # number of cached search results
+    search_timeout_ms: 5000
+    batch_memory_operations: true
+    memory_consolidation_frequency: "daily"  # never|hourly|daily|weekly
+    proactive_search_enabled: true
+    
+  # Monitoring & Analytics
+  monitoring:
+    track_usage: true
+    performance_logging: true
+    cache_analytics: true
+    memory_analytics: true
+    
+    # Performance metrics collection
+    collect_load_times: true
+    collect_cache_hit_rates: true
+    collect_memory_search_times: true
+    collect_handoff_durations: true
+    
+  # Optimization Settings
+  optimization:
+    auto_cleanup: true
+    cleanup_interval_hours: 168  # Weekly
+    unused_threshold_days: 30
+    optimize_based_on_patterns: true
+    
+    # Memory optimization
+    memory_cleanup_enabled: true
+    memory_consolidation_enabled: true
+    memory_deduplication: true
+    
+  # Context Management Performance  
+  context_management:
+    session_state_compression: true
+    context_restoration_cache: true
+    max_context_depth: 5  # Number of previous decisions to include
+    context_search_limit: 10  # Max memory search results for context
+    
+# Performance Thresholds & Alerts
+thresholds:
+  warning_levels:
+    cache_hit_rate_below: 70  # percentage
+    average_load_time_above: 2000  # milliseconds
+    memory_search_time_above: 1000  # milliseconds
+    cache_size_above: 40  # MB
+    
+  critical_levels:
+    cache_hit_rate_below: 50  # percentage  
+    average_load_time_above: 5000  # milliseconds
+    memory_search_time_above: 3000  # milliseconds
+    cache_size_above: 45  # MB
+
+# Adaptive Performance Tuning
+adaptive_tuning:
+  enabled: true
+  learning_period_days: 7
+  
+  # Auto-adjust based on usage patterns
+  auto_adjust_cache_size: true
+  auto_adjust_preload_count: true
+  auto_adjust_search_limits: true
+  
+  # Usage pattern recognition
+  peak_usage_detection: true
+  efficiency_pattern_learning: true
+  user_preference_adaptation: true
+
+# Environment-Specific Settings
+environments:
+  development:
+    caching:
+      enabled: true
+      max_cache_size_mb: 20
+    monitoring:
+      performance_logging: true
+      detailed_analytics: true
+      
+  production:
+    caching:
+      enabled: true
+      max_cache_size_mb: 100
+    monitoring:
+      performance_logging: false
+      detailed_analytics: false
+      critical_only: true
+      
+  resource_constrained:
+    caching:
+      enabled: true
+      max_cache_size_mb: 10
+    loading:
+      lazy_loading: true
+      preload_top_n: 1
+    compression:
+      compression_level: 9
+    memory_integration:
+      search_cache_size: 25
+      
+# Performance Profiles
+profiles:
+  speed_optimized:
+    description: "Optimized for fastest response times"
+    caching:
+      preload_top_n: 5
+    loading:
+      persona_loading: "preload-frequent"
+      task_loading: "cached"
+    memory_integration:
+      search_cache_size: 200
+      
+  memory_optimized:
+    description: "Optimized for minimal memory usage"
+    caching:
+      max_cache_size_mb: 20
+      preload_top_n: 1
+    loading:
+      lazy_loading: true
+    compression:
+      enable_gzip: true
+      compression_level: 9
+      
+  balanced:
+    description: "Balanced performance and resource usage"
+    # Uses default settings from main performance config
+    
+  offline_capable:
+    description: "Optimized for offline/limited connectivity"
+    caching:
+      preload_top_n: 8
+      cache_ttl_hours: 168  # 1 week
+    loading:
+      persona_loading: "preload-frequent"
+      task_loading: "cached"
+    memory_integration:
+      search_cache_enabled: true
+      search_cache_size: 500
+
+# Resource Usage Limits
+limits:
+  max_concurrent_operations: 10
+  max_memory_search_results: 50
+  max_cached_personas: 15
+  max_cached_tasks: 25
+  max_cached_templates: 20
+  
+  # File size limits
+  max_persona_file_size_kb: 500
+  max_task_file_size_kb: 200
+  max_template_file_size_kb: 100
+  
+  # Memory operation limits
+  max_memory_search_time_ms: 10000
+  max_context_restoration_time_ms: 5000
+  max_handoff_preparation_time_ms: 8000
+
+# Performance Reporting
+reporting:
+  enabled: true
+  report_frequency: "weekly"  # daily|weekly|monthly
+  
+  metrics_to_track:
+    - cache_hit_rates
+    - average_load_times
+    - memory_search_performance
+    - handoff_success_rates
+    - user_satisfaction_correlation
+    - resource_utilization
+    
+  report_format: "summary"  # summary|detailed|json
+  
+  alerts:
+    enabled: true
+    threshold_breaches: true
+    performance_degradation: true
+    unusual_patterns: true
+
+# Experimental Features
+experimental:
+  enabled: false
+  
+  features:
+    predictive_preloading:
+      enabled: false
+      confidence_threshold: 0.8
+      
+    smart_compression:
+      enabled: false
+      ml_based_optimization: false
+      
+    adaptive_caching:
+      enabled: false
+      usage_pattern_learning: false
+      
+    parallel_memory_search:
+      enabled: false
+      max_parallel_searches: 3
