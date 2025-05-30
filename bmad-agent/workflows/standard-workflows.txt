@@ -1,0 +1,394 @@
+workflows:
+  new-project:
+    name: "New Project - Full BMAD Flow"
+    description: "Complete flow from concept to implementation for new projects"
+    project_types: ["mvp", "prototype", "greenfield"]
+    estimated_duration: "2-4 weeks"
+    phases:
+      - phase: "Discovery"
+        personas: ["Analyst"]
+        tasks: 
+          - "Brainstorming"
+          - "Deep Research Prompt Generation" 
+          - "Create Project Brief"
+        artifacts: 
+          - "docs/project-brief.md"
+        completion_criteria: 
+          - "Project brief approved by user"
+          - "Target users clearly defined"
+          - "Core problem statement validated"
+        memory_tags: ["discovery", "research", "problem-definition"]
+        typical_duration: "2-5 days"
+        success_indicators:
+          - "Clear problem-solution fit"
+          - "Well-defined user personas"
+          - "Realistic scope boundaries"
+        
+      - phase: "Requirements"
+        personas: ["PM", "Design Architect"]
+        tasks: 
+          - "Create PRD"
+          - "Create UX/UI Spec"
+        artifacts: 
+          - "docs/prd.md"
+          - "docs/front-end-spec.md"
+        completion_criteria: 
+          - "PRD validated by PM checklist"
+          - "UI flows defined and approved"
+          - "Technical assumptions documented"
+        memory_tags: ["requirements", "prd", "ux-specification"]
+        typical_duration: "3-7 days"
+        success_indicators:
+          - "Clear epic and story structure"
+          - "Comprehensive acceptance criteria"
+          - "UI/UX wireframes complete"
+        dependencies:
+          - "Discovery phase artifacts exist"
+        
+      - phase: "Architecture"
+        personas: ["Architect", "Design Architect"]
+        tasks: 
+          - "Create Architecture"
+          - "Create Frontend Architecture"
+        artifacts: 
+          - "docs/architecture.md"
+          - "docs/frontend-architecture.md"
+        completion_criteria: 
+          - "Tech stack decisions finalized"
+          - "Component structure defined"
+          - "Architecture validated by checklist"
+        memory_tags: ["architecture", "tech-stack", "system-design"]
+        typical_duration: "3-6 days"
+        success_indicators:
+          - "Scalable architecture design"
+          - "Clear component boundaries"
+          - "Performance considerations addressed"
+        dependencies:
+          - "PRD and UI specifications complete"
+          
+      - phase: "Development Prep"
+        personas: ["PO", "SM"]
+        tasks: 
+          - "PO Master Checklist"
+          - "Doc Sharding"
+          - "Create Next Story"
+        artifacts: 
+          - "docs/stories/1.1.story.md"
+          - "docs/index.md"
+        completion_criteria: 
+          - "All documents validated by PO"
+          - "First story ready for development"
+          - "Development environment guidelines clear"
+        memory_tags: ["validation", "story-preparation", "development-setup"]
+        typical_duration: "1-3 days"
+        success_indicators:
+          - "Document consistency verified"
+          - "Clear development roadmap"
+          - "First story well-specified"
+        dependencies:
+          - "Architecture documents complete"
+          
+      - phase: "Development"
+        personas: ["SM", "Dev"]
+        tasks: 
+          - "Create Next Story"
+          - "Story Implementation"
+          - "Story DoD Checklist"
+        artifacts: 
+          - "src/**"
+          - "docs/stories/**"
+          - "tests/**"
+        completion_criteria: 
+          - "Stories complete with DoD validation"
+          - "Tests passing"
+          - "Code reviews completed"
+        memory_tags: ["development", "implementation", "testing"]
+        typical_duration: "ongoing"
+        success_indicators:
+          - "Consistent code quality"
+          - "Reliable test coverage"
+          - "Regular story completion"
+        dependencies:
+          - "Development prep phase complete"
+
+  feature-addition:
+    name: "Add Feature to Existing Project"
+    description: "Streamlined flow for adding features to established projects"
+    project_types: ["existing", "enhancement", "expansion"]
+    estimated_duration: "1-2 weeks"
+    phases:
+      - phase: "Feature Analysis"
+        personas: ["PM", "Architect"]
+        tasks: 
+          - "Feature Impact Analysis"
+          - "PRD Update"
+          - "Architecture Review"
+        artifacts:
+          - "docs/prd.md (updated)"
+          - "docs/feature-analysis.md"
+        completion_criteria:
+          - "Feature requirements clearly defined"
+          - "Technical feasibility confirmed"
+          - "Impact on existing architecture assessed"
+        memory_tags: ["feature-analysis", "impact-assessment", "enhancement"]
+        typical_duration: "1-3 days"
+        success_indicators:
+          - "Minimal disruption to existing code"
+          - "Clear integration points defined"
+          - "User value clearly articulated"
+          
+      - phase: "Feature Architecture"
+        personas: ["Architect", "Design Architect"]
+        tasks:
+          - "Component Design"
+          - "Integration Planning"
+          - "UI/UX Updates"
+        artifacts:
+          - "docs/architecture.md (updated)"
+          - "docs/feature-components.md"
+        completion_criteria:
+          - "New components designed"
+          - "Integration strategy defined"
+          - "UI changes specified"
+        memory_tags: ["component-design", "integration", "ui-updates"]
+        typical_duration: "1-2 days"
+        dependencies:
+          - "Feature analysis complete"
+          
+      - phase: "Feature Development"
+        personas: ["SM", "Dev"]
+        tasks: 
+          - "Story Creation"
+          - "Feature Implementation"
+          - "Integration Testing"
+        artifacts:
+          - "docs/stories/feature-*.md"
+          - "src/features/**"
+          - "tests/feature/**"
+        completion_criteria:
+          - "Feature stories implemented"
+          - "Integration tests passing"
+          - "Feature deployed and validated"
+        memory_tags: ["feature-development", "integration-testing"]
+        typical_duration: "3-8 days"
+        dependencies:
+          - "Feature architecture complete"
+
+  course-correction:
+    name: "Course Correction Flow"
+    description: "Handle major changes, pivots, or critical issues"
+    project_types: ["any"]
+    estimated_duration: "varies"
+    phases:
+      - phase: "Change Assessment"
+        personas: ["PO", "PM"]
+        tasks: 
+          - "Correct Course"
+          - "Impact Analysis"
+          - "Stakeholder Alignment"
+        artifacts:
+          - "docs/change-analysis.md"
+          - "docs/impact-assessment.md"
+        completion_criteria:
+          - "Root cause identified"
+          - "Change scope defined"
+          - "Impact on timeline/resources assessed"
+        memory_tags: ["course-correction", "change-management", "crisis-response"]
+        typical_duration: "1-2 days"
+        success_indicators:
+          - "Clear problem identification"
+          - "Realistic recovery plan"
+          - "Stakeholder buy-in"
+          
+      - phase: "Re-planning"
+        personas: ["PM", "Architect", "Design Architect"]
+        tasks: 
+          - "Update PRD"
+          - "Update Architecture"
+          - "Revise Timeline"
+        artifacts:
+          - "docs/prd.md (revised)"
+          - "docs/architecture.md (revised)"
+          - "docs/recovery-plan.md"
+        completion_criteria:
+          - "Updated plans approved"
+          - "New timeline realistic"
+          - "Technical approach validated"
+        memory_tags: ["replanning", "architecture-revision", "timeline-adjustment"]
+        typical_duration: "2-5 days"
+        dependencies:
+          - "Change assessment complete"
+          
+      - phase: "Recovery Implementation"
+        personas: ["SM", "Dev", "PO"]
+        tasks:
+          - "Priority Reordering"
+          - "Updated Story Creation"
+          - "Recovery Development"
+        artifacts:
+          - "docs/stories/recovery-*.md"
+          - "src/** (updated)"
+        completion_criteria:
+          - "Recovery plan executed"
+          - "System stability restored"
+          - "New development path established"
+        memory_tags: ["recovery-implementation", "priority-adjustment"]
+        typical_duration: "varies"
+        dependencies:
+          - "Re-planning phase complete"
+
+  architecture-review:
+    name: "Architecture Review & Optimization"
+    description: "Review and optimize existing architecture for performance/scalability"
+    project_types: ["existing", "optimization", "scaling"]
+    estimated_duration: "1-2 weeks"
+    phases:
+      - phase: "Architecture Assessment"
+        personas: ["Architect", "Dev"]
+        tasks:
+          - "Performance Analysis"
+          - "Scalability Review"
+          - "Technical Debt Assessment"
+        artifacts:
+          - "docs/architecture-review.md"
+          - "docs/performance-analysis.md"
+        completion_criteria:
+          - "Current bottlenecks identified"
+          - "Scalability limits documented"
+          - "Technical debt prioritized"
+        memory_tags: ["architecture-review", "performance", "technical-debt"]
+        typical_duration: "2-4 days"
+        
+      - phase: "Optimization Planning"
+        personas: ["Architect", "PM"]
+        tasks:
+          - "Optimization Strategy"
+          - "Migration Planning"
+          - "Risk Assessment"
+        artifacts:
+          - "docs/optimization-plan.md"
+          - "docs/migration-strategy.md"
+        completion_criteria:
+          - "Optimization priorities set"
+          - "Migration approach defined"
+          - "Risks identified and mitigated"
+        memory_tags: ["optimization-planning", "migration-strategy"]
+        typical_duration: "1-3 days"
+        dependencies:
+          - "Architecture assessment complete"
+          
+      - phase: "Optimization Implementation"
+        personas: ["Dev", "SM"]
+        tasks:
+          - "Performance Optimization"
+          - "Architecture Updates"
+          - "Validation Testing"
+        artifacts:
+          - "src/** (optimized)"
+          - "docs/optimization-results.md"
+        completion_criteria:
+          - "Performance improvements validated"
+          - "Architecture updates completed"
+          - "System stability maintained"
+        memory_tags: ["optimization-implementation", "performance-tuning"]
+        typical_duration: "5-10 days"
+        dependencies:
+          - "Optimization planning complete"
+
+  rapid-prototype:
+    name: "Rapid Prototype Development"
+    description: "Quick prototype for concept validation or demo"
+    project_types: ["prototype", "poc", "demo"]
+    estimated_duration: "3-7 days"
+    phases:
+      - phase: "Prototype Scoping"
+        personas: ["PM", "Analyst"]
+        tasks:
+          - "Core Feature Definition"
+          - "Prototype Goals"
+          - "Success Criteria"
+        artifacts:
+          - "docs/prototype-scope.md"
+        completion_criteria:
+          - "Core features defined"
+          - "Success criteria clear"
+          - "Time constraints acknowledged"
+        memory_tags: ["prototype", "rapid-development", "poc"]
+        typical_duration: "0.5-1 day"
+        
+      - phase: "Rapid Architecture"
+        personas: ["Architect"]
+        tasks:
+          - "Minimal Viable Architecture"
+          - "Technology Selection"
+          - "Prototype Structure"
+        artifacts:
+          - "docs/prototype-architecture.md"
+        completion_criteria:
+          - "Simple architecture defined"
+          - "Technology stack selected"
+          - "Development approach clear"
+        memory_tags: ["minimal-architecture", "tech-selection"]
+        typical_duration: "0.5-1 day"
+        dependencies:
+          - "Prototype scoping complete"
+          
+      - phase: "Prototype Development"
+        personas: ["Dev"]
+        tasks:
+          - "Core Feature Implementation"
+          - "Basic Testing"
+          - "Demo Preparation"
+        artifacts:
+          - "src/**"
+          - "docs/demo-guide.md"
+        completion_criteria:
+          - "Core features working"
+          - "Demo ready"
+          - "Basic validation complete"
+        memory_tags: ["rapid-implementation", "demo-development"]
+        typical_duration: "2-5 days"
+        dependencies:
+          - "Rapid architecture complete"
+
+# Workflow Metadata
+metadata:
+  version: "1.0"
+  last_updated: "2024-01-15"
+  total_workflows: 5
+  
+# Memory Integration Settings
+memory_integration:
+  auto_track_progress: true
+  learn_from_outcomes: true
+  optimize_based_on_patterns: true
+  
+# Success Pattern Recognition
+success_patterns:
+  common_indicators:
+    - "clear_requirements"
+    - "stakeholder_alignment" 
+    - "technical_feasibility"
+    - "realistic_timelines"
+    - "proper_validation"
+  
+  efficiency_factors:
+    - "minimal_context_switching"
+    - "parallel_workstreams"
+    - "early_validation"
+    - "proper_handoffs"
+    
+# Anti-Pattern Detection
+anti_patterns:
+  workflow_issues:
+    - "skipping_validation_phases"
+    - "premature_optimization"
+    - "insufficient_requirements"
+    - "architecture_without_prd"
+    - "development_without_stories"
+    
+  process_problems:
+    - "excessive_persona_switching"
+    - "incomplete_handoffs"
+    - "missing_documentation"
+    - "scope_creep_without_replan"
