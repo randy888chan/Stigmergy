@@ -50,26 +50,46 @@ quality:
   description: Switch to Quality Enforcer persona
   shortcut: "/quality"
 
-# Memory Commands
+design-architect:
+  description: Switch to Design Architect persona
+  shortcut: "/design-architect"
+
+# Memory Commands - Core MCP Functions Only
 remember:
-  description: Manually add to memory
+  description: Manually add to memory using MCP
   usage: "/remember {content}"
   aliases: [mem, save]
   
 recall:
-  description: Search memories
+  description: Search memories using MCP
   usage: "/recall {query}"
   aliases: [search, find]
-  
-insights:
-  description: Get proactive insights for current context
-  usage: "/insights"
-  
-patterns:
-  description: Show recognized patterns
-  usage: "/patterns"
 
-# Consultation Commands
+# Memory Bootstrap - Verified Implementation
+bootstrap-memory:
+  description: Execute memory bootstrap for brownfield projects
+  usage: "/bootstrap-memory [--auto|--interactive|--focus={type}]"
+  aliases: [bootstrap, mem-bootstrap]
+  modes:
+    - auto: Silent analysis with bulk memory creation
+    - interactive: Guided analysis with user validation
+    - focus: Targeted analysis (architecture, decisions, patterns, issues)
+  implementation: memory-bootstrap-task.md
+
+# Task Execution - Verified Implementation  
+run-task:
+  description: Execute specific task file
+  usage: "/run-task {task-name}"
+  aliases: [task, execute]
+  implementation: Core orchestrator functionality
+
+checklist:
+  description: Run validation checklist
+  usage: "/checklist {checklist-name}"
+  aliases: [check, validate]
+  implementation: checklist-run-task.md
+
+# Consultation Commands - Basic Only
 consult:
   description: Start multi-persona consultation
   usage: "/consult {type}"
@@ -81,10 +101,11 @@ consult:
     - emergency-response
     - custom
 
-# Quality Commands
+# Quality Commands - Verified Implementation
 udtm:
   description: Execute Ultra-Deep Thinking Mode
   usage: "/udtm"
+  implementation: udtm_task.md
   
 quality-gate:
   description: Run quality gate validation
@@ -93,12 +114,21 @@ quality-gate:
     - pre-implementation
     - implementation
     - completion
+  implementation: quality_gate_validation.md
     
 anti-pattern-check:
   description: Scan for anti-patterns
   usage: "/anti-pattern-check"
+  aliases: [anti-pattern, pattern-check]
+  implementation: anti_pattern_detection.md
 
-# Workflow Commands
+brotherhood-review:
+  description: Initiate peer validation process
+  usage: "/brotherhood-review"
+  aliases: [peer-review, brotherhood]
+  implementation: brotherhood_review.md
+
+# Workflow Commands - Verified Implementation
 suggest:
   description: Get AI-powered next step recommendations
   usage: "/suggest"
@@ -106,28 +136,23 @@ suggest:
 handoff:
   description: Structured persona transition
   usage: "/handoff {persona}"
+  implementation: handoff-orchestration-task.md
   
 core-dump:
   description: Save session state
   usage: "/core-dump"
+  implementation: core-dump.md
 
-# System Commands
+# System Commands - Verified Implementation
 diagnose:
   description: Run system health check
   usage: "/diagnose"
-  
-optimize:
-  description: Performance analysis
-  usage: "/optimize"
+  implementation: system-diagnostics-task.md
   
 yolo:
-  description: Toggle YOLO mode
+  description: Toggle YOLO mode for immediate execution
   usage: "/yolo"
   
 exit:
   description: Exit current persona
   usage: "/exit"
-
-# Note: This is a placeholder registry. Additional commands and enhanced functionality
-# will be added as the BMAD method evolves. The orchestrator can use this registry
-# to provide contextual help and command validation. 
