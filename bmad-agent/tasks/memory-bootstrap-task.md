@@ -3,6 +3,27 @@
 ## Purpose
 Rapidly establish comprehensive contextual memory for existing projects by systematically analyzing project artifacts, extracting decisions, identifying patterns, and creating foundational memory entries for immediate BMAD memory-enhanced operations.
 
+## ⚡ CRITICAL EXECUTION REQUIREMENTS
+
+**MANDATORY**: This task requires ACTUAL MEMORY CREATION, not just analysis.
+
+### Execution Protocol
+1. **Analyze** project artifacts (as detailed below)
+2. **CREATE** memory entries using `add_memories()` function for each insight
+3. **VERIFY** memory creation success after each call
+4. **DOCUMENT** total memories created in final report
+5. **VALIDATE** core purpose achieved: "Are memories now stored in the system?"
+
+### Error Handling
+- If `add_memories()` fails: Store entries in session state for later sync
+- If memory system unavailable: Document entries in `.ai/bootstrap-memories.md` 
+- Always attempt memory creation - don't assume unavailability without testing
+
+### Success Criteria
+- **MINIMUM**: 5 memories created across different categories
+- **TARGET**: 10-15 memories for comprehensive bootstrap
+- **VERIFICATION**: Can search and retrieve created memories
+
 ## Bootstrap Process Overview
 
 ### Phase 1: Project Context Discovery (10-15 minutes)
