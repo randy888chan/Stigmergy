@@ -1,0 +1,670 @@
+# BMAD Orchestrator State YAML Schema Definition
+# This schema validates the structure and data types of .ai/orchestrator-state.md
+
+type: object
+required:
+  - session_metadata
+  - active_workflow_context
+  - memory_intelligence_state
+properties:
+  
+  # Session Metadata - Core identification data
+  session_metadata:
+    type: object
+    required: [session_id, created_timestamp, last_updated, bmad_version, project_name]
+    properties:
+      session_id:
+        type: string
+        pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+        description: "UUID v4 format"
+      created_timestamp:
+        type: string
+        format: date-time
+        description: "ISO-8601 timestamp"
+      last_updated:
+        type: string
+        format: date-time
+        description: "ISO-8601 timestamp"
+      bmad_version:
+        type: string
+        pattern: '^v[0-9]+\.[0-9]+$'
+        description: "Version format like v3.0"
+      user_id:
+        type: string
+        minLength: 1
+      project_name:
+        type: string
+        minLength: 1
+      project_type:
+        type: string
+        enum: ["mvp", "feature", "brownfield", "greenfield"]
+      session_duration:
+        type: integer
+        minimum: 0
+        description: "Duration in minutes"
+
+  # Project Context Discovery - Brownfield analysis results
+  project_context_discovery:
+    type: object
+    properties:
+      discovery_status:
+        type: object
+        properties:
+          completed:
+            type: boolean
+          last_run:
+            type: string
+            format: date-time
+          confidence:
+            type: integer
+            minimum: 0
+            maximum: 100
+      project_analysis:
+        type: object
+        properties:
+          domain:
+            type: string
+            enum: ["web-app", "mobile", "api", "data-pipeline", "desktop", "embedded", "other"]
+          technology_stack:
+            type: array
+            items:
+              type: string
+          architecture_style:
+            type: string
+            enum: ["monolith", "microservices", "serverless", "hybrid"]
+          team_size_inference:
+            type: string
+            enum: ["1-5", "6-10", "11+"]
+          project_age:
+            type: string
+            enum: ["new", "established", "legacy"]
+          complexity_assessment:
+            type: string
+            enum: ["simple", "moderate", "complex", "enterprise"]
+      constraints:
+        type: object
+        properties:
+          technical:
+            type: array
+            items:
+              type: string
+          business:
+            type: array
+            items:
+              type: string
+          timeline:
+            type: string
+            enum: ["aggressive", "reasonable", "flexible"]
+          budget:
+            type: string
+            enum: ["startup", "corporate", "enterprise"]
+
+  # Active Workflow Context - Current operational state
+  active_workflow_context:
+    type: object
+    required: [current_state]
+    properties:
+      current_state:
+        type: object
+        required: [active_persona, current_phase]
+        properties:
+          active_persona:
+            type: string
+            enum: ["analyst", "pm", "architect", "design-architect", "po", "sm", "dev", "quality", "none"]
+          current_phase:
+            type: string
+            enum: ["analyst", "requirements", "architecture", "design", "development", "testing", "deployment"]
+          workflow_type:
+            type: string
+            enum: ["new-project-mvp", "feature-addition", "refactoring", "maintenance"]
+          last_task:
+            type: string
+          task_status:
+            type: string
+            enum: ["in-progress", "completed", "blocked", "pending"]
+          next_suggested:
+            type: string
+      epic_context:
+        type: object
+        properties:
+          current_epic:
+            type: string
+          epic_status:
+            type: string
+            enum: ["planning", "in-progress", "testing", "complete"]
+          epic_progress:
+            type: integer
+            minimum: 0
+            maximum: 100
+          story_context:
+            type: object
+            properties:
+              current_story:
+                type: string
+              story_status:
+                type: string
+                enum: ["draft", "approved", "in-progress", "review", "done"]
+              stories_completed:
+                type: integer
+                minimum: 0
+              stories_remaining:
+                type: integer
+                minimum: 0
+
+  # Decision Archaeology - Historical decision tracking
+  decision_archaeology:
+    type: object
+    properties:
+      major_decisions:
+        type: array
+        items:
+          type: object
+          required: [decision_id, timestamp, persona, decision]
+          properties:
+            decision_id:
+              type: string
+              pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+            timestamp:
+              type: string
+              format: date-time
+            persona:
+              type: string
+            decision:
+              type: string
+              minLength: 1
+            rationale:
+              type: string
+            alternatives_considered:
+              type: array
+              items:
+                type: string
+            constraints:
+              type: array
+              items:
+                type: string
+            outcome:
+              type: string
+              enum: ["successful", "problematic", "unknown", "pending"]
+            confidence_level:
+              type: integer
+              minimum: 0
+              maximum: 100
+            reversibility:
+              type: string
+              enum: ["easy", "moderate", "difficult", "irreversible"]
+      pending_decisions:
+        type: array
+        items:
+          type: object
+          properties:
+            decision_topic:
+              type: string
+            urgency:
+              type: string
+              enum: ["high", "medium", "low"]
+            stakeholders:
+              type: array
+              items:
+                type: string
+            deadline:
+              type: string
+              format: date
+            blocking_items:
+              type: array
+              items:
+                type: string
+
+  # Memory Intelligence State - Memory system integration
+  memory_intelligence_state:
+    type: object
+    required: [memory_provider, memory_status]
+    properties:
+      memory_provider:
+        type: string
+        enum: ["openmemory-mcp", "file-based", "unavailable"]
+      memory_status:
+        type: string
+        enum: ["connected", "degraded", "offline"]
+      last_memory_sync:
+        type: string
+        format: date-time
+      pattern_recognition:
+        type: object
+        properties:
+          workflow_patterns:
+            type: array
+            items:
+              type: object
+              properties:
+                pattern_name:
+                  type: string
+                confidence:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                usage_frequency:
+                  type: integer
+                  minimum: 0
+                success_rate:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+          decision_patterns:
+            type: array
+            items:
+              type: object
+              properties:
+                pattern_type:
+                  type: string
+                  enum: ["architecture", "tech-stack", "process"]
+                pattern_description:
+                  type: string
+                effectiveness_score:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+          anti_patterns_detected:
+            type: array
+            items:
+              type: object
+              properties:
+                pattern_name:
+                  type: string
+                frequency:
+                  type: integer
+                  minimum: 0
+                severity:
+                  type: string
+                  enum: ["critical", "high", "medium", "low"]
+                last_occurrence:
+                  type: string
+                  format: date-time
+      proactive_intelligence:
+        type: object
+        properties:
+          insights_generated:
+            type: integer
+            minimum: 0
+          recommendations_active:
+            type: integer
+            minimum: 0
+          warnings_issued:
+            type: integer
+            minimum: 0
+          optimization_opportunities:
+            type: integer
+            minimum: 0
+      user_preferences:
+        type: object
+        properties:
+          communication_style:
+            type: string
+            enum: ["detailed", "concise", "interactive"]
+          workflow_style:
+            type: string
+            enum: ["systematic", "agile", "exploratory"]
+          documentation_preference:
+            type: string
+            enum: ["comprehensive", "minimal", "visual"]
+          feedback_style:
+            type: string
+            enum: ["direct", "collaborative", "supportive"]
+          confidence:
+            type: integer
+            minimum: 0
+            maximum: 100
+
+  # Quality Framework Integration - Quality gates and standards
+  quality_framework_integration:
+    type: object
+    properties:
+      quality_status:
+        type: object
+        properties:
+          quality_gates_active:
+            type: boolean
+          current_gate:
+            type: string
+            enum: ["pre-dev", "implementation", "completion", "none"]
+          gate_status:
+            type: string
+            enum: ["passed", "pending", "failed"]
+      udtm_analysis:
+        type: object
+        properties:
+          required_for_current_task:
+            type: boolean
+          last_completed:
+            type: [string, "null"]
+            format: date-time
+          completion_status:
+            type: string
+            enum: ["completed", "in-progress", "pending", "not-required"]
+          confidence_achieved:
+            type: integer
+            minimum: 0
+            maximum: 100
+      brotherhood_reviews:
+        type: object
+        properties:
+          pending_reviews:
+            type: integer
+            minimum: 0
+          completed_reviews:
+            type: integer
+            minimum: 0
+          review_effectiveness:
+            type: integer
+            minimum: 0
+            maximum: 100
+      anti_pattern_monitoring:
+        type: object
+        properties:
+          scanning_active:
+            type: boolean
+          violations_detected:
+            type: integer
+            minimum: 0
+          last_scan:
+            type: string
+            format: date-time
+          critical_violations:
+            type: integer
+            minimum: 0
+
+  # System Health Monitoring - Infrastructure status
+  system_health_monitoring:
+    type: object
+    properties:
+      system_health:
+        type: object
+        properties:
+          overall_status:
+            type: string
+            enum: ["healthy", "degraded", "critical"]
+          last_diagnostic:
+            type: string
+            format: date-time
+      configuration_health:
+        type: object
+        properties:
+          config_file_status:
+            type: string
+            enum: ["valid", "invalid", "missing"]
+          persona_files_status:
+            type: string
+            enum: ["all-present", "some-missing", "critical-missing"]
+          task_files_status:
+            type: string
+            enum: ["complete", "partial", "insufficient"]
+      performance_metrics:
+        type: object
+        properties:
+          average_response_time:
+            type: integer
+            minimum: 0
+            description: "Response time in milliseconds"
+          memory_usage:
+            type: integer
+            minimum: 0
+            maximum: 100
+            description: "Memory usage percentage"
+          cache_hit_rate:
+            type: integer
+            minimum: 0
+            maximum: 100
+            description: "Cache hit rate percentage"
+          error_frequency:
+            type: integer
+            minimum: 0
+            description: "Errors per hour"
+      resource_status:
+        type: object
+        properties:
+          available_personas:
+            type: integer
+            minimum: 0
+          available_tasks:
+            type: integer
+            minimum: 0
+          missing_resources:
+            type: array
+            items:
+              type: string
+
+  # Consultation & Collaboration - Multi-persona interactions
+  consultation_collaboration:
+    type: object
+    properties:
+      consultation_history:
+        type: array
+        items:
+          type: object
+          properties:
+            consultation_id:
+              type: string
+              pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+            timestamp:
+              type: string
+              format: date-time
+            type:
+              type: string
+              enum: ["design-review", "technical-feasibility", "emergency", "product-strategy", "quality-assessment"]
+            participants:
+              type: array
+              items:
+                type: string
+              minItems: 2
+            duration:
+              type: integer
+              minimum: 0
+              description: "Duration in minutes"
+            outcome:
+              type: string
+              enum: ["consensus", "split-decision", "deferred"]
+            effectiveness_score:
+              type: integer
+              minimum: 0
+              maximum: 100
+      active_consultations:
+        type: array
+        items:
+          type: object
+          properties:
+            consultation_type:
+              type: string
+            status:
+              type: string
+              enum: ["scheduled", "in-progress", "completed"]
+            participants:
+              type: array
+              items:
+                type: string
+      collaboration_patterns:
+        type: object
+        properties:
+          most_effective_pairs:
+            type: array
+            items:
+              type: string
+          consultation_success_rate:
+            type: integer
+            minimum: 0
+            maximum: 100
+          average_resolution_time:
+            type: integer
+            minimum: 0
+            description: "Average resolution time in minutes"
+
+  # Session Continuity Data - Context preservation
+  session_continuity_data:
+    type: object
+    properties:
+      handoff_context:
+        type: object
+        properties:
+          last_handoff_from:
+            type: string
+          last_handoff_to:
+            type: string
+          handoff_timestamp:
+            type: string
+            format: date-time
+          context_preserved:
+            type: boolean
+          handoff_effectiveness:
+            type: integer
+            minimum: 0
+            maximum: 100
+      workflow_intelligence:
+        type: object
+        properties:
+          suggested_next_steps:
+            type: array
+            items:
+              type: string
+          predicted_blockers:
+            type: array
+            items:
+              type: string
+          optimization_opportunities:
+            type: array
+            items:
+              type: string
+          estimated_completion:
+            type: string
+      session_variables:
+        type: object
+        properties:
+          interaction_mode:
+            type: string
+            enum: ["standard", "yolo", "consultation", "diagnostic"]
+          verbosity_level:
+            type: string
+            enum: ["minimal", "standard", "detailed", "comprehensive"]
+          auto_save_enabled:
+            type: boolean
+          memory_enhancement_active:
+            type: boolean
+          quality_enforcement_active:
+            type: boolean
+
+  # Recent Activity Log - Operation history
+  recent_activity_log:
+    type: object
+    properties:
+      command_history:
+        type: array
+        maxItems: 100
+        items:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            command:
+              type: string
+            persona:
+              type: string
+            status:
+              type: string
+              enum: ["success", "failure", "partial"]
+            duration:
+              type: integer
+              minimum: 0
+              description: "Duration in seconds"
+            output_summary:
+              type: string
+      insight_generation:
+        type: array
+        maxItems: 50
+        items:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            insight_type:
+              type: string
+              enum: ["pattern", "warning", "optimization", "prediction"]
+            insight:
+              type: string
+            confidence:
+              type: integer
+              minimum: 0
+              maximum: 100
+            applied:
+              type: boolean
+            effectiveness:
+              type: integer
+              minimum: 0
+              maximum: 100
+      error_log_summary:
+        type: object
+        properties:
+          recent_errors:
+            type: integer
+            minimum: 0
+          critical_errors:
+            type: integer
+            minimum: 0
+          last_error:
+            type: string
+            format: date-time
+          recovery_success_rate:
+            type: integer
+            minimum: 0
+            maximum: 100
+
+  # Bootstrap Analysis Results - Brownfield project analysis
+  bootstrap_analysis_results:
+    type: object
+    properties:
+      bootstrap_status:
+        type: object
+        properties:
+          completed:
+            type: [boolean, string]
+            enum: [true, false, "partial"]
+          last_run:
+            type: string
+            format: date-time
+          analysis_confidence:
+            type: integer
+            minimum: 0
+            maximum: 100
+      project_archaeology:
+        type: object
+        properties:
+          decisions_extracted:
+            type: integer
+            minimum: 0
+          patterns_identified:
+            type: integer
+            minimum: 0
+          preferences_inferred:
+            type: integer
+            minimum: 0
+          technical_debt_assessed:
+            type: boolean
+      discovered_patterns:
+        type: object
+        properties:
+          successful_approaches:
+            type: array
+            items:
+              type: string
+          anti_patterns_found:
+            type: array
+            items:
+              type: string
+          optimization_opportunities:
+            type: array
+            items:
+              type: string
+          risk_factors:
+            type: array
+            items:
+              type: string
+
+additionalProperties: false 

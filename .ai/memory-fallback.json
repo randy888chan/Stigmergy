@@ -1,0 +1,346 @@
+{
+  "memories": [
+    {
+      "id": "mem_0_1748623085",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"memory-enhanced-personas\", \"description\": \"Memory-enhanced personas\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:05.985621+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:05.985879+00:00"
+    },
+    {
+      "id": "mem_1_1748623085",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"quality-gate-enforcement\", \"description\": \"Quality gate enforcement\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:05.986246+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:05.986314+00:00"
+    },
+    {
+      "id": "mem_2_1748623085",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"schema-driven-validation\", \"description\": \"Schema-driven validation\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:05.986424+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:05.986470+00:00"
+    },
+    {
+      "id": "mem_3_1748623085",
+      "content": "{\"type\": \"decision\", \"decision\": \"orchestrator-state-enhancement-approach\", \"rationale\": \"Memory-enhanced orchestrator provides better context continuity\", \"project\": \"DMAD-METHOD\", \"persona\": \"architect\", \"outcome\": \"successful\", \"confidence_level\": 90, \"timestamp\": \"2025-05-30T16:38:05.986567+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "orchestrator"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:05.986610+00:00"
+    },
+    {
+      "id": "mem_4_1748623085",
+      "content": "{\"type\": \"decision\", \"project\": \"DMAD-METHOD\", \"decision_id\": \"sample-memory-integration\", \"persona\": \"architect\", \"decision\": \"Implement memory-enhanced orchestrator state\", \"rationale\": \"Provides better context continuity and learning across sessions\", \"alternatives_considered\": [\"Simple state storage\", \"No persistence\"], \"constraints\": [\"Memory system availability\", \"Performance requirements\"], \"outcome\": \"successful\", \"confidence_level\": 85, \"timestamp\": \"2025-05-30T16:38:05.986713+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "sample"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:05.986757+00:00"
+    },
+    {
+      "id": "mem_5_1748623085",
+      "content": "{\"type\": \"user-preference\", \"communication_style\": \"detailed\", \"workflow_style\": \"systematic\", \"documentation_preference\": \"comprehensive\", \"feedback_style\": \"supportive\", \"confidence\": 75, \"timestamp\": \"2025-05-30T16:38:05.986930+00:00\"}",
+      "tags": [
+        "user-preference",
+        "workflow-style",
+        "bmad-intelligence"
+      ],
+      "metadata": {
+        "type": "user-preference",
+        "confidence": 75
+      },
+      "created": "2025-05-30T16:38:05.986977+00:00"
+    },
+    {
+      "id": "mem_6_1748623134",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"memory-enhanced-personas\", \"description\": \"Memory-enhanced personas\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:54.994396+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:54.994766+00:00"
+    },
+    {
+      "id": "mem_7_1748623134",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"quality-gate-enforcement\", \"description\": \"Quality gate enforcement\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:54.995292+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:54.995375+00:00"
+    },
+    {
+      "id": "mem_8_1748623134",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"schema-driven-validation\", \"description\": \"Schema-driven validation\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:38:54.995608+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:54.995665+00:00"
+    },
+    {
+      "id": "mem_9_1748623134",
+      "content": "{\"type\": \"decision\", \"decision\": \"orchestrator-state-enhancement-approach\", \"rationale\": \"Memory-enhanced orchestrator provides better context continuity\", \"project\": \"DMAD-METHOD\", \"persona\": \"architect\", \"outcome\": \"successful\", \"confidence_level\": 90, \"timestamp\": \"2025-05-30T16:38:54.996119+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "orchestrator"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:54.996252+00:00"
+    },
+    {
+      "id": "mem_10_1748623134",
+      "content": "{\"type\": \"decision\", \"project\": \"DMAD-METHOD\", \"decision_id\": \"sample-memory-integration\", \"persona\": \"architect\", \"decision\": \"Implement memory-enhanced orchestrator state\", \"rationale\": \"Provides better context continuity and learning across sessions\", \"alternatives_considered\": [\"Simple state storage\", \"No persistence\"], \"constraints\": [\"Memory system availability\", \"Performance requirements\"], \"outcome\": \"successful\", \"confidence_level\": 85, \"timestamp\": \"2025-05-30T16:38:54.996536+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "sample"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:38:54.996614+00:00"
+    },
+    {
+      "id": "mem_11_1748623134",
+      "content": "{\"type\": \"user-preference\", \"communication_style\": \"detailed\", \"workflow_style\": \"systematic\", \"documentation_preference\": \"comprehensive\", \"feedback_style\": \"supportive\", \"confidence\": 75, \"timestamp\": \"2025-05-30T16:38:54.996947+00:00\"}",
+      "tags": [
+        "user-preference",
+        "workflow-style",
+        "bmad-intelligence"
+      ],
+      "metadata": {
+        "type": "user-preference",
+        "confidence": 75
+      },
+      "created": "2025-05-30T16:38:54.997007+00:00"
+    },
+    {
+      "id": "mem_12_1748623195",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"memory-enhanced-personas\", \"description\": \"Memory-enhanced personas\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:39:55.637320+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:39:55.637659+00:00"
+    },
+    {
+      "id": "mem_13_1748623195",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"quality-gate-enforcement\", \"description\": \"Quality gate enforcement\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:39:55.638085+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:39:55.638245+00:00"
+    },
+    {
+      "id": "mem_14_1748623195",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"schema-driven-validation\", \"description\": \"Schema-driven validation\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:39:55.638665+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:39:55.638841+00:00"
+    },
+    {
+      "id": "mem_15_1748623195",
+      "content": "{\"type\": \"decision\", \"decision\": \"orchestrator-state-enhancement-approach\", \"rationale\": \"Memory-enhanced orchestrator provides better context continuity\", \"project\": \"DMAD-METHOD\", \"persona\": \"architect\", \"outcome\": \"successful\", \"confidence_level\": 90, \"timestamp\": \"2025-05-30T16:39:55.639439+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "orchestrator"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:39:55.639641+00:00"
+    },
+    {
+      "id": "mem_16_1748623195",
+      "content": "{\"type\": \"decision\", \"project\": \"DMAD-METHOD\", \"decision_id\": \"sample-memory-integration\", \"persona\": \"architect\", \"decision\": \"Implement memory-enhanced orchestrator state\", \"rationale\": \"Provides better context continuity and learning across sessions\", \"alternatives_considered\": [\"Simple state storage\", \"No persistence\"], \"constraints\": [\"Memory system availability\", \"Performance requirements\"], \"outcome\": \"successful\", \"confidence_level\": 85, \"timestamp\": \"2025-05-30T16:39:55.639947+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "sample"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:39:55.640040+00:00"
+    },
+    {
+      "id": "mem_17_1748623195",
+      "content": "{\"type\": \"user-preference\", \"communication_style\": \"detailed\", \"workflow_style\": \"systematic\", \"documentation_preference\": \"comprehensive\", \"feedback_style\": \"supportive\", \"confidence\": 75, \"timestamp\": \"2025-05-30T16:39:55.640439+00:00\"}",
+      "tags": [
+        "user-preference",
+        "workflow-style",
+        "bmad-intelligence"
+      ],
+      "metadata": {
+        "type": "user-preference",
+        "confidence": 75
+      },
+      "created": "2025-05-30T16:39:55.640513+00:00"
+    },
+    {
+      "id": "mem_18_1748623262",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"memory-enhanced-personas\", \"description\": \"Memory-enhanced personas\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:41:02.996619+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:41:02.997288+00:00"
+    },
+    {
+      "id": "mem_19_1748623262",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"quality-gate-enforcement\", \"description\": \"Quality gate enforcement\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:41:02.998210+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:41:02.998361+00:00"
+    },
+    {
+      "id": "mem_20_1748623263",
+      "content": "{\"type\": \"pattern\", \"pattern_name\": \"schema-driven-validation\", \"description\": \"Schema-driven validation\", \"project\": \"DMAD-METHOD\", \"source\": \"bootstrap-analysis\", \"effectiveness\": 0.9, \"confidence\": 0.8, \"timestamp\": \"2025-05-30T16:41:03.018852+00:00\"}",
+      "tags": [
+        "pattern",
+        "successful",
+        "bootstrap"
+      ],
+      "metadata": {
+        "type": "pattern",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:41:03.019323+00:00"
+    },
+    {
+      "id": "mem_21_1748623263",
+      "content": "{\"type\": \"decision\", \"decision\": \"orchestrator-state-enhancement-approach\", \"rationale\": \"Memory-enhanced orchestrator provides better context continuity\", \"project\": \"DMAD-METHOD\", \"persona\": \"architect\", \"outcome\": \"successful\", \"confidence_level\": 90, \"timestamp\": \"2025-05-30T16:41:03.020657+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "orchestrator"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:41:03.021190+00:00"
+    },
+    {
+      "id": "mem_22_1748623263",
+      "content": "{\"type\": \"decision\", \"project\": \"DMAD-METHOD\", \"decision_id\": \"sample-memory-integration\", \"persona\": \"architect\", \"decision\": \"Implement memory-enhanced orchestrator state\", \"rationale\": \"Provides better context continuity and learning across sessions\", \"alternatives_considered\": [\"Simple state storage\", \"No persistence\"], \"constraints\": [\"Memory system availability\", \"Performance requirements\"], \"outcome\": \"successful\", \"confidence_level\": 85, \"timestamp\": \"2025-05-30T16:41:03.022945+00:00\"}",
+      "tags": [
+        "decision",
+        "architect",
+        "sample"
+      ],
+      "metadata": {
+        "type": "decision",
+        "confidence": 0.8
+      },
+      "created": "2025-05-30T16:41:03.023911+00:00"
+    },
+    {
+      "id": "mem_23_1748623263",
+      "content": "{\"type\": \"user-preference\", \"communication_style\": \"detailed\", \"workflow_style\": \"systematic\", \"documentation_preference\": \"comprehensive\", \"feedback_style\": \"supportive\", \"confidence\": 75, \"timestamp\": \"2025-05-30T16:41:03.025354+00:00\"}",
+      "tags": [
+        "user-preference",
+        "workflow-style",
+        "bmad-intelligence"
+      ],
+      "metadata": {
+        "type": "user-preference",
+        "confidence": 75
+      },
+      "created": "2025-05-30T16:41:03.025463+00:00"
+    }
+  ],
+  "patterns": [],
+  "preferences": {},
+  "decisions": [],
+  "insights": [],
+  "created": "2025-05-30T16:19:22.223617+00:00",
+  "last_updated": "2025-05-30T16:41:03.025466+00:00"
+}
