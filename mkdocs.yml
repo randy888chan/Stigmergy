@@ -1,0 +1,98 @@
+site_name: BMad Method Documentation
+site_description: AI-assisted coding methodology for building things right that last
+site_url: https://dmad-method.github.io/docs
+
+repo_url: https://github.com/danielbentes/DMAD-METHOD
+repo_name: DMAD-METHOD
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.indexes
+    - toc.follow
+    - search.highlight
+    - search.share
+    - header.autohide
+    - content.action.edit
+    - content.code.copy
+  logo: assets/images/bmad-logo.png
+  favicon: assets/images/favicon.png
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - getting-started/index.md
+    - Installation: getting-started/installation.md
+    - Verification: getting-started/verification.md
+    - First Project: getting-started/first-project.md
+  - Commands:
+    - Quick Reference: commands/quick-reference.md
+    - Advanced Search: commands/advanced-search.md
+  - Workflows:
+    - workflows/index.md
+    - Persona Selection: workflows/persona-selection.md
+    - Quality Framework: workflows/quality-framework.md
+  - Reference:
+    - Personas: reference/personas.md
+
+plugins:
+  - search:
+      lang: en
+  - minify:
+      minify_html: true
+      minify_css: true
+      minify_js: true
+
+markdown_extensions:
+  - admonition
+  - codehilite:
+      guess_lang: false
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - attr_list
+  - md_in_html
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/danielbentes/DMAD-METHOD
+      name: BMad Method on GitHub
+  version:
+    provider: mike
+  analytics:
+    provider: google
+    property: G-XXXXXXXXXX
+
+copyright: Copyright &copy; 2024 BMad Method 

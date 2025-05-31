@@ -12,6 +12,7 @@ build/
 
 # System files
 .DS_Store
+__pycache__/
 
 # Environment variables
 .env
@@ -21,3 +22,9 @@ build/
 
 # Memory files
 .ai/orchestrator-state.backup*
+
+# Claude
+CLAUDE.md
+
+# Site
+site/
