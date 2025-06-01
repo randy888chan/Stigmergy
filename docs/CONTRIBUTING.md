@@ -32,7 +32,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Ple
 
 ## Commit Message Convention
 
-[Commit Convention](./docs/commit.md)
+[Commit Convention](commit.md)
 
 ## Code Style
 

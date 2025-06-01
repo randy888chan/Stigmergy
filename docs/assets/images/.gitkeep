@@ -1,0 +1,16 @@
+# Assets Directory
+
+This directory contains visual assets for the BMad Method documentation.
+
+## Missing Assets (Need to be added):
+- bmad-logo.png: Main logo for the documentation site
+- favicon.png: Browser tab icon for the documentation site
+
+## Recommended Sizes:
+- Logo: 200x50px (PNG with transparent background)
+- Favicon: 32x32px (PNG or ICO format)
+
+## Usage:
+These assets are referenced in mkdocs.yml:
+- logo: assets/images/bmad-logo.png
+- favicon: assets/images/favicon.png 

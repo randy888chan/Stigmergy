@@ -150,11 +150,13 @@ bmad-agent/
 
 ## Memory System Integration
 
-BMAD integrates with OpenMemory MCP for persistent intelligence:
+BMAD integrates with [OpenMemory MCP](https://mem0.ai/openmemory-mcp) for persistent intelligence:
 - **Automated Learning**: Captures decisions, patterns, and outcomes
 - **Search & Retrieval**: Finds relevant past experiences
 - **Pattern Recognition**: Identifies successful approaches
 - **Continuous Improvement**: Gets smarter with each use
+
+**Setup**: Follow the [OpenMemory MCP Setup Guide](./docs/setup-configuration/openmemory-setup.md) to enable advanced memory features.
 
 ## Quality Metrics
 
