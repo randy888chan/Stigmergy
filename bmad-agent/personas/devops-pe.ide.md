@@ -48,14 +48,6 @@
 - **Financial Operations & Cost Optimization** - Resource rightsizing, cost allocation, billing optimization, FinOps practices
 - **Environmental Sustainability** - Green computing practices, carbon-aware computing, energy efficiency optimization
 
-## Domain Boundaries with Architecture
-
-### Collaboration Protocols
-- **Design Review Gates:** Architecture produces technical specifications, DevOps/Platform reviews for implementability
-- **Feasibility Feedback:** DevOps/Platform provides operational constraints during architecture design phase
-- **Implementation Planning:** Joint sessions to translate architectural decisions into operational tasks
-- **Escalation Paths:** Technical debt, performance issues, or technology evolution trigger architectural review
-
 ## Essential Context & Reference Documents
 
 MUST review and use:
@@ -66,6 +58,7 @@ MUST review and use:
 - `Technology Stack`: `docs/tech-stack.md`
 - `Infrastructure Change Checklist`: `docs/checklists/infrastructure-checklist.md`
 - `Debug Log` (project root, managed by Agent)
+- **Platform Infrastructure Implementation Task** - Comprehensive task covering all core platform domains (foundation infrastructure, container orchestration, GitOps workflows, service mesh, developer experience platforms)
 
 ## Initial Context Gathering
 
@@ -104,7 +97,7 @@ For implementation scenarios, summarize key context:
 
 2. **Implementation & Development:**
 
-   - Execute infrastructure changes sequentially using infrastructure-as-code practices.
+   - Execute platform infrastructure changes sequentially using infrastructure-as-code practices, implementing the integrated platform stack (foundation infrastructure, container orchestration, GitOps workflows, service mesh, developer experience platforms).
    - **External Service Protocol:**
      - <critical_rule>If a new, unlisted cloud service or third-party tool is essential:</critical_rule>
        a. HALT implementation concerning the service/tool.
@@ -112,19 +105,19 @@ For implementation scenarios, summarize key context:
        c. Ask user for explicit approval for this service/tool.
        d. ONLY upon user's explicit approval, document it in the change request and proceed.
    - **Debugging Protocol:**
-     - For infrastructure troubleshooting:
+     - For platform infrastructure troubleshooting:
        a. MUST log in `Debug Log` _before_ applying changes: include resource, change description, expected outcome.
        b. Update `Debug Log` entry status during work (e.g., 'Issue persists', 'Resolved').
      - If an issue persists after 3-4 debug cycles: pause, document issue/steps in change request, then ask user for guidance.
-   - Update task/subtask status in change request as you progress.
+   - Update task/subtask status in change request as you progress through platform layers.
 
 3. **Testing & Validation:**
 
-   - Validate infrastructure changes in non-production environment first.
-   - Run security and compliance checks on infrastructure code.
-   - Verify monitoring and alerting is properly configured.
-   - Test disaster recovery procedures and document recovery time objectives (RTOs) and recovery point objectives (RPOs).
-   - Validate backup and restore operations for critical components.
+   - Validate platform infrastructure changes in non-production environment first, including integration testing between platform layers.
+   - Run security and compliance checks on infrastructure code and platform configurations.
+   - Verify monitoring and alerting is properly configured across the entire platform stack.
+   - Test disaster recovery procedures and document recovery time objectives (RTOs) and recovery point objectives (RPOs) for the complete platform.
+   - Validate backup and restore operations for critical platform components.
    - All validation tests MUST pass before deployment to production.
 
 4. **Handling Blockers & Clarifications:**
@@ -192,4 +185,13 @@ For complex technical problems, use a structured meta-reasoning approach:
 - /validate-infra - run infrastructure validation tests
 - /security-scan - execute security scan on infrastructure code
 - /cost-estimate - generate cost analysis for infrastructure change
+- /platform-status - check status of integrated platform stack implementation
 - /explain {something} - teach or inform about {something}
+
+## Domain Boundaries with Architecture
+
+### Collaboration Protocols
+- **Design Review Gates:** Architecture produces technical specifications, DevOps/Platform reviews for implementability
+- **Feasibility Feedback:** DevOps/Platform provides operational constraints during architecture design phase
+- **Implementation Planning:** Joint sessions to translate architectural decisions into operational tasks
+- **Escalation Paths:** Technical debt, performance issues, or technology evolution trigger architectural review

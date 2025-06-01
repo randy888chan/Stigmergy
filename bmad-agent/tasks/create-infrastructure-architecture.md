@@ -2,7 +2,7 @@
 
 ## Purpose
 
-To design a comprehensive infrastructure architecture that defines all aspects of the technical infrastructure, from cloud resources to deployment pipelines. This architecture will serve as the foundation for all infrastructure implementations, ensuring consistency, security, and operational excellence.
+To design a comprehensive infrastructure architecture that defines all aspects of the technical infrastructure strategy, from cloud platform selection to deployment patterns. This architecture will serve as the definitive blueprint for the DevOps/Platform Engineering team to implement, ensuring consistency, security, and operational excellence across all infrastructure components.
 
 ## Inputs
 
@@ -21,76 +21,109 @@ To design a comprehensive infrastructure architecture that defines all aspects o
   B. **"YOLO" Mode:** I can produce a comprehensive initial draft of the infrastructure architecture for you to review more broadly first. We can then iterate on specific sections based on your feedback."
 - Request the user to select their preferred mode and proceed accordingly.
 
-### 2. Gather Requirements
+### 2. Gather Infrastructure Requirements
 
-- Review the product requirements document to understand business needs
-- Identify infrastructure needs from the application architecture
-- Document non-functional requirements (performance, scalability, reliability)
-- Identify compliance and security requirements
+- Review the product requirements document to understand business needs and scale requirements
+- Analyze the main system architecture to identify infrastructure dependencies
+- Document non-functional requirements (performance, scalability, reliability, security)
+- Identify compliance and regulatory requirements affecting infrastructure
+- Map application architecture patterns to infrastructure needs
 - <critical_rule>Cross-reference with PRD Technical Assumptions to ensure alignment with repository and service architecture decisions</critical_rule>
 
-### 3. Design Infrastructure
+### 3. Design Infrastructure Architecture Strategy
 
 - **If "Incremental Mode" was selected:**
-  - For each major infrastructure component:
-    - **a. Present Component Purpose:** Explain what this component provides and its importance
-    - **b. Present Options:** Provide 2-3 viable options with pros and cons
-    - **c. Make Recommendation:** Recommend the best option with rationale
+  - For each major infrastructure domain:
+    - **a. Present Domain Purpose:** Explain what this infrastructure domain provides and its strategic importance
+    - **b. Present Strategic Options:** Provide 2-3 viable approaches with architectural pros and cons
+    - **c. Make Strategic Recommendation:** Recommend the best approach with clear architectural rationale
     - **d. Incorporate Feedback:** Discuss with user and iterate based on feedback
     - **e. [Offer Advanced Self-Refinement & Elicitation Options](#offer-advanced-self-refinement--elicitation-options)**
-    - **f. Document Decision:** Record the final choice with justification
+    - **f. Document Architectural Decision:** Record the final strategic choice with justification
 
 - **If "YOLO Mode" was selected:**
-  - Design all major components with recommended approaches
-  - Document decisions and rationales
-  - Present comprehensive design for review
+  - Design strategic approaches for all major infrastructure domains
+  - Document architectural decisions and rationales
+  - Present comprehensive infrastructure strategy for review
   - Iterate based on feedback
 
-### 4. Document Architecture
+### 4. Document Infrastructure Architecture Blueprint
 
 - Populate all sections of the infrastructure architecture template:
-  - Cloud provider strategy
-  - Network architecture
-  - Compute resources
-  - Data resources
-  - Security architecture
-  - Monitoring & observability
-  - CI/CD pipeline
-  - Disaster recovery
-  - Cost optimization
-  - Environment transition strategy
-  - Shared responsibility model
-  - Infrastructure evolution plan
-  - Cross-team collaboration model
-  - Infrastructure verification approach
+  - **Cloud Strategy & Platform Selection** - Multi-cloud vs single cloud, platform rationale
+  - **Network Architecture Patterns** - VPC design, connectivity strategies, security zones
+  - **Compute Architecture Strategy** - Container vs serverless vs VM strategies, scaling patterns
+  - **Data Architecture & Storage Strategy** - Database selection, data tier strategies, backup approaches
+  - **Security Architecture Framework** - Zero-trust patterns, identity strategies, encryption approaches
+  - **Observability Architecture** - Monitoring strategies, logging patterns, alerting frameworks
+  - **CI/CD Architecture Patterns** - Pipeline strategies, deployment patterns, environment promotion
+  - **Disaster Recovery Architecture** - RTO/RPO strategies, failover patterns, business continuity
+  - **Cost Optimization Framework** - Resource optimization strategies, cost allocation patterns
+  - **Environment Strategy** - Dev/staging/prod patterns, environment isolation approaches
+  - **Infrastructure Evolution Strategy** - Technology migration paths, scaling roadmaps
+  - **Cross-team Collaboration Model** - Integration with development teams, handoff protocols
 
-### 5. Create Infrastructure Diagrams
+### 5. Implementation Feasibility Review & Collaboration
 
-- Develop clear infrastructure diagrams using Mermaid
-- Create network topology diagrams
-- Document data flow diagrams
-- Illustrate deployment pipelines
-- Visualize environment relationships
+- **Architect → DevOps/Platform Feedback Loop:**
+  - Present architectural blueprint summary to DevOps/Platform Engineering Agent for feasibility review
+  - Request specific feedback on:
+    - **Operational Complexity:** Are the proposed patterns implementable with current tooling and expertise?
+    - **Resource Constraints:** Do infrastructure requirements align with available resources and budgets?
+    - **Security Implementation:** Are security patterns achievable with current security toolchain?
+    - **Operational Overhead:** Will the proposed architecture create excessive operational burden?
+    - **Technology Constraints:** Are selected technologies compatible with existing infrastructure?
+  - Document all feasibility feedback and concerns raised by DevOps/Platform Engineering Agent
+  - Iterate on architectural decisions based on operational constraints and feedback
+  - <critical_rule>Address all critical feasibility concerns before proceeding to final architecture documentation</critical_rule>
 
-### 6. Identify Technical Stories & Epic Impacts
+### 6. Create Infrastructure Architecture Diagrams
 
-- Review existing epics and user stories
-- Identify infrastructure-specific technical tasks
-- Draft new stories for infrastructure components
-- Suggest refinements to existing stories based on infrastructure decisions
-- Prepare a summary of all proposed additions or modifications
+- Develop high-level infrastructure strategy diagrams using Mermaid
+- Create network topology architecture diagrams
+- Document data flow and integration architecture diagrams
+- Illustrate deployment pipeline architecture patterns
+- Visualize environment relationship and promotion strategies
+- Design security architecture and trust boundary diagrams
 
-### 7. Checklist Review and Finalization
+### 7. Define Implementation Handoff Strategy
 
-- Use the `infrastructure-checklist.md` to validate completeness
-- Ensure all sections are adequately addressed
-- Address any deficiencies through collaboration with the user
-- Present a summary of the checklist review
-- Finalize the infrastructure architecture document
+- Create clear specifications for DevOps/Platform Engineering implementation
+- Define architectural constraints and non-negotiable requirements
+- Specify technology selections with version requirements where critical
+- Document architectural patterns that must be followed during implementation
+- Create implementation validation criteria
+- Prepare architectural decision records (ADRs) for key infrastructure choices
+
+### 8. BMAD Integration Architecture
+
+- Design infrastructure architecture to support other BMAD agents:
+  - **Development Environment Architecture** - Local development patterns, testing infrastructure
+  - **Deployment Architecture** - How applications from Frontend/Backend agents will be deployed
+  - **Integration Architecture** - How infrastructure supports cross-service communication
+  - Document infrastructure requirements for each BMAD agent workflow
+
+### 9. Architecture Review and Finalization
+
+- Review architecture against system architecture for alignment
+- Validate infrastructure architecture supports all application requirements
+- Ensure architectural decisions are implementable within project constraints
+- Address any architectural gaps or inconsistencies
+- Prepare comprehensive architecture handoff documentation for implementation team
 
 ## Output
 
-A comprehensive infrastructure architecture document that provides clear guidance for implementing and maintaining all infrastructure components, using the infrastructure-architecture-tmpl.md template.
+A comprehensive infrastructure architecture document that provides:
+
+1. **Strategic Infrastructure Blueprint** - High-level architecture strategy and patterns
+2. **Technology Selection Rationale** - Justified technology choices and architectural decisions
+3. **Implementation Specifications** - Clear guidance for DevOps/Platform Engineering implementation
+4. **Architectural Constraints** - Non-negotiable requirements and patterns
+5. **Integration Architecture** - How infrastructure supports application architecture
+6. **BMAD Workflow Support** - Infrastructure architecture supporting all agent workflows
+7. **Feasibility Validation** - Documented operational feedback and constraint resolution
+
+**Output file**: `docs/infrastructure-architecture.md`
 
 ## Offer Advanced Self-Refinement & Elicitation Options
 
@@ -100,13 +133,13 @@ Present the user with the following list of 'Advanced Reflective, Elicitation & 
 
 **Advanced Reflective, Elicitation & Brainstorming Actions I Can Take:**
 
-1. **Alternative Architecture Evaluation**
-2. **Scalability & Performance Stress Test (Theoretical)**
-3. **Security & Compliance Deep Dive**
-4. **Cost Analysis & Optimization Review**
-5. **Operational Excellence & Reliability Assessment**
-6. **Cross-Functional Integration Analysis**
-7. **Future Technology & Migration Path Exploration**
+1. **Alternative Architecture Strategy Evaluation**
+2. **Scalability & Performance Architecture Stress Test (Theoretical)**
+3. **Security Architecture & Compliance Deep Dive**
+4. **Cost Architecture Analysis & Optimization Strategy Review**
+5. **Operational Excellence & Reliability Architecture Assessment**
+6. **Cross-Functional Integration & BMAD Workflow Analysis**
+7. **Future Technology & Migration Architecture Path Exploration**
 8. **Finalize this Section and Proceed.**
 
 After I perform the selected action, we can discuss the outcome and decide on any further revisions for this section."

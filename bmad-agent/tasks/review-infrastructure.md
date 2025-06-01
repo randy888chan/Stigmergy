@@ -62,24 +62,80 @@ To conduct a thorough review of existing infrastructure to identify improvement 
   - **Architecture Compliance:** Check if implementation follows Architect (Alphonse) decisions
   - Document any gaps in BMAD integration
 
-### 6. Present and Plan
+### 6. Architectural Escalation Assessment
+
+- **DevOps/Platform → Architect Escalation Review:**
+  - Evaluate review findings for issues requiring architectural intervention:
+    - **Technical Debt Escalation:**
+      - Identify infrastructure technical debt that impacts system architecture
+      - Document technical debt items that require architectural redesign vs. operational fixes
+      - Assess cumulative technical debt impact on system maintainability and scalability
+    - **Performance/Security Issue Escalation:**
+      - Identify performance bottlenecks that require architectural solutions (not just operational tuning)
+      - Document security vulnerabilities that need architectural security pattern changes
+      - Assess capacity and scalability issues requiring architectural scaling strategy revision
+    - **Technology Evolution Escalation:**
+      - Identify outdated technologies that need architectural migration planning
+      - Document new technology opportunities that could improve system architecture
+      - Assess technology compatibility issues requiring architectural integration strategy changes
+  - **Escalation Decision Matrix:**
+    - **Critical Architectural Issues:** Require immediate Architect Agent involvement for system redesign
+    - **Significant Architectural Concerns:** Recommend Architect Agent review for potential architecture evolution
+    - **Operational Issues:** Can be addressed through operational improvements without architectural changes
+    - **Unclear/Ambiguous Issues:** When escalation level is uncertain, consult with user for guidance and decision
+  - Document escalation recommendations with clear justification and impact assessment
+  - <critical_rule>If escalation classification is unclear or ambiguous, HALT and ask user for guidance on appropriate escalation level and approach</critical_rule>
+
+### 7. Present and Plan
 
 - Prepare an executive summary of key findings
 - Create detailed technical documentation for implementation teams
 - Develop an action plan for critical and high-priority items
+- **Prepare Architectural Escalation Report** (if applicable):
+  - Document all findings requiring Architect Agent attention
+  - Provide specific recommendations for architectural changes or reviews
+  - Include impact assessment and priority levels for architectural work
+  - Prepare escalation summary for Architect Agent collaboration
 - Schedule follow-up reviews for specific areas
-- <important_note>Present findings in a way that enables clear decision-making on next steps.</important_note>
+- <important_note>Present findings in a way that enables clear decision-making on next steps and escalation needs.</important_note>
+
+### 8. Execute Escalation Protocol
+
+- **If Critical Architectural Issues Identified:**
+  - **Immediate Escalation to Architect Agent:**
+    - Present architectural escalation report with critical findings
+    - Request architectural review and potential redesign for identified issues
+    - Collaborate with Architect Agent on priority and timeline for architectural changes
+    - Document escalation outcomes and planned architectural work
+- **If Significant Architectural Concerns Identified:**
+  - **Scheduled Architectural Review:**
+    - Prepare detailed technical findings for Architect Agent review
+    - Request architectural assessment of identified concerns
+    - Schedule collaborative planning session for potential architectural evolution
+    - Document architectural recommendations and planned follow-up
+- **If Only Operational Issues Identified:**
+  - Proceed with operational improvement planning without architectural escalation
+  - Monitor for future architectural implications of operational changes
+- **If Unclear/Ambiguous Escalation Needed:**
+  - **User Consultation Required:**
+    - Present unclear findings and escalation options to user
+    - Request user guidance on appropriate escalation level and approach
+    - Document user decision and rationale for escalation approach
+    - Proceed with user-directed escalation path
+- <critical_rule>All critical architectural escalations must be documented and acknowledged by Architect Agent before proceeding with implementation</critical_rule>
 
 ## Output
 
 A comprehensive infrastructure review report that includes:
 
-1. Current state assessment for each infrastructure component
-2. Prioritized findings with severity ratings
-3. Detailed recommendations with effort/impact estimates
-4. Cost optimization opportunities
-5. BMAD integration assessment
-6. Action plan for critical improvements
+1. **Current state assessment** for each infrastructure component
+2. **Prioritized findings** with severity ratings
+3. **Detailed recommendations** with effort/impact estimates
+4. **Cost optimization opportunities**
+5. **BMAD integration assessment**
+6. **Architectural escalation assessment** with clear escalation recommendations
+7. **Action plan** for critical improvements and architectural work
+8. **Escalation documentation** for Architect Agent collaboration (if applicable)
 
 ## Offer Advanced Self-Refinement & Elicitation Options
 
