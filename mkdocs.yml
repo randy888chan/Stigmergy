@@ -34,8 +34,9 @@ theme:
     - header.autohide
     - content.action.edit
     - content.code.copy
-  logo: assets/images/bmad-logo.png
-  favicon: assets/images/favicon.png
+  # logo: assets/images/bmad-logo.png
+  # favicon: assets/images/favicon.png
+  # Note: Uncomment above when assets are added
 
 nav:
   - Home: index.md
@@ -51,8 +52,18 @@ nav:
     - workflows/index.md
     - Persona Selection: workflows/persona-selection.md
     - Quality Framework: workflows/quality-framework.md
+    - Workflow Diagram: workflow-diagram.md
   - Reference:
     - Personas: reference/personas.md
+  - Setup & Configuration:
+    - setup-configuration/index.md
+    - IDE Setup: ide-setup.md
+    - Instructions: instruction.md
+    - Recommended IDE Plugins: recommended-ide-plugins.md
+    - OpenMemory MCP Setup: setup-configuration/openmemory-setup.md
+  - Contributing:
+    - CONTRIBUTING.md
+    - Commit Convention: commit.md
 
 plugins:
   - search:

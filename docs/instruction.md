@@ -1,7 +1,7 @@
 # Instructions
 
-- [Setting up Web Agent Orchestrator](#setting-up-web-agent-orchestrator)
-- [IDE Agent Setup and Usage](#ide-agent-setup-and-usage)
+- [Web Agent Setup](#setting-up-web-agent-orchestrator)
+- [IDE Agent Setup](#ide-agent-setup-and-usage)
 - [Tasks Setup and Usage](#tasks)
 
 ## Setting up Web Agent Orchestrator

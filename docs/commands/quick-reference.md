@@ -13,7 +13,7 @@ Complete reference for all BMad Method commands with contextual usage guidance a
 |---------|-------------|-------------|---------|
 | `/help` | Show available commands and context-aware suggestions | When starting a session or unsure about next steps | `/help` |
 | `/agents` | List all available personas with descriptions | When choosing which persona to activate | `/agents` |
-| `/context` | Display current session context and memory insights | Before switching personas or when resuming work | `/context` |
+| `/context` 🧠 | Display current session context and memory insights | Before switching personas or when resuming work | `/context` |
 | `/yolo` | Toggle YOLO mode for comprehensive execution | When you want full automation vs step-by-step control | `/yolo` |
 | `/core-dump` | Execute enhanced core-dump with memory integration | When debugging issues or need complete system status | `/core-dump` |
 | `/exit` | Abandon current agent with memory preservation | When finished with current persona or switching contexts | `/exit` |
@@ -28,20 +28,23 @@ Complete reference for all BMad Method commands with contextual usage guidance a
 | `/po` | Switch to Product Owner (Sam) | Backlog management, user stories | Sprint planning, story refinement |
 | `/sm` | Switch to Scrum Master (Taylor) | Process improvement, team facilitation | Throughout project, retrospectives |
 | `/analyst` | Switch to Business Analyst (Jordan) | Research, analysis, requirements gathering | Project initiation, discovery phases |
-| `/design` | Switch to Design Architect (Casey) | UI/UX design, user experience | After requirements, parallel with architecture |
+| `/design-architect` | Switch to Design Architect (Casey) | UI/UX design, user experience | After requirements, parallel with architecture |
 | `/quality` | Switch to Quality Enforcer (Riley) | Quality assurance, standards enforcement | Throughout development, reviews |
 
 ### Memory-Enhanced Commands
 
+!!! note "OpenMemory MCP Integration"
+    Commands marked with 🧠 require [OpenMemory MCP](../setup-configuration/openmemory-setup.md) for full functionality. Without OpenMemory, these commands fall back to session-based memory.
+
 | Command | Description | Usage Context | Impact |
 |---------|-------------|---------------|--------|
-| `/remember {content}` | Manually add important information to memory | After making key decisions or discoveries | Improves future recommendations |
-| `/recall {query}` | Search memories with natural language queries | When you need to remember past decisions or patterns | Provides historical context |
+| `/remember {content}` 🧠 | Manually add important information to memory | After making key decisions or discoveries | Improves future recommendations |
+| `/recall {query}` 🧠 | Search memories with natural language queries | When you need to remember past decisions or patterns | Provides historical context |
 | `/udtm` | Execute Ultra-Deep Thinking Mode | For major decisions requiring comprehensive analysis | Provides systematic analysis |
 | `/anti-pattern-check` | Scan for anti-patterns | During development and review phases | Identifies problematic code patterns |
 | `/suggest` | AI-powered next step recommendations | When stuck or want validation of next steps | Provides contextual guidance |
-| `/handoff {persona}` | Structured persona transition with memory briefing | When switching personas mid-task | Ensures continuity |
-| `/bootstrap-memory` | Initialize memory for brownfield projects | When starting work on existing projects | Builds historical context |
+| `/handoff {persona}` 🧠 | Structured persona transition with memory briefing | When switching personas mid-task | Ensures continuity |
+| `/bootstrap-memory` 🧠 | Initialize memory for brownfield projects | When starting work on existing projects | Builds historical context |
 | `/quality-gate {phase}` | Run quality gate validation | At key project milestones | Ensures quality standards |
 | `/brotherhood-review` | Initiate peer validation process | Before major decisions or deliverables | Enables collaborative validation |
 | `/checklist {name}` | Run validation checklist | To ensure completeness and quality | Systematic validation |

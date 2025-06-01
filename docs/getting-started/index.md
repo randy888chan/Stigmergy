@@ -10,14 +10,16 @@ Follow this path to go from installation to your first successful project:
 graph LR
     A[Install] --> B[Verify]
     B --> C[First Project]
-    C --> D[Learn Commands]
-    D --> E[Master Workflows]
+    C --> D[Enhanced Memory]
+    D --> E[Learn Commands]
+    E --> F[Master Workflows]
     
     style A fill:#e1f5fe
     style B fill:#f3e5f5
     style C fill:#e8f5e8
-    style D fill:#fff3e0
-    style E fill:#fce4ec
+    style D fill:#e3f2fd
+    style E fill:#fff3e0
+    style F fill:#fce4ec
 ```
 
 ## Step 1: Installation
@@ -63,6 +65,25 @@ Build a complete project using BMad Method to experience the full workflow.
 - Basic persona switching and task execution
 - Quality gates and validation in practice
 - End-to-end development workflow
+
+---
+
+## Step 4: Enhanced Memory (Optional)
+
+Unlock advanced memory capabilities for persistent learning and context management.
+
+**Time Required:** 10-15 minutes
+
+[:octicons-arrow-right-24: **Setup OpenMemory MCP**](../setup-configuration/openmemory-setup.md){ .md-button }
+
+**What you'll gain:**
+- Persistent memory across sessions and projects
+- Automatic pattern recognition and learning
+- Enhanced context awareness in multi-session workflows
+- Cross-project insight sharing
+
+!!! tip "Recommended for Teams"
+    OpenMemory MCP dramatically improves BMad Method effectiveness, especially for teams and long-running projects.
 
 ---
 

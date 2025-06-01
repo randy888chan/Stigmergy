@@ -1,68 +1,219 @@
-# Expanded Documentation
+# BMad Method Documentation
 
-If you got here and did not set up the web agent yet already - highlight suggest doing that and talking to the web agent, much easier than reading these yawn inducing docs.
+This directory contains the source files for the BMad Method Documentation website, built with MkDocs and the Material theme.
 
-## IDE Project Quickstart
+## Quick Start
 
-After you clone the project to your local machine, you can copy the `bmad-agent` folder to your project root. This will put the templates, checklists, and other assets the local agents will need to use the agents from your IDE instead of the Web Agent. Minimally to build your project you will want the sm.ide.md and dev.ide.md so you can draft and build your project incrementally.
+### Local Development
 
-Here are the more [Setup and Usage Instructions](./instruction.md) for IDE, WEB and Task setup.
+1. **Install MkDocs and dependencies**:
+   ```bash
+   pip install mkdocs-material mkdocs-minify-plugin PyYAML requests
+   ```
 
-Starting with the latest version of the BMad Agents for the BMad Method is very easy - all you need to do is copy `bmad-agent` folder to your project. The dedicated dev and sm that existing in previous versions are still available and are in the `bmad-agent/personas` folder with the .ide.md extension. Copy and paste the contents into your specific IDE's method of configuring a custom agent mode. The dev and sm both are configured for architecture and prd artifacts to be in (project-root)/docs and stories will be generated and developed in/from your (project-root)/docs/stories.
+2. **Serve documentation locally**:
+   ```bash
+   mkdocs serve
+   ```
 
-For all other agent use (including the dev and sm) you can set up the [ide orchestrator](../bmad-agent/ide-bmad-orchestrator.md) - you can ask the orchestrator bmad to become any agent you have [configured](../bmad-agent/ide-bmad-orchestrator.cfg.md).
+3. **View documentation**: Open [http://localhost:8000](http://localhost:8000)
 
-[General IDE Custom Mode Setup](../docs/ide-setup.md).
+### Build Static Site
 
-## Advancing AI-Driven Development
+```bash
+mkdocs build
+```
 
-Welcome to the latest and most advanced yet easy to use version of the Web and IDE Agent Agile Workflow! This new version, called BMad Agent version V3, represents a significant evolution that builds upon previous versions.
+The built site will be in the `site/` directory.
 
-## What's New?
+## Documentation Structure
 
-All IDE Agents are now optimized to be under 6K characters, so they will work with windsurf's file limit restrictions.
+```
+docs/
+├── index.md                    # Homepage
+├── getting-started/            # New user onboarding
+│   ├── index.md               # Getting started overview
+│   ├── installation.md        # Installation guide
+│   ├── verification.md        # Setup verification
+│   └── first-project.md       # First project tutorial
+├── commands/                   # Command reference
+│   ├── index.md               # Commands overview
+│   ├── orchestrator.md        # Core orchestrator commands
+│   ├── agents.md              # Agent-specific commands
+│   └── quick-reference.md     # Auto-generated command reference
+├── workflows/                  # Workflows and best practices
+│   ├── index.md               # Workflow overview
+│   ├── mvp-development.md     # Complete MVP example
+│   ├── persona-switching.md   # Using different personas
+│   └── best-practices.md      # Quality and methodology
+├── examples/                   # Real-world examples
+│   ├── index.md               # Examples overview
+│   ├── web-app.md             # Building a web application
+│   ├── api-service.md         # Creating an API service
+│   └── troubleshooting.md     # Common issues and solutions
+├── reference/                  # Technical reference
+│   ├── index.md               # Reference overview
+│   ├── personas.md            # Auto-generated personas reference
+│   ├── tasks.md               # Available tasks
+│   ├── quality-framework.md   # Quality standards
+│   └── memory-system.md       # Memory and learning features
+└── assets/                     # Images, videos, and other assets
+    ├── images/
+    └── videos/
+```
 
-The method now has an uber Orchestrator called BMAD - this agent will take your web or ide usage to the next level - this agent can morph and become the specific agent you want to work with! This makes Web usage super easy to use and set up. And in the IDE - you do not have to set up so many different agents if you do not want to!
+## Automation Scripts
 
-There have been drastic improvements to the generation of documents and artifacts and the agents are now programmed to really help you build the best possible plans. Advanced LLM prompting techniques have been incorporated and programmed to help you help the agents produce amazing accurate artifacts, unlike anything seen before. Additionally agents are now configurable in what they can and cannot do - so you can accept the defaults, or set which personas are able to do what tasks. If you think the PO should be the one generating PRDs and the Scrum Master should be your course corrector - its all possible now! **Define agile the BMad way - or your way!**
+### Command Synchronization
 
-While this is very powerful - you can get started with the default recommended set up as is in this repo, and basically use the agents as they are envisioned and will be explained. Detailed configuration and usage is outlined in the [Instructions](./instruction.md)
+Automatically generates command reference documentation from the BMad system:
 
-## What is the BMad Method?
+```bash
+python scripts/sync-commands.py
+```
 
-The BMad Method is a revolutionary approach that elevates "vibe coding" to advanced project planning to ensure your developer agents can start and completed advanced projects with very explicit guidance. It provides a structured yet flexible framework to plan, execute, and manage software projects using a team of specialized AI agents.
+**Generated files:**
+- `docs/commands/quick-reference.md` - Complete command reference
+- `docs/reference/personas.md` - Available agents and their tasks
 
-This method and tooling is so much more than just a task runner - this is a refined tool that will help you bring out your best ideas, define what you really are to build, and execute on it! From ideation, to PRD creation, to the technical decision making - this will help you do it all with the power of advanced LLM guidance.
+### Content Validation
 
-The method is designed to be tool-agnostic in principle, with agent instructions and workflows adaptable to various AI platforms and IDEs.
+Validates documentation for common issues:
 
-## Agile Agents
+```bash
+python scripts/validate-content.py
+```
 
-Agents are programmed either directly self contained to drop right into an agent config in the ide - or they can be configured as programmable entities the orchestrating agent can become.
+**Checks performed:**
+- Markdown syntax validation
+- Internal link validation
+- External link validation (when not in CI)
+- Content standards compliance
+- MkDocs configuration validation
 
-### Web Agents
+## Writing Guidelines
 
-Gemini 2.5 or Open AI customGPTs are created by running the node build script to generate output to a build folder. This output is the full package to create the orchestrator web agent.
+### Content Standards
 
-See the detailed [Web Orchestration Setup and Usage Instructions](./instruction.md#setting-up-web-agent-orchestrator)
+- **Scannable**: Use headings, bullets, and clear structure
+- **Action-oriented**: Start with what users can do
+- **Examples-first**: Show, then explain
+- **Progressive detail**: Essential info first, details via links
+- **Mobile-friendly**: Short paragraphs, clear formatting
 
-### IDE Agents
+### Markdown Conventions
 
-There are dedicated self contained agents that are stand alone, and also an IDE version of an orchestrator. For there standalone, there are:
+- **Headings**: Use proper hierarchy (H1 → H2 → H3)
+- **Code blocks**: Always specify language (```bash, ```python, etc.)
+- **Links**: Use descriptive text, validate all links
+- **Line length**: Keep lines under 120 characters for readability
+- **Images**: Include alt text, optimize for web
 
-- [Dev IDE Agent](../bmad-agent/personas/dev.ide.md)
-- [Story Generating SM Agent](../bmad-agent/personas/sm.ide.md)
+### File Naming
 
-If you want to use the other agents, you can use the other agents from that folder - but some will be larger than Windsurf allows - and there are many agents. So its recommended to either use 1 off tasks - OR even better - use the IDE Orchestrator Agent. See these [set up and Usage instructions for IDE Orchestrator](./instruction.md#ide-agent-setup-and-usage).
+- Use lowercase with hyphens: `getting-started.md`
+- Be descriptive: `mvp-development.md` not `example1.md`
+- Match URL structure: `workflows/best-practices.md` → `/workflows/best-practices/`
 
-## Tasks
+## Contributing
 
-Located in `bmad-agent/tasks/`, these self-contained instruction sets allow IDE agents or the orchestrators configured agents to perform specific jobs. These also can be used as one off commands with a vanilla agent in the ide by just referencing the task and asking the agent to perform it.
+### Adding New Content
 
-**Purpose:**
+1. **Create the markdown file** in the appropriate directory
+2. **Add to navigation** in `mkdocs.yml`
+3. **Run validation** to check for issues:
+   ```bash
+   python scripts/validate-content.py
+   ```
+4. **Test locally** with `mkdocs serve`
+5. **Submit pull request**
 
-- **Reduce Agent Bloat:** Avoid adding rarely used instructions to primary agents.
-- **On-Demand Functionality:** Instruct any capable IDE agent to execute a task by providing the task file content.
-- **Versatility:** Handles specific functions like running checklists, creating stories, sharding documents, indexing libraries, etc.
+### Updating Command Reference
 
-Think of tasks as specialized mini-agents callable by your main IDE agents.
+Command references are auto-generated from the BMad system. To update:
+
+1. **Modify source files** in `bmad-agent/` directory
+2. **Run sync script**:
+   ```bash
+   python scripts/sync-commands.py
+   ```
+3. **Review generated files** and commit changes
+
+### Content Review Process
+
+1. **Validation**: All content must pass validation checks
+2. **Testing**: Test all examples and installation steps
+3. **Review**: Peer review for accuracy and clarity
+4. **Deployment**: Automatic deployment via GitHub Actions
+
+## Deployment
+
+Documentation is automatically deployed to GitHub Pages when changes are pushed to the main branch.
+
+### Manual Deployment
+
+If needed, you can deploy manually:
+
+```bash
+mkdocs gh-deploy
+```
+
+### GitHub Actions
+
+The repository includes GitHub Actions workflows for:
+
+- **docs-deploy.yml**: Automatic deployment to GitHub Pages
+- **docs-validate.yml**: Content validation on pull requests
+
+## Troubleshooting
+
+### Common Issues
+
+**MkDocs won't start**:
+```bash
+pip install --upgrade mkdocs-material
+```
+
+**Validation errors**:
+- Check the specific error message
+- Run `python scripts/validate-content.py` for details
+- Fix issues and re-validate
+
+**Missing dependencies**:
+```bash
+pip install -r requirements.txt
+```
+
+**Build errors**:
+- Check `mkdocs.yml` syntax
+- Ensure all referenced files exist
+- Run `mkdocs build --strict` for detailed errors
+
+### Getting Help
+
+1. Check existing [GitHub Issues](https://github.com/danielbentes/DMAD-METHOD/issues)
+2. Review validation output for specific guidance
+3. Test with a fresh MkDocs installation
+4. Create a new issue with error details and system information
+
+## Performance
+
+The documentation is optimized for:
+
+- **Load time**: <1 second for static content
+- **Search**: <100ms response time (client-side)
+- **Mobile**: Excellent performance on all devices
+- **SEO**: Static HTML with proper metadata
+
+## Architecture
+
+- **Static site generator**: MkDocs with Material theme
+- **Hosting**: GitHub Pages with global CDN
+- **Search**: Client-side search with offline capability
+- **Analytics**: Privacy-focused analytics (when configured)
+- **Content**: Markdown files with front matter
+- **Automation**: Python scripts for validation and sync
+
+---
+
+For more information about BMad Method, visit the [main documentation](index.md) or the [GitHub repository](https://github.com/danielbentes/DMAD-METHOD). 
