@@ -7,7 +7,7 @@ Get BMad Method installed and configured on your development machine in under 10
 For most users, this one-command installation will get everything set up:
 
 ```bash
-git clone https://github.com/danielbentes/DMAD-METHOD.git bmad-method
+git clone https://github.com/bmadcode/BMAD-METHOD.git bmad-method
 cd bmad-method
 ./verify-setup.sh
 ```
@@ -28,14 +28,14 @@ Choose your preferred location and clone the BMad Method repository:
 === "HTTPS (Recommended)"
 
     ```bash
-    git clone https://github.com/danielbentes/DMAD-METHOD.git bmad-method
+    git clone https://github.com/bmadcode/BMAD-METHOD.git bmad-method
     cd bmad-method
     ```
 
 === "SSH"
 
     ```bash
-    git clone git@github.com:danielbentes/DMAD-METHOD.git bmad-method
+    git clone git@github.com:bmadcode/BMAD-METHOD.git bmad-method
     cd bmad-method
     ```
 
@@ -213,7 +213,7 @@ Next steps:
     
     1. **Use HTTPS with no authentication** (public repo):
        ```bash
-       git clone https://github.com/danielbentes/DMAD-METHOD.git
+       git clone https://github.com/bmadcode/BMAD-METHOD.git
        ```
     
     2. **Configure Git credentials** if needed:
@@ -228,7 +228,7 @@ If you're still experiencing issues:
 
 1. **Check the verification output** - it often provides specific guidance
 2. **Review the troubleshooting examples in the verification guide**
-3. **Search existing [GitHub Issues](https://github.com/danielbentes/DMAD-METHOD/issues)**
+3. **Search existing [GitHub Issues](https://github.com/bmadcode/BMAD-METHOD/issues)**
 4. **Create a new issue** with your system details and error messages
 
 ---

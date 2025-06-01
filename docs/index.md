@@ -102,7 +102,7 @@ Through this documentation, you'll master:
 
 ## Community & Support
 
-- **GitHub Repository**: [DMAD-METHOD](https://github.com/danielbentes/DMAD-METHOD)
+- **GitHub Repository**: [BMAD-METHOD](https://github.com/bmadcode/BMAD-METHOD)
 - **Issues & Questions**: Use GitHub Issues for bugs and feature requests
 - **Discussions**: Join the GitHub Discussions for community help
 

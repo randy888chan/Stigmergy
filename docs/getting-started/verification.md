@@ -218,7 +218,7 @@ Use this checklist to manually verify your installation:
     
     **Solution**: Ensure you cloned the repository correctly:
     ```bash
-    git clone https://github.com/danielbentes/DMAD-METHOD.git bmad-method
+    git clone https://github.com/bmadcode/BMAD-METHOD.git bmad-method
     cd bmad-method
     ```
 
@@ -303,4 +303,4 @@ Now that your installation is verified, you're ready to build your first project
 - [📖 Browse Examples](first-project.md)
 - [📋 Quick Reference](../reference/personas.md)
 
-**Having issues?** Check our troubleshooting guide in the first project tutorial or [create an issue](https://github.com/danielbentes/DMAD-METHOD/issues) for help. 
+**Having issues?** Check our troubleshooting guide in the first project tutorial or [create an issue](https://github.com/bmadcode/BMAD-METHOD/issues) for help. 

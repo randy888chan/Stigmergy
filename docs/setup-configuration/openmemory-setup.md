@@ -216,7 +216,7 @@ If you encounter issues:
 
 3. **Community Support**:
    - [OpenMemory GitHub Issues](https://github.com/mem0ai/mem0/issues)
-   - [BMad Method GitHub Issues](https://github.com/danielbentes/DMAD-METHOD/issues)
+   - [BMad Method GitHub Issues](https://github.com/bmadcode/BMAD-METHOD/issues)
    - [OpenMemory Documentation](https://mem0.ai/openmemory-mcp)
 
 ## Advanced Configuration

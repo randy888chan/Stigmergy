@@ -56,8 +56,8 @@ If you encounter issues during setup:
 
 1. Check the **[Troubleshooting sections](openmemory-setup.md#troubleshooting)** in specific guides
 2. Review **[Common Issues](../getting-started/verification.md)** in verification
-3. Join the **[Community Discussions](https://github.com/danielbentes/DMAD-METHOD/discussions)**
-4. Report **[Issues on GitHub](https://github.com/danielbentes/DMAD-METHOD/issues)**
+3. Join the **[Community Discussions](https://github.com/bmadcode/BMAD-METHOD/discussions)**
+4. Report **[Issues on GitHub](https://github.com/bmadcode/BMAD-METHOD/issues)**
 
 ---
 
