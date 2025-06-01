@@ -6,8 +6,8 @@ session_metadata:
   created_timestamp: '2025-05-30T16:45:09.961700+00:00'
   last_updated: '2025-05-30T16:45:09.962011+00:00'
   bmad_version: v3.0
-  user_id: danielbentes
-  project_name: DMAD-METHOD
+  user_id: bmadcode
+  project_name: BMAD-METHOD
   project_type: brownfield
   session_duration: 0
 project_context_discovery:
@@ -180,7 +180,7 @@ recent_activity_log:
   - timestamp: '2025-05-30T16:45:11.071767+00:00'
     insight_type: success-pattern
     insight: '✅ Success Pattern: {"type": "pattern", "pattern_name": "memory-enhanced-personas",
-      "description": "Memory-enhanced personas", "project": "DMAD-METHOD", "source":
+      "description": "Memory-enhanced personas", "project": "BMAD-METHOD", "source":
       "bootst...'
     confidence: 0.85
     applied: false
@@ -188,7 +188,7 @@ recent_activity_log:
   - timestamp: '2025-05-30T16:45:11.071773+00:00'
     insight_type: success-pattern
     insight: '✅ Success Pattern: {"type": "pattern", "pattern_name": "quality-gate-enforcement",
-      "description": "Quality gate enforcement", "project": "DMAD-METHOD", "source":
+      "description": "Quality gate enforcement", "project": "BMAD-METHOD", "source":
       "bootst...'
     confidence: 0.85
     applied: false
@@ -196,7 +196,7 @@ recent_activity_log:
   - timestamp: '2025-05-30T16:45:11.071779+00:00'
     insight_type: success-pattern
     insight: '✅ Success Pattern: {"type": "pattern", "pattern_name": "schema-driven-validation",
-      "description": "Schema-driven validation", "project": "DMAD-METHOD", "source":
+      "description": "Schema-driven validation", "project": "BMAD-METHOD", "source":
       "bootst...'
     confidence: 0.85
     applied: false

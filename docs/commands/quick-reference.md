@@ -424,7 +424,7 @@ Action plan with immediate steps identified
 - **Persona-specific help:** Each persona provides specialized guidance
 - **Memory search:** Use `/recall` to find relevant past experiences
 - **Pattern recognition:** Use `/patterns` to identify improvement opportunities
-- **Community support:** [GitHub Issues](https://github.com/danielbentes/DMAD-METHOD/issues)
+- **Community support:** [GitHub Issues](https://github.com/bmadcode/BMAD-METHOD/issues)
 
 ---
 

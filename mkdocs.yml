@@ -2,8 +2,8 @@ site_name: BMad Method Documentation
 site_description: AI-assisted coding methodology for building things right that last
 site_url: https://dmad-method.github.io/docs
 
-repo_url: https://github.com/danielbentes/DMAD-METHOD
-repo_name: DMAD-METHOD
+repo_url: https://github.com/bmadcode/BMAD-METHOD
+repo_name: BMAD-METHOD
 edit_uri: edit/main/docs/
 
 theme:
@@ -98,7 +98,7 @@ markdown_extensions:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/danielbentes/DMAD-METHOD
+      link: https://github.com/bmadcode/BMAD-METHOD
       name: BMad Method on GitHub
   version:
     provider: mike

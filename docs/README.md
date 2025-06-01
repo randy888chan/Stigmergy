@@ -191,7 +191,7 @@ pip install -r requirements.txt
 
 ### Getting Help
 
-1. Check existing [GitHub Issues](https://github.com/danielbentes/DMAD-METHOD/issues)
+1. Check existing [GitHub Issues](https://github.com/bmadcode/BMAD-METHOD/issues)
 2. Review validation output for specific guidance
 3. Test with a fresh MkDocs installation
 4. Create a new issue with error details and system information
@@ -216,4 +216,4 @@ The documentation is optimized for:
 
 ---
 
-For more information about BMad Method, visit the [main documentation](index.md) or the [GitHub repository](https://github.com/danielbentes/DMAD-METHOD). 
+For more information about BMad Method, visit the [main documentation](index.md) or the [GitHub repository](https://github.com/bmadcode/BMAD-METHOD). 
