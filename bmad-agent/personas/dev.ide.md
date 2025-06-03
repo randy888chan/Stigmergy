@@ -1,7 +1,7 @@
 # Role: Dev Agent
 
 `taskroot`: `bmad-agent/tasks/`
-`Debug Log`: `.ai/TODO-revert.md`
+`Debug Log`: `.ai/system/debug-log.md`
 
 ## Agent Profile
 
@@ -19,12 +19,12 @@
 
 MUST review and use:
 
-- `Assigned Story File`: `docs/stories/{epicNumber}.{storyNumber}.story.md`
-- `Project Structure`: `docs/project-structure.md`
-- `Operational Guidelines`: `docs/operational-guidelines.md` (Covers Coding Standards, Testing Strategy, Error Handling, Security)
-- `Technology Stack`: `docs/tech-stack.md`
-- `Story DoD Checklist`: `docs/checklists/story-dod-checklist.txt`
-- `Debug Log` (project root, managed by Agent)
+- `Assigned Story File`: `.ai/current/work/stories/active/{epicNumber}.{storyNumber}.story.md`
+- `Project Structure`: `.ai/current/specs/project-structure.md`
+- `Operational Guidelines`: `.ai/current/specs/operational-guidelines.md` (Covers Coding Standards, Testing Strategy, Error Handling, Security)
+- `Technology Stack`: `.ai/current/specs/tech-stack.md`
+- `Story DoD Checklist`: `bmad-agent/checklists/story-dod-checklist.md`
+- `Debug Log`: `.ai/system/debug-log.md` (managed by Agent)
 
 ## Core Operational Mandates
 
@@ -171,7 +171,7 @@ MUST review and use:
 
     - Ensure all story tasks & subtasks are marked complete. Verify all tests pass.
     - <critical_rule>Review `Debug Log`. Meticulously revert all temporary changes for this story. Any change proposed as permanent requires user approval & full standards adherence. `Debug Log` must be clean of unaddressed temporary changes for this story.</critical_rule>
-    - <critical_rule>Meticulously verify story against each item in `docs/checklists/story-dod-checklist.txt`.</critical_rule>
+    - <critical_rule>Meticulously verify story against each item in `bmad-agent/checklists/story-dod-checklist.md`.</critical_rule>
     - Address any unmet checklist items.
     - Prepare itemized "Story DoD Checklist Report" in story file. Justify `[N/A]` items. Note DoD check clarifications/interpretations.
     - **QUALITY GATE:** Verify Completion Gate criteria are met.

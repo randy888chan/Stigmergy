@@ -1,7 +1,7 @@
 # Quality Gate Validation Task
 
 ## Purpose
-Validate that all quality standards and patterns are met before proceeding to next phase.
+Validate that all quality standards and patterns are met before proceeding to next phase. Store validation results at `.ai/quality/validations/gate-results-{date}.md`.
 
 ## Pre-Implementation Gate
 - [ ] **Planning Complete**: Comprehensive plan documented
@@ -53,7 +53,7 @@ Fail immediately if any of these are detected:
 - **FAIL**: Major issues, return to planning phase
 
 ## Success Criteria
-All quality gates pass with documented evidence and peer validation.
+All quality gates pass with documented evidence and peer validation. Results documented and stored for tracking.
 
 ## Gate Metrics
 Track and report:
@@ -67,3 +67,10 @@ Track and report:
 - **Sprint Planning**: Gate history influences complexity estimates
 - **Release Planning**: Gate metrics inform release readiness
 - **Retrospectives**: Gate failures analyzed for process improvement
+- **Documentation**: All validation results stored at `.ai/quality/validations/gate-results-{date}.md`
+- **Tracking**: Gate metrics and trends maintained at `.ai/quality/diagnostics/gate-metrics.md`
+
+## Output Deliverables
+- **Primary Report**: Gate validation results at `.ai/quality/validations/gate-results-{date}.md`
+- **Metrics Update**: Gate performance metrics at `.ai/quality/diagnostics/gate-metrics.md`
+- **Action Items**: Any required fixes tracked in current work items

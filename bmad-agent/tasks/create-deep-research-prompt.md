@@ -9,11 +9,12 @@ Leveraging advanced analytical capabilities, the Deep Research Phase with the PM
 
 Choose this phase with the PM when you need to strategically validate a product direction, fill specific knowledge gaps critical for defining _what_ to build, or ensure a strong, evidence-backed foundation for your PRD, especially if initial Analyst research was not performed or requires deeper, product-focused investigation.
 
-### Purpose
+## Purpose
 
 - To gather foundational information, validate concepts, understand market needs, or analyze competitors when a comprehensive Project Brief from an Analyst is unavailable or insufficient.
 - To ensure the PM has a solid, data-informed basis for defining a valuable and viable product before committing to PRD specifics.
 - To de-risk product decisions by grounding them in targeted research, especially if the user is engaging the PM directly without prior Analyst work or if the initial brief lacks necessary depth.
+- Store deep research prompts and findings at `.ai/guidance/prompts/deep-research-{topic}-{date}.md` and research results at `.ai/current/analysis/research-{topic}-{date}.md`.
 
 ### Instructions
 
@@ -43,8 +44,10 @@ To perform deep research effectively, please be aware:
     - Organize and summarize key research findings in a clear, concise, and easily digestible manner (e.g., bullet points, brief summaries per research question).
     - Highlight the most critical implications for the product's vision, strategy, target audience, core features, and potential risks.
     - Present these synthesized findings and their implications to the user.
+    - Save comprehensive research findings at `.ai/current/analysis/research-{topic}-{date}.md`.
 5.  **Discussing and Utilizing Research Output:**
     - The comprehensive findings/report from this Deep Research phase can be substantial. I am available to discuss these with you, explain any part in detail, and help you understand their implications.
+    - **Research Storage**: All findings are saved at `.ai/current/analysis/research-{topic}-{date}.md` for future reference and PRD input.
     - **Options for Utilizing These Findings for PRD Generation:**
       1.  **Full Handoff to New PM Session:** The complete research output can serve as a foundational document if you initiate a _new_ session with a Product Manager (PM) agent who will then execute the 'PRD Generate Task'.
       2.  **Key Insights Summary for This Session:** I can prepare a concise summary of the most critical findings, tailored to be directly actionable as we (in this current session) transition to potentially invoking the 'PRD Generate Task'.
@@ -53,3 +56,4 @@ To perform deep research effectively, please be aware:
     - Discuss with the user whether the gathered information provides a sufficient and confident foundation to proceed to the 'PRD Generate Task'.
     - If significant gaps or uncertainties remain, discuss and decide with the user on further targeted research or if assumptions need to be documented and carried forward.
     - Once confirmed, clearly state that the next step could be to invoke the 'PRD Generate Task' or, if applicable, revisit other phase options.
+    - Ensure all research artifacts are properly stored at `.ai/current/analysis/` for PRD task input.

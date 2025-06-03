@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This task maintains the integrity and completeness of the `docs/index.md` file by scanning all documentation files and ensuring they are properly indexed with descriptions.
+This task maintains the integrity and completeness of the `.ai/current/specs/index.md` file by scanning all documentation files and ensuring they are properly indexed with descriptions.
 
 ## Task Instructions
 
@@ -12,11 +12,11 @@ You are now operating as a Documentation Indexer. Your goal is to ensure all doc
 
 1. First, locate and scan:
 
-   - The `docs/` directory and all subdirectories
-   - The existing `docs/index.md` file (create if absent)
+   - The `.ai/current/specs/` directory and all subdirectories
+   - The existing `.ai/current/specs/index.md` file (create if absent)
    - All markdown (`.md`) and text (`.txt`) files in the documentation structure
 
-2. For the existing `docs/index.md`:
+2. For the existing `.ai/current/specs/index.md`:
 
    - Parse current entries
    - Note existing file references and descriptions
@@ -40,7 +40,7 @@ You are now operating as a Documentation Indexer. Your goal is to ensure all doc
      - Provide option to update the path if file was moved
      - Log the decision (remove/update/keep) for final report
 
-5. Update `docs/index.md`:
+5. Update `.ai/current/specs/index.md`:
    - Maintain existing structure and organization
    - Add missing entries with descriptions
    - Update outdated entries
@@ -49,7 +49,7 @@ You are now operating as a Documentation Indexer. Your goal is to ensure all doc
 
 ### Index Entry Format
 
-Each entry in `docs/index.md` should follow this format:
+Each entry in `.ai/current/specs/index.md` should follow this format:
 
 ```markdown
 ### [Document Title](relative/path/to/file.md)
@@ -60,7 +60,7 @@ Brief description of the document's purpose and contents.
 ### Rules of Operation
 
 1. NEVER modify the content of indexed files
-2. Preserve existing descriptions in index.md when they are adequate
+3. Preserve existing descriptions in index.md when they are adequate
 3. Maintain any existing categorization or grouping in the index
 4. Use relative paths for all links
 5. Ensure descriptions are concise but informative
@@ -109,8 +109,8 @@ For each file referenced in the index but not found in the filesystem:
 
 Please provide:
 
-1. Location of the `docs/` directory
-2. Confirmation of write access to `docs/index.md`
+1. Location of the `.ai/current/specs/` directory
+2. Confirmation of write access to `.ai/current/specs/index.md`
 3. Any specific categorization preferences
 4. Any files or directories to exclude from indexing
 

@@ -1,7 +1,7 @@
 # Memory Bootstrap Task for Brownfield Projects
 
 ## Purpose
-Rapidly establish comprehensive contextual memory for existing projects by systematically analyzing project artifacts, extracting decisions, identifying patterns, and creating foundational memory entries for immediate BMAD memory-enhanced operations.
+Rapidly establish comprehensive contextual memory for existing projects by systematically analyzing project artifacts, extracting decisions, identifying patterns, and creating foundational memory entries for immediate BMAD memory-enhanced operations. Generate bootstrap reports at `.ai/history/bootstrap-reports/bootstrap-{timestamp}.md`.
 
 ## ⚡ CRITICAL EXECUTION REQUIREMENTS
 
@@ -16,7 +16,7 @@ Rapidly establish comprehensive contextual memory for existing projects by syste
 
 ### Error Handling
 - If `add_memories()` fails: Store entries in session state for later sync
-- If memory system unavailable: Document entries in `.ai/bootstrap-memories.md` 
+- If memory system unavailable: Document entries in `.ai/system/memory/fallbacks/bootstrap-memories.md` 
 - Always attempt memory creation - don't assume unavailability without testing
 
 ### Success Criteria
@@ -254,6 +254,8 @@ Rapidly establish comprehensive contextual memory for existing projects by syste
 ## Bootstrap Output
 
 ### Memory Bootstrap Report
+Save the bootstrap report at `.ai/history/bootstrap-reports/bootstrap-{timestamp}.md`:
+
 ```markdown
 # 🧠 Memory Bootstrap Complete for {Project Name}
 
@@ -261,6 +263,7 @@ Rapidly establish comprehensive contextual memory for existing projects by syste
 **Analysis Duration**: {time-taken}
 **Memories Created**: {total-count}
 **Confidence Level**: {average-confidence}
+**Report Location**: .ai/history/bootstrap-reports/bootstrap-{timestamp}.md
 
 ## Memory Categories Created
 - **Project Context**: {count} memories
@@ -292,6 +295,11 @@ Rapidly establish comprehensive contextual memory for existing projects by syste
 - [ ] Add missing context to high-value patterns  
 - [ ] Document recent changes and their outcomes
 - [ ] Establish ongoing memory creation workflow
+
+## Report Storage
+- **Bootstrap Report**: `.ai/history/bootstrap-reports/bootstrap-{timestamp}.md`
+- **Memory Fallbacks**: `.ai/system/memory/fallbacks/` (if memory system unavailable)
+- **Follow-up Actions**: Track in `.ai/current/analysis/bootstrap-followup.md`
 ```
 
 ### Validation Questions for User

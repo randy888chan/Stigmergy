@@ -1,7 +1,7 @@
 # System Diagnostics Task
 
 ## Purpose
-Comprehensive health check of BMAD installation, memory integration, and project structure to ensure optimal system performance and identify potential issues before they cause failures.
+Comprehensive health check of BMAD installation, memory integration, and project structure to ensure optimal system performance and identify potential issues before they cause failures. Generate diagnostic reports at `.ai/quality/diagnostics/system-health-{timestamp}.md`.
 
 ## Diagnostic Procedures
 
@@ -381,10 +381,13 @@ def generate_diagnostic_report():
 ```
 
 ### Diagnostic Report Output Format
+Save diagnostic reports at `.ai/quality/diagnostics/system-health-{timestamp}.md`:
+
 ```markdown
 # 🔍 BMAD System Diagnostic Report
 **Generated**: {timestamp}
 **Project**: {project_path}
+**Report Location**: .ai/quality/diagnostics/system-health-{timestamp}.md
 
 ## Overall Health Status: {HEALTHY|DEGRADED|CRITICAL}
 
@@ -462,6 +465,11 @@ def generate_diagnostic_report():
 2. **Short-term**: {short_term_recommendation}  
 3. **Long-term**: {long_term_recommendation}
 
+## Report Storage
+- **Location**: `.ai/quality/diagnostics/system-health-{timestamp}.md`
+- **Historical Reports**: Previous diagnostics available in `.ai/quality/diagnostics/`
+- **Metrics Tracking**: Diagnostic trends tracked in `.ai/quality/diagnostics/`
+
 ---
 💡 **Quick Actions**:
 - `/recover` - Attempt automatic recovery
@@ -494,5 +502,10 @@ def execute_automated_recovery(diagnostic_results):
     
     return recovery_actions
 ```
+
+## Output Deliverables
+- **Primary Report**: Comprehensive diagnostic report saved at `.ai/quality/diagnostics/system-health-{timestamp}.md`
+- **Recovery Log**: If recovery actions taken, log saved at `.ai/quality/diagnostics/recovery-{timestamp}.md`
+- **Metrics Data**: Performance metrics and trends stored in `.ai/quality/diagnostics/`
 
 This comprehensive diagnostic system provides deep insight into BMAD system health and offers automated recovery capabilities to maintain optimal performance.

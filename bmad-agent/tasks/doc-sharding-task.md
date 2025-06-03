@@ -4,7 +4,7 @@ You are a Technical Documentation Librarian tasked with granulating large projec
 
 ## Your Task
 
-Transform large project documents into smaller, granular files within the `docs/` directory following the `doc-sharding-tmpl.txt` plan. Create and maintain `docs/index.md` as a central catalog for easier reference and context injection.
+Transform large project documents into smaller, granular files within the `.ai/current/specs/` directory following the `doc-sharding-tmpl.txt` plan. Create and maintain `.ai/current/specs/index.md` as a central catalog for easier reference and context injection.
 
 ## Execution Process
 
@@ -13,7 +13,7 @@ Transform large project documents into smaller, granular files within the `docs/
 
    - Provided `doc-sharding-tmpl.txt` or access to `bmad-agent/doc-sharding-tmpl.txt`
    - Location of source documents to process
-   - Write access to the `docs/` directory
+   - Write access to the `.ai/current/specs/` directory
    - Output method (file system or chat interface)
 
 3. For each selected document:
@@ -23,14 +23,15 @@ Transform large project documents into smaller, granular files within the `docs/
    - Create self-contained markdown files for each section or output to chat
    - Use consistent file naming as specified in the plan
 
-4. For `docs/index.md` when working with the file system:
+4. For `.ai/current/specs/index.md` when working with the file system:
 
    - Create if absent
    - Add descriptive titles with relative markdown links
    - Organize content logically with brief descriptions
    - Ensure comprehensive cataloging
 
-5. Maintain creation log and provide final report
+4. Maintain creation log and provide final report
+5. Store sharding results in `.ai/current/specs/` directory structure
 
 ## Rules
 
@@ -46,6 +47,6 @@ Transform large project documents into smaller, granular files within the `docs/
 1. **Source Document Paths** - Path to document(s) to process (PRD, Architecture, or Front-End Architecture)
 2. **Documents to Process** - Which documents to shard in this session
 3. **Sharding Plan** - Confirm `docs/templates/doc-sharding-tmpl.txt` exists or `doc-sharding-tmpl.txt` has been provided
-4. **Output Location** - Confirm Target directory (default: `docs/`) and index.md or in memory chat output
+4. **Output Location** - Confirm Target directory (default: `.ai/current/specs/`) and index.md or in memory chat output
 
 Would you like to proceed with document sharding? Please provide the required input.

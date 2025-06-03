@@ -1,7 +1,7 @@
 # Workflow Guidance Task
 
 ## Purpose
-Provide intelligent workflow suggestions based on current project state, memory patterns, and BMAD best practices.
+Provide intelligent workflow suggestions based on current project state, memory patterns, and BMAD best practices. Optionally store workflow guidance outputs at `.ai/guidance/workflow/` for future reference.
 
 ## Memory-Enhanced Workflow Analysis
 
@@ -269,33 +269,38 @@ def detect_critical_decisions(current_context):
 
 ### 7. Workflow Commands Integration
 
-#### Available Commands
+### Available Commands
 ```markdown
 ## 🛠️ Workflow Commands
 
 ### `/workflow` - Get current workflow guidance
 - Analyzes current state and provides next step recommendations
 - Includes memory-based insights and optimization suggestions
+- Optional: Save output to `.ai/guidance/workflow/workflow-{date}.md`
 
 ### `/progress` - Show detailed progress tracking  
 - Current workflow milestone status
 - Efficiency analysis compared to typical patterns
 - Upcoming decision points and requirements
+- Optional: Save tracking to `.ai/guidance/workflow/progress-{date}.md`
 
 ### `/suggest` - Get intelligent next step suggestions
 - Memory-enhanced recommendations based on similar situations
 - Persona transition suggestions with confidence levels
 - Optimization opportunities based on past patterns
+- Optional: Save suggestions to `.ai/guidance/workflow/suggestions-{date}.md`
 
 ### `/template {workflow-name}` - Start specific workflow template
 - Loads proven workflow templates from memory
 - Customizes based on your historical preferences
 - Sets up tracking and milestone monitoring
+- Template saves to `.ai/guidance/workflow/template-{workflow-name}-{date}.md`
 
 ### `/optimize` - Analyze current workflow for improvements
 - Compares current approach to successful memory patterns
 - Identifies efficiency opportunities and bottlenecks
 - Suggests process improvements based on past outcomes
+- Optional: Save analysis to `.ai/guidance/workflow/optimization-{date}.md`
 ```
 
 ## Output Format Templates
@@ -338,4 +343,6 @@ def detect_critical_decisions(current_context):
 - `/progress` - See detailed progress tracking
 - `/suggest` - Get alternative recommendations  
 - `/template {name}` - Use a specific workflow template
+
+**Storage**: This guidance can be saved to `.ai/guidance/workflow/workflow-guidance-{date}.md` for future reference.
 ```

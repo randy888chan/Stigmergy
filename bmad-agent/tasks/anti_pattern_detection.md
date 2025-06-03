@@ -1,7 +1,7 @@
 # Anti-Pattern Detection Task
 
 ## Purpose
-Systematically identify and eliminate anti-patterns that compromise quality and reliability.
+Systematically identify and eliminate anti-patterns that compromise quality and reliability. Store violation reports at `.ai/quality/validations/anti-pattern-report-{date}.md` and scanning results at `.ai/quality/diagnostics/`.
 
 ## Detection Categories
 
@@ -119,6 +119,8 @@ def scan_file(file_path):
 5. **VERIFICATION**: Confirm pattern fully eliminated
 
 ### Documentation Requirements
+Save violation reports at `.ai/quality/validations/anti-pattern-report-{date}.md`:
+
 ```markdown
 ## Anti-Pattern Violation Report
 **Date**: [YYYY-MM-DD]
@@ -172,10 +174,10 @@ def scan_file(file_path):
 
 ## Integration Points
 - **Pre-Commit Hooks**: Automated scanning before code commits
-- **CI/CD Pipeline**: Pattern detection in automated builds
+- **CI/CD Pipeline**: Pattern detection in automated builds  
 - **Code Reviews**: Manual pattern detection as part of review process
-- **Sprint Reviews**: Pattern trends analyzed and addressed
-- **Retrospectives**: Process patterns examined for root causes
+- **Sprint Reviews**: Pattern trends analyzed and addressed at `.ai/quality/validations/`
+- **Retrospectives**: Process patterns examined for root causes, stored at `.ai/history/decisions/`
 
 ## Metrics and Reporting
 - **Pattern Frequency**: Track occurrence by type and team member
@@ -183,3 +185,4 @@ def scan_file(file_path):
 - **Trend Analysis**: Pattern emergence patterns over time
 - **Education Effectiveness**: Reduction in patterns after training
 - **Quality Correlation**: Relationship between patterns and defects
+- **Storage Location**: All metrics and reports saved to `.ai/quality/diagnostics/anti-pattern-metrics-{date}.md`

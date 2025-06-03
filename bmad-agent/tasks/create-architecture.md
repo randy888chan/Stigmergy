@@ -4,7 +4,7 @@
 
 - To design a complete, robust, and well-documented technical architecture based on the project requirements (PRD, epics, brief), research findings, and user input.
 - To make definitive technology choices and articulate the rationale behind them, leveraging the architecture template as a structural guide.
-- To produce all necessary technical artifacts, ensuring the architecture is optimized for efficient implementation, particularly by AI developer agents, and validated against the `architect-checklist`.
+- To produce all necessary technical artifacts at `.ai/current/specs/architecture.md`, ensuring the architecture is optimized for efficient implementation, particularly by AI developer agents, and validated against the `architect-checklist`.
 
 ## Instructions
 
@@ -44,7 +44,7 @@
 
 4.  **Create Technical Artifacts (Incrementally, unless YOLO mode, guided by `architecture-tmpl`):**
 
-    - For each artifact or section of the main Architecture Document:
+    - For each artifact or section of the main Architecture Document (to be created at `.ai/current/specs/architecture.md`):
 
       - **Explain Purpose:** Briefly describe the artifact/section's importance and what it will cover.
       - **Draft Section-by-Section:** Present a draft of one logical section at a time.
@@ -83,20 +83,20 @@
       - If the user agrees, collaboratively draft this prompt and append it to the architecture document.
     - Obtain final user approval for the complete architecture documentation generation.
     - **Recommend Next Steps for UI (If Applicable):**
-      - After the main architecture document is finalized and approved:
+      - After the main architecture document is finalized and approved at `.ai/current/specs/architecture.md`:
       - If the project involves a user interface (as should be evident from the input PRD and potentially the architecture document itself mentioning UI components or referencing outputs from a Design Architect's UI/UX Specification phase):
         - Strongly recommend to the user that the next critical step for the UI is to engage the **Design Architect** agent.
         - Specifically, advise them to use the Design Architect's **'Frontend Architecture Mode'**.
-        - Explain that the Design Architect will use the now-completed main Architecture Document and the detailed UI/UX specifications (e.g., `front-end-spec-tmpl.txt` or enriched PRD) as primary inputs to define the specific frontend architecture, select frontend libraries/frameworks (if not already decided), structure frontend components, and detail interaction patterns.
+        - Explain that the Design Architect will use the now-completed main Architecture Document at `.ai/current/specs/architecture.md` and the detailed UI/UX specifications (e.g., `.ai/current/specs/frontend-spec.md` or enriched PRD) as primary inputs to define the specific frontend architecture, select frontend libraries/frameworks (if not already decided), structure frontend components, and detail interaction patterns.
 
 ### Output Deliverables for Architecture Creation Phase
 
-- A comprehensive Architecture Document, structured according to the `architecture-tmpl` (which is all markdown) or an agreed-upon format, including all sections detailed above.
+- A comprehensive Architecture Document at `.ai/current/specs/architecture.md`, structured according to the `architecture-tmpl` (which is all markdown) or an agreed-upon format, including all sections detailed above.
 - Clear Mermaid diagrams for architecture overview, data models, etc.
 - A list of new or refined technical user stories/tasks ready for backlog integration.
 - A summary of any identified changes (additions, updates, modifications) required for existing epics or user stories, or an explicit confirmation if no such changes are needed.
 - A completed `architect-checklist` (or a summary of its validation).
-- Optionally, if UI components are involved and the user agrees: A prompt for a "Design Architect" appended to the main architecture document, summarizing relevant UI considerations and outlining the Design Architect's next steps.
+- Optionally, if UI components are involved and the user agrees: A prompt for a "Design Architect" appended to the main architecture document at `.ai/current/specs/architecture.md`, summarizing relevant UI considerations and outlining the Design Architect's next steps.
 
 ## Offer Advanced Self-Refinement & Elicitation Options
 

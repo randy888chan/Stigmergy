@@ -2,13 +2,13 @@
 
 ## Purpose
 
-To generate a masterful, comprehensive, and optimized prompt that can be used with AI-driven frontend development tools (e.g., Lovable, Vercel v0, or similar) to scaffold or generate significant portions of the frontend application.
+To generate a masterful, comprehensive, and optimized prompt that can be used with AI-driven frontend development tools (e.g., Lovable, Vercel v0, or similar) to scaffold or generate significant portions of the frontend application. Store the generated prompt at `.ai/guidance/prompts/frontend-generation-{tool}-{date}.md`.
 
 ## Inputs
 
-- Completed UI/UX Specification (`front-end-spec-tmpl`)
-- Completed Frontend Architecture Document (`front-end-architecture`)
-- Main System Architecture Document (`architecture` - for API contracts and tech stack)
+- Completed UI/UX Specification (`.ai/current/specs/frontend-spec.md`)
+- Completed Frontend Architecture Document (`.ai/current/specs/frontend-architecture.md`)
+- Main System Architecture Document (`.ai/current/specs/architecture.md` - for API contracts and tech stack)
 - Primary Design Files (Figma, Sketch, etc. - for visual context if the tool can accept it or if descriptions are needed)
 
 ## Key Activities & Instructions
@@ -52,7 +52,7 @@ To generate a masterful, comprehensive, and optimized prompt that can be used wi
       - If the chosen AI tool has known best practices for prompting (e.g., specific keywords, structure, level of detail), incorporate them. (This might require the agent to have some general knowledge or to ask the user if they know any such specific prompt modifiers for their chosen tool).
 
 3.  **Present and Refine the Master Prompt:**
-    - Output the generated prompt in a clear, copy-pasteable format (e.g., a large code block).
+    - Output the generated prompt in a clear, copy-pasteable format and save it to `.ai/guidance/prompts/frontend-generation-{tool}-{date}.md`.
     - Explain the structure of the prompt and why certain information was included.
     - Work with the user to refine the prompt based on their knowledge of the target AI tool and any specific nuances they want to emphasize.
     - <important_note>Remind the user that the generated code from the AI tool will likely require review, testing, and further refinement by developers.</important_note>

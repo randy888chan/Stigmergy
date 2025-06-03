@@ -1,7 +1,7 @@
 # Brotherhood Review Task
 
 ## Purpose
-Conduct honest, rigorous peer review to ensure quality and eliminate sycophantic behavior.
+Conduct honest, rigorous peer review to ensure quality and eliminate sycophantic behavior. Store review records at `.ai/quality/reviews/brotherhood-review-{date}.md`.
 
 ## Review Protocol
 
@@ -93,6 +93,8 @@ Conduct honest, rigorous peer review to ensure quality and eliminate sycophantic
 ## Review Documentation
 
 ### Review Record Template
+Save the review record at `.ai/quality/reviews/brotherhood-review-{date}.md`:
+
 ```markdown
 ## Brotherhood Review: [Task/Story Name]
 **Date**: [YYYY-MM-DD]
@@ -131,5 +133,6 @@ Conduct honest, rigorous peer review to ensure quality and eliminate sycophantic
 ## Integration with BMAD Workflow
 - **Required for**: All story completion, architecture decisions, deployment
 - **Frequency**: At minimum before story done, optionally mid-implementation
-- **Documentation**: All reviews tracked in project quality metrics
+- **Documentation**: All reviews tracked in project quality metrics at `.ai/quality/reviews/`
 - **Learning**: Review insights feed back into process improvement
+- **Storage**: Each review record saved as `.ai/quality/reviews/brotherhood-review-{date}.md`

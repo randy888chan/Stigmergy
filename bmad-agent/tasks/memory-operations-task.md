@@ -5,7 +5,7 @@
 > **Note**: This is the executable memory operations task. For detailed integration guidance and implementation details, see `bmad-agent/memory/memory-system-architecture.md`.
 
 ## Purpose
-Execute memory-aware context management for the current session, integrating historical insights and patterns to enhance decision-making and maintain continuity across interactions.
+Execute memory-aware context management for the current session, integrating historical insights and patterns to enhance decision-making and maintain continuity across interactions. When memory system is unavailable, use fallback storage at `.ai/system/memory/fallbacks/`.
 
 ## Memory Categories & Schemas
 
@@ -320,14 +320,35 @@ def memory_enhanced_operation_with_fallback():
         memory_context = search_memory(current_context_query)
         return enhanced_operation_with_memory(memory_context)
     except MemoryUnavailableError:
-        # Graceful fallback to standard operation
+        # Graceful fallback to file storage
         log_memory_unavailable()
-        return standard_operation_with_session_state()
+        fallback_context = load_fallback_memories(".ai/system/memory/fallbacks/")
+        return enhanced_operation_with_fallback(fallback_context)
     except Exception as e:
         # Handle other memory-related errors
         log_memory_error(e)
+        save_to_fallback(".ai/system/memory/fallbacks/error-recovery.md", current_context)
         return fallback_operation()
+
+def save_to_fallback(path, content):
+    """Save memory content to fallback file storage"""
+    ensure_directory_exists(".ai/system/memory/fallbacks/")
+    with open(path, 'a') as f:
+        f.write(f"\n## {timestamp()}\n{content}\n")
+
+def load_fallback_memories(fallback_dir):
+    """Load memories from fallback file storage"""
+    fallback_memories = []
+    if os.path.exists(fallback_dir):
+        for file in os.listdir(fallback_dir):
+            if file.endswith('.md'):
+                with open(os.path.join(fallback_dir, file), 'r') as f:
+                    fallback_memories.append(f.read())
+    return fallback_memories
 ```
+</text>
+
+</edits>
 
 ## Quality Assurance & Learning Integration
 

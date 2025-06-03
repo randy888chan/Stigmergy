@@ -2,12 +2,12 @@
 
 ## Purpose
 
-To collaboratively work with the user to define and document the User Interface (UI) and User Experience (UX) specifications for the project. This involves understanding user needs, defining information architecture, outlining user flows, and ensuring a solid foundation for visual design and frontend development. The output will populate a new document called `front-end-spec.md` following the `front-end-spec-tmpl` template.
+To collaboratively work with the user to define and document the User Interface (UI) and User Experience (UX) specifications for the project. This involves understanding user needs, defining information architecture, outlining user flows, and ensuring a solid foundation for visual design and frontend development. The output will populate a new document at `.ai/current/specs/frontend-spec.md` following the `front-end-spec-tmpl` template.
 
 ## Inputs
 
-- Project Brief (`project-brief.md` or equivalent)
-- Product Requirements Document (PRD) (`prd.md` or equivalent)
+- Project Brief (`.ai/current/specs/project-brief.md` or equivalent)
+- Product Requirements Document (PRD) (`.ai/current/specs/prd.md`)
 - User feedback or research (if available)
 
 ## Key Activities & Instructions
@@ -65,7 +65,7 @@ To collaboratively work with the user to define and document the User Interface 
 
 ### 10. Output Generation & Iterative Refinement (Guided by `front-end-spec-tmpl`)
 
-- **a. Draft Section:** Incrementally populate one logical section of the `front-end-spec-tmpl` file based on your discussions.
+- **a. Draft Section:** Incrementally populate one logical section of the frontend specification document (to be created at `.ai/current/specs/frontend-spec.md`) based on your discussions.
 - **b. Present & Incorporate Initial Feedback:** Present the drafted section to the user for review. Discuss, explain and incorporate their initial feedback and revisions directly.
 - **c. [Offer Advanced Self-Refinement & Elicitation Options](#offer-advanced-self-refinement--elicitation-options)**
 

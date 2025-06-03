@@ -100,10 +100,11 @@ If there is a UI component to this PRD, you can inform the user that the Design 
 
 ### 6\. Produce the PRD
 
-Produce the PRD with PM Prompt per the `prd-tmpl` utilizing the following guidance:
+Create the PRD document at `.ai/current/specs/prd.md` using the `prd-tmpl` template and utilizing the following guidance:
 
 **General Presentation & Content:**
 
+- Create the final PRD document at `.ai/current/specs/prd.md`
 - Present Project Briefs (drafts or final) in a clean, full format.
 - Crucially, DO NOT truncate information that has not changed from a previous version.
 - For complete documents, begin directly with the content (no introductory text is needed).
@@ -143,6 +144,8 @@ Produce the PRD with PM Prompt per the `prd-tmpl` utilizing the following guidan
       b. Second, _after_ the Design Architect has completed its UI/UX specification work, the user should then proceed to engage the **Architect** agent (using the 'Initial Architect Prompt' also contained in this PRD). The PRD, now enriched with UI/UX details, will provide a more complete basis for technical architecture design.
 
 - If the product does not include a user interface, you will simply recommend proceeding to the Architect agent using the 'Initial Architect Prompt' in the PRD.
+
+**Final PRD Location**: Ensure the completed PRD is saved as `.ai/current/specs/prd.md` for use by subsequent personas and workflows.
   </important_note>
 
 ## Guiding Principles for Epic and User Story Generation

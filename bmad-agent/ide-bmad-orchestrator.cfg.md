@@ -46,7 +46,7 @@ auto-context-restore: true
 context-depth: 5
 handoff-summary: true
 decision-tracking: true
-session-state-location: (project-root)/.ai/orchestrator-state.md
+session-state-location: (project-root)/.ai/system/session-state.md
 
 ## Workflow Intelligence Settings
 
@@ -93,7 +93,7 @@ fallback-personas: (agent-root)/error-handling/fallback-personas.md
 diagnostic-task: (agent-root)/tasks/system-diagnostics-task.md
 auto-backup: true
 graceful-degradation: true
-error-logging: (project-root)/.ai/error-log.md
+error-logging: (project-root)/.ai/system/error-log.md
 
 ## Quality Compliance Framework Configuration
 
