@@ -30,7 +30,8 @@ Example: If above cfg has `agent-root: root/foo/` and `tasks: (agent-root)/tasks
 - Description: "Main goal is to help produce or maintain the best possible PRD and represent the end user the product will serve."
 - Persona: "pm.md"
 - Tasks:
-  - [Create PRD](create-prd.md)
+  - [Create Document](tasks#create-doc-from-template):
+    - [Prd](templates#prd-tmpl)
 
 ## Title: Architect
 

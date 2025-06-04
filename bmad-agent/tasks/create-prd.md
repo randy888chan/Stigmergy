@@ -4,13 +4,13 @@
 
 - Transform inputs into core product definition documents conforming to a PRD template
 - Define clear MVP scope focused on essential functionality
-- Provide foundation for Architect and AI dev agents
+- Provide foundation for Architect and Design Architect to help create technical artifacts which will in turn later draft further details for very junior engineers or simple dev ai agents.
 
 ## Instructions
 
 ### 1. Review Inputs
 
-Review all provided inputs including project brief, research documents, and user ideas to guide PRD generation.
+Review all provided inputs including project brief, research documents, prd template and user ideas to guide PRD generation.
 
 ### 2. Determine Interaction Mode
 
@@ -25,7 +25,6 @@ Confirm with the user their preferred interaction style:
 - Use the `prd-tmpl` template (or user-specified alternative template)
 - Follow all embedded LLM instructions within the template
 - Template contains section-specific guidance and examples
-- Apply `tasks#advanced-elicitation` protocol where template indicates
 
 ### 4. Template Processing Notes
 
@@ -40,22 +39,10 @@ Process all template elements according to `templates#template-format` conventio
 
 - Present only the final, clean content to users
 - Replace template variables with actual project-specific content
-- Show examples only when they add value, without the markup
 - Process all conditional logic internally - show only relevant sections
 - For Canvas mode: Update the document with clean, formatted content only
 
-### 6. Advanced Elicitation Techniques Protocol
-
-When the template indicates to apply `tasks#advanced-elicitation` - execute on the task instructions.
-
-### 7. Validate with Checklist
-
-- Run the `pm-checklist` against completed PRD
-- Document completion status for each checklist item
-- Present summary by section, address any deficiencies
-- Generate final checklist report with findings and resolutions
-
-### 8. Prepare Handoffs
+### 7. Prepare Handoffs
 
 Based on PRD content, prepare appropriate next-step prompts:
 
@@ -69,6 +56,13 @@ Based on PRD content, prepare appropriate next-step prompts:
 
 - Add Architect prompt in designated template section
 - Recommend proceeding directly to Architect
+
+### 8. Validate with Checklist
+
+- Run the `pm-checklist` against completed PRD
+- Document completion status for each checklist item
+- Present summary by section, address any deficiencies
+- Generate final checklist report with findings and resolutions
 
 ### 9. Final Presentation
 
@@ -91,6 +85,5 @@ Based on PRD content, prepare appropriate next-step prompts:
 
 - This task is template-agnostic - users may specify custom templates
 - All detailed instructions are embedded in templates, not this task file
-- Focus on orchestration and workflow, not content specifics
-- Maintain flexibility for different template structures
-- **Template markup is for AI processing only - users should never see internal directives**
+- Focus on orchestration and workflow
+- **Template markup is for AI processing only - users should never see output indicators from templates#template-format**

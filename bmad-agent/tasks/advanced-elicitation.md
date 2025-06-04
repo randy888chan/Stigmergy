@@ -6,24 +6,17 @@
 - Enable deeper exploration of ideas through structured elicitation techniques
 - Support iterative refinement through multiple analytical perspectives
 
-## Instructions
+## Task Instructions
 
-### 1. When to Apply
+### 1. Ask for review and Present Action List
 
-Apply this protocol when:
+[[LLM: Ask the user to review the {drafted document section, or context or document this protocol was executed from}. In the SAME message, inform them that they can suggest additions, removals, or modifications, OR they can select an action by number from the 'Advanced Reflective, Elicitation & Brainstorming Actions'. Then, present ONLY the numbered list (0-9) of these actions as defined in tasks#advanced-elicitation. Conclude by stating that selecting 9 will proceed to the next section. Await user selection. If an elicitation action (0-8) is chosen, execute it and then re-offer this combined review/elicitation choice. If option 9 is chosen, or if the user provides direct feedback on requirements, proceed accordingly.]]
 
-- Other tasks/templates indicate to use `tasks#advanced-elicitation`
-- After presenting a document section that would benefit from refinement
-- User requests brainstorming or deeper exploration of content
-- Content needs additional validation or alternative perspectives
-
-### 2. Present Action List
-
-**Present ONLY the numbered list (0-9) with this exact format:**
+**Present the numbered list (0-9) with this exact format:**
 
 ```
-Advanced Reflective, Elicitation & Brainstorming Actions
-Choose an action (0-9 - 9 to bypass):
+**Advanced Reflective, Elicitation & Brainstorming Actions**
+Choose an action (0-9 - 9 to bypass - HELP for explanation of these options):
 
 0. Expand or Contract for Audience
 1. Explain Reasoning (CoT Step-by-Step)
@@ -37,21 +30,21 @@ Choose an action (0-9 - 9 to bypass):
 9. Proceed / No Further Actions
 ```
 
-### 3. Processing Guidelines
+### 2. Processing Guidelines
 
 **Do NOT show:**
 
 - The full protocol text with `[[LLM: ...]]` instructions
-- Detailed explanations of each option unless executing
+- Detailed explanations of each option unless executing or the user asks, when giving the definition you can modify to tie its relevance
 - Any internal template markup
 
-**After user selection:**
+**After user selection from the list:**
 
 - Execute the chosen action according to the protocol instructions below
 - Ask if they want to select another action or proceed with option 9 once complete
 - Continue until user selects option 9 or indicates completion
 
-### 4. Action Definitions
+## Action Definitions
 
 0. Expand or Contract for Audience
    [[LLM: Ask the user whether they want to 'expand' on the content (add more detail, elaborate) or 'contract' it (simplify, clarify, make more concise). Also, ask if there's a specific target audience they have in mind. Once clarified, perform the expansion or contraction from your current role's perspective, tailored to the specified audience if provided.]]
@@ -72,7 +65,7 @@ Choose an action (0-9 - 9 to bypass):
    [[LLM: Based on your role's expertise, brainstorm potential risks, overlooked edge cases, or unintended consequences related to the current content or proposal.]]
 
 6. Challenge from Critical Perspective (Self or Other Persona)
-   [[LLM: Adopt a critical perspective on the current content. If the user specifies another role or persona (e.g., 'as a customer', 'as [Another Persona Name]'), critique the content or play devil's advocate from that specified viewpoint. If no other role is specified, play devil's advocate from your own current persona's viewpoint, arguing against the proposal or current content and highlighting weaknesses or counterarguments specific to your concerns.]]
+   [[LLM: Adopt a critical perspective on the current content. If the user specifies another role or persona (e.g., 'as a customer', 'as [Another Persona Name]'), critique the content or play devil's advocate from that specified viewpoint. If no other role is specified, play devil's advocate from your own current persona's viewpoint, arguing against the proposal or current content and highlighting weaknesses or counterarguments specific to your concerns. This can also randomly include YAGNI when appropriate, such as when trimming the scope of an MVP, the perspective might challenge the need for something to cut MVP scope.]]
 
 7. Explore Diverse Alternatives (ToT-Inspired)
    [[LLM: From your role's perspective, first broadly brainstorm a range of diverse approaches or solutions to the current topic. Then, from this wider exploration, select and present 2 distinct alternatives, detailing the pros, cons, and potential implications you foresee for each.]]

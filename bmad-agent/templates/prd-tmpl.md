@@ -1,5 +1,7 @@
 # {{Project Name}} Product Requirements Document (PRD)
 
+[[LLM: If available, review any provided document or ask if any are optionally available: Project Brief]]
+
 ## Goals and Background Context
 
 [[LLM: Populate the 2 child sections based on what we have received from user description or the provided brief. Allow user to review the 2 sections and offer changes before proceeding]]
@@ -14,7 +16,7 @@
 
 ## Requirements
 
-[[LLM: Draft the list of functional and non functional requirements under the two child sections, and then ask the users to review each one.]]
+[[LLM: Draft the list of functional and non functional requirements under the two child sections, and immediately execute tasks#advanced-elicitation display]]
 
 ### Functional
 
@@ -26,20 +28,18 @@
 [[LLM: Each Requirement will be a bullet markdown and an identifier sequence starting with NFR`.]]
 @{example: - NFR1: AWS service usage **must** aim to stay within free-tier limits where feasible.}
 
-[[LLM: Follow the `tasks#advanced-elicitation` protocol letting the user know he can do it for any section thus far. Do not proceed until user selects option 9.]]
-
 ^^CONDITION: has_ui^^
 
 ## User Interface Design Goals
 
-[[LLM: Capture high-level UI/UX vision to guide Design Architect and inform story creation. Steps:
+[[LLM: Capture high-level UI/UX vision to guide Design Architect and to inform story creation. Steps:
 
 1. Pre-fill all subsections with educated guesses based on project context
 2. Present the complete rendered section to user
 3. Clearly let the user know where assumptions were made
 4. Ask targeted questions for unclear/missing elements or areas needing more specification
 5. This is NOT detailed UI spec - focus on product vision and user goals
-6. After section completion, apply `tasks#advanced-elicitation` protocol]]
+6. After section completion, immediately apply `tasks#advanced-elicitation` protocol]]
 
 ### Overall UX Vision
 
@@ -104,7 +104,7 @@
 
 ## Epics
 
-[[LLM: First, present a high-level list of all epics for user approval, the epic_list. Each epic should have a title and a short (1 sentence) goal statement. This allows the user to review the overall structure before diving into details.
+[[LLM: First, present a high-level list of all epics for user approval, the epic_list and immediately execute tasks#advanced-elicitation display. Each epic should have a title and a short (1 sentence) goal statement. This allows the user to review the overall structure before diving into details.
 
 CRITICAL: Epics MUST be logically sequential following agile best practices:
 
@@ -130,7 +130,7 @@ CRITICAL: Epics MUST be logically sequential following agile best practices:
 
 @{/example}
 
-[[LLM: After the epic list is approved, present each `epic_details` with all its stories and acceptance criteria as a complete review unit. Before going to the next epic, apply `tasks#advanced-elicitation` protocol.]]
+[[LLM: After the epic list is approved, present each `epic_details` with all its stories and acceptance criteria as a complete review unit and immediately execute tasks#advanced-elicitation display, before moving on to the next epic.]]
 
 <<REPEAT: epic_details>>
 
@@ -187,7 +187,7 @@ so that {{benefit}}.
 
 ## Checklist Results Report
 
-[[LLM: This section will be populated if/after running the PM checklist]]
+[[LLM: Before running the checklist and drafting the prompts, offer to output the full updated PRD. If outputting it, confirm with the user that you will be proceeding to run the checklist and produce the report. Once the user confirms, execute the `pm-checklist` and populate the results in this section.]]
 
 ----- END Checklist START Design Architect `UI/UX Specification Mode` Prompt ------
 
