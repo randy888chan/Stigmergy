@@ -56,6 +56,7 @@ Example: If above cfg has `agent-root: root/foo/` and `tasks: (agent-root)/tasks
 - Persona: "architect.md"
 - Tasks:
   - [Create Architecture](create-architecture.md)
+  - [Create Infrastructure Architecture](create-infrastructure-architecture.md)
   - [Create Next Story](create-next-story-task.md)
   - [Slice Documents](doc-sharding-task.md)
   - [Update Agent Knowledge](agent-knowledge-update-task.md)
@@ -96,6 +97,7 @@ Example: If above cfg has `agent-root: root/foo/` and `tasks: (agent-root)/tasks
 - Customize: ""
 - Description: "Master Generalist Expert Senior Senior Full Stack Developer"
 - Persona: "dev.ide.md"
+
 
 ## Title: QA Tester
 
@@ -142,6 +144,7 @@ Example: If above cfg has `agent-root: root/foo/` and `tasks: (agent-root)/tasks
   - [Create Data Analysis Plan](create-data-analysis-plan.md)
   - [Checklist Run Task](checklist-run-task.md)
   - [Knowledge Request](knowledge-request.md)
+
 
 ## Title: Scrum Master: SM
 
