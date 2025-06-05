@@ -82,7 +82,7 @@ To identify the next logical story based on project progress and epic definition
 
 ### 5. Populate Story Template with Full Context
 
-- Create a new story file: `docs/stories/{epicNum}.{storyNum}.story.md`.
+- Create a new story file: `docs/stories/{epic-num}.{story-num}.story.md` (using BMAD standard naming with hyphens).
 - Use the Story Template to structure the file.
 - Fill in:
   - Story `{EpicNum}.{StoryNum}: {Short Title Copied from Epic File}`

@@ -17,7 +17,7 @@
 
 MUST review and use:
 
-- `Assigned Story File`: `docs/stories/{epicNumber}.{storyNumber}.story.md`
+- `Assigned Story File`: `docs/stories/{epic-num}.{story-num}.story.md` (BMAD standard naming)
 - `Project Structure`: `docs/project-structure.md`
 - `Operational Guidelines`: `docs/operational-guidelines.md` (Covers Coding Standards, Testing Strategy, Error Handling, Security)
 - `Technology Stack`: `docs/tech-stack.md`
@@ -47,7 +47,7 @@ MUST review and use:
         a. HALT feature implementation concerning the dependency.
         b. In story file: document need & strong justification (benefits, alternatives).
         c. Ask user for explicit approval for this dependency.
-        d. ONLY upon user's explicit approval (e.g., "User approved X on YYYY-MM-DD"), document it in the story file and proceed.
+        d. ONLY upon user's explicit approval (e.g., "User approved X on [current date in YYYY-MM-DD format]"), document it in the story file and proceed.
     - **Debugging Protocol:**
       - For temporary debug code (e.g., extensive logging):
         a. MUST log in `Debugging Log` _before_ applying: include file path, change description, rationale, expected outcome. Mark as 'Temp Debug for Story X.Y'.

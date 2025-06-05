@@ -306,7 +306,9 @@ function main() {
 
 ## Additional Resources
 - Project documentation is located in the \`docs/\` directory
-- Architecture diagrams can be found in \`docs/architecture.md\`
+- Architecture diagrams can be found in \`docs/architecture.md\` (BMAD standard naming)
+- Project brief is in \`docs/project-brief.md\`
+- PRD is in \`docs/prd.md\`
 `;
   updateKnowledgeFile(PROJECT_CONTEXT_PATH, projectContextContent);
   

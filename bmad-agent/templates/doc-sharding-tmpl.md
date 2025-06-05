@@ -6,7 +6,7 @@ This plan directs the agent on how to break down large source documents into sma
 
 ## 1. Source Document: PRD (Project Requirements Document)
 
-- **Note to Agent:** Confirm the exact filename of the PRD with the user (e.g., `PRD.md`, `ProjectRequirements.md`, `prdx.y.z.md`).
+- **Note to Agent:** The PRD should be named `prd.md` per BMAD naming standards. If using a different name, confirm with user and suggest renaming to standard format.
 
 ### 1.1. Epic Granulation
 
@@ -19,7 +19,7 @@ This plan directs the agent on how to break down large source documents into sma
 
 ## 2. Source Document: Main Architecture Document
 
-- **Note to Agent:** Confirm the exact filename with the user (e.g., `architecture.md`, `SystemArchitecture.md`).
+- **Note to Agent:** The Architecture document should be named `architecture.md` per BMAD naming standards. If using a different name, confirm with user and suggest renaming to standard format.
 
 ### 2.1. Core Architecture Granules
 
@@ -65,7 +65,7 @@ This plan directs the agent on how to break down large source documents into sma
 
 ## 3. Source Document(s): Front-End Specific Documentation
 
-- **Note to Agent:** Confirm filenames with the user (e.g., `front-end-architecture.md`, `front-end-spec.md`, `ui-guidelines.md`). Multiple FE documents might exist.
+- **Note to Agent:** Frontend documents should follow BMAD naming standards: `frontend-architecture.md`, `uxui-spec.md`. If using different names, confirm with user and suggest renaming to standard format.
 
 ### 3.1. Front-End Granules
 

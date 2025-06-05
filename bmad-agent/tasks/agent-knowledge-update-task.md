@@ -4,11 +4,11 @@
 Extract key project information from existing documentation and update agent knowledge files and customization strings to make all BMAD agents more effective with project-specific context.
 
 ## Input Required
-- Project Brief (if available)
-- PRD (if available)
-- Architecture document (if available)
-- Tech Stack document (if available)
-- Other project artifacts
+- Project Brief (`docs/project-brief.md` if available)
+- PRD (`docs/prd.md` if available)
+- Architecture document (`docs/architecture.md` if available)
+- Tech Stack document (`docs/tech-stack.md` if available)
+- Other project artifacts following BMAD naming standards
 
 ## Steps
 
@@ -54,6 +54,7 @@ Extract key project information from existing documentation and update agent kno
 
 5. **Update Knowledge Version History**
    - Create or update `.ai/knowledge-versions.md` using the template at `templates/knowledge-version-tmpl.md`
+   - **CRITICAL: Use actual current date in YYYY-MM-DD format, never leave date placeholders**
    - Increment version number appropriately based on change significance:
      - Major: Significant changes to project direction or core architecture
      - Minor: New features or components added to existing architecture

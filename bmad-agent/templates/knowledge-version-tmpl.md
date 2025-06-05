@@ -1,9 +1,11 @@
 # Knowledge Version History
 
 ## Current Version: {VERSION_NUMBER}
-**Last Updated:** {DATE}
+**Last Updated:** [AGENT: Use current date in YYYY-MM-DD format]
 **Updated By:** {AGENT_NAME}
 **Change Type:** {MAJOR|MINOR|PATCH}
+
+**IMPORTANT:** When using this template, replace {DATE} placeholders with actual current dates in YYYY-MM-DD format. Never leave date placeholders in final documents.
 
 ## Change Summary
 {BRIEF_DESCRIPTION_OF_CHANGES}
@@ -40,6 +42,6 @@
 
 | Version | Date | Updated By | Change Type | Summary |
 |---------|------|------------|-------------|---------|
-| {VERSION_NUMBER} | {DATE} | {AGENT_NAME} | {CHANGE_TYPE} | {BRIEF_SUMMARY} |
-| {PREVIOUS_VERSION} | {DATE} | {AGENT_NAME} | {CHANGE_TYPE} | {BRIEF_SUMMARY} |
-| {INITIAL_VERSION} | {DATE} | {AGENT_NAME} | Initial | Initial knowledge base creation |
+| {VERSION_NUMBER} | [AGENT: Current date YYYY-MM-DD] | {AGENT_NAME} | {CHANGE_TYPE} | {BRIEF_SUMMARY} |
+| {PREVIOUS_VERSION} | [AGENT: Previous date YYYY-MM-DD] | {AGENT_NAME} | {CHANGE_TYPE} | {BRIEF_SUMMARY} |
+| {INITIAL_VERSION} | [AGENT: Initial date YYYY-MM-DD] | {AGENT_NAME} | Initial | Initial knowledge base creation |

@@ -1,4 +1,6 @@
-# Story {EpicNum}.{StoryNum}: {Short Title Copied from Epic File}
+# Story {epic-num}.{story-num}: {Short Title Copied from Epic File}
+
+**IMPORTANT:** Use BMAD standard naming: {epic-num}.{story-num} with hyphens, not {EpicNum}.{StoryNum}
 
 ## Status: { Draft | Approved | InProgress | Review | Done }
 
