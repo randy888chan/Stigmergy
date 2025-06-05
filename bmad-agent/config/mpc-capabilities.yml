@@ -1,0 +1,32 @@
+# Machine-Powered Capabilities Configuration
+# This file defines external tools and services available to BMAD agents
+
+available_mpcs:
+  search:
+    - name: Perplexity
+      description: "Web search with summarization capabilities"
+      best_for: ["Research", "Market analysis", "Technology trends"]
+      command: "*perplexity"
+      agents: ["Analyst", "PM", "BMAD"]
+    
+  code_search:
+    - name: GitHub
+      description: "Search code repositories and documentation"
+      best_for: ["Code examples", "Library documentation", "Implementation patterns"]
+      command: "*github"
+      agents: ["Developer", "Architect", "DevOps"]
+    
+  data_analysis:
+    - name: Firecrawl
+      description: "Advanced data extraction and analysis"
+      best_for: ["Data mining", "Pattern recognition", "Competitive analysis"]
+      command: "*firecrawl"
+      agents: ["Data Scientist", "Analyst"]
+
+  # Add other categories and tools as needed
+  image_generation:
+    - name: DALL-E
+      description: "AI image generation for mockups and concepts"
+      best_for: ["UI mockups", "Concept visualization"]
+      command: "*dalle"
+      agents: ["Design Architect", "PM"]

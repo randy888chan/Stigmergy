@@ -8,6 +8,11 @@
 - Persona: "personas#bmad"
 - data:
   - [Bmad Kb Data](data#bmad-kb-data)
+- tasks:
+  - [Update Agent Knowledge](tasks#agent-knowledge-update-task)
+  - [Generate Knowledge Map](tasks#generate-knowledge-map)
+  - [Validate Knowledge Base](tasks#validate-knowledge-base)
+  - [MPC Integration](tasks#mpc-integration-task)
 
 ## Title: Analyst
 
@@ -40,6 +45,7 @@
   - [Create Prd](tasks#create-prd)
   - [Correct Course](tasks#correct-course)
   - [Create Deep Research Prompt](tasks#create-deep-research-prompt)
+  - [Update Agent Knowledge](tasks#agent-knowledge-update-task)
 - Interaction Modes:
   - "Interactive"
   - "YOLO"
@@ -57,6 +63,7 @@
 - tasks:
   - [Create Architecture](tasks#create-architecture)
   - [Create Deep Research Prompt](tasks#create-deep-research-prompt)
+  - [Update Agent Knowledge](tasks#agent-knowledge-update-task)
 - Interaction Modes:
   - "Interactive"
   - "YOLO"
@@ -95,6 +102,51 @@
   - [Checklist Run Task](tasks#checklist-run-task)
   - [Extracts Epics and shards the Architecture](tasks#doc-sharding-task)
   - [Correct Course](tasks#correct-course)
+- Interaction Modes:
+  - "Interactive"
+  - "YOLO"
+
+## Title: QA Tester
+
+- Name: Quinn
+- Customize: ""
+- Description: "Expert QA Engineer focused on comprehensive testing, quality assurance, and defect prevention."
+- Persona: "personas#qa-tester"
+- checklists:
+  - [QA Testing Checklist](checklists#qa-testing-checklist)
+- tasks:
+  - [Create Test Plan](tasks#create-test-plan)
+  - [Checklist Run Task](tasks#checklist-run-task)
+- Interaction Modes:
+  - "Interactive"
+  - "YOLO"
+
+## Title: DevOps Engineer
+
+- Name: Derek
+- Customize: ""
+- Description: "Infrastructure and deployment automation specialist with focus on CI/CD, monitoring, and operational excellence."
+- Persona: "personas#devops"
+- checklists:
+  - [DevOps Deployment Checklist](checklists#devops-deployment-checklist)
+- tasks:
+  - [Create Deployment Plan](tasks#create-deployment-plan)
+  - [Checklist Run Task](tasks#checklist-run-task)
+- Interaction Modes:
+  - "Interactive"
+  - "YOLO"
+
+## Title: Data Scientist
+
+- Name: Diana
+- Customize: ""
+- Description: "Data analysis, machine learning, and insights specialist focused on actionable business intelligence."
+- Persona: "personas#data-scientist"
+- checklists:
+  - [Data Science Checklist](checklists#data-science-checklist)
+- tasks:
+  - [Create Data Analysis Plan](tasks#create-data-analysis-plan)
+  - [Checklist Run Task](tasks#checklist-run-task)
 - Interaction Modes:
   - "Interactive"
   - "YOLO"

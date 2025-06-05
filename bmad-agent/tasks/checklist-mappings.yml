@@ -45,3 +45,27 @@ story-dod-checklist:
     - story.md
   default_locations:
     - docs/stories/*.md
+
+qa-testing-checklist:
+  checklist_file: docs/checklists/qa-testing-checklist.md
+  required_docs:
+    - story.md
+  default_locations:
+    - docs/stories/*.md
+    - docs/test-plans/*.md
+
+devops-deployment-checklist:
+  checklist_file: docs/checklists/devops-deployment-checklist.md
+  required_docs:
+    - infra-deployment.md
+  default_locations:
+    - docs/infra-deployment.md
+    - docs/deployment/*.md
+
+data-science-checklist:
+  checklist_file: docs/checklists/data-science-checklist.md
+  required_docs:
+    - data-models.md
+  default_locations:
+    - docs/data-models.md
+    - docs/ml-models/*.md

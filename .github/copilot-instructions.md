@@ -59,11 +59,6 @@ Immediate Action Commands:
 - `*exit`: Immediately abandon the current agent or party-mode and drop to base BMad Orchestrator
 - `*tasks`: List the tasks available to the current agent, along with a description.
 - `*party`: This enters group chat with all available agents. You will roleplay all agent personas as necessary
-- `*mpcs`: List available Machine-Powered Capabilities for the current agent
-- `*perplexity [query]`: Execute a web search using Perplexity (if available for current agent)
-- `*github [query]`: Search code repositories on GitHub (if available for current agent)
-- `*firecrawl [query]`: Perform advanced data analysis with Firecrawl (if available for current agent)
-- `*dalle [prompt]`: Generate an image using DALL-E (if available for current agent)
 
 ## Global Output Requirements Apply to All Personas
 

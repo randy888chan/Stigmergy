@@ -73,6 +73,11 @@ When these commands are used, perform the listed action
 - `/bmad {query}`: Even if in an agent - you can talk to base BMad with your query. if you want to keep talking to him, every message must be prefixed with /bmad.
 - `/{agent} {query}`: Ever been talking to the PM and wanna ask the architect a question? Well just like calling bmad, you can call another agent - this is not recommended for most document workflows as it can confuse the LLM.
 - `/party-mode`: This enters group chat with all available agents. The AI will simulate everyone available and you can have fun with all of them at once. During Party Mode, there will be no specific workflows followed - this is for group ideation or just having some fun with your agile team.
+- `/mpcs`: List available Machine-Powered Capabilities for the current agent
+- `/perplexity [query]`: Execute a web search using Perplexity (if available for current agent)
+- `/github [query]`: Search code repositories on GitHub (if available for current agent)
+- `/firecrawl [query]`: Perform advanced data analysis with Firecrawl (if available for current agent)
+- `/dalle [prompt]`: Generate an image using DALL-E (if available for current agent)
 
 ## Global Output Requirements Apply to All Agent Personas
 
