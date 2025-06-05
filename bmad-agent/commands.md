@@ -122,6 +122,8 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 | Data Models | `data-models.md` | Architect/Data Scientist |
 | API Reference | `api-reference.md` | Architect |
 | Deployment Guide | `deployment-guide.md` | DevOps |
+| Platform Architecture | `platform-architecture.md` | Platform Engineer |
+| Platform Guidelines | `platform-guidelines.md` | Platform Engineer |
 | Test Plan | `test-plan.md` | QA |
 | User Stories | `{epic-num}.{story-num}.story.md` | SM |
 | Epic Files | `epic-{id}.md` | SM (from sharding) |
@@ -205,9 +207,10 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 | 1 | Analyst | `*Analyst Create Project Brief` | Brainstorm and research project concept |
 | 2 | PM | `*PM Create PRD` | Create Product Requirements Document with epics and stories |
 | 3 | Architect | `*Architect Create Architecture` | Design system architecture based on PRD |
-| 4 | Design Architect | `*Design Architect Create Frontend Architecture` | Design UI/UX architecture (if applicable) |
-| 5 | Design Architect | `*Design Architect Create UXUI Spec` | Create detailed UI/UX specifications |
-| 6 | BMAD | `*BMAD Update Agent Knowledge` | Update all agents with project knowledge |
+| 4 | Platform Engineer | `*Platform Engineer Create Platform Architecture` | Design platform infrastructure (for complex projects) |
+| 5 | Design Architect | `*Design Architect Create Frontend Architecture` | Design UI/UX architecture (if applicable) |
+| 6 | Design Architect | `*Design Architect Create UXUI Spec` | Create detailed UI/UX specifications |
+| 7 | BMAD | `*BMAD Update Agent Knowledge` | Update all agents with project knowledge |
 | 7 | PO | `*PO organize` | Organize and validate all documentation |
 | 8 | SM | `*SM doc-shard` | Break down large documents into manageable pieces |
 | 9 | SM | `*SM create` | Create first implementation story |
@@ -219,7 +222,9 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 **Special Considerations:**
 - Run `*BMAD Update Agent Knowledge` after each major phase
 - Consider using `*perplexity` during research phases
-- For UI-heavy projects, add `*dalle` for mockup generation after step 5
+- For UI-heavy projects, add `*dalle` for mockup generation after step 6
+- **Include Platform Engineer (step 4)** for complex infrastructure, microservices, or enterprise projects
+- **Skip Platform Engineer** for simple applications with basic infrastructure needs
 
 ### 2. Brownfield Project Takeover
 **Purpose:** Integrate BMAD Method into an existing project
@@ -254,12 +259,15 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 | 7 | SM | `*SM create` | Create first module implementation story |
 | 8 | Dev | `*Dev` | Implement the module story |
 | 9 | QA | `*QA create-test-plan` | Create test plan for the module |
-| 10 | DevOps | `*DevOps infra-plan` | Plan infrastructure changes for new module |
+| 10 | Platform Engineer | `*Platform Engineer platform-change-management` | Plan platform infrastructure for complex modules |
+| 11 | DevOps | `*DevOps infra-plan` | Plan basic infrastructure changes for new module |
 
 **Special Considerations:**
 - Ensure integration points with existing modules are clearly defined
 - Consider impact on existing architecture and data models
 - Update knowledge files to include new module terminology
+- **Use Platform Engineer** for modules requiring service mesh, advanced monitoring, or complex infrastructure
+- **Use DevOps Engineer** for modules with standard deployment and infrastructure needs
 
 ### 4. UI Redesign Workflow
 **Purpose:** Implement frontend changes with minimal backend modifications
@@ -339,6 +347,25 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 - Use `*github` to research optimization patterns
 - Consider both frontend and backend optimizations
 
+### 8. Platform Infrastructure Setup
+**Purpose:** Establish comprehensive platform infrastructure for complex projects
+
+| Step | Agent | Command | Description |
+|------|-------|---------|-------------|
+| 1 | Analyst | `*Analyst Research Platform Requirements` | Research platform needs and constraints |
+| 2 | Architect | `*Architect Create Architecture` | Design overall system architecture |
+| 3 | Platform Engineer | `*Platform Engineer Create Platform Architecture` | Design platform infrastructure and services |
+| 4 | Platform Engineer | `*Platform Engineer platform-change-management` | Implement platform infrastructure |
+| 5 | BMAD | `*BMAD Update Agent Knowledge` | Update agents with platform knowledge |
+| 6 | DevOps | `*DevOps deploy` | Set up basic deployment pipelines |
+| 7 | QA | `*QA create-test-plan` | Create platform testing and validation plan |
+
+**Special Considerations:**
+- **Use for**: Microservices, service mesh, complex monitoring, developer platforms
+- **Focus on**: Developer experience, self-service capabilities, observability
+- **Include**: Security scanning, compliance frameworks, cost optimization
+- **Document**: Platform APIs, developer onboarding, troubleshooting guides
+
 ### Best Practices for Scenario Execution
 
 **Documentation First:** Complete documentation phases before implementation
@@ -368,7 +395,22 @@ The BMAD Method uses a **hybrid file organization system** that evolved from ear
 ## Best Practices
 
 ### Project Initialization Flow:
-Analyst → PM → Architect → Design Architect → PO → SM → Dev → QA → DevOps
+**Standard Projects**: Analyst → PM → Architect → Design Architect → PO → SM → Dev → QA → DevOps
+**Complex Projects**: Analyst → PM → Architect → Platform Engineer → Design Architect → PO → SM → Dev → QA → DevOps
+
+### Infrastructure Role Selection:
+**Use DevOps Engineer for**:
+- Basic deployment and CI/CD
+- Standard monitoring and logging
+- Simple infrastructure management
+- Single-team projects
+
+**Use Platform Engineer for**:
+- Complex infrastructure (microservices, service mesh)
+- Developer experience platforms
+- Multi-team environments
+- Advanced observability and monitoring
+- Internal tooling and self-service platforms
 
 ### Knowledge Updates:
 Run `*BMAD Update Agent Knowledge` after completing each major phase

@@ -170,3 +170,209 @@ For optimal results with the enhanced BMAD Method:
    - Customize checklists to match organizational standards
 
 The enhanced BMAD Method now provides more comprehensive coverage across the entire software development lifecycle, from planning through implementation, quality assurance, and deployment.
+
+## System Standardization and Consistency Improvements
+
+The BMAD Method has undergone comprehensive standardization to eliminate inconsistencies and improve reliability across all agents and workflows:
+
+### 1. Date Generation Standardization
+
+**Problem Addressed**: Agents were generating documents with incorrect placeholder dates or inconsistent date formats, leading to confusion and unprofessional documentation.
+
+**Solution Implemented**:
+- **Standardized Date Format**: All dates now use `YYYY-MM-DD` format (e.g., `2024-01-15`)
+- **Timestamp Format**: Timestamps use `YYYY-MM-DD HH:MM` format (e.g., `2024-01-15 14:30`)
+- **Eliminated Placeholders**: Removed all date placeholders like `{DATE}`, `[DATE]`, or `TBD`
+- **Automatic Generation**: All agents now generate actual current dates when creating documents
+
+**Implementation Details**:
+- Updated `knowledge-version-tmpl.md` with clear date generation instructions
+- Enhanced `agent-knowledge-update-task.md` with critical date handling reminders
+- Modified `dev.ide.md` persona to use proper date format examples
+- Verified `create-knowledge-files.js` correctly generates dates using JavaScript Date API
+
+### 2. File Naming Convention Standardization
+
+**Problem Addressed**: Inconsistent file naming patterns across projects made it difficult to locate and reference documents, with variations like `PROJECT-BRIEF.MD`, `{project-name}-project-brief.md`, and `project-brief.md`.
+
+**Solution Implemented**:
+- **Consistent Lowercase with Hyphens**: All core BMAD documents now use lowercase filenames with hyphens
+- **Standardized Core Documents**: Established canonical names for all major document types
+- **Agent Training**: Updated all agents to recognize and suggest standard naming conventions
+
+**Standard Naming Convention**:
+
+| Document Type | Standard Filename | Agent Responsible |
+|---------------|-------------------|-------------------|
+| Project Brief | `project-brief.md` | Analyst |
+| Product Requirements | `prd.md` | PM |
+| Architecture | `architecture.md` | Architect |
+| Frontend Architecture | `frontend-architecture.md` | Design Architect |
+| UX/UI Specification | `uxui-spec.md` | Design Architect |
+| Technology Stack | `tech-stack.md` | Architect |
+| Data Models | `data-models.md` | Architect/Data Scientist |
+| API Reference | `api-reference.md` | Architect |
+| Deployment Guide | `deployment-guide.md` | DevOps |
+| Test Plan | `test-plan.md` | QA |
+| User Stories | `{epic-num}.{story-num}.story.md` | SM |
+| Epic Files | `epic-{id}.md` | SM (from sharding) |
+
+### 3. Files Modified
+
+**Core Documentation**:
+- `bmad-agent/commands.md` - Added comprehensive file organization guidelines and naming standards table
+
+**Templates Updated**:
+- `bmad-agent/templates/knowledge-version-tmpl.md` - Added date generation instructions and examples
+- `bmad-agent/templates/doc-sharding-tmpl.md` - Updated to reference standard naming conventions
+- `bmad-agent/templates/story-tmpl.md` - Updated template to use hyphenated naming format
+
+**Task Files Updated**:
+- `bmad-agent/tasks/agent-knowledge-update-task.md` - Added critical date handling reminders and standard filename references
+- `bmad-agent/tasks/create-next-story-task.md` - Fixed story filename format to use hyphens
+- `bmad-agent/tasks/create-knowledge-files.js` - Added references to standard naming conventions
+
+**Persona Files Updated**:
+- `bmad-agent/personas/dev.ide.md` - Updated story file reference and date format examples
+
+### 4. Implementation Details
+
+**Backward Compatibility**:
+- System continues to work with existing non-standard filenames
+- Agents suggest migration to standard naming when encountering non-standard files
+- No breaking changes to existing workflows
+
+**Automatic Enforcement**:
+- All new documents automatically follow standard naming conventions
+- Knowledge update process references correct standard filenames
+- Document sharding process suggests standard naming for source files
+
+**Agent Behavior**:
+- Agents now validate and suggest correct filenames during document creation
+- Cross-references between documents use standard naming
+- Error messages and guidance reference standard conventions
+
+### 5. Benefits
+
+**Improved Consistency**:
+- Predictable file locations across all BMAD Method projects
+- Consistent cross-references between agents and documents
+- Standardized date formats eliminate confusion and improve professionalism
+
+**Enhanced Usability**:
+- Easier file discovery and organization
+- Reduced cognitive load when working across multiple projects
+- Improved automation and scripting capabilities
+
+**Better Maintainability**:
+- Simplified documentation management
+- Easier integration with external tools and systems
+- Reduced errors from filename variations
+
+**Professional Quality**:
+- All generated documents now have proper dates
+- Consistent naming creates a more professional appearance
+- Improved reliability for client-facing deliverables
+
+**Developer Experience**:
+- Faster onboarding to new projects using BMAD Method
+- Reduced time spent searching for specific documents
+- More reliable automation and tooling integration
+
+### 6. Migration Guidance
+
+**For Existing Projects**:
+1. Run `*BMAD Update Agent Knowledge` to apply new standards
+2. Consider renaming existing files to match standard conventions
+3. Update any custom scripts or tools to use new naming patterns
+
+**For New Projects**:
+- All documents will automatically follow standard naming
+- Dates will be properly generated in all new documents
+- Cross-references will use consistent naming patterns
+
+This standardization effort significantly improves the reliability, consistency, and professional quality of the BMAD Method across all use cases and project types.
+
+## Platform Engineer Role Addition
+
+### Enhancement Overview
+Added a comprehensive Platform Engineer role to complement the existing DevOps Engineer, providing specialized capabilities for complex infrastructure and developer experience optimization.
+
+### New Capabilities Added
+**Platform Engineer (Alex)** - Expert in developer experience, internal tooling, and platform services:
+
+**Core Expertise Areas:**
+- **Developer Experience Platforms** (90%+ confidence) - Self-service infrastructure, developer portals, golden path templates
+- **Container Orchestration & Management** (90%+ confidence) - Advanced Kubernetes operations, workload optimization
+- **Infrastructure as Code & Automation** (90%+ confidence) - Declarative infrastructure, state management, configuration drift detection
+- **Service Mesh & Communication Operations** (90%+ confidence) - Service mesh implementation, traffic management, inter-service monitoring
+- **Platform Operations** (90%+ confidence) - Secrets management, CI/CD platform architecture, incident response
+- **Advanced Platform Engineering** (70-90% confidence) - Observability systems, security toolchain integration, chaos engineering
+- **Emerging Specializations** (50-70% confidence) - Regulatory compliance, FinOps, environmental sustainability
+
+### Implementation Details
+**Files Created:**
+- `bmad-agent/personas/platform-engineer.md` - Complete Platform Engineer persona following BMAD naming standards
+- `bmad-agent/tasks/platform-change-management.md` - Comprehensive platform change management task
+
+**Files Updated:**
+- `bmad-agent/ide-bmad-orchestrator.cfg.md` - Added Platform Engineer configuration
+- `bmad-agent/commands.md` - Updated standard naming convention table with platform documents
+
+### Role Differentiation
+**DevOps Engineer (Derek)**: Focuses on application deployment, basic infrastructure, and operational tasks
+**Platform Engineer (Alex)**: Specializes in developer experience, platform services, and complex infrastructure architecture
+
+### Benefits
+- **Enhanced Infrastructure Capabilities**: Advanced platform engineering for complex projects
+- **Improved Developer Experience**: Specialized focus on developer productivity and self-service platforms
+- **Complementary Roles**: DevOps handles operations while Platform Engineer builds the platform
+- **Scalability**: Better support for enterprise-scale and multi-team environments
+- **Standards Compliance**: Follows all BMAD naming conventions and date generation standards
+
+### Usage Guidance
+- **Use DevOps Engineer** for: Basic deployment, monitoring, CI/CD setup, operational tasks
+- **Use Platform Engineer** for: Developer platforms, complex infrastructure, service mesh, advanced automation, internal tooling
+
+This addition provides the BMAD Method with robust infrastructure capabilities while maintaining the existing operational excellence of the DevOps Engineer role.
+
+### Command Reference Integration
+
+**Comprehensive Documentation Updates:**
+Following the Platform Engineer addition, the BMAD Method Command Reference Guide was updated to fully integrate the new role across all workflows and scenarios.
+
+**Files Updated:**
+- `bmad-agent/commands.md` - Enhanced with Platform Engineer integration across all relevant scenarios
+
+**Workflow Enhancements:**
+
+**1. Enhanced Common Scenarios:**
+- **Complete Project Initialization Flow**: Added Platform Engineer as step 4 for complex projects with clear guidance on when to include/skip
+- **Adding New Module to Existing Project**: Added Platform Engineer for complex module infrastructure with role separation guidance
+- **New Platform Infrastructure Setup Scenario**: Complete workflow for establishing comprehensive platform infrastructure
+
+**2. Decision Framework Added:**
+Clear criteria for infrastructure role selection:
+
+| Use DevOps Engineer | Use Platform Engineer |
+|-------------------|---------------------|
+| Basic deployment & CI/CD | Complex infrastructure (microservices, service mesh) |
+| Standard monitoring | Developer experience platforms |
+| Simple infrastructure | Multi-team environments |
+| Single-team projects | Advanced observability & monitoring |
+| | Internal tooling & self-service platforms |
+
+**3. Enhanced Best Practices:**
+- **Standard Projects Flow**: Traditional workflow without Platform Engineer
+- **Complex Projects Flow**: Enhanced workflow including Platform Engineer
+- **Infrastructure Role Selection Guide**: Clear decision criteria and use cases
+
+**Benefits:**
+- **Clear Guidance**: Users know exactly when to use which infrastructure role
+- **Comprehensive Coverage**: All scenarios account for both infrastructure roles
+- **Scalability Support**: Handles both simple and complex project requirements
+- **Decision Support**: Clear criteria eliminate confusion about role selection
+- **Complete Integration**: Platform Engineer fully integrated into all relevant workflows
+
+**Implementation Impact:**
+The command reference now provides complete guidance for leveraging both infrastructure roles effectively, ensuring users can make informed decisions about which agent to use based on their project complexity and requirements. This creates a seamless experience whether working on simple applications or complex enterprise platforms.

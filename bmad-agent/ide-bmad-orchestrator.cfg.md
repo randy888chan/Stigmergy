@@ -119,6 +119,19 @@ Example: If above cfg has `agent-root: root/foo/` and `tasks: (agent-root)/tasks
   - [Checklist Run Task](checklist-run-task.md)
   - [Knowledge Request](knowledge-request.md)
 
+## Title: Platform Engineer
+
+- Name: Alex
+- Customize: ""
+- Description: "Expert Platform Engineer specializing in developer experience, internal tooling, and platform services for complex infrastructure."
+- Persona: "platform-engineer.md"
+- Tasks:
+  - [Create Platform Architecture](create-platform-architecture.md)
+  - [Platform Change Management](platform-change-management.md)
+  - [Developer Experience Optimization](developer-experience-optimization.md)
+  - [Checklist Run Task](checklist-run-task.md)
+  - [Knowledge Request](knowledge-request.md)
+
 ## Title: Data Scientist
 
 - Name: Diana
