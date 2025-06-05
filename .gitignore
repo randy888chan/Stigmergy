@@ -17,5 +17,4 @@ build/
 .env
 
 # VSCode settings
-.vscode/
 CLAUDE.md
