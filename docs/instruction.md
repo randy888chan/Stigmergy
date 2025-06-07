@@ -24,8 +24,7 @@ node build/cli.js build:bundle --name "planning"
 
 **Key Resources:**
 - `bmad-core/`: Portable resources for copying to your projects
-- `agents/`: Individual agent configurations
-- `bundles/`: Bundle configurations for different use cases
+- `agents/`: Individual agent and team bundle configurations (e.g., `team-full-app.yml`)
 - `dist/`: Optimized build outputs
 
 ## Setting up Web Agent Orchestrator (V3 Legacy)
