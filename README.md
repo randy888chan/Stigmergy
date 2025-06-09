@@ -7,6 +7,8 @@
 ### Quick Start with Enhanced BMAD System (Recommended for Claude Code Users)
 
 #### Local Installation from Downloaded Repository
+
+**Option 1: Automatic Installation (Recommended)**
 ```bash
 # Download or clone this repository first
 git clone https://github.com/your-repo/BMAD-METHOD.git
@@ -17,7 +19,30 @@ cp install-bmad.sh /path/to/your-project/
 cd /path/to/your-project/
 
 # Run the installation script
+chmod +x install-bmad.sh
 ./install-bmad.sh
+```
+
+**Option 2: Windows Users**
+```cmd
+# Download or clone this repository first
+git clone https://github.com/your-repo/BMAD-METHOD.git
+cd BMAD-METHOD
+
+# Copy install script to your project directory
+copy install-bmad.bat C:\path\to\your-project\
+cd C:\path\to\your-project\
+
+# Run the Windows installation script
+install-bmad.bat
+```
+
+**Option 3: Manual Installation (If scripts fail)**
+```bash
+# From the BMAD-METHOD directory
+mkdir /path/to/your-project/.bmad
+cp -r bmad-agent /path/to/your-project/.bmad/
+cp -r bmad-system/* /path/to/your-project/.bmad/ 2>/dev/null || true
 ```
 
 #### Use with Claude Code
@@ -33,6 +58,41 @@ Please read the documentation and help me build my project using BMAD intelligen
 ```
 
 **Enhanced System Features**: 4 autonomy levels, universal LLM integration, enterprise features, self-optimization, 27 comprehensive modules.
+
+#### Installation Troubleshooting
+
+**Common Issues:**
+
+1. **"bmad-agent directory not found" error:**
+   ```bash
+   # Make sure you're running from BMAD-METHOD root directory
+   ls -la  # Should show bmad-agent/ directory
+   ```
+
+2. **Permission denied errors:**
+   ```bash
+   # Make script executable (Linux/Mac)
+   chmod +x install-bmad.sh
+   
+   # Or use manual installation
+   mkdir -p .bmad
+   cp -r /path/to/BMAD-METHOD/bmad-agent .bmad/
+   ```
+
+3. **Windows line ending issues:**
+   ```bash
+   # Convert line endings if needed
+   dos2unix install-bmad.sh
+   
+   # Or use the Windows batch file instead
+   install-bmad.bat
+   ```
+
+4. **Git Bash/WSL path issues:**
+   ```bash
+   # Use full paths if relative paths fail
+   /c/path/to/BMAD-METHOD/install-bmad.sh
+   ```
 
 📚 **Full Documentation**: See `/bmad-system/` directory for complete guides.
 

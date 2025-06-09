@@ -16,4 +16,19 @@ build/
 # Environment variables
 .env
 
+# BMAD system and exam implementation
+.bmad/
+exam/
+
+# IDE and temporary files
+.idea/
+.vscode/
+*.tmp
+*.temp
+
+# OS generated files
+Thumbs.db
+*.swp
+*.swo
+
 CLAUDE.md
