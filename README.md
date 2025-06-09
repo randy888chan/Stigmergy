@@ -1,14 +1,50 @@
 # The BMAD-Method 3.1 (Breakthrough Method of Agile (ai-driven) Development)
 
+## 🚀 Enhanced BMAD System Available!
+
+**NEW**: The Enhanced BMAD System provides enterprise-grade, autonomous development capabilities with Claude Code integration!
+
+### Quick Start with Enhanced BMAD System (Recommended for Claude Code Users)
+
+#### Local Installation from Downloaded Repository
+```bash
+# Download or clone this repository first
+git clone https://github.com/your-repo/BMAD-METHOD.git
+cd BMAD-METHOD
+
+# Copy install script to your project directory
+cp install-bmad.sh /path/to/your-project/
+cd /path/to/your-project/
+
+# Run the installation script
+./install-bmad.sh
+```
+
+#### Use with Claude Code
+After installation, start Claude Code in your project:
+```
+Please read CLAUDE.md for the BMAD system setup guide and use the recommended startup prompt.
+```
+
+Or directly:
+```
+I have the Enhanced BMAD System installed in my .bmad/ directory.
+Please read the documentation and help me build my project using BMAD intelligence.
+```
+
+**Enhanced System Features**: 4 autonomy levels, universal LLM integration, enterprise features, self-optimization, 27 comprehensive modules.
+
+📚 **Full Documentation**: See `/bmad-system/` directory for complete guides.
+
+---
+
+## Original BMAD Method
+
 Old Versions:
 [Prior Version 1](https://github.com/bmadcode/BMAD-METHOD/tree/V1)
 [Prior Version 2](https://github.com/bmadcode/BMAD-METHOD/tree/V2)
 
-## Do This First, and all will make sense
-
-There are lots of docs here, but I HIGHLY suggest you just try the Web Agent - it takes just a few minutes to set up in Gemini - and you can use the BMad Agent to explain how this method works, how to set up in the IDE, how to set up in the Web, what should be done in the web or ide (although you can choose your own path also!) - all just by talking to the bmad agent!
-
-### Web Quickstart Project Setup (Recommended)
+### Web Quickstart Project Setup (Original Method)
 
 Orchestrator Uber BMad Agent that does it all - already pre-compiled in the `web-build-sample` folder.
 

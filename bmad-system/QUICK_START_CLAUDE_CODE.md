@@ -4,13 +4,42 @@
 
 This guide helps you immediately start using the Enhanced BMAD System within your Claude Code sessions.
 
-## Step 1: Initialize in Claude Code
+## Prerequisites Setup
 
-When starting a new Claude Code session, simply reference the BMAD system:
+Before starting a Claude Code session, you need BMAD files in your project:
+
+### Step 1: Copy BMAD Files to Your Project
+
+```bash
+# For new projects
+mkdir my-project && cd my-project
+mkdir .bmad
+
+# For existing projects  
+# (in your project root)
+mkdir .bmad
+
+# Copy essential BMAD files
+cp BMAD-METHOD/bmad-system/README.md .bmad/
+cp BMAD-METHOD/bmad-system/QUICK_START_CLAUDE_CODE.md .bmad/
+cp BMAD-METHOD/bmad-system/USE_CASES_AND_EXAMPLES.md .bmad/
+cp BMAD-METHOD/bmad-system/ARCHITECTURE_OVERVIEW.md .bmad/
+```
+
+### Step 2: Initialize in Claude Code
+
+Open your project in Claude Code and start with this prompt:
 
 ```
-I want to use the Enhanced BMAD System for autonomous development assistance.
-Please load the BMAD configuration and set autonomy level to collaborative.
+I have the Enhanced BMAD System installed in my project's .bmad/ directory.
+
+Please:
+1. Read .bmad/README.md to understand the BMAD system
+2. Configure BMAD for collaborative autonomous development
+3. Enable learning and optimization features
+4. Help me with my project using BMAD intelligence
+
+Project type: [describe your project]
 ```
 
 ## Step 2: Configure Your Development Mode

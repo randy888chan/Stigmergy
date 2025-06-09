@@ -57,34 +57,127 @@ The system is built on a 4-phase architecture with 27 comprehensive modules:
 
 ### Prerequisites
 
-- Claude Code or compatible LLM interface
-- Python 3.8+ (for running system components)
+- Claude Code (any plan)
 - Git for version control
 - Basic understanding of AI-powered development
 
-### Quick Start with Claude Code
+### Installation and Setup with Claude Code
 
-1. **Initialize the BMAD System in your Claude Code session:**
+#### Step 1: Install BMAD System from Local Repository
+
+**Automatic Installation (Recommended):**
 ```bash
-# Load the Enhanced BMAD System configuration
-bmad init --enhanced --claude-code
+# Navigate to your downloaded BMAD-METHOD repository
+cd /path/to/BMAD-METHOD
 
-# Configure your development environment
-bmad configure --llm claude --autonomy-level collaborative
+# Copy install script to your project directory
+cp install-bmad.sh /path/to/your-project/
+cd /path/to/your-project/
+
+# Run the installation script
+./install-bmad.sh
 ```
 
-2. **Start an autonomous development session:**
+**Manual Installation:**
 ```bash
-# Begin an intelligent development session
-bmad start --mode autonomous --project my-project
+# From your BMAD-METHOD repository directory
+cd /path/to/BMAD-METHOD
 
-# The system will analyze your project and provide intelligent assistance
+# For new projects
+mkdir /path/to/your-project
+cd /path/to/your-project
+mkdir .bmad
+
+# Copy BMAD system and agents
+cp -r /path/to/BMAD-METHOD/bmad-system/* .bmad/
+cp -r /path/to/BMAD-METHOD/bmad-agent .bmad/
+
+# For existing projects (in your project root)
+mkdir .bmad
+cp -r /path/to/BMAD-METHOD/bmad-system/* .bmad/
+cp -r /path/to/BMAD-METHOD/bmad-agent .bmad/
 ```
 
-3. **Enable self-optimization:**
-```bash
-# Enable continuous learning and optimization
-bmad optimize --enable --learning-mode adaptive
+#### Step 2: What Gets Installed
+
+The installation script copies the complete BMAD system to your project:
+
+```
+your-project/
+├── .bmad/                              # BMAD system directory
+│   ├── README.md                       # Core system overview
+│   ├── QUICK_START_CLAUDE_CODE.md     # Claude Code setup guide
+│   ├── ARCHITECTURE_OVERVIEW.md       # System architecture reference
+│   ├── USE_CASES_AND_EXAMPLES.md      # Real-world examples
+│   ├── INTEGRATION_GUIDE.md           # Integration patterns
+│   ├── INSTALLATION_GUIDE.md          # Installation reference
+│   ├── project-config.yml             # Project configuration
+│   ├── autonomous-development/         # Autonomous development engine
+│   ├── code-intelligence/              # Advanced code intelligence
+│   ├── self-optimization/              # Self-optimization engine
+│   ├── enterprise-architecture/        # Enterprise architecture platform
+│   ├── governance/                     # Advanced governance framework
+│   ├── strategic-intelligence/         # Strategic intelligence dashboard
+│   ├── security-compliance/            # Enterprise security & compliance
+│   ├── monitoring-analytics/           # Advanced monitoring & analytics
+│   ├── cost-optimization/              # Cost optimization engine
+│   └── bmad-agent/                     # BMAD agent personas and tasks
+│       ├── personas/                   # Agent personalities
+│       ├── tasks/                      # Specialized tasks
+│       ├── checklists/                 # Quality checklists
+│       ├── templates/                  # Document templates
+│       └── data/                       # Knowledge base
+├── CLAUDE.md                          # Claude Code reference guide
+├── src/                               # Your project source
+├── package.json                       # Your project config
+└── README.md                          # Your project README
+```
+
+#### Step 3: Initialize with Claude Code
+
+Open your project in Claude Code and use the CLAUDE.md reference:
+
+**Method 1: Use CLAUDE.md Reference**
+```
+Please read CLAUDE.md for the BMAD system setup guide and use the recommended startup prompt.
+```
+
+**Method 2: Direct Initialization**
+```
+I have the Enhanced BMAD System installed in my .bmad/ directory.
+
+Please:
+1. Read .bmad/README.md to understand the BMAD system capabilities
+2. Read .bmad/QUICK_START_CLAUDE_CODE.md for setup guidance
+3. Review .bmad/bmad-agent/ for available agent personas and tasks
+4. Configure BMAD for my project with these settings:
+   - Autonomy Level: Collaborative
+   - Learning: Enabled
+   - Project Type: [web-app/mobile-app/enterprise/etc.]
+   - Optimization Focus: [quality/speed/cost]
+
+Available BMAD agents: architect, developer, devops, analyst, product manager
+
+Project details: [describe your project]
+
+Start BMAD-powered development assistance.
+```
+
+#### Step 4: Verify BMAD Integration
+
+Claude Code should respond with BMAD system acknowledgment:
+
+```
+✅ Enhanced BMAD System loaded successfully!
+
+Configuration:
+- Autonomy Level: Collaborative
+- Learning: Enabled  
+- System Modules: 27 available
+- Documentation: Accessible
+
+Ready for intelligent development assistance.
+How can I help you build your project?
 ```
 
 ### Integration with Other LLMs
