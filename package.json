@@ -4,15 +4,16 @@
   "description": "Breakthrough Method of Agile AI-driven Development",
   "main": "tools/cli.js",
   "bin": {
-    "bmad": "./bmad.js",
-    "bmad-method": "./bmad.js"
+    "bmad": "./tools/bmad-npx-wrapper.js",
+    "bmad-method": "./tools/bmad-npx-wrapper.js"
   },
   "scripts": {
     "build": "node tools/cli.js build",
     "build:agents": "node tools/cli.js build --agents-only",
     "build:teams": "node tools/cli.js build --teams-only",
     "list:agents": "node tools/cli.js list:agents",
-    "validate": "node tools/cli.js validate"
+    "validate": "node tools/cli.js validate",
+    "install:bmad": "node tools/installer/bin/bmad.js install"
   },
   "dependencies": {
     "commander": "^9.4.1",
