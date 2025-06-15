@@ -141,16 +141,70 @@ Generate a concise validation report:
 
 Be pragmatic - perfect documentation doesn't exist. Focus on whether a competent developer can succeed with this story.]]
 
-| Category                             | Status | Issues |
-| ------------------------------------ | ------ | ------ |
-| 1. Goal & Context Clarity            | _TBD_  |        |
-| 2. Technical Implementation Guidance | _TBD_  |        |
-| 3. Reference Effectiveness           | _TBD_  |        |
-| 4. Self-Containment Assessment       | _TBD_  |        |
-| 5. Testing Guidance                  | _TBD_  |        |
+| Category                             | Status            | Issues |
+| ------------------------------------ | ----------------- | ------ |
+| 1. Goal & Context Clarity            | PASS/FAIL/PARTIAL |        |
+| 2. Technical Implementation Guidance | PASS/FAIL/PARTIAL |        |
+| 3. Reference Effectiveness           | PASS/FAIL/PARTIAL |        |
+| 4. Self-Containment Assessment       | PASS/FAIL/PARTIAL |        |
+| 5. Testing Guidance                  | PASS/FAIL/PARTIAL |        |
 
 **Final Assessment:**
 
 - READY: The story provides sufficient context for implementation
 - NEEDS REVISION: The story requires updates (see issues)
 - BLOCKED: External information required (specify what information)
+
+---
+
+## DOCUMENTATION CURATION & MANAGEMENT
+
+### Story-Level Quick Curation (5-10 min per story)
+- [ ] Review developer's Technical Decisions section in story file
+- [ ] Extract key items to `/docs/CURATION_NOTES.md` (temporary file):
+  - [ ] Significant technical decisions
+  - [ ] Technical debt items with priority
+  - [ ] Lessons learned (problems & solutions)
+  - [ ] Architectural patterns established
+- [ ] Flag any critical issues needing immediate attention
+- [ ] Mark story as "Curation Complete" in story file
+
+### Epic/Task-Level Full Curation (1-2 hours)
+- [ ] Review complete `/docs/CURATION_NOTES.md` for the epic
+- [ ] Identify patterns and themes across stories
+- [ ] Extract and organize content:
+  - [ ] Technical debt → `/docs/TASKS.md` (with effort estimates)
+  - [ ] Lessons learned → `/docs/LESSONS_LEARNED.md`
+  - [ ] Architectural decisions → Create ADRs for significant ones
+  - [ ] Data structure changes → `/docs/DATA_STRUCTURES.md`
+  - [ ] New features → `/docs/README.md`
+  - [ ] Architecture notes → `/docs/PLANNING.md`
+- [ ] Check if technical debt threshold reached (≥10 days)
+- [ ] Prepare curation summary for user
+
+### User Verification & Archival
+- [ ] Present curation summary to user:
+  - [ ] Items added to permanent documentation
+  - [ ] Implementation docs to be archived
+  - [ ] Technical debt status
+- [ ] Get user approval for archival
+- [ ] Archive implementation documents
+- [ ] Delete `/docs/CURATION_NOTES.md` (temporary file no longer needed)
+- [ ] Commit with message: "Archive: [Epic Name] implementation docs"
+
+## TECHNICAL DEBT MONITORING
+
+### At Epic/Task Completion
+- [ ] Review all TECH-DEBT items in `/docs/TASKS.md`
+- [ ] Estimate effort for accumulated debt (T-shirt sizes: S=1 day, M=3 days, L=1 week)
+- [ ] Calculate total estimated debt effort
+- [ ] If total ≥ 10 days, initiate debt paydown process
+
+### Debt Paydown Process
+- [ ] Create Technical Debt Analysis document with:
+  - [ ] List of all debt items with effort estimates
+  - [ ] Risk assessment (what could break if not addressed)
+  - [ ] Prioritization recommendation
+  - [ ] Suggested groupings for efficient paydown
+- [ ] Present to user with recommendation for debt-focused sprint
+- [ ] If approved, guide user to work with PM on Debt Paydown PRD using `/bmad-agent/templates/tech-debt-prd-tmpl.md`
