@@ -12,7 +12,11 @@ class Installer {
 
     try {
       // Resolve installation directory
-      const installDir = path.resolve(config.directory);
+      let installDir = path.resolve(config.directory);
+      if (path.basename(installDir) === '.bmad-core') {
+        // If user points directly to .bmad-core, treat its parent as the project root
+        installDir = path.dirname(installDir);
+      }
 
       // Detect current state
       const state = await this.detectInstallationState(installDir);
@@ -103,9 +107,9 @@ class Installer {
     });
 
     if (files.length > 0) {
-      state.type = "unknown_existing";
+      // Directory has other files, but no BMAD installation.
+      // Treat as clean install but record that it isn't empty.
       state.hasOtherFiles = true;
-      return state;
     }
 
     return state; // clean install

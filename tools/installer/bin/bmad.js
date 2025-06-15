@@ -37,7 +37,7 @@ program
   .description('Install BMAD Method agents and tools')
   .option('-f, --full', 'Install complete .bmad-core folder')
   .option('-a, --agent <agent>', 'Install specific agent with dependencies')
-  .option('-d, --directory <path>', 'Installation directory (default: ./bmad-core)')
+  .option('-d, --directory <path>', 'Installation directory (default: .bmad-core)')
   .option('-i, --ide <ide>', 'Configure for specific IDE (cursor, claude-code, windsurf, roo)')
   .action(async (options) => {
     try {
@@ -50,7 +50,7 @@ program
         const config = {
           installType: options.full ? 'full' : 'single-agent',
           agent: options.agent,
-          directory: options.directory || './.bmad-core',
+          directory: options.directory || '.bmad-core',
           ide: options.ide
         };
         await installer.install(config);
@@ -110,7 +110,7 @@ async function promptInstallation() {
       type: 'input',
       name: 'directory',
       message: 'Where would you like to install BMAD?',
-      default: './.bmad-core'
+      default: '.bmad-core'
     }
   ]);
   answers.directory = directory;
