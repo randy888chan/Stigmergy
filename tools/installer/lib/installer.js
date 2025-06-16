@@ -200,7 +200,13 @@ class Installer {
       // Full installation - copy entire .bmad-core folder as a subdirectory
       spinner.text = "Copying complete .bmad-core folder...";
       const sourceDir = configLoader.getBmadCorePath();
-      const bmadCoreDestDir = path.join(installDir, ".bmad-core");
+      const bmadCoreDestDir = path.resolve(path.join(installDir, ".bmad-core"));
+      
+      // Check if source and destination are the same to prevent copy errors
+      if (path.resolve(sourceDir) === bmadCoreDestDir) {
+        throw new Error(`Cannot install to ${bmadCoreDestDir} - it's the same as the source directory. Please choose a different installation directory.`);
+      }
+      
       await fileManager.copyDirectory(sourceDir, bmadCoreDestDir);
 
       // Get list of all files for manifest

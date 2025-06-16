@@ -78,7 +78,13 @@ class ConfigLoader {
 
   getBmadCorePath() {
     // Get the path to .bmad-core relative to the installer (now under tools)
-    return path.join(__dirname, '..', '..', '..', '.bmad-core');
+    // When running via npx, __dirname points to the installed package
+    // We need to find the actual .bmad-core directory that comes with the package
+    const packageRoot = path.join(__dirname, '..', '..', '..');
+    const bmadCorePath = path.join(packageRoot, '.bmad-core');
+    
+    // Resolve to absolute path to avoid "same source and destination" issues
+    return path.resolve(bmadCorePath);
   }
 
   getAgentPath(agentId) {
