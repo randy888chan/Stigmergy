@@ -13,17 +13,10 @@ To identify the next logical story based on project progress and epic definition
     - Secondary: `docs/epics/epic-{n}-{description}.md`
     - User-specified location if not found in above paths
   - Existing story files in `docs/stories/`
-  - Main PRD (hereafter "PRD Doc")
-  - Main Architecture Document (hereafter "Main Arch Doc")
-  - Frontend Architecture Document (hereafter "Frontend Arch Doc," if relevant)
-  - Project Structure Guide (`docs/project-structure.md`)
-  - Operational Guidelines Document (`docs/operational-guidelines.md`)
-  - Technology Stack Document (`docs/tech-stack.md`)
-  - Data Models Document (as referenced in Index Doc)
-  - API Reference Document (as referenced in Index Doc)
-  - UI/UX Specifications, Style Guides, Component Guides (if relevant, as referenced in Index Doc)
-- The `bmad-core/templates/story-tmpl.md` (hereafter "Story Template")
-- The `bmad-core/checklists/story-draft-checklist.md` (hereafter "Story Draft Checklist")
+  - Full-Stack Architecture Document (`docs/full-stack-architecture.md`)
+  - UI/UX Specification Document (`docs/ui-ux-spec.md`)
+- The `.bmad-core/templates/story-tmpl.md` (hereafter "Story Template")
+- The `.bmad-core/checklists/story-draft-checklist.md` (hereafter "Story Draft Checklist")
 - User confirmation to proceed with story identification and, if needed, to override warnings about incomplete prerequisite stories.
 
 ## Task Execution Instructions
@@ -88,39 +81,45 @@ To identify the next logical story based on project progress and epic definition
     - Any "lessons learned" or notes for future stories
   - Extract relevant insights that might inform the current story's preparation
 
-### 4. Gather & Synthesize Architecture Context from Sharded Docs
+### 4. Gather & Synthesize Architecture Context from Consolidated Documentation
 
-[[LLM: CRITICAL - You MUST gather technical details from the sharded architecture documents. NEVER make up technical details not found in these documents.]]
+[[LLM: CRITICAL - You MUST gather technical details from the consolidated architecture document. NEVER make up technical details not found in this document.]]
 
-#### 4.1 Start with Architecture Index
+#### 4.1 Review Full-Stack Architecture Document
 
-- Read `docs/architecture/index.md` to understand the full scope of available documentation
-- Identify which sharded documents are most relevant to the current story
+- Read `docs/full-stack-architecture.md` to understand the complete system architecture
+- Extract relevant sections based on story type:
+  - Tech Stack section - Technology constraints and versions
+  - Data Models section - Data structures and validation rules
+  - REST API Spec section - API endpoint specifications
+  - Components section - UI component specifications
+  - Database Schema section - Database design and relationships
+  - Frontend Architecture section - Component structure and patterns
+  - Backend Architecture section - Service patterns and structure
+  - Testing Strategy section - Testing requirements and strategies
 
-#### 4.2 Recommended Reading Order Based on Story Type
+#### 4.2 Review UI/UX Specification (For Frontend Stories)
 
-[[LLM: Read documents in this order, but ALWAYS verify relevance to the specific story. Skip irrelevant sections but NEVER skip documents that contain information needed for the story.]]
-
-**For ALL Stories:**
-
-1. `docs/architecture/tech-stack.md` - Understand technology constraints and versions
-2. `docs/architecture/unified-project-structure.md` - Know where code should be placed
-3. `docs/architecture/coding-standards.md` - Ensure dev follows project conventions
-4. `docs/architecture/testing-strategy.md` - Include testing requirements in tasks
-
-**For Backend/API Stories, additionally read:** 5. `docs/architecture/data-models.md` - Data structures and validation rules 6. `docs/architecture/database-schema.md` - Database design and relationships 7. `docs/architecture/backend-architecture.md` - Service patterns and structure 8. `docs/architecture/rest-api-spec.md` - API endpoint specifications 9. `docs/architecture/external-apis.md` - Third-party integrations (if relevant)
-
-**For Frontend/UI Stories, additionally read:** 5. `docs/architecture/frontend-architecture.md` - Component structure and patterns 6. `docs/architecture/components.md` - Specific component designs 7. `docs/architecture/core-workflows.md` - User interaction flows 8. `docs/architecture/data-models.md` - Frontend data handling
-
-**For Full-Stack Stories:**
-
-- Read both Backend and Frontend sections above
+- For stories involving UI components, user flows, or frontend functionality:
+  - Read `docs/ui-ux-spec.md` to understand design requirements and user experience patterns
+  - Extract relevant sections:
+    - User Personas & Use Cases - Understanding target users and their workflows
+    - Design System & Visual Language - Component styling and design patterns
+    - Core User Flows & Interaction Patterns - Specific user journey requirements
+    - Component Library Specification - Detailed component requirements and props
+    - Accessibility Implementation - WCAG compliance and accessibility requirements
+    - Responsive Design Strategy - Mobile-first design patterns and breakpoints
+- Skip this step for backend-only stories with no UI components
 
 #### 4.3 Extract Story-Specific Technical Details
 
-[[LLM: As you read each document, extract ONLY the information directly relevant to implementing the current story. Do NOT include general information unless it directly impacts the story implementation.]]
+[[LLM: As you read the document, extract ONLY the information directly relevant to implementing the current story. Do NOT include general information unless it directly impacts the story implementation.]]
 
-For each relevant document, extract:
+**For Backend Stories:** Focus on service architecture, data models, API specs, database schema
+**For Frontend Stories:** Focus on component architecture, state management, routing, UI specifications
+**For Full-Stack Stories:** Extract relevant information from both domains
+
+For the current story, extract:
 
 - Specific data models, schemas, or structures the story will use
 - API endpoints the story must implement or consume
@@ -133,11 +132,14 @@ For each relevant document, extract:
 
 [[LLM: ALWAYS cite the source document and section for each technical detail you include. This helps the dev agent verify information if needed.]]
 
-Format references as: `[Source: architecture/{filename}.md#{section}]`
+Format references as: `[Source: full-stack-architecture.md#{section}]` or `[Source: ui-ux-spec.md#{section}]`
+Examples: 
+- `[Source: full-stack-architecture.md#tech-stack-section]`
+- `[Source: ui-ux-spec.md#component-library-specification]`
 
 ### 5. Verify Project Structure Alignment
 
-- Cross-reference the story's requirements and anticipated file manipulations with the Project Structure Guide from `docs/architecture/unified-project-structure.md`.
+- Cross-reference the story's requirements and anticipated file manipulations with the project structure information from `docs/full-stack-architecture.md`.
 - Ensure any file paths, component locations, or module names implied by the story align with defined structures.
 - Document any structural conflicts, necessary clarifications, or undefined components/paths in a "Project Structure Notes" section within the story draft.
 
@@ -152,27 +154,29 @@ Format references as: `[Source: architecture/{filename}.md#{section}]`
   - `Acceptance Criteria (ACs)` (from Epic, to be refined if needed based on context)
 - **`Dev Technical Guidance` section (CRITICAL):**
 
-  [[LLM: This section MUST contain ONLY information extracted from the architecture shards. NEVER invent or assume technical details.]]
+  [[LLM: This section MUST contain ONLY information extracted from the architecture and UI/UX specification documents. NEVER invent or assume technical details.]]
 
   - Include ALL relevant technical details gathered from Steps 3 and 4, organized by category:
     - **Previous Story Insights**: Key learnings or considerations from the previous story
-    - **Data Models**: Specific schemas, validation rules, relationships [with source references]
-    - **API Specifications**: Endpoint details, request/response formats, auth requirements [with source references]
-    - **Component Specifications**: UI component details, props, state management [with source references]
+    - **Architecture Context**: Relevant patterns and constraints [Source: full-stack-architecture.md#{relevant-section}]
+    - **Tech Stack Requirements**: Specific technologies and versions [Source: full-stack-architecture.md#{tech-stack-section}]
+    - **Data Models**: Specific schemas, validation rules, relationships [Source: full-stack-architecture.md#{data-models-section}]
+    - **API Specifications**: Endpoint details, request/response formats, auth requirements [Source: full-stack-architecture.md#{api-spec-section}]
+    - **Component Specifications**: UI component details, props, state management [Source: full-stack-architecture.md#{frontend-architecture-section}]
+    - **UI/UX Requirements**: Design system requirements, user flows, accessibility requirements [Source: ui-ux-spec.md#{relevant-section}] (for frontend stories)
     - **File Locations**: Exact paths where new code should be created based on project structure
-    - **Testing Requirements**: Specific test cases or strategies from testing-strategy.md
+    - **Testing Requirements**: Specific test cases or strategies [Source: full-stack-architecture.md#{testing-strategy-section}]
     - **Technical Constraints**: Version requirements, performance considerations, security rules
-  - Every technical detail MUST include its source reference: `[Source: architecture/{filename}.md#{section}]`
+  - Every technical detail MUST include its source reference: `[Source: full-stack-architecture.md#{section}]` or `[Source: ui-ux-spec.md#{section}]`
   - If information for a category is not found in the architecture docs, explicitly state: "No specific guidance found in architecture docs"
 
 - **`Tasks / Subtasks` section:**
   - Generate a detailed, sequential list of technical tasks based ONLY on:
     - Requirements from the Epic
-    - Technical constraints from architecture shards
-    - Project structure from unified-project-structure.md
-    - Testing requirements from testing-strategy.md
+    - Technical constraints from full-stack-architecture.md
+    - Testing requirements from full-stack-architecture.md testing strategy section
   - Each task must reference relevant architecture documentation
-  - Include unit testing as explicit subtasks based on testing-strategy.md
+  - Include unit testing as explicit subtasks based on testing strategy
   - Link tasks to ACs where applicable (e.g., `Task 1 (AC: 1, 3)`)
 - Add notes on project structure alignment or discrepancies found in Step 5.
 - Prepare content for the "Deviation Analysis" based on any conflicts between epic requirements and architecture constraints.
@@ -182,7 +186,7 @@ Format references as: `[Source: architecture/{filename}.md#{section}]`
 - Execute the Story Draft Checklist against the prepared story
 - Document any issues or gaps identified
 - Make necessary adjustments to meet quality standards
-- Ensure all technical guidance is properly sourced from architecture docs
+- Ensure all technical guidance is properly sourced from architecture and UI/UX specification docs
 
 ### 8. Finalize Story File
 
@@ -198,9 +202,9 @@ Provide a summary to the user including:
 
 - Story created: `{epicNum}.{storyNum} - {Story Title}`
 - Status: Draft
-- Key technical components included from architecture docs
-- Any deviations or conflicts noted between epic and architecture
+- Key technical components included from full-stack-architecture.md and ui-ux-spec.md (if applicable)
+- Any deviations or conflicts noted between epic requirements and architecture constraints
 - Recommendations for story review before approval
 - Next steps: Story should be reviewed by PO for approval before dev work begins
 
-[[LLM: Remember - The success of this task depends on extracting real, specific technical details from the architecture shards. The dev agent should have everything they need in the story file without having to search through multiple documents.]]
+[[LLM: Remember - The success of this task depends on extracting real, specific technical details from the consolidated full-stack-architecture.md document and ui-ux-spec.md (for frontend stories). The dev agent should have everything they need in the story file without having to search through multiple documents.]]
