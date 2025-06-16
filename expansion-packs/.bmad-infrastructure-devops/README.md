@@ -66,7 +66,7 @@ To install this expansion pack, run:
 
 ```bash
 npm run install:expansion infrastructure
-```
+```text
 
 Or manually:
 
@@ -92,7 +92,7 @@ After the main architecture is complete:
 
 # Or directly with DevOps agent
 npm run agent devops
-```
+```text
 
 ### 2. Platform Implementation
 

@@ -138,6 +138,111 @@ class WebBuilder {
     }
   }
 
+  async buildAllExpansionPacks(options = {}) {
+    const expansionPacks = await this.listExpansionPacks();
+
+    for (const packName of expansionPacks) {
+      console.log(`  Building expansion pack: ${packName}`);
+      await this.buildExpansionPack(packName, options);
+    }
+
+    console.log(`Built ${expansionPacks.length} expansion pack bundles`);
+  }
+
+  async buildExpansionPack(packName, options = {}) {
+    const packDir = path.join(this.rootDir, 'expansion-packs', packName);
+    const outputDir = path.join(packDir, 'web-bundles');
+
+    // Clean output directory if requested
+    if (options.clean !== false) {
+      try {
+        await fs.rm(outputDir, { recursive: true, force: true });
+      } catch (error) {
+        // Directory might not exist, that's fine
+      }
+    }
+
+    // Ensure output directory exists
+    await fs.mkdir(outputDir, { recursive: true });
+
+    // Check for team configuration
+    const teamConfigPath = path.join(packDir, `team-${packName}.yml`);
+    try {
+      await fs.access(teamConfigPath);
+      
+      // Build expansion pack as a team bundle
+      const bundle = await this.buildExpansionTeamBundle(packName, packDir);
+      const outputFile = path.join(outputDir, `team-${packName}.txt`);
+      await fs.writeFile(outputFile, bundle, 'utf8');
+      
+      console.log(`    ✓ Created bundle: ${path.relative(this.rootDir, outputFile)}`);
+    } catch (error) {
+      console.warn(`    ⚠ No team configuration found for ${packName}, skipping...`);
+    }
+  }
+
+  async buildExpansionTeamBundle(packName, packDir) {
+    const teamConfigPath = path.join(packDir, `team-${packName}.yml`);
+    const template = await fs.readFile(this.templatePath, 'utf8');
+
+    const sections = [template];
+
+    // Add team configuration
+    const teamContent = await fs.readFile(teamConfigPath, 'utf8');
+    sections.push(this.formatSection(`agent-teams#team-${packName}`, teamContent));
+
+    // Add bmad-orchestrator (required for all teams)
+    const orchestratorPath = path.join(this.rootDir, '.bmad-core', 'agents', 'bmad-orchestrator.md');
+    const orchestratorContent = await fs.readFile(orchestratorPath, 'utf8');
+    sections.push(this.formatSection('agents#bmad-orchestrator', orchestratorContent));
+
+    // Add expansion pack agents
+    const agentsDir = path.join(packDir, 'agents');
+    try {
+      const agentFiles = await fs.readdir(agentsDir);
+      for (const agentFile of agentFiles.filter(f => f.endsWith('.md'))) {
+        const agentPath = path.join(agentsDir, agentFile);
+        const agentContent = await fs.readFile(agentPath, 'utf8');
+        const agentName = agentFile.replace('.md', '');
+        sections.push(this.formatSection(`agents#${agentName}`, agentContent));
+      }
+    } catch (error) {
+      console.warn(`    ⚠ No agents directory found in ${packName}`);
+    }
+
+    // Add expansion pack resources (templates, tasks, checklists)
+    const resourceDirs = ['templates', 'tasks', 'checklists', 'workflows', 'data'];
+    for (const resourceDir of resourceDirs) {
+      const resourcePath = path.join(packDir, resourceDir);
+      try {
+        const resourceFiles = await fs.readdir(resourcePath);
+        for (const resourceFile of resourceFiles.filter(f => f.endsWith('.md') || f.endsWith('.yml'))) {
+          const filePath = path.join(resourcePath, resourceFile);
+          const fileContent = await fs.readFile(filePath, 'utf8');
+          const fileName = resourceFile.replace(/\.(md|yml)$/, '');
+          sections.push(this.formatSection(`${resourceDir}#${fileName}`, fileContent));
+        }
+      } catch (error) {
+        // Directory might not exist, that's fine
+      }
+    }
+
+    return sections.join('\n');
+  }
+
+  async listExpansionPacks() {
+    const expansionPacksDir = path.join(this.rootDir, 'expansion-packs');
+    try {
+      const entries = await fs.readdir(expansionPacksDir, { withFileTypes: true });
+      return entries
+        .filter(entry => entry.isDirectory())
+        .map(entry => entry.name);
+    } catch (error) {
+      console.warn('No expansion-packs directory found');
+      return [];
+    }
+  }
+
   listAgents() {
     return this.resolver.listAgents();
   }
