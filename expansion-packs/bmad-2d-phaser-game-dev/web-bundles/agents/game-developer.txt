@@ -190,7 +190,7 @@ This architecture is designed to support the gameplay mechanics defined in the G
 │   ├── stories/         # Development stories
 │   └── architecture/    # Technical docs
 └── dist/                # Built game files
-```
+```text
 
 ### Module Organization
 
@@ -869,7 +869,7 @@ interface GameSystem {
   update(delta: number): void;
   shutdown(): void;
 }
-```
+```text
 
 **Scene Data Interfaces:**
 ```typescript
@@ -1018,7 +1018,7 @@ class Player extends GameEntity {
     this.health = this.addComponent(new HealthComponent(this, 100));
   }
 }
-```
+```text
 
 ### System Management
 
@@ -1150,7 +1150,7 @@ class GameScene extends Phaser.Scene {
     }
   }
 }
-```
+```text
 
 ## Input Handling
 
@@ -1308,7 +1308,7 @@ describe('HealthComponent', () => {
     expect(healthComponent.isAlive()).toBe(false);
   });
 });
-```
+```text
 
 ### Integration Testing
 

@@ -1396,7 +1396,7 @@ After presenting the structure, apply `tasks#advanced-elicitation` protocol to r
 ├── {{package-manifest}}        # Dependencies manifest
 ├── {{config-files}}            # Language/framework configs
 └── README.md                   # Project documentation
-```
+```text
 
 @{example: monorepo-structure}
 project-root/
@@ -3174,7 +3174,7 @@ Present component architecture and apply `tasks#advanced-elicitation` protocol]]
 
 ```mermaid
 {{component_interaction_diagram}}
-```
+```text
 
 ## API Design and Integration
 
@@ -3214,7 +3214,7 @@ Present API design and apply `tasks#advanced-elicitation` protocol]]
 
 ```json
 {{response_schema}}
-```
+```text
 
 <</REPEAT>>
 

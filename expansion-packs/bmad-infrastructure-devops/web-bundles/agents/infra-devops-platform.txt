@@ -1053,7 +1053,7 @@ eksctl create cluster \
   --nodegroup-name {{nodegroup_name}} \
   --node-type {{instance_type}} \
   --nodes {{node_count}}
-```
+```text
 
 ^^/CONDITION: uses_eks^^
 
@@ -1141,7 +1141,7 @@ spec:
 
 ### Repository Structure
 
-```
+```text
 platform-gitops/
    clusters/
       production/
@@ -1248,7 +1248,7 @@ spec:
     - name: deploy
       taskRef:
         name: gitops-deploy
-```
+```text
 
 ### Development Tools
 

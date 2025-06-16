@@ -2379,7 +2379,7 @@ Create an `index.md` file in the sharded folder that:
 - [Section Name 2](./section-name-2.md)
 - [Section Name 3](./section-name-3.md)
   ...
-```
+```text
 
 ### 5. Preserve Special Content
 
@@ -2922,7 +2922,7 @@ After presenting the structure, apply `tasks#advanced-elicitation` protocol to r
 ├── {{package-manifest}}        # Dependencies manifest
 ├── {{config-files}}            # Language/framework configs
 └── README.md                   # Project documentation
-```
+```text
 
 @{example: monorepo-structure}
 project-root/
@@ -3505,7 +3505,7 @@ Present component architecture and apply `tasks#advanced-elicitation` protocol]]
 
 ```mermaid
 {{component_interaction_diagram}}
-```
+```text
 
 ## API Design and Integration
 
@@ -3545,7 +3545,7 @@ Present API design and apply `tasks#advanced-elicitation` protocol]]
 
 ```json
 {{response_schema}}
-```
+```text
 
 <</REPEAT>>
 
@@ -4613,7 +4613,7 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ```mermaid
 {{sitemap_diagram}}
-```
+```text
 
 @{example: sitemap}
 
@@ -4668,7 +4668,7 @@ Create subsections for each major flow. After presenting all flows, apply `tasks
 
 ```mermaid
 {{flow_diagram}}
-```
+```text
 
 **Edge Cases & Error Handling:**
 
@@ -8617,7 +8617,7 @@ Agent: Available IDE agents:
 6. sm
 
 Please select an agent by specifying: <agent-name>
-```
+```text
 
 ### Example Loading an Agent
 
@@ -8639,7 +8639,7 @@ Agent: Could not find IDE agent 'designer'. Available agents:
 6. sm
 
 Please select an agent by specifying: <agent-name>
-```
+```text
 
 ### Example Task Outside Agent Scope
 
@@ -8763,7 +8763,7 @@ In Progress:
     - Create PRD (John) - awaiting input
 
 Next: Technical Architecture
-```
+```text
 
 ### /workflow-resume
 
@@ -8875,7 +8875,7 @@ Sally: I see we're in the Product Planning stage of the greenfield-fullstack wor
 
        Let's create the UX strategy and UI specifications. First, let me review
        the PRD to understand the features we're designing for...
-```
+```text
 
 ## Multi-Path Workflows
 

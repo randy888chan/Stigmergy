@@ -48,7 +48,7 @@
     "url": "git+https://github.com/bmadcode/BMAD-METHOD.git"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=20.0.0"
   },
   "devDependencies": {
     "husky": "^9.1.7",
