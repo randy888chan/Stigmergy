@@ -670,6 +670,7 @@ class Installer {
     }
 
     const installedFiles = [];
+    const glob = require('glob');
 
     for (const packId of selectedPacks) {
       spinner.text = `Installing expansion pack: ${packId}...`;
@@ -683,26 +684,60 @@ class Installer {
           continue;
         }
 
-        // Read the expansion pack manifest
-        const fs = require('fs-extra');
-        const manifestContent = await fs.readFile(pack.manifestPath, 'utf8');
-        const yaml = require('js-yaml');
-        const manifest = yaml.load(manifestContent);
-
-        if (!manifest.files) {
-          console.warn(`Expansion pack ${packId} has no files to install, skipping...`);
-          continue;
-        }
-
-        // Copy each file according to the manifest
         const expansionPackDir = path.dirname(pack.manifestPath);
         
-        for (const fileMapping of manifest.files) {
-          const sourcePath = path.join(expansionPackDir, fileMapping.source);
-          const destPath = path.join(installDir, fileMapping.destination);
+        // Define the folders to copy from expansion packs to .bmad-core
+        const foldersToSync = [
+          'agents',
+          'agent-teams',
+          'templates',
+          'tasks',
+          'checklists',
+          'workflows',
+          'data',
+          'utils',
+          'schemas'
+        ];
 
-          if (await fileManager.copyFile(sourcePath, destPath)) {
-            installedFiles.push(fileMapping.destination);
+        // Copy each folder if it exists
+        for (const folder of foldersToSync) {
+          const sourceFolder = path.join(expansionPackDir, folder);
+          
+          // Check if folder exists in expansion pack
+          if (await fileManager.pathExists(sourceFolder)) {
+            // Get all files in this folder
+            const files = glob.sync('**/*', {
+              cwd: sourceFolder,
+              nodir: true
+            });
+
+            // Copy each file to the destination
+            for (const file of files) {
+              const sourcePath = path.join(sourceFolder, file);
+              const destPath = path.join(installDir, '.bmad-core', folder, file);
+              
+              if (await fileManager.copyFile(sourcePath, destPath)) {
+                installedFiles.push(path.join('.bmad-core', folder, file));
+              }
+            }
+          }
+        }
+
+        // Also copy web-bundles if they exist (to a different location)
+        const webBundlesSource = path.join(expansionPackDir, 'web-bundles');
+        if (await fileManager.pathExists(webBundlesSource)) {
+          const files = glob.sync('**/*', {
+            cwd: webBundlesSource,
+            nodir: true
+          });
+
+          for (const file of files) {
+            const sourcePath = path.join(webBundlesSource, file);
+            const destPath = path.join(installDir, '.bmad-core', 'web-bundles', 'expansion-packs', packId, file);
+            
+            if (await fileManager.copyFile(sourcePath, destPath)) {
+              installedFiles.push(path.join('.bmad-core', 'web-bundles', 'expansion-packs', packId, file));
+            }
           }
         }
 
