@@ -140,10 +140,10 @@ npx bmad-method status
 
 If you have an existing BMAD-METHOD V3 project, simply run the installer in your project directory:
 
-````bash
+```bash
 npx bmad-method install
 # The installer will automatically detect your V3 installation and offer to upgrade
-```text
+```
 
 The upgrade process will:
 
