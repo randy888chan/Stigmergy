@@ -52,9 +52,9 @@ APPROVAL DECISION:
 
 [[LLM: Ensure story is right-sized and appropriately prioritized]]
 
-- [ ] **MVP Alignment**: Story scope aligns with MVP boundaries (not over-engineered)
-- [ ] **Iteration Size**: Story can be completed in single development iteration
-- [ ] **Priority Justification**: Story priority is appropriate for current epic phase
+- [ ] **Scope Appropriateness**: Story scope aligns with project phase and delivery boundaries
+- [ ] **Deliverable Size**: Story can be completed within project's standard delivery timeframe
+- [ ] **Priority Justification**: Story priority aligns with current project objectives and constraints
 - [ ] **Dependency Clarity**: Prerequisites and dependencies are clearly identified
 - [ ] **Risk Assessment**: Business risk of implementing/not implementing is understood
 
