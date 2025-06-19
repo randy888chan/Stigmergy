@@ -9,10 +9,10 @@ Ensure development environment is ready and validated for story implementation. 
 ## Task Execution
 
 ### 1. Environment Health Check
-- Verify development services are running (database, redis, backend, frontend)
-- Check service connectivity and responsiveness
-- Validate port availability and configuration
-- Ensure no service conflicts or failures
+- Verify project-specific development services are running (check project documentation for required services)
+- Check service connectivity and responsiveness based on project architecture
+- Validate port availability and configuration as defined in project setup
+- Ensure no service conflicts or failures in the development stack
 
 ### 2. Development Dependencies
 - Verify all required dependencies are installed
@@ -27,10 +27,10 @@ Ensure development environment is ready and validated for story implementation. 
 - Check that development server starts successfully
 
 ### 4. Authentication and Security
-- Test authentication flow with development credentials
-- Verify authorization rules are working
-- Check security configurations are properly set
-- Validate API access and permissions
+- Test authentication flow with development credentials (if project requires authentication)
+- Verify authorization rules are working according to project security model
+- Check security configurations are properly set per project requirements
+- Validate API access and permissions as defined in project documentation
 
 ### 5. Story-Specific Validation
 - Review story requirements for any special environment needs

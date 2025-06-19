@@ -37,7 +37,7 @@ This task provides efficient architect-only validation after comprehensive Round
 1. **Review implementation documentation**
    - Read story file implementation section thoroughly
    - Compare implemented fixes against original consolidated feedback
-   - Identify any MVP-BLOCKING items that were not addressed
+   - Identify any REQUIRED-FOR-COMPLETION items that were not addressed
    - Note any technical decisions or changes made during implementation
 
 2. **Assess validation approach needed**
@@ -73,29 +73,29 @@ This task provides efficient architect-only validation after comprehensive Round
    **Epic alignment validation:**
    - Ensure changes maintain epic scope and objectives
    - Verify business value delivery still intact
-   - Check that MVP boundaries respected
+   - Check that project phase boundaries respected
 
-5. **Validate UX fixes using browser testing tools**
+5. **Validate UX fixes using project-appropriate testing tools**
    
    **When UX validation needed:**
-   - Visual interface changes described in story
+   - User interface changes described in story (web, desktop, mobile, CLI, etc.)
    - User interaction flow modifications
    - Accessibility improvements requiring testing
    - Design consistency updates
    
-   **Comprehensive Browser MCP Testing Protocol:**
+   **Comprehensive UI Testing Protocol:**
    
    **Phase 1: Environment Setup**
-   - Launch browser MCP session (prefer Playwright MCP for full automation)
-   - Use dedicated incognito/private browser context for clean state
-   - Clear all cache, cookies, and local storage before testing
-   - Set viewport to standard desktop resolution (1920x1080)
-   - Configure browser for debugging (enable console logging)
+   - Launch UI testing tools as specified in project documentation (check README.md or test configuration)
+   - Use clean testing environment appropriate for project type (browser, desktop app, mobile simulator, CLI, etc.)
+   - Clear relevant caches and state according to project architecture
+   - Set appropriate viewport/window size for project target platform
+   - Configure testing environment for debugging (enable logging as per project standards)
    
    **Phase 2: Pre-Testing Validation**
-   - Navigate to application base URL
-   - Verify application loads without errors (check console)
-   - Take baseline screenshot of unaffected areas for comparison
+   - Navigate to application entry point (URL, app launch, CLI command, etc.)
+   - Verify application loads/starts without errors (check relevant logs)
+   - Take baseline screenshot/capture of unaffected areas for comparison
    - Document initial application state and version
    
    **Phase 3: Feature-Specific Testing**
@@ -108,30 +108,30 @@ This task provides efficient architect-only validation after comprehensive Round
      * Capture screenshot AFTER each significant interaction
      * Validate loading states and transitions work correctly
    
-   **Phase 4: Accessibility & Responsive Testing**
-   - Test keyboard navigation for new/changed interactive elements
-   - Verify ARIA labels and roles if accessibility improvements documented
-   - Test responsive behavior at mobile (375px), tablet (768px), desktop (1920px) viewports
-   - Validate color contrast and text readability for visual changes
+   **Phase 4: Accessibility & Responsive Testing (if applicable to project type)**
+   - Test keyboard/alternative navigation for new/changed interactive elements
+   - Verify accessibility features if improvements documented (ARIA, screen reader compatibility, etc.)
+   - Test responsive behavior according to project target platforms (mobile, tablet, desktop, multiple screen sizes)
+   - Validate contrast and readability for visual changes according to project standards
    
-   **Phase 5: Cross-Browser Compatibility (if critical changes)**
-   - Repeat core tests in Chrome, Firefox, and Safari (via MCP if supported)
-   - Document any browser-specific issues discovered
-   - Capture comparative screenshots across browsers for visual changes
+   **Phase 5: Cross-Platform Compatibility (if critical changes)**
+   - Repeat core tests across project target platforms (different browsers, OS versions, device types, etc.)
+   - Document any platform-specific issues discovered
+   - Capture comparative evidence across platforms for visual/behavioral changes
    
    **Phase 6: Evidence Documentation and Cleanup**
-   - Save all screenshots to temporary validation directory with descriptive filenames (feature_state_timestamp.png)
-   - Record any console errors or warnings encountered
-   - Document specific browser MCP commands used for reproducibility
+   - Save all screenshots/captures to temporary validation directory with descriptive filenames (feature_state_timestamp.png)
+   - Record any errors or warnings encountered in relevant logs
+   - Document specific testing commands/tools used for reproducibility
    - Create testing summary with pass/fail status for each tested component
-   - Note: All browser testing artifacts are temporary and will be cleaned up after validation completion
+   - Note: All testing artifacts are temporary and will be cleaned up after validation completion
    
-   **Browser MCP Session Management:**
-   - Maintain single browser context throughout testing for consistency
-   - Use page reload between major test sections to ensure clean state
-   - Close and reopen browser context if session becomes unstable
-   - Document MCP tool version and configuration used
-   - Clean up browser sessions and temporary files after validation
+   **Testing Session Management:**
+   - Maintain consistent testing context throughout validation for consistency
+   - Reset application state between major test sections to ensure clean state
+   - Restart testing environment if session becomes unstable
+   - Document testing tool versions and configuration used (refer to project documentation)
+   - Clean up testing sessions and temporary files after validation
    
    **File Management:**
    - All screenshots and evidence saved to temporary validation workspace
@@ -229,7 +229,7 @@ This task provides efficient architect-only validation after comprehensive Round
    **If APPROVED:**
    - Mark story as ready for delivery
    - Document successful completion
-   - Note any POST-MVP items for future tracking
+   - Note any IMPROVEMENT items for future tracking
    
    **If NEEDS_FIXES:**
    - Provide specific, actionable feedback
@@ -298,7 +298,7 @@ If browser MCP testing fails:
    - Consider scope adjustment if UX changes cannot be properly validated via available MCP tools
 
 If validation reveals new issues:
-1. Classify as MVP-BLOCKING vs POST-MVP
+1. Classify as REQUIRED-FOR-COMPLETION vs IMPROVEMENT
 2. Provide clear guidance for resolution
 3. Update feedback for next implementation cycle
 4. Consider if scope adjustment needed

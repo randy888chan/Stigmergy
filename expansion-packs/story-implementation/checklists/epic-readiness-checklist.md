@@ -7,7 +7,7 @@
 ## Epic Business Readiness Validation
 
 ### Epic Existence & Status Verification
-- [ ] **Epic file exists**: `docs/epic{epic_number}.md` or alternative location confirmed
+- [ ] **Epic file exists**: Epic file located in `docs/prd/epic-{epic_number}-*.md` or `docs/epics/epic-{epic_number}-*.md` or user-specified location confirmed
 - [ ] **Epic status approved**: Epic status is "Approved" (not Draft/In Progress/Review)
 - [ ] **Epic completion readiness**: Epic has clear business objectives and scope defined
 - [ ] **Epic format compliance**: Epic follows project template and documentation standards

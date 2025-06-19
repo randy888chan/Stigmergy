@@ -11,7 +11,7 @@ Product Owner validation and approval of story for development readiness. Valida
 
 ### 1. Load Story and Epic Context
 - Read the complete story file
-- Read the parent epic file (`docs/epic{epic_number}.md`) for context
+- Read the parent epic file (located via `docs/prd/epic-{epic_number}-*.md` or `docs/epics/epic-{epic_number}-*.md`) for context
 - Extract story status, user story, acceptance criteria, and business context
 - Understand the story's role within the epic objectives
 
