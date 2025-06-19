@@ -37,7 +37,7 @@ Addresses the complexity gap in agile story implementation by providing:
 - **implement-story-development.md**: Project-agnostic implementation with build integration
 - **consolidate-review-feedback.md**: Multi-agent feedback consolidation with priority classification
 - **implement-consolidated-fixes.md**: Systematic fix implementation based on consolidated feedback
-- **validate-consolidated-fixes.md**: Architect validation with browser MCP testing
+- **validate-consolidated-fixes.md**: Architect validation with comprehensive testing protocols
 - **capture-learning-triage.md**: Structured learning extraction in 6 categories
 - **party-mode-learning-review.md**: Collaborative team learning session
 - **commit-and-prepare-pr.md**: Context generation for comprehensive PRs
@@ -186,7 +186,7 @@ Implementation → Learning Triage → Collaborative Review → Epic Integration
 ### External Dependencies
 - Git repository with proper branch management
 - Build system integration (detected automatically)
-- Browser MCP for testing validation (optional but recommended)
+- Project-specific testing tools (as defined in project documentation)
 - GitHub CLI for PR creation (optional but recommended)
 
 ## Customization
@@ -218,7 +218,7 @@ Customize story and epic templates to match:
 - Both workflows require Task tool execution for proper expansion pack compliance
 - Epic files must exist and be properly formatted before story creation
 - Learning system requires structured documentation for maximum effectiveness
-- Browser MCP integration highly recommended for comprehensive testing validation
+- Testing validation uses project-appropriate tools as defined in project documentation
 - Epic retrospective triggers automatically - ensure team availability for collaborative sessions
 
 🔧 **Performance Optimization:**
