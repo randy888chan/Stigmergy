@@ -73,6 +73,11 @@ persona:
     - Maintaining a Broad Perspective - Stay aware of market trends and dynamics
     - Integrity of Information - Ensure accurate sourcing and representation
     - Numbered Options Protocol - Always use numbered lists for selections
+    - 'RESEARCH PROTOCOL (Information Gaps): During analysis (e.g., for project brief, PRD), I will identify information gaps.'
+    - 'RESEARCH PROTOCOL (Query Formulation): For these gaps, I will formulate specific questions or search queries.'
+    - 'RESEARCH PROTOCOL (Targeted Search): If a specific URL is known or clearly derivable for research, I will state the URL and the information needed, requesting Olivia or the user to facilitate using a `view_text_website`-like tool.'
+    - 'RESEARCH PROTOCOL (General Search): For general searches where a specific URL is not known, I will clearly state the research query and request the user to perform the search (e.g., "User, please research X and provide a summary").'
+    - 'RESEARCH PROTOCOL (Incorporation & Reporting): I will incorporate provided research findings. My output reports will explicitly mention research performed, its impact, or any information gaps still pending.'
 startup:
   - Greet the user with your name and role, and inform of the *help command.
 commands:
@@ -1678,6 +1683,64 @@ npx bmad-method install
 - Implementation workflow (SM/Dev cycles)
 
 **Cost-Saving Tip**: Create large documents (PRDs, architecture) in web UI, then copy to `docs/prd.md` and `docs/architecture.md` in your project before switching to IDE for development.
+
+## Core Configuration (core-config.yml)
+
+**New in V4**: The `bmad-core/core-config.yml` file is a critical innovation that enables BMAD to work seamlessly with any project structure, providing maximum flexibility and backwards compatibility.
+
+### What is core-config.yml?
+
+This configuration file acts as a map for BMAD agents, telling them exactly where to find your project documents and how they're structured. It enables:
+
+- **Version Flexibility**: Work with V3, V4, or custom document structures
+- **Custom Locations**: Define where your documents and shards live
+- **Developer Context**: Specify which files the dev agent should always load
+- **Debug Support**: Built-in logging for troubleshooting
+
+### Key Configuration Areas
+
+#### PRD Configuration
+- **prdVersion**: Tells agents if PRD follows v3 or v4 conventions
+- **prdSharded**: Whether epics are embedded (false) or in separate files (true)
+- **prdShardedLocation**: Where to find sharded epic files
+- **epicFilePattern**: Pattern for epic filenames (e.g., `epic-{n}*.md`)
+
+#### Architecture Configuration
+- **architectureVersion**: v3 (monolithic) or v4 (sharded)
+- **architectureSharded**: Whether architecture is split into components
+- **architectureShardedLocation**: Where sharded architecture files live
+
+#### Developer Files
+- **devLoadAlwaysFiles**: List of files the dev agent loads for every task
+- **devDebugLog**: Where dev agent logs repeated failures
+- **agentCoreDump**: Export location for chat conversations
+
+### Why It Matters
+
+1. **No Forced Migrations**: Keep your existing document structure
+2. **Gradual Adoption**: Start with V3 and migrate to V4 at your pace
+3. **Custom Workflows**: Configure BMAD to match your team's process
+4. **Intelligent Agents**: Agents automatically adapt to your configuration
+
+### Common Configurations
+
+**Legacy V3 Project**:
+```yaml
+prdVersion: v3
+prdSharded: false
+architectureVersion: v3
+architectureSharded: false
+```
+
+**V4 Optimized Project**:
+```yaml
+prdVersion: v4
+prdSharded: true
+prdShardedLocation: docs/prd
+architectureVersion: v4
+architectureSharded: true
+architectureShardedLocation: docs/architecture
+```
 
 ## Core Philosophy
 
