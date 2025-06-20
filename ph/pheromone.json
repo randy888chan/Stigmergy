@@ -1,0 +1,136 @@
+{
+  "swarmConfig": {
+    "pheromoneFile": ".pheromone",
+    "evaporationRates": {
+      "default": 0.1, // Default decay factor per cycle/time unit if not category-specific
+      "state": 0.02,  // State signals might decay very slowly or not at all if they represent stable facts
+      "need": 0.08,
+      "problem": 0.05,
+      "priority": 0.04, // Priority signals might also decay once acted upon or become stale
+      "dependency": 0.01, // Dependencies are facts, decay very slowly or not until resolved
+      "anticipatory": 0.15 // Anticipatory signals should decay relatively quickly if not acted upon
+    },
+    "explorationRate": 0.03,
+    "signalPruneThreshold": 0.1, // Signals with strength below this are removed
+    "signalAmplification": {
+      "repeatedSignalBoost": 1.5, // Multiplier for existing signal strength on repeat
+      "maxAmplification": 5.0     // Cap on amplification
+    },
+    "signalCategories": { // For Meta-Orchestrator to categorize signals
+      "state": ["project_state_new_blueprint_available", "project_state_existing_codebase_loaded", "project_initialization_complete", "framework_scaffolding_complete", "test_plan_complete_for_feature_X", "tests_implemented_for_feature_X", "coding_complete_for_feature_X", "integration_complete_for_features_XYZ", "system_validation_complete", "comprehension_complete_for_area_Z", "research_phase_A_complete", "feature_overview_spec_created", "architecture_defined_for_module_X", "devops_build_system_initialized", "devops_ci_pipeline_stub_created", "devops_config_management_initialized", "framework_boilerplate_created", "debug_fix_proposed_for_feature_X", "debug_analysis_complete_for_feature_X", "feature_code_merged_successfully", "security_review_passed_for_module", "module_performance_optimized", "documentation_updated_for_feature_X", "firecrawl_action_successful", "deployment_successful_to_env", "iac_apply_successful", "ci_pipeline_triggered", "coding_attempt_complete_for_feature", "reproducing_test_created_for_bug", "integration_step_successful_for_feature_X"],
+      "need": ["project_initialization_needed", "framework_scaffolding_needed", "feature_definition_complete_for_X", "test_planning_needed_for_feature_X", "test_implementation_needed_for_feature_X", "coding_needed_for_feature_X", "integration_needed_for_features_XYZ", "system_validation_needed", "comprehension_needed_for_area_Z"],
+      "problem": ["critical_bug_in_feature_X", "system_level_bug_detected", "integration_conflict_on_merge_ABC", "security_vulnerability_found_in_M", "performance_bottleneck_in_N", "problem_research_blocker_identified", "critical_issue_hinted_in_comprehension", "mcp_tool_execution_failed", "firecrawl_action_partial_failure", "deployment_failed_to_env", "feature_test_run_failed", "coding_attempt_resulted_in_test_failure", "performance_optimization_ineffective_or_problematic"],
+      "priority": ["prioritize_feature_X_development", "halt_feature_Y_pending_review", "change_request_received_for_Y"],
+      "dependency": ["feature_X_depends_on_feature_Y", "component_A_depends_on_component_B"],
+      "anticipatory": ["anticipate_integration_soon_for_feature_X", "anticipate_coding_soon_for_feature_X", "anticipate_testing_soon_for_feature_Y"]
+    },
+    "signalPriorities": { // Base multipliers for effective strength calculation by Meta-Orchestrator
+      "default": 1.0,
+      "critical_bug_in_feature_X": 2.5,
+      "system_level_bug_detected": 3.0,
+      "security_vulnerability_found_in_M": 2.7,
+      "performance_bottleneck_in_N": 1.8,
+      "integration_conflict_on_merge_ABC": 2.2,
+      "halt_feature_Y_pending_review": 2.6,
+      "change_request_received_for_Y": 1.7,
+      "prioritize_feature_X_development": 1.5,
+      "project_initialization_needed": 1.2,
+      "framework_scaffolding_needed": 1.1
+    },
+    "dependencySignals": {
+      "featureDependencies": true,
+      "componentDependencies": true,
+      "criticalPathTracking": true // Meta-O might use this for more advanced planning
+    },
+    "conflictResolution": {
+      "strategy": "highest_priority_first", // Meta-O uses this strategy
+      "tiebreakers": ["signal_strength", "signal_age", "minimal_context_switching"] // In order of preference
+    },
+    "anticipatorySignals": {
+      "enabled": true,
+      "lookAheadSteps": 2, // Conceptual look-ahead for Meta-O to generate anticipatory signals
+      "threshold": 0.7    // Strength threshold for related signals to trigger anticipation
+    },
+    "analyticsTracking": {
+      "enabled": true,
+      "historyLength": 20, // Meta-O keeps this many past signal states (or cycles) for analytics
+      "bottleneckDetection": true,
+      "oscillationDetection": true
+    },
+    "emergencyThresholds": { // Problem signal strengths that trigger emergency handling by Meta-O
+      "security_vulnerability_found_in_M": 7.0,
+      "critical_bug_in_feature_X": 8.0,
+      "system_level_bug_detected": 9.0
+    },
+    "recruitmentThresholds": { // Problem signal strengths for Meta-O to consider specific escalations/recruitments
+      "Debugger_Targeted": {
+        "critical_bug_in_feature_X": 6.0,
+        "system_level_bug_detected": 8.0
+      },
+      "SecurityReviewer_Module": {
+        "security_vulnerability_found_in_M": 4.0
+      },
+      "Optimizer_Module": {
+        "performance_bottleneck_in_N": 5.0
+      },
+      "Integrator_Module": {
+        "integration_conflict_on_merge_ABC": 5.5
+      }
+    },
+    "signalTypes": [ // Comprehensive list for Meta-O validation & worker reference
+      "project_state_new_blueprint_available", "project_state_existing_codebase_loaded",
+      "project_initialization_needed", "project_initialization_complete",
+      "framework_scaffolding_needed", "framework_scaffolding_complete",
+      "feature_definition_complete_for_X",
+      "test_planning_needed_for_feature_X", "test_plan_complete_for_feature_X",
+      "test_implementation_needed_for_feature_X", "tests_implemented_for_feature_X",
+      "coding_needed_for_feature_X", "coding_complete_for_feature_X", "coding_attempt_complete_for_feature", "coding_attempt_resulted_in_test_failure",
+      "integration_needed_for_features_XYZ", "integration_complete_for_features_XYZ", "integration_step_successful_for_feature_X",
+      "system_validation_needed", "system_validation_complete",
+      "change_request_received_for_Y",
+      "comprehension_needed_for_area_Z", "comprehension_complete_for_area_Z", "critical_issue_hinted_in_comprehension",
+      "critical_bug_in_feature_X", "system_level_bug_detected",
+      "integration_conflict_on_merge_ABC", "feature_code_merged_successfully",
+      "security_vulnerability_found_in_M", "security_review_passed_for_module",
+      "performance_bottleneck_in_N", "module_performance_optimized", "performance_optimization_ineffective_or_problematic",
+      "prioritize_feature_X_development", "halt_feature_Y_pending_review",
+      "feature_X_depends_on_feature_Y", "component_A_depends_on_component_B",
+      "anticipate_integration_soon_for_feature_X", "anticipate_coding_soon_for_feature_X", "anticipate_testing_soon_for_feature_Y",
+      "research_phase_A_complete", "problem_research_blocker_identified",
+      "feature_overview_spec_created", "architecture_defined_for_module_X",
+      "devops_build_system_initialized", "devops_ci_pipeline_stub_created", "devops_config_management_initialized", "devops_devops_foundations_setup_complete", // Generic from worker
+      "framework_boilerplate_created",
+      "debug_fix_proposed_for_feature_X", "debug_analysis_complete_for_feature_X",
+      "documentation_updated_for_feature_X", "major_documentation_milestone_reached",
+      "mcp_tool_execution_failed", "firecrawl_action_successful", "firecrawl_action_partial_failure",
+      "deployment_successful_to_env", "deployment_failed_to_env", "iac_apply_successful", "ci_pipeline_triggered",
+      "reproducing_test_created_for_bug", "feature_test_run_failed"
+    ]
+  }
+  "signals": [
+    // Example initial signal (Meta-Orchestrator might create this on first run if user provides a new blueprint)
+    // {
+    //   "id": "signal_12345_init",
+    //   "type": "project_state_new_blueprint_available",
+    //   "target": "my_new_project_id_or_path",
+    //   "strength": 10.0,
+    //   "category": "state",
+    //   "timestamp_created": "2025-05-07T10:00:00Z",
+    //   "last_updated_timestamp": "2025-05-07T10:00:00Z",
+    //   "message": "Initial blueprint provided by user.",
+    //   "data": { "blueprint_path": "/path/to/user/blueprint.md" }
+    // },
+    // {
+    //   "id": "signal_12346_init_need",
+    //   "type": "project_initialization_needed",
+    //   "target": "my_new_project_id_or_path",
+    //   "strength": 5.0, // Initial strength for a new need
+    //   "category": "need",
+    //   "timestamp_created": "2025-05-07T10:00:00Z",
+    //   "last_updated_timestamp": "2025-05-07T10:00:00Z",
+    //   "message": "Project initialization is required for the new blueprint."
+    // }
+  // The 'signals' array will be populated and managed by the Meta-Orchestrator.
+  // It will usually start empty, and Meta-O adds initial signals based on user input.
+    ]
+  }
