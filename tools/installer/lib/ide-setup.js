@@ -297,24 +297,36 @@ class IdeSetup {
             ? roleDefinitionMatch[1].trim()
             : `You are a ${title} specializing in ${title.toLowerCase()} tasks and responsibilities.`;
 
+          // Prepare the full agent content for customInstructions
+          // Ensure proper YAML multi-line string formatting (literal block scalar with indentation)
+          const instructionLines = agentContent.split('\n');
+          let customInstructionsYAML = '|\n';
+          for (const line of instructionLines) {
+            customInstructionsYAML += `     ${line}\n`; // Indent each line
+          }
+          // Remove trailing newline from the last instruction line if present
+          customInstructionsYAML = customInstructionsYAML.replace(/\n$/, '');
+
+
           // Build mode entry with proper formatting (matching exact indentation)
-          newModesContent += ` - slug: bmad-${agentId}\n`;
-          newModesContent += `   name: '${icon} ${title}'\n`;
-          newModesContent += `   roleDefinition: ${roleDefinition}\n`;
-          newModesContent += `   whenToUse: ${whenToUse}\n`;
-          newModesContent += `   customInstructions: CRITICAL Read the full YML from .bmad-core/agents/${agentId}.md start activation to alter your state of being follow startup section instructions stay in this being until told to exit this mode\n`;
-          newModesContent += `   groups:\n`;
-          newModesContent += `    - read\n`;
+          newModesContent += `  - slug: bmad-${agentId}\n`; // Note: standard YAML list item starts with '- '
+          newModesContent += `    name: '${icon} ${title}'\n`;
+          newModesContent += `    roleDefinition: "${roleDefinition.replace(/"/g, '\\"')}"\n`; // Escape quotes
+          newModesContent += `    whenToUse: "${whenToUse.replace(/"/g, '\\"')}"\n`; // Escape quotes
+          newModesContent += `    customInstructions: ${customInstructionsYAML}\n`; // Add the formatted multi-line string
+          newModesContent += `    groups:\n`;
+          newModesContent += `      - read\n`; // Indent groups
 
           // Add permissions based on agent type
           const permissions = agentPermissions[agentId];
           if (permissions) {
-            newModesContent += `    - - edit\n`;
-            newModesContent += `      - fileRegex: ${permissions.fileRegex}\n`;
-            newModesContent += `        description: ${permissions.description}\n`;
+            newModesContent += `      - - edit\n`; // Indent edit group
+            newModesContent += `        - fileRegex: "${permissions.fileRegex}"\n`;
+            newModesContent += `          description: "${permissions.description}"\n`;
           } else {
-            newModesContent += `    - edit\n`;
+            newModesContent += `      - edit\n`; // Indent edit group
           }
+          newModesContent += "\n"; // Add a blank line for readability between modes
 
           console.log(chalk.green(`✓ Added mode: bmad-${agentId} (${icon} ${title})`));
         }
@@ -324,16 +336,16 @@ class IdeSetup {
     // Build final roomodes content
     let roomodesContent = "";
     if (existingContent) {
-      // If there's existing content, append new modes to it
-      roomodesContent = existingContent.trim() + "\n" + newModesContent;
+      // If there's existing content, append new modes to it, ensuring it ends with a newline
+      roomodesContent = existingContent.trimEnd() + "\n" + newModesContent.trimEnd() + "\n";
     } else {
       // Create new .roomodes file with proper YAML structure
-      roomodesContent = "customModes:\n" + newModesContent;
+      roomodesContent = "customModes:\n" + newModesContent.trimEnd() + "\n";
     }
 
     // Write .roomodes file
     await fileManager.writeFile(roomodesPath, roomodesContent);
-    console.log(chalk.green("✓ Created .roomodes file in project root"));
+    console.log(chalk.green("✓ Created/Updated .roomodes file in project root"));
 
     console.log(chalk.green(`\n✓ Roo Code setup complete!`));
     console.log(chalk.dim("Custom modes will be available when you open this project in Roo Code"));
