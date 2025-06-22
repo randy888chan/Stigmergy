@@ -115,6 +115,11 @@ class ConfigLoader {
     return path.join(__dirname, '..', '..', '..', 'bmad-core');
   }
 
+  getPhPath() {
+    // Get the path to ph directory relative to the installer
+    return path.join(__dirname, '..', '..', '..', 'ph');
+  }
+
   getDistPath() {
     // Get the path to dist directory relative to the installer
     return path.join(__dirname, '..', '..', '..', 'dist');

@@ -347,6 +347,25 @@ class Installer {
     const expansionFiles = await this.installExpansionPacks(installDir, config.expansionPacks, spinner);
     files.push(...expansionFiles);
 
+    // Copy ph directory
+    spinner.text = "Copying ph directory...";
+    const phSourceDir = configLoader.getPhPath(); // Assumes a new getter in config-loader.js
+    const phDestDir = path.join(installDir, "ph");
+    if (await fileManager.pathExists(phSourceDir)) {
+      await fileManager.copyDirectory(phSourceDir, phDestDir);
+      const glob = require("glob");
+      const phFilesList = glob
+        .sync("**/*", {
+          cwd: phDestDir,
+          nodir: true,
+        })
+        .map((file) => path.join("ph", file));
+      files.push(...phFilesList);
+      spinner.text = "Copied ph directory.";
+    } else {
+      spinner.warn("ph directory not found in source, skipping.");
+    }
+
     // Install web bundles if requested
     if (config.includeWebBundles && config.webBundlesDirectory) {
       spinner.text = "Installing web bundles...";

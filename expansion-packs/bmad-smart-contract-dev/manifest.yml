@@ -1,0 +1,5 @@
+name: Smart Contract Development Pack
+id: bmad-smart-contract-dev
+version: 0.1.0
+description: Provides agents, tasks, and templates for smart contract development.
+author: Pheromind AI (Originally Jules)
