@@ -33,7 +33,54 @@ This phase is for handing off the plan to the autonomous swarm for execution.
 ---
 
 ## Available Agents & Expansion Packs
-*(This section remains the same, listing all available agents for the swarm's use during the autonomous phase.)*
+The system utilizes a suite of specialized AI agents. Key roles include:
+
+| Agent | Role | Core Responsibilities |
+| --- | --- | --- |
+| `analyst` | Business Analyst | Market analysis, brainstorming, project brief |
+| `pm` | Product Manager | Product strategy, roadmaps, PRDs |
+| `architect` | Solution Architect | System design, technical architecture |
+| `dev` | Developer | Code implementation |
+| `qa` | QA Specialist | Testing strategies, quality assurance |
+| `ux-expert` | UX Designer | User experience, UI design |
+| `po` | Product Owner | Backlog management, story validation |
+| `sm` | Scrum Master | Sprint planning, story creation |
+| `bmad-orchestrator` | Team Coordinator | Multi-agent workflows, role switching |
+| `bmad-master` | Universal Expert | Access to all capabilities without switching |
+
+*(This list may be expanded with specialized agents, e.g., for blockchain development, as the system evolves.)*
+
+## Project Structure Overview
+
+```plaintext
+ph/                  # Core documents for initiating and guiding the AI system
+├── AI Coding System Goal.md
+├── PlanIdeaGenerator.md
+├── PlanIdeaToFullPRD.md
+└── ... (other conceptual and process documents)
+
+bmad-core/           # The "brain" of the AI agents
+├── agents/          # Individual agent definitions (prompts, capabilities)
+├── agent-teams/     # Configurations for teams of agents
+├── workflows/       # Definitions of development processes
+├── templates/       # Document templates (e.g., for PRDs, architecture)
+├── tasks/           # Definitions of reusable tasks for agents
+├── checklists/      # Quality assurance checklists
+└── data/            # Knowledge bases and core data for agents
+
+dist/                # Pre-built bundles for use in Web UIs
+├── agents/          # Bundles for individual agents
+└── teams/           # Bundles for pre-configured agent teams
+
+expansion-packs/     # Optional add-ons for specialized domains (e.g., game dev, DevOps)
+
+tools/               # Utilities for building bundles and managing the system
+├── builders/
+└── installer/       # Original installer (functionality for this repo TBD)
+
+docs/                # Minimal documentation
+└── pheromind-v2-manual-setup-and-workflow.md # Manual setup (to be reviewed)
+```
 
 ## Installation and Setup
 Full setup instructions are now located in **`docs/pheromind-v2-manual-setup-and-workflow.md`**. This document provides the definitive guide for configuring your project for the new V2 workflow.
