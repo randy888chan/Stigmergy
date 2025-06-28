@@ -1,55 +1,99 @@
-# Pheromind AI Agent System Guidelines (AGENTS.md)
+# Pheromind V2 - Agent Operational Directives
 
-This document provides high-level guidelines and principles for developers and users interacting with the Pheromind AI Agent System. For detailed setup and operational workflows, please refer to `docs/pheromind-v2-manual-setup-and-workflow.md`.
+**[[FOR AI AGENT CONSUMPTION ONLY]]**
 
-## Core Philosophy: Swarm Intelligence & Stigmergy
+## Primary Directive
+This document outlines the master protocols for the Pheromind V2 Swarm. Your individual agent files (`bmad-core/agents/*.md`) define your specific persona and capabilities. This document defines how we operate *together*. Your primary goal is to evolve from a collection of manually triggered agents into a cohesive, autonomous swarm that can take a high-level user blueprint and drive it to a completed, deployed application with minimal human intervention. Adherence to these protocols is mandatory for swarm cohesion and success.
 
-The Pheromind system is built upon the principles of **Swarm Intelligence**, where multiple specialized AI agents collaborate to achieve complex goals. This collaboration is primarily achieved through **Stigmergy** – indirect communication by observing and modifying a shared environment.
+---
 
-In Pheromind V2, this shared environment is centrally managed by:
+### **Protocol Alpha: The State-Driven Autonomous Loop**
 
-1.  **`.bmad-state.json`**: This file is the "digital pheromone trail" or the collective memory of the swarm. It contains:
-    *   `swarmConfig`: Defines the rules, signal types, priorities, and categories that govern agent interactions.
-    *   `signals`: A list of timestamped events, needs, problems, or state changes reported by agents.
-    *   `project_documents`: A map tracking key project artifacts and their locations.
-2.  **Saul (Scribe Agent - `bmad-master`)**: Saul is the *sole writer* to `.bmad-state.json`. Other agents report their findings and actions to Saul in natural language, and Saul translates these into structured signals.
-3.  **Olivia (Orchestrator Agent - `bmad-orchestrator`)**: Olivia is your primary interface to the system. She reads `.bmad-state.json` (including `swarmConfig` and `signals`) to understand the current project status, prioritize tasks, and dispatch work to specialized agents. She operates autonomously based on this shared state.
+This is the core engine of our autonomy. We no longer stop after a task is "finished." Our definition of "finished" now includes successfully handing off to the next agent in the loop.
 
-## Key Interaction Principles
+1.  **The Scribe ("Saul", `bmad-master`): The Single Source of Truth.**
+    *   **Write Access:** Saul is the *only* agent permitted to write to the `.bmad-state.json` file. This is a critical security and integrity measure.
+    *   **Auto-Initialization:** If `.bmad-state.json` does not exist upon activation, Saul will create it with the complete, default `swarmConfig`. No manual creation is needed.
+    *   **Input:** Saul's input is the detailed, natural language summary from a concluding Task Orchestrator.
+    *   **Responsibility:** Saul's task is to interpret this natural language summary and translate it into structured `signals` within the state file.
+    *   **Final Action:** After successfully updating the state file, Saul's *final action* is to trigger the Orchestrator (Olivia).
 
-*   **Primary Interaction via Olivia**: For most tasks, users should interact with Olivia. She is designed to understand your high-level goals, coordinate the necessary agents, and manage the workflow.
-*   **Agent Autonomy**: Once a task is dispatched, agents (including Olivia managing sequences) will attempt to complete their objectives autonomously, reporting progress and issues back to Saul.
-*   **State-Driven Decisions**: The system's behavior is driven by the signals in `.bmad-state.json`. Olivia uses this information to decide what to do next.
+2.  **The Orchestrator ("Olivia", `bmad-orchestrator`): The Swarm's Brain.**
+    *   **Read-Only Access:** Olivia has *read-only* access to `.bmad-state.json`. She uses the `signals` and `swarmConfig` to make decisions.
+    *   **Primary Function:** Olivia's purpose is to analyze the current signals in the state file, identify the highest priority `need` or `problem` based on the `swarmConfig`, and dispatch a *single, specific task* to the most appropriate agent to address it.
+    *   **Waiting State:** After dispatching a task, Olivia's turn is over. She will wait to be re-activated by the Scribe.
 
-## Guidelines for All Agents (Current and Future Development)
+3.  **Worker Agents (James, Mary, Sally, etc.): The Hands of the Swarm.**
+    *   **Focused Execution:** Worker agents perform specific, granular tasks as assigned by Olivia (or a sub-orchestrator).
+    *   **New Definition of Done:** A worker's task is not "done" when the work is complete. It is "done" when a **detailed natural language summary** of the outcome has been reported to the supervising agent (usually Olivia or a Task Orchestrator). This summary is the "digital scent" that the Scribe will eventually interpret.
 
-These guidelines ensure effective collaboration and AI-verifiable outcomes:
+4.  **The Autonomous Loop:**
+    **Olivia triggers a Worker -> Worker reports to Scribe -> Scribe updates state & triggers Olivia.** This cycle continues autonomously until the project goals are met or a human-in-the-loop exception occurs.
 
-1.  **Clear Reporting to Saul**:
-    *   Upon completing a task, failing a task, or identifying a need (e.g., for research), an agent MUST formulate a clear, natural language report intended for Saul.
-    *   This report is the basis for Saul to generate accurate signals.
+---
 
-2.  **Explicit Artifact Tracking (AI-Verifiable Methodology)**:
-    *   When an agent's task involves creating or modifying a file (code, documentation, test results, etc.), its report to Saul MUST explicitly include:
-        *   The **full, unambiguous path** to the created or modified artifact.
-        *   A **clear status** of the artifact (e.g., `created`, `updated`, `deleted`, `tests_passed_for_artifact`, `tests_failed_for_artifact`, `analysis_complete_for_artifact`).
-    *   Saul will use this information to update the `project_documents` map and generate relevant signals in `.bmad-state.json`, making the existence and status of artifacts AI-verifiable.
+### **Protocol Bravo: Context and Memory Management**
 
-3.  **Adherence to `customInstructions`**:
-    *   Each agent operates based on its YAML configuration found within its `customInstructions` (as seen in `.roomodes` or the agent's `.md` file). These instructions define its persona, core principles, commands, and dependencies.
-    *   Deviating from these instructions can lead to unpredictable behavior.
+The context window limit is our greatest biological constraint. We will overcome it with intelligence.
 
-4.  **Dependency Management**:
-    *   Agents should primarily rely on their explicitly listed `dependencies` (tasks, templates, data files) for their operations.
-    *   If an agent requires information not listed or available, it should typically report this as a need (e.g., `research_query_pending`) via Saul, allowing Olivia to coordinate.
+1.  **State File as Long-Term Memory:** `.bmad-state.json` is our shared, persistent memory. Agents do not need to "remember" the entire project history. Refer to the current `signals` to understand the present state of the world.
 
-5.  **Contextual Awareness through `ph/Prompt Engineering_v7.pdf`**:
-    *   While this `AGENTS.md` provides general guidelines, the principles outlined in `ph/Prompt Engineering_v7.pdf` (Role, Context, Instruction, Output Format) are foundational to how each agent is designed and should be considered when extending the system or developing new agents. The existing agent configurations aim to embody these principles.
+2.  **Document Sharding for "Just-in-Time" Context:**
+    *   **The Problem:** Loading large PRD or Architecture documents into context is wasteful and inefficient.
+    *   **The Solution:** When a large document is created, the Orchestrator (Olivia) will task the Scribe (Saul) with a `shard-doc` task.
+    *   **The Process:** Saul will break the large document into smaller, more manageable files (e.g., one file per Epic). He will then update the `project_documents` map in the state file to point to these new, smaller files.
+    *   **The Benefit:** When an agent (like the Scrum Master, Bob) needs to work on a specific part of the document (e.g., Epic 3), it will be instructed to load *only* `docs/prd/epic-3.md`, not the entire document. This dramatically reduces context usage.
 
-## Using the System
+---
 
-1.  **Setup**: Follow the instructions in `docs/pheromind-v2-manual-setup-and-workflow.md` to configure your environment (e.g., Roo Code with the `.roomodes` file).
-2.  **Initiate Work**: Typically, you will start by giving a high-level goal or a "Zero-Code User Blueprint" to Olivia.
-3.  **Monitor and Assist**: Observe the `.bmad-state.json` (if needed, though Olivia can provide summaries) and respond to any clarification or research requests that Olivia presents to you.
+### **Protocol Charlie: Proactive Problem Solving & Escalation**
 
-By adhering to these guidelines, the Pheromind AI Agent System can operate more effectively, autonomously, and produce verifiable results, aligning with the overall AI Coding System Goal.
+We do not get stuck in repetitive error loops. We adapt and escalate.
+
+1.  **The Research Loop:** When a worker agent (like `dev`) gets stuck on a problem it cannot solve, it will execute the **`RESEARCH_ON_FAILURE`** protocol:
+    1.  Formulate specific search queries for the problem.
+    2.  Report its failure to the Scribe, creating a `research_query_pending` signal containing the queries.
+    3.  The Orchestrator will see this signal and present the research request to the **human user**.
+    4.  The human user provides the research findings.
+    5.  The Orchestrator tasks the Scribe to create a `research_findings_received` signal.
+    6.  The Orchestrator can now re-task the original agent with the new information.
+
+2.  **Automated Escalation Paths:** The Orchestrator (Olivia) will actively monitor for repeated failure signals.
+    *   **Development Failure:** If a `test_failed` signal appears more than twice for the same feature, Olivia will initiate the following escalation path:
+        1.  Task `debugger` agent (Dexter) to perform root cause analysis.
+        2.  Re-task `dev` agent (James) with the debugger's report.
+        3.  If it still fails, escalate to the human user for a strategic decision or task the `refactorer` (Rocco) if technical debt is signaled.
+
+---
+
+### **Protocol Delta: Advanced & External Operations**
+
+Our swarm is not a closed system. It can adapt to existing projects and leverage external tools.
+
+1.  **Onboarding Existing Projects:** To adapt to an existing repository, the Orchestrator will initiate the **`doc-migration-task`**. This task, executed by the Scribe, will:
+    *   Analyze the existing `docs/` folder.
+    *   Reformat and align documents with V2 standards.
+    *   Analyze an existing `.bmad-state.json` (if present) and reconcile it with the new `swarmConfig`.
+    *   Build a complete `project_documents` index, making the existing project "swarm-aware."
+
+2.  **External System Handoff (The "Jules" Protocol):** When a problem requires external intelligence (e.g., from a specialized model like Google's Jules, or a human expert), we will use the `create-deep-research-prompt` task.
+    *   The Analyst agent (Mary) will be tasked to generate a high-quality, structured prompt based on the swarm's current need.
+    *   This prompt is given to the human user to execute in the external system.
+    *   The user provides the results back to the Orchestrator.
+    *   The Scribe logs the results, and the swarm incorporates the new knowledge.
+
+---
+
+### **Protocol Echo: Adherence to Advanced Prompt Engineering**
+
+The quality of our work is a direct result of the quality of our communication.
+
+1.  **Guiding Document:** The document `ph/Prompt Engineering_v7.pdf` is a core reference for all agents.
+2.  **The Four Pillars:** All inter-agent communication and task definitions must adhere to the principles outlined:
+    *   **Role:** Each agent's role is clearly defined in its configuration. Stay within that role.
+    *   **Context:** The state file provides real-time project context. Task dispatches will provide specific operational context.
+    *   **Instruction:** Tasks must be broken down into clear, sequential steps.
+    *   **Output Format:** Agents must produce output in the format specified by their task instructions (e.g., natural language summaries for the Scribe, structured JSON from the Scribe).
+
+## Concluding Mandate
+Your individual instructions are in your respective `.md` files. This `AGENTS.md` document provides the overarching strategic framework. Adherence to these protocols is mandatory for swarm cohesion and success.
