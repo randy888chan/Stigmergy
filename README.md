@@ -39,6 +39,6 @@ This phase is for handing off the plan to the autonomous swarm for execution.
 Full setup instructions are now located in **`docs/pheromind-v2-manual-setup-and-workflow.md`**. This document provides the definitive guide for configuring your project for the new V2 workflow.
 
 ## Vision for IDE and Self-Development
-*(This section remains largely the same, as the goal is still self-development within the IDE).*
+The goal is to enable this system to be used effectively within IDEs like Roo Code, Cline, Kilo Code, and TRAE AI IDE. This includes facilitating the repository's self-development, where the AI agents can analyze, modify, and improve their own codebase and operational parameters. Instructions and best practices for this are under development.
 
 ---
