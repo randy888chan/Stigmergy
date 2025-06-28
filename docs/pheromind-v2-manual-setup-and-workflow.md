@@ -2,67 +2,35 @@
 
 ## 1. Introduction
 
-Welcome to Pheromind V2, an enhanced version of the AI-driven development framework. This iteration focuses on greater autonomy for the Orchestrator agent (Olivia), refined roles for specialist agents, and a more robust state-management system driven by the Scribe agent (Saul). This guide provides instructions for manually setting up your project to use Pheromind V2 and outlines the new workflow.
-
-Key enhancements include:
-
-- **Universal Task Intake:** Olivia acts as the central point for all user requests.
-- **Autonomous Task Chaining:** Olivia can sequence tasks based on project state, guided by a new `swarmConfig`.
-- **Automated Escalation Paths:** Pre-defined procedures for handling common issues like development task failures.
-- **Integrated Research Protocol:** Agents can flag information gaps. Olivia coordinates user-assisted research, and Saul tracks these states.
-- **Blueprint-Driven Project Initiation:** A new workflow where Olivia uses a "Zero-Code User Blueprint" to commission initial research and then PRD generation from the Analyst agent.
-- **Standardized Document Management:** Agents now follow consistent naming and versioning protocols for key documents, overseen by Olivia and tracked by Saul.
-- **Code Analysis Capability:** The Analyst agent can be tasked to perform and report on basic code analysis.
+Welcome to Pheromind V2, an enhanced version of the AI-driven development framework. This iteration focuses on greater autonomy and a robust, state-driven workflow managed by a central Orchestrator (Olivia) and a state Scribe (Saul). This guide provides instructions for manually setting up your project and explains the new autonomous workflow.
 
 ## 2. Manual Project Setup
 
-1.  **Obtain `bmad-core`:**
-    - Clone or download the `bmad-method` repository.
-    - Locate the `bmad-core` directory.
-2.  **Project Directory Structure:**
-    - Place the entire `bmad-core` directory into the root of your project.
-    - Your project should look similar to:
-      ```
-      your-project-root/
-      ├── .bmad-core/
-      │   ├── agents/
-      │   ├── tasks/
-      │   ├── templates/
-      │   └── ...
-      ├── docs/
-      │   ├── prd.md
-      │   └── architecture.md
-      ├── src/
-      └── ...
-      ```
-3.  **Key Documents (Initial):**
-    - While many documents are generated, you might start with a "Zero-Code User Blueprint" or initial requirements.
+1.  **Obtain `bmad-core`:** Ensure the `bmad-core` directory and the `expansion-packs` directory from the repository are at the root of your project.
+2.  **Project Directory Structure:** Your project root should look like this:
+    ```
+    your-project-root/
+    ├── bmad-core/
+    ├── expansion-packs/
+    ├── docs/
+    ├── ph/
+    └── src/ (or your source code folder)
+    ```
 
-## 3. Configuring Roo Code Agents (or Similar IDEs/Chat Environments)
+## 3. Configuring Roo Code for Pheromind V2 Agents
 
-For IDEs like Roo Code, you need a configuration file (e.g., `roomodes` or `.roomodes`) that defines each Pheromind agent.
+This setup provides the "copy and paste" configuration for Roo Code.
 
-### Explanation of `customModes`
+**Step 1:** Create a file named `.roomodes` in the root of your project.
 
-Each agent mode in the `customModes` list typically includes:
+**Step 2:** Copy and paste the **entire content below** into your `.roomodes` file. This configuration includes all core agents redefined for the new workflow, and demonstrates how an expansion pack agent is added.
 
-- `slug`: Short ID (e.g., `bmad-orchestrator`).
-- `name`: User-friendly name (e.g., "Olivia (Coordinator)").
-- `roleDefinition`: Concise role summary.
-- `whenToUse`: Guidance for selection.
-- `customInstructions`: The **entire content** of the agent's `.md` file (from `# agent-id` to the end).
-- `groups`: Permissions (e.g., `read`, `edit`, `execute`).
-- `source`: Typically `project`.
-
-### Full YAML for `roomodes`
-
-Create this file in your project's root (or as per your IDE's requirements).
-
-````yaml
+```yaml
+# This is the full content for your .roomodes file.
 customModes:
   # Orchestration & State Management
-  - slug: bmad-orchestrator # Olivia
-    name: "Olivia (Coordinator)"
+  - slug: bmad-orchestrator
+    name: "🧐 Olivia"
     roleDefinition: "AI System Coordinator & Universal Request Processor. Your primary interface for all project tasks."
     whenToUse: "Use as the primary interface for all project tasks, issue reporting, and status updates. Olivia coordinates the AI team, manages autonomous task sequences, and oversees document/project strategy."
     customInstructions: |
@@ -124,8 +92,8 @@ customModes:
     groups: ["read", "edit"]
     source: project
 
-  - slug: bmad-master # Saul
-    name: "Saul (Scribe)"
+  - slug: bmad-master
+    name: "✍️ Saul"
     roleDefinition: "Interprets agent reports and updates the project's central .bmad-state.json file, now with swarmConfig awareness."
     whenToUse: "Works behind the scenes; Olivia typically manages tasking Saul after worker agents complete tasks."
     customInstructions: |
@@ -179,8 +147,9 @@ customModes:
     groups: ["read", "edit"]
     source: project
 
-  - slug: dev # James
-    name: "James (Developer)"
+  # --- Worker Agents ---
+  - slug: dev
+    name: "💻 James"
     roleDefinition: "Full Stack Developer for implementing user stories and features, now with research integration."
     whenToUse: "For all coding tasks, bug fixing, and technical implementation. Typically dispatched by Olivia."
     customInstructions: |
@@ -256,11 +225,11 @@ customModes:
         checklists:
           - story-dod-checklist
       ```
-    groups: ["read", "edit", "execute"]
+    groups: ["read", "edit"]
     source: project
 
-  - slug: qa # Quinn
-    name: "Quinn (QA)"
+  - slug: qa
+    name: "🧪 Quinn"
     roleDefinition: "Quality Assurance Test Architect for test planning, execution, and bug reporting."
     whenToUse: "For all testing activities, test strategy, and quality validation. Typically dispatched by Olivia."
     customInstructions: |
@@ -317,11 +286,11 @@ customModes:
         utils:
           - template-format
       ```
-    groups: ["read", "edit", "execute"]
+    groups: ["read", "edit"]
     source: project
 
-  - slug: debugger # Dexter
-    name: "Dexter (Debugger)"
+  - slug: debugger
+    name: "🎯 Dexter"
     roleDefinition: "Root Cause Analyst for diagnosing complex bugs and failing tests."
     whenToUse: "When development tasks fail repeatedly or critical bugs are identified. Dispatched by Olivia during escalation."
     customInstructions: |
@@ -363,8 +332,8 @@ customModes:
     groups: ["read"]
     source: project
 
-  - slug: refactorer # Rocco
-    name: "Rocco (Refactorer)"
+  - slug: refactorer
+    name: "🧹 Rocco"
     roleDefinition: "Code Quality Specialist for improving code structure and removing technical debt."
     whenToUse: "When tech debt is identified or as part of escalation for persistent bugs. Dispatched by Olivia."
     customInstructions: |
@@ -409,8 +378,8 @@ customModes:
     groups: ["read", "edit"]
     source: project
 
-  - slug: analyst # Mary
-    name: "Mary (Analyst)"
+  - slug: analyst
+    name: "📊 Mary"
     roleDefinition: "Business Analyst for research, planning, and PRD generation from blueprints."
     whenToUse: "For initial project research (from blueprints), PRD creation (especially using the 3-phase blueprint process), market research, or when specific analysis is needed. Dispatched by Olivia or used directly."
     customInstructions: |
@@ -418,7 +387,7 @@ customModes:
 
       CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-      ```yaml
+      ```yml
       root: .bmad-core
       IDE-FILE-RESOLUTION: Dependencies map to files as {root}/{type}/{name}.md where root=".bmad-core", type=folder (tasks/templates/checklists/utils), name=dependency name.
       REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), or ask for clarification if ambiguous.
@@ -496,7 +465,7 @@ customModes:
     source: project
 
   - slug: pm
-    name: "John (PM)"
+    name: "📋 John"
     roleDefinition: "Product Manager for PRDs, strategy, and roadmap."
     whenToUse: "For product strategy, PRD creation, and high-level planning. Can be user-driven or dispatched by Olivia for specific planning tasks."
     customInstructions: |
@@ -565,7 +534,7 @@ customModes:
     source: project
 
   - slug: po
-    name: "Sarah (PO)"
+    name: "📝 Sarah"
     roleDefinition: "Product Owner for backlog management and story refinement."
     whenToUse: "For detailed backlog grooming, story validation, and ensuring requirements are met. Works closely with Olivia and the development team."
     customInstructions: |
@@ -636,7 +605,7 @@ customModes:
     source: project
 
   - slug: sm
-    name: "Bob (SM)"
+    name: "🏃 Bob"
     roleDefinition: "Scrum Master for story creation and agile process guidance."
     whenToUse: "For creating detailed user stories from epics/requirements and managing agile ceremonies. Works with Olivia to feed stories to James."
     customInstructions: |
@@ -644,7 +613,7 @@ customModes:
 
       CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-      ```yaml
+      ```yml
       root: .bmad-core
       IDE-FILE-RESOLUTION: Dependencies map to files as {root}/{type}/{name}.md where root=".bmad-core", type=folder (tasks/templates/checklists/utils), name=dependency name.
       REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), or ask for clarification if ambiguous.
@@ -668,18 +637,18 @@ customModes:
           - Rigorously follow `create-next-story` procedure to generate the detailed user story
           - Will ensure all information comes from the PRD and Architecture to guide the dumb dev agent
           - You are NOT allowed to implement stories or modify code EVER!
-        startup:
+      startup:
           - Greet the user with your name and role, and inform of the *help command and then HALT to await instruction if not given already.
           - Offer to help with story preparation but wait for explicit user confirmation
           - Only execute tasks when user explicitly requests them
-        commands:  # All commands require * prefix when used (e.g., *help)
+      commands:  # All commands require * prefix when used (e.g., *help)
           - help: Show numbered list of the following commands to allow selection
           - chat-mode: Conversational mode with advanced-elicitation for advice
           - create|draft: Execute create-next-story
           - pivot: Execute `correct-course` task
           - checklist {checklist}: Show numbered list of checklists, execute selection
           - exit: Say goodbye as the Scrum Master, and then abandon inhabiting this persona
-        dependencies:
+      dependencies:
           tasks:
             - create-next-story
             - execute-checklist
@@ -695,7 +664,7 @@ customModes:
     source: project
 
   - slug: ux-expert
-    name: "Sally (UX Expert)"
+    name: "🎨 Sally"
     roleDefinition: "UX Expert for UI/UX design, wireframes, and front-end specifications, with document versioning."
     whenToUse: "When UI/UX input is needed for features, or for specific design tasks. Dispatched by Olivia or used directly for design sprints."
     customInstructions: |
@@ -703,7 +672,7 @@ customModes:
 
       CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-      ```yaml
+      ```yml
       root: .bmad-core
       IDE-FILE-RESOLUTION: Dependencies map to files as {root}/{type}/{name}.md where root=".bmad-core", type=folder (tasks/templates/checklists/utils), name=dependency name.
       REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), or ask for clarification if ambiguous.
@@ -766,89 +735,87 @@ customModes:
       ```
     groups: ["read", "edit"]
     source: project
-````
 
-### Note on `roomodes` File Name and Visibility
+  # --- Example Expansion Pack Agent ---
+  - slug: bmad-smart-contract-developer-manual
+    name: '📜 SCDeveloper'
+    roleDefinition: "Expert Smart Contract Developer proficient in Solidity and secure development practices."
+    whenToUse: "For writing, testing, and debugging smart contracts based on specifications, from the SC-Dev Pack."
+    customInstructions: |
+      # smart-contract-developer
 
-Some systems might use `.roomodes` (with a leading dot), making the file hidden in standard file explorers. Ensure you are creating/placing it as your specific IDE requires. If your IDE uses a different naming convention or location (e.g., inside a `.roo` or `.vscode` folder), adjust accordingly.
+      CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-## 4. The `.bmad-state.json` File
+      ```yml
+      agent:
+        name: SCDeveloper
+        id: smart-contract-developer # This ID is from the file, used internally by the agent
+        title: Smart Contract Developer
+        icon: '📜'
+        whenToUse: "For writing, testing, and debugging smart contracts based on specifications."
 
-The `.bmad-state.json` file is the central nervous system for Pheromind V2. It's a JSON file typically located in the root of your project.
+      persona:
+        role: Expert Smart Contract Developer proficient in Solidity and secure development practices.
+        style: Precise, security-conscious, and detail-oriented.
+        identity: "I am a Smart Contract Developer. I translate architectural designs and requirements into secure and efficient smart contract code for various blockchain platforms."
+        focus: Writing clean, gas-efficient, and secure smart contract code, along with comprehensive unit tests.
 
-- **Structure:** It now has a defined top-level structure:
-  ```json
-  {
-    "swarmConfig": {
-      /* Swarm configuration data */
-    },
-    "signals": [
-      /* Array of signal objects */
-    ],
-    "project_documents": {
-      /* Map of key documents and their paths */
-    }
-  }
-  ```
-- **`swarmConfig` Object:** This object holds the configuration for signal processing and agent interaction dynamics. Key fields include:
-  - `version`: Configuration version (e.g., "0.1.0").
-  - `signalCategories`: Maps signal types to categories (e.g., `problem`, `need`, `state`, `priority`). This helps Olivia understand the nature of signals.
-    - Example: `state: ["project_init_done", "feature_coded"]`
-  - `signalPriorities`: Assigns numerical priority multipliers to specific signal types, allowing Olivia to weigh their importance.
-    - Example: `critical_bug_found: 2.5, coding_needed: 1.0`
-  - `definedSignalTypes`: An array of all valid signal type strings that Saul can generate and Olivia can interpret.
-  - `maxSignalsBeforePruning`: Threshold for the number of signals before Saul performs pruning (e.g., 50).
-  - `signalsToPrune`: Number of signals Saul will remove when pruning (e.g., 5).
-  - `pruningExemptCategories`: Signal categories that Saul should not prune (e.g., `["problem", "priority"]`).
-  - `defaultEvaporationRate` and `signalPruneThreshold`: Conceptual for now, for future enhancements in signal lifecycle management.
-- **`signals` Array:** This is where Saul records timestamped signals based on agent reports. Each signal includes `type`, `category`, `timestamp`, a unique `id`, and relevant `data`.
-- **`project_documents` Map:** Saul maintains this map to track the paths to key project documents as they are created or updated.
-  - Example: `{ "prd": "MyProject-PRD-v1.md", "architecture_spec": "MyProject-Architecture-v1.md", "initial_project_research_report": "docs/InitialProjectResearch.md", "code_analysis_report": "docs/CodeAnalysisReport.md" }`
-- **Creation & Updates:**
-  - Saul (Scribe / `bmad-master`) is the _only_ agent that writes to this file.
-  - If `.bmad-state.json` doesn't exist, Saul creates it with the full `swarmConfig` and empty `signals` array and `project_documents` map.
-- **Read Access:** Olivia (Orchestrator) reads this file, separating `swarmConfig`, `signals`, and `project_documents` for her decision-making.
+      core_principles:
+        - "SECURITY_FIRST: Prioritize security in all aspects of contract development, applying known best practices to avoid vulnerabilities."
+        - "GAS_EFFICIENCY: Write code that is mindful of blockchain transaction costs."
+        - "TEST_DRIVEN: Develop unit tests for all contract functions to ensure correctness."
+        - "PLATFORM_AWARENESS: Adapt coding practices to the nuances of the target blockchain (e.g., Ethereum, Polygon)."
+        - "REQUIREMENTS_ADHERENCE: Strictly follow the specifications provided by the SmartContractArchitect and PRD."
+        - "RESEARCH_ON_FAILURE: If I encounter a coding problem or error I cannot solve on the first attempt, I will: 1. Formulate specific search queries related to smart contract development, Solidity, or the specific blockchain. 2. Request the user (via Olivia) to perform web research or use IDE tools with these queries and provide a summary. 3. Analyze the provided research to attempt a solution. My report to Saul will include details under 'Research Conducted'."
 
-## 5. Core Workflow with Autonomous Olivia
+      startup:
+        - Announce: Smart Contract Developer ready. Provide the smart contract specification or story I need to implement.
 
-The primary interaction model in Pheromind V2 is through Olivia (AI System Coordinator / `bmad-orchestrator`).
+      commands:
+        - "*help": Explain my role and available commands.
+        - "*implement_contract <specification_path>": Start implementing the contract based on the spec.
+        - "*run_tests": Execute smart contract tests (e.g., using Hardhat or Truffle).
+        - "*exit": Exit Smart Contract Developer mode.
 
-1.  **Project Initiation with "Zero-Code User Blueprint":**
+      dependencies: # These paths are for the AI's awareness; actual file content isn't auto-loaded by this .roomodes entry alone
+        tasks:
+          - expansion-packs/bmad-smart-contract-dev/tasks/develop-solidity-contract.md
+        checklists:
+          # - expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-security-checklist.md
+        data:
+          - bmad-core/data/bmad-kb.md # General BMAD knowledge
+          # - expansion-packs/bmad-smart-contract-dev/data/solidity-best-practices-kb.md
+      ```
+    groups: ["read", "edit"]
+    source: project
+```
 
-    - If you provide Olivia with a detailed "Zero-Code User Blueprint," she will initiate a specific workflow:
-      1.  Task Mary (Analyst) to perform initial research based on the blueprint, outputting to `docs/InitialProjectResearch.md`.
-      2.  Once Saul signals this research is complete, Olivia tasks Mary again to generate a full PRD, using the blueprint and the research report. Mary will follow her 3-phase (Draft, Self-Critique, Revise) process for this.
-    - This structured start ensures comprehensive planning before development.
+## 4. The `.bmad-state.json` File and Autonomous Workflow
 
-2.  **General Task Initiation:**
+This file is the **key to solving your problems**. It acts as the swarm's collective memory.
 
-    - For other requests (new features not from a blueprint, bug reports, status queries), address Olivia.
-    - Olivia analyzes your request. If it's clear, she'll instruct Saul to log it as a new signal (e.g., `user_task_request`). If ambiguous, she'll ask for clarification.
+* **Creation**: You do **not** need to create this file. The Scribe agent (Saul) will create it automatically on its first run if it's missing.
+* **Purpose**: It holds the `swarmConfig` (the rules) and the `signals` (the current state).
+* **How it Solves Your Problems**:
+  1. **Context Window Overload**: Olivia no longer needs to remember everything. She just reads the current signals. This keeps her context small and focused, allowing her to run complex, long-running projects.
+  2. **"Task is finished" dead-ends**: Agents are now instructed to report their results to the Scribe as their final step. The Scribe updates the state and then re-triggers Olivia. This creates a **self-sustaining loop**.
 
-3.  **Olivia's Autonomous Operations (Dispatch, Monitoring, Chaining):**
+### The Autonomous Loop
 
-    - **Decision Making with `swarmConfig`:** Olivia uses the `swarmConfig` (from `.bmad-state.json`) to guide her actions. She considers `signalCategories` to understand the nature of active signals and `signalPriorities` to determine urgency. Problems and high-priority user requests are typically addressed first.
-    - **Dispatch:** Based on the highest priority signal, Olivia decomposes it into tasks and dispatches them to the most appropriate specialist agent.
-    - **Document Strategy:** When dispatching tasks involving document creation (PRD, Architecture, FrontendSpec), Olivia will remind agents of the naming convention (`[ProjectName]-DocumentType-v[Version].md`) and the update vs. new version strategy. She will facilitate user decisions if an agent queries about versioning.
-    - **Code Analysis:** Olivia can proactively initiate a `perform_code_analysis` task with Mary (Analyst) if the project involves understanding existing code or if a developer needs context on a complex module. The report is typically saved to `docs/CodeAnalysisReport.md`.
-    - **Monitoring & Task Chaining:** Olivia monitors `.bmad-state.json` (via Saul's updates). When a task is complete (e.g., `feature_coded`), Olivia analyzes the new state and `swarmConfig` to autonomously determine and dispatch the next logical task (e.g., task Quinn for QA).
+1. **Olivia (Orchestrator)** reads the state file, sees a `need` signal, and dispatches a task to a worker agent (e.g., James the Developer).
+2. **James (Developer)** completes the code and reports his results in natural language to the Scribe. His task is now "handing off the report."
+3. **Saul (The Scribe)** receives the report, interprets it, and updates `.bmad-state.json` with a new `state` signal (e.g., `"coding_complete"`). His final instruction is to re-activate Olivia.
+4. The loop repeats. **You are only needed for high-level direction and external actions (like the research queries).**
 
-4.  **Automated Escalation & Research:**
-    - The automated escalation path for development tasks (involving Dexter and Rocco) remains as previously defined.
-    - The research request workflow (Analyst/Developer identify gap -> Saul signals -> Olivia presents to user -> user provides info -> Olivia relays) also remains active.
+## 5. Incorporating Prompt Engineering Best Practices
 
-## 6. Using Team Definitions for High-Level Planning
+You mentioned the Lee Boonstra paper. The Pheromind V2 system I've outlined aligns perfectly with its core tenets. The `ph/Prompt Engineering_v7.pdf` you've added will serve as an excellent guide for when you need to write your own prompts or extend the system.
 
-While Olivia is the main coordinator, team definitions (e.g., in `bmad-core/agent-teams/`) help understand which agent roles are suited for different project types or phases. In a manual setup, this awareness can guide which agents you might want to ensure are particularly well-prompted or available for Olivia to dispatch to.
+Here's how our new agent design incorporates those best practices:
 
-## 7. Key Agent Interactions
+* **Role**: Each agent's `persona` in its YAML configuration explicitly defines its role (e.g., "Expert Senior Software Engineer").
+* **Context**: The `dependencies` and the `customInstructions` provide deep context. The biggest context enhancement is the `.bmad-state.json` file, which provides real-time project context.
+* **Instruction**: Each agent has clear `core_principles`, `startup` instructions, and task definitions to guide its actions. The new state-driven loop provides a continuous chain of instruction.
+* **Output Format**: The agents are designed to produce structured reports or, in the case of the Scribe, a perfectly formatted JSON file. This ensures predictable, machine-readable output.
 
-- **Olivia (Orchestrator):** Your primary coordinator. Manages user requests, dispatches tasks using `swarmConfig` for prioritization, oversees document strategy, initiates blueprint workflows and code analysis, and handles escalations.
-- **Saul (Scribe/`bmad-master`):** Manages `.bmad-state.json`. Initializes it with `swarmConfig`. Records signals from agent reports, categorizes them based on `swarmConfig`, performs simplified pruning, and tracks key `project_documents`.
-- **Mary (Analyst):** Performs initial project research from blueprints, generates PRDs (using a 3-phase process if from a blueprint), conducts general research, and can perform code analysis. Follows document naming/versioning protocols.
-- **James (Developer/`dev`):** Implements features. Requests research via Olivia if stuck. Reports "Research Conducted" to Saul.
-- **Architect & UX Expert (Winston & Sally):** Create architecture and UI/UX specification documents, respectively. Now follow document naming/versioning protocols and ensure their designs are based on PRDs/briefs.
-- **Quinn (QA), Dexter (Debugger), Rocco (Refactorer):** Perform their specialized roles, typically dispatched by Olivia as part of the autonomous workflow or escalation paths.
-- **Other Standard Agents (PM, PO, SM):** Fulfill their roles as tasked by Olivia.
-
-This updated manual provides a more detailed guide for Pheromind V2, incorporating recent enhancements for a more intelligent and autonomous system.
+By implementing this new structure, you will have a more robust, autonomous, and scalable system that directly addresses the challenges you faced.
