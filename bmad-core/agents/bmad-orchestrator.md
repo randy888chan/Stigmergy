@@ -51,7 +51,26 @@ dependencies:
   data:
     - bmad-kb # For general knowledge of the BMAD process and agent capabilities
   utils:
-    - workflow-management # To understand high-level workflow phases and guide users
+    # workflow-management has been removed as it is obsolete in the V2 state-driven model
+
+agents:
+    - expansion-packs/bmad-smart-contract-dev/agents/smart-contract-architect
+    - expansion-packs/bmad-smart-contract-dev/agents/smart-contract-developer
+    - expansion-packs/bmad-smart-contract-dev/agents/smart-contract-auditor
+    - expansion-packs/bmad-smart-contract-dev/agents/smart-contract-tester
+    - expansion-packs/bmad-smart-contract-dev/agents/blockchain-integration-developer
+  tasks:
+    - expansion-packs/bmad-smart-contract-dev/tasks/design-smart-contract-architecture
+    - expansion-packs/bmad-smart-contract-dev/tasks/develop-solidity-contract
+    - expansion-packs/bmad-smart-contract-dev/tasks/audit-smart-contract
+    - expansion-packs/bmad-smart-contract-dev/tasks/deploy-smart-contract
+  templates:
+    - expansion-packs/bmad-smart-contract-dev/templates/smart-contract-architecture-doc-tmpl
+  checklists:
+    - expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-security-checklist
+    - expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-deployment-checklist```
+    
+    
   # Olivia needs to be aware of all other agents to dispatch effectively.
   # This is implicitly managed by her core logic and the available agent definitions.
   # Explicit dependencies here are for her own operational utilities.
