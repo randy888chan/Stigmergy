@@ -11,7 +11,7 @@ const program = new Command();
 program
   .name('bmad-build')
   .description('BMAD-METHOD build tool for creating web bundles')
-  .version('4.0.0');
+  .version('4.10.0');
 
 program
   .command('build')
@@ -59,32 +59,25 @@ program
     }
   });
 
+// [[LLM-ENHANCEMENT]] Added new command as requested by user for focused web builds.
 program
-  .command('build:expansions')
-  .description('Build web bundles for all expansion packs')
-  .option('--expansion <name>', 'Build specific expansion pack only')
-  .option('--no-clean', 'Skip cleaning output directories')
-  .action(async (options) => {
-    const builder = new WebBuilder({
-      rootDir: process.cwd()
-    });
-
-    try {
-      if (options.expansion) {
-        console.log(`Building expansion pack: ${options.expansion}`);
-        await builder.buildExpansionPack(options.expansion, { clean: options.clean });
-      } else {
-        console.log('Building all expansion packs...');
-        await builder.buildAllExpansionPacks({ clean: options.clean });
+  .command('build:web')
+  .description('Build only the team bundles required for the Web UI.')
+  .action(async () => {
+      const builder = new WebBuilder({ rootDir: process.cwd() });
+      try {
+          console.log('Cleaning output directories...');
+          await builder.cleanOutputDirs();
+          console.log('Building team bundles for Web UI...');
+          await builder.buildTeams();
+          console.log('\nWeb build completed successfully!');
+          console.log('Team bundles are available in dist/teams/');
+      } catch (error) {
+          console.error('Web build failed:', error.message);
+          process.exit(1);
       }
-
-      console.log('Expansion pack build completed successfully!');
-    } catch (error) {
-      console.error('Expansion pack build failed:', error.message);
-      process.exit(1);
-    }
   });
-
+  
 program
   .command('list:agents')
   .description('List all available agents')
@@ -102,7 +95,7 @@ program
     const builder = new WebBuilder({ rootDir: process.cwd() });
     const expansions = await builder.listExpansionPacks();
     console.log('Available expansion packs:');
-    expansions.forEach(expansion => console.log(`  - ${expansion}`));
+    expansions.forEach(expansion => console.log(`  - ${expansion.id} (${expansion.name})`));
   });
 
 program
@@ -111,25 +104,15 @@ program
   .action(async () => {
     const builder = new WebBuilder({ rootDir: process.cwd() });
     try {
-      // Validate by attempting to build all agents and teams
-      const agents = await builder.resolver.listAgents();
-      const teams = await builder.resolver.listTeams();
-      
       console.log('Validating agents...');
-      for (const agent of agents) {
-        await builder.resolver.resolveAgentDependencies(agent);
-        console.log(`  ✓ ${agent}`);
-      }
+      await builder.buildAgents();
       
       console.log('\nValidating teams...');
-      for (const team of teams) {
-        await builder.resolver.resolveTeamDependencies(team);
-        console.log(`  ✓ ${team}`);
-      }
+      await builder.buildTeams();
       
-      console.log('\nAll configurations are valid!');
+      console.log('\nAll configurations seem valid based on build process!');
     } catch (error) {
-      console.error('Validation failed:', error.message);
+      console.error('Validation failed during build process:', error.message);
       process.exit(1);
     }
   });

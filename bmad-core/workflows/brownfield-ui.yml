@@ -1,0 +1,4 @@
+workflow:
+  id: brownfield-ui
+  name: Brownfield UI Enhancement
+  description: A workflow for enhancing or adding features to an existing user interface.

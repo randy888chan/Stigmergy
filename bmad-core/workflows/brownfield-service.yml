@@ -1,0 +1,4 @@
+workflow:
+  id: brownfield-service
+  name: Brownfield Service Enhancement
+  description: A workflow for enhancing or adding features to an existing backend service.

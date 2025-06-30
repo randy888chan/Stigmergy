@@ -7,10 +7,12 @@
     "bmad": "tools/bmad-npx-wrapper.js",
     "bmad-method": "tools/bmad-npx-wrapper.js"
   },
-  "scripts": {
+    "scripts": {
     "build": "node tools/cli.js build",
     "build:agents": "node tools/cli.js build --agents-only",
     "build:teams": "node tools/cli.js build --teams-only",
+    "build:web": "node tools/cli.js build:web",
+    
     "list:agents": "node tools/cli.js list:agents",
     "validate": "node tools/cli.js validate",
     "install:bmad": "node tools/installer/bin/bmad.js install",
