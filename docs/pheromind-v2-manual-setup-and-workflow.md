@@ -215,7 +215,8 @@ customModes:
       - read
       - edit
     tools: [execute, mcp]
-'''
+  yaml: data
+```
 
 ## 4. Cost Optimization & LLM Tier Strategy
 
