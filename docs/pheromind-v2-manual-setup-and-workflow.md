@@ -11,6 +11,7 @@ This is the central configuration for your IDE. It defines every agent in the sw
 
 **Action:** Replace the entire content of your project's root `roomodes.json` file with the content below.
 
+```yaml
 customModes:
   - slug: bmad-orchestrator
     name: "🧐 Olivia"
@@ -214,6 +215,7 @@ customModes:
       - read
       - edit
     tools: [execute, mcp]
+'''
 
 ## 4. Cost Optimization & LLM Tier Strategy
 
