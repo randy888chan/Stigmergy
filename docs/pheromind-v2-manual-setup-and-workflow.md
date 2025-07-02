@@ -16,14 +16,14 @@ customModes:
   - slug: bmad-orchestrator
     name: "🧐 Olivia"
     roleDefinition: "AI System Coordinator & Universal Request Processor."
-    whenToUse: "Use as the primary interface for all project tasks, issue reporting, and status updates."
+    whenToUse: "Use as the primary interface for all project tasks."
     customInstructions: |-
       # bmad-orchestrator
       CRITICAL: Read the full YML...
     groups:
       - read
-      - edit # General edit permission for the orchestrator
-    tools: [mcp, browser, execute] # Explicit tool access
+      - edit
+    tools: [mcp, browser, execute]
 
   - slug: bmad-master
     name: "✍️ Saul"
@@ -39,20 +39,20 @@ customModes:
   - slug: bmad-analyst
     name: "📊 Mary"
     roleDefinition: "Business & Research Analyst."
-    whenToUse: "For market research, brainstorming, competitor analysis, and creating project briefs."
+    whenToUse: "For market research, brainstorming, and creating project briefs."
     customInstructions: |-
       # analyst
       CRITICAL: Read the full YML...
     groups:
       - read
-      - - edit # Edit permission with specific file patterns
+      - - edit
         - filePatterns: ["**/*.md", "**/*.txt"]
     tools: [mcp, browser]
 
   - slug: bmad-architect
     name: "🏗️ Winston"
     roleDefinition: "Solution Architect."
-    whenToUse: "For system design, architecture documents, technology selection, and infrastructure planning."
+    whenToUse: "For system design, architecture documents, and technology selection."
     customInstructions: |-
       # architect
       CRITICAL: Read the full YML...
@@ -74,9 +74,9 @@ customModes:
     tools: [execute, mcp]
 
   - slug: bmad-qa
-    name: "🧪 Quinn"
-    roleDefinition: "Quality Assurance Test Architect."
-    whenToUse: "For all testing activities, test strategy, and quality validation."
+    name: "✅ Quinn"
+    roleDefinition: "Quality Assurance Gatekeeper."
+    whenToUse: "Dispatched by Olivia to validate code quality before completion."
     customInstructions: |-
       # qa
       CRITICAL: Read the full YML...
@@ -84,12 +84,22 @@ customModes:
       - read
       - - edit
         - filePatterns: ["**/*.md", "**/*.test.js", "**/*.spec.ts"]
-    tools: [execute]
+    tools: [execute, mcp]
+  
+  - slug: bmad-meta
+    name: "📈 Metis"
+    roleDefinition: "System Auditor & Self-Improvement Specialist."
+    whenToUse: "Dispatched by Olivia after major milestones to analyze system performance and propose improvements."
+    customInstructions: |-
+      # meta
+      CRITICAL: Read the full YML...
+    groups:
+      - read
 
   - slug: bmad-pm
     name: "📋 John"
     roleDefinition: "Product Manager."
-    whenToUse: "For creating PRDs, product strategy, feature prioritization, and roadmap planning."
+    whenToUse: "For creating PRDs, defining product strategy, and roadmap planning."
     customInstructions: |-
       # pm
       CRITICAL: Read the full YML...
@@ -113,7 +123,7 @@ customModes:
   - slug: bmad-sm
     name: "🏃 Bob"
     roleDefinition: "Scrum Master."
-    whenToUse: "For story creation, epic management, and agile process guidance."
+    whenToUse: "For creating detailed, actionable user stories from epics."
     customInstructions: |-
       # sm
       CRITICAL: Read the full YML...
@@ -142,7 +152,7 @@ customModes:
       # debugger
       CRITICAL: Read the full YML...
     groups:
-      - read # Debugger primarily reads code to diagnose
+      - read
     tools: [execute]
 
   - slug: bmad-refactorer
@@ -154,7 +164,7 @@ customModes:
       CRITICAL: Read the full YML...
     groups:
       - read
-      - edit # Refactorer needs to edit code
+      - edit
     tools: [execute]
 
   - slug: bmad-smart-contract-architect
@@ -189,7 +199,7 @@ customModes:
       CRITICAL: Read the full YML...
     groups:
       - read
-    tools: [execute]
+    tools: [execute, mcp]
 
   - slug: bmad-smart-contract-tester
     name: "🔬 Miles"
@@ -215,7 +225,6 @@ customModes:
       - read
       - edit
     tools: [execute, mcp]
-  yaml: data
 ```
 
 ## 4. Cost Optimization & LLM Tier Strategy
