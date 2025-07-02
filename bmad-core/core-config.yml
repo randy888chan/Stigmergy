@@ -1,26 +1,32 @@
-core-project-information:
-  dev-story-location: docs/stories # alternate could be .ai/stories if preferred for example
+# [[LLM-ENHANCEMENT]] This configuration is updated to align with SYSTEM_OPERATIONS_MANUAL.md
+# and uses the standard 'docs' directory.
+
+# Core project planning documents.
+core_documents:
+  prd: docs/prd.md
+  architecture: docs/architecture.md
+  # The system will be taught to generate and then reference these.
+  tech_stack: docs/architecture/tech-stack.md
+  coding_standards: docs/architecture/coding-standards.md
+  api_endpoints: docs/architecture/api-endpoints.md
+
+# Files that are essential for development agents to have in their context window.
+devLoadAlwaysFiles:
+  - docs/architecture/tech-stack.md
+  - docs/architecture/coding-standards.md
+  - docs/architecture/api-endpoints.md
+
+# Settings for sharding large documents.
+sharding:
   prd:
-    prd-file: docs/prd.md
-    prdVersion: v4
-    prdSharded: true
-    prdShardedLocation: docs/prd
-    epicFilePattern: epic-{n}*.md
+    enabled: true
+    location: docs/prd_shards/
+    epic_pattern: epic-{n}*.md
   architecture:
-    architecture-file: docs/architecture.md
-    architectureVersion: v4
-    architectureSharded: true
-    architectureShardedLocation: docs/architecture
-  # if you have a front-end architecture document, uncomment the following and validate the file path
-  # front-end-architecture:
-  #   front-end-architecture-file: docs/front-end-architecture.md
-  #   architectureVersion: v4
-  #   architectureSharded: true
-  #   architectureShardedLocation: docs/architecture
-  customTechnicalDocuments: null # list other documents only if you want the SM to read them when creating stories
-  devLoadAlwaysFiles:
-    - docs/architecture/coding-standards.md
-    - docs/architecture/tech-stack.md
-    - docs/architecture/project-structure.md
+    enabled: true
+    location: docs/architecture_shards/
+
+# Debugging and logging settings
+logging:
   devDebugLog: .ai/debug-log.md
   agentCoreDump: .ai/core-dump{n}.md
