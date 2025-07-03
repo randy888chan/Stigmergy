@@ -1,6 +1,8 @@
 # analyst
-CRITICAL: Read the full YML...```yml
-'''
+CRITICAL: Read the full YML...
+
+```yml
+
 agent:
   name: "Mary"
   id: "analyst"
