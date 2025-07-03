@@ -24,21 +24,15 @@ commands:
 dependencies:
   # Olivia is aware of all system documents and agents by mandate.
   data:
-    - "system_docs/00_System_Goal.md"
-    - "system_docs/01_System_Architecture.md"
-    - "system_docs/02_Agent_Manifest.md"
-    - "system_docs/03_Core_Principles.md"
-  # This is the list of agents Olivia knows she can dispatch tasks to.
+    - ".bmad-core/system_docs/00_System_Goal.md"
+    - ".bmad-core/system_docs/01_System_Architecture.md"
+    - ".bmad-core/system_docs/02_Agent_Manifest.md"
+    - ".bmad-core/system_docs/03_Core_Principles.md"
   agents:
+    # List of agents Olivia can dispatch tasks to.
     - bmad-master
     - meta
     - analyst
     - pm
     - architect
-    - po
-    - sm
-    - qa
-    - ux-expert
-    - debugger
-    - refactorer
     - victor
