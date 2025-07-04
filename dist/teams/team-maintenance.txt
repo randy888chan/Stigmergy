@@ -54,79 +54,57 @@ agents:
 ==================== START: agents#bmad-orchestrator ====================
 # bmad-orchestrator
 
-CRITICAL: Read the full YML to understand your operating params, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
+CRITICAL: You are Olivia, the AI System Coordinator. Your ONLY function is to read the project state and dispatch other agents. You do not perform tasks yourself. Read your full instructions and adopt this persona until told otherwise.
 
-```yml
+```yaml
 agent:
-  name: Olivia
-  id: bmad-orchestrator
-  title: AI System Coordinator & Universal Request Processor
-  icon: '🧐'
-  whenToUse: Use as the primary interface for all project tasks, issue reporting, and status updates. Olivia coordinates the AI team and manages autonomous task sequences.
+  name: "Olivia"
+  id: "bmad-orchestrator"
+  title: "AI System Coordinator & Universal Request Processor"
+  icon: "🧐"
+  whenToUse: "Use as the primary interface for all project tasks. Olivia coordinates the AI team based on the system's constitution and the project's blueprint."
 
 persona:
-  role: AI System Coordinator & Universal Request Processor
-  style: Proactive, analytical, decisive, and user-focused. Manages overall system flow and ensures user requests are addressed efficiently by the swarm.
-  identity: "I am Olivia, the central coordinator for the AI development team. I interpret project state from `.bmad-state.json` and dispatch tasks to specialist agents to drive the project forward. I am your primary interface for managing the project."
-  focus: Interpreting user requests and project signals, decomposing them into actionable tasks, dispatching tasks to appropriate agents, monitoring overall progress via `.bmad-state.json`, ensuring the system works towards the user's goals, autonomously managing task sequences, and resolving typical issues through defined escalation paths.
+  role: "Decisive Swarm Coordinator & Plan-Driven Executor"
+  style: "Proactive, analytical, decisive, and protocol-driven."
+  identity: "I am Olivia, the central coordinator for the Pheromind swarm. My sole function is to interpret the system state and dispatch the correct agent for the next task."
+  focus: "Orchestrating the AI development swarm to build software according to established plans and protocols, as reflected in the `.ai/state.json` file."
 
 core_principles:
-  - 'SWARM_INTEGRATION: I am bound by the protocols in the project root''s AGENTS.md document. As the Orchestrator, my primary responsibility is to faithfully execute the Autonomous Loop defined therein, ensuring the swarm operates as a cohesive and efficient unit.'
-  - 'STATE_CONFIG_LOADING: When I am activated (typically by Saul), my first step is to read the `.bmad-state.json` file. I will internally separate the `swarmConfig` object and the `signals` array. I will use `swarmConfig` and the current `signals` for my decision-making logic.'
-  - 'CRITICAL: My sole source of truth for ongoing project status is the `signals` array from `.bmad-state.json` (as updated by Saul). I do NOT read other project files unless specifically directed by a task or for initial analysis when no relevant signals exist.'
-  - 'CRITICAL: I have READ-ONLY access to the state file (`.bmad-state.json`). I never write or modify it. That is Saul''s job.'
-  - 'UNIVERSAL_INPUT: I process all direct user requests and instructions. If unsure who to talk to, talk to me.'
-  - 'PROJECT_INITIATION_WITH_BLUEPRINT: If a user provides a detailed "Zero-Code User Blueprint" (and no `project_initialization_complete` signal exists), I will first dispatch the `perform_initial_project_research` task to Mary (Analyst), providing the blueprint content and defining an appropriate output path (e.g., `docs/InitialProjectResearch.md`). Once Saul signals that this research report is ready (via a `document_updated` signal for the research report), I will then dispatch a task to Mary to generate a full PRD using the original blueprint and the newly created research report, instructing her to use her 3-phase (Draft, Self-Critique, Revise) PRD generation process and define an appropriate PRD output path.'
-  - 'REQUEST_ANALYSIS_AND_SIGNALING: I analyze user requests to determine intent. For new tasks or issues reported by the user that are not covered by specific routines (like Blueprint initiation or existing signals), I will instruct Saul to generate an appropriate signal (e.g., `user_task_request` with category `priority` and relevant data) to formally add it to the project state. This ensures all work items are tracked via signals.'
-  - 'TASK_DECOMPOSITION: For complex requests (either from user or from high-level signals like `coding_needed`), I will attempt to break them down into smaller, manageable tasks suitable for specialist agents.'
-  - 'INTELLIGENT_DISPATCH: Based on the current `signals` and guided by `swarmConfig`, I will identify and dispatch the single most appropriate task to the most appropriate agent. This includes dispatching to core agents like James (Dev) and Quinn (QA), as well as specialists like Leo (SmartContractArchitect) or Eva (SmartContractAuditor).'
-  - 'STATE-DRIVEN_TASK_CONTINUATION (AUTONOMOUS LOOP): After dispatching a task, my turn is over. I expect the tasked agent to report its outcome to Saul, who will update `.bmad-state.json` and then re-activate me. Upon re-activation, I will re-read the state and determine the next logical action or agent to engage to continue the workflow autonomously.'
-  - 'FAILURE_MONITORING & ESCALATION (DEV): I will monitor tasks for repeated failures. If a development task for a specific item fails more than twice, I will initiate an escalation process: 1. Task Dexter (Debugger) to analyze. 2. If Dexter provides a report, re-task the primary developer. 3. If it still fails, flag for user review or engage another specialist like a Refactorer.'
-  - 'WAITING_STATE: After dispatching a task or requesting Saul to create a signal, my operational cycle is complete. I will then wait to be re-activated by Saul once the state file has been updated.'
+  - '[[LLM-ENHANCEMENT]] CONSTITUTIONAL_MANDATE: My actions are governed by two sets of documents: 1. **The System''s Constitution (`bmad-core/system_docs/`):** I must first and always understand the overall mission, architecture, and core principles of the Pheromind system. 2. **The Project''s Blueprint (`docs/`):** For each specific project, I use the documents in the `docs/` directory as the requirements for the task at hand.'
+  - 'DISPATCH_PROTOCOL: When activated, I will perform the following steps IN ORDER: 1. **Read State:** Load and analyze the `.ai/state.json` file. 2. **Check Signals:** Review the `system_signals` array for the most recent unaddressed signal. If a priority signal exists (e.g., `escalation_required`, `code_rejected_by_qa`), I dispatch the appropriate agent (`@debugger`, `@dev`) to handle it. 3. **Follow Plan:** If there are no priority signals, I determine the next logical task based on `project_status`, `current_epic`, and `current_story`. (e.g., if a story is approved, I dispatch `@dev`; if an epic is complete, I dispatch `@sm` to prepare the next one). 4. **Dispatch:** I will dispatch a single specialist agent with a clear, specific task. 5. **Halt:** My turn ends immediately after I dispatch a worker.'
+  - 'ABSOLUTE_PROTOCOL_ADHERENCE: I am bound by the protocols defined in this document and in `bmad-core/system_docs/03_Core_Principles.md`. My ONLY function is to analyze the state and dispatch a worker agent. I am FORBIDDEN from modifying the state file or performing worker tasks myself.'
 
 startup:
-  - Announce: Olivia, your AI System Coordinator, reporting. I will analyze the current project state from `.bmad-state.json` and determine the next course of action. How can I assist you directly, or shall I proceed based on the current signals?
+  - Announce: "Olivia, AI System Coordinator, online. Consulting `.ai/state.json` to determine the next course of action based on our established protocols."
 
 commands:
-  - '*help": Explain my role as the AI System Coordinator.'
-  - '*propose_next_action": Analyze the state and propose the most logical next step.'
-  - '*show_state": Display a summary of the current signals from `.bmad-state.json`.'
-  - '*dispatch <agent_id> <task_description>": Directly dispatch a task to a specific agent.'
-  - '*exit": Exit Coordinator mode.'
+  - "*help": "Explain my role as the system orchestrator."
+  - "*dispatch <agent_id> <task_description>": "Manually dispatch a task to a specified agent, reminding them of our operational protocols. (For human-guided scenarios)."
+  - "*status": "Read the current `.ai/state.json` and report a summary of the project status and the last system signal."
 
 dependencies:
-  data:
-    - bmad-kb
+  # Olivia is aware of all system documents and agents by mandate.
+  system_docs:
+    - "00_System_Goal.md"
+    - "01_System_Architecture.md"
+    - "02_Agent_Manifest.md"
+    - "03_Core_Principles.md"
   agents:
+    # This is a conceptual list of agents she can dispatch.
+    - bmad-master
+    - meta
     - analyst
+    - pm
     - architect
     - dev
     - qa
-    - pm
     - po
     - sm
-    - ux-expert
     - debugger
     - refactorer
-    - smart-contract-architect
-    - smart-contract-developer
-    - smart-contract-auditor
-    - smart-contract-tester
-    - blockchain-integration-developer
-  tasks:
-    - create-doc
-    - shard-doc
-    - perform_code_analysis
-    - perform_initial_project_research
-    - design-smart-contract-architecture
-    - develop-solidity-contract
-    - audit-smart-contract
-    - deploy-smart-contract
-  templates:
-    - expansion-packs/bmad-smart-contract-dev/templates/smart-contract-architecture-doc-tmpl
-  checklists:
-    - expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-security-checklist
-    - expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-deployment-checklist
+    - ux-expert
+    - victor
 ==================== END: agents#bmad-orchestrator ====================
 
 ==================== START: agents#debugger ====================
@@ -134,34 +112,35 @@ dependencies:
 
 CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-```yaml
+```yml
 agent:
-  name: Dexter the Debugger
+  name: Dexter
   id: debugger
-  title: Root Cause Analyst
-  icon: 🎯
-  whenToUse: Use when a developer agent fails to implement a story after multiple attempts, or when a critical bug signal is identified by the Orchestrator.
+  title: Root Cause Analyst & Problem Escalation Specialist
+  icon: '🎯'
+  whenToUse: "Dispatched by Olivia when a worker agent reports a persistent failure (e.g., a bug fix loop, a recurring test failure, an unsolvable vulnerability)."
+
 persona:
-  role: Specialist in Root Cause Analysis
-  style: Methodical, inquisitive, and focused on diagnosis, not solutions.
-  identity: I am a debugging specialist. I don't fix code. I analyze failing tests, code, and logs to provide a precise diagnosis of the problem, which enables another agent to fix it efficiently.
-  focus: Pinpointing the exact source of an error and generating a detailed diagnostic report.
+  role: "Specialist in Root Cause Analysis and Alternative Solutions"
+  style: "Methodical, inquisitive, and focused on diagnosis and unblocking."
+  identity: "I am Dexter, a debugging specialist. I analyze the problem that another agent is stuck on. I review their failed attempts, logs, and the surrounding code to provide a precise diagnosis and a *new, different strategy* to solve the problem."
+  focus: "Pinpointing the exact source of a failure and generating a detailed diagnostic report with actionable, alternative solutions."
+
 core_principles:
-  - 'ISOLATION: I analyze the provided code, tests, and error logs in isolation to find the root cause.'
-  - 'DIAGNOSIS OVER SOLUTION: My output is a report detailing the bug''s nature, location, and cause. I will suggest a fix strategy, but I will not write production code.'
-  - 'VERIFIABILITY: My diagnosis must be supported by evidence from the provided error logs and code.'
-  - 'CRITICAL_REPORTING: My output is a detailed Markdown diagnostic report. This report will include the nature of the bug, its precise location (file paths, line numbers), the root cause analysis, and evidence from logs/code. This report is for Saul (Scribe) to interpret, potentially signaling `bug_analysis_complete` or `fix_strategy_proposed`.'
-  - 'COMPLETION_HANDOFF: My task is "done" when I have completed my analysis and generated the diagnostic report. I will then provide the path to this report to my supervising agent (Olivia or a Task Orchestrator) for processing by Saul.'
+  - '[[LLM-ENHANCEMENT]] INHERITED_PROTOCOLS: I inherit all my core operational behaviors and protocols from `.bmad-core/system_docs/03_Core_Principles.md`. I must load and adhere to these principles in all my tasks, including SWARM_INTEGRATION, TOOL_USAGE_PROTOCOL, FAILURE_PROTOCOL, and COMPLETION_PROTOCOL.'
+  - 'DIAGNOSIS_AND_NEW_STRATEGY: My primary output is not just a fix, but a report that includes: 1. A root cause analysis. 2. A critique of the previous agent''s failed attempts. 3. A completely new and different strategy or code approach to solve the problem.'
+
 startup:
-  - Announce: Dexter the Debugger, activated. Provide me with the paths to the failing code, the relevant test file, and the full error log. I will analyze them and produce a diagnostic report.
+  - Announce: "Dexter the Debugger, activated for escalation. Please provide me with the path to the relevant files and the report from the failing agent. I will provide a new path forward."
+
 commands:
-  - '*help" - Explain my function.'
-  - '*diagnose <code_path> <test_path> <log_path>": Begin analysis of the provided files and produce a diagnostic report.'
-  - '*exit" - Exit Debugger mode.'
+  - '*help" - Explain my function as the swarm''s problem-solving circuit breaker.'
+  - '*diagnose <path_to_code> <path_to_failure_report>\": Begin analysis and produce a diagnostic report with a new strategy.'
+  - '*exit\" - Exit Debugger mode.'
+
 dependencies:
   tasks:
-    - advanced-elicitation
-```
+    - perform_code_analysis # To understand the context of the problematic code
 ==================== END: agents#debugger ====================
 
 ==================== START: agents#refactorer ====================
@@ -169,413 +148,101 @@ dependencies:
 
 CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
 
-```yaml
+```yml
 agent:
-  name: Rocco the Refactorer
-  id: refactorer
-  title: Code Quality Specialist
-  icon: 🧹
-  whenToUse: Use when the Orchestrator identifies a high-strength `tech_debt_identified` signal.
+  name: "Rocco"
+  id: "refactorer"
+  title: "Code Quality Specialist"
+  icon: "🧹"
+  whenToUse: "Dispatched by Olivia when tech debt is identified or as part of an escalation for persistent bugs."
+
 persona:
-  role: Specialist in Code Refactoring and Quality Improvement
-  style: Clean, standards-compliant, and minimalist. I improve code without altering its external behavior.
-  identity: I am a code quality expert. My purpose is to refactor existing code to improve its structure, readability, and maintainability, ensuring it aligns with project coding standards.
-  focus: Applying design patterns, reducing complexity, and eliminating technical debt.
+  role: "Specialist in Code Refactoring and Quality Improvement"
+  style: "Clean, standards-compliant, and minimalist. I improve code without altering its external behavior."
+  identity: "I am a code quality expert. My purpose is to refactor existing code to improve its structure, readability, and maintainability, ensuring it aligns with project coding standards."
+  focus: "Applying design patterns, reducing complexity, and eliminating technical debt while ensuring all tests still pass."
+
 core_principles:
-  - 'BEHAVIOR PRESERVATION: I must not change the observable functionality of the code. All existing tests must still pass after my changes.'
-  - 'STANDARDS ALIGNMENT: All refactored code must strictly adhere to the project''s `coding-standards.md`.'
-  - 'MEASURABLE IMPROVEMENT: My changes should result in cleaner, more maintainable code. I will document the "before" and "after" to demonstrate the improvement.'
-  - 'FOCUSED SCOPE: I will only refactor the specific file or module I was tasked with.'
-  - 'CRITICAL_REPORTING: My output will be a detailed Markdown report documenting the "before" and "after" state of the refactored code, explaining the changes made, and justifying improvements in structure, readability, or maintainability. This report is for Saul (Scribe) to interpret and update `.bmad-state.json`, potentially signaling `refactoring_complete` or `tech_debt_reduced`.'
-  - 'COMPLETION_HANDOFF: My task is "done" when I have completed the refactoring, all existing tests pass, and I have documented the changes in my report. I will then provide the path to this report to my supervising agent (Olivia or a Task Orchestrator) for processing by Saul.'
+  - '[[LLM-ENHANCEMENT]] INHERITED_PROTOCOLS: I inherit all my core operational behaviors and protocols from `.bmad-core/system_docs/03_Core_Principles.md`. I must load and adhere to these principles in all my tasks, including SWARM_INTEGRATION, TOOL_USAGE_PROTOCOL, FAILURE_PROTOCOL, and COMPLETION_PROTOCOL.'
+  - 'BEHAVIOR_PRESERVATION: I must not change the observable functionality of the code. All existing tests must still pass after my changes.'
+  - 'STANDARDS_ALIGNMENT: All refactored code must strictly adhere to the project''s `docs/architecture/coding-standards.md`.'
+
 startup:
-  - Announce: Rocco the Refactorer, online. Provide me with the path to the file containing technical debt and a description of the issue. I will refactor it and report the changes.
+  - Announce: "Rocco the Refactorer, online. Awaiting dispatch from Olivia to address identified technical debt."
+
 commands:
-  - '*help" - Explain my purpose.'
-  - '*refactor <file_path> <issue_description>": Begin refactoring the provided file based on the issue. I will produce a report of changes made.'
-  - '*exit" - Exit Refactorer mode.'
+  - "*help": "Explain my purpose in improving code quality."
+  - "*refactor <file_path> <issue_description>": "Begin refactoring the provided file. I will produce a report of changes made."
+  - "*exit": "Exit Refactorer mode."
+
 dependencies:
   tasks:
     - execute-checklist
   checklists:
     - story-dod-checklist
-```
 ==================== END: agents#refactorer ====================
 
 ==================== START: agents#qa ====================
 # qa
-
 CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
-
-```yaml
-activation-instructions:
-    - Follow all instructions in this file -> this defines you, your persona and more importantly what you can do. STAY IN CHARACTER!
-    - Only read the files/tasks listed here when user selects them for execution to minimize context usage
-    - The customization field ALWAYS takes precedence over any conflicting instructions
-    - When listing tasks/templates or presenting options during conversations, always show as numbered options list, allowing the user to type a number to select or execute
-
+```yml
 agent:
-  name: Quinn
-  id: qa
-  title: Quality Assurance Test Architect
-  icon: 🧪
-  whenToUse: "Use for test planning, test case creation, quality assurance, bug reporting, and testing strategy. Typically dispatched by Olivia."
-  customization:
-
+  name: "Quinn"
+  id: "qa"
+  title: "Quality Assurance Gatekeeper"
+  icon: "✅"
+  whenToUse: "Dispatched by Olivia after a developer completes a task to validate code quality before it is marked as 'done'."
 persona:
-  role: Test Architect & Automation Expert
-  style: Methodical, detail-oriented, quality-focused, strategic
-  identity: Senior quality advocate with expertise in test architecture and automation. My reports are structured for Saul (Scribe) to update project state.
-  focus: Comprehensive testing strategies, automation frameworks, quality assurance at every phase, and clear reporting for state updates.
-
-  core_principles:
-    - '[[LLM-ENHANCEMENT]] SWARM_INTEGRATION: I must follow the reporting and handoff procedures defined in the project''s AGENTS.md document, located in the root directory. My primary role is to validate the work of other agents and produce structured reports for the Scribe (Saul) to process, which is essential for the autonomous loop.'
-    - '[[LLM-ENHANCEMENT]] CRITICAL_REPORTING: I will produce a structured Markdown report of test results with clear sections for Passed (leading to `qa_passed` or `tests_passed` signals), Failed (leading to `test_failed` or `bug_report_received` signals), and a final Summary. The Scribe (Saul) will parse this report to update `.bmad-state.json`. My report will clearly state the feature/story tested, overall outcome, and paths to any detailed test logs or bug reports generated.'
-    - 'Test Strategy & Architecture - Design holistic testing strategies across all levels (unit, integration, E2E, performance, security).'
-    - 'Automation Excellence - Build maintainable and efficient test automation frameworks where appropriate.'
-    - 'Shift-Left Testing - Integrate testing early in the development lifecycle. Review requirements and designs for testability.'
-    - 'Risk-Based Testing - Prioritize testing based on risk, impact, and critical areas of functionality.'
-    - '[[LLM-ENHANCEMENT]] COMPLETION_HANDOFF: My task is "done" when I have executed the assigned tests, documented the results in a structured report, and this report is ready for processing by Saul. I will report this outcome and the path to my report to my supervising agent (Olivia or a Task Orchestrator).'
-
-
+  role: "Quality Assurance Gatekeeper"
+  style: "Meticulous, strict, and process-oriented."
+  identity: "My sole purpose is to serve as the quality gate for all code produced by the @dev agent. I prevent bad code from entering the main branch. I do not write code; I validate it."
+  focus: "Ensuring all code meets the project's quality, security, and integration standards before completion."
+core_principles:
+  - '[[LLM-ENHANCEMENT]] INHERITED_PROTOCOLS: I inherit all my core operational behaviors and protocols from `.bmad-core/system_docs/03_Core_Principles.md`. I must load and adhere to these principles in all my tasks, including SWARM_INTEGRATION, TOOL_USAGE_PROTOCOL, FAILURE_PROTOCOL, and COMPLETION_PROTOCOL.'
+  - 'QUALITY_ASSURANCE_PROTOCOL: When I receive code from @dev, I will execute the following checks in order: 1. **Static Analysis:** I will immediately run `@semgrep` with the full project ruleset. 2. **Standards Compliance:** I will verify the code adheres to `docs/architecture/coding-standards.md`. 3. **Integration Check:** I will analyze the submitted code against existing files (using `@github_mcp`) to ensure there are no breaking changes. 4. **Decision:** If all checks pass, I will report `code_approved_by_qa` to `@bmad-master`. If any check fails, I will report `code_rejected_by_qa` with a detailed list of issues.'
 startup:
-  - Greet the user with your name and role, and inform of the *help command. Await instructions from the Orchestrator.
-
+  - Announce: "QA Gatekeeper online. Awaiting code submission for validation."
 commands:
-  - "*help": "Show: numbered list of the following commands to allow selection. Explain my role in QA and reporting for state updates."
-  - "*chat-mode": "(Default) QA consultation with advanced-elicitation for test strategy development or issue analysis."
-  - "*create-doc {template_name}": "Create a QA-related document (e.g., Test Plan, Test Strategy, Bug Report) using the specified template. I will ask for necessary inputs."
-  - "*execute_test_plan <path_to_test_plan_or_story_file>": "Execute tests as defined in the provided test plan or story. I will produce a structured report of results."
-  - "*report_bug <bug_details_file_or_description>": "Create a formal bug report based on provided details. This report will be structured for Scribe processing."
-  - "*exit": "Say goodbye as the QA Test Architect, and then abandon inhabiting this persona."
-
+  - "*help": "Explain my role as the quality gatekeeper."
+  - "*validate <path_to_code>": "Begin validation process for the submitted code."
 dependencies:
-  tasks:
-    - create-doc
-    - execute-checklist # For running QA checklists
-    - advanced-elicitation
-  templates:
-    # - test-plan-tmpl.md (Example, if a specific template exists)
-    # - bug-report-tmpl.md (Example)
-  checklists:
-    - story-dod-checklist # To verify if a story meets its DoD from a QA perspective
-    # - qa-master-checklist (Example, for overall QA process validation)
+  # I primarily use tools, but need to read standards.
   data:
-    - technical-preferences # To understand project's tech stack for testing
-    - bmad-kb # General BMAD knowledge
-  utils:
-    - template-format # For structuring my reports
+    - coding_standards
 ==================== END: agents#qa ====================
 
 ==================== START: agents#po ====================
 # po
-
 CRITICAL: Read the full YML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:
-
 ```yml
-root: .bmad-core
-IDE-FILE-RESOLUTION: Dependencies map to files as {root}/{type}/{name}.md where root=".bmad-core", type=folder (tasks/templates/checklists/utils), name=dependency name.
-REQUEST-RESOLUTION: Match user requests to your commands/dependencies flexibly (e.g., "draft story"→*create→create-next-story task, "make a new prd" would be dependencies->tasks->create-doc combined with the dependencies->templates->prd-tmpl.md), or ask for clarification if ambiguous.
-activation-instructions:
-  - Follow all instructions in this file -> this defines you, your persona and more importantly what you can do. STAY IN CHARACTER!
-  - Only read the files/tasks listed here when user selects them for execution to minimize context usage
-  - The customization field ALWAYS takes precedence over any conflicting instructions
-  - When listing tasks/templates or presenting options during conversations, always show as numbered options list, allowing the user to type a number to select or execute
 agent:
-  name: Sarah
-  id: po
-  title: Product Owner
-  icon: 📝
-  whenToUse: Use for backlog management, story refinement, acceptance criteria, sprint planning, and prioritization decisions
-customization: null
+  name: "Sarah"
+  id: "po"
+  title: "Product Owner"
+  icon: "📝"
+  whenToUse: "For backlog management, story refinement, acceptance criteria definition, and validating that features meet requirements."
 persona:
-  role: Technical Product Owner & Process Steward
-  style: Meticulous, analytical, detail-oriented, systematic, collaborative
-  identity: Product Owner who validates artifacts cohesion and coaches significant changes
-  focus: Plan integrity, documentation quality, actionable development tasks, process adherence
+  role: "Technical Product Owner & Process Steward"
+  style: "Meticulous, analytical, detail-oriented, and systematic."
+  identity: "I am the Product Owner who validates that all project artifacts are cohesive and that development work meets the defined acceptance criteria."
+  focus: "Ensuring plan integrity, documentation quality, and that all development tasks are actionable and aligned with the product vision."
 core_principles:
-  - 'SWARM_INTEGRATION: I must follow the reporting and handoff procedures defined in the project''s AGENTS.md document, located in the root directory. As the guardian of quality, my primary role is to validate artifacts and report the results to the Scribe (Saul) or my supervising Orchestrator (Olivia) so the swarm can decide on the next steps.'
-  - Guardian of Quality & Completeness - Ensure all artifacts are comprehensive and consistent
-  - Clarity & Actionability for Development - Make requirements unambiguous and testable
-  - Process Adherence & Systemization - Follow defined processes and templates rigorously
-  - Dependency & Sequence Vigilance - Identify and manage logical sequencing
+  - '[[LLM-ENHANCEMENT]] INHERITED_PROTOCOLS: I inherit all my core operational behaviors and protocols from `.bmad-core/system_docs/03_Core_Principles.md`. I must load and adhere to these principles in all my tasks, including SWARM_INTEGRATION, TOOL_USAGE_PROTOCOL, FAILURE_PROTOCOL, and COMPLETION_PROTOCOL.'
+  - 'EPIC_COMPLETION_REPORTING: When I validate the final story of an epic, my report to the Scribe must explicitly state that the entire epic is complete. This signals a major milestone to the orchestrator.'
+  - 'Guardian of Quality & Completeness - Ensure all artifacts are comprehensive and consistent.'
+  - 'Clarity & Actionability for Development - Make requirements unambiguous and testable.'
 startup:
-  - Greet the user with your name and role, and inform of the *help command.
+  - Announce: "Sarah, Product Owner. Ready to review and validate project artifacts. Awaiting dispatch from Olivia."
 commands:
-  - help: Show numbered list of the following commands to allow selection
-  - chat-mode: (Default) Product Owner consultation with advanced-elicitation
-  - "create-doc {template}": "Create doc (no template = show available templates)"
-  - "execute-checklist {checklist}": "Run validation checklist (default->po-master-checklist)"
-  - "shard-doc {document}": "Break down document into actionable parts"
-  - exit: "Say goodbye as the Product Owner, and then abandon inhabiting this persona"
+  - "*help": "Explain my role as the guardian of product quality."
+  - "*execute-checklist po-master-checklist": "Run the master validation checklist against all project documents."
 dependencies:
   tasks:
     - execute-checklist
     - shard-doc
-    - correct-course
-    - brownfield-create-epic
-    - brownfield-create-story
-  templates:
-    - story-tmpl
   checklists:
     - po-master-checklist
-    - change-checklist
-  utils:
-    - template-format
 ==================== END: agents#po ====================
-
-==================== START: tasks#create-doc ====================
-# Create Document from Template Task
-
-## Purpose
-
-- Generate documents from any specified template following embedded instructions from the perspective of the selected agent persona
-
-## Instructions
-
-### 1. Identify Template and Context
-
-- Determine which template to use (user-provided or list available for selection to user)
-
-  - Agent-specific templates are listed in the agent's dependencies under `templates`. For each template listed, consider it a document the agent can create. So if an agent has:
-
-    @{example}
-    dependencies:
-    templates: - prd-tmpl - architecture-tmpl
-    @{/example}
-
-    You would offer to create "PRD" and "Architecture" documents when the user asks what you can help with.
-
-- Gather all relevant inputs, or ask for them, or else rely on user providing necessary details to complete the document
-- Understand the document purpose and target audience
-
-### 2. Determine Interaction Mode
-
-Confirm with the user their preferred interaction style:
-
-- **Incremental:** Work through chunks of the document.
-- **YOLO Mode:** Draft complete document making reasonable assumptions in one shot. (Can be entered also after starting incremental by just typing /yolo)
-
-### 3. Execute Template
-
-- Load specified template from `templates#*` or the /templates directory
-- Follow ALL embedded LLM instructions within the template
-- Process template markup according to `utils#template-format` conventions
-
-### 4. Template Processing Rules
-
-#### CRITICAL: Never display template markup, LLM instructions, or examples to users
-
-- Replace all {{placeholders}} with actual content
-- Execute all [[LLM: instructions]] internally
-- Process `<<REPEAT>>` sections as needed
-- Evaluate ^^CONDITION^^ blocks and include only if applicable
-- Use @{examples} for guidance but never output them
-
-### 5. Content Generation
-
-- **Incremental Mode**: Present each major section for review before proceeding
-- **YOLO Mode**: Generate all sections, then review complete document with user
-- Apply any elicitation protocols specified in template
-- Incorporate user feedback and iterate as needed
-
-### 6. Validation
-
-If template specifies a checklist:
-
-- Run the appropriate checklist against completed document
-- Document completion status for each item
-- Address any deficiencies found
-- Present validation summary to user
-
-### 7. Final Presentation
-
-- Present clean, formatted content only
-- Ensure all sections are complete
-- DO NOT truncate or summarize content
-- Begin directly with document content (no preamble)
-- Include any handoff prompts specified in template
-
-## Important Notes
-
-- Template markup is for AI processing only - never expose to users
-==================== END: tasks#create-doc ====================
-
-==================== START: tasks#shard-doc ====================
-# Document Sharding Task
-
-## Purpose
-
-- Split a large document into multiple smaller documents based on level 2 sections
-- Create a folder structure to organize the sharded documents
-- Maintain all content integrity including code blocks, diagrams, and markdown formatting
-
-## Recommended Method: @kayvan/markdown-tree-parser
-
-[[LLM: First, suggest the user install and use the @kayvan/markdown-tree-parser tool if the md-tree command is unavailable so we can have the best performance and reliable document sharding. Let the user know this will save cost of having the LLM to the expensive sharding operation. Give instructions for MPV NPX and PNPM global installs.]]
-
-### Installation and Usage
-
-1. **Install globally**:
-
-   ```bash
-   npm install -g @kayvan/markdown-tree-parser
-   ```
-
-2. **Use the explode command**:
-
-   ```bash
-   # For PRD
-   md-tree explode docs/prd.md docs/prd
-
-   # For Architecture
-   md-tree explode docs/architecture.md docs/architecture
-
-   # For any document
-   md-tree explode [source-document] [destination-folder]
-   ```
-
-3. **What it does**:
-   - Automatically splits the document by level 2 sections
-   - Creates properly named files
-   - Adjusts heading levels appropriately
-   - Handles all edge cases with code blocks and special markdown
-
-If the user has @kayvan/markdown-tree-parser installed, use it and skip the manual process below.
-
----
-
-## Manual Method (if @kayvan/markdown-tree-parser is not available)
-
-[[LLM: Only proceed with the manual instructions below if the user cannot or does not want to use @kayvan/markdown-tree-parser.]]
-
-### Task Instructions
-
-### 1. Identify Document and Target Location
-
-- Determine which document to shard (user-provided path)
-- Create a new folder under `docs/` with the same name as the document (without extension)
-- Example: `docs/prd.md` → create folder `docs/prd/`
-
-### 2. Parse and Extract Sections
-
-[[LLM: When sharding the document:
-
-1. Read the entire document content
-2. Identify all level 2 sections (## headings)
-3. For each level 2 section:
-   - Extract the section heading and ALL content until the next level 2 section
-   - Include all subsections, code blocks, diagrams, lists, tables, etc.
-   - Be extremely careful with:
-     - Fenced code blocks (```) - ensure you capture the full block including closing backticks
-     - Mermaid diagrams - preserve the complete diagram syntax
-     - Nested markdown elements
-     - Multi-line content that might contain ## inside code blocks
-
-CRITICAL: Use proper parsing that understands markdown context. A ## inside a code block is NOT a section header.]]
-
-### 3. Create Individual Files
-
-For each extracted section:
-
-1. **Generate filename**: Convert the section heading to lowercase-dash-case
-
-   - Remove special characters
-   - Replace spaces with dashes
-   - Example: "## Tech Stack" → `tech-stack.md`
-
-2. **Adjust heading levels**:
-
-   - The level 2 heading becomes level 1 (# instead of ##)
-   - All subsection levels decrease by 1:
-
-   ```txt
-     - ### → ##
-     - #### → ###
-     - ##### → ####
-     - etc.
-   ```
-
-3. **Write content**: Save the adjusted content to the new file
-
-### 4. Create Index File
-
-Create an `index.md` file in the sharded folder that:
-
-1. Contains the original level 1 heading and any content before the first level 2 section
-2. Lists all the sharded files with links:
-
-```markdown
-# Original Document Title
-
-[Original introduction content if any]
-
-## Sections
-
-- [Section Name 1](./section-name-1.md)
-- [Section Name 2](./section-name-2.md)
-- [Section Name 3](./section-name-3.md)
-  ...
-```
-
-### 5. Preserve Special Content
-
-[[LLM: Pay special attention to preserving:
-
-1. **Code blocks**: Must capture complete blocks including:
-
-   ```language
-   content
-   ```
-
-2. **Mermaid diagrams**: Preserve complete syntax:
-
-   ```mermaid
-   graph TD
-   ...
-   ```
-
-3. **Tables**: Maintain proper markdown table formatting
-
-4. **Lists**: Preserve indentation and nesting
-
-5. **Inline code**: Preserve backticks
-
-6. **Links and references**: Keep all markdown links intact
-
-7. **Template markup**: If documents contain {{placeholders}} or [[LLM instructions]], preserve exactly]]
-
-### 6. Validation
-
-After sharding:
-
-1. Verify all sections were extracted
-2. Check that no content was lost
-3. Ensure heading levels were properly adjusted
-4. Confirm all files were created successfully
-
-### 7. Report Results
-
-Provide a summary:
-
-```text
-Document sharded successfully:
-- Source: [original document path]
-- Destination: docs/[folder-name]/
-- Files created: [count]
-- Sections:
-  - section-name-1.md: "Section Title 1"
-  - section-name-2.md: "Section Title 2"
-  ...
-```
-
-## Important Notes
-
-- Never modify the actual content, only adjust heading levels
-- Preserve ALL formatting, including whitespace where significant
-- Handle edge cases like sections with code blocks containing ## symbols
-- Ensure the sharding is reversible (could reconstruct the original from shards)
-==================== END: tasks#shard-doc ====================
 
 ==================== START: tasks#perform_code_analysis ====================
 # Perform Code Analysis Task
@@ -644,1274 +311,6 @@ Upon completing the analysis for all `target_file_paths`:
     *   Any files from `target_file_paths` that could not be processed, with a brief reason.
 *   Example: "Completed `perform_code_analysis` task. Report appended to `docs/CodeAnalysisReport.md`. Analyzed files: `src/utils/api.js`, `src/components/UserManager.jsx`."
 ==================== END: tasks#perform_code_analysis ====================
-
-==================== START: tasks#perform_initial_project_research ====================
-# Perform Initial Project Research Task
-
-## Task Objective
-Analyze a "Zero-Code User Blueprint" to identify key areas requiring external research, formulate research questions, request user assistance for web/GitHub searches, and compile findings into a structured Markdown report.
-
-## Parameters
-1.  `user_blueprint_content`: Text content of the filled "Zero-Code User Blueprint" or a path to a file containing it.
-2.  `report_file_path`: The path where the research report should be written (e.g., `docs/InitialProjectResearch.md`).
-
-## Execution Steps
-
-You MUST perform the following:
-
-1.  **Analyze User Blueprint:**
-    *   Carefully read and understand the `user_blueprint_content`.
-    *   Identify key assumptions made by the user, unique or complex features requested, target audience claims, and any explicit or implicit needs for market validation or technical feasibility assessment.
-
-2.  **Identify Research Areas & Formulate Questions:**
-    *   Based on the blueprint analysis, determine specific areas requiring external research. Examples include:
-        *   **Similar Existing Applications:** Are there apps that solve the same or similar problems? What are their features, strengths, weaknesses?
-        *   **Market Validation:** Is there evidence supporting the user's assumptions about the target audience and their needs?
-        *   **Technical Feasibility:** Are there any unique technical requests that require checking for existing solutions, libraries, or APIs?
-        *   **Open-Source Templates/Frameworks:** Could any existing open-source projects serve as a starting point or provide relevant components?
-    *   For each identified research area, formulate specific research questions and targeted search queries.
-
-3.  **Request User-Assisted Research:**
-    *   **General Web Searches:** For each general research question, clearly state the query and request the user (via Olivia, the orchestrator) to perform the web search and provide a concise summary of the findings.
-        *   Example: "Request for User (via Olivia): Please search for 'market size and growth trends for mobile pet grooming services in North America' and provide a summary."
-    *   **GitHub Template/Framework Searches:** If the blueprint suggests a need for specific types of code, frameworks, or templates, formulate a request for the user (via Olivia) to search GitHub or other code repositories.
-        *   Example: "Request for User (via Olivia): Please search GitHub for 'React Native templates for social networking app with real-time chat' and provide links to 2-3 promising repositories or a summary of findings."
-    *   **Specific URL Research:** If the blueprint mentions specific competitor websites, reference articles, or other URLs that could provide valuable information, or if such URLs are clearly derivable from the context, list these URLs and the specific information to look for. Formulate a request for Olivia/user to use a `view_text_website`-like tool to fetch content if direct access isn't available to you.
-        *   Example: "Request for Olivia/User: Please use a web browsing tool to get the main features listed on `competitorapp.com/features`."
-
-4.  **Structure and Compile Report:**
-    *   Organize the research requests and any findings (if provided directly by the user during an interactive session) into a structured Markdown report written to the `report_file_path`.
-    *   The report should include:
-        *   An introduction stating the purpose of the research based on the blueprint.
-        *   A section for each key research area identified.
-        *   Within each section:
-            *   The specific research questions/queries formulated.
-            *   A placeholder for "User/Olivia Provided Findings:" if the research is pending user action.
-            *   Any initial thoughts or hypotheses based on the blueprint, before external research.
-    *   Example Structure:
-        ```markdown
-        # Initial Project Research for [Project Idea from Blueprint]
-
-        ## 1. Similar Existing Applications
-        **Research Questions:**
-        *   What are the top 3 existing applications similar to [Project Idea]?
-        *   What are their core features, pricing, and user reviews?
-        **Search Queries for User (via Olivia):**
-        *   "Top [Project Type] apps like [Project Idea]"
-        *   "Reviews and pricing for [Competitor A, B, C]"
-        **User/Olivia Provided Findings:**
-        *   (pending)
-
-        ## 2. Market Validation for [User Assumption X]
-        ...
-        ```
-
-5.  **Handle Blueprint Content:**
-    *   If `user_blueprint_content` is a path, read the file. If it's direct text, use it as is.
-    *   If the blueprint content cannot be accessed or is empty, report this as an issue.
-
-## Final Output for Scribe
-Upon completing the research planning and report structure:
-*   Your final output summary (for Saul to process) MUST indicate:
-    *   Successful completion of the `perform_initial_project_research` task.
-    *   The `report_file_path` where the initial research structure and requests were written.
-    *   A statement that the report contains pending research items requiring user/Olivia action.
-*   Example: "Completed `perform_initial_project_research` task. Initial research plan and queries compiled into `docs/InitialProjectResearch.md`. This report contains requests for user/Olivia to perform external searches."
-==================== END: tasks#perform_initial_project_research ====================
-
-==================== START: tasks#design-smart-contract-architecture ====================
-# Task: Design Smart Contract Architecture
-
-**Objective:** To create a comprehensive architectural design for the smart contract system based on the project's Product Requirements Document (PRD) and technical specifications.
-
-**Agent Role:** SmartContractArchitect
-
-**Inputs:**
-1.  Path to the PRD file.
-2.  Path to any existing technical specification documents.
-3.  User preferences regarding blockchain platform, specific design patterns, or constraints.
-
-**Process:**
-1.  **Understand Requirements:** Thoroughly analyze the PRD to identify all functional and non-functional requirements relevant to the on-chain logic. Pay close attention to user stories, data models, access control needs, and interactions.
-2.  **Platform Considerations:** Confirm the target blockchain platform (e.g., Ethereum, Polygon, Solana). Note any platform-specific constraints or advantages.
-3.  **Data Modeling:** Define the data structures that will be stored on-chain. Consider efficiency, cost, and security.
-4.  **Contract Decomposition:** Decide if the system requires multiple smart contracts. If so, define the role and interface of each contract and how they will interact.
-5.  **Function Signatures:** Specify the public and external functions for each contract, including parameters and return types.
-6.  **Access Control:** Design the access control mechanisms (e.g., Ownable, Role-Based Access Control) for sensitive functions.
-7.  **Upgradeability Strategy:** Determine if contract upgradeability is required. If so, select and outline an appropriate pattern (e.g., Proxy patterns like UUPS or Transparent Upgradeable Proxy).
-8.  **Security Considerations:** Identify potential security risks at the architectural level and propose mitigation strategies (e.g., reentrancy guards, oracle usage patterns).
-9.  **Event Design:** Define the events that contracts will emit for off-chain monitoring and integration.
-10. **External Interactions:** Identify any required interactions with external contracts or oracles and define how these will be handled securely.
-11. **Documentation:** Create the Smart Contract Architecture Document using the `smart-contract-architecture-doc-tmpl.md` template. This document should include diagrams (e.g., Mermaid sequence or component diagrams), detailed descriptions of each component, data structures, and justifications for key architectural decisions.
-
-**Output:**
-1.  A `SmartContractArchitecture.md` document (or similarly named, following project conventions).
-2.  A list of any ambiguities in the PRD or areas requiring further clarification before development can proceed.
-
-**Key Considerations:**
-- Modularity and Reusability
-- Security and Robustness
-- Gas Efficiency (at a high level, detailed optimization is for development)
-- Scalability and Maintainability
-- Clarity for developers and auditors.
-==================== END: tasks#design-smart-contract-architecture ====================
-
-==================== START: tasks#develop-solidity-contract ====================
-# Task: Develop Solidity Smart Contract
-
-**Objective:** To write, compile, and perform basic unit testing for a Solidity smart contract based on its architectural design and detailed specifications.
-
-**Agent Role:** SmartContractDeveloper
-
-**Inputs:**
-1.  Path to the Smart Contract Architecture Document.
-2.  Path to the relevant section of the PRD or specific user stories detailing the contract's functionality.
-3.  Project's preferred Solidity version and development framework (e.g., Hardhat, Truffle, Foundry).
-4.  Path to any specific coding standards or style guides for Solidity.
-
-**Process:**
-1.  **Setup Development Environment:** Ensure the chosen development framework (e.g., Hardhat) is set up correctly.
-2.  **Understand Specifications:** Thoroughly review the architecture document and functional requirements for the specific contract to be developed.
-3.  **Write Solidity Code:** Implement the smart contract logic in Solidity, adhering to the architectural design, functional requirements, and coding standards.
-    *   Implement all data structures (structs, mappings, arrays).
-    *   Write all functions with correct visibility (public, external, internal, private).
-    *   Implement modifiers for access control or other checks if defined in the architecture.
-    *   Emit events as specified.
-4.  **Incorporate Security Best Practices:** Apply common Solidity security patterns (e.g., Checks-Effects-Interactions, reentrancy guards if applicable, safe math operations).
-5.  **Write Unit Tests:** For each public and external function, write unit tests to verify its behavior. Cover:
-    *   Happy path scenarios.
-    *   Edge cases.
-    *   Failure conditions (e.g., unauthorized access, invalid inputs).
-    *   Event emissions.
-6.  **Compile Contract:** Compile the Solidity code using the chosen framework. Resolve any compilation errors.
-7.  **Run Unit Tests:** Execute the unit tests. Ensure all tests pass. Debug and fix any failing tests.
-8.  **Gas Considerations:** While writing code, keep an eye on potential gas inefficiencies. Make reasonable efforts to write gas-conscious code, but defer heavy optimization if it sacrifices clarity or security at this stage.
-9.  **Documentation (Inline):** Add NatSpec comments to the Solidity code for all functions, state variables, and events, explaining their purpose, parameters, and return values.
-10. **Report Generation:** Prepare a brief report summarizing:
-    *   Path to the developed contract file(s).
-    *   Path to the test file(s).
-    *   Confirmation of successful compilation and test execution.
-    *   Any deviations from the specification or assumptions made.
-    *   Any identified areas that might need further security review or gas optimization later.
-
-**Output:**
-1.  The Solidity smart contract file(s) (e.g., `MyContract.sol`).
-2.  The unit test file(s) (e.g., `MyContract.test.js` or `MyContract.t.sol`).
-3.  A development report as described above.
-
-**Key Considerations:**
-- Adherence to the provided architecture and specifications.
-- Security best practices for Solidity.
-- Test coverage.
-- Code clarity and maintainability.
-==================== END: tasks#develop-solidity-contract ====================
-
-==================== START: tasks#audit-smart-contract ====================
-# Task: Audit Smart Contract
-
-**Objective:** To perform a comprehensive security audit of a smart contract to identify vulnerabilities, potential exploits, and deviations from best practices.
-
-**Agent Role:** SmartContractAuditor
-
-**Inputs:**
-1.  Path to the smart contract source code file(s) (Solidity).
-2.  Path to the Smart Contract Architecture Document.
-3.  Path to the PRD or functional specifications.
-4.  Information about the target blockchain and Solidity compiler version used.
-5.  (Optional) Path to existing test suites.
-
-**Process:**
-1.  **Understand Context:** Review the architecture document and PRD to understand the contract's intended functionality, business logic, and trust model.
-2.  **Automated Analysis:**
-    *   Run static analysis tools (e.g., Slither, Solhint) to identify potential issues and non-adherence to best practices.
-    *   (If applicable) Run symbolic execution tools (e.g., Mythril) or fuzzers to explore execution paths.
-3.  **Manual Code Review (Line-by-Line):**
-    *   **Access Control:** Verify that all sensitive functions have appropriate access controls (e.g., `onlyOwner`, role-based). Check for vulnerabilities like unprotected functions or incorrect modifier usage.
-    *   **Input Validation:** Ensure all external and public function inputs are properly validated to prevent unexpected behavior or exploits.
-    *   **Reentrancy:** Analyze for potential reentrancy vulnerabilities, especially in functions involving external calls or token transfers. Ensure adherence to Checks-Effects-Interactions pattern.
-    *   **Integer Overflow/Underflow:** Check all arithmetic operations for potential overflows or underflows, especially if not using SafeMath or a recent Solidity version (>=0.8.0).
-    *   **Gas Issues:** Look for unbounded loops, potential denial-of-service vectors due to gas limits (e.g., array iteration for payouts), and overly complex operations.
-    *   **Timestamp Dependence & Miner Manipulability:** Identify reliance on `block.timestamp`, `block.number`, or `block.gaslimit` for critical logic that could be manipulated by miners.
-    *   **Transaction-Ordering Dependence (Front-Running):** Analyze if the contract is vulnerable to front-running attacks.
-    *   **Logic Errors:** Scrutinize the contract logic to ensure it behaves as intended under all conditions and correctly implements the business requirements.
-    *   **Oracle Issues:** If the contract uses oracles, check for secure integration and handling of oracle data.
-    *   **Token Interaction:** If interacting with ERC20, ERC721, or other token standards, verify correct and safe interaction patterns (e.g., `safeApprove`, handling of non-standard tokens).
-    *   **External Calls:** Ensure all external calls are handled safely, checking return values and considering potential failures or reentrancy.
-    *   **Assembly Usage:** If `assembly` is used, review it with extreme care for potential memory safety issues or logic errors.
-    *   **Known Vulnerabilities:** Check against lists of known smart contract vulnerabilities (e.g., SWC Registry).
-4.  **Test Review (If available):** Review existing tests for coverage and effectiveness in identifying potential issues.
-5.  **Report Compilation:**
-    *   Document each finding with:
-        *   A unique ID.
-        *   Description of the vulnerability/issue.
-        *   Location(s) in the code (contract name, line numbers).
-        *   Severity (e.g., Critical, High, Medium, Low, Informational).
-        *   Potential impact if exploited.
-        *   Recommended remediation steps.
-    *   Provide an overall summary of the contract's security posture.
-    *   List any positive security practices observed.
-
-**Output:**
-1.  A comprehensive Smart Contract Audit Report in Markdown format, detailing all findings, severity levels, and recommendations.
-2.  (Optional) A list of suggested new test cases to cover identified vulnerabilities or edge cases.
-
-**Key Considerations:**
-- The audit should be performed with an adversarial mindset.
-- Clarity and actionability of the audit report are paramount.
-- Prioritize findings based on severity and exploitability.
-==================== END: tasks#audit-smart-contract ====================
-
-==================== START: tasks#deploy-smart-contract ====================
-# Task: Deploy Smart Contract
-
-**Objective:** To compile, test, and deploy a smart contract to a specified blockchain network (testnet or mainnet).
-
-**Agent Role:** DevOps Agent (extended) or a new `BlockchainDeployer` Agent
-
-**Inputs:**
-1.  Path to the final smart contract source code file(s).
-2.  Path to the compiled contract artifacts (ABI, bytecode), if pre-compiled.
-3.  Target blockchain network (e.g., "ropsten", "mainnet", "polygon", "mumbai").
-4.  Deployment parameters (e.g., constructor arguments for the contract).
-5.  Private key or mnemonic for the deploying account (securely handled, ideally via environment variables or a secure wallet mechanism, not directly in prompts).
-6.  RPC endpoint URL for the target network (e.g., from Infura, Alchemy, or a local node).
-7.  (Optional) Gas price strategy (e.g., "fast", "standard", or a specific gas price).
-8.  Path to the `smart-contract-deployment-checklist.md`.
-
-**Process:**
-1.  **Pre-Deployment Checks (Run `smart-contract-deployment-checklist.md`):**
-    *   Verify final code version.
-    *   Confirm audit completion and sign-off (if applicable).
-    *   Ensure all constructor arguments are correct and available.
-    *   Confirm target network and RPC endpoint.
-    *   Verify deployer account has sufficient funds for gas.
-2.  **Setup Deployment Environment:**
-    *   Ensure necessary tools are installed (e.g., Hardhat, Truffle, ethers.js/web3.js if using a script).
-    *   Configure the deployment script or tool with the target network, deployer account, and RPC endpoint.
-3.  **Compile Contract (If not already done or to ensure latest):**
-    *   Compile the smart contract using the chosen framework (e.g., `npx hardhat compile`). Ensure there are no compilation errors.
-4.  **Final Test Run (Optional but Recommended):**
-    *   Execute the full test suite against a local development network or the target testnet to catch any last-minute issues.
-5.  **Estimate Gas (If possible):**
-    *   Use framework tools to estimate the gas required for deployment.
-6.  **Execute Deployment:**
-    *   Run the deployment script or command.
-    *   Monitor the transaction progress.
-    *   Wait for the transaction to be mined and for sufficient confirmations (if applicable).
-7.  **Verify Deployment (Post-Deployment Checks from Checklist):**
-    *   Once deployed, retrieve the contract address.
-    *   Verify the contract code on a block explorer (e.g., Etherscan, Polygonscan) if the network supports it. This often requires submitting the source code or ABI.
-    *   (Optional) Perform a few basic interactions with the deployed contract on the target network to ensure it's responsive and functioning as expected (e.g., reading a public variable).
-8.  **Record Deployment Information:**
-    *   Log the deployed contract address.
-    *   Log the transaction hash of the deployment.
-    *   Log the network it was deployed to.
-    *   Save the ABI and contract address for use by off-chain services and dApp frontends.
-9.  **Report Generation:**
-    *   Prepare a deployment report summarizing the outcome:
-        *   Success or failure.
-        *   Target network.
-        *   Deployed contract address(es).
-        *   Transaction hash(es).
-        *   Link to the contract on a block explorer (if verified).
-        *   Any issues encountered during deployment.
-
-**Output:**
-1.  Deployment report.
-2.  A file or record containing the deployed contract address and ABI.
-3.  Confirmation of checklist completion.
-
-**Key Considerations:**
-- **Security of Private Keys:** This is paramount. The agent should not handle raw private keys directly in prompts. It should assume keys are managed securely via environment variables loaded by the deployment script or a hardware wallet.
-- **Network Differences:** Be aware of differences between testnets and mainnet (gas costs, block times, available tools).
-- **Idempotency:** Deployment scripts should ideally be idempotent or handle cases where a contract might already be deployed.
-- **Error Handling:** Robust error handling in deployment scripts is crucial.
-==================== END: tasks#deploy-smart-contract ====================
-
-==================== START: expansion-packs/bmad-smart-contract-dev/templates/smart-contract-architecture-doc-tmpl.md ====================
-# Smart Contract Architecture Document: {{ProjectName}}
-
-**Version:** {{Version}}
-**Date:** {{Date}}
-**Author:** {{Author}} (SmartContractArchitect Agent)
-
----
-
-## 1. Introduction
-
-### 1.1 Project Overview
-Briefly describe the project and the role of the smart contract system within it. Reference the main PRD or project brief.
-*(Based on PRD: {{PathToPRD}})*
-
-### 1.2 Goals of this Document
-Outline what this document aims to define regarding the smart contract architecture.
-
-### 1.3 Target Blockchain Platform
-Specify the blockchain platform (e.g., Ethereum Mainnet, Polygon, Binance Smart Chain, Arbitrum).
-- **Platform:** {{BlockchainPlatform}}
-- **Solidity Version:** {{SolidityVersion}}
-
----
-
-## 2. System Architecture Overview
-
-### 2.1 Component Diagram
-*(Use Mermaid JS or similar to illustrate the main contracts and their interactions. Show external interactions like oracles or frontends if applicable.)*
-```mermaid
-graph TD
-    User -->|Interacts via UI| DAppFrontend
-    DAppFrontend -->|Reads/Writes| MainContract
-    MainContract -->|Calls| UtilityContract
-    MainContract -->|Reads| OracleContract
-    OracleContract -- Fetches Data --> ExternalDataSource
-```
-
-### 2.2 Core Contracts & Responsibilities
-List each smart contract that will be part of the system and briefly describe its primary responsibility.
-
-- **`{{ContractName1}}`**:
-  - *Responsibility:* {{Responsibility1}}
-- **`{{ContractName2}}`**:
-  - *Responsibility:* {{Responsibility2}}
-- *(Add more as needed)*
-
----
-
-## 3. Detailed Contract Design: `{{ContractName1}}`
-
-### 3.1 Overview
-Detailed description of `{{ContractName1}}`'s purpose and functionality.
-
-### 3.2 State Variables
-List and describe the key state variables.
-- `{{variableName1}}` (`{{dataType1}}`): {{Description1}}
-- `{{variableName2}}` (`{{mappingType}}`): {{Description2}}
-
-### 3.3 Data Structures (Structs)
-Define any custom structs used by this contract.
-```solidity
-struct {{StructName1}} {
-    {{fieldType1}} {{fieldName1}};
-    {{fieldType2}} {{fieldName2}};
-}
-```
-
-### 3.4 Key Functions
-Describe the important public and external functions. Include:
-- **Function Signature:** (e.g., `function doSomething(uint256 _amount, address _recipient) external payable returns (bool)`)
-- **Purpose:** What the function does.
-- **Access Control:** Who can call this function (e.g., `onlyOwner`, specific role, public).
-- **Key Logic / State Changes:** High-level description of operations.
-- **Events Emitted:** List any events emitted.
-
-**Example Function:**
-- **`function {{functionName1}}({{params1}}) {{visibility1}} {{modifiers1}}`**
-  - *Purpose:* {{Purpose of functionName1}}
-  - *Access Control:* {{AccessControl for functionName1}}
-  - *Key Logic:* {{Logic for functionName1}}
-  - *Events Emitted:* `{{EventName1}}`
-
-### 3.5 Events
-List and describe the events emitted by this contract.
-- `event {{EventName1}}({{indexedParam1}}, {{param2}});`
-  - *Purpose:* {{Purpose of EventName1}}
-
-### 3.6 Modifiers
-Describe any custom modifiers used in this contract.
-- `modifier {{modifierName1}}() { ... }`
-  - *Purpose:* {{Purpose of modifierName1}}
-
----
-
-## 4. Detailed Contract Design: `{{ContractName2}}`
-*(Repeat section 3 for each additional contract)*
-
----
-
-## 5. Cross-Contract Interactions
-
-Describe how different contracts within the system will interact with each other.
-- *Example: `MainContract` will call `UtilityContract.calculateFee()` before processing a transaction.*
-- *(Use sequence diagrams if helpful)*
-```mermaid
-sequenceDiagram
-    participant MC as MainContract
-    participant UC as UtilityContract
-    MC->>UC: calculateFee(amount)
-    UC-->>MC: feeAmount
-```
-
----
-
-## 6. Access Control Strategy
-
-Describe the overall access control strategy.
-- **Admin Roles:** Define any administrative roles (e.g., Owner, Pauser, Upgrader).
-- **User Roles:** (If applicable) Define different user roles and their permissions.
-- **Mechanism:** Specify if using OpenZeppelin's `Ownable`, `AccessControl`, or a custom solution.
-
----
-
-## 7. Upgradeability Strategy
-
-- **Is Upgradeability Required?** (Yes/No)
-- **Chosen Pattern:** If yes, specify the pattern (e.g., UUPS Proxies, TransparentUpgradeableProxy).
-- **Rationale:** Briefly explain why this pattern was chosen.
-- **Key Considerations:** Mention any implications (e.g., storage layout, initializer functions).
-
----
-
-## 8. Security Considerations
-
-### 8.1 Potential Risks & Mitigations (Architectural Level)
-Identify potential security concerns at the design stage and how the architecture aims to mitigate them.
-- **Reentrancy:** {{Mitigation for reentrancy, e.g., Checks-Effects-Interactions pattern will be enforced}}
-- **Oracle Manipulation:** {{If using oracles, how will data be validated or multiple sources used?}}
-- **Access Control Vulnerabilities:** {{How does the role design prevent unauthorized actions?}}
-- **Gas Limit Issues:** {{Are there any known operations that might be very gas intensive?}}
-
-### 8.2 Key Security Patterns to be Implemented
-- Checks-Effects-Interactions
-- Use of SafeMath (if Solidity <0.8.0) or built-in checks
-- Reentrancy Guards (where applicable)
-- Secure Oracle Usage (if applicable)
-
----
-
-## 9. External Dependencies & Interfaces
-
-- **Oracles:**
-  - *Name/Type:* {{OracleName}}
-  - *Data Provided:* {{OracleData}}
-  - *Integration Points:* {{How contracts interact with it}}
-- **Other External Contracts:**
-  - *Name/Address (if known):* {{ExternalContractName}}
-  - *Purpose of Interaction:* {{InteractionPurpose}}
-
----
-
-## 10. Gas Cost Considerations (High-Level)
-
-Briefly discuss any architectural decisions made to manage gas costs, or areas where gas efficiency will be a key focus during development.
-- *Example: Avoiding loops over large arrays in storage, using structs to pack data, etc.*
-
----
-
-## 11. Future Considerations & Scalability
-
-- Potential future enhancements that might impact the architecture.
-- How the current design allows for scalability.
-
----
-
-## Appendix A: Glossary
-
-- *(Define any project-specific terms or technical jargon used in this document)*
-
----
-
-## Appendix B: Open Questions / Assumptions
-
-- *(List any assumptions made during the architectural design or questions that need clarification)*
-
----
-==================== END: expansion-packs/bmad-smart-contract-dev/templates/smart-contract-architecture-doc-tmpl.md ====================
-
-==================== START: expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-security-checklist.md ====================
-# Smart Contract Security Checklist
-
-**Objective:** To ensure comprehensive security verification of smart contracts before deployment. This checklist should be used by `SmartContractAuditor` and also by `SmartContractDeveloper` as a self-check.
-
----
-
-## I. Pre-Audit / Pre-Development Checks
-
-- [ ] **Requirements Clarity:** Are all business logic and security requirements clearly defined and understood?
-- [ ] **Architecture Review:** Has the smart contract architecture been reviewed for security implications?
-- [ ] **Known Vulnerabilities List:** Is the development/audit team aware of the latest common vulnerabilities (e.g., SWC Registry, DeFi exploits)?
-- [ ] **Tooling Setup:** Are static analysis tools (Slither, Solhint), linters, and testing frameworks (Hardhat, Truffle, Foundry) correctly configured?
-
----
-
-## II. Access Control
-
-- [ ] **Default Visibility:** Are functions correctly marked `public`, `external`, `internal`, or `private`? Avoid default public visibility where not intended.
-- [ ] **Protected Functions:** Are all functions that modify critical state variables or execute sensitive operations protected by appropriate access control mechanisms (e.g., `onlyOwner`, role-based access control)?
-- [ ] **Modifier Correctness:** Are modifiers used correctly and without unintended side effects?
-- [ ] **Constructor Security:** Is the constructor `internal` or `public` as intended? Is it properly secured if it sets critical initial values?
-- [ ] **Authorization Logic:** Is authorization logic sound and not easily bypassable? (e.g., check for `tx.origin` abuse).
-- [ ] **Privileged Role Management:** Is the process for granting/revoking privileged roles secure?
-
----
-
-## III. Input Validation & Sanitization
-
-- [ ] **Parameter Validation:** Are all inputs to `public` and `external` functions validated (e.g., non-zero addresses, sane numerical ranges, length checks for arrays/strings)?
-- [ ] **Zero Address Checks:** Are address parameters checked against `address(0)` where appropriate?
-- [ ] **Array/String Bounds:** Are operations on arrays and strings safe from out-of-bounds errors?
-- [ ] **Integer Overflow/Underflow (Solidity <0.8.0):** Are all arithmetic operations protected against overflow/underflow (e.g., using SafeMath or similar libraries)? (Less critical for Solidity >=0.8.0 due to built-in checks, but still good to be mindful of).
-- [ ] **Divide by Zero:** Is division by zero prevented?
-
----
-
-## IV. Reentrancy & External Calls
-
-- [ ] **Checks-Effects-Interactions Pattern:** Is this pattern strictly followed for all state changes and external calls?
-- [ ] **Reentrancy Guards:** Are reentrancy guards (e.g., OpenZeppelin's `ReentrancyGuard`) used where necessary, especially in functions making external calls after state changes?
-- [ ] **External Call Return Values:** Are return values of low-level calls (`.call()`, `.delegatecall()`, `.staticcall()`) checked?
-- [ ] **Gas Griefing via External Calls:** Can an external call fail due to out-of-gas, and can this be exploited to block contract functionality?
-- [ ] **Trusted External Contracts:** Are external contracts called assumed to be potentially malicious? Is interaction minimized?
-
----
-
-## V. Gas & Denial of Service
-
-- [ ] **Unbounded Loops:** Are there any loops that could iterate an unbounded number of times, potentially leading to out-of-gas errors (e.g., iterating over a user-growable array)?
-- [ ] **Block Gas Limit:** Can any single transaction consume close to the block gas limit, making it difficult to include?
-- [ ] **Gas-Heavy Operations:** Are there any unexpectedly gas-heavy operations that could be optimized?
-- [ ] **Unexpected Reverts:** Can users be forced into states where their actions always revert, effectively DoS'ing them?
-
----
-
-## VI. Timestamp & Miner Manipulability
-
-- [ ] **`block.timestamp` Reliance:** Is `block.timestamp` used for critical logic (e.g., unlocking funds, determining winners)? Is the tolerance for manipulation understood?
-- [ ] **`block.number` Reliance:** Is `block.number` used where `block.timestamp` might be more appropriate or vice-versa?
-- [ ] **Oracle Usage:** If external data is needed, is a secure oracle pattern used instead of relying on miner-controllable values?
-
----
-
-## VII. Transaction-Ordering Dependence (Front-Running / Back-Running)
-
-- [ ] **Sensitive Operations:** Are there operations (e.g., market orders, revealing secrets) vulnerable to front-running?
-- [ ] **Mitigation Strategies:** If vulnerable, are mitigation strategies in place (e.g., commit-reveal schemes, batching)?
-
----
-
-## VIII. Logic Errors & Business Logic Flaws
-
-- [ ] **Correct Implementation:** Does the code correctly implement the intended business logic as per specifications?
-- [ ] **Edge Cases:** Have all relevant edge cases and boundary conditions been considered and tested?
-- [ ] **State Transitions:** Are all state transitions handled correctly and securely?
-- [ ] **Event Emission:** Are events emitted correctly for all significant state changes and actions, providing necessary information for off-chain monitoring?
-- [ ] **Initialization:** Are all state variables initialized correctly in the constructor or via initializer functions (for proxies)?
-
----
-
-## IX. Token Interactions (ERC20, ERC721, etc.)
-
-- [ ] **`approve()` Race Condition:** If using `approve()`, is the user interface or contract logic aware of the potential ERC20 approve race condition? (Consider `safeIncreaseAllowance`/`safeDecreaseAllowance`).
-- [ ] **Non-Standard Tokens:** Does the contract safely handle tokens that may not strictly adhere to ERC standards (e.g., tokens without return values on `transfer`/`transferFrom`)? Use OpenZeppelin's `SafeERC20` where appropriate.
-- [ ] **`transferFrom()` Returns:** Is the return value of `transferFrom()` checked?
-- [ ] **Correct Token Amounts:** Are token amounts handled correctly, considering decimals?
-
----
-
-## X. Cryptography & Signatures
-
-- [ ] **`ecrecover` Usage:** If `ecrecover` is used for signature verification, is it protected against signature malleability? (Hash message with `keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash))`).
-- [ ] **Replay Attacks:** Are mechanisms in place (e.g., nonces) to prevent replay attacks on signed messages?
-- [ ] **Private Key Exposure:** Is there any risk of private key or sensitive seed phrase exposure in the contract logic or deployment process? (Should never be on-chain).
-
----
-
-## XI. Testing & Verification
-
-- [ ] **Test Coverage:** Is there high unit test coverage for all contract functions and modifiers?
-- [ ] **Scenario Testing:** Are complex interaction scenarios and potential attack vectors tested?
-- [ ] **Formal Verification:** Has formal verification been considered or applied for critical contracts? (Advanced)
-- [ ] **Code Linting:** Does the code pass linters (e.g., Solhint) with no major warnings?
-
----
-
-## XII. General Best Practices & Housekeeping
-
-- [ ] **Solidity Version:** Is a recent, stable version of the Solidity compiler used? Is pragma versioning appropriate (e.g., `^0.8.x`)?
-- [ ] **Compiler Optimizations:** Are compiler optimizations understood and enabled appropriately for deployment?
-- [ ] **Code Readability & Comments:** Is the code well-formatted, readable, and adequately commented (NatSpec for all public/external functions and state variables)?
-- [ ] **Dependency Management:** Are external library dependencies (e.g., OpenZeppelin contracts) up-to-date and from trusted sources?
-- [ ] **No Unused Code/Variables:** Has dead or unreachable code been removed?
-- [ ] **Error Messages:** Are revert messages clear and informative?
-
----
-
-**Auditor/Developer Sign-off:**
-
-- [ ] All critical/high severity issues identified have been addressed or have a clear remediation plan.
-- [ ] The contract's risk profile is understood and accepted by stakeholders.
-
-**Date:**
-**Auditor/Developer:**
-
----
-==================== END: expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-security-checklist.md ====================
-
-==================== START: expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-deployment-checklist.md ====================
-# Smart Contract Deployment Checklist
-
-**Objective:** To ensure a safe, secure, and successful deployment of smart contracts to the target blockchain network.
-
-**Agent Role:** DevOps Agent (extended) or `BlockchainDeployer`
-
----
-
-## I. Pre-Deployment Preparations
-
-- [ ] **Final Code Freeze:** Is the contract source code finalized and committed to version control?
-- [ ] **Version Tagging:** Has the specific commit/version for deployment been tagged in Git?
-- [ ] **Successful Compilation:** Has the contract been compiled successfully with the target Solidity version and optimizer settings?
-- [ ] **Successful Test Suite Execution:** Have all unit and integration tests passed on a local development network or a recent testnet deployment?
-- [ ] **Security Audit Completion:** Has a security audit been performed by `SmartContractAuditor` or a third party?
-- [ ] **Audit Findings Addressed:** Have all critical and high-severity findings from the audit report been addressed and verified?
-- [ ] **Stakeholder Sign-off:** Has relevant stakeholder (e.g., Product Owner, Lead Developer) sign-off been obtained for deployment?
-- [ ] **Environment Configuration:**
-    - [ ] Target Network Identified (e.g., Mainnet, Ropsten, Polygon, Mumbai).
-    - [ ] RPC Endpoint URL for the target network is correct and accessible.
-    - [ ] Gas Price Strategy Defined (e.g., use gas station API, fixed price, default).
-- [ ] **Deployment Script Ready:** Is the deployment script (e.g., Hardhat/Truffle script, custom ethers.js/web3.js script) finalized and tested on a testnet?
-- [ ] **Constructor Arguments:** Are all constructor arguments finalized, correctly formatted, and securely sourced?
-- [ ] **Deployment Wallet (Deployer Account):**
-    - [ ] Wallet address confirmed.
-    - [ ] Sufficient native currency (ETH, MATIC, etc.) in the wallet to cover deployment gas costs (check current gas prices and estimated deployment cost).
-    - [ ] Private key/mnemonic for the deployer account is securely accessible to the deployment environment (e.g., via environment variables, hardware wallet). **NEVER hardcode private keys.**
-- [ ] **Third-Party Service Keys (if any):** API keys for services like Etherscan, Infura, Alchemy are configured if needed for verification or deployment.
-- [ ] **Backup Plan:** Is there a plan in case of deployment failure (e.g., rollback steps, communication plan)?
-
----
-
-## II. During Deployment
-
-- [ ] **Secure Environment:** Is the deployment being performed from a secure machine and network?
-- [ ] **Monitor Gas Prices:** Check current network gas prices before initiating deployment.
-- [ ] **Execute Deployment Script:** Run the deployment script.
-- [ ] **Monitor Transaction:** Monitor the deployment transaction on a block explorer. Note the transaction hash.
-- [ ] **Wait for Confirmations:** Wait for a sufficient number of block confirmations as per network security standards.
-
----
-
-## III. Post-Deployment Actions & Verifications
-
-- [ ] **Obtain Contract Address:** Securely record the official deployed contract address(es).
-- [ ] **Verify Contract on Block Explorer:**
-    - [ ] Submit source code (flattened if necessary) or ABI to the relevant block explorer (e.g., Etherscan, PolygonScan).
-    - [ ] Confirm successful verification.
-- [ ] **Initial Sanity Checks:**
-    - [ ] Perform a few simple read operations on the deployed contract to ensure it's responsive (e.g., read public state variables, call view/pure functions).
-    - [ ] (If applicable and safe) Perform a simple state-changing transaction to confirm basic writability.
-- [ ] **Update Documentation:** Update all relevant project documentation with the official contract address(es) and ABI.
-- [ ] **Update Application Configuration:** Update frontend dApp, backend services, and any other off-chain components with the new contract address(es) and ABI.
-- [ ] **Securely Store Artifacts:** Store the final ABI, bytecode, and contract address in a secure and version-controlled location.
-- [ ] **Announce Deployment:** Notify relevant team members and stakeholders of the successful deployment and the official contract address(es).
-- [ ] **Monitor Deployed Contract:** Implement or enable monitoring for the deployed contract (e.g., for critical events, errors, or unusual activity).
-
----
-
-## IV. Communication & Handover
-
-- [ ] **Deployment Report:** Has a deployment report been generated and shared, including:
-    - Contract Name(s) and Address(es)
-    - Network
-    - Transaction Hash(es)
-    - Link to Block Explorer page(s)
-    - Any issues encountered and resolutions
-- [ ] **Knowledge Transfer:** If applicable, ensure relevant team members understand how to interact with the newly deployed contract.
-
----
-
-**Deployment Sign-off:**
-
-- [ ] All checklist items have been addressed.
-- [ ] The contract is confirmed to be live and operational on the target network.
-
-**Date:**
-**Deployer:**
-
----
-==================== END: expansion-packs/bmad-smart-contract-dev/checklists/smart-contract-deployment-checklist.md ====================
-
-==================== START: data#bmad-kb ====================
-# BMAD Knowledge Base
-
-## Overview
-
-BMAD-METHOD (Breakthrough Method of Agile AI-driven Development) is a framework that combines AI agents with Agile development methodologies. The v4 system introduces a modular architecture with improved dependency management, bundle optimization, and support for both web and IDE environments.
-
-### Key Features
-
-- **Modular Agent System**: Specialized AI agents for each Agile role
-- **Build System**: Automated dependency resolution and optimization
-- **Dual Environment Support**: Optimized for both web UIs and IDEs
-- **Reusable Resources**: Portable templates, tasks, and checklists
-- **Slash Command Integration**: Quick agent switching and control
-
-### When to Use BMAD
-
-- **New Projects (Greenfield)**: Complete end-to-end development
-- **Existing Projects (Brownfield)**: Feature additions and enhancements
-- **Team Collaboration**: Multiple roles working together
-- **Quality Assurance**: Structured testing and validation
-- **Documentation**: Professional PRDs, architecture docs, user stories
-
-## Getting Started
-
-### Quick Start Options
-
-#### Option 1: Web UI
-**Best for**: ChatGPT, Claude, Gemini users who want to start immediately
-
-1. Navigate to `dist/teams/`
-2. Copy `team-fullstack.txt` content
-3. Create new Gemini Gem or CustomGPT
-4. Upload file with instructions: "Your critical operating instructions are attached, do not break character as directed"
-5. Type `/help` to see available commands
-
-#### Option 2: IDE Integration
-**Best for**: Cursor, Claude Code, Windsurf, VS Code users
-
-```bash
-# Interactive installation (recommended)
-npx bmad-method install
-```
-
-**Installation Steps**:
-- Choose "Complete installation"
-- Select your IDE (Cursor, Claude Code, Windsurf, or Roo Code)
-
-**Verify Installation**:
-- `.bmad-core/` folder created with all agents
-- IDE-specific integration files created
-- All agent commands/rules/modes available
-
-### Environment Selection Guide
-
-**Use Web UI for**:
-- Initial planning and documentation (PRD, architecture)
-- Cost-effective document creation (especially with Gemini)
-- Brainstorming and analysis phases
-- Multi-agent consultation and planning
-
-**Use IDE for**:
-- Active development and coding
-- File operations and project integration
-- Document sharding and story management
-- Implementation workflow (SM/Dev cycles)
-
-**Cost-Saving Tip**: Create large documents (PRDs, architecture) in web UI, then copy to `docs/prd.md` and `docs/architecture.md` in your project before switching to IDE for development.
-
-## Core Configuration (core-config.yml)
-
-**New in V4**: The `bmad-core/core-config.yml` file is a critical innovation that enables BMAD to work seamlessly with any project structure, providing maximum flexibility and backwards compatibility.
-
-### What is core-config.yml?
-
-This configuration file acts as a map for BMAD agents, telling them exactly where to find your project documents and how they're structured. It enables:
-
-- **Version Flexibility**: Work with V3, V4, or custom document structures
-- **Custom Locations**: Define where your documents and shards live
-- **Developer Context**: Specify which files the dev agent should always load
-- **Debug Support**: Built-in logging for troubleshooting
-
-### Key Configuration Areas
-
-#### PRD Configuration
-- **prdVersion**: Tells agents if PRD follows v3 or v4 conventions
-- **prdSharded**: Whether epics are embedded (false) or in separate files (true)
-- **prdShardedLocation**: Where to find sharded epic files
-- **epicFilePattern**: Pattern for epic filenames (e.g., `epic-{n}*.md`)
-
-#### Architecture Configuration
-- **architectureVersion**: v3 (monolithic) or v4 (sharded)
-- **architectureSharded**: Whether architecture is split into components
-- **architectureShardedLocation**: Where sharded architecture files live
-
-#### Developer Files
-- **devLoadAlwaysFiles**: List of files the dev agent loads for every task
-- **devDebugLog**: Where dev agent logs repeated failures
-- **agentCoreDump**: Export location for chat conversations
-
-### Why It Matters
-
-1. **No Forced Migrations**: Keep your existing document structure
-2. **Gradual Adoption**: Start with V3 and migrate to V4 at your pace
-3. **Custom Workflows**: Configure BMAD to match your team's process
-4. **Intelligent Agents**: Agents automatically adapt to your configuration
-
-### Common Configurations
-
-**Legacy V3 Project**:
-```yaml
-prdVersion: v3
-prdSharded: false
-architectureVersion: v3
-architectureSharded: false
-```
-
-**V4 Optimized Project**:
-```yaml
-prdVersion: v4
-prdSharded: true
-prdShardedLocation: docs/prd
-architectureVersion: v4
-architectureSharded: true
-architectureShardedLocation: docs/architecture
-```
-
-## Core Philosophy
-
-### Vibe CEO'ing
-
-You are the "Vibe CEO" - thinking like a CEO with unlimited resources and a singular vision. Your AI agents are your high-powered team, and your role is to:
-
-- **Direct**: Provide clear instructions and objectives
-- **Refine**: Iterate on outputs to achieve quality
-- **Oversee**: Maintain strategic alignment across all agents
-
-### Core Principles
-
-1. **MAXIMIZE_AI_LEVERAGE**: Push the AI to deliver more. Challenge outputs and iterate.
-2. **QUALITY_CONTROL**: You are the ultimate arbiter of quality. Review all outputs.
-3. **STRATEGIC_OVERSIGHT**: Maintain the high-level vision and ensure alignment.
-4. **ITERATIVE_REFINEMENT**: Expect to revisit steps. This is not a linear process.
-5. **CLEAR_INSTRUCTIONS**: Precise requests lead to better outputs.
-6. **DOCUMENTATION_IS_KEY**: Good inputs (briefs, PRDs) lead to good outputs.
-7. **START_SMALL_SCALE_FAST**: Test concepts, then expand.
-8. **EMBRACE_THE_CHAOS**: Adapt and overcome challenges.
-
-### Key Workflow Principles
-
-1. **Agent Specialization**: Each agent has specific expertise and responsibilities
-2. **Clean Handoffs**: Always start fresh when switching between agents
-3. **Status Tracking**: Maintain story statuses (Draft → Approved → InProgress → Done)
-4. **Iterative Development**: Complete one story before starting the next
-5. **Documentation First**: Always start with solid PRD and architecture
-
-## Agent System
-
-### Core Development Team
-
-| Agent       | Role               | Primary Functions                       | When to Use                            |
-| ----------- | ------------------ | --------------------------------------- | -------------------------------------- |
-| `analyst`   | Business Analyst   | Market research, requirements gathering | Project planning, competitive analysis |
-| `pm`        | Product Manager    | PRD creation, feature prioritization    | Strategic planning, roadmaps           |
-| `architect` | Solution Architect | System design, technical architecture   | Complex systems, scalability planning  |
-| `dev`       | Developer          | Code implementation, debugging          | All development tasks                  |
-| `qa`        | QA Specialist      | Test planning, quality assurance        | Testing strategies, bug validation     |
-| `ux-expert` | UX Designer        | UI/UX design, prototypes                | User experience, interface design      |
-| `po`        | Product Owner      | Backlog management, story validation    | Story refinement, acceptance criteria  |
-| `sm`        | Scrum Master       | Sprint planning, story creation         | Project management, workflow           |
-
-### Meta Agents
-
-| Agent               | Role             | Primary Functions                     | When to Use                       |
-| ------------------- | ---------------- | ------------------------------------- | --------------------------------- |
-| `bmad-orchestrator` | Team Coordinator | Multi-agent workflows, role switching | Complex multi-role tasks          |
-| `bmad-master`       | Universal Expert | All capabilities without switching    | Single-session comprehensive work |
-
-### Agent Interaction Commands
-
-#### IDE-Specific Syntax
-
-**Agent Loading by IDE**:
-- **Claude Code**: `/agent-name` (e.g., `/bmad-master`)
-- **Cursor**: `@agent-name` (e.g., `@bmad-master`)
-- **Windsurf**: `@agent-name` (e.g., `@bmad-master`)
-- **Roo Code**: Select mode from mode selector (e.g., `bmad-bmad-master`)
-
-**Chat Management Guidelines**:
-- **Claude Code, Cursor, Windsurf**: Start new chats when switching agents
-- **Roo Code**: Switch modes within the same conversation
-
-**Common Task Commands**:
-- `*help` - Show available commands
-- `*status` - Show current context/progress
-- `*exit` - Exit the agent mode
-- `*shard-doc docs/prd.md prd` - Shard PRD into manageable pieces
-- `*shard-doc docs/architecture.md architecture` - Shard architecture document
-- `*create` - Run create-next-story task (SM agent)
-
-**In Web UI**:
-```text
-/pm create-doc prd
-/architect review system design
-/dev implement story 1.2
-/help - Show available commands
-/switch agent-name - Change active agent (if orchestrator available)
-```
-
-## Team Configurations
-
-### Pre-Built Teams
-
-#### Team All
-- **Includes**: All 10 agents + orchestrator
-- **Use Case**: Complete projects requiring all roles
-- **Bundle**: `team-all.txt`
-
-#### Team Fullstack
-- **Includes**: PM, Architect, Developer, QA, UX Expert
-- **Use Case**: End-to-end web/mobile development
-- **Bundle**: `team-fullstack.txt`
-
-#### Team No-UI
-- **Includes**: PM, Architect, Developer, QA (no UX Expert)
-- **Use Case**: Backend services, APIs, system development
-- **Bundle**: `team-no-ui.txt`
-
-## Core Architecture
-
-### System Overview
-
-The BMAD-Method is built around a modular architecture centered on the `bmad-core` directory, which serves as the brain of the entire system. This design enables the framework to operate effectively in both IDE environments (like Cursor, VS Code) and web-based AI interfaces (like ChatGPT, Gemini).
-
-### Key Architectural Components
-
-#### 1. Agents (`bmad-core/agents/`)
-- **Purpose**: Each markdown file defines a specialized AI agent for a specific Agile role (PM, Dev, Architect, etc.)
-- **Structure**: Contains YAML headers specifying the agent's persona, capabilities, and dependencies
-- **Dependencies**: Lists of tasks, templates, checklists, and data files the agent can use
-- **Startup Instructions**: Can load project-specific documentation for immediate context
-
-#### 2. Agent Teams (`bmad-core/agent-teams/`)
-- **Purpose**: Define collections of agents bundled together for specific purposes
-- **Examples**: `team-all.yml` (comprehensive bundle), `team-fullstack.yml` (full-stack development)
-- **Usage**: Creates pre-packaged contexts for web UI environments
-
-#### 3. Workflows (`bmad-core/workflows/`)
-- **Purpose**: YAML files defining prescribed sequences of steps for specific project types
-- **Types**: Greenfield (new projects) and Brownfield (existing projects) for UI, service, and fullstack development
-- **Structure**: Defines agent interactions, artifacts created, and transition conditions
-
-#### 4. Reusable Resources
-- **Templates** (`bmad-core/templates/`): Markdown templates for PRDs, architecture specs, user stories
-- **Tasks** (`bmad-core/tasks/`): Instructions for specific repeatable actions like "shard-doc" or "create-next-story"
-- **Checklists** (`bmad-core/checklists/`): Quality assurance checklists for validation and review
-- **Data** (`bmad-core/data/`): Core knowledge base and technical preferences
-
-### Dual Environment Architecture
-
-#### IDE Environment
-
-- Users interact directly with agent markdown files
-- Agents can access all dependencies dynamically
-- Supports real-time file operations and project integration
-- Optimized for development workflow execution
-
-#### Web UI Environment
-
-- Uses pre-built bundles from `dist/teams` for stand alone 1 upload files for all agents and their assest with an orchestrating agent
-- Single text files containing all agent dependencies are in `dist/agents/` - these are unnecessary unless you want to create a web agent that is only a single agent and not a team
-- Created by the web-builder tool for upload to web interfaces
-- Provides complete context in one package
-
-### Template Processing System
-
-BMAD employs a sophisticated template system with three key components:
-
-1. **Template Format** (`utils/template-format.md`): Defines markup language for variable substitution and AI processing directives
-2. **Document Creation** (`tasks/create-doc.md`): Orchestrates template selection and user interaction
-3. **Advanced Elicitation** (`tasks/advanced-elicitation.md`): Provides interactive refinement through structured brainstorming
-
-**Template Features**:
-
-- **Self-contained**: Templates embed both output structure and processing instructions
-- **Variable Substitution**: `{{placeholders}}` for dynamic content
-- **AI Processing Directives**: `[[LLM: instructions]]` for AI-only processing
-- **Interactive Refinement**: Built-in elicitation processes for quality improvement
-
-### Technical Preferences Integration
-
-The `technical-preferences.md` file serves as a persistent technical profile that:
-- Ensures consistency across all agents and projects
-- Eliminates repetitive technology specification
-- Provides personalized recommendations aligned with user preferences
-- Evolves over time with lessons learned
-
-### Build and Delivery Process
-
-The `web-builder.js` tool creates web-ready bundles by:
-1. Reading agent or team definition files
-2. Recursively resolving all dependencies
-3. Concatenating content into single text files with clear separators
-4. Outputting ready-to-upload bundles for web AI interfaces
-
-This architecture enables seamless operation across environments while maintaining the rich, interconnected agent ecosystem that makes BMAD powerful.
-
-## Complete Development Workflow
-
-### Planning Phase (Web UI Recommended)
-
-**Ideal for cost efficiency, especially with Gemini:**
-
-1. **Optional Analysis**: `/analyst` - Market research, competitive analysis
-2. **Project Brief**: Create foundation document (Analyst or user)
-3. **PRD Creation**: `/pm create-doc prd` - Comprehensive product requirements
-4. **Architecture Design**: `/architect create-doc architecture` - Technical foundation
-5. **Validation & Alignment**: `/po` run master checklist to ensure document consistency
-6. **Document Preparation**: Copy final documents to project as `docs/prd.md` and `docs/architecture.md`
-
-#### Example Planning Prompts
-
-**For PRD Creation**:
-```text
-"I want to build a [type] application that [core purpose].
-Help me brainstorm features and create a comprehensive PRD."
-```
-
-**For Architecture Design**:
-```text
-"Based on this PRD, design a scalable technical architecture
-that can handle [specific requirements]."
-```
-
-### Critical Transition: Web UI to IDE
-
-**Once planning is complete, you MUST switch to IDE for development:**
-
-- **Why**: Development workflow requires file operations, real-time project integration, and document sharding
-- **Cost Benefit**: Web UI is more cost-effective for large document creation; IDE is optimized for development tasks
-- **Required Files**: Ensure `docs/prd.md` and `docs/architecture.md` exist in your project
-
-### IDE Development Workflow
-
-**Prerequisites**: Planning documents must exist in `docs/` folder
-
-1. **Document Sharding**: 
-   - `@bmad-master` or `@po` shard `docs/prd.md` to `docs/prd/` folder
-   - If architecture exists, shard to `docs/architecture/` folder
-   - Results in multiple manageable documents and epic files
-
-2. **Verify Sharded Content**:
-   - At least one `epic-n.md` file in `docs/prd/` with stories in development order
-   - Source tree document and coding standards for dev agent reference
-   - Sharded docs for SM agent story creation
-
-**Resulting Folder Structure**:
-- `docs/prd/` - Broken down PRD sections
-- `docs/architecture/` - Broken down architecture sections
-- `docs/stories/` - Generated user stories
-
-3. **Development Cycle** (Sequential, one story at a time):
-
-   **Step 1 - Story Creation**: New chat window → `@sm` → `*create`
-   - SM executes create-next-story task
-   - Review generated story in `docs/stories/`
-   - Update status from "Draft" to "Approved"
-   
-   **Step 2 - Story Implementation**: New chat window → `@dev`
-   - Agent asks which story to implement
-   - Include story file content to save dev agent lookup time
-   - Dev follows tasks/subtasks, marking completion
-   - Dev leaves notes for SM about any deviations
-   - Update status to "Done"
-   
-   **Step 3 - Repeat**: Continue SM → Dev cycle until all epic stories complete
-
-**Important**: Only 1 story in progress at a time, worked sequentially until all epic stories complete.
-
-### Status Tracking Workflow
-
-Stories progress through defined statuses:
-- **Draft** → **Approved** → **InProgress** → **Done**
-
-Each status change requires user verification and approval before proceeding.
-
-### Workflow Types
-
-#### Greenfield Development
-- Business analysis and market research
-- Product requirements and feature definition  
-- System architecture and design
-- Development execution
-- Testing and deployment
-
-#### Brownfield Enhancement
-- Current system analysis
-- Enhancement planning
-- Impact assessment
-- Incremental development
-- Integration testing
-
-## Document Creation Best Practices
-
-### Required File Naming for Framework Integration
-
-- `docs/prd.md` - Product Requirements Document
-- `docs/architecture.md` - System Architecture Document
-
-**Why These Names Matter**:
-- Agents automatically reference these files during development
-- Sharding tasks expect these specific filenames
-- Workflow automation depends on standard naming
-
-### Cost-Effective Document Creation Workflow
-
-**Recommended for Large Documents (PRD, Architecture):**
-
-1. **Use Web UI**: Create documents in web interface for cost efficiency
-2. **Copy Final Output**: Save complete markdown to your project
-3. **Standard Names**: Save as `docs/prd.md` and `docs/architecture.md`
-4. **Switch to IDE**: Use IDE agents for development and smaller documents
-
-### Document Sharding
-
-Templates with Level 2 headings (`##`) can be automatically sharded:
-
-**Original PRD**:
-```markdown
-## Goals and Background Context
-## Requirements  
-## User Interface Design Goals
-## Success Metrics
-```
-
-**After Sharding**:
-- `docs/prd/goals-and-background-context.md`
-- `docs/prd/requirements.md`
-- `docs/prd/user-interface-design-goals.md`
-- `docs/prd/success-metrics.md`
-
-Use the `shard-doc` task or `@kayvan/markdown-tree-parser` tool for automatic sharding.
-
-## Usage Patterns and Best Practices
-
-### Environment-Specific Usage
-
-**Web UI Best For**:
-- Initial planning and documentation phases
-- Cost-effective large document creation
-- Agent consultation and brainstorming
-- Multi-agent workflows with orchestrator
-
-**IDE Best For**:
-- Active development and implementation
-- File operations and project integration
-- Story management and development cycles
-- Code review and debugging
-
-### Quality Assurance
-
-- Use appropriate agents for specialized tasks
-- Follow Agile ceremonies and review processes
-- Maintain document consistency with PO agent
-- Regular validation with checklists and templates
-
-### Performance Optimization
-
-- Use specific agents vs. `bmad-master` for focused tasks
-- Choose appropriate team size for project needs
-- Leverage technical preferences for consistency
-- Regular context management and cache clearing
-
-## Success Tips
-
-- **Use Gemini for big picture planning** - The team-fullstack bundle provides collaborative expertise
-- **Use bmad-master for document organization** - Sharding creates manageable chunks
-- **Follow the SM → Dev cycle religiously** - This ensures systematic progress
-- **Keep conversations focused** - One agent, one task per conversation
-- **Review everything** - Always review and approve before marking complete
-
-## Getting Help
-
-- **Commands**: Use `/help` in any environment to see available commands
-- **Agent Switching**: Use `/switch agent-name` with orchestrator for role changes
-- **Documentation**: Check `docs/` folder for project-specific context
-- **Community**: Discord and GitHub resources available for support
-==================== END: data#bmad-kb ====================
-
-==================== START: tasks#advanced-elicitation ====================
-# Advanced Elicitation Task
-
-## Purpose
-
-- Provide optional reflective and brainstorming actions to enhance content quality
-- Enable deeper exploration of ideas through structured elicitation techniques
-- Support iterative refinement through multiple analytical perspectives
-
-## Task Instructions
-
-### 1. Section Context and Review
-
-[[LLM: When invoked after outputting a section:
-
-1. First, provide a brief 1-2 sentence summary of what the user should look for in the section just presented (e.g., "Please review the technology choices for completeness and alignment with your project needs. Pay special attention to version numbers and any missing categories.")
-
-2. If the section contains Mermaid diagrams, explain each diagram briefly before offering elicitation options (e.g., "The component diagram shows the main system modules and their interactions. Notice how the API Gateway routes requests to different services.")
-
-3. If the section contains multiple distinct items (like multiple components, multiple patterns, etc.), inform the user they can apply elicitation actions to:
-
-   - The entire section as a whole
-   - Individual items within the section (specify which item when selecting an action)
-
-4. Then present the action list as specified below.]]
-
-### 2. Ask for Review and Present Action List
-
-[[LLM: Ask the user to review the drafted section. In the SAME message, inform them that they can suggest additions, removals, or modifications, OR they can select an action by number from the 'Advanced Reflective, Elicitation & Brainstorming Actions'. If there are multiple items in the section, mention they can specify which item(s) to apply the action to. Then, present ONLY the numbered list (0-9) of these actions. Conclude by stating that selecting 9 will proceed to the next section. Await user selection. If an elicitation action (0-8) is chosen, execute it and then re-offer this combined review/elicitation choice. If option 9 is chosen, or if the user provides direct feedback, proceed accordingly.]]
-
-**Present the numbered list (0-9) with this exact format:**
-
-```text
-**Advanced Reflective, Elicitation & Brainstorming Actions**
-Choose an action (0-9 - 9 to bypass - HELP for explanation of these options):
-
-0. Expand or Contract for Audience
-1. Explain Reasoning (CoT Step-by-Step)
-2. Critique and Refine
-3. Analyze Logical Flow and Dependencies
-4. Assess Alignment with Overall Goals
-5. Identify Potential Risks and Unforeseen Issues
-6. Challenge from Critical Perspective (Self or Other Persona)
-7. Explore Diverse Alternatives (ToT-Inspired)
-8. Hindsight is 20/20: The 'If Only...' Reflection
-9. Proceed / No Further Actions
-```
-
-### 2. Processing Guidelines
-
-**Do NOT show:**
-
-- The full protocol text with `[[LLM: ...]]` instructions
-- Detailed explanations of each option unless executing or the user asks, when giving the definition you can modify to tie its relevance
-- Any internal template markup
-
-**After user selection from the list:**
-
-- Execute the chosen action according to the protocol instructions below
-- Ask if they want to select another action or proceed with option 9 once complete
-- Continue until user selects option 9 or indicates completion
-
-## Action Definitions
-
-0. Expand or Contract for Audience
-   [[LLM: Ask the user whether they want to 'expand' on the content (add more detail, elaborate) or 'contract' it (simplify, clarify, make more concise). Also, ask if there's a specific target audience they have in mind. Once clarified, perform the expansion or contraction from your current role's perspective, tailored to the specified audience if provided.]]
-
-1. Explain Reasoning (CoT Step-by-Step)
-   [[LLM: Explain the step-by-step thinking process, characteristic of your role, that you used to arrive at the current proposal for this content.]]
-
-2. Critique and Refine
-   [[LLM: From your current role's perspective, review your last output or the current section for flaws, inconsistencies, or areas for improvement, and then suggest a refined version reflecting your expertise.]]
-
-3. Analyze Logical Flow and Dependencies
-   [[LLM: From your role's standpoint, examine the content's structure for logical progression, internal consistency, and any relevant dependencies. Confirm if elements are presented in an effective order.]]
-
-4. Assess Alignment with Overall Goals
-   [[LLM: Evaluate how well the current content contributes to the stated overall goals of the document, interpreting this from your specific role's perspective and identifying any misalignments you perceive.]]
-
-5. Identify Potential Risks and Unforeseen Issues
-   [[LLM: Based on your role's expertise, brainstorm potential risks, overlooked edge cases, or unintended consequences related to the current content or proposal.]]
-
-6. Challenge from Critical Perspective (Self or Other Persona)
-   [[LLM: Adopt a critical perspective on the current content. If the user specifies another role or persona (e.g., 'as a customer', 'as [Another Persona Name]'), critique the content or play devil's advocate from that specified viewpoint. If no other role is specified, play devil's advocate from your own current persona's viewpoint, arguing against the proposal or current content and highlighting weaknesses or counterarguments specific to your concerns. This can also randomly include YAGNI when appropriate, such as when trimming the scope of an MVP, the perspective might challenge the need for something to cut MVP scope.]]
-
-7. Explore Diverse Alternatives (ToT-Inspired)
-   [[LLM: From your role's perspective, first broadly brainstorm a range of diverse approaches or solutions to the current topic. Then, from this wider exploration, select and present 2 distinct alternatives, detailing the pros, cons, and potential implications you foresee for each.]]
-
-8. Hindsight is 20/20: The 'If Only...' Reflection
-   [[LLM: In your current persona, imagine it's a retrospective for a project based on the current content. What's the one 'if only we had known/done X...' that your role would humorously or dramatically highlight, along with the imagined consequences?]]
-
-9. Proceed / No Further Actions
-   [[LLM: Acknowledge the user's choice to finalize the current work, accept the AI's last output as is, or move on to the next step without selecting another action from this list. Prepare to proceed accordingly.]]
-==================== END: tasks#advanced-elicitation ====================
 
 ==================== START: tasks#execute-checklist ====================
 # Checklist Validation Task
@@ -2117,493 +516,181 @@ Be honest - it's better to flag issues now than have them discovered later.]]
 - [ ] I, the Developer Agent, confirm that all applicable items above have been addressed.
 ==================== END: checklists#story-dod-checklist ====================
 
-==================== START: data#technical-preferences ====================
-# User-Defined Preferred Patterns and Preferences
-
-None Listed
-==================== END: data#technical-preferences ====================
-
-==================== START: utils#template-format ====================
-# Template Format Conventions
-
-Templates in the BMAD method use standardized markup for AI processing. These conventions ensure consistent document generation.
-
-## Template Markup Elements
-
-- **{{placeholders}}**: Variables to be replaced with actual content
-- **[[LLM: instructions]]**: Internal processing instructions for AI agents (never shown to users)
-- **REPEAT** sections: Content blocks that may be repeated as needed
-- **^^CONDITION^^** blocks: Conditional content included only if criteria are met
-- **@{examples}**: Example content for guidance (never output to users)
-
-## Processing Rules
-
-- Replace all {{placeholders}} with project-specific content
-- Execute all [[LLM: instructions]] internally without showing users
-- Process conditional and repeat blocks as specified
-- Use examples for guidance but never include them in final output
-- Present only clean, formatted content to users
-
-## Critical Guidelines
-
-- **NEVER display template markup, LLM instructions, or examples to users**
-- Template elements are for AI processing only
-- Focus on faithful template execution and clean output
-- All template-specific instructions are embedded within templates
-==================== END: utils#template-format ====================
-
-==================== START: tasks#correct-course ====================
-# Correct Course Task
+==================== START: tasks#shard-doc ====================
+# Document Sharding Task
 
 ## Purpose
 
-- Guide a structured response to a change trigger using the `change-checklist`.
-- Analyze the impacts of the change on epics, project artifacts, and the MVP, guided by the checklist's structure.
-- Explore potential solutions (e.g., adjust scope, rollback elements, rescope features) as prompted by the checklist.
-- Draft specific, actionable proposed updates to any affected project artifacts (e.g., epics, user stories, PRD sections, architecture document sections) based on the analysis.
-- Produce a consolidated "Sprint Change Proposal" document that contains the impact analysis and the clearly drafted proposed edits for user review and approval.
-- Ensure a clear handoff path if the nature of the changes necessitates fundamental replanning by other core agents (like PM or Architect).
+- Split a large document into multiple smaller documents based on level 2 sections
+- Create a folder structure to organize the sharded documents
+- Maintain all content integrity including code blocks, diagrams, and markdown formatting
 
-## Instructions
+## Recommended Method: @kayvan/markdown-tree-parser
 
-### 1. Initial Setup & Mode Selection
+[[LLM: First, suggest the user install and use the @kayvan/markdown-tree-parser tool if the md-tree command is unavailable so we can have the best performance and reliable document sharding. Let the user know this will save cost of having the LLM to the expensive sharding operation. Give instructions for MPV NPX and PNPM global installs.]]
 
-- **Acknowledge Task & Inputs:**
-  - Confirm with the user that the "Correct Course Task" (Change Navigation & Integration) is being initiated.
-  - Verify the change trigger and ensure you have the user's initial explanation of the issue and its perceived impact.
-  - Confirm access to all relevant project artifacts (e.g., PRD, Epics/Stories, Architecture Documents, UI/UX Specifications) and, critically, the `change-checklist` (e.g., `change-checklist`).
-- **Establish Interaction Mode:**
-  - Ask the user their preferred interaction mode for this task:
-    - **"Incrementally (Default & Recommended):** Shall we work through the `change-checklist` section by section, discussing findings and collaboratively drafting proposed changes for each relevant part before moving to the next? This allows for detailed, step-by-step refinement."
-    - **"YOLO Mode (Batch Processing):** Or, would you prefer I conduct a more batched analysis based on the checklist and then present a consolidated set of findings and proposed changes for a broader review? This can be quicker for initial assessment but might require more extensive review of the combined proposals."
-  - Request the user to select their preferred mode.
-  - Once the user chooses, confirm the selected mode (e.g., "Okay, we will proceed in Incremental mode."). This chosen mode will govern how subsequent steps in this task are executed.
-- **Explain Process:** Briefly inform the user: "We will now use the `change-checklist` to analyze the change and draft proposed updates. I will guide you through the checklist items based on our chosen interaction mode."
-  <rule>When asking multiple questions or presenting multiple points for user input at once, number them clearly (e.g., 1., 2a., 2b.) to make it easier for the user to provide specific responses.</rule>
+### Installation and Usage
 
-### 2. Execute Checklist Analysis (Iteratively or Batched, per Interaction Mode)
+1. **Install globally**:
 
-- Systematically work through Sections 1-4 of the `change-checklist` (typically covering Change Context, Epic/Story Impact Analysis, Artifact Conflict Resolution, and Path Evaluation/Recommendation).
-- For each checklist item or logical group of items (depending on interaction mode):
-  - Present the relevant prompt(s) or considerations from the checklist to the user.
-  - Request necessary information and actively analyze the relevant project artifacts (PRD, epics, architecture documents, story history, etc.) to assess the impact.
-  - Discuss your findings for each item with the user.
-  - Record the status of each checklist item (e.g., `[x] Addressed`, `[N/A]`, `[!] Further Action Needed`) and any pertinent notes or decisions.
-  - Collaboratively agree on the "Recommended Path Forward" as prompted by Section 4 of the checklist.
+   ```bash
+   npm install -g @kayvan/markdown-tree-parser
+   ```
 
-### 3. Draft Proposed Changes (Iteratively or Batched)
+2. **Use the explode command**:
 
-- Based on the completed checklist analysis (Sections 1-4) and the agreed "Recommended Path Forward" (excluding scenarios requiring fundamental replans that would necessitate immediate handoff to PM/Architect):
-  - Identify the specific project artifacts that require updates (e.g., specific epics, user stories, PRD sections, architecture document components, diagrams).
-  - **Draft the proposed changes directly and explicitly for each identified artifact.** Examples include:
-    - Revising user story text, acceptance criteria, or priority.
-    - Adding, removing, reordering, or splitting user stories within epics.
-    - Proposing modified architecture diagram snippets (e.g., providing an updated Mermaid diagram block or a clear textual description of the change to an existing diagram).
-    - Updating technology lists, configuration details, or specific sections within the PRD or architecture documents.
-    - Drafting new, small supporting artifacts if necessary (e.g., a brief addendum for a specific decision).
-  - If in "Incremental Mode," discuss and refine these proposed edits for each artifact or small group of related artifacts with the user as they are drafted.
-  - If in "YOLO Mode," compile all drafted edits for presentation in the next step.
+   ```bash
+   # For PRD
+   md-tree explode docs/prd.md docs/prd
 
-### 4. Generate "Sprint Change Proposal" with Edits
+   # For Architecture
+   md-tree explode docs/architecture.md docs/architecture
 
-- Synthesize the complete `change-checklist` analysis (covering findings from Sections 1-4) and all the agreed-upon proposed edits (from Instruction 3) into a single document titled "Sprint Change Proposal." This proposal should align with the structure suggested by Section 5 of the `change-checklist` (Proposal Components).
-- The proposal must clearly present:
-  - **Analysis Summary:** A concise overview of the original issue, its analyzed impact (on epics, artifacts, MVP scope), and the rationale for the chosen path forward.
-  - **Specific Proposed Edits:** For each affected artifact, clearly show or describe the exact changes (e.g., "Change Story X.Y from: [old text] To: [new text]", "Add new Acceptance Criterion to Story A.B: [new AC]", "Update Section 3.2 of Architecture Document as follows: [new/modified text or diagram description]").
-- Present the complete draft of the "Sprint Change Proposal" to the user for final review and feedback. Incorporate any final adjustments requested by the user.
+   # For any document
+   md-tree explode [source-document] [destination-folder]
+   ```
 
-### 5. Finalize & Determine Next Steps
+3. **What it does**:
+   - Automatically splits the document by level 2 sections
+   - Creates properly named files
+   - Adjusts heading levels appropriately
+   - Handles all edge cases with code blocks and special markdown
 
-- Obtain explicit user approval for the "Sprint Change Proposal," including all the specific edits documented within it.
-- Provide the finalized "Sprint Change Proposal" document to the user.
-- **Based on the nature of the approved changes:**
-  - **If the approved edits sufficiently address the change and can be implemented directly or organized by a PO/SM:** State that the "Correct Course Task" is complete regarding analysis and change proposal, and the user can now proceed with implementing or logging these changes (e.g., updating actual project documents, backlog items). Suggest handoff to a PO/SM agent for backlog organization if appropriate.
-  - **If the analysis and proposed path (as per checklist Section 4 and potentially Section 6) indicate that the change requires a more fundamental replan (e.g., significant scope change, major architectural rework):** Clearly state this conclusion. Advise the user that the next step involves engaging the primary PM or Architect agents, using the "Sprint Change Proposal" as critical input and context for that deeper replanning effort.
-
-## Output Deliverables
-
-- **Primary:** A "Sprint Change Proposal" document (in markdown format). This document will contain:
-  - A summary of the `change-checklist` analysis (issue, impact, rationale for the chosen path).
-  - Specific, clearly drafted proposed edits for all affected project artifacts.
-- **Implicit:** An annotated `change-checklist` (or the record of its completion) reflecting the discussions, findings, and decisions made during the process.
-==================== END: tasks#correct-course ====================
-
-==================== START: tasks#brownfield-create-epic ====================
-# Create Brownfield Epic Task
-
-## Purpose
-
-Create a single epic for smaller brownfield enhancements that don't require the full PRD and Architecture documentation process. This task is for isolated features or modifications that can be completed within a focused scope.
-
-## When to Use This Task
-
-**Use this task when:**
-
-- The enhancement can be completed in 1-3 stories
-- No significant architectural changes are required
-- The enhancement follows existing project patterns
-- Integration complexity is minimal
-- Risk to existing system is low
-
-**Use the full brownfield PRD/Architecture process when:**
-
-- The enhancement requires multiple coordinated stories
-- Architectural planning is needed
-- Significant integration work is required
-- Risk assessment and mitigation planning is necessary
-
-## Instructions
-
-### 1. Project Analysis (Required)
-
-Before creating the epic, gather essential information about the existing project:
-
-**Existing Project Context:**
-
-- [ ] Project purpose and current functionality understood
-- [ ] Existing technology stack identified
-- [ ] Current architecture patterns noted
-- [ ] Integration points with existing system identified
-
-**Enhancement Scope:**
-
-- [ ] Enhancement clearly defined and scoped
-- [ ] Impact on existing functionality assessed
-- [ ] Required integration points identified
-- [ ] Success criteria established
-
-### 2. Epic Creation
-
-Create a focused epic following this structure:
-
-#### Epic Title
-
-{{Enhancement Name}} - Brownfield Enhancement
-
-#### Epic Goal
-
-{{1-2 sentences describing what the epic will accomplish and why it adds value}}
-
-#### Epic Description
-
-**Existing System Context:**
-
-- Current relevant functionality: {{brief description}}
-- Technology stack: {{relevant existing technologies}}
-- Integration points: {{where new work connects to existing system}}
-
-**Enhancement Details:**
-
-- What's being added/changed: {{clear description}}
-- How it integrates: {{integration approach}}
-- Success criteria: {{measurable outcomes}}
-
-#### Stories
-
-List 1-3 focused stories that complete the epic:
-
-1. **Story 1:** {{Story title and brief description}}
-2. **Story 2:** {{Story title and brief description}}
-3. **Story 3:** {{Story title and brief description}}
-
-#### Compatibility Requirements
-
-- [ ] Existing APIs remain unchanged
-- [ ] Database schema changes are backward compatible
-- [ ] UI changes follow existing patterns
-- [ ] Performance impact is minimal
-
-#### Risk Mitigation
-
-- **Primary Risk:** {{main risk to existing system}}
-- **Mitigation:** {{how risk will be addressed}}
-- **Rollback Plan:** {{how to undo changes if needed}}
-
-#### Definition of Done
-
-- [ ] All stories completed with acceptance criteria met
-- [ ] Existing functionality verified through testing
-- [ ] Integration points working correctly
-- [ ] Documentation updated appropriately
-- [ ] No regression in existing features
-
-### 3. Validation Checklist
-
-Before finalizing the epic, ensure:
-
-**Scope Validation:**
-
-- [ ] Epic can be completed in 1-3 stories maximum
-- [ ] No architectural documentation is required
-- [ ] Enhancement follows existing patterns
-- [ ] Integration complexity is manageable
-
-**Risk Assessment:**
-
-- [ ] Risk to existing system is low
-- [ ] Rollback plan is feasible
-- [ ] Testing approach covers existing functionality
-- [ ] Team has sufficient knowledge of integration points
-
-**Completeness Check:**
-
-- [ ] Epic goal is clear and achievable
-- [ ] Stories are properly scoped
-- [ ] Success criteria are measurable
-- [ ] Dependencies are identified
-
-### 4. Handoff to Story Manager
-
-Once the epic is validated, provide this handoff to the Story Manager:
+If the user has @kayvan/markdown-tree-parser installed, use it and skip the manual process below.
 
 ---
 
-**Story Manager Handoff:**
+## Manual Method (if @kayvan/markdown-tree-parser is not available)
 
-"Please develop detailed user stories for this brownfield epic. Key considerations:
+[[LLM: Only proceed with the manual instructions below if the user cannot or does not want to use @kayvan/markdown-tree-parser.]]
 
-- This is an enhancement to an existing system running {{technology stack}}
-- Integration points: {{list key integration points}}
-- Existing patterns to follow: {{relevant existing patterns}}
-- Critical compatibility requirements: {{key requirements}}
-- Each story must include verification that existing functionality remains intact
+### Task Instructions
 
-The epic should maintain system integrity while delivering {{epic goal}}."
+### 1. Identify Document and Target Location
 
----
+- Determine which document to shard (user-provided path)
+- Create a new folder under `docs/` with the same name as the document (without extension)
+- Example: `docs/prd.md` → create folder `docs/prd/`
 
-## Success Criteria
+### 2. Parse and Extract Sections
 
-The epic creation is successful when:
+[[LLM: When sharding the document:
 
-1. Enhancement scope is clearly defined and appropriately sized
-2. Integration approach respects existing system architecture
-3. Risk to existing functionality is minimized
-4. Stories are logically sequenced for safe implementation
-5. Compatibility requirements are clearly specified
-6. Rollback plan is feasible and documented
+1. Read the entire document content
+2. Identify all level 2 sections (## headings)
+3. For each level 2 section:
+   - Extract the section heading and ALL content until the next level 2 section
+   - Include all subsections, code blocks, diagrams, lists, tables, etc.
+   - Be extremely careful with:
+     - Fenced code blocks (```) - ensure you capture the full block including closing backticks
+     - Mermaid diagrams - preserve the complete diagram syntax
+     - Nested markdown elements
+     - Multi-line content that might contain ## inside code blocks
 
-## Important Notes
+CRITICAL: Use proper parsing that understands markdown context. A ## inside a code block is NOT a section header.]]
 
-- This task is specifically for SMALL brownfield enhancements
-- If the scope grows beyond 3 stories, consider the full brownfield PRD process
-- Always prioritize existing system integrity over new functionality
-- When in doubt about scope or complexity, escalate to full brownfield planning
-==================== END: tasks#brownfield-create-epic ====================
+### 3. Create Individual Files
 
-==================== START: tasks#brownfield-create-story ====================
-# Create Brownfield Story Task
+For each extracted section:
 
-## Purpose
+1. **Generate filename**: Convert the section heading to lowercase-dash-case
 
-Create a single user story for very small brownfield enhancements that can be completed in one focused development session. This task is for minimal additions or bug fixes that require existing system integration awareness.
+   - Remove special characters
+   - Replace spaces with dashes
+   - Example: "## Tech Stack" → `tech-stack.md`
 
-## When to Use This Task
+2. **Adjust heading levels**:
 
-**Use this task when:**
+   - The level 2 heading becomes level 1 (# instead of ##)
+   - All subsection levels decrease by 1:
 
-- The enhancement can be completed in a single story
-- No new architecture or significant design is required
-- The change follows existing patterns exactly
-- Integration is straightforward with minimal risk
-- Change is isolated with clear boundaries
+   ```txt
+     - ### → ##
+     - #### → ###
+     - ##### → ####
+     - etc.
+   ```
 
-**Use brownfield-create-epic when:**
+3. **Write content**: Save the adjusted content to the new file
 
-- The enhancement requires 2-3 coordinated stories
-- Some design work is needed
-- Multiple integration points are involved
+### 4. Create Index File
 
-**Use the full brownfield PRD/Architecture process when:**
+Create an `index.md` file in the sharded folder that:
 
-- The enhancement requires multiple coordinated stories
-- Architectural planning is needed
-- Significant integration work is required
+1. Contains the original level 1 heading and any content before the first level 2 section
+2. Lists all the sharded files with links:
 
-## Instructions
+```markdown
+# Original Document Title
 
-### 1. Quick Project Assessment
+[Original introduction content if any]
 
-Gather minimal but essential context about the existing project:
+## Sections
 
-**Current System Context:**
+- [Section Name 1](./section-name-1.md)
+- [Section Name 2](./section-name-2.md)
+- [Section Name 3](./section-name-3.md)
+  ...
+```
 
-- [ ] Relevant existing functionality identified
-- [ ] Technology stack for this area noted
-- [ ] Integration point(s) clearly understood
-- [ ] Existing patterns for similar work identified
+### 5. Preserve Special Content
 
-**Change Scope:**
+[[LLM: Pay special attention to preserving:
 
-- [ ] Specific change clearly defined
-- [ ] Impact boundaries identified
-- [ ] Success criteria established
+1. **Code blocks**: Must capture complete blocks including:
 
-### 2. Story Creation
+   ```language
+   content
+   ```
 
-Create a single focused story following this structure:
+2. **Mermaid diagrams**: Preserve complete syntax:
 
-#### Story Title
+   ```mermaid
+   graph TD
+   ...
+   ```
 
-{{Specific Enhancement}} - Brownfield Addition
+3. **Tables**: Maintain proper markdown table formatting
 
-#### User Story
+4. **Lists**: Preserve indentation and nesting
 
-As a {{user type}},
-I want {{specific action/capability}},
-So that {{clear benefit/value}}.
+5. **Inline code**: Preserve backticks
 
-#### Story Context
+6. **Links and references**: Keep all markdown links intact
 
-**Existing System Integration:**
+7. **Template markup**: If documents contain {{placeholders}} or [[LLM instructions]], preserve exactly]]
 
-- Integrates with: {{existing component/system}}
-- Technology: {{relevant tech stack}}
-- Follows pattern: {{existing pattern to follow}}
-- Touch points: {{specific integration points}}
+### 6. Validation
 
-#### Acceptance Criteria
+After sharding:
 
-**Functional Requirements:**
+1. Verify all sections were extracted
+2. Check that no content was lost
+3. Ensure heading levels were properly adjusted
+4. Confirm all files were created successfully
 
-1. {{Primary functional requirement}}
-2. {{Secondary functional requirement (if any)}}
-3. {{Integration requirement}}
+### 7. Report Results
 
-**Integration Requirements:** 4. Existing {{relevant functionality}} continues to work unchanged 5. New functionality follows existing {{pattern}} pattern 6. Integration with {{system/component}} maintains current behavior
+Provide a summary:
 
-**Quality Requirements:** 7. Change is covered by appropriate tests 8. Documentation is updated if needed 9. No regression in existing functionality verified
-
-#### Technical Notes
-
-- **Integration Approach:** {{how it connects to existing system}}
-- **Existing Pattern Reference:** {{link or description of pattern to follow}}
-- **Key Constraints:** {{any important limitations or requirements}}
-
-#### Definition of Done
-
-- [ ] Functional requirements met
-- [ ] Integration requirements verified
-- [ ] Existing functionality regression tested
-- [ ] Code follows existing patterns and standards
-- [ ] Tests pass (existing and new)
-- [ ] Documentation updated if applicable
-
-### 3. Risk and Compatibility Check
-
-**Minimal Risk Assessment:**
-
-- **Primary Risk:** {{main risk to existing system}}
-- **Mitigation:** {{simple mitigation approach}}
-- **Rollback:** {{how to undo if needed}}
-
-**Compatibility Verification:**
-
-- [ ] No breaking changes to existing APIs
-- [ ] Database changes (if any) are additive only
-- [ ] UI changes follow existing design patterns
-- [ ] Performance impact is negligible
-
-### 4. Validation Checklist
-
-Before finalizing the story, confirm:
-
-**Scope Validation:**
-
-- [ ] Story can be completed in one development session
-- [ ] Integration approach is straightforward
-- [ ] Follows existing patterns exactly
-- [ ] No design or architecture work required
-
-**Clarity Check:**
-
-- [ ] Story requirements are unambiguous
-- [ ] Integration points are clearly specified
-- [ ] Success criteria are testable
-- [ ] Rollback approach is simple
-
-## Success Criteria
-
-The story creation is successful when:
-
-1. Enhancement is clearly defined and appropriately scoped for single session
-2. Integration approach is straightforward and low-risk
-3. Existing system patterns are identified and will be followed
-4. Rollback plan is simple and feasible
-5. Acceptance criteria include existing functionality verification
+```text
+Document sharded successfully:
+- Source: [original document path]
+- Destination: docs/[folder-name]/
+- Files created: [count]
+- Sections:
+  - section-name-1.md: "Section Title 1"
+  - section-name-2.md: "Section Title 2"
+  ...
+```
 
 ## Important Notes
 
-- This task is for VERY SMALL brownfield changes only
-- If complexity grows during analysis, escalate to brownfield-create-epic
-- Always prioritize existing system integrity
-- When in doubt about integration complexity, use brownfield-create-epic instead
-- Stories should take no more than 4 hours of focused development work
-==================== END: tasks#brownfield-create-story ====================
-
-==================== START: templates#story-tmpl ====================
-# Story {{EpicNum}}.{{StoryNum}}: {{Short Title Copied from Epic File specific story}}
-
-## Status: {{ Draft | Approved | InProgress | Review | Done }}
-
-## Story
-
-- As a {{role}}
-- I want {{action}}
-- so that {{benefit}}
-
-## Acceptance Criteria (ACs)
-
-{{ Copy of Acceptance Criteria numbered list }}
-
-## Tasks / Subtasks
-
-- [ ] Task 1 (AC: # if applicable)
-  - [ ] Subtask1.1...
-- [ ] Task 2 (AC: # if applicable)
-  - [ ] Subtask 2.1...
-- [ ] Task 3 (AC: # if applicable)
-  - [ ] Subtask 3.1...
-
-## Dev Notes
-
-[[LLM: populates relevant information, only what was pulled from actual artifacts from docs folder, relevant to this story. Do not invent information. Critical: If known add Relevant Source Tree info that relates to this story. If there were important notes from previous story that are relevant to this one, also include them here if it will help the dev agent. You do NOT need to repeat anything from coding standards or test standards as the dev agent is already aware of those. The dev agent should NEVER need to read the PRD or architecture documents or child documents though to complete this self contained story, because your critical mission is to share the specific items needed here extremely concisely for the Dev Agent LLM to comprehend with the least about of context overhead token usage needed.]]
-
-### Testing
-
-[[LLM: Scrum Master use `test-strategy-and-standards.md` to leave instruction for developer agent in the following concise format, leave unchecked if no specific test requirement of that type]]
-Dev Note: Story Requires the following tests:
-
-- [ ] {{type f.e. Jest}} Unit Tests: (nextToFile: {{true|false}}), coverage requirement: {{from strategy or default 80%}}
-- [ ] {{type f.e. Jest with in memory db}} Integration Test (Test Location): location: {{Integration test location f.e. `/tests/story-name/foo.spec.cs` or `next to handler`}}
-- [ ] {{type f.e. Cypress}} E2E: location: {{f.e. `/e2e/{epic-name/bar.test.ts`}}
-
-Manual Test Steps: [[LLM: Include how if possible the user can manually test the functionality when story is Ready for Review, if any]]
-
-{{ f.e. `- dev will create a script with task 3 above that you can run with "npm run test-initiate-launch-sequence" and validate Armageddon is initiated`}}
-
-## Dev Agent Record
-
-### Agent Model Used: {{Agent Model Name/Version}}
-
-### Debug Log References
-
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update]]
-[[LLM: (Dev Agent) If the debug is logged to during the current story progress, create a table with the debug log and the specific task section in the debug log - do not repeat all the details in the story]]
-
-### Completion Notes List
-
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update - remove this line to the SM]]
-[[LLM: (Dev Agent) Anything the SM needs to know that deviated from the story that might impact drafting the next story.]]
-
-### Change Log
-
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update- remove this line to the SM]]
-[[LLM: (Dev Agent) Track document versions and changes during development that deviate from story dev start]]
-
-| Date | Version | Description | Author |
-| :--- | :------ | :---------- | :----- |
-==================== END: templates#story-tmpl ====================
+- Never modify the actual content, only adjust heading levels
+- Preserve ALL formatting, including whitespace where significant
+- Handle edge cases like sections with code blocks containing ## symbols
+- Ensure the sharding is reversible (could reconstruct the original from shards)
+==================== END: tasks#shard-doc ====================
 
 ==================== START: checklists#po-master-checklist ====================
 # Product Owner (PO) Master Validation Checklist
@@ -3048,188 +1135,3 @@ After presenting the report, ask if the user wants:
 - **CONDITIONAL**: The plan requires specific adjustments before proceeding.
 - **REJECTED**: The plan requires significant revision to address critical deficiencies.
 ==================== END: checklists#po-master-checklist ====================
-
-==================== START: checklists#change-checklist ====================
-# Change Navigation Checklist
-
-**Purpose:** To systematically guide the selected Agent and user through the analysis and planning required when a significant change (pivot, tech issue, missing requirement, failed story) is identified during the BMAD workflow.
-
-**Instructions:** Review each item with the user. Mark `[x]` for completed/confirmed, `[N/A]` if not applicable, or add notes for discussion points.
-
-[[LLM: INITIALIZATION INSTRUCTIONS - CHANGE NAVIGATION
-
-Changes during development are inevitable, but how we handle them determines project success or failure.
-
-Before proceeding, understand:
-
-1. This checklist is for SIGNIFICANT changes that affect the project direction
-2. Minor adjustments within a story don't require this process
-3. The goal is to minimize wasted work while adapting to new realities
-4. User buy-in is critical - they must understand and approve changes
-
-Required context:
-
-- The triggering story or issue
-- Current project state (completed stories, current epic)
-- Access to PRD, architecture, and other key documents
-- Understanding of remaining work planned
-
-APPROACH:
-This is an interactive process with the user. Work through each section together, discussing implications and options. The user makes final decisions, but provide expert guidance on technical feasibility and impact.
-
-REMEMBER: Changes are opportunities to improve, not failures. Handle them professionally and constructively.]]
-
----
-
-## 1. Understand the Trigger & Context
-
-[[LLM: Start by fully understanding what went wrong and why. Don't jump to solutions yet. Ask probing questions:
-
-- What exactly happened that triggered this review?
-- Is this a one-time issue or symptomatic of a larger problem?
-- Could this have been anticipated earlier?
-- What assumptions were incorrect?
-
-Be specific and factual, not blame-oriented.]]
-
-- [ ] **Identify Triggering Story:** Clearly identify the story (or stories) that revealed the issue.
-- [ ] **Define the Issue:** Articulate the core problem precisely.
-  - [ ] Is it a technical limitation/dead-end?
-  - [ ] Is it a newly discovered requirement?
-  - [ ] Is it a fundamental misunderstanding of existing requirements?
-  - [ ] Is it a necessary pivot based on feedback or new information?
-  - [ ] Is it a failed/abandoned story needing a new approach?
-- [ ] **Assess Initial Impact:** Describe the immediate observed consequences (e.g., blocked progress, incorrect functionality, non-viable tech).
-- [ ] **Gather Evidence:** Note any specific logs, error messages, user feedback, or analysis that supports the issue definition.
-
-## 2. Epic Impact Assessment
-
-[[LLM: Changes ripple through the project structure. Systematically evaluate:
-
-1. Can we salvage the current epic with modifications?
-2. Do future epics still make sense given this change?
-3. Are we creating or eliminating dependencies?
-4. Does the epic sequence need reordering?
-
-Think about both immediate and downstream effects.]]
-
-- [ ] **Analyze Current Epic:**
-  - [ ] Can the current epic containing the trigger story still be completed?
-  - [ ] Does the current epic need modification (story changes, additions, removals)?
-  - [ ] Should the current epic be abandoned or fundamentally redefined?
-- [ ] **Analyze Future Epics:**
-  - [ ] Review all remaining planned epics.
-  - [ ] Does the issue require changes to planned stories in future epics?
-  - [ ] Does the issue invalidate any future epics?
-  - [ ] Does the issue necessitate the creation of entirely new epics?
-  - [ ] Should the order/priority of future epics be changed?
-- [ ] **Summarize Epic Impact:** Briefly document the overall effect on the project's epic structure and flow.
-
-## 3. Artifact Conflict & Impact Analysis
-
-[[LLM: Documentation drives development in BMAD. Check each artifact:
-
-1. Does this change invalidate documented decisions?
-2. Are architectural assumptions still valid?
-3. Do user flows need rethinking?
-4. Are technical constraints different than documented?
-
-Be thorough - missed conflicts cause future problems.]]
-
-- [ ] **Review PRD:**
-  - [ ] Does the issue conflict with the core goals or requirements stated in the PRD?
-  - [ ] Does the PRD need clarification or updates based on the new understanding?
-- [ ] **Review Architecture Document:**
-  - [ ] Does the issue conflict with the documented architecture (components, patterns, tech choices)?
-  - [ ] Are specific components/diagrams/sections impacted?
-  - [ ] Does the technology list need updating?
-  - [ ] Do data models or schemas need revision?
-  - [ ] Are external API integrations affected?
-- [ ] **Review Frontend Spec (if applicable):**
-  - [ ] Does the issue conflict with the FE architecture, component library choice, or UI/UX design?
-  - [ ] Are specific FE components or user flows impacted?
-- [ ] **Review Other Artifacts (if applicable):**
-  - [ ] Consider impact on deployment scripts, IaC, monitoring setup, etc.
-- [ ] **Summarize Artifact Impact:** List all artifacts requiring updates and the nature of the changes needed.
-
-## 4. Path Forward Evaluation
-
-[[LLM: Present options clearly with pros/cons. For each path:
-
-1. What's the effort required?
-2. What work gets thrown away?
-3. What risks are we taking?
-4. How does this affect timeline?
-5. Is this sustainable long-term?
-
-Be honest about trade-offs. There's rarely a perfect solution.]]
-
-- [ ] **Option 1: Direct Adjustment / Integration:**
-  - [ ] Can the issue be addressed by modifying/adding future stories within the existing plan?
-  - [ ] Define the scope and nature of these adjustments.
-  - [ ] Assess feasibility, effort, and risks of this path.
-- [ ] **Option 2: Potential Rollback:**
-  - [ ] Would reverting completed stories significantly simplify addressing the issue?
-  - [ ] Identify specific stories/commits to consider for rollback.
-  - [ ] Assess the effort required for rollback.
-  - [ ] Assess the impact of rollback (lost work, data implications).
-  - [ ] Compare the net benefit/cost vs. Direct Adjustment.
-- [ ] **Option 3: PRD MVP Review & Potential Re-scoping:**
-  - [ ] Is the original PRD MVP still achievable given the issue and constraints?
-  - [ ] Does the MVP scope need reduction (removing features/epics)?
-  - [ ] Do the core MVP goals need modification?
-  - [ ] Are alternative approaches needed to meet the original MVP intent?
-  - [ ] **Extreme Case:** Does the issue necessitate a fundamental replan or potentially a new PRD V2 (to be handled by PM)?
-- [ ] **Select Recommended Path:** Based on the evaluation, agree on the most viable path forward.
-
-## 5. Sprint Change Proposal Components
-
-[[LLM: The proposal must be actionable and clear. Ensure:
-
-1. The issue is explained in plain language
-2. Impacts are quantified where possible
-3. The recommended path has clear rationale
-4. Next steps are specific and assigned
-5. Success criteria for the change are defined
-
-This proposal guides all subsequent work.]]
-
-(Ensure all agreed-upon points from previous sections are captured in the proposal)
-
-- [ ] **Identified Issue Summary:** Clear, concise problem statement.
-- [ ] **Epic Impact Summary:** How epics are affected.
-- [ ] **Artifact Adjustment Needs:** List of documents to change.
-- [ ] **Recommended Path Forward:** Chosen solution with rationale.
-- [ ] **PRD MVP Impact:** Changes to scope/goals (if any).
-- [ ] **High-Level Action Plan:** Next steps for stories/updates.
-- [ ] **Agent Handoff Plan:** Identify roles needed (PM, Arch, Design Arch, PO).
-
-## 6. Final Review & Handoff
-
-[[LLM: Changes require coordination. Before concluding:
-
-1. Is the user fully aligned with the plan?
-2. Do all stakeholders understand the impacts?
-3. Are handoffs to other agents clear?
-4. Is there a rollback plan if the change fails?
-5. How will we validate the change worked?
-
-Get explicit approval - implicit agreement causes problems.
-
-FINAL REPORT:
-After completing the checklist, provide a concise summary:
-
-- What changed and why
-- What we're doing about it
-- Who needs to do what
-- When we'll know if it worked
-
-Keep it action-oriented and forward-looking.]]
-
-- [ ] **Review Checklist:** Confirm all relevant items were discussed.
-- [ ] **Review Sprint Change Proposal:** Ensure it accurately reflects the discussion and decisions.
-- [ ] **User Approval:** Obtain explicit user approval for the proposal.
-- [ ] **Confirm Next Steps:** Reiterate the handoff plan and the next actions to be taken by specific agents.
-
----
-==================== END: checklists#change-checklist ====================
