@@ -95,4 +95,3 @@ The system utilizes a suite of specialized AI agents. Key roles include:
 │   └── upgraders/
 └── package.json           # Project dependencies and scripts.
 ```
-```
