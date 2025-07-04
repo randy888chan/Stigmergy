@@ -1,66 +1,15 @@
-# Pheromind System Architecture
+# Stigmergy System Goal
 
-This document describes the internal architecture of the Pheromind Autonomous AI Development System.
+This document defines the core purpose and fundamental capabilities of the Stigmergy autonomous AI development system. All agents MUST align their actions and decisions with these foundational goals.
 
-## The Autonomous Loop
+The system is designed to achieve the following unique combination of capabilities:
 
-The system operates on a self-perpetuating work cycle, the "Autonomous Loop," driven by a shared state file. This loop is the heartbeat of the swarm and continues until the project goals are met.
+- **True Autonomous Orchestration:** The system's AI agents must take the lead in planning, delegating, and executing complex project phases with minimal human intervention. The goal is a hands-free workflow from initial concept to final artifact.
 
-**Shared State File:** The central medium for agent communication is `.ai/state.json`. Agents do not communicate directly; they interact by modifying this file, leaving signals for others to act upon (a process called stigmergy).
+- **Adaptive Swarm Intelligence:** The agent collective must be inherently resilient and adaptive. It must dynamically reallocate resources, navigate unforeseen obstacles using defined escalation protocols, and optimize pathways to project completion by learning from its own performance.
 
-The loop proceeds in three distinct steps:
+- **Unambiguous AI-Verifiable Outcomes:** Progress is not subjective. Milestones, tasks, and quality are defined by outputs and state changes that can be programmatically verified by other AI agents. The `.ai/state.json` file is the immutable ledger of these outcomes, bringing mathematical rigor to project tracking.
 
-**1. Orchestration (`@bmad-orchestrator`, Olivia):**
-*   **Input:** Reads the `.ai/state.json` file.
-*   **Action:** Analyzes the `project_status` and `system_signals` to determine the next highest-priority task. Dispatches the task to the appropriate specialist worker agent (e.g., `@sm` to create a story, `@dev` to implement it).
-*   **Output:** Her turn ends immediately after dispatching the worker. She does not perform tasks herself.
+- **Sophisticated Natural Language Interpretation:** Agent coordination is driven by the interpretation of complex, narrative-style information (e.g., worker reports, user requests), allowing for a richer and more flexible flow of understanding than rigid commands. The system's "Interpreter" agent (`@bmad-master`) is central to translating these narratives into the structured "digital scent" that guides the swarm.
 
-**2. Execution (Worker Agent, e.g., `@dev`):**
-*   **Input:** Receives a specific task from the Orchestrator.
-*   **Action:** Executes the single task using its specialized skills and tools. It MUST consult the project's "Blueprint" (`docs/`) and adhere to the system's "Constitution" (`bmad-core/system_docs/`).
-*   **Output:** Upon completion or failure, the worker agent produces a structured report detailing the outcome, including changed files, logs, and a final status. **Its final instruction MUST be a handoff to the Scribe.**
-
-**3. State Update (`@bmad-master`, Saul):**
-*   **Input:** Receives the completed task report from a worker agent.
-*   **Action:** Parses the unstructured report. Translates the outcome into structured data.
-*   **Output:** Updates the `.ai/state.json` file with the results, appending the report to `agent_reports` and adding a new, specific signal to `system_signals` (e.g., `task_complete`, `code_rejected_by_qa`, `human_input_required`). **His final action is to hand off control back to the Orchestrator.**
-
-This `Orchestrator -> Worker -> Scribe` cycle repeats, driving the project forward autonomously.
-
-## The Shared State (`.ai/state.json`) Structure
-
-This file is the single source of truth for the project's status.
-
-```json
-{
-  "project_status": "in_progress", // "planning", "in_progress", "paused", "complete"
-  "current_epic": "epic-1.md",
-  "current_story": "1.1.story.md",
-  "task_queue": [
-    // Future tasks can be queued here by planning agents
-  ],
-  "system_signals": [
-    // A log of machine-readable events from the Scribe
-    {
-      "timestamp": "2025-07-04T10:00:00Z",
-      "agent": "dev",
-      "signal": "task_complete",
-      "story": "1.1.story.md",
-      "details": "Implementation of user login endpoint finished."
-    },
-    {
-      "timestamp": "2025-07-04T11:00:00Z",
-      "agent": "qa",
-      "signal": "code_rejected_by_qa",
-      "story": "1.1.story.md",
-      "details": "Rejected due to failing unit tests. See report for details."
-    }
-  ],
-  "agent_reports": [
-    // Full, unstructured text reports from worker agents
-  ],
-  "knowledge_base": {
-    "prd_summary": "Summary of the PRD.",
-    "architecture_summary": "Key architectural decisions."
-  }
-}
+This dynamic interplay, guided by interpretable signals within a shared environment, allows the swarm to achieve complex goals with emergent intelligence.
