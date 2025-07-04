@@ -1,0 +1,67 @@
+{
+  "name": "bmad-method",
+  "version": "4.10.0",
+  "description": "Breakthrough Method of Agile AI-driven Development",
+  "main": "tools/cli.js",
+  "bin": {
+    "bmad": "tools/installer/cli.js",
+    "bmad-method": "tools/installer/cli.js"
+  },
+  "scripts": {
+    "build": "node tools/cli.js build",
+    "build:agents": "node tools/cli.js build --agents-only",
+    "build:teams": "node tools/cli.js build --teams-only",
+    "build:web": "node tools/cli.js build:web",
+    "list:agents": "node tools/cli.js list:agents",
+    "validate": "node tools/cli.js validate",
+    "install": "node tools/installer/cli.js install",
+    "lint": "prettier --check \"**/*.{md,js,json,yml,yaml}\"",
+    "lint:fix": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
+    "version:patch": "node tools/version-bump.js patch",
+    "version:minor": "node tools/version-bump.js minor",
+    "version:major": "node tools/version-bump.js major",
+    "release": "semantic-release",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@kayvan/markdown-tree-parser": "^1.5.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "fs-extra": "^11.2.0",
+    "glob": "^10.4.2",
+    "inquirer": "^9.3.2",
+    "js-yaml": "^4.1.0",
+    "ora": "^8.0.1"
+  },
+  "keywords": [
+    "agile",
+    "ai",
+    "orchestrator",
+    "development",
+    "methodology",
+    "agents",
+    "bmad"
+  ],
+  "author": "Brian (BMad) Madison",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bmadcode/BMAD-METHOD.git"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "husky": "^9.0.11",
+    "lint-staged": "^15.2.7",
+    "prettier": "^3.3.2",
+    "semantic-release": "^24.0.0"
+  },
+  "lint-staged": {
+    "**/*.{md,js,json,yml,yaml}": [
+      "prettier --write"
+    ]
+  }
+}
