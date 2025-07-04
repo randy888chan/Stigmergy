@@ -51,7 +51,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/randy888chan/Stigmergy.git"
+    "url": "git+https://github.com/randy888chan/Stigmergy.git",
+    "directory": "."
   },
   "engines": {
     "node": ">=20.0.0"
