@@ -1,23 +1,34 @@
-# Pheromind System Architecture
+# Stigmergy System Architecture & Operations Manual
 
-This document describes the internal architecture of the Pheromind Autonomous AI Development System.
+This document describes the high-level architecture and immutable operational rules of the Stigmergy Autonomous AI Development System. This is a core part of the **System Constitution**.
+
+## Core Directories
+
+The system operates using three distinct directory structures:
+
+1.  **`.bmad-core/` (The Swarm's Brain):** This contains the core logic of the system: agent definitions, tasks, templates, and the System Constitution itself. It is installed once and treated as part of the application's source code.
+2.  **`docs/` (The Immutable Project Blueprint):** This directory contains the specific requirements (`prd.md`) and technical plans (`architecture.md`) for the software being built. Once Phase 1 (Planning) is complete, this directory becomes the **read-only source of truth**. Worker agents may *read* from it for context but are forbidden from *modifying* its contents.
+3.  **`.ai/` (The Swarm's Memory):** This is the dynamic, operational workspace of the swarm. It contains the shared state file (`state.json`), logs, and reports. This directory is created at runtime and MUST be included in `.gitignore`.
 
 ## The Autonomous Loop
 
-The system is designed around a self-perpetuating work cycle, known as the "Autonomous Loop," which is the heartbeat of the swarm.
+The system operates on a self-perpetuating work cycle driven by the shared state file. This `Orchestrator -> Worker -> Scribe` cycle is the heartbeat of the swarm.
 
-1.  **The Orchestrator (`@bmad-orchestrator`, Olivia):** The brain of the system. Olivia initiates all work. She reads the current project state from `.bmad-state.json`, identifies the highest-priority task based on the project plan, and dispatches it to a specialist agent. Her turn ends immediately after dispatching.
+**Shared State File:** The central medium for communication is **`.ai/state.json`**. Agents interact indirectly by reading from and reporting back to the agents who write to this file. This process is called stigmergy.
 
-2.  **The Worker (e.g., `@dev`, `@analyst`):** The hands of the system. A worker agent executes its dispatched task. Its only goal is to complete that single task. Upon completion or failure, it must report its status.
+The loop proceeds in three mandatory steps:
 
-3.  **The Scribe (`@bmad-master`, Saul):** The nervous system of the system. Saul's only role is to receive reports from worker agents, interpret them, and update the `.bmad-state.json` file with new, structured signals.
+**1. Orchestration (`@bmad-orchestrator`, Olivia):**
+*   **Input:** Reads the `.ai/state.json` file.
+*   **Action:** Analyzes the `system_signals` to determine the next task according to its dispatch protocol. Dispatches the task to a specialist worker agent.
+*   **Output:** Her turn ends immediately after dispatching the worker.
 
-This cycle (`Olivia -> Worker -> Saul -> Olivia`) continues until the project's objectives, as defined in the `project_docs`, are met.
+**2. Execution (A Worker Agent, e.g., `@dev`, `@sm`):**
+*   **Input:** Receives a single, specific task from the Orchestrator.
+*   **Action:** Executes the task, consulting the Project Blueprint (`docs/`) for context and adhering to the System Constitution (`system_docs/`).
+*   **Output:** Produces a structured report detailing the outcome and concludes with a **mandatory handoff to the Scribe**.
 
-## Knowledge Domains
-
-The system operates on two distinct knowledge domains:
-
-1.  **System-Level Knowledge (`system_docs`):** This directory contains the permanent "constitution" of the Pheromind system itself. All agents refer to these documents to understand their own roles, protocols, and the system's overarching goals.
-
-2.  **Project-Level Knowledge (`project_docs`):** This directory is created for each new software development project. It contains the specific requirements, architecture, and documentation for the product being built. It is the "source of truth" for the current task at hand.
+**3. State Update (`@bmad-master`, Saul):**
+*   **Input:** Receives the report from a worker agent.
+*   **Action:** Parses the report, translates the outcome into structured data, and generates a new system signal.
+*   **Output:** Updates `.ai/state.json` with the report and the new signal, then concludes with a **mandatory handoff back to the Orchestrator**, thus completing the loop.
