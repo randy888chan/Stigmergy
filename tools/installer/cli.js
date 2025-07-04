@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const { Command } = require('commander');
 const path = require('path');
 const Installer = require('./lib/installer');
@@ -17,17 +19,17 @@ async function main() {
   const program = new Command();
 
   program
-    .name('bmad-method')
-    .description('BMAD Method installer - AI-powered Agile development framework')
+    .name('stigmergy-install')
+    .description('Stigmergy framework installer - AI-powered Agile development swarm')
     .version(require('../../package.json').version);
 
   program
     .command('install')
-    .description('Interactively install or update a BMAD-METHOD project.')
+    .description('Interactively install or update a Stigmergy project.')
     .option('-d, --directory <path>', 'Target directory for installation', '.')
     .action(async (options) => {
       try {
-        console.log(chalk.bold.cyan('Welcome to the BMAD-METHOD v4 Installer!'));
+        console.log(chalk.bold.cyan('Welcome to the Stigmergy Framework Installer!'));
         console.log("Let's get your project set up for autonomous AI development.");
 
         const { installType } = await inquirer.prompt([
@@ -63,10 +65,10 @@ async function main() {
                 name: 'ides',
                 message: 'Select IDEs to configure (Space to select, Enter to confirm):',
                 choices: [
-                    { name: 'Cursor', value: 'cursor' },
-                    { name: 'VS Code (Roo Code extension)', value: 'roo' },
-                    { name: 'Anthropic Claude Code', value: 'claude-code' },
-                    { name: 'Windsurf', value: 'windsurf' },
+                    { name: 'Roo Code (VS Code Extension)', value: 'roo' },
+                    { name: 'TRAE AI IDE (Coming Soon)', value: 'trae', disabled: true },
+                    { name: 'Kilo Code (Coming Soon)', value: 'kilo', disabled: true },
+                    { name: 'Cline (Coming Soon)', value: 'cline', disabled: true },
                 ]
             }
         ]);
