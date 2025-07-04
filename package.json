@@ -1,11 +1,14 @@
 {
-  "name": "bmad-method",
+  "name": "@randy888chan/stigmergy",
   "version": "4.10.0",
-  "description": "Breakthrough Method of Agile AI-driven Development",
+  "description": "An autonomous AI development swarm based on the BMAD methodology.",
   "main": "tools/cli.js",
   "bin": {
-    "bmad": "tools/installer/cli.js",
+    "stigmergy": "tools/installer/cli.js",
     "bmad-method": "tools/installer/cli.js"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "node tools/cli.js build",
@@ -40,13 +43,15 @@
     "development",
     "methodology",
     "agents",
-    "bmad"
+    "bmad",
+    "stigmergy",
+    "swarm"
   ],
-  "author": "Brian (BMad) Madison",
+  "author": "Randy Chan (forked from BMad)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/bmadcode/BMAD-METHOD.git"
+    "url": "git+https://github.com/randy888chan/Stigmergy.git"
   },
   "engines": {
     "node": ">=20.0.0"
