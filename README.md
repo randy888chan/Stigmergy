@@ -1,6 +1,6 @@
-# Pheromind V4: The Autonomous AI Development Swarm
+# Stigmergy: The Autonomous AI Development Swarm
 
-Pheromind is a framework for orchestrating a swarm of specialized AI agents to autonomously build software. It combines principles of swarm intelligence with agile development methodologies to create a system that can manage a project from planning to execution with minimal human intervention.
+Stigmergy is a framework for orchestrating a swarm of specialized AI agents to autonomously build software. It combines principles of swarm intelligence with agile development methodologies to create a system that can manage a project from planning to execution with minimal human intervention.
 
 At its core, the system utilizes:
 
@@ -12,20 +12,20 @@ At its core, the system utilizes:
 
 ## 🚀 Installation
 
-Pheromind V4 includes an interactive installer that configures your project and integrates with your favorite IDE.
+The Stigmergy framework includes an interactive installer that configures your project and integrates with your favorite IDE.
 
 ```bash
 # Run this command in the root of your project folder
-npx bmad-method install
+npx @randy888chan/stigmergy install
 ```
 
-The installer will guide you through setting up the `.bmad-core` system, installing web bundles for UI-based planning, and configuring IDEs like Cursor, VS Code (with Roo Code), Claude Code, or Windsurf.
+The installer will guide you through setting up the `.bmad-core` system, installing web bundles for UI-based planning, and configuring IDEs like Roo Code, TRAE AI IDE, Kilo Code, and Cline.
 
 ---
 
-##  workflows
+## Workflows
 
-The Pheromind workflow is divided into two distinct phases, designed to leverage the best of human strategy and autonomous AI execution.
+The Stigmergy workflow is divided into two distinct phases, designed to leverage the best of human strategy and autonomous AI execution.
 
 ### **Phase 1: Strategic Planning (Web UI or IDE)**
 
