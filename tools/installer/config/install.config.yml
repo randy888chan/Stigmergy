@@ -3,7 +3,6 @@ installation-options:
     name: Complete BMAD Core
     description: Copy the entire .bmad-core folder with all agents, templates, and tools
     action: copy-folder
-    source: bmad-core
   single-agent:
     name: Single Agent
     description: Select and install a single agent with its dependencies
@@ -40,6 +39,9 @@ agent-dependencies:
   analyst:
     - bmad-core/templates/prd-tmpl.md
     - bmad-core/tasks/advanced-elicitation.md
+    - bmad-core/tasks/perform_initial_project_research.md
+    - bmad-core/templates/market-research-tmpl.md
+    - bmad-core/templates/competitor-analysis-tmpl.md
   qa:
     - bmad-core/checklists/story-dod-checklist.md
     - bmad-core/templates/test-plan-tmpl.md
@@ -53,49 +55,33 @@ agent-dependencies:
     - bmad-core/agent-teams/*.yml
     - bmad-core/workflows/*.yml
 ide-configurations:
-  cursor:
-    name: Cursor
-    rule-dir: .cursor/rules/
-    format: multi-file
-    command-suffix: .mdc
-    instructions: |
-      # To use BMAD agents in Cursor:
-      # 1. Press Ctrl+L (Cmd+L on Mac) to open the chat
-      # 2. Type @agent-name (e.g., "@dev", "@pm", "@architect")
-      # 3. The agent will adopt that persona for the conversation
-  claude-code:
-    name: Claude Code
-    rule-dir: .claude/commands/
-    format: multi-file
-    command-suffix: .md
-    instructions: |
-      # To use BMAD agents in Claude Code:
-      # 1. Type /agent-name (e.g., "/dev", "/pm", "/architect")
-      # 2. Claude will switch to that agent's persona
-  windsurf:
-    name: Windsurf
-    rule-dir: .windsurf/rules/
-    format: multi-file
-    command-suffix: .md
-    instructions: |
-      # To use BMAD agents in Windsurf:
-      # 1. Type @agent-name (e.g., "@dev", "@pm")
-      # 2. Windsurf will adopt that agent's persona
   roo:
-    name: Roo Code
+    name: Roo Code (VS Code Extension)
     format: custom-modes
     file: .roomodes
     instructions: |
-      # To use BMAD agents in Roo Code:
-      # 1. Open the mode selector (usually in the status bar)
-      # 2. Select any bmad-{agent} mode (e.g., "bmad-dev", "bmad-pm")
-      # 3. The AI will adopt that agent's full personality and capabilities
+      # To use Stigmergy agents in Roo Code:
+      # 1. Open the mode selector (usually in the status bar).
+      # 2. Select any bmad-{agent} mode (e.g., "bmad-dev", "bmad-pm").
+      # 3. The AI will adopt that agent's full personality and capabilities.
+  trae:
+    name: TRAE AI IDE
+    format: unknown
+    instructions: |
+      # TRAE AI IDE configuration coming soon.
+      # Manual setup: Copy IDE agent files to your TRAE configuration.
+  kilo:
+    name: Kilo Code
+    format: unknown
+    instructions: |
+      # Kilo Code configuration coming soon.
+      # Manual setup: Copy IDE agent files to your Kilo configuration.
   cline:
     name: Cline
     format: unknown
     instructions: |
-      # Cline configuration coming soon
-      # Manual setup: Copy IDE agent files to your Cline configuration
+      # Cline configuration coming soon.
+      # Manual setup: Copy IDE agent files to your Cline configuration.
 available-agents:
   - id: analyst
     name: Business Analyst
