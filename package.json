@@ -24,7 +24,7 @@
     "version:minor": "node tools/version-bump.js minor",
     "version:major": "node tools/version-bump.js major",
     "release": "semantic-release",
-    "prepare": "husky"
+    "prepare": "husky install"
   },
   "dependencies": {
     "@kayvan/markdown-tree-parser": "^1.5.0",
