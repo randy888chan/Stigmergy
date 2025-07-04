@@ -1,22 +1,21 @@
-# Node modules
-node_modules/
-
-# Logs
-logs
-*.log
+# Node.js
+node_modules
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.npm
+.pnp.*
 
-# Build output
-build/*.txt
+# Build artifacts
+dist
 
-# System files
+# Stigmergy/BMAD operational files
+.ai/
+*.bak
+
+# IDE & OS files
+.vscode/
+.idea/
 .DS_Store
-Thumbs.db
-
-# Environment variables
-.env
-
-CLAUDE.md
-.ai/*
-test-project-install/*
-sample-project/*
