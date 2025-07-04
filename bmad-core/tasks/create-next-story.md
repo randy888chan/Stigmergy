@@ -1,46 +1,41 @@
 # Create Next Story Task
 
 ## Purpose
-To identify the next logical story based on project progress and epic definitions, and then to prepare a comprehensive, self-contained, and actionable story file using the `Story Template`. This task ensures the story is enriched with all necessary technical context, requirements, and acceptance criteria, making it ready for efficient implementation by a Developer Agent with minimal need for additional research.
+To deterministically identify the next sequential story from the current epic, enrich it with specific technical context from architecture documents, and generate a comprehensive, self-contained story file ready for a developer agent.
 
 ## Task Execution Instructions
 
-### [[LLM: This is a complex task requiring strict adherence to the process to ensure the creation of a high-quality, actionable story for the developer agent.]]
+### [[LLM: This is a critical system task. You MUST follow these steps precisely to ensure the creation of a high-quality, actionable story for the developer agent and to maintain the autonomous loop.]]
 
 ### 0. Load Core Configuration & State
-- **[[LLM: CRITICAL - This MUST be your first step]]**
-- Load `.bmad-core/core-config.yml` and `.bmad-state.json` from the project root.
-- If `core-config.yml` does not exist, HALT and inform the user.
-- From config, extract: `dev-story-location`, PRD settings (`prdSharded`, `prd-file`, `prdShardedLocation`, `epicFilePattern`), and Architecture settings (`architectureSharded`, `architecture-file`, `architectureShardedLocation`).
-- From state, use the `project_documents` map to confirm locations of current official documents.
+- **[[LLM: CRITICAL - This MUST be your first action.]]**
+- Load the contents of `.ai/state.json` to identify the `current_epic`.
+- Load the contents of `bmad-core/core-config.yml` to identify the locations of the sharded PRD (`prdShardedLocation`), sharded architecture (`architectureShardedLocation`), and story files (`dev-story-location`).
+- If any of these files do not exist or cannot be parsed, HALT and report the issue to `@bmad-master`.
 
 ### 1. Identify Next Story for Preparation
-- Review `dev-story-location` to find the highest-numbered completed story (`{lastEpicNum}.{lastStoryNum}.story.md`).
-- If no stories exist, the next story is Epic 1, Story 1.
-- If stories exist, determine the next story number sequentially from the last completed one. Find the corresponding Epic file (e.g., `epic-{epicNum}.md`) in the `prdShardedLocation` or monolithic `prd-file`.
-- Extract the story's Title, User Story statement, and Acceptance Criteria from the epic.
-- Announce the identified story: "Identified next story for preparation: {epicNum}.{storyNum} - {Story Title}".
+- Using the `dev-story-location` from the config, scan for all existing story files related to the `current_epic`. Determine the highest story number already created (e.g., if `1.3.story.md` is the last one, the next is 1.4). If no stories exist for the epic, the next story is number 1.
+- Open the epic file (e.g., `{prdShardedLocation}/epic-1.md`).
+- Find the corresponding story block in the markdown for the story you are about to create.
+- Extract the Story Title, the full "As a..., I want..., so that..." statement, and all of its Acceptance Criteria.
+- Announce your finding: "Next story identified for preparation: {epicNum}.{storyNum} - {Story Title}".
 
 ### 2. Synthesize Context from Architecture
-- **[[LLM: CRITICAL - You MUST gather specific technical details from the sharded architecture documents. Do not load the entire architecture.]]**
-- Based on the story's content and requirements, identify which architecture shards are relevant (e.g., if it's a UI story, look at `frontend-architecture.md`, `components.md`; if it's a backend story, look at `data-models.md`, `rest-api-spec.md`).
-- Extract *only the specific, relevant snippets* from these files. Examples:
-  - The exact data model schema for a `User` object.
-  - The specific API endpoint definition for `/users/create`.
-  - The required props for a `Button` component.
-- **ALWAYS** cite the source file for each piece of information (e.g., `[Source: architecture/data-models.md]`).
+- **[[LLM: CRITICAL - You MUST enrich the story with specific technical guidance. Do not just link to the architecture.]]**
+- Based on the story's content and Acceptance Criteria, identify relevant shards in the `{architectureShardedLocation}` directory (e.g., if the story mentions user data, load `data-models.md`; if it mentions a UI button, load `components.md`).
+- Extract *only the specific, relevant snippets* from these files. For example, the exact data model for a `User`, the specific API endpoint definition for `/users/create`, or the required props for a `PrimaryButton` component.
+- **ALWAYS** cite the source file for each piece of information extracted (e.g., `[Source: docs/architecture/data-models.md]`). This is non-negotiable.
 
 ### 3. Populate Story Template with Full Context
-- Create a new story file: `{dev-story-location}/{epicNum}.{storyNum}.story.md`.
-- Use the `story-tmpl.md` to structure the file.
-- **Fill the `Dev Technical Guidance` section (CRITICAL):**
-  - Synthesize the technical snippets extracted from the architecture shards.
-  - Provide a concise but complete technical briefing for the developer. NEVER make up technical details. If information is missing from architecture, state it explicitly: "No specific guidance for XYZ found in architecture docs."
+- Create a new story file named `{dev-story-location}/{epicNum}.{storyNum}.story.md`.
+- Use the `story-tmpl.md` as the base structure.
+- **Populate the `Dev Notes` section (CRITICAL):**
+  - Synthesize the technical snippets you extracted into a concise technical briefing for the developer. Do NOT invent technical details. If a required piece of information is missing from the architecture documents, you MUST state this explicitly (e.g., "Note: No specific guidance for error handling was found in architecture docs; proceeding with standard implementation.").
 - **Generate `Tasks / Subtasks`:**
-  - Create a detailed, sequential list of technical tasks based *only* on the story's requirements and the technical guidance you just compiled.
-  - Link tasks to Acceptance Criteria where possible.
+  - Create a detailed, sequential list of technical tasks required to implement the story. These tasks should be derived directly from the story's requirements and the technical guidance you just compiled.
+  - Where possible, link each task back to the specific Acceptance Criteria it fulfills (e.g., `Task 1 (AC: #2, #3)`).
 
 ### 4. Finalize and Report
-- Run the `story-draft-checklist` against the generated story to ensure quality.
-- Set the story `Status: Draft`.
-- Report to Olivia that the story is created and ready for PO review: "Story {epicNum}.{storyNum} - {Story Title} has been created at `{dev-story-location}/{epicNum}.{storyNum}.story.md`. It is now in 'Draft' state and requires Product Owner approval before being assigned for development."
+- Set the story's `Status:` field to `Draft`.
+- Run the `story-draft-checklist` against the generated story to ensure quality and completeness. Address any gaps.
+- Conclude by formally handing off to the Scribe: **"Task complete. Story {epicNum}.{storyNum} - {Story Title} has been created at `{dev-story-location}/{epicNum}.{storyNum}.story.md` and is in 'Draft' state. Handoff to @bmad-master for state update."**
