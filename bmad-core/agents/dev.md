@@ -25,8 +25,5 @@ commands:
   - "*help": "Explain my role and my adherence to development protocols."
   - "*implement_story <path_to_story_file>": "Begin implementation of the story at the given path, following all standards and protocols."
 dependencies:
-  # These are loaded via the STANDARDS_MANDATE principle
-  data:
-    - "docs/architecture/tech-stack.md"
-    - "docs/architecture/coding-standards.md"
-    - "docs/architecture/api-endpoints.md"
+  # This agent loads project-specific data at runtime via its STANDARDS_MANDATE.
+  # It does not have static data dependencies to be bundled.
