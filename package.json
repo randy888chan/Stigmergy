@@ -17,7 +17,7 @@
     "build:web": "node tools/cli.js build:web",
     "list:agents": "node tools/cli.js list:agents",
     "validate": "node tools/cli.js validate",
-    "install": "node tools/installer/cli.js install",
+    "setup": "node tools/installer/cli.js install",
     "lint": "prettier --check \"**/*.{md,js,json,yml,yaml}\"",
     "lint:fix": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
     "version:patch": "node tools/version-bump.js patch",
