@@ -32,10 +32,10 @@ An interactive upgrader is available to transition your project to the new archi
 Generated bash
 
 
+From your existing project's root directory
+
 # From your existing project's root directory
 npx @randy888chan/pheromind upgrade
-Bash
-...
 
 ---
 ## The Pheromind Cycle: Two Paths to Autonomy
