@@ -34,7 +34,7 @@ Generated bash
 npx @randy888chan/pheromind upgrade
 Use code with caution.
 Bash
-
+...
 ## The Pheromind Cycle: Two Paths to Autonomy
 
 Pheromind offers a flexible workflow. You can start planning directly in your IDE or leverage a Web UI for initial research and then seamlessly ingest the results.
