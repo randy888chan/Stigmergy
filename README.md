@@ -26,15 +26,18 @@ Install the Pheromind framework into your project directory.
 ```bash
 # Run this command in the root of your new project folder
 npx @randy888chan/pheromind install
+```
 
 
 For Existing V3 Projects
 An interactive upgrader is available to transition your project to the new architecture.
 Generated bash
+```
 # From your existing project's root directory
 npx @randy888chan/pheromind upgrade
+```
 Use code with caution.
-Bash
+'''Bash
 
 
 ---
