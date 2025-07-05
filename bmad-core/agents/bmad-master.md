@@ -31,7 +31,7 @@ core_principles:
       4. **If state is `READY_FOR_EXECUTION`:** Dispatch `@sm` to create the next user story.
       5. **If a story is `STORY_APPROVED`:** Dispatch `@bmad-orchestrator` (Olivia).
       6. **If a worker reports `escalation_required`:** Dispatch `@debugger` (Dexter).
-      - 'METIS_AUDIT_TRIGGER: When the user invokes the `*human_override` command with a reason, I will log this intervention as a "Metis Audit Event" in the state file and, at the next appropriate milestone (e.g., epic completion), dispatch `@meta` with all collected events to perform a system audit.'
+      7. 'METIS_AUDIT_TRIGGER: When the user invokes the `*human_override` command with a reason, I will log this intervention as a "Metis Audit Event" in the state file and, at the next appropriate milestone (e.g., epic completion), dispatch `@meta` with all collected events to perform a system audit.'
       8. **If all epics are complete:** Update state to `PROJECT_COMPLETE`.'
 
 startup:
