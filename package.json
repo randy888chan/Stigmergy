@@ -1,19 +1,16 @@
 {
-  "name": "@randy888chan/stigmergy",
+  "name": "@randy888chan/pheromind",
   "version": "4.10.0",
-  "description": "An autonomous AI development swarm based on the BMAD methodology.",
+  "description": "Pheromind: The Autonomous AI Development Swarm. A framework for orchestrating AI agents.",
   "main": "tools/cli.js",
   "bin": {
-    "stigmergy": "tools/installer/cli.js",
-    "bmad-method": "tools/installer/cli.js"
+    "pheromind": "tools/installer/cli.js"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "scripts": {
     "build": "node tools/cli.js build",
-    "build:agents": "node tools/cli.js build --agents-only",
-    "build:teams": "node tools/cli.js build --teams-only",
     "build:web": "node tools/cli.js build:web",
     "list:agents": "node tools/cli.js list:agents",
     "validate": "node tools/cli.js validate",
@@ -37,6 +34,7 @@
     "ora": "^8.0.1"
   },
   "keywords": [
+    "pheromind",
     "agile",
     "ai",
     "orchestrator",
@@ -47,7 +45,7 @@
     "stigmergy",
     "swarm"
   ],
-  "author": "Randy Chan (forked from BMad)",
+  "author": "Randy Chan",
   "license": "MIT",
   "repository": {
     "type": "git",
