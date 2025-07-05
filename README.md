@@ -1,54 +1,56 @@
-# Stigmergy: The Autonomous AI Development Swarm
+# Pheromind: The Autonomous AI Development Swarm
 
-Stigmergy is a framework for orchestrating a swarm of specialized AI agents to autonomously build software. It combines principles of swarm intelligence with agile development methodologies to create a system that can manage a project from planning to execution with minimal human intervention.
+Pheromind is a revolutionary framework for orchestrating a swarm of specialized AI agents to autonomously build software. It moves beyond simple scripting to a model of **true autonomous orchestration**, where a central intelligence plans, executes, and learns with minimal human intervention.
 
 At its core, the system utilizes:
 
-- **Swarm Intelligence (Stigmergy):** Agents interact indirectly by reading and writing to a shared state file (`.ai/state.json`), leaving a "digital scent" that guides the next agent's actions. This enables complex, coordinated behavior without direct communication.
-- **AI-Verifiable Methodology:** Progress is measured by concrete, AI-confirmable outcomes recorded in the shared state, ensuring unparalleled transparency and reliability.
+- **Stigmergic Coordination:** Agents interact indirectly by leaving "digital pheromones" in a shared state file (`.ai/state.json`), enabling complex, coordinated behavior without direct communication.
+- **Unified Autonomous Cycle:** A single, intelligent orchestrator manages the entire project lifecycle—from planning and architecture to coding, verification, and self-improvement—within your IDE.
+- **AI-Verifiable Outcomes:** Progress is measured by concrete, programmatically-confirmable outputs, bringing mathematical rigor and transparency to project tracking.
 - **Constitutional AI:** All agents operate under a shared set of core principles (`bmad-core/system_docs/03_Core_Principles.md`), ensuring consistent, predictable, and safe behavior.
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation & Upgrade
 
-The Stigmergy framework includes an interactive installer that configures your project and integrates with your favorite IDE.
-
+**For New Projects:**
+The Pheromind framework includes an interactive installer that configures your project.
 ```bash
-# Run this command in the root of your project folder
+# Run this command in the root of your new project folder
 npx @randy888chan/stigmergy install
 ```
 
-The installer will guide you through setting up the `.bmad-core` system, installing web bundles for UI-based planning, and configuring IDEs like Roo Code, TRAE AI IDE, Kilo Code, and Cline.
+**For Existing V3 Projects:**
+An interactive upgrader is available to transition your project to the new architecture.
+```bash
+# From your existing project's root directory
+npx @randy888chan/stigmergy upgrade
+```
 
 ---
 
-## Workflows
+## The Pheromind Cycle: Two Paths to Autonomy
 
-The Stigmergy workflow is divided into two distinct phases, designed to leverage the best of human strategy and autonomous AI execution.
+Pheromind offers a flexible workflow. You can start planning directly in your IDE or leverage a Web UI for initial research and then seamlessly ingest the results.
 
-### **Phase 1: Strategic Planning (Web UI or IDE)**
+### Path 1: IDE-First Workflow (Recommended)
 
-This initial phase is a collaboration between you and the "Planning Crew" agents (`@analyst`, `@pm`, `@architect`). The goal is to produce the foundational documents that define the project's "what" and "why".
+This is the most direct path to autonomous development.
 
-1.  **Environment Setup:** After running the installer, you can use the pre-built `team-planning-crew.txt` bundle in a web UI like Gemini or Claude, or you can interact with the planning agents directly in your IDE.
-2.  **Generate Core Documents:** Work conversationally with the agents. They are equipped with web search tools to perform market research and technical validation. Your objective is to create:
-    *   `docs/prd.md` (Product Requirements Document)
-    *   `docs/architecture.md` (System Architecture)
-3.  **Save Artifacts:** Ensure these final documents are saved in your project's `docs/` folder. They are the official blueprint for the execution phase.
+1.  **Initiation:** In your IDE, activate the Chief Orchestrator, **`@bmad-master` (Saul)**.
+2.  **Directive:** Give Saul a high-level project goal.
+    > "We need to build a new application. A project brief is located at `docs/brief.md`. Please begin the project."
+3.  **Autonomous Orchestration:** Saul will now initiate the Pheromind Cycle, managing planning, execution, verification, and adaptation autonomously until the project is complete.
 
-### **Phase 2: Autonomous Execution (IDE)**
+### Path 2: Web-to-IDE Ingestion Workflow (Optional)
 
-Once the blueprint is defined, you hand off control to the autonomous swarm.
+This path is ideal for cost-effective initial planning using the web research capabilities of models like Gemini.
 
-1.  **Initiate the Swarm:** In your IDE, activate the lead orchestrator, **`@bmad-orchestrator` (Olivia)**.
-2.  **Give the Directive:** Provide a single, clear instruction:
-    > "A new PRD and Architecture spec are in the `docs/` folder. Please begin project execution."
-3.  **Observe and Support:** The swarm will now enter its autonomous loop:
-    *   Olivia dispatches the `@bmad-master` (Saul) to analyze the documents and update the system state.
-    *   Saul updates the state and hands back to Olivia.
-    *   Olivia, reading the new state, dispatches worker agents (`@sm` to create stories, `@dev` to write code, `@qa` to test).
-    *   This loop continues until the project defined in the `docs/` is complete. Your role is now supervisory, providing input only when an agent specifically requests human intervention.
+1.  **Phase 1: Web UI Planning.** Use a tool like Gemini with the `team-planning-crew.txt` bundle to perform research and generate your initial `prd.md` and `architecture.md`. Save these files to your local `docs/` folder.
+2.  **Phase 2: IDE Ingestion.** In your IDE, activate the Chief Orchestrator, **`@bmad-master` (Saul)**.
+3.  **Directive:** Instruct Saul to ingest the externally created documents.
+    > `*ingest_docs`
+4.  **Autonomous Integration:** Saul will automatically process, shard, and integrate these documents into the swarm's memory. Once complete, he will signal that the project is `READY_FOR_EXECUTION`, and the autonomous Pheromind Cycle will begin.
 
 ---
 
@@ -95,3 +97,4 @@ The system utilizes a suite of specialized AI agents. Key roles include:
 │   └── upgraders/
 └── package.json           # Project dependencies and scripts.
 ```
+
