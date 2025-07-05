@@ -52,4 +52,3 @@ An immutable log of all major state changes, providing a complete audit trail of
 
 ### `agent_reports`
 A key-value store where the detailed markdown reports from agents are stored for auditing purposes. The key should be a unique identifier like `{timestamp}-{agent_id}`.
-```
