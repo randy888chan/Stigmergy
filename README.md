@@ -9,25 +9,31 @@ At its core, the system utilizes:
 - **AI-Verifiable Outcomes:** Progress is measured by concrete, programmatically-confirmable outputs, bringing mathematical rigor and transparency to project tracking.
 - **Constitutional AI:** All agents operate under a shared set of core principles (`bmad-core/system_docs/03_Core_Principles.md`), ensuring consistent, predictable, and safe behavior.
 
----
-
 ## 🚀 Installation & Upgrade
 
-**For New Projects:**
-The Pheromind framework includes an interactive installer that configures your project.
+### One-Time Authentication Setup
+Because Pheromind is distributed via the GitHub Package Registry, you must first authenticate your local machine. You only need to do this once.
+
+1.  Create a [GitHub Personal Access Token (Classic)](https://github.com/settings/tokens/new) with the `read:packages` scope.
+2.  Log in to the GitHub NPM registry by running the following command and pasting your token when prompted for a password:
+    ```bash
+    npm login --scope=@randy888chan --registry=https://npm.pkg.github.com
+    ```
+    (Use your GitHub username for the username prompt).
+
+### For New Projects
+Install the Pheromind framework into your project directory.
 ```bash
 # Run this command in the root of your new project folder
-npx @randy888chan/stigmergy install
-```
+npx @randy888chan/pheromind install
 
-**For Existing V3 Projects:**
+For Existing V3 Projects
 An interactive upgrader is available to transition your project to the new architecture.
-```bash
+Generated bash
 # From your existing project's root directory
-npx @randy888chan/stigmergy upgrade
-```
-
----
+npx @randy888chan/pheromind upgrade
+Use code with caution.
+Bash
 
 ## The Pheromind Cycle: Two Paths to Autonomy
 
