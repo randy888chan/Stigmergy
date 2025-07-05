@@ -54,25 +54,22 @@ This path is ideal for cost-effective initial planning using the web research ca
 
 ---
 
-## Available Agents
+Of course. The board has convened, reviewed the repository and the state of the Pheromind initiative, and produced the following strategic audit and architectural evolution plan.
 
-The system utilizes a suite of specialized AI agents. Key roles include:
+## Agent Archetypes
 
-| Agent ID              | Name (Role)                             | Core Responsibilities                                          |
-| --------------------- | --------------------------------------- | -------------------------------------------------------------- |
-| `@bmad-orchestrator`  | Olivia (Coordinator)                    | Dispatches tasks and manages the high-level project workflow.    |
-| `@bmad-master`        | Saul (Scribe)                           | Reads worker reports and updates the shared system state file.   |
-| `@analyst`            | Mary (Business Analyst)                 | Proactive market research, brainstorming, creating project briefs. |
-| `@pm`                 | John (Product Manager)                  | Defines product strategy, roadmaps, and PRDs.                  |
-| `@architect`          | Winston (Solution Architect)            | Designs system architecture and selects technology.              |
-| `@sm`                 | Bob (Scrum Master)                      | Breaks down epics into detailed, actionable stories for Devs.  |
-| `@dev`                | James (Developer)                       | Implements stories, writes code, and runs local tests.         |
-| `@qa`                 | Quinn (QA Specialist)                   | Validates code against standards and acceptance criteria.      |
-| `@po`                 | Sarah (Product Owner)                   | Validates stories and ensures artifacts are cohesive.          |
-| `@debugger`           | Dexter (Root Cause Analyst)             | Diagnoses and proposes new solutions for persistent failures.  |
-| `@refactorer`         | Rocco (Code Quality Specialist)         | Improves code quality and reduces technical debt.              |
-| `@meta`               | Metis (System Auditor)                  | Analyzes system performance and proposes improvements.         |
-| `@ux-expert`          | Sally (UX Expert)                       | Defines user experience and UI specifications.                 |
+The swarm is composed of specialized agents, each with a clear role.
+
+| Agent ID              | Name (Archetype)                     | Core Responsibilities                                          |
+| --------------------- | ------------------------------------ | -------------------------------------------------------------- |
+| **`@bmad-master`**      | **Saul (Chief Orchestrator)**        | The master brain. Manages the entire lifecycle. Interprets all reports and dispatches all tasks. |
+| `@pm`, `@architect`   | (Planners)                           | Create the project blueprint (`docs/`) under Saul's direction. |
+| `@sm`                 | Bob (Task Decomposer)                | Breaks down epics from the blueprint into actionable stories. |
+| **`@bmad-orchestrator`** | **Olivia (Execution Coordinator)**   | A sub-orchestrator, dispatched by Saul to manage the `dev->qa->po` loop for a single story. |
+| `@dev`, `@victor`     | (Executors)                          | Write code and implement stories.                              |
+| `@qa`, `@po`          | (Verifiers)                          | Ensure quality, standards compliance, and alignment with the blueprint. |
+| `@debugger`           | Dexter (Adaptive Responder)          | Diagnoses complex failures and proposes new paths forward.     |
+| `@meta`               | Metis (System Auditor)               | Analyzes swarm performance to make the system itself better.   |
 
 ---
 
@@ -80,21 +77,13 @@ The system utilizes a suite of specialized AI agents. Key roles include:
 
 ```plaintext
 .
-├── .bmad-core/            # The "brain" of the AI agents. Installed locally.
-│   ├── agents/            # Individual agent prompt definitions.
-│   ├── agent-teams/       # Configurations for agent teams.
-│   ├── checklists/        # QA and validation checklists.
-│   ├── data/              # Knowledge bases and preferences.
-│   ├── system_docs/       # The core "constitution" of the system.
-│   ├── tasks/             # Definitions of reusable agent tasks.
-│   ├── templates/         # Document templates (PRD, Architecture, etc.).
-│   └── workflows/         # High-level process definitions.
-├── docs/                  # Project-specific documentation (PRD, Architecture).
-├── dist/                  # Pre-built bundles for use in Web UIs (optional).
-├── tools/                 # Utilities for building and managing the system.
-│   ├── builders/
-│   ├── installer/
-│   └── upgraders/
-└── package.json           # Project dependencies and scripts.
+├── .bmad-core/        # The "brain" of the AI agents. Installed locally.
+│   ├── agents/        # Individual agent prompt definitions.
+│   └── system_docs/   # The core "constitution" of the system.
+├── .ai/               # The dynamic "memory" of the swarm (gitignore this).
+│   └── state.json     # The shared state file driving agent coordination.
+├── docs/              # The project-specific "blueprint" (PRD, Architecture).
+│   ├── architecture/  # Detailed, verifiable architecture documents.
+│   └── stories/       # AI-generated, self-contained story files.
+└── src/               # The source code of the application being built.
 ```
-
