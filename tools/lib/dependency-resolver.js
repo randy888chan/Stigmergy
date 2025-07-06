@@ -13,27 +13,23 @@ class DependencyResolver {
     const agentPath = path.join(this.bmadCore, 'agents', `${agentId}.md`);
     const agentContent = await fs.readFile(agentPath, 'utf8');
 
-    // [[LLM-ENHANCEMENT]] This is the final, robust parsing logic.
-    // It reads the file line by line to guarantee it finds the YAML block correctly.
+    // Robustly find the YAML block in the agent's markdown file.
     const lines = agentContent.split(/\r?\n/);
     let inYamlBlock = false;
     const yamlLines = [];
-
     for (const line of lines) {
       if (line.trim().startsWith('```yaml') || line.trim().startsWith('```yml')) {
         inYamlBlock = true;
-        continue; // Don't include the opening tag in the content
+        continue;
       }
       if (line.trim() === '```' && inYamlBlock) {
-        break; // Found the closing tag, end of the block
+        break;
       }
       if (inYamlBlock) {
         yamlLines.push(line);
       }
     }
-
     const yamlContent = yamlLines.join('\n');
-
     if (!yamlContent) {
       throw new Error(`Could not find or parse a valid YAML block in agent file: ${agentPath}`);
     }
@@ -45,11 +41,13 @@ class DependencyResolver {
       resources: []
     };
 
-    const depTypes = ['tasks', 'templates', 'checklists', 'data', 'utils', 'agents'];
+    const depTypes = ['tasks', 'templates', 'checklists', 'data', 'utils', 'agents', 'system_docs'];
     for (const depType of depTypes) {
       const deps = agentConfig.dependencies?.[depType] || [];
-      for (const depId of deps) {
-        if (depType === 'agents') continue;
+      const depList = Array.isArray(deps) ? deps : [deps]; // Handle single string or array
+
+      for (const depId of depList) {
+        if (depId === '*' || depType === 'agents') continue; // Do not bundle other agents or wildcard deps
         const resource = await this.loadResource(depType, depId);
         if (resource) dependencies.resources.push(resource);
       }
@@ -71,15 +69,21 @@ class DependencyResolver {
 
     let agentsToResolve = teamConfig.agents || [];
     
+    // Handle wildcard agent resolution
     if (agentsToResolve.includes('*')) {
       const allAgents = await this.listAgents();
-      agentsToResolve = allAgents.filter(a => a !== 'bmad-master');
+      // Exclude master orchestrator from wildcard to prevent recursion issues in some contexts
+      agentsToResolve = allAgents.filter(a => a !== 'bmad-master'); 
     }
     
     for (const agentId of agentsToResolve) {
-      const agentDeps = await this.resolveAgentDependencies(agentId);
-      dependencies.agents.push(agentDeps.agent);
-      agentDeps.resources.forEach(res => dependencies.resources.set(res.path, res));
+      try {
+        const agentDeps = await this.resolveAgentDependencies(agentId);
+        dependencies.agents.push(agentDeps.agent);
+        agentDeps.resources.forEach(res => dependencies.resources.set(res.path, res));
+      } catch (error) {
+        console.warn(chalk.yellow(`[Warning] Could not resolve dependencies for agent '${agentId}' in team '${teamId}'. Skipping. Reason: ${error.message}`));
+      }
     }
 
     if (teamConfig.workflows) {
@@ -96,38 +100,31 @@ class DependencyResolver {
   async loadResource(type, id) {
     const cacheKey = `${type}#${id}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
-
-    const extensions = ['.md', '.yml', '.yaml'];
+  
+    const extensions = type === 'workflows' ? ['.yml'] : ['.md'];
     let content = null;
     let filePath = '';
-    
-    const possiblePaths = [
-        path.join(this.rootDir, id), // For full paths like 'expansion-packs/...'
-        path.join(this.bmadCore, type, id) // For core dependencies
-    ];
-
-    for (const basePath of possiblePaths) {
-        for (const ext of extensions) {
-            try {
-                const testPath = id.endsWith(ext) ? basePath : `${basePath}${ext}`;
-                if ((await fs.stat(testPath)).isFile()) {
-                    content = await fs.readFile(testPath, 'utf8');
-                    // Determine the correct "path" for the manifest
-                    filePath = path.relative(this.rootDir, testPath).startsWith('bmad-core') 
-                        ? `${type}#${id}` 
-                        : path.relative(this.rootDir, testPath);
-                    break;
-                }
-            } catch (e) {}
+  
+    const resourcePath = path.join(this.bmadCore, type, id);
+  
+    for (const ext of extensions) {
+      try {
+        const testPath = id.endsWith(ext) ? resourcePath : `${resourcePath}${ext}`;
+        if ((await fs.stat(testPath)).isFile()) {
+          content = await fs.readFile(testPath, 'utf8');
+          filePath = `${type}#${id}`;
+          break;
         }
-        if (content) break;
+      } catch (e) {
+        // File does not exist, try next extension
+      }
     }
-
+  
     if (!content) {
-      console.warn(`[Warning] Resource not found: ${id} in ${type}. Skipping.`);
+      // console.warn(`[Warning] Resource not found: ${id} in ${type}. Skipping.`);
       return null;
     }
-
+  
     const resource = { type, id, path: filePath, content };
     this.cache.set(cacheKey, resource);
     return resource;
