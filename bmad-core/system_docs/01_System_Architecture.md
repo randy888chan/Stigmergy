@@ -23,18 +23,18 @@ The entire project operates based on two key fields within `.ai/state.json`:
 
 ### The Unified Workflow
 
-The loop is a strategic, state-driven cycle managed by `@bmad-master`.
+The loop is a strategic, state-driven cycle managed exclusively by `@bmad-master`.
 
 **1. State Interpretation (Saul):**
 *   **Input:** Reads the `.ai/state.json` file to understand the current `project_status` and `system_signal`.
-*   **Action:** Acts as the **System Interpreter**, translating narrative reports from other agents and external events into the next verifiable system state.
+*   **Action:** Acts as the **System Interpreter**, translating narrative reports from other agents and external events into the next verifiable system state. This is the core of **Sophisticated Natural Language Interpretation**.
 
 **2. Strategic Dispatch (Saul):**
-*   **Action:** Based on the interpreted state, acts as the **Chief Orchestrator**, dispatching the correct agent for the job. This is not a fixed sequence but a strategic decision based on the `PHEROMIND_PROTOCOL` defined in his agent file. (e.g., dispatching `@pm` for planning, `@sm` for story creation, `@bmad-orchestrator` for execution, `@debugger` for failure analysis).
+*   **Action:** Based on the interpreted state, acts as the **Chief Orchestrator**, dispatching the correct specialist agent for the current phase of the project. This is not a fixed sequence but a strategic decision based on the `PHEROMIND_PROTOCOL` defined in his agent file. (e.g., dispatching `@pm` for planning, `@sm` for story creation, `@bmad-orchestrator` for execution, `@debugger` for failure analysis).
 
 **3. Specialized Execution (Worker Agents):**
-*   **Input:** A specialized agent (e.g., `@dev`, `@pm`, `@qa`) receives a single, specific task from its dispatcher.
+*   **Input:** A specialized agent (e.g., `@dev`, `@pm`, `@qa`) receives a single, specific task from its dispatcher (`@bmad-master` or `@bmad-orchestrator`).
 *   **Action:** The worker executes its task, referencing the `docs/` blueprint for context and adhering to its own core protocols and the System Constitution.
-*   **Output:** The worker produces a structured narrative report of its outcome, ending with a new `system_signal` and a **mandatory handoff to `@bmad-master`**, the System Interpreter. This action leaves the "digital pheromone" that guides the next step of the cycle.
+*   **Output:** Upon completion, the worker produces a structured narrative report of its outcome, ending with a new `system_signal`. It then formally hands control back to `@bmad-master`. This action leaves the "digital pheromone" that guides the next step of the autonomous cycle.
 
 This unified architecture ensures that all system activity is coordinated through a central intelligence, enabling true autonomous orchestration and adaptive responses.
