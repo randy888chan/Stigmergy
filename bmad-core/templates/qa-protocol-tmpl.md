@@ -41,5 +41,5 @@ Upon receiving a code submission for a completed story, the `@qa` agent MUST exe
 
 ### Step 4: Final Decision
 
--   **If all steps above pass:** The code is approved. The QA agent will produce a report with the `system_signal: 'code_approved_by_qa'`.
--   **If any step fails:** The code is rejected. The QA agent will produce a detailed report with the `system_signal: 'code_rejected_by_qa'`, specifying exactly which step failed and including the complete log output from the failing tool as evidence.
+-   **If all steps above pass:** The code is approved. The QA agent will produce a report with the `system_signal: 'STORY_QA_PASSED'`.
+-   **If any step fails:** The code is rejected. The QA agent will produce a detailed report with the `system_signal: 'FAILURE_DETECTED'`, specifying exactly which step failed and including the complete log output from the failing tool as evidence.
