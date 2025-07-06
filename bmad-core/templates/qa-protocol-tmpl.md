@@ -34,7 +34,7 @@ Upon receiving a code submission for a completed story, the `@qa` agent MUST exe
 
 ### Step 3: Dependency Security Audit
 
-1.  **Execute Audit:** Run a dependency audit (e.g., `npm audit`).
+1.  **Execute Audit:** Run a dependency audit (e.g., `npm audit --audit-level=high`).
 2.  **Verification:** Parse the audit report.
     *   **PASS Condition:** The audit reports 0 `critical` or `high` vulnerabilities.
     *   **FAIL Condition:** The audit reports 1 or more `critical` or `high` vulnerabilities. The rejection report MUST include the `npm audit` output.
