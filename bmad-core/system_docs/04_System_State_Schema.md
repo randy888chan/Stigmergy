@@ -1,3 +1,11 @@
+### `bmad-core/system_docs/04_System_State_Schema.md`
+
+**Analysis:**
+- The system currently lacks a formal schema for its core coordination mechanism, `.ai/state.json`. This prevents **AI-Verifiable Outcomes** and leads to inconsistent state management.
+- This new file establishes a strict, version-controlled schema. It introduces an `issue_log` to formalize the failure-handling process for **Adaptive Swarm Intelligence** and defines the official `enums` for `project_status` and `system_signal`, bringing rigor to the entire Pheromind cycle.
+
+**Updated File Content:**
+```markdown
 # Pheromind System State Schema
 
 This document defines the official schema for the `.ai/state.json` file. This is the central nervous system of the swarm and a part of the System Constitution. All agents that read from or write to the state file MUST adhere to this structure.
