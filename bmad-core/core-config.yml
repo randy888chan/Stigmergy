@@ -8,7 +8,8 @@ core_documents:
   # Agents are instructed to reference these specific files for context.
   tech_stack: docs/architecture/tech-stack.md
   coding_standards: docs/architecture/coding-standards.md
-  api_endpoints: docs/architecture/rest-api-spec.md # Corrected to match template output
+  api_endpoints: docs/architecture/rest-api-spec.md
+  qa_protocol: docs/architecture/qa-protocol.md
 
 # Files that are essential for development agents to have in their context window.
 # These paths are loaded by agents at runtime.
@@ -21,10 +22,10 @@ devLoadAlwaysFiles:
 sharding:
   prd:
     enabled: true
-    location: docs/prd/ # Corrected path
+    location: docs/prd
   architecture:
     enabled: true
-    location: docs/architecture/ # Corrected path
+    location: docs/architecture
 
 # Logging and state settings for the swarm.
 logging:
