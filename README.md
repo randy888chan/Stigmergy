@@ -31,14 +31,10 @@ npx @randy888chan/pheromind install
 
 For Existing V3 Projects
 An interactive upgrader is available to transition your project to the new architecture.
-Generated bash
-```
+```bash
 # From your existing project's root directory
 npx @randy888chan/pheromind upgrade
 ```
-Use code with caution.
-'''Bash
-
 
 ---
 ## The Pheromind Cycle: Two Paths to Autonomy
@@ -58,7 +54,7 @@ This is the most direct path to autonomous development.
 
 This path is ideal for cost-effective initial planning using the web research capabilities of models like Gemini.
 
-1.  **Phase 1: Web UI Planning.** Use a tool like Gemini with the `team-planning-crew.txt` bundle to perform research and generate your initial `prd.md` and `architecture.md`. Save these files to your local `docs/` folder.
+1.  **Phase 1: Web UI Planning.** Use a tool like Gemini with the `team-planning-crew` bundle to perform research and generate your initial `prd.md` and `architecture.md`. Save these files to your local `docs/` folder.
 2.  **Phase 2: IDE Ingestion.** In your IDE, activate the Chief Orchestrator, **`@bmad-master` (Saul)**.
 3.  **Directive:** Instruct Saul to ingest the externally created documents.
     > `*ingest_docs`
@@ -66,22 +62,20 @@ This path is ideal for cost-effective initial planning using the web research ca
 
 ---
 
-Of course. The board has convened, reviewed the repository and the state of the Pheromind initiative, and produced the following strategic audit and architectural evolution plan.
-
 ## Agent Archetypes
 
-The swarm is composed of specialized agents, each with a clear role.
+The swarm is composed of specialized agents, each with a clear role, operating under a strict chain of command.
 
-| Agent ID              | Name (Archetype)                     | Core Responsibilities                                          |
-| --------------------- | ------------------------------------ | -------------------------------------------------------------- |
-| **`@bmad-master`**      | **Saul (Chief Orchestrator)**        | The master brain. Manages the entire lifecycle. Interprets all reports and dispatches all tasks. |
-| `@pm`, `@architect`   | (Planners)                           | Create the project blueprint (`docs/`) under Saul's direction. |
-| `@sm`                 | Bob (Task Decomposer)                | Breaks down epics from the blueprint into actionable stories. |
-| **`@bmad-orchestrator`** | **Olivia (Execution Coordinator)**   | A sub-orchestrator, dispatched by Saul to manage the `dev->qa->po` loop for a single story. |
-| `@dev`, `@victor`     | (Executors)                          | Write code and implement stories.                              |
-| `@qa`, `@po`          | (Verifiers)                          | Ensure quality, standards compliance, and alignment with the blueprint. |
-| `@debugger`           | Dexter (Adaptive Responder)          | Diagnoses complex failures and proposes new paths forward.     |
-| `@meta`               | Metis (System Auditor)               | Analyzes swarm performance to make the system itself better.   |
+| Agent ID              | Name (Archetype)                     | Core Responsibilities                                          | Dispatcher |
+| --------------------- | ------------------------------------ | -------------------------------------------------------------- | ---------- |
+| **`@bmad-master`**      | **Saul (Chief Orchestrator)**        | The master brain. Interprets state, directs the swarm, and manages the entire lifecycle. | User |
+| `@pm`, `@architect`   | (Planners)                           | Create the project blueprint (`docs/`) under Saul's direction. | Saul |
+| `@sm`                 | Bob (Task Decomposer)                | Breaks down epics from the blueprint into actionable stories. | Saul |
+| **`@bmad-orchestrator`** | **Olivia (Execution Coordinator)**   | A specialized task manager, dispatched by Saul to manage the `dev->qa->po` loop for a single story. | Saul |
+| `@dev`, `@victor`     | (Executors)                          | Write code and implement stories.                              | Olivia |
+| `@qa`, `@po`          | (Verifiers)                          | Ensure quality, standards compliance, and alignment with the blueprint. | Olivia |
+| `@debugger`           | Dexter (Adaptive Responder)          | Diagnoses complex failures recorded in the state log.          | Saul |
+| `@meta`               | Metis (System Auditor)               | Analyzes swarm performance to make the system itself better.   | Saul |
 
 ---
 
