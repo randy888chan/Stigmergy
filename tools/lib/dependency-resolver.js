@@ -26,7 +26,7 @@ class DependencyResolver {
       resources: []
     };
 
-    const depTypes = ['tasks', 'templates', 'checklists', 'data', 'utils', 'agents', 'system_docs'];
+    const depTypes = ['tasks', 'templates', 'checklists', 'data', 'utils', 'system_docs'];
     for (const depType of depTypes) {
       if (!agentConfig.dependencies || !agentConfig.dependencies[depType]) continue;
       
@@ -70,13 +70,9 @@ class DependencyResolver {
         console.warn(chalk.yellow(`[Warning] Could not resolve dependencies for agent '${agentId}' in team '${teamId}'. Skipping. Reason: ${error.message}`));
       }
     }
-
-    if (teamConfig.workflows) {
-      for (const workflowId of teamConfig.workflows) {
-        const resource = await this.loadResource('workflows', workflowId);
-        if (resource) dependencies.resources.set(resource.path, resource);
-      }
-    }
+    
+    // NOTE: Workflows are no longer a separate dependency type. They are part of agent protocols.
+    // This section is removed to align with the new architecture.
 
     dependencies.resources = Array.from(dependencies.resources.values());
     return dependencies;
@@ -86,16 +82,20 @@ class DependencyResolver {
     const cacheKey = `${type}#${id}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
   
-    const ext = type === 'workflows' ? '.yml' : '.md';
-    const resourcePath = path.join(this.stigmergyCore, type, `${id}${ext}`);
+    // Define extensions for different resource types
+    const ext = type.endsWith('s') ? '.md' : '.yml'; // Simple rule, can be expanded
+    const resourceFileName = `${id}${ext}`;
+    const resourcePath = path.join(this.stigmergyCore, type, resourceFileName);
   
     try {
+      await fs.access(resourcePath); // Check if file exists
       const content = await fs.readFile(resourcePath, 'utf8');
       const resource = { type, id, path: `${type}#${id}`, content };
       this.cache.set(cacheKey, resource);
       return resource;
     } catch (e) {
-      // console.warn(`[Warning] Resource not found: ${id} in ${type}. Skipping.`);
+      // Intentionally silent: It's valid for a dependency to not exist after cleanup.
+      // console.warn(`[Info] Resource not found: ${id} in ${type}. Skipping.`);
       return null;
     }
   }
