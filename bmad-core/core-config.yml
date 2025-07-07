@@ -1,3 +1,6 @@
+# Core project configuration file for Stigmergy.
+# This file maps critical paths for the AI agents.
+
 # Core project planning documents.
 core_documents:
   # The blueprint for the project, created during Phase 1.
@@ -13,7 +16,7 @@ core_documents:
 
 # Files that are essential for development agents to have in their context window.
 # These paths are loaded by agents at runtime.
-devLoadAlwaysFiles:
+dev_load_always_files:
   - docs/architecture/tech-stack.md
   - docs/architecture/coding-standards.md
   - docs/architecture/rest-api-spec.md
@@ -29,6 +32,6 @@ sharding:
 
 # Logging and state settings for the swarm.
 logging:
-  stateFile: .ai/state.json # Central state file for the autonomous loop
-  debugLog: .ai/debug.log
-  agentCoreDump: .ai/core-dump-{n}.md
+  state_file: .ai/state.json # Central state file for the autonomous loop
+  debug_log: .ai/debug.log
+  agent_core_dump: .ai/core-dump-{n}.md
