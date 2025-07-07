@@ -23,59 +23,46 @@ class Installer {
     const spinner = ora("Analyzing installation directory...").start();
 
     try {
-      // Store the original CWD where npx was executed
       const originalCwd = process.env.INIT_CWD || process.env.PWD || process.cwd();
-      
-      // Resolve installation directory relative to where the user ran the command
       let installDir = path.isAbsolute(config.directory) 
         ? config.directory 
         : path.resolve(originalCwd, config.directory);
         
-      if (path.basename(installDir) === '.bmad-core') {
-        // If user points directly to .bmad-core, treat its parent as the project root
+      if (path.basename(installDir) === '.stigmergy-core') {
         installDir = path.dirname(installDir);
       }
       
       spinner.text = `Verifying target directory: ${installDir}`;
 
-      // Check if directory exists and handle non-existent directories
       if (!(await fileManager.pathExists(installDir))) {
         spinner.stop();
-        console.log(chalk.yellow(`\nThe directory ${chalk.bold(installDir)} does not exist.`));
-        
         const { action } = await inquirer.prompt([
           {
             type: 'list',
             name: 'action',
-            message: 'What would you like to do?',
-            choices: [
-              { name: 'Create the directory and continue', value: 'create' },
-              { name: 'Cancel installation', value: 'cancel' }
-            ]
+            message: `Directory ${chalk.bold(installDir)} does not exist. Create it?`,
+            choices: ['Yes', 'No']
           }
         ]);
 
-        if (action === 'cancel') {
+        if (action === 'No') {
           console.log(chalk.red('Installation cancelled.'));
           process.exit(0);
-        } else if (action === 'create') {
+        } else {
           await fileManager.ensureDirectory(installDir);
-          console.log(chalk.green(`✓ Created directory: ${installDir}`));
         }
         spinner.start("Rerunning analysis...");
       }
 
-      // Detect current state
       const state = await this.detectInstallationState(installDir);
 
-      // Handle different states
       switch (state.type) {
         case "clean":
           return await this.performFreshInstall(config, installDir, spinner);
-        case "v4_existing":
-          return await this.handleExistingV4Installation(config, installDir, state, spinner);
-        case "v3_existing":
-          return await this.handleV3Installation(config, installDir, state, spinner);
+        case "stigmergy_existing":
+          return await this.handleExistingInstallation(config, installDir, state, spinner);
+        case "legacy_existing":
+          return await this.handleLegacyInstallation(config, installDir, state, spinner);
         case "unknown_existing":
           return await this.handleUnknownInstallation(config, installDir, state, spinner);
       }
@@ -86,132 +73,83 @@ class Installer {
   }
 
   async detectInstallationState(installDir) {
-    await initializeModules();
-    const state = { type: "clean", manifest: null };
-
-    const bmadCorePath = path.join(installDir, ".bmad-core");
-    const manifestPath = path.join(bmadCorePath, "install-manifest.yml");
-
-    if (await fileManager.pathExists(manifestPath)) {
-      state.type = "v4_existing";
-      state.manifest = await fileManager.readManifest(installDir);
-      return state;
+    const stigmergyCorePath = path.join(installDir, ".stigmergy-core");
+    if (await fileManager.pathExists(stigmergyCorePath)) {
+      return { type: "stigmergy_existing" };
     }
-
     if (await fileManager.pathExists(path.join(installDir, "bmad-agent"))) {
-      state.type = "v3_existing";
-      return state;
+      return { type: "legacy_existing" };
     }
-    
-    const glob = require("glob");
-    const files = glob.sync("**/*", { cwd: installDir, nodir: true, ignore: ["**/.git/**", "**/node_modules/**"] });
+    const files = require("glob").sync("**/*", { cwd: installDir, nodir: true, dot: false, ignore: ["**/.git/**", "**/node_modules/**"] });
     if (files.length > 0) {
-      state.type = "unknown_existing";
+      return { type: "unknown_existing" };
     }
-
-    return state;
+    return { type: "clean" };
   }
 
   async performFreshInstall(config, installDir, spinner) {
-    spinner.text = "Starting fresh installation...";
-    const sourceDir = configLoader.getBmadCorePath();
-    const bmadCoreDestDir = path.join(installDir, ".bmad-core");
-    await fileManager.copyDirectory(sourceDir, bmadCoreDestDir);
-
-    const glob = require("glob");
-    const files = glob.sync("**/*", { cwd: bmadCoreDestDir, nodir: true }).map(file => path.join(".bmad-core", file));
+    spinner.text = "Starting fresh Stigmergy installation...";
+    const sourceDir = configLoader.getStigmergyCorePath();
+    const destDir = path.join(installDir, ".stigmergy-core");
+    await fileManager.copyDirectory(sourceDir, destDir);
     
     const ides = config.ides || [];
-    if (ides.length > 0) {
-      for (const ide of ides) {
-        spinner.text = `Setting up ${ide} integration...`;
-        await ideSetup.setup(ide, installDir);
-      }
+    for (const ide of ides) {
+      spinner.text = `Setting up ${ide} integration...`;
+      await ideSetup.setup(ide, installDir);
     }
 
-    spinner.text = "Creating installation manifest...";
-    await fileManager.createManifest(installDir, config, files);
-
     spinner.succeed("Installation complete!");
-    this.showSuccessMessage(config, installDir);
+    this.showSuccessMessage(installDir);
   }
 
-  async handleExistingV4Installation(config, installDir, state, spinner) {
+  async handleExistingInstallation(config, installDir, state, spinner) {
     spinner.stop();
-    console.log(chalk.yellow("\n🔍 Found existing Pheromind V4 installation."));
     const { action } = await inquirer.prompt([{
       type: "list",
       name: "action",
-      message: "What would you like to do?",
-      choices: [
-        { name: `Update existing installation (Version: ${state.manifest.version})`, value: "update" },
-        { name: "Reinstall (overwrite all framework files)", value: "reinstall" },
-        { name: "Cancel", value: "cancel" },
-      ],
+      message: "An existing Stigmergy installation was found. What would you like to do?",
+      choices: [ "Update the core framework", "Reinstall (overwrite everything)", "Cancel" ],
     }]);
 
-    if (action === "update") await this.performUpdate(config, installDir, state.manifest, spinner);
-    else if (action === "reinstall") await this.performReinstall(config, installDir, spinner);
-    else console.log("Installation cancelled.");
-  }
-
-  async handleV3Installation(config, installDir, state, spinner) {
-    spinner.stop();
-    console.log(chalk.yellow("\n🔍 Found legacy BMAD V3 installation."));
-    const { action } = await inquirer.prompt([{
-        type: "list",
-        name: "action",
-        message: "What would you like to do?",
-        choices: [
-          { name: "Upgrade to Pheromind V4 (recommended)", value: "upgrade" },
-          { name: "Cancel", value: "cancel" },
-        ],
-    }]);
-    
-    if (action === "upgrade") {
-      const V3ToV4Upgrader = require("../../upgraders/v3-to-v4-upgrader");
-      const upgrader = new V3ToV4Upgrader({ projectPath: installDir });
-      await upgrader.upgrade();
+    if (action === "Update the core framework" || action === "Reinstall (overwrite everything)") {
+      await this.performReinstall(config, installDir, spinner);
     } else {
       console.log("Installation cancelled.");
     }
   }
-
-  async handleUnknownInstallation(config, installDir, state, spinner) {
-    spinner.stop();
-    console.log(chalk.yellow("\n⚠️  Target directory is not empty."));
-     const { action } = await inquirer.prompt([{
-        type: "list",
-        name: "action",
-        message: "This directory contains files not related to Pheromind. How to proceed?",
-        choices: [
-          { name: "Install anyway (will add .bmad-core folder)", value: "force" },
-          { name: "Cancel", value: "cancel" },
-        ],
-    }]);
-
-    if(action === "force") await this.performFreshInstall(config, installDir, spinner);
-    else console.log("Installation cancelled.");
-  }
-
-  async performUpdate(newConfig, installDir, manifest, spinner) {
-    spinner.start("Updating Pheromind framework...");
-    // A simple update is now just a reinstall, as reinstall logic is safe.
-    await this.performReinstall(newConfig, installDir, spinner);
-  }
-
-  async performReinstall(config, installDir, spinner) {
-    spinner.start("Performing reinstall...");
-    const bmadCorePath = path.join(installDir, ".bmad-core");
-    await fileManager.removeDirectory(bmadCorePath);
+  
+  async performReinstall(config, installDir, spinner){
+    spinner.start("Reinstalling Stigmergy framework...");
+    const corePath = path.join(installDir, ".stigmergy-core");
+    await fileManager.removeDirectory(corePath);
     await this.performFreshInstall(config, installDir, spinner);
   }
 
-  showSuccessMessage(config, installDir) {
-    console.log(chalk.green("\n✓ Pheromind framework installed successfully!"));
+  async handleLegacyInstallation(config, installDir, state, spinner) {
+    spinner.stop();
+    // Logic for upgrading from v3 can be handled by the 'upgrade' command.
+    console.log(chalk.yellow("\nFound a legacy installation."));
+    console.log(`Please run \`npx stigmergy upgrade\` to migrate your project.`);
+  }
+
+  async handleUnknownInstallation(config, installDir, state, spinner) {
+    spinner.stop();
+    const { action } = await inquirer.prompt([{
+        type: "list",
+        name: "action",
+        message: "This directory contains files not related to Stigmergy. Install anyway?",
+        choices: [ { name: "Yes, install alongside existing files", value: "force" }, { name: "No, cancel", value: "cancel" } ],
+    }]);
+    if(action === "force") await this.performFreshInstall(config, installDir, spinner);
+    else console.log("Installation cancelled.");
+  }
+  
+  showSuccessMessage(installDir) {
+    console.log(chalk.green("\n✓ Stigmergy framework installed successfully!"));
     console.log(chalk.bold("\nTo get started:"));
     console.log(chalk.cyan("1. Open this project in your configured IDE."));
-    console.log(chalk.cyan("2. Activate the master agent: `@bmad-master`"));
+    console.log(chalk.cyan("2. Activate the master agent: `@stigmergy-master` (or select from Roo Code modes)."));
     console.log(chalk.cyan("3. Give him your project goal, e.g., 'Begin project from docs/brief.md'"));
   }
 }
