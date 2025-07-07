@@ -24,11 +24,11 @@ class V3ToV4Upgrader {
     await initializeModules();
     process.stdin.resume(); // Keep process alive for multiple prompts
 
-    console.log(chalk.bold.cyan("\nWelcome to the Pheromind V3 to V4 Upgrader\n"));
+    console.log(chalk.bold.cyan("\nWelcome to the Stigmergy V4 Upgrader\n"));
 
-    if (!(await this.validateV3Project())) {
-        console.error(chalk.red("This does not appear to be a valid V3 project. Aborting."));
-        console.error(chalk.red("Expected to find 'bmad-agent/' and 'docs/' directories."));
+    if (!(await this.validateLegacyProject())) {
+        console.error(chalk.red("This does not appear to be a valid legacy project. Aborting."));
+        console.error(chalk.red("Expected to find 'bmad-agent/' or similar legacy directories."));
         process.exit(1);
     }
     
@@ -44,11 +44,11 @@ class V3ToV4Upgrader {
         process.exit(0);
     }
     
-    if (this.backup) await this.createBackup();
+    if (this.backup) await this.createBackup(analysis);
     await this.installV4Structure();
     await this.migrateDocuments(analysis);
     await this.setupIDE();
-    this.showCompletionReport(analysis);
+    this.showCompletionReport();
     
     process.exit(0);
   }
@@ -62,16 +62,17 @@ class V3ToV4Upgrader {
     }
   }
   
-  async validateV3Project() {
-      return (await this.pathExists(path.join(this.projectPath, "bmad-agent"))) && 
-             (await this.pathExists(path.join(this.projectPath, "docs")));
+  async validateLegacyProject() {
+      const hasBmadAgent = await this.pathExists(path.join(this.projectPath, "bmad-agent"));
+      const hasDocs = await this.pathExists(path.join(this.projectPath, "docs"));
+      return hasBmadAgent || hasDocs;
   }
 
   async analyzeProject() {
     const docsPath = path.join(this.projectPath, "docs");
     const prdFile = (await glob("prd.md", { cwd: docsPath, case: true }))[0];
     const archFile = (await glob("architecture.md", { cwd: docsPath, case: true }))[0];
-    const storyFiles = await glob("stories/*.md", { cwd: docsPath });
+    const storyFiles = await glob("stories/*.md", { cwd: docsPath, case: true });
     return { prdFile, archFile, storyFiles: storyFiles.map(f => path.basename(f)) };
   }
   
@@ -81,35 +82,42 @@ class V3ToV4Upgrader {
     console.log(`- Architecture: ${analysis.archFile ? chalk.green('Found') : chalk.yellow('Not Found')}`);
     console.log(`- Stories: ${analysis.storyFiles.length > 0 ? chalk.green(`${analysis.storyFiles.length} found`) : chalk.yellow('None found')}`);
     console.log("\nThe following actions will be performed:");
-    console.log("1. Backup 'bmad-agent/' and 'docs/' to '.bmad-v3-backup/'.");
-    console.log("2. Install the new '.bmad-core/' directory structure.");
-    console.log("3. Copy your existing documents into the new 'docs/' folder.");
+    console.log("1. Backup 'bmad-agent/' and 'docs/' to '.stigmergy-legacy-backup/'.");
+    console.log("2. Install the new '.stigmergy-core/' directory structure.");
+    console.log("3. Copy your existing documents into the new 'docs/' folder for ingestion.");
   }
 
-  async createBackup() {
+  async createBackup(analysis) {
     const spinner = ora("Creating backup...").start();
-    const backupPath = path.join(this.projectPath, ".bmad-v3-backup");
+    const backupPath = path.join(this.projectPath, ".stigmergy-legacy-backup");
     if (await this.pathExists(backupPath)) {
-        spinner.fail(chalk.red("Backup directory '.bmad-v3-backup' already exists. Please remove it and try again."));
-        process.exit(1);
+        await fs.rm(backupPath, { recursive: true, force: true });
     }
     await fs.mkdir(backupPath);
-    await fs.rename(path.join(this.projectPath, "bmad-agent"), path.join(backupPath, "bmad-agent"));
-    await fs.rename(path.join(this.projectPath, "docs"), path.join(backupPath, "docs"));
-    spinner.succeed("Backup created at .bmad-v3-backup/");
+
+    const bmadAgentPath = path.join(this.projectPath, "bmad-agent");
+    const docsPath = path.join(this.projectPath, "docs");
+
+    if (await this.pathExists(bmadAgentPath)) {
+        await fs.rename(bmadAgentPath, path.join(backupPath, "bmad-agent"));
+    }
+    if (await this.pathExists(docsPath)) {
+        await fs.rename(docsPath, path.join(backupPath, "docs"));
+    }
+    spinner.succeed("Backup created at .stigmergy-legacy-backup/");
   }
 
   async installV4Structure() {
-    const spinner = ora("Installing new V4 structure...").start();
-    const sourcePath = path.resolve(__dirname, "../../bmad-core");
-    const destPath = path.join(this.projectPath, ".bmad-core");
+    const spinner = ora("Installing new Stigmergy structure...").start();
+    const sourcePath = path.resolve(__dirname, "../../.stigmergy-core");
+    const destPath = path.join(this.projectPath, ".stigmergy-core");
     await fs.cp(sourcePath, destPath, { recursive: true });
-    spinner.succeed("Installed new .bmad-core/ structure.");
+    spinner.succeed("Installed new .stigmergy-core/ structure.");
   }
   
   async migrateDocuments(analysis) {
     const spinner = ora("Migrating project documents...").start();
-    const backupDocsPath = path.join(this.projectPath, ".bmad-v3-backup", "docs");
+    const backupDocsPath = path.join(this.projectPath, ".stigmergy-legacy-backup", "docs");
     const newDocsPath = path.join(this.projectPath, "docs");
     await fs.mkdir(newDocsPath, { recursive: true });
     
@@ -123,15 +131,15 @@ class V3ToV4Upgrader {
             await fs.copyFile(path.join(backupDocsPath, "stories", story), path.join(newStoriesPath, story));
         }
     }
-    spinner.succeed("Documents migrated.");
+    spinner.succeed("Documents migrated for ingestion.");
   }
   
   async setupIDE() {
     const { ides } = await inquirer.prompt([{
       type: "checkbox",
       name: "ides",
-      message: "Select IDEs to configure for V4 (Space to select, Enter to confirm):",
-      choices: [{ name: "Roo Code (VS Code Extension)", value: "roo" }],
+      message: "Select IDEs to configure for Stigmergy (Space to select, Enter to confirm):",
+      choices: [{ name: "Roo Code (VS Code Extension)", value: "roo", checked: true }],
     }]);
     
     if(ides.length > 0){
@@ -143,12 +151,12 @@ class V3ToV4Upgrader {
   }
 
   showCompletionReport() {
-      console.log(chalk.bold.green("\n🎉 Upgrade to Pheromind V4 Complete! 🎉"));
+      console.log(chalk.bold.green("\n🎉 Upgrade to Stigmergy V4 Complete! 🎉"));
       console.log(chalk.bold("\nNext Steps:"));
-      console.log("1. Activate `@bmad-master` in your IDE.");
+      console.log("1. Activate `@stigmergy-master` in your IDE.");
       console.log("2. Use the new `*ingest_docs` command to process your migrated documents.");
       console.log("   Saul will shard them and prepare the system for execution.");
-      console.log("3. Once ingested, your project will be ready for the autonomous Pheromind Cycle.");
+      console.log("3. Once ingested, your project will be ready for the autonomous Stigmergy Cycle.");
   }
 }
 
@@ -159,8 +167,8 @@ if (require.main === module) {
   
   program
     .command("upgrade", { isDefault: true })
-    .description("Interactively upgrade a BMAD-METHOD V3 project to V4")
-    .option("-p, --project <path>", "Path to your V3 project (defaults to current dir)")
+    .description("Interactively upgrade a legacy project to Stigmergy V4")
+    .option("-p, --project <path>", "Path to your project (defaults to current dir)")
     .action(async (options) => {
         const upgrader = new V3ToV4Upgrader({ projectPath: options.project });
         await upgrader.upgrade();
@@ -168,5 +176,3 @@ if (require.main === module) {
     
   program.parse(process.argv);
 }
-
-module.exports = V3ToV4Upgrader;
