@@ -27,73 +27,46 @@ class IdeSetup {
         return this.setupRoo(installDir);
     }
     
-    // Legacy support for other IDEs can be maintained or developed here.
-    console.log(chalk.yellow(`\nGeneric setup for ${ide} is not fully optimized. Recommending Roo Code.`));
+    console.log(chalk.yellow(`\nSetup for ${ide} is not yet fully implemented.`));
     return false;
   }
 
-  async getAllAgentData(installDir) {
-    const agentsDir = path.join(installDir, ".stigmergy-core", "agents");
-    const glob = require("glob");
-    const agentFiles = glob.sync("*.md", { cwd: agentsDir });
-    const agentDataList = [];
-
-    for (const file of agentFiles) {
-        const agentId = path.basename(file, ".md");
-        const agentPath = path.join(agentsDir, file);
-        const agentContent = await fileManager.readFile(agentPath);
-
-        const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
-        if (yamlMatch) {
-            try {
-                const config = yaml.load(yamlMatch);
-                agentDataList.push({
-                    id: agentId,
-                    config: config,
-                    fullContent: agentContent,
-                });
-            } catch (e) {
-                console.warn(chalk.yellow(`Could not parse YAML for agent: ${agentId}. Skipping.`));
-            }
-        }
-    }
-    return agentDataList;
-  }
-
   async setupRoo(installDir) {
-    const allAgentsData = await this.getAllAgentData(installDir);
+    const allAgentsData = await configLoader.getAgentDataList();
     const roomodesPath = path.join(installDir, ".roomodes");
 
     let existingModes = { customModes: [] };
     if (await fileManager.pathExists(roomodesPath)) {
         try {
             const existingContent = await fileManager.readFile(roomodesPath);
-            existingModes = yaml.load(existingContent) || { customModes: [] };
-            if (!Array.isArray(existingModes.customModes)) {
-                existingModes.customModes = [];
+            const loadedYaml = yaml.load(existingContent);
+            if (loadedYaml && Array.isArray(loadedYaml.customModes)) {
+                existingModes = loadedYaml;
+                console.log(chalk.yellow(`Found existing .roomodes file. Merging new modes.`));
+            } else {
+                console.warn(chalk.yellow('Existing .roomodes file is malformed. It will be overwritten.'));
             }
-            console.log(chalk.yellow(`Found existing .roomodes file. Merging new modes.`));
         } catch (e) {
-            console.warn(chalk.yellow(`Could not parse existing .roomodes file. It will be overwritten.`));
+            console.warn(chalk.yellow(`Could not parse existing .roomodes file. It will be overwritten. Error: ${e.message}`));
         }
     }
 
     const existingSlugs = new Set(existingModes.customModes.map(m => m.slug));
 
     for (const agentData of allAgentsData) {
-        const slug = `${agentData.id}`; // Simplified slug
+        const slug = agentData.id;
         if (existingSlugs.has(slug)) {
             console.log(chalk.dim(`Skipping mode for '${agentData.config.agent.name}' - slug '${slug}' already exists.`));
             continue;
         }
 
         const newMode = {
-            slug,
+            slug: slug,
             name: `${agentData.config.agent.icon} ${agentData.config.agent.name}`,
             roleDefinition: agentData.config.persona.identity,
             whenToUse: agentData.config.agent.whenToUse,
             customInstructions: agentData.fullContent,
-            groups: ['read', 'edit'] // Grant full access by default for simplicity
+            groups: ['read', 'edit'] // Grant full access by default for simplicity.
         };
         
         existingModes.customModes.push(newMode);
@@ -104,7 +77,8 @@ class IdeSetup {
         const finalYaml = yaml.dump(existingModes, {
           indent: 2,
           noRefs: true,
-          sortKeys: false
+          sortKeys: false,
+          lineWidth: -1, // Prevent line wrapping for customInstructions
         });
 
         await fileManager.writeFile(roomodesPath, finalYaml);
