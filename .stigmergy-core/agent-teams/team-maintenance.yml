@@ -3,7 +3,7 @@ bundle:
   icon: 🛠️
   description: A specialized team for debugging, refactoring, and assessing code health.
 agents:
-  - bmad-orchestrator
+  - stigmergy-orchestrator # Corrected agent name
   - debugger
   - refactorer
   - qa
