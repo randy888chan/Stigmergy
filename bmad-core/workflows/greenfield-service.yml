@@ -1,4 +1,0 @@
-workflow:
-  id: greenfield-service
-  name: Greenfield Service Development
-  description: A workflow for building a new backend service or API from the ground up.

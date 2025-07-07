@@ -1,4 +1,0 @@
-workflow:
-  id: brownfield-fullstack
-  name: Brownfield Full-Stack Enhancement
-  description: A workflow for adding significant new features to an existing full-stack application.
