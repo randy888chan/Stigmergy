@@ -1,6 +1,6 @@
-# Contributing to Pheromind
+# Contributing to Stigmergy
 
-Thank you for your interest in contributing to the Pheromind project!
+Thank you for your interest in contributing to the Stigmergy project!
 
 ## Development Workflow
 
@@ -24,7 +24,7 @@ This project uses `npm link` to enable local development and testing against oth
     ```bash
     npm link
     ```
-    This creates a global symlink from `@randy888chan/pheromind` to your local source code.
+    This creates a global symlink from `@randy888chan/stigmergy` to your local source code.
 
 ### Using the Local Version in Another Project
 
@@ -34,15 +34,15 @@ This project uses `npm link` to enable local development and testing against oth
     ```
 
 2.  **Link the Package:**
-    Run the following command to make your test project use your local version of Pheromind instead of the published one:
+    Run the following command to make your test project use your local version of Stigmergy instead of the published one:
     ```bash
-    npm link @randy888chan/pheromind
+    npm link @randy888chan/stigmergy
     ```
 
-3.  **Run Pheromind:**
-    You can now use the `pheromind` command within your test project, and any changes you make in the Pheromind source code will be reflected immediately.
+3.  **Run Stigmergy:**
+    You can now use the `stigmergy` command within your test project, and any changes you make in the Stigmergy source code will be reflected immediately.
     ```bash
-    npx pheromind install
+    npx stigmergy install
     ```
 
 ## Publishing a New Version
