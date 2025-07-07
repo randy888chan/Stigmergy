@@ -24,11 +24,12 @@ class DependencyResolver {
     const agentContent = await fs.readFile(agentPath, 'utf8');
 
     const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
-    if (!yamlMatch || !yamlMatch) {
+    if (!yamlMatch || !yamlMatch[1]) {
       throw new Error(`Could not find or parse a valid YAML block in agent file: ${agentPath}`);
     }
     
-    const agentConfig = yaml.load(yamlMatch);
+    // THE FIX: Pass the captured group (the content inside the fences), not the whole match object.
+    const agentConfig = yaml.load(yamlMatch[1]);
     
     const dependencies = {
       agent: { id: agentId, path: `agents#${agentId}`, content: agentContent, config: agentConfig },
