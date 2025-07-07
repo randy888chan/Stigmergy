@@ -1,15 +1,11 @@
 # Stigmergy System Goal
 
-This document defines the core purpose and fundamental capabilities of the Stigmergy autonomous AI development system. All agents MUST align their actions and decisions with these foundational goals.
+This document defines the core purpose and fundamental capabilities of the Stigmergy autonomous AI development system. All agents MUST align their actions and decisions with these four foundational pillars.
 
-The system is designed to achieve the following unique combination of capabilities:
+1.  **True Autonomous Orchestration:** The system's AI agents must take the lead in planning, delegating, and executing complex project phases with minimal human intervention. A single Chief Orchestrator manages the entire hands-free workflow from initial concept to final artifact.
 
-- **True Autonomous Orchestration:** The system's AI agents must take the lead in planning, delegating, and executing complex project phases with minimal human intervention. The goal is a hands-free workflow from initial concept to final artifact.
+2.  **Adaptive Swarm Intelligence:** The agent collective must be inherently resilient and adaptive. It must dynamically reallocate resources, navigate unforeseen obstacles using defined escalation protocols, and optimize pathways to project completion by learning from its own performance.
 
-- **Adaptive Swarm Intelligence:** The agent collective must be inherently resilient and adaptive. It must dynamically reallocate resources, navigate unforeseen obstacles using defined escalation protocols, and optimize pathways to project completion by learning from its own performance.
+3.  **AI-Verifiable Outcomes:** Progress is not subjective. Milestones, tasks, and quality are defined by outputs and state changes that can be programmatically verified by other AI agents against a project-specific, version-controlled blueprint. This brings mathematical rigor to project tracking.
 
-- **Unambiguous AI-Verifiable Outcomes:** Progress is not subjective. Milestones, tasks, and quality are defined by outputs and state changes that can be programmatically verified by other AI agents. The `.ai/state.json` file is the immutable ledger of these outcomes, bringing mathematical rigor to project tracking.
-
-- **Sophisticated Natural Language Interpretation:** Agent coordination is driven by the interpretation of complex, narrative-style information (e.g., worker reports, user requests), allowing for a richer and more flexible flow of understanding than rigid commands. The system's "Interpreter" agent (`@bmad-master`) is central to translating these narratives into the structured "digital scent" that guides the swarm.
-
-This dynamic interplay, guided by interpretable signals within a shared environment, allows the swarm to achieve complex goals with emergent intelligence.
+4.  **Sophisticated Natural Language Interpretation:** The system's "Interpreter" (`@stigmergy-master`) drives agent coordination by interpreting complex, narrative-style information (e.g., worker reports, user goals), allowing for a richer and more flexible flow of understanding than rigid commands.
