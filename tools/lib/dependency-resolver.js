@@ -1,40 +1,25 @@
 const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
+const chalk = require('chalk');
 
 class DependencyResolver {
   constructor(rootDir) {
     this.rootDir = rootDir;
-    this.bmadCore = path.join(rootDir, 'bmad-core');
+    this.stigmergyCore = path.join(rootDir, '.stigmergy-core');
     this.cache = new Map();
   }
 
   async resolveAgentDependencies(agentId) {
-    const agentPath = path.join(this.bmadCore, 'agents', `${agentId}.md`);
+    const agentPath = path.join(this.stigmergyCore, 'agents', `${agentId}.md`);
     const agentContent = await fs.readFile(agentPath, 'utf8');
 
-    // Robustly find the YAML block in the agent's markdown file.
-    const lines = agentContent.split(/\r?\n/);
-    let inYamlBlock = false;
-    const yamlLines = [];
-    for (const line of lines) {
-      if (line.trim().startsWith('```yaml') || line.trim().startsWith('```yml')) {
-        inYamlBlock = true;
-        continue;
-      }
-      if (line.trim() === '```' && inYamlBlock) {
-        break;
-      }
-      if (inYamlBlock) {
-        yamlLines.push(line);
-      }
-    }
-    const yamlContent = yamlLines.join('\n');
-    if (!yamlContent) {
+    const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
+    if (!yamlMatch || !yamlMatch) {
       throw new Error(`Could not find or parse a valid YAML block in agent file: ${agentPath}`);
     }
     
-    const agentConfig = yaml.load(yamlContent);
+    const agentConfig = yaml.load(yamlMatch);
     
     const dependencies = {
       agent: { id: agentId, path: `agents#${agentId}`, content: agentContent, config: agentConfig },
@@ -43,11 +28,13 @@ class DependencyResolver {
 
     const depTypes = ['tasks', 'templates', 'checklists', 'data', 'utils', 'agents', 'system_docs'];
     for (const depType of depTypes) {
-      const deps = agentConfig.dependencies?.[depType] || [];
-      const depList = Array.isArray(deps) ? deps : [deps]; // Handle single string or array
+      if (!agentConfig.dependencies || !agentConfig.dependencies[depType]) continue;
+      
+      const deps = agentConfig.dependencies[depType];
+      const depList = Array.isArray(deps) ? deps : [deps];
 
       for (const depId of depList) {
-        if (depId === '*' || depType === 'agents') continue; // Do not bundle other agents or wildcard deps
+        if (depId === '*' || depType === 'agents') continue;
         const resource = await this.loadResource(depType, depId);
         if (resource) dependencies.resources.push(resource);
       }
@@ -57,7 +44,7 @@ class DependencyResolver {
   }
 
   async resolveTeamDependencies(teamId) {
-    const teamPath = path.join(this.bmadCore, 'agent-teams', `${teamId}.yml`);
+    const teamPath = path.join(this.stigmergyCore, 'agent-teams', `${teamId}.yml`);
     const teamContent = await fs.readFile(teamPath, 'utf8');
     const teamConfig = yaml.load(teamContent);
     
@@ -69,11 +56,9 @@ class DependencyResolver {
 
     let agentsToResolve = teamConfig.agents || [];
     
-    // Handle wildcard agent resolution
     if (agentsToResolve.includes('*')) {
       const allAgents = await this.listAgents();
-      // Exclude master orchestrator from wildcard to prevent recursion issues in some contexts
-      agentsToResolve = allAgents.filter(a => a !== 'bmad-master'); 
+      agentsToResolve = allAgents.filter(a => a !== 'stigmergy-master'); 
     }
     
     for (const agentId of agentsToResolve) {
@@ -101,45 +86,30 @@ class DependencyResolver {
     const cacheKey = `${type}#${id}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
   
-    const extensions = type === 'workflows' ? ['.yml'] : ['.md'];
-    let content = null;
-    let filePath = '';
+    const ext = type === 'workflows' ? '.yml' : '.md';
+    const resourcePath = path.join(this.stigmergyCore, type, `${id}${ext}`);
   
-    const resourcePath = path.join(this.bmadCore, type, id);
-  
-    for (const ext of extensions) {
-      try {
-        const testPath = id.endsWith(ext) ? resourcePath : `${resourcePath}${ext}`;
-        if ((await fs.stat(testPath)).isFile()) {
-          content = await fs.readFile(testPath, 'utf8');
-          filePath = `${type}#${id}`;
-          break;
-        }
-      } catch (e) {
-        // File does not exist, try next extension
-      }
-    }
-  
-    if (!content) {
+    try {
+      const content = await fs.readFile(resourcePath, 'utf8');
+      const resource = { type, id, path: `${type}#${id}`, content };
+      this.cache.set(cacheKey, resource);
+      return resource;
+    } catch (e) {
       // console.warn(`[Warning] Resource not found: ${id} in ${type}. Skipping.`);
       return null;
     }
-  
-    const resource = { type, id, path: filePath, content };
-    this.cache.set(cacheKey, resource);
-    return resource;
   }
   
   async listAgents() {
     try {
-      const files = await fs.readdir(path.join(this.bmadCore, 'agents'));
+      const files = await fs.readdir(path.join(this.stigmergyCore, 'agents'));
       return files.filter(f => f.endsWith('.md')).map(f => path.basename(f, '.md'));
     } catch (error) { return []; }
   }
 
   async listTeams() {
     try {
-      const files = await fs.readdir(path.join(this.bmadCore, 'agent-teams'));
+      const files = await fs.readdir(path.join(this.stigmergyCore, 'agent-teams'));
       return files.filter(f => f.endsWith('.yml')).map(f => path.basename(f, '.yml'));
     } catch (error) { return []; }
   }
