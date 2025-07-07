@@ -1,0 +1,34 @@
+# Git files
+.git/
+.github/
+.gitignore
+
+# Husky config
+.husky/
+
+# Development dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+pnpm-lock.yaml
+
+# Build output
+dist/
+
+# Test files and configs
+tests/
+jest.config.js
+*.test.js
+*.spec.js
+
+# Misc
+.DS_Store
+.idea/
+.vscode/
+*.log
+
+# Source of the core that gets installed, not shipped
+stigmergy-core/
+```
