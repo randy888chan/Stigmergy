@@ -9,7 +9,7 @@ class WebBuilder {
     this.resolver = new DependencyResolver(this.rootDir);
     this.templatePath = path.join(
       this.rootDir,
-      "bmad-core",
+      ".stigmergy-core",
       "utils",
       "web-agent-startup-instructions.md"
     );
