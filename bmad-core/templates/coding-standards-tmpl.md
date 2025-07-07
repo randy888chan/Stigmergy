@@ -1,53 +1,47 @@
-# Pheromind Project: Coding Standards
+# Project Coding Standards
 
-[[LLM: This is a template. When generating for a new project, populate this into `docs/architecture/coding-standards.md`. Announce to the user that these are the default standards and can be modified directly in that file at any time.]]
+[[LLM: This is a template. When generating for a new project, you MUST populate this into `docs/architecture/coding-standards.md`. Announce to the user that these are the default standards and can be modified directly in that file at any time.]]
 
-This document defines the mandatory coding standards for this project. All AI agents (`@dev`, `@refactorer`) MUST adhere to these rules. The `@qa` agent WILL use these standards as the basis for its validation protocol.
+This document defines the mandatory coding standards for this project. All AI agents (`@dev`, `@refactorer`) MUST adhere to these rules. The `@qa` agent WILL use these standards as the basis for its validation protocol. This document is part of the **Immutable Project Blueprint**.
 
 ## 1. Tooling & Formatting
 
-- **Formatter:** Prettier (`prettier`) is the single source of truth for all code formatting.
+- **Formatter:** Prettier is the single source of truth for all code formatting.
 - **Configuration:** The Prettier configuration is defined in `.prettierrc` at the project root and MUST NOT be overridden.
-- **Linting:** ESLint (`eslint`) will be used for identifying stylistic and programmatic errors. The configuration is in `.eslintrc.json`.
-- **Pre-commit Hook:** A `pre-commit` hook (using Husky and lint-staged) MUST be configured to run `prettier --write` and `eslint --fix` on all staged files. No code may be committed that does not pass these checks.
+- **Linting:** A linter (e.g., ESLint) will be used for identifying stylistic and programmatic errors. The configuration is in the project root (e.g., `.eslintrc.json`).
+- **Pre-commit Hook:** A `pre-commit` hook (e.g., using Husky and lint-staged) MUST be configured to run the formatter and linter on all staged files. No code may be committed that does not pass these checks.
 
 ## 2. Naming Conventions
 
-- **Variables & Functions:** `camelCase`.
-- **Classes & Components (React/Vue/etc.):** `PascalCase`.
-- **Constants:** `UPPER_SNAKE_CASE`.
-- **Files:**
-    - Components: `PascalCase.jsx` or `PascalCase.tsx`.
-    - Utilities/Services: `camelCase.js` or `camelCase.ts`.
-    - Test Files: `*.test.ts` or `*.spec.ts`.
-- **API Endpoints:** `kebab-case` (e.g., `/api/user-profiles`).
+| Element Type                     | Convention       | Example                        |
+| -------------------------------- | ---------------- | ------------------------------ |
+| Variables, Functions             | `camelCase`      | `const userData = getUser();`   |
+| Classes, Components (React/Vue)  | `PascalCase`     | `class UserProfile extends React.Component` |
+| Constants (global, immutable)    | `UPPER_SNAKE_CASE` | `const MAX_RETRIES = 3;`       |
+| Files (Components)               | `PascalCase.ext` | `UserProfile.tsx`              |
+| Files (Utilities, Services)      | `camelCase.ext`  | `apiClient.ts`                 |
+| API Endpoints (URL path)         | `kebab-case`     | `/api/user-profiles/{id}`      |
 
-## 3. Code Structure
+## 3. Code Structure & Best Practices
 
-- **Imports:** Imports MUST be grouped and ordered as follows:
-    1. External dependencies (e.g., `react`, `axios`).
+- **Imports:** Imports MUST be grouped and ordered as follows, separated by a blank line:
+    1. External/library dependencies (e.g., `react`, `axios`).
     2. Internal absolute imports from `src/` (e.g., `src/components/Button`).
     3. Internal relative imports (e.g., `./utils`).
-- **Function Size:** No function should exceed 50 lines of code. Longer functions must be refactored into smaller, single-purpose helpers.
-- **Component Size:** No UI component should exceed 200 lines of code. Complex components must be decomposed.
+- **Function Size:** Functions should adhere to the Single Responsibility Principle. As a guideline, no function should exceed 50 lines of code. Longer functions must be refactored.
+- **Error Handling:** All asynchronous operations MUST be wrapped in `try...catch` blocks or use equivalent Promise `.catch()` handling. Errors MUST NOT be silenced. They must be logged and handled gracefully.
+- **Immutability:** State should be treated as immutable. Avoid direct mutation of objects and arrays; use non-mutating methods (e.g., spread syntax, `.map`, `.filter`) instead.
+- **Environment Variables:** Access environment variables through a dedicated configuration module. DO NOT use `process.env` directly in application logic.
 
-## 4. Error Handling
-
-- All asynchronous operations MUST be wrapped in `try...catch` blocks or use equivalent Promise `.catch()` handling.
-- Errors MUST NOT be silenced (e.g., `catch (e) {}`). They must be logged to a central logging service and re-thrown or handled gracefully by returning a structured error response.
-- Use a dedicated `ApiError` class for all API-related errors, containing a status code and a user-friendly message.
-
-## 5. Testing Standards
+## 4. Testing Standards
 
 - **Unit Tests:** Every function and component MUST have a corresponding unit test file.
 - **Coverage:** The minimum acceptable test coverage is **85%** for statements, branches, and functions. This will be enforced by the CI pipeline.
 - **Test Pattern:** Tests must follow the Arrange-Act-Assert (AAA) pattern.
 - **Mocks:** All external dependencies (APIs, databases, services) MUST be mocked in unit tests.
 
-## 6. Security
+## 5. Security
 
-- **No Hardcoded Secrets:** No API keys, passwords, or other secrets are permitted in the source code. They must be loaded from environment variables via a configuration service.
-- **Input Validation:** All data received from external sources (API requests, user input) MUST be validated using a schema library (e.g., Zod, Joi) before being processed.
+- **No Hardcoded Secrets:** No API keys, passwords, or other secrets are permitted in the source code. Load them from environment variables via a configuration service.
+- **Input Validation:** All data received from external sources (e.g., API request bodies, URL parameters) MUST be validated against a schema before being processed.
 - **Console Logs:** `console.log` statements are forbidden in production code. Use a structured logger instead.
-
-These standards are non-negotiable and form the basis of our automated quality gates.
