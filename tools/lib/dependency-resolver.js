@@ -1,7 +1,16 @@
 const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
-const chalk = require('chalk');
+
+// Dynamic import for ES module
+let chalk;
+
+// Initialize ES modules
+async function initializeChalk() {
+  if (!chalk) {
+    chalk = (await import('chalk')).default;
+  }
+}
 
 class DependencyResolver {
   constructor(rootDir) {
@@ -34,7 +43,7 @@ class DependencyResolver {
       const depList = Array.isArray(deps) ? deps : [deps];
 
       for (const depId of depList) {
-        if (depId === '*' || depType === 'agents') continue;
+        if (depId === '*') continue;
         const resource = await this.loadResource(depType, depId);
         if (resource) dependencies.resources.push(resource);
       }
@@ -44,6 +53,7 @@ class DependencyResolver {
   }
 
   async resolveTeamDependencies(teamId) {
+    await initializeChalk();
     const teamPath = path.join(this.stigmergyCore, 'agent-teams', `${teamId}.yml`);
     const teamContent = await fs.readFile(teamPath, 'utf8');
     const teamConfig = yaml.load(teamContent);
@@ -71,9 +81,6 @@ class DependencyResolver {
       }
     }
     
-    // NOTE: Workflows are no longer a separate dependency type. They are part of agent protocols.
-    // This section is removed to align with the new architecture.
-
     dependencies.resources = Array.from(dependencies.resources.values());
     return dependencies;
   }
@@ -82,20 +89,16 @@ class DependencyResolver {
     const cacheKey = `${type}#${id}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
   
-    // Define extensions for different resource types
-    const ext = type.endsWith('s') ? '.md' : '.yml'; // Simple rule, can be expanded
-    const resourceFileName = `${id}${ext}`;
-    const resourcePath = path.join(this.stigmergyCore, type, resourceFileName);
+    const ext = type === 'workflows' ? '.yml' : '.md'; // Workflows are gone, but keep for legacy safety
+    const resourcePath = path.join(this.stigmergyCore, type, `${id}${ext}`);
   
     try {
-      await fs.access(resourcePath); // Check if file exists
+      await fs.access(resourcePath);
       const content = await fs.readFile(resourcePath, 'utf8');
       const resource = { type, id, path: `${type}#${id}`, content };
       this.cache.set(cacheKey, resource);
       return resource;
     } catch (e) {
-      // Intentionally silent: It's valid for a dependency to not exist after cleanup.
-      // console.warn(`[Info] Resource not found: ${id} in ${type}. Skipping.`);
       return null;
     }
   }
