@@ -2,7 +2,7 @@
   "name": "@randy888chan/stigmergy",
   "version": "4.10.0",
   "description": "Stigmergy: The Autonomous AI Development Swarm. A framework for orchestrating AI agents.",
-  "main": "tools/cli.js",
+  "main": "tools/installer/cli.js",
   "bin": {
     "stigmergy": "tools/installer/cli.js"
   },
