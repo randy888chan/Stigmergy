@@ -35,7 +35,6 @@ dependencies:
     - browser
   tasks:
     - create-doc
-```
     - perform_initial_project_research
   templates:
     - project-brief-tmpl
