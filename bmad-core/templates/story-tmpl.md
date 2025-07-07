@@ -1,4 +1,4 @@
-# Story {{EpicNum}}.{{StoryNum}}: {{Short Title Copied from Epic File specific story}}
+# Story {{EpicNum}}.{{StoryNum}}: {{Short Title}}
 
 ## Status: {{ Draft | Approved | InProgress | Review | Done }}
 
@@ -10,52 +10,67 @@
 
 ## Acceptance Criteria (ACs)
 
-{{ Copy of Acceptance Criteria numbered list }}
+{{ Numbered list of Acceptance Criteria }}
+
+---
 
 ## Tasks / Subtasks
+<!-- 
+  This section is for Olivia, the Execution Coordinator, to manage.
+  She will decompose these high-level tasks into smaller, verifiable steps
+  and manage the dev loop for each one sequentially.
+-->
+- [ ] Task 1 (AC: #): {{ Brief description of the first major task }}
+- [ ] Task 2 (AC: #): {{ Brief description of the second major task }}
+- [ ] Task 3 (AC: #): {{ etc... }}
 
-- [ ] Task 1 (AC: # if applicable)
-  - [ ] Subtask1.1...
-- [ ] Task 2 (AC: # if applicable)
-  - [ ] Subtask 2.1...
-- [ ] Task 3 (AC: # if applicable)
-  - [ ] Subtask 3.1...
+---
 
 ## Dev Notes
+<!-- 
+  This section is populated by the @sm (Bob, the Task Decomposer).
+  It contains only the critical, specific technical context from the 
+  architecture documents needed for this story.
+-->
 
-[[LLM: populates relevant information, only what was pulled from actual artifacts from docs folder, relevant to this story. Do not invent information. Critical: If known add Relevant Source Tree info that relates to this story. If there were important notes from previous story that are relevant to this one, also include them here if it will help the dev agent. You do NOT need to repeat anything from coding standards or test standards as the dev agent is already aware of those. The dev agent should NEVER need to read the PRD or architecture documents or child documents though to complete this self contained story, because your critical mission is to share the specific items needed here extremely concisely for the Dev Agent LLM to comprehend with the least about of context overhead token usage needed.]]
+**Relevant Architectural Snippets:**
 
-### Testing
+- **Data Model `{{model_name}}`:**
+  ```typescript
+  // Snippet from docs/architecture/data-models.md
+  interface {{model_name}} { ... }
+  ```
+- **API Endpoint `{{endpoint_path}}`:**
+  ```yaml
+  # Snippet from docs/architecture/rest-api-spec.md
+  # ... spec for this endpoint
+  ```
+- **Component Props `{{component_name}}`:**
+  ```typescript
+  # Snippet from docs/architecture/components.md
+  interface {{component_name}}Props { ... }
+  ```
 
-[[LLM: Scrum Master use `test-strategy-and-standards.md` to leave instruction for developer agent in the following concise format, leave unchecked if no specific test requirement of that type]]
-Dev Note: Story Requires the following tests:
+**Implementation Guidance:**
+- Adhere strictly to the project's `coding-standards.md` and `qa-protocol.md`.
+- All database interactions MUST use the established Repository Pattern.
+- Note: No specific guidance for error handling was found in architecture docs; proceed with standard implementation. [EXAMPLE]
 
-- [ ] {{type f.e. Jest}} Unit Tests: (nextToFile: {{true|false}}), coverage requirement: {{from strategy or default 80%}}
-- [ ] {{type f.e. Jest with in memory db}} Integration Test (Test Location): location: {{Integration test location f.e. `/tests/story-name/foo.spec.cs` or `next to handler`}}
-- [ ] {{type f.e. Cypress}} E2E: location: {{f.e. `/e2e/{epic-name/bar.test.ts`}}
-
-Manual Test Steps: [[LLM: Include how if possible the user can manually test the functionality when story is Ready for Review, if any]]
-
-{{ f.e. `- dev will create a script with task 3 above that you can run with "npm run test-initiate-launch-sequence" and validate Armageddon is initiated`}}
+---
 
 ## Dev Agent Record
+<!-- This section is for the @dev agent (James) to update upon completion. -->
 
-### Agent Model Used: {{Agent Model Name/Version}}
+**Agent Model Used:** {{Agent Model Name/Version}}
 
-### Debug Log References
+**Referenced Research:**
+<!-- Links to documentation/Stack Overflow that were used to solve problems. -->
 
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update]]
-[[LLM: (Dev Agent) If the debug is logged to during the current story progress, create a table with the debug log and the specific task section in the debug log - do not repeat all the details in the story]]
+**Completion Notes:**
+<!-- Notes for the next agent (e.g., Olivia, or the SM for the next story). -->
 
-### Completion Notes List
-
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update - remove this line to the SM]]
-[[LLM: (Dev Agent) Anything the SM needs to know that deviated from the story that might impact drafting the next story.]]
-
-### Change Log
-
-[[LLM: (SM Agent) When Drafting Story, leave next prompt in place for dev agent to remove and update- remove this line to the SM]]
-[[LLM: (Dev Agent) Track document versions and changes during development that deviate from story dev start]]
-
-| Date | Version | Description | Author |
-| :--- | :------ | :---------- | :----- |
+**Changelog:**
+<!-- Auto-populated by a git hook in a future version. For now, manual. -->
+| Date       | Version | Description                     | Author |
+| :--------- | :------ | :------------------------------ | :----- |
+| YYYY-MM-DD | 1.0     | Initial implementation of sub-tasks | @dev   |
