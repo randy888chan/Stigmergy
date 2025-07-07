@@ -3,12 +3,5 @@ bundle:
   icon: 👥
   description: Includes every core system agent.
 agents:
-  - bmad-orchestrator
-  - "*"
-workflows:
-  - brownfield-fullstack
-  - brownfield-service
-  - brownfield-ui
-  - greenfield-fullstack
-  - greenfield-service
-  - greenfield-ui
+  - stigmergy-orchestrator # Explicitly include the renamed orchestrator
+  - '*'
