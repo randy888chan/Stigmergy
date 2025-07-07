@@ -1,59 +1,9 @@
-installation-options:
-  full:
-    name: Complete BMAD Core
-    description: Copy the entire .bmad-core folder with all agents, templates, and tools
-    action: copy-folder
-  single-agent:
-    name: Single Agent
-    description: Select and install a single agent with its dependencies
-    action: copy-agent
-agent-dependencies:
-  core-files:
-    - bmad-core/utils/template-format.md
-  dev:
-    - bmad-core/templates/story-tmpl.md
-    - bmad-core/checklists/story-dod-checklist.md
-  pm:
-    - bmad-core/templates/prd-tmpl.md
-    - bmad-core/templates/brownfield-prd-tmpl.md
-    - bmad-core/checklists/pm-checklist.md
-    - bmad-core/checklists/change-checklist.md
-    - bmad-core/tasks/advanced-elicitation.md
-    - bmad-core/tasks/create-doc.md
-    - bmad-core/tasks/correct-course.md
-    - bmad-core/tasks/create-deep-research-prompt.md
-    - bmad-core/tasks/brownfield-create-epic.md
-    - bmad-core/tasks/brownfield-create-story.md
-    - bmad-core/tasks/execute-checklist.md
-    - bmad-core/tasks/shard-doc.md
-  architect:
-    - bmad-core/templates/architecture-tmpl.md
-    - bmad-core/checklists/architect-checklist.md
-  sm:
-    - bmad-core/templates/story-tmpl.md
-    - bmad-core/checklists/story-draft-checklist.md
-    - bmad-core/workflows/*.yml
-  po:
-    - bmad-core/checklists/po-master-checklist.md
-    - bmad-core/templates/acceptance-criteria-tmpl.md
-  analyst:
-    - bmad-core/templates/prd-tmpl.md
-    - bmad-core/tasks/advanced-elicitation.md
-    - bmad-core/tasks/perform_initial_project_research.md
-    - bmad-core/templates/market-research-tmpl.md
-    - bmad-core/templates/competitor-analysis-tmpl.md
-  qa:
-    - bmad-core/checklists/story-dod-checklist.md
-    - bmad-core/templates/test-plan-tmpl.md
-  ux-expert:
-    - bmad-core/templates/ux-tmpl.md
-  bmad-master:
-    - bmad-core/templates/*.md
-    - bmad-core/tasks/*.md
-    - bmad-core/schemas/*.yml
-  bmad-orchestrator:
-    - bmad-core/agent-teams/*.yml
-    - bmad-core/workflows/*.yml
+# This file is used by the Stigmergy installer.
+# It defines installation options and dependencies.
+
+# Deprecated in v4+, installer logic is now more dynamic.
+# This file is kept for potential future use or for reference.
+# The primary source of truth for dependencies is now parsing the agent files themselves.
 ide-configurations:
   roo:
     name: Roo Code (VS Code Extension)
@@ -61,65 +11,15 @@ ide-configurations:
     file: .roomodes
     instructions: |
       # To use Stigmergy agents in Roo Code:
-      # 1. Open the mode selector (usually in the status bar).
-      # 2. Select any bmad-{agent} mode (e.g., "bmad-dev", "bmad-pm").
-      # 3. The AI will adopt that agent's full personality and capabilities.
-  trae:
-    name: TRAE AI IDE
-    format: unknown
+      # 1. Open this project directory in VS Code with the Roo Code extension.
+      # 2. The custom modes defined in .roomodes will be available automatically.
+      # 3. Select any 'stigmergy-{agent}' mode (e.g., "stigmergy-master").
+      # 4. The AI will adopt that agent's full personality and capabilities.
+  cursor:
+    name: Cursor
+    format: mdc-rules
+    file: .cursor/rules
     instructions: |
-      # TRAE AI IDE configuration coming soon.
-      # Manual setup: Copy IDE agent files to your TRAE configuration.
-  kilo:
-    name: Kilo Code
-    format: unknown
-    instructions: |
-      # Kilo Code configuration coming soon.
-      # Manual setup: Copy IDE agent files to your Kilo configuration.
-  cline:
-    name: Cline
-    format: unknown
-    instructions: |
-      # Cline configuration coming soon.
-      # Manual setup: Copy IDE agent files to your Cline configuration.
-available-agents:
-  - id: analyst
-    name: Business Analyst
-    file: bmad-core/agents/analyst.md
-    description: Requirements gathering and analysis
-  - id: pm
-    name: Product Manager
-    file: bmad-core/agents/pm.md
-    description: Product strategy and roadmap planning
-  - id: architect
-    name: Solution Architect
-    file: bmad-core/agents/architect.md
-    description: Technical design and architecture
-  - id: po
-    name: Product Owner
-    file: bmad-core/agents/po.md
-    description: Backlog management and prioritization
-  - id: sm
-    name: Scrum Master
-    file: bmad-core/agents/sm.md
-    description: Agile process and story creation
-  - id: dev
-    name: Developer
-    file: bmad-core/agents/dev.md
-    description: Code implementation and testing
-  - id: qa
-    name: QA Engineer
-    file: bmad-core/agents/qa.md
-    description: Quality assurance and testing
-  - id: ux-expert
-    name: UX Expert
-    file: bmad-core/agents/ux-expert.md
-    description: User experience design
-  - id: bmad-master
-    name: BMAD Master
-    file: bmad-core/agents/bmad-master.md
-    description: BMAD framework expert and guide
-  - id: bmad-orchestrator
-    name: BMAD Orchestrator
-    file: bmad-core/agents/bmad-orchestrator.md
-    description: Multi-agent workflow coordinator
+      # Support for Cursor can be added by creating .mdc rule files.
+      # This installer currently prioritizes Roo Code.
+```
