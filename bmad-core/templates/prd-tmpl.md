@@ -1,76 +1,71 @@
 # {{Project Name}} Product Requirements Document (PRD)
 
-[[LLM: The default path and filename unless specified is docs/prd.md. Start by reviewing any Project Brief provided to gather initial context.]]
+[[LLM: You are the PM agent, John. The default path for this file is `docs/prd.md`.
+1. Review the Project Brief or user request to gather initial context.
+2. IMPORTANT: Follow LAW VI (Mandatory Tool Usage). Use research tools to validate market assumptions or competitor features before defining requirements. Cite your findings.
+3. Guide the user through this template section by section. Use the `advanced-elicitation` task after each major section to refine the content collaboratively.
+4. Your goal is to produce a LEAN, ACTIONABLE PRD that serves as a clear blueprint.
+]]
 
-## Goals and Background Context
-[[LLM: Populate the two child sections below based on the user's initial request or the Project Brief. After presenting this section, immediately apply the `tasks#advanced-elicitation` protocol to allow the user to refine this foundational context before we proceed.]]
+## 1. Introduction
+[[LLM: Populate this section based on the user's initial request or the Project Brief. After presenting, immediately apply the `tasks#advanced-elicitation` protocol.]]
 
-### Goals
-[[LLM: Create a bulleted list of 1-line desired outcomes this PRD will deliver if successful.]]
+### 1.1. Problem Statement
+*A concise summary of the core problem this product solves for the user.*
 
-### Background Context
-[[LLM: Write 1-2 short paragraphs summarizing the "why" behind this project—the problem it solves, the target user, and the business opportunity.]]
+### 1.2. Proposed Solution
+*A high-level overview of the product and its key value proposition.*
 
-### Change Log
-| Date | Version | Description | Author |
-| :--- | :------ | :---------- | :----- |
+### 1.3. Goals & Success Metrics
+| Goal                  | Metric                | Target           |
+| :-------------------- | :-------------------- | :--------------- |
+| **Business Goal**     | e.g., Increase user engagement | 15% uplift in DAU |
+| **User Goal**         | e.g., Reduce time to complete task X | Under 30 seconds |
+| **Technical Goal**    | e.g., Ensure high availability | 99.9% uptime     |
 
 ---
 
-## Requirements
-[[LLM: Draft the functional and non-functional requirements based on the goals. After presenting this initial list, immediately apply the `tasks#advanced-elicitation` protocol. This is a critical step to challenge and refine the requirements before they are set.]]
+## 2. Requirements
+[[LLM: Draft functional and non-functional requirements based on the goals and your initial research. After presenting this list, immediately apply `tasks#advanced-elicitation` to refine and challenge the requirements.]]
 
-### Functional
-[[LLM: Each Requirement will be a bullet markdown with an identifier sequence starting with FR. Example: - FR1: The system shall allow users to register with an email and password.]]
+### 2.1. Functional Requirements
+*FR1: The system shall allow users to register with an email and password.*
+*FR2: ...*
 
-### Non Functional
-[[LLM: Each Requirement will be a bullet markdown with an identifier sequence starting with NFR. Example: - NFR1: All API endpoints must respond in under 500ms.]]
+### 2.2. Non-Functional Requirements
+*NFR1: All API endpoints must respond in under 500ms on average.*
+*NFR2: The system must be compliant with GDPR.*
+*NFR3: ...*
+
+### 2.3. Commercial & Cost Requirements
+[[LLM: This is a mandatory section.]]
+- **Monetization Strategy:** *e.g., Subscription-based model with 3 tiers.*
+- **Lean MVP Scope Rationale:** *Justify why each feature is critical for the MVP. Ruthlessly defer non-essentials.*
+- **Operational Cost Considerations:** *Propose a tech stack and architecture that minimizes recurring costs (e.g., favoring serverless, free-tier services where feasible).*
 
 ---
 
 ^^CONDITION: has_ui^^
-## User Interface Design Goals
-[[LLM: Capture the high-level UI/UX vision. After drafting this entire section (all sub-parts), apply the `tasks#advanced-elicitation` protocol.]]
+## 3. User Experience & Design
+[[LLM: Capture the high-level UI/UX vision. After drafting this section, apply `tasks#advanced-elicitation`.]]
 
-### Overall UX Vision
-[[LLM: A brief narrative describing the desired look, feel, and user interaction style.]]
+### 3.1. User Personas
+*Brief description of the primary and secondary user personas.*
 
-### Core Screens and Views
-[[LLM: List the most critical screens or views needed to fulfill the product's purpose. This is a conceptual list to guide the architect.]]
+### 3.2. Core User Flows
+*A list of the most critical user journeys (e.g., "User Registration and Onboarding", "Creating a New Project").*
 
-### Accessibility Target
-[[LLM: Specify the target accessibility standard, e.g., WCAG 2.1 AA.]]
-
-### Branding & Style
-[[LLM: Note any known branding elements, color palettes, or style guides that must be incorporated.]]
+### 3.3. Accessibility
+*Target accessibility standard, e.g., WCAG 2.1 AA.*
 ^^/CONDITION: has_ui^^
 
 ---
 
-## Technical Assumptions
-[[LLM: Gather technical decisions that will constrain the Architect. Check for `data#technical-preferences`. For unknowns, offer suggestions with rationale. After drafting this section, apply the `tasks#advanced-elicitation` protocol.]]
-
-### Repository Structure
-[[LLM: e.g., Monorepo or Polyrepo. Provide a recommendation if the user is unsure.]]
-
-### Service Architecture
-[[LLM: The high-level service architecture, e.g., Monolith, Microservices, Serverless Functions.]]
-
-### Technology Preferences
-[[LLM: List any user-specified preferences for languages, frameworks, or cloud providers.]]
-
----
-
-## Epics
-[[LLM: First, present just a high-level list of proposed epics for user approval. Each epic should have a title and a 1-sentence goal. Apply the `tasks#advanced-elicitation` protocol to this list.
-
-**CRITICAL:** Epics must be logically sequential. Epic 1 must establish project foundations (setup, CI/CD, etc.) while delivering a small, tangible piece of functionality.]]
-
-<<REPEAT: epic_list>>
-- **Epic {{epic_number}}: {{epic_title}}** - {{short_goal}}
-<</REPEAT>>
-
-[[LLM: After the epic list is approved, present each epic's full details (stories and ACs) one by one. After presenting EACH epic, apply the `tasks#advanced-elicitation` protocol before moving to the next.]]
+## 4. Epics & Stories
+[[LLM: 
+1. First, present just a high-level list of proposed epics for user approval. Each epic should have a title and a 1-sentence goal. Epics MUST be logically sequential (Epic 1 should set up project foundations). Apply `tasks#advanced-elicitation` to this list.
+2. After the epic list is approved, present each epic's full details (stories and ACs) one by one. Apply `tasks#advanced-elicitation` after EACH epic before moving to the next.
+]]
 
 <<REPEAT: epic_details>>
 ## Epic {{epic_number}}: {{epic_title}}
@@ -85,7 +80,6 @@ I want {{action}},
 so that {{benefit}}.
 
 #### Acceptance Criteria
-[[LLM: Define clear, testable acceptance criteria.]]
 <<REPEAT: criteria>>
 - {{criterion}}: {{description}}
 <</REPEAT>>
@@ -94,11 +88,11 @@ so that {{benefit}}.
 
 ---
 
-## Checklist & Handoff
+## 5. Handoff
 [[LLM: Once the user confirms the PRD is complete, execute the `pm-checklist` against the final document. Present the results and then provide a clear handoff prompt for the Architect.]]
 
 ### Checklist Results Report
 [[LLM: Populate with results from `pm-checklist`.]]
 
 ### Architect Handoff Prompt
-**To `@architect`:** "The Product Requirements Document for `{{Project Name}}` is complete and has been validated. Please review this PRD and begin creating the full technical architecture document."
+**To `@architect`:** "The Product Requirements Document for `{{Project Name}}` is complete and has been validated. Please review this PRD and begin creating the full technical architecture document. Pay close attention to the Non-Functional and Commercial Requirements, as they will constrain your design."
