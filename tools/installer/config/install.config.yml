@@ -19,4 +19,3 @@ ide-configurations:
     instructions: |
       # Support for Cursor can be added by creating .mdc rule files.
       # This installer currently prioritizes Roo Code.
----
