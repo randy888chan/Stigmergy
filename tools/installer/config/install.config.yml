@@ -1,9 +1,7 @@
 # This file is used by the Stigmergy installer.
-# It defines installation options and dependencies.
+# It defines supported IDEs for configuration.
+# The installer logic is now mostly dynamic, but this provides a map for setup scripts.
 
-# Deprecated in v4+, installer logic is now more dynamic.
-# This file is kept for potential future use or for reference.
-# The primary source of truth for dependencies is now parsing the agent files themselves.
 ide-configurations:
   roo:
     name: Roo Code (VS Code Extension)
@@ -22,4 +20,4 @@ ide-configurations:
     instructions: |
       # Support for Cursor can be added by creating .mdc rule files.
       # This installer currently prioritizes Roo Code.
-```
+---
