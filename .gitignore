@@ -9,7 +9,7 @@ lerna-debug.log*
 .pnp.*
 
 # Build artifacts
-dist
+
 
 # Stigmergy/BMAD operational files
 .ai/
