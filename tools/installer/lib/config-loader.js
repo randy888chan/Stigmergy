@@ -42,8 +42,9 @@ class ConfigLoader {
         try {
             const agentContent = await fs.readFile(agentPath, 'utf8');
             const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
-            if (yamlMatch && yamlMatch) {
-                const config = yaml.load(yamlMatch);
+            if (yamlMatch && yamlMatch[1]) {
+                // THE FIX: Pass the captured group (the content inside the fences)
+                const config = yaml.load(yamlMatch[1]);
                 agentDataList.push({
                     id: agentId,
                     config: config,
