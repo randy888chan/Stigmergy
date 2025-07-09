@@ -2,10 +2,8 @@ const fs = require('fs').promises;
 const path = require('path');
 const yaml = require('js-yaml');
 
-// Dynamic import for ES module
 let chalk;
 
-// Initialize ES modules
 async function initializeChalk() {
   if (!chalk) {
     chalk = (await import('chalk')).default;
@@ -19,17 +17,21 @@ class DependencyResolver {
     this.cache = new Map();
   }
 
-  async resolveAgentDependencies(agentId) {
+  async parseAgentFile(agentId) {
     const agentPath = path.join(this.stigmergyCore, 'agents', `${agentId}.md`);
     const agentContent = await fs.readFile(agentPath, 'utf8');
 
-    const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
+    const yamlMatch = agentContent.match(/```yaml\n([\s\S]*?)```/);
     if (!yamlMatch || !yamlMatch[1]) {
       throw new Error(`Could not find or parse a valid YAML block in agent file: ${agentPath}`);
     }
     
-    // THE FIX: Pass the captured group (the content inside the fences), not the whole match object.
     const agentConfig = yaml.load(yamlMatch[1]);
+    return { agentId, agentPath, agentContent, agentConfig };
+  }
+
+  async resolveAgentDependencies(agentId) {
+    const { agentContent, agentConfig } = await this.parseAgentFile(agentId);
     
     const dependencies = {
       agent: { id: agentId, path: `agents#${agentId}`, content: agentContent, config: agentConfig },
@@ -90,7 +92,7 @@ class DependencyResolver {
     const cacheKey = `${type}#${id}`;
     if (this.cache.has(cacheKey)) return this.cache.get(cacheKey);
   
-    const ext = type === 'workflows' ? '.yml' : '.md'; // Workflows are gone, but keep for legacy safety
+    const ext = '.md';
     const resourcePath = path.join(this.stigmergyCore, type, `${id}${ext}`);
   
     try {
