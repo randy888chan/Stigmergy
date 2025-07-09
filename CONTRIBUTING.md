@@ -1,12 +1,14 @@
 # Contributing to Stigmergy
 
-Thank you for your interest in contributing to the Stigmergy project!
+Thank you for your interest in contributing to the Stigmergy project! This guide provides a simple and robust workflow for local development and testing.
 
-## Development Workflow
+## Local Development Setup
 
-This project uses `npm link` to enable local development and testing against other projects on your machine.
+This workflow ensures that you can develop the `Stigmergy` package and test its functionality in a separate project without conflicts.
 
-### Setting up the Local Link
+### Step 1: Clone and Install Dependencies
+
+First, set up the core `Stigmergy` repository.
 
 1.  **Clone the Repository:**
     ```bash
@@ -15,36 +17,56 @@ This project uses `npm link` to enable local development and testing against oth
     ```
 
 2.  **Install Dependencies:**
+    This command will now *only* install the required `node_modules`. It will not trigger any installation scripts.
     ```bash
     npm install
     ```
 
-3.  **Create the Global Symlink:**
-    From the root of the `Stigmergy` directory, run:
+### Step 2: Create a Global Symlink
+
+From the root of your local `Stigmergy` directory, create a global link to your package. This tells your computer that whenever another project asks for `@randy888chan/stigmergy`, it should use your local version.
+
+```bash
+npm link
+```
+
+### Step 3: Use Your Local Version in a Test Project
+
+1.  **Create or Navigate to a Test Project:**
+    It is highly recommended to have a separate, simple folder to test your changes.
     ```bash
-    npm link
-    ```
-    This creates a global symlink from `@randy888chan/stigmergy` to your local source code.
-
-### Using the Local Version in Another Project
-
-1.  **Navigate to Your Test Project:**
-    ```bash
-    cd /path/to/your/test-project
+    mkdir ~/stigmergy-test-project
+    cd ~/stigmergy-test-project
+    npm init -y # Initialize a dummy package.json
     ```
 
-2.  **Link the Package:**
-    Run the following command to make your test project use your local version of Stigmergy instead of the published one:
+2.  **Link Your Local Stigmergy Package:**
+    This command tells your test project to use the globally linked version of `Stigmergy` (your local copy).
     ```bash
     npm link @randy888chan/stigmergy
     ```
+    You should see a confirmation that a symlink has been created in `node_modules`.
 
-3.  **Run Stigmergy:**
-    You can now use the `stigmergy` command within your test project, and any changes you make in the Stigmergy source code will be reflected immediately.
-    ```bash
-    npx stigmergy install
-    ```
+### Step 4: Test Your Changes
 
-## Publishing a New Version
+You can now run the `stigmergy` command inside your test project. Any changes you save in your `Stigmergy` source code will be reflected immediately.
 
-This project uses `semantic-release` to automate versioning and publishing based on Conventional Commits. New versions are published automatically via the GitHub Actions workflow defined in `.github/workflows/release.yml` when commits are pushed to the `main` branch.
+For example, to test the installer:
+```bash
+# Inside ~/stigmergy-test-project
+stigmergy install
+```
+
+This will run the installer from your local `Stigmergy` source code and install the `.stigmergy-core` directory into your test project.
+
+## Development Commands
+
+-   **`npm run build`**: Build all agent and team bundles.
+-   **`npm run build -- --agent <agentId>`**: Build a bundle for a single agent (e.g., `mary`). Essential for rapid testing in Web UIs.
+-   **`npm run validate:agents`**: Validate the YAML configuration of all agent files. Run this before committing changes to agents.
+-   **`npm run format`**: Format all project files with Prettier.
+
+---
+### **3. The Upgraded & Granular Tooling**
+
+These files implement the new `validate:agents` command and enhance the build process for a faster, more efficient Web UI development workflow.
