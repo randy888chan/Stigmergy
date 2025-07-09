@@ -1,11 +1,10 @@
-
 {
-  "name": "@randy888chan/pheromind",
+  "name": "@randy888chan/stigmergy",
   "version": "5.0.0",
-  "description": "Pheromind: The Autonomous AI Development Swarm. A framework for orchestrating AI agents.",
+  "description": "Stigmergy: The Autonomous AI Development Swarm. A framework for orchestrating AI agents.",
   "main": "tools/installer/cli.js",
   "bin": {
-    "pheromind": "tools/installer/cli.js"
+    "stigmergy": "tools/installer/cli.js"
   },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -30,7 +29,6 @@
     "ora": "^8.0.1"
   },
   "keywords": [
-    "pheromind",
     "stigmergy",
     "agile",
     "ai",
