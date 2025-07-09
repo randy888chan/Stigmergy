@@ -1,6 +1,6 @@
-# Stigmergy Agent Manifest
+# Pheromind Agent Manifest
 
-This document serves as the official list of all agents available to the Stigmergy system, categorized by their swarm archetype. This is a core part of the **System Constitution**.
+This document serves as the official list of all agents available to the Pheromind system, categorized by their swarm archetype. This is a core part of the **System Constitution**.
 
 ## 1. The Chief Orchestrator
 The single point of command and intelligence for the entire swarm.
@@ -8,17 +8,17 @@ The single point of command and intelligence for the entire swarm.
 - **`@stigmergy-master` (Saul):** The master brain. Interprets user goals and system state, directs the swarm, and manages the entire project lifecycle.
 
 ## 2. Planners (The Visionaries)
-Agents dispatched by the Orchestrator to create the project's **Immutable Blueprint**.
+Agents dispatched by the Orchestrator to create the project's **Immutable Blueprint** and **Project Manifest**.
 
 - **`@analyst` (Mary):** Creates the foundational `project-brief.md`.
-- **`@pm` (John):** Creates the PRD and the Master Project Manifest.
-- **`@design-architect` (Winston):** Creates the technical architecture.
+- **`@pm` (John):** Creates the PRD and the Master Project Manifest in `state.json`.
+- **`@architect` (Winston):** Creates the technical architecture.
 - **`@ux-expert` (Sally):** Designs user experience and interfaces.
 
 ## 3. Executors (The Builders)
 Agents dispatched to perform concrete, constructive tasks.
 
-- **`@stigmergy-orchestrator` (Olivia):** Execution Coordinator. Manages the dev->qa->po loop for a single story.
+- **`@stigmergy-orchestrator` (Olivia):** Execution Coordinator. Manages the dev->qa->po loop for a single story. A subordinate of Saul.
 - **`@sm` (Bob):** Task Decomposer. Breaks down epics into stories.
 - **`@dev` (James):** Full Stack Developer. Implements code for sub-tasks.
 - **`@victor` (Victor):** Smart Contract Developer. A specialist for blockchain projects.
