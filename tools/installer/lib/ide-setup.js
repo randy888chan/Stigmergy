@@ -38,7 +38,7 @@ class IdeSetup {
     let existingModes = { customModes: [] };
     if (await fileManager.pathExists(roomodesPath)) {
         try {
-            const existingContent = await fileManager.readFile(roomodesPath);
+            const existingContent = await file.readFile(roomodesPath);
             const loadedYaml = yaml.load(existingContent);
             if (loadedYaml && Array.isArray(loadedYaml.customModes)) {
                 existingModes = loadedYaml;
@@ -66,7 +66,8 @@ class IdeSetup {
             roleDefinition: agentData.config.persona.identity,
             whenToUse: agentData.config.agent.whenToUse,
             customInstructions: agentData.fullContent,
-            groups: ['read', 'edit', 'web', 'execute', 'mcp'] // Grant full access as per Blueprint 2.0
+            // CORRECTED: Use only valid group names as per Roo Code schema.
+            groups: ['read', 'edit', 'mcp'] 
         };
         
         existingModes.customModes.push(newMode);
@@ -83,7 +84,7 @@ class IdeSetup {
 
         await fileManager.writeFile(roomodesPath, finalYaml);
         console.log(chalk.green("\n✓ Successfully created/updated .roomodes file for Roo Code."));
-        console.log(chalk.dim("Agents now have full capabilities (read, write, web, execute, mcp)."));
+        console.log(chalk.dim("Agent permissions have been corrected."));
         return true;
     } catch (e) {
         console.error(chalk.red('Failed to write .roomodes file:'), e);
