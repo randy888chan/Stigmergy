@@ -1,4 +1,4 @@
-# Stigmergy System State Schema
+# Pheromind System State Schema
 
 This document defines the official, versioned schema for the `.ai/state.json` file. This is the central nervous system of the swarm and a part of the System Constitution. All agents that read from or write to the state file MUST adhere to this structure.
 
@@ -23,7 +23,7 @@ This document defines the official, versioned schema for the `.ai/state.json` fi
           { 
             "story_id": "string", 
             "title": "string", 
-            "status": "PENDING | APPROVED | IN_PROGRESS | QA_PENDING | PO_PENDING | DONE" 
+            "status": "PENDING | APPROVED | IN_PROGRESS | QA_PENDING | PO_PENDING | DONE | FAILED" 
           }
         ]
       }
@@ -34,41 +34,63 @@ This document defines the official, versioned schema for the `.ai/state.json` fi
       "timestamp": "ISO 8601 string",
       "agent_id": "string",
       "signal": "string",
-      "summary": "string"
+      "summary": "string",
+      "files_modified": ["string"]
     }
   ],
-  "agent_reports": {
-    "string": "string"
-  },
   "issue_log": [
     {
       "issue_id": "string",
+      "timestamp": "ISO 8601 string",
       "status": "OPEN | RESOLVED | CLOSED",
       "reporter_agent": "string",
-      "description": "string",
-      "history": "array"
+      "story_id": "string",
+      "summary": "string",
+      "details": "string (Can include log snippets)",
+      "resolution_strategy": "string (Proposed by @debugger)"
+    }
+  ],
+  "system_improvement_proposals": [
+    {
+      "proposal_id": "string",
+      "timestamp": "ISO 8601 string",
+      "status": "PENDING_APPROVAL | APPROVED | IMPLEMENTED | REJECTED",
+      "proposer_agent": "meta",
+      "summary": "string",
+      "proposal_file_path": "string (e.g., .ai/proposals/proposal-001.yml)"
     }
   ]
 }
 ```
 
-## Key Fields
+---
+## Enumerations
 
 ### `autonomy_mode` (Enum)
-Determines the level of human intervention required. Can be set by the user.
-- `supervised`: (Default) The system will pause and await user approval at key checkpoints (e.g., after blueprint creation).
-- `autonomous`: The system will proceed through the entire project lifecycle without stopping, including the self-improvement loop.
-
-### `project_manifest`
-The master plan for the entire project, populated by the `@pm` agent after the PRD is created. This provides foresight and a clear roadmap for the swarm and the user.
+Determines the level of human intervention required.
+- `supervised`: (Default) The system will pause and await user approval at key checkpoints.
+- `autonomous`: The system will proceed through the entire project lifecycle without stopping.
 
 ### `project_status` (Enum)
 The high-level strategic phase of the project.
 - `NEEDS_BRIEFING`: Initial state. Awaiting Project Brief creation.
-- `NEEDS_PLANNING`: Brief complete. Awaiting PRD/Architecture.
-- `PLANNING_IN_PROGRESS`: `@pm` or `@architect` are working.
-- `READY_FOR_EXECUTION`: Blueprint is complete and manifest is populated.
-- `EXECUTION_IN_PROGRESS`: Stories are actively being worked on by `@stigmergy-orchestrator`.
-- `SYSTEM_AUDIT_PENDING`: An epic is complete; `@meta` is being dispatched.
+- `NEEDS_PLANNING`: Brief complete. Awaiting PRD/Architecture and Manifest.
+- `READY_FOR_EXECUTION`: Blueprint and manifest are complete.
+- `EXECUTION_IN_PROGRESS`: Stories are actively being worked on.
+- `EPIC_COMPLETE`: An epic has been fully implemented, awaiting system audit.
 - `HUMAN_INPUT_REQUIRED`: The swarm is blocked and requires user intervention.
-- `PROJECT_COMPLETE`: All epics are implemented and verified.
+- `PROJECT_COMPLETE`: All epics in the manifest are implemented and verified.
+
+### `system_signal` (Enum)
+The "digital pheromone" left by the last agent to trigger the next action.
+- `BRIEF_COMPLETE`
+- `BLUEPRINT_COMPLETE`
+- `STORY_CREATED`
+- `STORY_APPROVED`
+- `STORY_VERIFIED_BY_PO`
+- `EPIC_COMPLETE`
+- `FAILURE_DETECTED`
+- `ESCALATION_REQUIRED`
+- `SYSTEM_AUDIT_COMPLETE`
+- `PROPOSAL_IMPLEMENTED`
+```
