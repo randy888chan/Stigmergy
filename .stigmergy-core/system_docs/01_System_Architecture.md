@@ -1,41 +1,27 @@
-# Stigmergy System Architecture & Operations Manual
+# Pheromind System Architecture & Operations Manual
 
-This document describes the high-level architecture and immutable operational rules of the Stigmergy Autonomous AI Development System. This is a core part of the **System Constitution**. All agents must operate within this framework.
+This document describes the high-level architecture and immutable operational rules of the Pheromind Autonomous AI Development System. This is a core part of the **System Constitution**. All agents must operate within this framework.
 
-## Core Concepts & Directories
+## Core Concept: The State-Driven Loop
 
-The system uses three key directories to manage the separation of concerns:
+The system operates on a single, continuous work cycle driven by the **Chief Orchestrator & System Interpreter (`@stigmergy-master`, Saul)**. This cycle is not a rigid script but a dynamic loop that reacts to "digital pheromones"—the system's shared state.
 
-1.  **`.stigmergy-core/` (The Swarm's Brain):** Contains the core logic: agent definitions, tasks, and the System Constitution.
-2.  **`docs/` (The Immutable Project Blueprint):** This is the project-specific source of truth, containing requirements (`prd.md`) and technical plans (`architecture.md`). **CRITICAL: This directory is considered read-only during the execution phase.** Agents refer to it for guidance but are forbidden from altering it after the planning phase is complete.
-3.  **`.ai/` (The Swarm's Memory & Scent Trail):** The dynamic workspace for stigmergic communication. It contains the shared state file (`state.json`), logs, and reports. It MUST be in `.gitignore`.
-4.  **`src/` (The Ephemeral Workspace):** The active development directory where code is written, modified, and deleted by executor agents.
+The **`.ai/state.json`** file is the central nervous system of the swarm. It is the sole source of truth for project status and agent coordination.
 
-## The Stigmergy Cycle: A State-Driven Autonomous Loop
-
-The system operates on a single, continuous work cycle driven by the **Chief Orchestrator & System Interpreter (`@stigmergy-master`, Saul)**. This cycle transforms high-level goals into completed software by reacting to the system's state, not a rigid script.
-
-### System States & Signals
-
-The entire project operates based on two key fields within `.ai/state.json`, which has a strict schema defined in `04_System_State_Schema.md`:
-
-- `project_status`: The high-level strategic phase of the project (e.g., `NEEDS_PLANNING`, `READY_FOR_EXECUTION`).
-- `system_signal`: A specific "digital pheromone" left by the last agent, indicating a precise event has occurred (e.g., `STORY_APPROVED`, `FAILURE_DETECTED`).
-
-### The Unified Workflow
-
-The loop is a strategic, state-driven cycle managed exclusively by `@stigmergy-master`.
+## The Pheromind Cycle: A Unified Workflow
 
 1.  **State Interpretation (Saul):**
-
-    - **Input:** Reads the `.ai/state.json` file to understand the current `project_status` and `system_signal`.
-    - **Action:** Acts as the **System Interpreter**, translating narrative reports from other agents and external events into the next verifiable system state by _appending_ to the state log.
+    - **Input:** At the start of every cycle, Saul's first and only action is to read the `.ai/state.json` file to understand the current `project_status` and the last `system_signal`.
+    - **Action:** He acts as the **System Interpreter**, deciding the single most important next step based on his constitutional `STIGMERGY_PROTOCOL`.
 
 2.  **Strategic Dispatch (Saul):**
+    - **Action:** Based on his interpretation, Saul acts as the **Chief Orchestrator**, dispatching one specialist agent or sub-orchestrator to perform a specific task. He then enters a waiting state.
 
-    - **Action:** Based on the interpreted state, acts as the **Chief Orchestrator**, dispatching the correct specialist agent or sub-orchestrator for the current phase of the project, following the `STIGMERGY_PROTOCOL` defined in his agent file.
+3.  **Specialized Execution (The Swarm):**
+    - **Input:** A specialist agent (e.g., `@pm`, `@sm`, `@stigmergy-orchestrator`) receives a direct command from Saul.
+    - **Action:** The agent performs its narrowly defined task. For development, the **Execution Coordinator (`@stigmergy-orchestrator`, Olivia)** manages the `dev -> qa -> po` micro-cycle for a single story.
+    - **Output:** Upon task completion, the agent's final act is to report back to Saul and leave a new `system_signal` in the `state.json` file. This "pheromone" is the trigger for Saul's next interpretation cycle.
 
-3.  **Coordinated Execution (Olivia & Workers):**
-    - **Input:** For development tasks, the **Execution Coordinator (`@stigmergy-orchestrator`, Olivia)** receives a single story from Saul.
-    - **Action:** Olivia analyzes and decomposes the story's tasks into smaller, verifiable sub-tasks. She then manages a tight `dev -> qa -> po` loop for each sub-task, dispatching specialized `Executors` and `Verifiers`.
-    - **Output:** Upon completion of all sub-tasks, Olivia compiles a final report and hands control back to Saul with a clear `system_signal`. This leaves the "digital pheromone" that guides the next step of the autonomous cycle.
+## The "Glass Box" Model: Autonomy with Oversight
+
+While designed for full, hands-free operation (`autonomy_mode: "autonomous"`), the system is a "glass box," not a black box. The user can intervene at any time. A manual command or interaction can set the `project_status` to `HUMAN_INPUT_REQUIRED`, which pauses Saul's autonomous loop until the user provides a new directive. This ensures the user remains the ultimate strategic leader.
