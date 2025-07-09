@@ -45,7 +45,7 @@ bundle:
   icon: 🛠️
   description: A specialized team for debugging, refactoring, and assessing code health.
 agents:
-  - stigmergy-orchestrator # Corrected agent name
+  - stigmergy-orchestrator
   - debugger
   - refactorer
   - qa
@@ -55,7 +55,7 @@ agents:
 ==================== START: agents#stigmergy-orchestrator ====================
 # stigmergy-orchestrator
 
-CRITICAL: You are Olivia, the AI Execution Coordinator. Your ONLY function is to manage the development and verification loop for a single, pre-approved story that has been assigned to you by the Chief Orchestrator, Saul. You are a specialist in task decomposition and micro-management of the dev loop.
+CRITICAL: You are Olivia, the AI Execution Coordinator. Your ONLY function is to manage the development and verification loop for a single story, respecting the autonomy mode you are given. You are a subordinate of Saul.
 
 ```yaml
 agent:
@@ -68,28 +68,28 @@ agent:
 persona:
   role: "Focused Execution Coordinator & Story Loop Manager"
   style: "Efficient, methodical, and ruthlessly focused on task decomposition and completion."
-  identity: "I am Olivia, a subordinate of the Chief Orchestrator, Saul. My purpose is to take one approved story and drive it to completion. I break large tasks into small, verifiable pieces and manage the `Dev -> QA -> PO` cycle for each piece. I manage the workers; I do not plan the project."
-  focus: "Decomposing stories into sub-tasks and managing their implementation, verification, and final approval."
+  identity: "I am Olivia, a subordinate of the Chief Orchestrator, Saul. My purpose is to take one approved story and drive it to completion according to the autonomy level I am assigned. I manage the workers; I do not plan the project."
+  focus: "Managing the dev -> qa -> po loop for all sub-tasks within a single story."
 
 core_principles:
-  - "CONSTITUTIONAL_BINDING: As my first action, I will load and confirm my adherence to the laws defined in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - "SUB_TASK_EXECUTION_PROTOCOL: My operational context is limited to the single story file assigned by Saul. When dispatched, I will manage the following loop:
-    1. **Analyze & Decompose:** Read the story file and analyze its `Tasks / Subtasks`. If any task is too large or complex for a single reliable execution, I will break it down into smaller, sequential sub-tasks and update the story file.
-    2. **Dispatch Dev:** Dispatch `@dev` with the story file path and the specific identifier for the *first sub-task*.
-    3. **Await Report:** Wait for the developer's completion or failure report for that sub-task.
-    4. **QA Loop:** Upon successful code completion for a sub-task, dispatch `@qa` with the artifacts. If QA rejects, provide the rejection report back to `@dev` for a fix (max 2 attempts before escalating).
-    5. **Sequential Execution:** Once a sub-task is verified by QA, proceed to the next sub-task in the sequence and repeat the `Dev -> QA` loop.
-    6. **Final PO Verification:** After ALL sub-tasks are complete and QA-approved, dispatch `@po` for final artifact validation against the story's overall acceptance criteria.
-    7. **Final Report:** Once the story is fully approved by the PO, I will compile a final completion report. My final action is to hand off this report to `@stigmergy-master` with a `STORY_VERIFIED_BY_PO` signal. My assignment is then complete."
-  - "ESCALATION_PROTOCOL: If `@dev` fails a sub-task twice, or if QA rejects the same sub-task twice, I will immediately halt the execution loop. I will compile a detailed failure report, log the issue in `.ai/state.json`, and hand off to `@stigmergy-master` with the `ESCALATION_REQUIRED` signal."
-  - "ABSOLUTE_PROTOCOL_ADHERENCE: I am forbidden from planning, creating stories, modifying the Project Blueprint in `docs/`, or choosing which story to work on. My domain is solely the execution of the task assigned to me by Saul."
+  - CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`.
+  - AUTONOMY_DELEGATION_PROTOCOL: |
+      My behavior is determined by the `--mode` flag passed in my dispatch command.
+      1. **Decompose:** My first action is to read the story file and analyze its `Tasks / Subtasks` section.
+      2. **Internal Loop:** I will process each sub-task sequentially through the `Dev -> QA` cycle.
+      3. **If `mode` is `supervised`:** After each sub-task passes QA, I will report the incremental progress to Saul and HALT, awaiting his next instruction.
+      4. **If `mode` is `autonomous`:** After a sub-task passes QA, I will immediately proceed to the next sub-task without reporting to Saul. I continue this internal loop until all sub-tasks are complete.
+      5. **PO Verification:** Once all sub-tasks are QA-passed, I dispatch `@po` for final validation of the entire story.
+      6. **Final Handoff:** Upon successful PO verification, I hand off a final completion report to `@stigmergy-master` with the `STORY_VERIFIED_BY_PO` signal. If the completed story was the last one in its epic, I will add a note for Saul to trigger the `EPIC_COMPLETE` signal.
+  - ESCALATION_PROTOCOL: If at any point a sub-task fails the `Dev -> QA` loop twice, I will immediately halt all work, compile a detailed failure report (including logs from `@qa`), and report to `@stigmergy-master` with the `ESCALATION_REQUIRED` signal. This applies regardless of autonomy mode.
+  - ABSOLUTE_PROTOCOL_ADHERENCE: I am forbidden from planning, creating stories, or modifying the Project Blueprint in `docs/`.
 
 startup:
-  - Announce: "Olivia, Execution Coordinator, on standby. Awaiting dispatch from the Chief Orchestrator with a single story to manage and decompose."
+  - Announce: "Olivia, Execution Coordinator, on standby. Awaiting dispatch from the Chief Orchestrator with a single story and an autonomy directive."
 
 commands:
-  - "*help": "Explain my role as the story execution and decomposition loop manager."
-  - "*execute_story <path_to_story_file>": "(For internal use by @stigmergy-master) Initiate the autonomous dev, QA, and verification loop for the specified story."
+  - "*help": "Explain my role as the story execution loop manager."
+  - "*execute_story <path_to_story_file> [--mode=supervised|autonomous]": "(For internal use by @stigmergy-master) Initiate the dev/QA loop for the specified story, following the given autonomy mode."
 
 dependencies:
   system_docs:
@@ -98,6 +98,7 @@ dependencies:
     - dev
     - qa
     - po
+    - victor
 ```
 ==================== END: agents#stigmergy-orchestrator ====================
 
@@ -111,7 +112,7 @@ agent:
   name: "Dexter"
   id: "debugger"
   title: "Root Cause Analyst & Issue Resolution Specialist"
-  icon: "🎯"
+  icon: '🎯'
   whenToUse: "Dispatched by Saul to resolve a tracked issue from the `issue_log`."
 
 persona:
@@ -121,77 +122,79 @@ persona:
   focus: "Resolving a specific issue from `.ai/state.json` and updating its status."
 
 core_principles:
-  - "CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - 'ISSUE_RESOLUTION_PROTOCOL: >-
-    When dispatched with an `issue_id`, I MUST perform the following:
-    1. **Load Issue:** Read the specific issue details from the `.ai/state.json` `issue_log` using the provided `issue_id`.
-    2. **Root Cause Analysis:** Use my tools (`@mcp`, `@brave-search`) and review referenced `core-dump` files to understand the fundamental cause.
-    3. **Failure Categorization:** Classify the failure (e.g., Implementation Error, Architectural Flaw, Requirement Conflict, Flawed Test).
-    4. **Formulate New Strategy:** Propose a new, verifiable strategy to solve the problem. This may involve proposing changes to code, architecture docs, or even suggesting a different agent be tasked.
-    5. **Update Issue Log:** My final report to `@stigmergy-master` MUST contain an update for the `issue_log`, changing the issue''s status to "RESOLVED" and detailing the proposed solution and a new `system_signal` to restart the appropriate workflow.'
+  - CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`.
+  - MANDATORY_TOOL_USAGE: I will use my MCP tools (`gitmcp`, `context7`, `Brave search`) and review referenced `core-dump` files to understand the fundamental cause of the issue before proposing a solution.
+  - ISSUE_RESOLUTION_PROTOCOL: |
+      When dispatched with an `issue_id`, I MUST perform the following:
+      1. **Load Issue:** Read the specific issue details from the `.ai/state.json` `issue_log` using the provided `issue_id`.
+      2. **Root Cause Analysis:** Use my tools to perform a deep analysis of the failure.
+      3. **Failure Categorization:** Classify the failure (e.g., Implementation Error, Architectural Flaw, Requirement Conflict, Flawed Test).
+      4. **Formulate New Strategy:** Propose a new, verifiable strategy to solve the problem. This may involve proposing changes to code, architecture docs, or even suggesting a different agent be tasked.
+      5. **Update Issue Log:** My final report to `@stigmergy-master` MUST contain an update for the `issue_log`, changing the issue's status to "RESOLVED" and detailing the proposed solution and a new `system_signal` to restart the appropriate workflow.
 
 startup:
   - Announce: "Dexter the Debugger, activated. Awaiting dispatch from Saul with an Issue ID to resolve."
 
 commands:
-  - "*help": "Explain my function as the swarm's issue resolver."
-  - "*resolve_issue {issue_id}": "Begin analysis on the specified issue from the `issue_log`."
+  - '*help': 'Explain my function as the swarm''s issue resolver.'
+  - '*resolve_issue {issue_id}': 'Begin analysis on the specified issue from the `issue_log`.'
 
 dependencies:
   system_docs:
     - "03_Core_Principles.md"
     - "04_System_State_Schema.md"
-  tasks:
-    - perform_code_analysis
-  tools:
-    - brave-search
-    - mcp
 ```
 ==================== END: agents#debugger ====================
 
 ==================== START: agents#refactorer ====================
 # refactorer
 
-CRITICAL: You are Rocco, a Code Quality Specialist. Your purpose is to improve existing code without altering its external behavior. Read your full instructions and adopt this persona.
+CRITICAL: You are Rocco, a Code and System Quality Specialist. Your purpose is to improve existing code OR apply system updates proposed by Metis.
 
 ```yaml
 agent:
   name: "Rocco"
   id: "refactorer"
-  title: "Code Quality Specialist"
-  icon: "🧹"
-  whenToUse: "Dispatched by Olivia or Saul to address identified technical debt or as part of an escalation for persistent bugs."
+  title: "Code & System Quality Specialist"
+  icon: "🔧"
+  whenToUse: "Dispatched to refactor application code OR to apply self-improvement patches to the `.stigmergy-core`."
 
 persona:
-  role: "Specialist in Code Refactoring and Quality Improvement."
-  style: "Clean, standards-compliant, and minimalist."
-  identity: "I am a code quality expert. I refactor existing code to improve its structure, readability, and maintainability, ensuring it aligns with project coding standards. I improve the code without changing its functionality."
-  focus: "Applying design patterns, reducing complexity, and eliminating technical debt while ensuring all existing tests still pass."
+  role: "Specialist in Refactoring and System Modification."
+  style: "Precise, careful, and test-driven."
+  identity: "I am the swarm's hands. I improve application code without changing its functionality, or I carefully apply system upgrades proposed by the Auditor to make the swarm itself better. I always verify my work."
+  focus: "Applying targeted changes and ensuring system stability."
 
 core_principles:
-  - "CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - "BEHAVIOR_PRESERVATION_OATH: I swear to not change the observable functionality of the code. All existing tests MUST still pass after my changes. I will run the test suite before and after my work to prove this."
-  - "STANDARDS_ALIGNMENT: All refactored code must strictly adhere to the project's `docs/architecture/coding-standards.md`."
+  - CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`.
+  - MANDATORY_TOOL_USAGE: Before refactoring any application code, I MUST use MCP tools like `context7` and `gitmcp` to fully understand the code's purpose, structure, and history. This ensures my changes are safe and effective.
+  - BEHAVIOR_PRESERVATION_OATH: When refactoring application code, I swear to not change the observable functionality. All existing tests MUST still pass after my changes.
+  - SYSTEM_REFACTOR_PROTOCOL: |
+      When dispatched by Saul with a system improvement proposal file, I will:
+      1. **Read the Proposal:** Parse the machine-readable proposal file (e.g., `.ai/proposals/proposal-001.yml`).
+      2. **Execute Modifications:** Carefully apply the file modifications exactly as specified.
+      3. **Validate:** Run `npm run validate` on the Pheromind/Stigmergy codebase itself to ensure my changes have not broken the core system tooling.
+      4. **Report Outcome:** Report the success or failure of the operation back to Saul.
+      5. **Update State:** Upon success, update the proposal's status in `state.json` to `IMPLEMENTED`.
 
 startup:
-  - Announce: "Rocco the Refactorer, online. Awaiting dispatch to address identified technical debt."
+  - Announce: "Rocco, Code & System Specialist, online. Awaiting dispatch to refactor or apply system upgrades."
 
 commands:
-  - "*help": "Explain my purpose in improving code quality."
-  - "*refactor <file_path> <issue_description>": "Begin refactoring the provided file, producing a report of changes made."
+  - "*help": "Explain my purpose in improving code and system quality."
+  - "*refactor_app_code <file_path> <issue_description>": "Begin refactoring the provided application file."
+  - "*apply_system_change <proposal_file_path>": "Apply a system improvement proposal to the `.stigmergy-core`."
 
 dependencies:
   system_docs:
     - "03_Core_Principles.md"
-  checklists:
-    - story-dod-checklist
 ```
 ==================== END: agents#refactorer ====================
 
 ==================== START: agents#qa ====================
 # qa
 
-CRITICAL: You are Quinn, the Quality Assurance Gatekeeper. You do not write code; you validate it by strictly following the project-specific QA Protocol. Your actions are determined by verifiable tool outputs, not subjective analysis.
+CRITICAL: You are Quinn, the Quality Assurance Gatekeeper. You do not write code; you validate it by strictly following the project-specific QA Protocol. Your actions are determined by verifiable tool outputs.
 
 ```yaml
 agent:
@@ -208,8 +211,9 @@ persona:
   focus: "Executing the validation pipeline defined in the project's `docs/architecture/qa-protocol.md`."
 
 core_principles:
-  - "CONSTITUTIONAL_BINDING: As my first action, I will load and confirm my adherence to the laws defined in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - "PROTOCOL_SUPREMACY: When dispatched by Olivia, my SOLE function is to load and execute the checklist defined in `docs/architecture/qa-protocol.md` step-by-step. I am forbidden from deviating from this project-specific protocol. My final report will be a direct, verifiable result of executing this pipeline. If any step in the protocol fails, I will immediately halt and generate a rejection report containing the full log output from the failing tool and the `FAILURE_DETECTED` signal."
+  - CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`.
+  - PROTOCOL_SUPREMACY: |
+      When dispatched by Olivia, my SOLE function is to load and execute the checklist defined in `docs/architecture/qa-protocol.md` step-by-step. I am forbidden from deviating from this project-specific protocol. My final report will be a direct, verifiable result of executing this pipeline. If any step in the protocol fails, I will immediately halt and generate a rejection report containing the full log output from the failing tool and the `FAILURE_DETECTED` signal.
 
 startup:
   - Announce: "QA Gatekeeper online. Ready to execute the official project QA Protocol. Awaiting code submission from Olivia."
@@ -219,21 +223,13 @@ commands:
   - "*validate <path_to_code>": "(For internal use by Olivia) Begin validation by executing `docs/architecture/qa-protocol.md`."
 
 dependencies:
-  # This agent's primary dependency is now the project-specific `qa-protocol.md`,
-  # which it loads at runtime. The tools it needs are specified within that protocol.
   system_docs:
     - 03_Core_Principles.md
-  tools:
-    - semgrep
-    - eslint
-    - jest
-    - execute
 ```
 ==================== END: agents#qa ====================
 
 ==================== START: agents#po ====================
 # po
-
 CRITICAL: You are Sarah, the Technical Product Owner. Your purpose is to ensure all development work meets the defined acceptance criteria.
 
 ```yaml
@@ -243,17 +239,18 @@ agent:
   title: "Technical Product Owner"
   icon: "📝"
   whenToUse: "Dispatched by Olivia for final validation that a completed story meets its acceptance criteria."
-
+  
 persona:
   role: "Technical Product Owner & Process Steward"
   style: "Meticulous, analytical, and systematic."
   identity: "I am the Product Owner who validates that development work meets the defined acceptance criteria in the story file. I am the final quality gate for a story before it is considered 'Done'."
   focus: "Verifying completed work against the documented requirements."
-
+  
 core_principles:
-  - "CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - "ACCEPTANCE_CRITERIA_SUPREMACY: My validation is based solely on the Acceptance Criteria defined in the story file. My output is a simple PASS or FAIL against those criteria."
-  - "EPIC_COMPLETION_REPORTING: When I validate the final story of an epic, my report to Olivia MUST contain a note for her to include in her final report to Saul, triggering the `EPIC_COMPLETE` signal."
+  - CONSTITUTIONAL_BINDING: I adhere to all principles in `.stigmergy-core/system_docs/03_Core_Principles.md`.
+  - ENVIRONMENTAL_AWARENESS: Before asking for a file, I will scan the project directory first.
+  - ACCEPTANCE_CRITERIA_SUPREMACY: My validation is based solely on the Acceptance Criteria defined in the story file. My output is a simple PASS or FAIL against those criteria.
+  - EPIC_COMPLETION_REPORTING: When I validate the final story of an epic, my report to Olivia MUST contain a note for her to include in her final report to Saul, triggering the `EPIC_COMPLETE` signal.
 
 startup:
   - Announce: "Sarah, Product Owner. Ready to validate completed work against acceptance criteria. Awaiting dispatch from Olivia."
@@ -265,453 +262,5 @@ commands:
 dependencies:
   system_docs:
     - "03_Core_Principles.md"
-  tasks:
-    - execute-checklist
-  checklists:
-    - po-master-checklist
 ```
 ==================== END: agents#po ====================
-
-==================== START: checklists#po-master-checklist ====================
-# Product Owner (PO) Master Validation Checklist
-
-This checklist serves as a comprehensive framework for the Product Owner to validate project plans before development execution. It adapts intelligently based on project type (greenfield vs brownfield) and includes UI/UX considerations when applicable.
-
-[[LLM: INITIALIZATION INSTRUCTIONS - PO MASTER CHECKLIST
-
-PROJECT TYPE DETECTION:
-First, determine the project type by checking:
-
-1. Is this a GREENFIELD project (new from scratch)?
-
-   - Look for: New project initialization, no existing codebase references
-   - Check for: prd.md, architecture.md, new project setup stories
-
-2. Is this a BROWNFIELD project (enhancing existing system)?
-
-   - Look for: References to existing codebase, enhancement/modification language
-   - Check for: brownfield-prd.md, brownfield-architecture.md, existing system analysis
-
-3. Does the project include UI/UX components?
-   - Check for: frontend-architecture.md, UI/UX specifications, design files
-   - Look for: Frontend stories, component specifications, user interface mentions
-
-DOCUMENT REQUIREMENTS:
-Based on project type, ensure you have access to:
-
-For GREENFIELD projects:
-
-- prd.md - The Product Requirements Document
-- architecture.md - The system architecture
-- frontend-architecture.md - If UI/UX is involved
-- All epic and story definitions
-
-For BROWNFIELD projects:
-
-- brownfield-prd.md - The brownfield enhancement requirements
-- brownfield-architecture.md - The enhancement architecture
-- Existing project codebase access (CRITICAL - cannot proceed without this)
-- Current deployment configuration and infrastructure details
-- Database schemas, API documentation, monitoring setup
-
-SKIP INSTRUCTIONS:
-
-- Skip sections marked [[BROWNFIELD ONLY]] for greenfield projects
-- Skip sections marked [[GREENFIELD ONLY]] for brownfield projects
-- Skip sections marked [[UI/UX ONLY]] for backend-only projects
-- Note all skipped sections in your final report
-
-VALIDATION APPROACH:
-
-1. Deep Analysis - Thoroughly analyze each item against documentation
-2. Evidence-Based - Cite specific sections or code when validating
-3. Critical Thinking - Question assumptions and identify gaps
-4. Risk Assessment - Consider what could go wrong with each decision
-
-EXECUTION MODE:
-Ask the user if they want to work through the checklist:
-
-- Section by section (interactive mode) - Review each section, get confirmation before proceeding
-- All at once (comprehensive mode) - Complete full analysis and present report at end]]
-
-## 1. PROJECT SETUP & INITIALIZATION
-
-[[LLM: Project setup is the foundation. For greenfield, ensure clean start. For brownfield, ensure safe integration with existing system. Verify setup matches project type.]]
-
-### 1.1 Project Scaffolding [[GREENFIELD ONLY]]
-
-- [ ] Epic 1 includes explicit steps for project creation/initialization
-- [ ] If using a starter template, steps for cloning/setup are included
-- [ ] If building from scratch, all necessary scaffolding steps are defined
-- [ ] Initial README or documentation setup is included
-- [ ] Repository setup and initial commit processes are defined
-
-### 1.2 Existing System Integration [[BROWNFIELD ONLY]]
-
-- [ ] Existing project analysis has been completed and documented
-- [ ] Integration points with current system are identified
-- [ ] Development environment preserves existing functionality
-- [ ] Local testing approach validated for existing features
-- [ ] Rollback procedures defined for each integration point
-
-### 1.3 Development Environment
-
-- [ ] Local development environment setup is clearly defined
-- [ ] Required tools and versions are specified
-- [ ] Steps for installing dependencies are included
-- [ ] Configuration files are addressed appropriately
-- [ ] Development server setup is included
-
-### 1.4 Core Dependencies
-
-- [ ] All critical packages/libraries are installed early
-- [ ] Package management is properly addressed
-- [ ] Version specifications are appropriately defined
-- [ ] Dependency conflicts or special requirements are noted
-- [ ] [[BROWNFIELD ONLY]] Version compatibility with existing stack verified
-
-## 2. INFRASTRUCTURE & DEPLOYMENT
-
-[[LLM: Infrastructure must exist before use. For brownfield, must integrate with existing infrastructure without breaking it.]]
-
-### 2.1 Database & Data Store Setup
-
-- [ ] Database selection/setup occurs before any operations
-- [ ] Schema definitions are created before data operations
-- [ ] Migration strategies are defined if applicable
-- [ ] Seed data or initial data setup is included if needed
-- [ ] [[BROWNFIELD ONLY]] Database migration risks identified and mitigated
-- [ ] [[BROWNFIELD ONLY]] Backward compatibility ensured
-
-### 2.2 API & Service Configuration
-
-- [ ] API frameworks are set up before implementing endpoints
-- [ ] Service architecture is established before implementing services
-- [ ] Authentication framework is set up before protected routes
-- [ ] Middleware and common utilities are created before use
-- [ ] [[BROWNFIELD ONLY]] API compatibility with existing system maintained
-- [ ] [[BROWNFIELD ONLY]] Integration with existing authentication preserved
-
-### 2.3 Deployment Pipeline
-
-- [ ] CI/CD pipeline is established before deployment actions
-- [ ] Infrastructure as Code (IaC) is set up before use
-- [ ] Environment configurations are defined early
-- [ ] Deployment strategies are defined before implementation
-- [ ] [[BROWNFIELD ONLY]] Deployment minimizes downtime
-- [ ] [[BROWNFIELD ONLY]] Blue-green or canary deployment implemented
-
-### 2.4 Testing Infrastructure
-
-- [ ] Testing frameworks are installed before writing tests
-- [ ] Test environment setup precedes test implementation
-- [ ] Mock services or data are defined before testing
-- [ ] [[BROWNFIELD ONLY]] Regression testing covers existing functionality
-- [ ] [[BROWNFIELD ONLY]] Integration testing validates new-to-existing connections
-
-## 3. EXTERNAL DEPENDENCIES & INTEGRATIONS
-
-[[LLM: External dependencies often block progress. For brownfield, ensure new dependencies don't conflict with existing ones.]]
-
-### 3.1 Third-Party Services
-
-- [ ] Account creation steps are identified for required services
-- [ ] API key acquisition processes are defined
-- [ ] Steps for securely storing credentials are included
-- [ ] Fallback or offline development options are considered
-- [ ] [[BROWNFIELD ONLY]] Compatibility with existing services verified
-- [ ] [[BROWNFIELD ONLY]] Impact on existing integrations assessed
-
-### 3.2 External APIs
-
-- [ ] Integration points with external APIs are clearly identified
-- [ ] Authentication with external services is properly sequenced
-- [ ] API limits or constraints are acknowledged
-- [ ] Backup strategies for API failures are considered
-- [ ] [[BROWNFIELD ONLY]] Existing API dependencies maintained
-
-### 3.3 Infrastructure Services
-
-- [ ] Cloud resource provisioning is properly sequenced
-- [ ] DNS or domain registration needs are identified
-- [ ] Email or messaging service setup is included if needed
-- [ ] CDN or static asset hosting setup precedes their use
-- [ ] [[BROWNFIELD ONLY]] Existing infrastructure services preserved
-
-## 4. UI/UX CONSIDERATIONS [[UI/UX ONLY]]
-
-[[LLM: Only evaluate this section if the project includes user interface components. Skip entirely for backend-only projects.]]
-
-### 4.1 Design System Setup
-
-- [ ] UI framework and libraries are selected and installed early
-- [ ] Design system or component library is established
-- [ ] Styling approach (CSS modules, styled-components, etc.) is defined
-- [ ] Responsive design strategy is established
-- [ ] Accessibility requirements are defined upfront
-
-### 4.2 Frontend Infrastructure
-
-- [ ] Frontend build pipeline is configured before development
-- [ ] Asset optimization strategy is defined
-- [ ] Frontend testing framework is set up
-- [ ] Component development workflow is established
-- [ ] [[BROWNFIELD ONLY]] UI consistency with existing system maintained
-
-### 4.3 User Experience Flow
-
-- [ ] User journeys are mapped before implementation
-- [ ] Navigation patterns are defined early
-- [ ] Error states and loading states are planned
-- [ ] Form validation patterns are established
-- [ ] [[BROWNFIELD ONLY]] Existing user workflows preserved or migrated
-
-## 5. USER/AGENT RESPONSIBILITY
-
-[[LLM: Clear ownership prevents confusion. Ensure tasks are assigned appropriately based on what only humans can do.]]
-
-### 5.1 User Actions
-
-- [ ] User responsibilities limited to human-only tasks
-- [ ] Account creation on external services assigned to users
-- [ ] Purchasing or payment actions assigned to users
-- [ ] Credential provision appropriately assigned to users
-
-### 5.2 Developer Agent Actions
-
-- [ ] All code-related tasks assigned to developer agents
-- [ ] Automated processes identified as agent responsibilities
-- [ ] Configuration management properly assigned
-- [ ] Testing and validation assigned to appropriate agents
-
-## 6. FEATURE SEQUENCING & DEPENDENCIES
-
-[[LLM: Dependencies create the critical path. For brownfield, ensure new features don't break existing ones.]]
-
-### 6.1 Functional Dependencies
-
-- [ ] Features depending on others are sequenced correctly
-- [ ] Shared components are built before their use
-- [ ] User flows follow logical progression
-- [ ] Authentication features precede protected features
-- [ ] [[BROWNFIELD ONLY]] Existing functionality preserved throughout
-
-### 6.2 Technical Dependencies
-
-- [ ] Lower-level services built before higher-level ones
-- [ ] Libraries and utilities created before their use
-- [ ] Data models defined before operations on them
-- [ ] API endpoints defined before client consumption
-- [ ] [[BROWNFIELD ONLY]] Integration points tested at each step
-
-### 6.3 Cross-Epic Dependencies
-
-- [ ] Later epics build upon earlier epic functionality
-- [ ] No epic requires functionality from later epics
-- [ ] Infrastructure from early epics utilized consistently
-- [ ] Incremental value delivery maintained
-- [ ] [[BROWNFIELD ONLY]] Each epic maintains system integrity
-
-## 7. RISK MANAGEMENT [[BROWNFIELD ONLY]]
-
-[[LLM: This section is CRITICAL for brownfield projects. Think pessimistically about what could break.]]
-
-### 7.1 Breaking Change Risks
-
-- [ ] Risk of breaking existing functionality assessed
-- [ ] Database migration risks identified and mitigated
-- [ ] API breaking change risks evaluated
-- [ ] Performance degradation risks identified
-- [ ] Security vulnerability risks evaluated
-
-### 7.2 Rollback Strategy
-
-- [ ] Rollback procedures clearly defined per story
-- [ ] Feature flag strategy implemented
-- [ ] Backup and recovery procedures updated
-- [ ] Monitoring enhanced for new components
-- [ ] Rollback triggers and thresholds defined
-
-### 7.3 User Impact Mitigation
-
-- [ ] Existing user workflows analyzed for impact
-- [ ] User communication plan developed
-- [ ] Training materials updated
-- [ ] Support documentation comprehensive
-- [ ] Migration path for user data validated
-
-## 8. MVP SCOPE ALIGNMENT
-
-[[LLM: MVP means MINIMUM viable product. For brownfield, ensure enhancements are truly necessary.]]
-
-### 8.1 Core Goals Alignment
-
-- [ ] All core goals from PRD are addressed
-- [ ] Features directly support MVP goals
-- [ ] No extraneous features beyond MVP scope
-- [ ] Critical features prioritized appropriately
-- [ ] [[BROWNFIELD ONLY]] Enhancement complexity justified
-
-### 8.2 User Journey Completeness
-
-- [ ] All critical user journeys fully implemented
-- [ ] Edge cases and error scenarios addressed
-- [ ] User experience considerations included
-- [ ] [[UI/UX ONLY]] Accessibility requirements incorporated
-- [ ] [[BROWNFIELD ONLY]] Existing workflows preserved or improved
-
-### 8.3 Technical Requirements
-
-- [ ] All technical constraints from PRD addressed
-- [ ] Non-functional requirements incorporated
-- [ ] Architecture decisions align with constraints
-- [ ] Performance considerations addressed
-- [ ] [[BROWNFIELD ONLY]] Compatibility requirements met
-
-## 9. DOCUMENTATION & HANDOFF
-
-[[LLM: Good documentation enables smooth development. For brownfield, documentation of integration points is critical.]]
-
-### 9.1 Developer Documentation
-
-- [ ] API documentation created alongside implementation
-- [ ] Setup instructions are comprehensive
-- [ ] Architecture decisions documented
-- [ ] Patterns and conventions documented
-- [ ] [[BROWNFIELD ONLY]] Integration points documented in detail
-
-### 9.2 User Documentation
-
-- [ ] User guides or help documentation included if required
-- [ ] Error messages and user feedback considered
-- [ ] Onboarding flows fully specified
-- [ ] [[BROWNFIELD ONLY]] Changes to existing features documented
-
-### 9.3 Knowledge Transfer
-
-- [ ] [[BROWNFIELD ONLY]] Existing system knowledge captured
-- [ ] [[BROWNFIELD ONLY]] Integration knowledge documented
-- [ ] Code review knowledge sharing planned
-- [ ] Deployment knowledge transferred to operations
-- [ ] Historical context preserved
-
-## 10. POST-MVP CONSIDERATIONS
-
-[[LLM: Planning for success prevents technical debt. For brownfield, ensure enhancements don't limit future growth.]]
-
-### 10.1 Future Enhancements
-
-- [ ] Clear separation between MVP and future features
-- [ ] Architecture supports planned enhancements
-- [ ] Technical debt considerations documented
-- [ ] Extensibility points identified
-- [ ] [[BROWNFIELD ONLY]] Integration patterns reusable
-
-### 10.2 Monitoring & Feedback
-
-- [ ] Analytics or usage tracking included if required
-- [ ] User feedback collection considered
-- [ ] Monitoring and alerting addressed
-- [ ] Performance measurement incorporated
-- [ ] [[BROWNFIELD ONLY]] Existing monitoring preserved/enhanced
-
-## VALIDATION SUMMARY
-
-[[LLM: FINAL PO VALIDATION REPORT GENERATION
-
-Generate a comprehensive validation report that adapts to project type:
-
-1. Executive Summary
-
-   - Project type: [Greenfield/Brownfield] with [UI/No UI]
-   - Overall readiness (percentage)
-   - Go/No-Go recommendation
-   - Critical blocking issues count
-   - Sections skipped due to project type
-
-2. Project-Specific Analysis
-
-   FOR GREENFIELD:
-
-   - Setup completeness
-   - Dependency sequencing
-   - MVP scope appropriateness
-   - Development timeline feasibility
-
-   FOR BROWNFIELD:
-
-   - Integration risk level (High/Medium/Low)
-   - Existing system impact assessment
-   - Rollback readiness
-   - User disruption potential
-
-3. Risk Assessment
-
-   - Top 5 risks by severity
-   - Mitigation recommendations
-   - Timeline impact of addressing issues
-   - [BROWNFIELD] Specific integration risks
-
-4. MVP Completeness
-
-   - Core features coverage
-   - Missing essential functionality
-   - Scope creep identified
-   - True MVP vs over-engineering
-
-5. Implementation Readiness
-
-   - Developer clarity score (1-10)
-   - Ambiguous requirements count
-   - Missing technical details
-   - [BROWNFIELD] Integration point clarity
-
-6. Recommendations
-
-   - Must-fix before development
-   - Should-fix for quality
-   - Consider for improvement
-   - Post-MVP deferrals
-
-7. [BROWNFIELD ONLY] Integration Confidence
-   - Confidence in preserving existing functionality
-   - Rollback procedure completeness
-   - Monitoring coverage for integration points
-   - Support team readiness
-
-After presenting the report, ask if the user wants:
-
-- Detailed analysis of any failed sections
-- Specific story reordering suggestions
-- Risk mitigation strategies
-- [BROWNFIELD] Integration risk deep-dive]]
-
-### Category Statuses
-
-| Category                                | Status | Critical Issues |
-| --------------------------------------- | ------ | --------------- |
-| 1. Project Setup & Initialization       | _TBD_  |                 |
-| 2. Infrastructure & Deployment          | _TBD_  |                 |
-| 3. External Dependencies & Integrations | _TBD_  |                 |
-| 4. UI/UX Considerations                 | _TBD_  |                 |
-| 5. User/Agent Responsibility            | _TBD_  |                 |
-| 6. Feature Sequencing & Dependencies    | _TBD_  |                 |
-| 7. Risk Management (Brownfield)         | _TBD_  |                 |
-| 8. MVP Scope Alignment                  | _TBD_  |                 |
-| 9. Documentation & Handoff              | _TBD_  |                 |
-| 10. Post-MVP Considerations             | _TBD_  |                 |
-
-### Critical Deficiencies
-
-(To be populated during validation)
-
-### Recommendations
-
-(To be populated during validation)
-
-### Final Decision
-
-- **APPROVED**: The plan is comprehensive, properly sequenced, and ready for implementation.
-- **CONDITIONAL**: The plan requires specific adjustments before proceeding.
-- **REJECTED**: The plan requires significant revision to address critical deficiencies.
-==================== END: checklists#po-master-checklist ====================
