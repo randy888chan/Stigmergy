@@ -6,5 +6,6 @@ agents:
   - stigmergy-orchestrator # Corrected agent name
   - analyst
   - pm
-  - architect
+  - design-architect # Corrected agent name
   - ux-expert
+```
