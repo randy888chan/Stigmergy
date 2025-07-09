@@ -1,4 +1,4 @@
-# Pheromind Agent Manifest
+# Stigmergy Agent Manifest
 # This is a machine-readable document. It is the single source of truth for agent capabilities.
 # The Chief Strategist (@saul) queries this manifest to make deterministic dispatch decisions.
 
