@@ -1,6 +1,6 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "4.10.0",
+  "version": "5.0.0",
   "description": "Stigmergy: The Autonomous AI Development Swarm. A framework for orchestrating AI agents.",
   "main": "tools/installer/cli.js",
   "bin": {
@@ -35,7 +35,6 @@
   },
   "keywords": [
     "stigmergy",
-    "pheromind",
     "agile",
     "ai",
     "orchestrator",
