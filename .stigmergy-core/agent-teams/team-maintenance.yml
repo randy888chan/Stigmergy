@@ -3,8 +3,8 @@ bundle:
   icon: 🛠️
   description: A specialized team for debugging, refactoring, and assessing code health.
 agents:
-  - stigmergy-orchestrator
-  - debugger
-  - refactorer
-  - qa
-  - po
+  - saul
+  - dexter
+  - rocco
+  - quinn
+  - sarah
