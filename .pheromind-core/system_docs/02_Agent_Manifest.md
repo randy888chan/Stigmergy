@@ -1,42 +1,71 @@
 # Pheromind Agent Manifest
+# This is a machine-readable document. It is the single source of truth for agent capabilities.
+# The Chief Strategist (@saul) queries this manifest to make deterministic dispatch decisions.
 
-This document serves as the official list of all agents available to the Pheromind system, categorized by their swarm archetype. This is a core part of the **System Constitution**.
+schema_version: 1.0
 
-## 1. The Chief Orchestrator
+agents:
+  - id: saul
+    archetype: Interpreter
+    description: The master brain. Interprets user goals and system state to direct the swarm.
+    tools: [state_reader, manifest_reader]
 
-The single point of command and intelligence for the entire swarm.
+  - id: mary
+    archetype: Planner
+    description: Proactive Market Analyst. Creates the foundational Project Brief with commercial insights.
+    tools: [browser, search]
 
-- **`@stigmergy-master` (Saul):** The master brain. Interprets user goals and system state, directs the swarm, and manages the entire project lifecycle.
+  - id: john
+    archetype: Planner
+    description: Strategic Product Manager. Creates the PRD and the master Project Manifest.
+    tools: [browser, state_writer]
 
-## 2. Planners (The Visionaries)
+  - id: winston
+    archetype: Planner
+    description: Solution Architect. Creates the lean, verifiable technical blueprint.
+    tools: [browser, search]
 
-Agents dispatched by the Orchestrator to create the project's **Immutable Blueprint** and **Project Manifest**.
+  - id: olivia
+    archetype: Executor
+    description: Execution Coordinator. Manages the dev->verify loop for a single story.
+    tools: [dispatcher]
 
-- **`@analyst` (Mary):** Creates the foundational `project-brief.md`.
-- **`@pm` (John):** Creates the PRD and the Master Project Manifest in `state.json`.
-- **`@architect` (Winston):** Creates the technical architecture.
-- **`@ux-expert` (Sally):** Designs user experience and interfaces.
+  - id: bob
+    archetype: Executor
+    description: Task Decomposer. Breaks down epics from the manifest into actionable story files.
+    tools: [file_generator, context_extractor]
 
-## 3. Executors (The Builders)
+  - id: james
+    archetype: Executor
+    description: Expert Software Engineer. Implements code for specific, well-defined sub-tasks.
+    tools: [code_writer, file_reader]
 
-Agents dispatched to perform concrete, constructive tasks.
+  - id: victor
+    archetype: Executor
+    description: Expert Smart Contract Developer. A specialist for secure blockchain development.
+    tools: [code_writer, browser, test_runner]
 
-- **`@stigmergy-orchestrator` (Olivia):** Execution Coordinator. Manages the dev->qa->po loop for a single story. A subordinate of Saul.
-- **`@sm` (Bob):** Task Decomposer. Breaks down epics into stories.
-- **`@dev` (James):** Full Stack Developer. Implements code for sub-tasks.
-- **`@victor` (Victor):** Smart Contract Developer. A specialist for blockchain projects.
-- **`@refactorer` (Rocco):** System Implementer. Applies code refactors and system self-improvements.
+  - id: rocco
+    archetype: Executor
+    description: Code & System Quality Specialist. Applies refactors and system self-improvements.
+    tools: [code_modifier, validator]
 
-## 4. Verifiers (The Guardians)
+  - id: quinn
+    archetype: Verifier
+    description: Quality Assurance Gatekeeper. Programmatically verifies code against the QA Protocol.
+    tools: [test_runner, linter]
 
-Agents dispatched to ensure all work complies with the Blueprint.
+  - id: sarah
+    archetype: Verifier
+    description: Product Owner. Programmatically validates that a final artifact meets the manifest's acceptance criteria.
+    tools: [artifact_checker]
 
-- **`@qa` (Quinn):** Quality Assurance Gatekeeper. Verifies code quality against the project's `qa-protocol.md`.
-- **`@po` (Sarah):** Product Owner. Validates that completed artifacts meet the acceptance criteria of the story.
+  - id: dexter
+    archetype: Responder
+    description: Root Cause Analyst. Diagnoses and proposes solutions for failures logged in the state file.
+    tools: [log_reader, code_analyzer]
 
-## 5. Adaptive Responders (The Immune System)
-
-Specialist agents dispatched to handle failures and drive system improvement.
-
-- **`@debugger` (Dexter):** Root Cause Analyst. Resolves issues logged in the state file.
-- **`@meta` (Metis):** System Auditor. Analyzes swarm performance and proposes improvements to the `.stigmergy-core`.
+  - id: metis
+    archetype: Responder
+    description: System Auditor. Analyzes swarm performance history and proposes concrete improvements.
+    tools: [state_history_analyzer, proposal_writer]
