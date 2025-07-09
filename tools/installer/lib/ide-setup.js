@@ -66,7 +66,7 @@ class IdeSetup {
             roleDefinition: agentData.config.persona.identity,
             whenToUse: agentData.config.agent.whenToUse,
             customInstructions: agentData.fullContent,
-            groups: ['read', 'edit'] // Grant full access by default for simplicity.
+            groups: ['read', 'edit', 'web', 'execute', 'mcp'] // Grant full access as per Blueprint 2.0
         };
         
         existingModes.customModes.push(newMode);
@@ -83,7 +83,7 @@ class IdeSetup {
 
         await fileManager.writeFile(roomodesPath, finalYaml);
         console.log(chalk.green("\n✓ Successfully created/updated .roomodes file for Roo Code."));
-        console.log(chalk.dim("Custom agent modes will be available the next time you open this project in Roo Code."));
+        console.log(chalk.dim("Agents now have full capabilities (read, write, web, execute, mcp)."));
         return true;
     } catch (e) {
         console.error(chalk.red('Failed to write .roomodes file:'), e);
