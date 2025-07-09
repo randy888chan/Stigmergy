@@ -2,8 +2,7 @@
 
 const { Command } = require("commander");
 const path = require("path");
-const Installer = require("./lib/installer");
-const V3ToV4Upgrader = require("../../tools/upgraders/v3-to-v4-upgrader");
+const fs = require("fs-extra");
 
 // Dynamic imports for ES modules
 let chalk, inquirer;
@@ -15,59 +14,64 @@ async function initializeModules() {
   }
 }
 
+class Installer {
+  constructor(config) {
+    this.targetDir = path.resolve(process.cwd(), config.directory);
+    this.sourceDir = path.resolve(__dirname, "../../.pheromind-core");
+  }
+
+  async install() {
+    await initializeModules();
+    console.log(chalk.bold.cyan("🚀 Welcome to the Pheromind Framework Installer!"));
+
+    const coreDestDir = path.join(this.targetDir, ".pheromind-core");
+
+    if (await fs.pathExists(coreDestDir)) {
+      const { overwrite } = await inquirer.prompt([
+        {
+          type: "confirm",
+          name: "overwrite",
+          message: `The '${chalk.yellow(".pheromind-core")}' directory already exists. Overwrite it?`,
+          default: false,
+        },
+      ]);
+      if (!overwrite) {
+        console.log(chalk.red("Installation cancelled."));
+        return;
+      }
+    }
+
+    try {
+      console.log(`Installing Pheromind core into ${this.targetDir}...`);
+      await fs.copy(this.sourceDir, coreDestDir);
+      console.log(chalk.green("\n✓ Pheromind framework installed successfully!"));
+      console.log(chalk.bold("\nTo get started:"));
+      console.log(chalk.cyan("1. Open this project in your IDE."));
+      console.log(chalk.cyan("2. Activate the chief strategist: `@saul`"));
+      console.log(chalk.cyan("3. Give him your project goal, e.g., '*begin_project brief.md'"));
+    } catch (error) {
+      console.error(chalk.red("\nAn error occurred during installation:"));
+      console.error(error.message);
+      process.exit(1);
+    }
+  }
+}
+
 async function main() {
   await initializeModules();
   const program = new Command();
 
   program
-    .name("stigmergy")
+    .name("pheromind")
     .description("Pheromind: The Autonomous AI Development Swarm. Manage your AI-driven projects.")
     .version(require("../../package.json").version);
 
   program
     .command("install")
-    .description("Install the Pheromind/Stigmergy framework in a new project directory.")
-    .option("-d, --directory <path>", "Target directory for installation", ".")
-    .action(async (options) => {
-      try {
-        console.log(chalk.bold.cyan("🚀 Welcome to the Pheromind Framework Installer!"));
-        console.log("This will set up your project for autonomous AI development.");
-
-        const { ides } = await inquirer.prompt([
-          {
-            type: "checkbox",
-            name: "ides",
-            message: "Select IDEs to configure (Space to select, Enter to confirm):",
-            choices: [
-              { name: "Roo Code (VS Code Extension)", value: "roo", checked: true },
-              { name: "Cursor", value: "cursor" },
-            ],
-          },
-        ]);
-
-        const config = {
-          directory: options.directory,
-          installType: "full", // Default to a complete, unified install
-          ides,
-        };
-        
-        await Installer.install(config);
-
-      } catch (error) {
-        console.error(chalk.red("\nAn error occurred during installation:"));
-        console.error(error.message);
-        process.exit(1);
-      }
-    });
-    
-  program
-    .command("upgrade")
-    .description("Upgrade an existing legacy project to the current Stigmergy architecture.")
-    .option("-p, --project <path>", "Path to your project (defaults to current dir)")
-    .action(async (options) => {
-      // This can be adapted to handle different legacy versions if needed
-      const upgrader = new V3ToV4Upgrader({ projectPath: options.project });
-      await upgrader.upgrade();
+    .description("Install the Pheromind framework in the current project directory.")
+    .action(async () => {
+      const installer = new Installer({ directory: "." });
+      await installer.install();
     });
 
   program.parse(process.argv);
