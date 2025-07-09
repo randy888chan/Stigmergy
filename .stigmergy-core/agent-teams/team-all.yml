@@ -3,17 +3,17 @@ bundle:
   icon: 👥
   description: Includes every core system agent for full project lifecycle support.
 agents:
-  - stigmergy-master
-  - stigmergy-orchestrator
-  - analyst
-  - pm
-  - architect
-  - ux-expert
-  - sm
-  - dev
+  - saul
+  - mary
+  - john
+  - winston
+  - sally
+  - james
   - victor
-  - qa
-  - po
-  - debugger
-  - refactorer
-  - meta
+  - quinn
+  - sarah
+  - dexter
+  - rocco
+  - metis
+  - bob
+  - olivia
