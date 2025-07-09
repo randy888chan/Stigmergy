@@ -1,7 +1,19 @@
 bundle:
   name: Team All
   icon: 👥
-  description: Includes every core system agent.
+  description: Includes every core system agent for full project lifecycle support.
 agents:
-  - stigmergy-orchestrator # Explicitly include the renamed orchestrator
-  - '*'
+  - stigmergy-master
+  - stigmergy-orchestrator
+  - analyst
+  - pm
+  - architect
+  - ux-expert
+  - sm
+  - dev
+  - victor
+  - qa
+  - po
+  - debugger
+  - refactorer
+  - meta
