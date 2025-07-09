@@ -37,6 +37,7 @@
 **Justification:** _Briefly state why the blueprint is or is not ready for autonomous execution._
 
 ---
+
 ### **Modified Files**
 
 The following files have been rewritten or updated according to the blueprint.

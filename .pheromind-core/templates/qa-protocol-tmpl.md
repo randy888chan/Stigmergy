@@ -16,8 +16,8 @@ Upon receiving a code submission for a completed sub-task, the `@qa` agent MUST 
 
 1.  **Load Standards:** Ingest the `docs/architecture/coding-standards.md` file from this project.
 2.  **Static Analysis:**
-    *   Execute the project's formatting check command (e.g., `npm run lint:check`).
-    *   Execute the project's linting command (e.g., `npm run lint`).
+    - Execute the project's formatting check command (e.g., `npm run lint:check`).
+    - Execute the project's linting command (e.g., `npm run lint`).
 3.  **Verification:** Parse the output of the tools.
     - **PASS Condition:** Both commands exit with code `0`.
     - **FAIL Condition:** Either command exits with a non-zero code or reports errors. The rejection report MUST include the full error output from the failed tool.

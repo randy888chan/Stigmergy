@@ -11,10 +11,12 @@ The **`.ai/state.json`** file is the central nervous system of the swarm. It is 
 ## The Pheromind Cycle: A Unified Workflow
 
 1.  **State Interpretation (Saul):**
+
     - **Input:** At the start of every cycle, Saul's first and only action is to read the `.ai/state.json` file to understand the current `project_status` and the last `system_signal`.
     - **Action:** He acts as the **System Interpreter**, deciding the single most important next step based on his constitutional `STIGMERGY_PROTOCOL`.
 
 2.  **Strategic Dispatch (Saul):**
+
     - **Action:** Based on his interpretation, Saul acts as the **Chief Orchestrator**, dispatching one specialist agent or sub-orchestrator to perform a specific task. He then enters a waiting state.
 
 3.  **Specialized Execution (The Swarm):**

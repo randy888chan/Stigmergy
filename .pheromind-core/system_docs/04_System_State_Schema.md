@@ -20,10 +20,10 @@ This document defines the official, versioned schema for the `.ai/state.json` fi
         "title": "string",
         "status": "PENDING | IN_PROGRESS | COMPLETE",
         "stories": [
-          { 
-            "story_id": "string", 
-            "title": "string", 
-            "status": "PENDING | APPROVED | IN_PROGRESS | QA_PENDING | PO_PENDING | DONE | FAILED" 
+          {
+            "story_id": "string",
+            "title": "string",
+            "status": "PENDING | APPROVED | IN_PROGRESS | QA_PENDING | PO_PENDING | DONE | FAILED"
           }
         ]
       }
@@ -64,15 +64,20 @@ This document defines the official, versioned schema for the `.ai/state.json` fi
 ```
 
 ---
+
 ## Enumerations
 
 ### `autonomy_mode` (Enum)
+
 Determines the level of human intervention required.
+
 - `supervised`: (Default) The system will pause and await user approval at key checkpoints.
 - `autonomous`: The system will proceed through the entire project lifecycle without stopping.
 
 ### `project_status` (Enum)
+
 The high-level strategic phase of the project.
+
 - `NEEDS_BRIEFING`: Initial state. Awaiting Project Brief creation.
 - `NEEDS_PLANNING`: Brief complete. Awaiting PRD/Architecture and Manifest.
 - `READY_FOR_EXECUTION`: Blueprint and manifest are complete.
@@ -82,7 +87,9 @@ The high-level strategic phase of the project.
 - `PROJECT_COMPLETE`: All epics in the manifest are implemented and verified.
 
 ### `system_signal` (Enum)
+
 The "digital pheromone" left by the last agent to trigger the next action.
+
 - `BRIEF_COMPLETE`
 - `BLUEPRINT_COMPLETE`
 - `STORY_CREATED`
@@ -93,4 +100,7 @@ The "digital pheromone" left by the last agent to trigger the next action.
 - `ESCALATION_REQUIRED`
 - `SYSTEM_AUDIT_COMPLETE`
 - `PROPOSAL_IMPLEMENTED`
+
+```
+
 ```

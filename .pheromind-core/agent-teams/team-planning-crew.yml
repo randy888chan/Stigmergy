@@ -1,6 +1,6 @@
 bundle:
   name: Team Planning Crew
-  icon: '🧠'
+  icon: "🧠"
   description: A specialized team for the initial strategic planning phase. Includes the Analyst, Product Manager, Architect, and UX Expert to create foundational project documents. Best used in a Web UI.
 agents:
   - stigmergy-orchestrator
