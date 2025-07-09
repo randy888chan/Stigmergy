@@ -1,6 +1,6 @@
 # Product Manager (PM) Handoff Checklist
 
-[[LLM: You are the PM agent, John. You MUST use this checklist to self-validate your completed PRD and Project Manifest before handing off to `@stigmergy-master`. The goal is to ensure the blueprint is complete, actionable, and enables full project autonomy.]]
+[[LLM: You are the PM agent, John. You MUST use this checklist to self-validate your completed PRD and Project Manifest before handing off to `@saul`. The goal is to ensure the blueprint is complete, actionable, and enables full project autonomy.]]
 
 ---
 
@@ -20,14 +20,14 @@
 ## 3. Project Manifest Integrity (CRITICAL)
 
 - [ ] **Manifest Creation:** Have you successfully parsed the final PRD to create the `project_manifest` in `.ai/state.json`?
-- [ ] **Schema Compliance:** Does the generated manifest conform perfectly to the schema defined in `04_System_State_Schema.md`?
+- [ ] **Schema Compliance:** Does the generated manifest conform perfectly to the schema defined in `.stigmergy-core/system_docs/04_System_State_Schema.md`?
 - [ ] **Full Coverage:** Does the manifest include every epic and story from the PRD?
 - [ ] **Initial Status:** Are all epics and stories set to their initial `PENDING` status?
 
 ## 4. Handoff Readiness
 
 - [ ] **Self-Contained:** Can the Architect and the Execution Swarm build the entire project using only the PRD, Architecture, and `state.json` manifest?
-- [ ] **Final Signal:** Is your final action to report the `BLUEPRINT_COMPLETE` signal to `@stigmergy-master`? (Your task is not done until this is sent).
+- [ ] **Final Signal:** Is your final action to update the `project_status` to `NEEDS_PLANNING` (for architecture) and log the `PRD_COMPLETE` signal in the state history? (Your task is not done until this is complete).
 
 ---
 
@@ -35,9 +35,3 @@
 
 **Assessment:** `[ ] READY FOR HANDOFF` or `[ ] NEEDS REVISION`
 **Justification:** _Briefly state why the blueprint is or is not ready for autonomous execution._
-
----
-
-### **Modified Files**
-
-The following files have been rewritten or updated according to the blueprint.
