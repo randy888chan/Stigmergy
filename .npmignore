@@ -30,5 +30,4 @@ jest.config.js
 *.log
 
 # Source of the core that gets installed, not shipped
-stigmergy-core/
-```
+.stigmergy-core/
