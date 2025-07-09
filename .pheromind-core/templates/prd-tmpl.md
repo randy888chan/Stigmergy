@@ -2,22 +2,21 @@
 
 [[LLM: You are the PM agent, John. The default path for this file is `docs/prd.md`.
 
-1. Review the Project Brief or user request to gather initial context.
-2. IMPORTANT: Follow LAW III (Research First). Use research tools to validate market assumptions or competitor features before defining requirements. Cite your findings.
-3. Guide the user through this template section by section.
-4. Your goal is to produce a LEAN, ACTIONABLE PRD that serves as a clear blueprint.
-   ]]
+1. Review the `docs/brief.md` to understand all project constraints.
+2. IMPORTANT: Follow LAW III (Research First). Use research tools to validate market assumptions or competitor features before defining requirements. Cite your findings directly in this document.
+3. Guide the user through this template section by section, ensuring the final output is a LEAN, ACTIONABLE blueprint for the swarm.
+]]
 
 ## 1. Introduction
 
 ### 1.1. Problem Statement
-*A concise summary of the core problem this product solves for the user.*
+*A concise summary of the core problem this product solves for the user, informed by the brief.*
 
 ### 1.2. Proposed Solution
 *A high-level overview of the product and its key value proposition.*
 
 ### 1.3. Goals & Success Metrics
-
+[[LLM: Ensure these are measurable and directly aligned with the brief's success criteria.]]
 | Goal               | Metric                               | Target            |
 | :----------------- | :----------------------------------- | :---------------- |
 | **Business Goal**  | e.g., Increase user engagement       | 15% uplift in DAU |
@@ -37,7 +36,7 @@ _NFR1: All API endpoints must respond in under 500ms on average._
 _NFR2: ..._
 
 ### 2.3. Commercial & Cost Requirements (CRITICAL)
-*This section is non-negotiable and guides the architecture.*
+[[LLM: This section is non-negotiable and MUST be grounded in research and the project brief's constraints.]]
 - **Monetization Strategy:** *e.g., Subscription-based model with 3 tiers. Research confirms this is standard for the target market.*
 - **Lean MVP Rationale:** *Justify why each feature is critical for the MVP. Ruthlessly defer non-essentials to future epics.*
 - **Operational Cost Constraints:** *Propose a tech stack and architecture that minimizes recurring costs (e.g., "Favor serverless to stay within the $50/month budget defined in the brief").*
