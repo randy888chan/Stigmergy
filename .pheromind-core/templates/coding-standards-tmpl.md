@@ -2,7 +2,7 @@
 
 [[LLM: This is a template. When generating for a new project, you MUST populate this into `docs/architecture/coding-standards.md`. Announce to the user that these are the default standards and can be modified directly in that file at any time.]]
 
-This document defines the mandatory coding standards for this project. All AI agents (`@dev`, `@refactorer`) MUST adhere to these rules. The `@qa` agent WILL use these standards as the basis for its validation protocol. This document is part of the **Immutable Project Blueprint**.
+This document defines the mandatory coding standards for this project. All AI agents (`@james`, `@rocco`) MUST adhere to these rules. The `@quinn` agent WILL use these standards as the basis for its validation protocol. This document is part of the **Immutable Project Blueprint**.
 
 ## 1. Tooling & Formatting
 
@@ -45,3 +45,8 @@ This document defines the mandatory coding standards for this project. All AI ag
 - **No Hardcoded Secrets:** No API keys, passwords, or other secrets are permitted in the source code. Load them from environment variables via a configuration service.
 - **Input Validation:** All data received from external sources (e.g., API request bodies, URL parameters) MUST be validated against a schema before being processed.
 - **Console Logs:** `console.log` statements are forbidden in production code. Use a structured logger instead.
+
+---
+### **Rewritten System & Agent Files**
+
+The core logic, agent instructions, and user-facing documents have been rewritten to implement the new architecture.
