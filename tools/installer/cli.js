@@ -21,23 +21,23 @@ async function main() {
 
   program
     .name("stigmergy")
-    .description("Stigmergy: The Autonomous AI Development Swarm. Manage your AI-driven projects.")
+    .description("Pheromind: The Autonomous AI Development Swarm. Manage your AI-driven projects.")
     .version(require("../../package.json").version);
 
   program
     .command("install")
-    .description("Install the Stigmergy framework in a new project directory.")
+    .description("Install the Pheromind/Stigmergy framework in a new project directory.")
     .option("-d, --directory <path>", "Target directory for installation", ".")
     .action(async (options) => {
       try {
-        console.log(chalk.bold.cyan("🚀 Welcome to the Stigmergy Framework Installer!"));
+        console.log(chalk.bold.cyan("🚀 Welcome to the Pheromind Framework Installer!"));
         console.log("This will set up your project for autonomous AI development.");
 
         const { ides } = await inquirer.prompt([
           {
             type: "checkbox",
             name: "ides",
-            message: "Select IDEs to configure for Stigmergy (Space to select, Enter to confirm):",
+            message: "Select IDEs to configure (Space to select, Enter to confirm):",
             choices: [
               { name: "Roo Code (VS Code Extension)", value: "roo", checked: true },
               { name: "Cursor", value: "cursor" },
@@ -62,7 +62,7 @@ async function main() {
     
   program
     .command("upgrade")
-    .description("Upgrade an existing legacy project to the Stigmergy architecture.")
+    .description("Upgrade an existing legacy project to the current Stigmergy architecture.")
     .option("-p, --project <path>", "Path to your project (defaults to current dir)")
     .action(async (options) => {
       // This can be adapted to handle different legacy versions if needed
