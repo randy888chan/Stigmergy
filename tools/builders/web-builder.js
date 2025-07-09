@@ -20,22 +20,34 @@ class WebBuilder {
     console.log(`Cleaned: ${path.relative(this.rootDir, this.outputDir)}`);
   }
 
-  async buildAgents() {
-    const agents = await this.resolver.listAgents();
+  async buildAgents(agentId = null) {
+    let allAgentIds = await this.resolver.listAgents();
+    let agentsToBuild = allAgentIds;
+
+    if (agentId) {
+      if (!allAgentIds.includes(agentId)) {
+        throw new Error(`Agent with ID '${agentId}' not found. Available agents: ${allAgentIds.join(', ')}`);
+      }
+      agentsToBuild = [agentId];
+      console.log(`Building single agent bundle: ${agentId}`);
+    } else {
+      console.log('Building all agent bundles...');
+    }
+    
     const outputPath = path.join(this.outputDir, "agents");
     await fs.mkdir(outputPath, { recursive: true });
 
-    for (const agentId of agents) {
+    for (const id of agentsToBuild) {
       try {
-        console.log(`  Building agent bundle: ${agentId}`);
-        const bundle = await this.buildAgentBundle(agentId);
-        const outputFile = path.join(outputPath, `${agentId}.txt`);
+        console.log(`  Building: ${id}`);
+        const bundle = await this.buildAgentBundle(id);
+        const outputFile = path.join(outputPath, `${id}.txt`);
         await fs.writeFile(outputFile, bundle, "utf8");
       } catch (error) {
-        console.error(`\n[ERROR] Failed to build agent ${agentId}: ${error.message}`);
+        console.error(`\n[ERROR] Failed to build agent ${id}: ${error.message}`);
       }
     }
-    console.log(`Built ${agents.length} agent bundles.`);
+    console.log(`Built ${agentsToBuild.length} agent bundle(s).`);
   }
 
   async buildTeams() {
@@ -43,9 +55,10 @@ class WebBuilder {
     const outputPath = path.join(this.outputDir, "teams");
     await fs.mkdir(outputPath, { recursive: true });
 
+    console.log('Building team bundles...');
     for (const teamId of teams) {
       try {
-        console.log(`  Building team bundle: ${teamId}`);
+        console.log(`  Building: ${teamId}`);
         const bundle = await this.buildTeamBundle(teamId);
         const outputFile = path.join(outputPath, `${teamId}.txt`);
         await fs.writeFile(outputFile, bundle, "utf8");
