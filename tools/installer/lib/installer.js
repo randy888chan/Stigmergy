@@ -8,7 +8,9 @@ const ideSetup = require("./ide-setup");
 class Installer {
   constructor(config) {
     this.targetDir = path.resolve(process.cwd(), config.directory);
-    this.sourceDir = path.resolve(__dirname, "..", "..", ".stigmergy-core");
+    // --- THIS IS THE FIX ---
+    // Go up THREE levels from /tools/installer/lib to the project root.
+    this.sourceDir = path.resolve(__dirname, "..", "..", "..", ".stigmergy-core");
     this.cliOptions = config.cliOptions || {};
     this.chalk = null;
     this.inquirer = null;
@@ -49,14 +51,11 @@ class Installer {
       await fs.copy(this.sourceDir, coreDestDir);
       spinner.succeed("Stigmergy core installed successfully!");
 
-      // --- START: NEW INTERACTIVE IDE SETUP LOGIC ---
       let idesToSetup = [];
       if (this.cliOptions.ide) {
-        // Non-interactive mode if --ide flag is used
         idesToSetup.push(this.cliOptions.ide);
         console.log(this.chalk.cyan(`\nConfiguring for specified IDE: ${this.cliOptions.ide}`));
       } else {
-        // Interactive mode
         const availableIdes = await configLoader.listAvailableIdes();
         const { selectedIdes } = await this.inquirer.prompt([
           {
@@ -64,7 +63,7 @@ class Installer {
             name: 'selectedIdes',
             message: 'Which IDE(s) would you like to configure for Stigmergy?',
             choices: availableIdes.map(ide => ({ name: ide.name, value: ide.id })),
-            default: ['roo'] // Default to selecting Roo Code
+            default: ['roo']
           }
         ]);
         idesToSetup = selectedIdes;
@@ -77,12 +76,11 @@ class Installer {
         }
         spinner.succeed("IDE integrations configured!");
       }
-      // --- END: NEW INTERACTIVE IDE SETUP LOGIC ---
 
       console.log(this.chalk.green.bold("\n✓ Stigmergy framework is ready!"));
       console.log(this.chalk.bold("\nTo get started:"));
       console.log(this.chalk.cyan("1. Open this project in your configured IDE."));
-      console.log(this.chalk.cyan("2. Activate the chief strategist (e.g., `@saul` or `@winston`)."));
+      console.log(this.chalk.cyan("2. Activate the chief strategist (e.g., `@saul`)."));
       console.log(this.chalk.cyan("3. Give your agent a project goal."));
 
     } catch (error) {
