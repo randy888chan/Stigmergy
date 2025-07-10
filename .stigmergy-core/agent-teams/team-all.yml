@@ -1,19 +1,21 @@
+```yaml
 bundle:
   name: Team All
   icon: 👥
   description: Includes every core system agent for full project lifecycle support.
 agents:
-  - saul
-  - mary
-  - john
-  - winston
-  - sally
-  - james
+  - dispatcher
+  - analyst
+  - pm
+  - design-architect
+  - ux-expert
+  - stigmergy-orchestrator
+  - sm
+  - dev
   - victor
-  - quinn
-  - sarah
-  - dexter
-  - rocco
-  - metis
-  - bob
-  - olivia
+  - qa
+  - po
+  - debugger
+  - refactorer
+  - meta
+```
