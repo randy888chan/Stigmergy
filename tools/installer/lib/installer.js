@@ -1,157 +1,96 @@
 const path = require("node:path");
+const fs = require("fs-extra");
 const fileManager = require("./file-manager");
 const configLoader = require("./config-loader");
 const ideSetup = require("./ide-setup");
 
-// Dynamic imports for ES modules
-let chalk, ora, inquirer;
-
-// Initialize ES modules
-async function initializeModules() {
-  if (!chalk) {
-    chalk = (await import("chalk")).default;
-    ora = (await import("ora")).default;
-    inquirer = (await import("inquirer")).default;
-  }
-}
-
+// Use a class to hold state and dependencies
 class Installer {
-  async install(config) {
-    // Initialize ES modules
-    await initializeModules();
-    
-    const spinner = ora("Analyzing installation directory...").start();
+  constructor(config) {
+    this.targetDir = path.resolve(process.cwd(), config.directory);
+    this.sourceDir = path.resolve(__dirname, "..", "..", ".stigmergy-core");
+    this.cliOptions = config.cliOptions || {};
+    this.chalk = null;
+    this.inquirer = null;
+    this.ora = null;
+  }
 
-    try {
-      const originalCwd = process.env.INIT_CWD || process.env.PWD || process.cwd();
-      let installDir = path.isAbsolute(config.directory) 
-        ? config.directory 
-        : path.resolve(originalCwd, config.directory);
-        
-      if (path.basename(installDir) === '.stigmergy-core') {
-        installDir = path.dirname(installDir);
+  async _initializeDeps() {
+    if (!this.chalk) {
+      this.chalk = (await import("chalk")).default;
+      this.inquirer = (await import("inquirer")).default;
+      this.ora = (await import("ora")).default;
+    }
+  }
+
+  async install() {
+    await this._initializeDeps();
+    console.log(this.chalk.bold.cyan("🚀 Welcome to the Stigmergy Framework Installer!"));
+
+    const coreDestDir = path.join(this.targetDir, ".stigmergy-core");
+
+    if (await fs.pathExists(coreDestDir)) {
+      const { overwrite } = await this.inquirer.prompt([
+        {
+          type: "confirm",
+          name: "overwrite",
+          message: `The '${this.chalk.yellow(".stigmergy-core")}' directory already exists. Overwrite it?`,
+          default: false,
+        },
+      ]);
+      if (!overwrite) {
+        console.log(this.chalk.red("Installation cancelled."));
+        return;
       }
-      
-      spinner.text = `Verifying target directory: ${installDir}`;
+    }
 
-      if (!(await fileManager.pathExists(installDir))) {
-        spinner.stop();
-        const { action } = await inquirer.prompt([
+    const spinner = this.ora(`Installing Stigmergy core into ${this.targetDir}...`).start();
+    try {
+      await fs.copy(this.sourceDir, coreDestDir);
+      spinner.succeed("Stigmergy core installed successfully!");
+
+      // --- START: NEW INTERACTIVE IDE SETUP LOGIC ---
+      let idesToSetup = [];
+      if (this.cliOptions.ide) {
+        // Non-interactive mode if --ide flag is used
+        idesToSetup.push(this.cliOptions.ide);
+        console.log(this.chalk.cyan(`\nConfiguring for specified IDE: ${this.cliOptions.ide}`));
+      } else {
+        // Interactive mode
+        const availableIdes = await configLoader.listAvailableIdes();
+        const { selectedIdes } = await this.inquirer.prompt([
           {
-            type: 'list',
-            name: 'action',
-            message: `Directory ${chalk.bold(installDir)} does not exist. Create it?`,
-            choices: ['Yes', 'No']
+            type: 'checkbox',
+            name: 'selectedIdes',
+            message: 'Which IDE(s) would you like to configure for Stigmergy?',
+            choices: availableIdes.map(ide => ({ name: ide.name, value: ide.id })),
+            default: ['roo'] // Default to selecting Roo Code
           }
         ]);
+        idesToSetup = selectedIdes;
+      }
 
-        if (action === 'No') {
-          console.log(chalk.red('Installation cancelled.'));
-          process.exit(0);
-        } else {
-          await fileManager.ensureDirectory(installDir);
+      if (idesToSetup.length > 0) {
+        spinner.start("Configuring IDE integrations...");
+        for (const ideId of idesToSetup) {
+          await ideSetup.setup(ideId, this.targetDir);
         }
-        spinner.start("Rerunning analysis...");
+        spinner.succeed("IDE integrations configured!");
       }
+      // --- END: NEW INTERACTIVE IDE SETUP LOGIC ---
 
-      const state = await this.detectInstallationState(installDir);
+      console.log(this.chalk.green.bold("\n✓ Stigmergy framework is ready!"));
+      console.log(this.chalk.bold("\nTo get started:"));
+      console.log(this.chalk.cyan("1. Open this project in your configured IDE."));
+      console.log(this.chalk.cyan("2. Activate the chief strategist (e.g., `@saul` or `@winston`)."));
+      console.log(this.chalk.cyan("3. Give your agent a project goal."));
 
-      switch (state.type) {
-        case "clean":
-          return await this.performFreshInstall(config, installDir, spinner);
-        case "stigmergy_existing":
-          return await this.handleExistingInstallation(config, installDir, state, spinner);
-        case "legacy_existing":
-          return await this.handleLegacyInstallation(config, installDir, state, spinner);
-        case "unknown_existing":
-          return await this.handleUnknownInstallation(config, installDir, state, spinner);
-      }
     } catch (error) {
-      spinner.fail("Installation failed");
-      throw error;
+      spinner.fail("An error occurred during installation.");
+      console.error(this.chalk.red(error.message));
+      process.exit(1);
     }
-  }
-
-  async detectInstallationState(installDir) {
-    const stigmergyCorePath = path.join(installDir, ".stigmergy-core");
-    if (await fileManager.pathExists(stigmergyCorePath)) {
-      return { type: "stigmergy_existing" };
-    }
-    if (await fileManager.pathExists(path.join(installDir, "bmad-agent"))) {
-      return { type: "legacy_existing" };
-    }
-    const files = require("glob").sync("**/*", { cwd: installDir, nodir: true, dot: false, ignore: ["**/.git/**", "**/node_modules/**"] });
-    if (files.length > 0) {
-      return { type: "unknown_existing" };
-    }
-    return { type: "clean" };
-  }
-
-  async performFreshInstall(config, installDir, spinner) {
-    spinner.text = "Starting fresh Stigmergy installation...";
-    const sourceDir = configLoader.getStigmergyCorePath();
-    const destDir = path.join(installDir, ".stigmergy-core");
-    await fileManager.copyDirectory(sourceDir, destDir);
-    
-    const ides = config.ides || [];
-    for (const ide of ides) {
-      spinner.text = `Setting up ${ide} integration...`;
-      await ideSetup.setup(ide, installDir);
-    }
-
-    spinner.succeed("Installation complete!");
-    this.showSuccessMessage(installDir);
-  }
-
-  async handleExistingInstallation(config, installDir, state, spinner) {
-    spinner.stop();
-    const { action } = await inquirer.prompt([{
-      type: "list",
-      name: "action",
-      message: "An existing Stigmergy installation was found. What would you like to do?",
-      choices: [ "Update the core framework", "Reinstall (overwrite everything)", "Cancel" ],
-    }]);
-
-    if (action === "Update the core framework" || action === "Reinstall (overwrite everything)") {
-      await this.performReinstall(config, installDir, spinner);
-    } else {
-      console.log("Installation cancelled.");
-    }
-  }
-  
-  async performReinstall(config, installDir, spinner){
-    spinner.start("Reinstalling Stigmergy framework...");
-    const corePath = path.join(installDir, ".stigmergy-core");
-    await fileManager.removeDirectory(corePath);
-    await this.performFreshInstall(config, installDir, spinner);
-  }
-
-  async handleLegacyInstallation(config, installDir, state, spinner) {
-    spinner.stop();
-    // Logic for upgrading from v3 can be handled by the 'upgrade' command.
-    console.log(chalk.yellow("\nFound a legacy installation."));
-    console.log(`Please run \`npx stigmergy upgrade\` to migrate your project.`);
-  }
-
-  async handleUnknownInstallation(config, installDir, state, spinner) {
-    spinner.stop();
-    const { action } = await inquirer.prompt([{
-        type: "list",
-        name: "action",
-        message: "This directory contains files not related to Stigmergy. Install anyway?",
-        choices: [ { name: "Yes, install alongside existing files", value: "force" }, { name: "No, cancel", value: "cancel" } ],
-    }]);
-    if(action === "force") await this.performFreshInstall(config, installDir, spinner);
-    else console.log("Installation cancelled.");
-  }
-  
-  showSuccessMessage(installDir) {
-    console.log(chalk.green("\n✓ Stigmergy framework installed successfully!"));
-    console.log(chalk.bold("\nTo get started:"));
-    console.log(chalk.cyan("1. Open this project in your configured IDE."));
-    console.log(chalk.cyan("2. Activate the master agent: `@stigmergy-master` (or select from Roo Code modes)."));
-    console.log(chalk.cyan("3. Give him your project goal, e.g., 'Begin project from docs/brief.md'"));
   }
 }
 
-module.exports = new Installer();
+module.exports = Installer;
