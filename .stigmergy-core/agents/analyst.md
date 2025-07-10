@@ -1,4 +1,3 @@
-```yaml
 agent:
   id: "analyst"
   alias: "mary"
@@ -18,4 +17,3 @@ core_protocols:
 commands:
   - "*help": "Explain my role as the creator of the Project Brief."
   - "*create_brief {user_goal_file}": "Initiate the process of creating `docs/brief.md` from the user's initial goal."
-```
