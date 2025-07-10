@@ -1,5 +1,3 @@
-
-```yaml
 bundle:
   name: Team All
   icon: 👥
@@ -19,4 +17,3 @@ agents:
   - debugger
   - refactorer
   - meta
-```
