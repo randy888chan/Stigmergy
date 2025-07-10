@@ -29,6 +29,16 @@ class ConfigLoader {
     const config = await this.load();
     return config['ide-configurations']?.[ide] || null;
   }
+
+  // New function to list all available IDEs for the interactive prompt
+  async listAvailableIdes() {
+    const config = await this.load();
+    const ideConfigs = config['ide-configurations'] || {};
+    return Object.keys(ideConfigs).map(id => ({
+      id: id,
+      name: ideConfigs[id].name
+    }));
+  }
   
   async getAgentDataList() {
     const agentsDir = path.join(this.getStigmergyCorePath(), 'agents');
@@ -41,9 +51,8 @@ class ConfigLoader {
         
         try {
             const agentContent = await fs.readFile(agentPath, 'utf8');
-            const yamlMatch = agentContent.match(/```ya?ml\n([\s\S]*?)```/);
+            const yamlMatch = agentContent.match(/```yaml\n([\s\S]*?)```/);
             if (yamlMatch && yamlMatch[1]) {
-                // THE FIX: Pass the captured group (the content inside the fences)
                 const config = yaml.load(yamlMatch[1]);
                 agentDataList.push({
                     id: agentId,
