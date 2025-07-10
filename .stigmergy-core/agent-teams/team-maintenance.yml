@@ -3,8 +3,8 @@ bundle:
   icon: 🛠️
   description: A specialized team for debugging, refactoring, and assessing code health.
 agents:
-  - saul
-  - dexter
-  - rocco
-  - quinn
-  - sarah
+  - dispatcher
+  - debugger
+  - refactorer
+  - qa
+  - po
