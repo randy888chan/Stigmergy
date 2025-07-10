@@ -16,8 +16,6 @@ async function main() {
     .description("Install the Stigmergy framework in the current project directory.")
     .option('--ide <ide_name>', 'Specify a single IDE to configure non-interactively (e.g., roo).')
     .action(async (options) => {
-      // The Installer class now handles its own dependencies and logic.
-      // We pass the CLI options directly to it.
       const installer = new Installer({
         directory: ".",
         cliOptions: options
