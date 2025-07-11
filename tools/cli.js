@@ -6,14 +6,13 @@ const path = require('path');
 const yaml = require('js-yaml');
 const WebBuilder = require('./builders/web-builder');
 
-// Use a main async function to properly handle dynamic imports of ESM modules
 async function main() {
   const chalk = (await import('chalk')).default;
   const program = new Command();
 
   program
     .name('stigmergy-cli')
-    .description('Stigmergy: CLI for managing the Autonomous AI Development Swarm.')
+    .description('Pheromind: CLI for managing the Autonomous AI Development Workshop.')
     .version(require('../package.json').version);
 
   program
@@ -21,7 +20,7 @@ async function main() {
     .description('Build web bundles for agents and teams from the .stigmergy-core source.')
     .option('-a, --agents-only', 'Build only agent bundles.')
     .option('-t, --teams-only', 'Build only team bundles.')
-    .option('--agent <agentId>', 'Build a single agent bundle by its ID.')
+    .option('--agent <agentId>', 'Build a single agent bundle by its ID (e.g., mary, winston).')
     .option('--no-clean', 'Skip cleaning the dist/ directory before building.')
     .action(async (options) => {
       const builder = new WebBuilder({ rootDir: process.cwd() });
@@ -51,34 +50,6 @@ async function main() {
     });
 
   program
-    .command('build:web')
-    .description('Build only the team bundles required for Web UIs (e.g., Gemini, Claude).')
-    .action(async () => {
-      const builder = new WebBuilder({ rootDir: process.cwd() });
-      try {
-        console.log('Cleaning output directory...');
-        await builder.cleanOutputDirs();
-        console.log('Building team bundles for Web UI...');
-        await builder.buildTeams();
-        console.log(chalk.green('\nWeb build completed successfully!'));
-        console.log('Team bundles are available in dist/teams/');
-      } catch (error) {
-        console.error(chalk.red('Web build failed:'), error.message);
-        process.exit(1);
-      }
-    });
-
-  program
-    .command('list:agents')
-    .description('List all available agents in the .stigmergy-core.')
-    .action(async () => {
-      const builder = new WebBuilder({ rootDir: process.cwd() });
-      const agents = await builder.resolver.listAgents();
-      console.log(chalk.bold('Available agents:'));
-      agents.forEach((agent) => console.log(`  - ${agent}`));
-    });
-
-  program
     .command('validate:agents')
     .description('Validate the YAML frontmatter of all agent markdown files.')
     .action(async () => {
@@ -100,10 +71,10 @@ async function main() {
         try {
           const content = await fs.readFile(filePath, 'utf8');
           const yamlMatch = content.match(/```yaml\n([\s\S]*?)```/);
-          if (!yamlMatch || !yamlMatch[1]) {
+          if (!yamlMatch || !yamlMatch) {
             throw new Error('No valid YAML frontmatter block found.');
           }
-          yaml.load(yamlMatch[1]);
+          yaml.load(yamlMatch);
           console.log(chalk.green(`✓ ${file} - OK`));
         } catch (error) {
           console.error(chalk.red(`✗ ${file} - FAILED:`));
@@ -125,7 +96,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  // This top-level catch ensures any unexpected errors are handled gracefully.
   console.error("\nAn unexpected error occurred in the CLI:", err);
   process.exit(1);
 });
