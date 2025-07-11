@@ -1,6 +1,5 @@
 const path = require("node:path");
 const fs = require("fs-extra");
-const fileManager = require("./file-manager");
 const configLoader = require("./config-loader");
 const ideSetup = require("./ide-setup");
 
@@ -8,7 +7,6 @@ const ideSetup = require("./ide-setup");
 class Installer {
   constructor(config) {
     this.targetDir = path.resolve(process.cwd(), config.directory);
-    // --- THIS IS THE FIX ---
     // Go up THREE levels from /tools/installer/lib to the project root.
     this.sourceDir = path.resolve(__dirname, "..", "..", "..", ".stigmergy-core");
     this.cliOptions = config.cliOptions || {};
@@ -27,7 +25,7 @@ class Installer {
 
   async install() {
     await this._initializeDeps();
-    console.log(this.chalk.bold.cyan("🚀 Welcome to the Stigmergy Framework Installer!"));
+    console.log(this.chalk.bold.cyan("🚀 Welcome to the Pheromind Framework Installer!"));
 
     const coreDestDir = path.join(this.targetDir, ".stigmergy-core");
 
@@ -46,10 +44,10 @@ class Installer {
       }
     }
 
-    const spinner = this.ora(`Installing Stigmergy core into ${this.targetDir}...`).start();
+    const spinner = this.ora(`Installing Pheromind core into ${this.targetDir}...`).start();
     try {
       await fs.copy(this.sourceDir, coreDestDir);
-      spinner.succeed("Stigmergy core installed successfully!");
+      spinner.succeed("Pheromind core installed successfully!");
 
       let idesToSetup = [];
       if (this.cliOptions.ide) {
@@ -61,7 +59,7 @@ class Installer {
           {
             type: 'checkbox',
             name: 'selectedIdes',
-            message: 'Which IDE(s) would you like to configure for Stigmergy?',
+            message: 'Which IDE(s) would you like to configure for Pheromind?',
             choices: availableIdes.map(ide => ({ name: ide.name, value: ide.id })),
             default: ['roo']
           }
@@ -77,11 +75,11 @@ class Installer {
         spinner.succeed("IDE integrations configured!");
       }
 
-      console.log(this.chalk.green.bold("\n✓ Stigmergy framework is ready!"));
+      console.log(this.chalk.green.bold("\n✓ Pheromind framework is ready!"));
       console.log(this.chalk.bold("\nTo get started:"));
       console.log(this.chalk.cyan("1. Open this project in your configured IDE."));
-      console.log(this.chalk.cyan("2. Activate the chief strategist (e.g., `@saul`)."));
-      console.log(this.chalk.cyan("3. Give your agent a project goal."));
+      console.log(this.chalk.cyan("2. Activate the Foreman (`@winston`)."));
+      console.log(this.chalk.cyan("3. Give your agent a project goal to create a blueprint."));
 
     } catch (error) {
       spinner.fail("An error occurred during installation.");
