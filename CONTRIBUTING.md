@@ -17,7 +17,7 @@ First, set up the core `Stigmergy` repository.
     ```
 
 2.  **Install Dependencies:**
-    This command will now *only* install the required `node_modules`. It will not trigger any installation scripts.
+    This command will *only* install the required `node_modules`. It will not trigger any installation scripts.
     ```bash
     npm install
     ```
@@ -45,7 +45,6 @@ npm link
     ```bash
     npm link @randy888chan/stigmergy
     ```
-    You should see a confirmation that a symlink has been created in `node_modules`.
 
 ### Step 4: Test Your Changes
 
@@ -57,16 +56,9 @@ For example, to test the installer:
 stigmergy install
 ```
 
-This will run the installer from your local `Stigmergy` source code and install the `.stigmergy-core` directory into your test project.
-
 ## Development Commands
 
 -   **`npm run build`**: Build all agent and team bundles.
 -   **`npm run build -- --agent <agentId>`**: Build a bundle for a single agent (e.g., `mary`). Essential for rapid testing in Web UIs.
 -   **`npm run validate:agents`**: Validate the YAML configuration of all agent files. Run this before committing changes to agents.
 -   **`npm run format`**: Format all project files with Prettier.
-
----
-### **3. The Upgraded & Granular Tooling**
-
-These files implement the new `validate:agents` command and enhance the build process for a faster, more efficient Web UI development workflow.
