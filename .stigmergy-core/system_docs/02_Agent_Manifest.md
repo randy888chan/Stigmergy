@@ -43,4 +43,3 @@ agents:
   - id: metis
     archetype: Responder
     tools: [state_history_analyzer, proposal_writer]
-```
