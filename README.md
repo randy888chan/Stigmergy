@@ -1,21 +1,52 @@
-# Pheromind: The Autonomous Development Workshop
+# Pheromind: The Autonomous Development System
 
-Pheromind is not just a swarm; it's a fully autonomous development workshop. It translates your strategic vision into production-ready applications by orchestrating a team of specialized AI agents.
-
-The system operates on a state-driven "glass box" model. You provide the high-level goal, and the workshop takes over.
-
-## The Pheromind Experience
-
-1.  **Convene:** In your IDE, activate the Foreman, **`@winston`**.
-2.  **Directive:** Provide your high-level project goal (e.g., `*create_blueprint brief.md`). Winston will perform a deep code analysis and generate a detailed, machine-readable Execution Blueprint.
-3.  **Approve & Dispatch:** Once you approve the blueprint, dispatch the Workshop Manager, **`@saul`**.
-4.  **Engage Autonomy:** Saul will now execute the entire blueprint, managing a team of executors, verifiers, and responders in parallel until the project is complete.
+Pheromind is an autonomous development system that translates your strategic vision into production-ready applications. It operates as a local AI engine, powering agents directly within your IDE.
 
 You are the architect; the swarm is your workshop.
 
-## Installation
+## How It Works
 
+Pheromind now runs as a local server engine. When you interact with an agent in a compatible IDE (like Roo Code), the IDE sends your request to the local engine. The engine orchestrates the entire workflow—calling the LLM, using tools to read and write files, analyzing your code, and running commands—before returning the final result to your IDE.
+
+## Installation & Setup
+
+### Step 1: Install Dependencies
+
+Clone the repository and install the required packages.
 ```bash
-# Run this command in the root of your project folder
-npx @randy888chan/stigmergy install
+git clone https://github.com/randy888chan/Stigmergy.git
+cd Stigmergy
+npm install
+```
+
+### Step 2: Configure Environment
+
+You will need an API key from an LLM provider (e.g., OpenAI). Create a `.env` file in the project root:
+```
+LLM_API_KEY=your_api_key_here
+```
+
+### Step 3: Run the Installer
+
+The installer configures your project and IDE to communicate with the engine.
+```bash
+npm run install
+```
+
+## Usage
+
+### Step 1: Start the Engine
+
+In a dedicated terminal, start the Pheromind engine. It will run in the background.
+```bash
+npm run engine:start
+```
+
+### Step 2: Interact in Your IDE
+
+Open your project in a configured IDE (e.g., VS Code with Roo Code). Activate an agent like `@winston` and give it a high-level goal. The agent in your IDE will now have the full power of the local engine.
+```
+@winston *create_blueprint "Build a new e-commerce site from scratch."
+```
+The engine will handle the rest.
 ```
