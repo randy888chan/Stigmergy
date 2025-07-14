@@ -1,131 +1,132 @@
 const express = require('express');
-const axios = require('axios');
-const fs = require('fs-extra');
-const path = require('path');
-const yaml = require('js-yaml');
+const stateManager = require('./state_manager');
+const agentDispatcher = require('./agent_dispatcher');
 const llmAdapter = require('./llm_adapter');
 const toolExecutor = require('./tool_executor');
+
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
-const MANIFEST_PATH = path.join(process.cwd(), '.execution_plan', 'manifest.yml');
+let isEnginePaused = false;
+let isMetisLoopRunning = false;
+let engineInterval;
 
-// --- Agent Runner Endpoint ---
-// This endpoint executes a single agent for a single task.
-app.post('/api/execute', async (req, res) => {
-  const { agentId, taskPath } = req.body;
-  console.log(`[Agent Runner] Executing agent '${agentId}' for task '${taskPath}'`);
+// --- CONTROL SIGNAL API ---
+// These endpoints allow real-time control from the IDE.
+
+app.post('/api/signal/pause', async (req, res) => {
+  console.log('[Engine] Received PAUSE signal.');
+  isEnginePaused = true;
+  await stateManager.updateStatus('EXECUTION_PAUSED');
+  res.status(200).json({ message: 'Engine paused.' });
+});
+
+app.post('/api/signal/resume', async (req, res) => {
+  console.log('[Engine] Received RESUME signal.');
+  isEnginePaused = false;
+  await stateManager.updateStatus('EXECUTION_IN_PROGRESS');
+  res.status(200).json({ message: 'Engine resumed.' });
+});
+
+app.post('/api/signal/cancel', async (req, res) => {
+  console.log('[Engine] Received CANCEL signal.');
+  isEnginePaused = true; // Stop new tasks
+  await stateManager.updateStatus('EXECUTION_HALTED');
+  res.status(200).json({ message: 'Engine halted. All tasks cancelled.' });
+});
+
+// --- INTERACTIVE AGENT API ---
+// This is for direct user commands from the IDE to a specific agent.
+app.post('/api/interactive', async (req, res) => {
+  const { agentId, prompt, history } = req.body;
+  console.log(`[Engine] Interactive command for '${agentId}': "${prompt}"`);
+
+  if (!agentId || !prompt) {
+    return res.status(400).json({ error: 'agentId and prompt are required.' });
+  }
 
   try {
-    const taskContent = await fs.readFile(path.join(process.cwd(), taskPath), 'utf8');
-    let currentPrompt = `Task Package:\n${taskContent}\n\nBegin execution.`;
-    
-    let turns = 0;
-    const MAX_TURNS = 15;
-    let lastError = null;
-    let errorCount = 0;
-
-    while (turns < MAX_TURNS) {
-      turns++;
-      const response = await llmAdapter.getCompletion(agentId, currentPrompt);
-
-      if (response.action && response.action.tool) {
-        try {
-          const toolResult = await toolExecutor.execute(response.action.tool, response.action.args);
-          currentPrompt = `Previous thought: ${response.thought}\nObservation: ${JSON.stringify(toolResult)}`;
-          lastError = null; // Reset error on successful tool use
-          errorCount = 0;
-        } catch (toolError) {
-          console.error(`[Agent Runner] Tool Error for ${agentId}:`, toolError.message);
-          currentPrompt = `Previous thought: ${response.thought}\nObservation: Tool execution failed with error: ${toolError.message}. Re-evaluate your plan.`;
-          
-          // Escalation Protocol Logic
-          if (lastError === toolError.message) {
-            errorCount++;
-          } else {
-            lastError = toolError.message;
-            errorCount = 1;
-          }
-          if (errorCount >= 2) {
-            console.log(`[Agent Runner] Escalating task ${taskPath} due to repeated failures.`);
-            // In a real system, this would dispatch @debugger. For now, we mark as FAILED.
-            res.status(500).json({ success: false, error: 'Task failed and escalated.', taskPath });
-            return;
-          }
-        }
-      } else {
-        console.log(`[Agent Runner] Agent '${agentId}' completed task '${taskPath}'.`);
-        res.json({ success: true, result: response.thought, taskPath });
-        return;
-      }
-    }
-    res.status(500).json({ success: false, error: 'Task exceeded maximum turns.', taskPath });
+    const fullPrompt = `User's Request: ${prompt}\n\nConversation History:\n${JSON.stringify(
+      history,
+      null,
+      2
+    )}`;
+    // In a real interactive session, you'd manage a turn-based loop.
+    // For now, we perform a single-turn execution for simplicity.
+    const response = await llmAdapter.getCompletion(agentId, fullPrompt, []); // No extra context needed for now
+    res.json(response);
   } catch (error) {
-    console.error(`[Agent Runner] Critical Error for ${agentId}:`, error);
-    res.status(500).json({ success: false, error: error.message, taskPath });
+    console.error(`[Engine] Interactive Error for ${agentId}:`, error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
-
-// --- Orchestration Loop ---
-// This is the master loop that dispatches tasks.
-async function orchestrationLoop() {
-  if (!await fs.pathExists(MANIFEST_PATH)) {
-    return; // No plan to execute
+// --- CORE DEVELOPMENT LOOP ---
+async function developmentLoop() {
+  if (isEnginePaused) {
+    console.log('[Engine] Loop is paused. Skipping cycle.');
+    return;
   }
 
-  const manifest = yaml.load(await fs.readFile(MANIFEST_PATH, 'utf8'));
-  const tasksToRun = [];
+  const state = await stateManager.getState();
+  const nextAction = await agentDispatcher.getNextAction(state);
 
-  for (const task of manifest.tasks) {
-    if (task.status === 'PENDING') {
-      const dependenciesMet = task.dependencies.every(depId => {
-        const depTask = manifest.tasks.find(t => t.id === depId);
-        return depTask && depTask.status === 'COMPLETED';
-      });
-
-      if (dependenciesMet) {
-        tasksToRun.push(task);
-      }
-    }
+  if (nextAction.type === 'WAITING') {
+    // console.log('[Engine] No immediate action required. Waiting for state changes.');
+    return;
   }
 
-  if (tasksToRun.length > 0) {
-    console.log(`[Orchestrator] Dispatching ${tasksToRun.length} tasks concurrently.`);
-    for (const task of tasksToRun) {
-      task.status = 'IN_PROGRESS';
-      // Asynchronously dispatch the task without waiting for the result here
-      axios.post(`http://localhost:${PORT}/api/execute`, { agentId: task.agent, taskPath: task.path })
-        .then(response => {
-          console.log(`[Orchestrator] Task '${task.id}' COMPLETED.`);
-          updateTaskStatus(task.id, 'COMPLETED');
-        })
-        .catch(error => {
-          console.error(`[Orchestrator] Task '${task.id}' FAILED.`);
-          updateTaskStatus(task.id, 'FAILED');
-        });
+  console.log(`[Engine] Dispatching Action: ${nextAction.type} - ${nextAction.summary}`);
+  await stateManager.updateStatus(nextAction.newStatus || state.project_status);
+  await stateManager.appendHistory({
+    agent_id: 'saul',
+    signal: `DISPATCH_${nextAction.type}`,
+    summary: nextAction.summary,
+  });
+
+  // TODO: Execute the dispatched task. This would involve a more complex
+  // agent runner than the simple interactive endpoint. For now, we log the dispatch.
+  // Example: agentRunner.execute(nextAction.agent, nextAction.task);
+}
+
+// --- METIS SELF-IMPROVEMENT LOOP ---
+// This runs on a slower, non-blocking interval.
+async function metisLoop() {
+  if (isMetisLoopRunning) return;
+  isMetisLoopRunning = true;
+  try {
+    const state = await stateManager.getState();
+    // Only run Metis if the project is in a stable or complete state
+    if (['PROJECT_COMPLETE', 'EXECUTION_HALTED'].includes(state.project_status)) {
+      console.log('[Metis Loop] Project is in a suitable state for audit. Dispatching @metis.');
+      // This is a fire-and-forget call. Metis works in the background.
+      llmAdapter.getCompletion('meta', 'Begin system audit based on recent project history.');
     }
-    // Update the manifest with IN_PROGRESS statuses
-    await fs.writeFile(MANIFEST_PATH, yaml.dump(manifest));
+  } catch (error) {
+    console.error('[Metis Loop] Error:', error);
+  } finally {
+    isMetisLoopRunning = false;
   }
 }
 
-async function updateTaskStatus(taskId, status) {
-  if (!await fs.pathExists(MANIFEST_PATH)) return;
-  const manifest = yaml.load(await fs.readFile(MANIFEST_PATH, 'utf8'));
-  const task = manifest.tasks.find(t => t.id === taskId);
-  if (task) {
-    task.status = status;
-    await fs.writeFile(MANIFEST_PATH, yaml.dump(manifest));
-  }
-}
-
-// Start the server and the orchestration loop
+// Start the server and the orchestration loops
 app.listen(PORT, () => {
   console.log(`[Engine] Stigmergy Engine is running on http://localhost:${PORT}`);
-  console.log('[Orchestrator] Starting main loop...');
-  setInterval(orchestrationLoop, 5000); // Check for new tasks every 5 seconds
+  console.log('[Engine] Continuous Execution mode is ACTIVE.');
+  console.log('[Engine] Send signals to /api/signal/pause, /resume, or /cancel to control.');
+
+  // The main, fast-paced development loop
+  engineInterval = setInterval(developmentLoop, 5000); // Check every 5 seconds
+
+  // The slower, background self-improvement loop
+  setInterval(metisLoop, 60000); // Check every 60 seconds
+});
+
+process.on('SIGINT', () => {
+  console.log('[Engine] Shutting down...');
+  clearInterval(engineInterval);
+  process.exit();
 });
