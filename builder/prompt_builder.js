@@ -28,6 +28,8 @@ class PromptBuilder {
     const spinner = ora(`Building agent bundle: ${chalk.cyan(agentId)}`).start();
     try {
       const dependencies = await this.resolver.resolveAgentDependencies(agentId);
+      spinner.text = `Found ${dependencies.resources.length} dependencies for ${chalk.cyan(agentId)}. Bundling...`;
+      
       const template = await fs.readFile(this.templatePath, "utf8");
       
       const sections = [template];
@@ -37,8 +39,7 @@ class PromptBuilder {
 
       // Add resource files
       for (const resource of dependencies.resources) {
-        const resourceRelativePath = path.relative(path.join(ROOT_DIR, '.stigmergy-core'), resource.path);
-        sections.push(this.formatSection(resourceRelativePath, resource.content));
+        sections.push(this.formatSection(resource.relativePath, resource.content));
       }
 
       const bundle = sections.join("\n\n---\n\n");
@@ -49,6 +50,7 @@ class PromptBuilder {
       spinner.succeed(`Built agent bundle: ${chalk.green(agentId)}`);
     } catch (error) {
       spinner.fail(`Failed to build agent ${chalk.red(agentId)}: ${error.message}`);
+      console.error(error);
     }
   }
   
@@ -67,9 +69,6 @@ async function runBuilder(options) {
 
   if (options.agent) {
     await builder.buildAgent(options.agent);
-  } else if (options.team) {
-    // Team building logic can be added here in the future
-    console.log(chalk.yellow('Team building is not yet implemented in this version.'));
   } else if (options.all) {
     await builder.buildAllAgents();
   } else {
