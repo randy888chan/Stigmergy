@@ -59,3 +59,15 @@ Open your project in a configured IDE (e.g., VS Code with Roo Code). Activate an
 @winston *create_blueprint "Build a new e-commerce site from scratch."
 ```
 The engine will handle the rest.
+
+
+**The Corrected User Experience:**
+
+1.  You run `npx @randy888chan/stigmergy install` to set up your project.
+2.  For **autonomous execution**, you run `npm run stigmergy:start` to use the local engine.
+3.  For **Web UI planning**, you now run a new command:
+    ```bash
+    npx stigmergy build --agent mary
+    ```    This command will read the agent file for `@mary`, find all its dependencies (checklists, tasks, etc.), and bundle them into a single file: `dist/mary.txt`. You can then copy the contents of this file into any Web UI for your planning session.
+
+This gives you the best of both worlds, exactly as we intended.
