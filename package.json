@@ -5,22 +5,22 @@
   "main": "engine/server.js",
   "scripts": {
     "engine:start": "node engine/server.js",
-+   "indexer:run": "node indexer/index.js",
+    "indexer:run": "node indexer/index.js",
     "install": "node installer/install.js",
     "format": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
     "prepare": "husky install"
   },
   "dependencies": {
+    "@babel/parser": "^7.24.5",
+    "@babel/traverse": "^7.24.5",
     "chalk": "^5.3.0",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "fs-extra": "^11.2.0",
-    "js-yaml": "^4.1.0",
-    "openai": "^4.0.0",
     "glob": "^10.4.2",
-+   "neo4j-driver": "^5.20.0",
-+   "dotenv": "^16.4.5",
-+   "@babel/parser": "^7.24.5",
-+   "@babel/traverse": "^7.24.5"
+    "js-yaml": "^4.1.0",
+    "neo4j-driver": "^5.20.0",
+    "openai": "^4.0.0"
   },
   "keywords": [
     "stigmergy",
