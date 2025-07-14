@@ -7,7 +7,7 @@
     "stigmergy": "cli/index.js"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "stigmergy build --all",
     "format": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
     "prepare": "husky install"
   },
@@ -16,6 +16,7 @@
     "engine/",
     "installer/",
     "tools/",
+    "builder/",
     ".stigmergy-core/"
   ],
   "dependencies": {
@@ -30,7 +31,8 @@
     "inquirer": "^9.3.2",
     "js-yaml": "^4.1.0",
     "neo4j-driver": "^5.20.0",
-    "openai": "^4.0.0"
+    "openai": "^4.0.0",
+    "ora": "^8.0.1"
   },
   "keywords": [
     "stigmergy",
