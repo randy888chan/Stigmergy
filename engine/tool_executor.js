@@ -1,22 +1,26 @@
 const fileSystem = require('../tools/file_system');
 const shell = require('../tools/shell');
-// const codeGraph = require('../tools/code_graph'); // For Stage 2
+const web = require('../tools/web');
+const codeGraph = require('../tools/code_graph'); // For Stage 2
 
 const toolbelt = {
   'file_system': fileSystem,
   'shell': shell,
-  // 'code_graph': codeGraph, // For Stage 2
+  'web': web,
+  'code_graph': codeGraph, // For Stage 2
 };
 
 async function execute(toolFullName, args) {
+  if(!toolFullName) {
+    throw new Error("Tool name not provided.");
+  }
   const [namespace, toolName] = toolFullName.split('.');
   
   if (!toolbelt[namespace] || !toolbelt[namespace][toolName]) {
-    throw new Error(`Tool "${toolFullName}" not found.`);
+    throw new Error(`Tool "${toolFullName}" not found in the toolbelt.`);
   }
 
-  // Basic security: In a real system, you'd check agent permissions here
-  // against the 02_Agent_Manifest.md
+  // TODO: Implement permission check against .stigmergy-core/system_docs/02_Agent_Manifest.md
   
   return await toolbelt[namespace][toolName](args);
 }
