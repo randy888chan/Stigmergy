@@ -22,7 +22,6 @@ agents:
     archetype: Planner
     model_preference: "claude-3-haiku-20240307" # Example for OpenRouter
     tools: [web.search, web.scrape]
-'''
     
   - id: qa
     alias: quinn
