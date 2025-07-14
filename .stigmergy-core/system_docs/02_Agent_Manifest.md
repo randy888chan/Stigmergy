@@ -1,7 +1,7 @@
 # This is the single source of truth for agent capabilities and permissions.
 # The tool executor and LLM adapter use this to configure agent behavior.
+```yml
 schema_version: 4.0
-
 agents:
   - id: design-architect
     alias: winston
@@ -22,6 +22,7 @@ agents:
     archetype: Planner
     model_preference: "claude-3-haiku-20240307" # Example for OpenRouter
     tools: [web.search, web.scrape]
+'''
     
   - id: qa
     alias: quinn
