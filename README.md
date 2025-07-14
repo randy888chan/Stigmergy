@@ -64,4 +64,3 @@ Open your project in a configured IDE (e.g., VS Code with Roo Code). Activate an
 @winston *create_blueprint "Build a new e-commerce site from scratch."
 ```
 The engine will handle the rest.
-```
