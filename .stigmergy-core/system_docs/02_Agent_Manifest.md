@@ -1,17 +1,16 @@
 # This is the single source of truth for agent capabilities and permissions.
 # The tool executor and LLM adapter use this to configure agent behavior.
-```yml
 schema_version: 5.0
 
 agents:
-  # --- Planners ---
-  - id: design-architect
-    alias: winston
-    archetype: Planner
-    model_preference: "gpt-4-turbo"
-    tools: [file_system.readFile, file_system.listFiles, file_system.writeFile, shell.execute]
-    permitted_shell_commands: ["ls -l"] # Example of a safe, read-only command
+  # --- Dispatcher ---
+  - id: dispatcher
+    alias: saul
+    archetype: Dispatcher
+    model_preference: "claude-3-haiku-20240307"
+    tools: [file_system.readFile]
 
+  # --- Planners ---
   - id: analyst
     alias: mary
     archetype: Planner
@@ -24,6 +23,12 @@ agents:
     model_preference: "claude-3-sonnet-20240229"
     tools: [file_system.readFile, file_system.writeFile]
 
+  - id: design-architect
+    alias: winston
+    archetype: Planner
+    model_preference: "gpt-4-turbo"
+    tools: [file_system.readFile, file_system.listFiles, file_system.writeFile]
+
   - id: ux-expert
     alias: sally
     archetype: Planner
@@ -35,21 +40,33 @@ agents:
     alias: james
     archetype: Executor
     model_preference: "codestral-latest"
-    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, code_graph.getDefinition, code_graph.getModuleDependencies]
-    permitted_shell_commands: ["npm install", "npm test", "npm run build"] # Example of dev-related commands
+    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, code_graph.getDefinition]
+    permitted_shell_commands: ["npm install", "npm test"]
 
   - id: refactorer
     alias: rocco
     archetype: Executor
     model_preference: "codestral-latest"
     tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages]
+    permitted_shell_commands: ["npm run lint"]
+    
+  - id: victor
+    alias: victor
+    archetype: Executor
+    model_preference: "codestral-latest"
+    tools: [file_system.readFile, file_system.writeFile, web.search]
 
-  # --- Dispatcher ---
-  - id: dispatcher
-    alias: saul
-    archetype: Dispatcher
+  - id: sm
+    alias: bob
+    archetype: Executor
     model_preference: "claude-3-haiku-20240307"
     tools: [file_system.readFile]
+
+  - id: stigmergy-orchestrator
+    alias: olivia
+    archetype: Executor
+    model_preference: "claude-3-haiku-20240307"
+    tools: [file_system.readFile, file_system.writeFile]
 
   # --- Verifiers ---
   - id: qa
@@ -59,6 +76,12 @@ agents:
     tools: [shell.execute]
     permitted_shell_commands: ["npm run lint", "npm audit", "npm test -- --coverage"]
 
+  - id: po
+    alias: sarah
+    archetype: Verifier
+    model_preference: "claude-3-haiku-20240307"
+    tools: [file_system.readFile]
+  
   # --- Responders ---
   - id: debugger
     alias: dexter
