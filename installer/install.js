@@ -1,85 +1,108 @@
-const fs = require('fs-extra');
-const path = require('path');
-const yaml = require('js-yaml');
-const chalk = require('chalk');
+const fs = require("fs-extra");
+const path = require("path");
+const yaml = require("js-yaml");
+const chalk = require("chalk");
+const ora = require("ora");
 
-const CORE_SOURCE_DIR = path.join(__dirname, '..', '.stigmergy-core');
-const CORE_DEST_DIR = path.join(process.cwd(), '.stigmergy-core');
-const CONFIG_PATH = path.join(process.cwd(), 'pheromind.config.js');
-const USER_PACKAGE_JSON_PATH = path.join(process.cwd(), 'package.json');
+const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
+const CWD = process.cwd();
+const CORE_DEST_DIR = path.join(CWD, ".stigmergy-core");
+const ROO_MODES_PATH = path.join(CWD, ".roomodes");
+
+const PHEROMIND_CONFIG_START_MARKER = "// --- PHEROMIND MODES START ---";
+const PHEROMIND_CONFIG_END_MARKER = "// --- PHEROMIND MODES END ---";
 
 async function run() {
-  console.log(chalk.cyan('🚀 Welcome to the Pheromind Framework Installer.'));
+  const spinner = ora("🚀 Welcome to the Pheromind Framework Installer.").start();
 
-  // 1. Copy .stigmergy-core knowledge base
-  await fs.copy(CORE_SOURCE_DIR, CORE_DEST_DIR, { overwrite: true });
-  console.log(chalk.green('✓ Copied .stigmergy-core knowledge base.'));
+  try {
+    // 1. Copy .stigmergy-core knowledge base
+    spinner.text = "Copying .stigmergy-core knowledge base...";
+    await fs.copy(CORE_SOURCE_DIR, CORE_DEST_DIR, { overwrite: true });
+    spinner.succeed("Copied .stigmergy-core knowledge base.");
 
-  // 2. Generate the declarative config file
-  await generatePheromindConfig();
+    // 2. Generate and inject IDE config
+    spinner.text = "Configuring IDE (.roomodes)...";
+    await configureIde();
+    spinner.succeed("IDE configuration complete.");
 
-  // 3. Advise on package.json scripts
-  await adviseOnPackageJson();
-
-  console.log(chalk.bold.green('\n✅ Installation complete!'));
-  console.log(chalk.cyan(`\n1. A configuration file has been created at ${chalk.yellow('pheromind.config.js')}.`));
-  console.log(chalk.cyan(`   Copy its contents into your IDE's configuration (e.g., .roomodes).`));
-  console.log(chalk.cyan(`2. Ensure the recommended scripts are in your package.json.`));
-  console.log(chalk.cyan(`3. Create or update your .env file with your API keys.`));
-  console.log(chalk.cyan(`4. Run "npm run stigmergy:start" to start the engine.`));
+    // 3. Advise on next steps
+    console.log(chalk.bold.green("\n✅ Installation complete!"));
+    console.log(chalk.cyan(`\nNext Steps:`));
+    console.log(
+      chalk.cyan(`1. Your IDE has been configured at ${chalk.yellow(path.basename(ROO_MODES_PATH))}.`)
+    );
+    console.log(chalk.cyan(`2. Create or update your .env file with your API keys.`));
+    console.log(
+      chalk.cyan(`3. To start the autonomous engine, run: ${chalk.white("npm run stigmergy:start -- --goal your_goal.txt")}`)
+    );
+  } catch (error) {
+    spinner.fail("Installation failed.");
+    console.error(chalk.red(error));
+  }
 }
 
-async function generatePheromindConfig() {
+async function configureIde() {
   const customModes = [];
-  const ENGINE_URL = 'http://localhost:3000';
+  const ENGINE_URL = "http://localhost:3000"; // Default engine URL
 
-  const agentFiles = await fs.readdir(path.join(CORE_DEST_DIR, 'agents'));
+  const agentFiles = await fs.readdir(path.join(CORE_DEST_DIR, "agents"));
   for (const file of agentFiles) {
-    if (file.endsWith('.md')) {
-      const agentId = path.basename(file, '.md');
-      const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, 'agents', file), 'utf8');
-      const yamlMatch = agentContent.match(/```yaml\n([\s\S]*?)```/);
-      if (!yamlMatch) continue;
+    if (file.endsWith(".md")) {
+      const agentId = path.basename(file, ".md");
+      const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, "agents", file), "utf8");
+      const yamlMatch = agentContent.match(/```yaml\n([\s\S]*?)```/i) || agentContent.match(/```yml\n([\s\S]*?)```/i);
+      if (!yamlMatch || !yamlMatch[1]) continue;
 
-      const config = yaml.load(yamlMatch);
-      if (!config?.agent?.alias) continue;
+      const config = yaml.load(yamlMatch[1]);
+      const agentConfig = config?.agent;
+      if (!agentConfig?.alias) continue;
 
       customModes.push({
-        slug: config.agent.alias,
-        name: `${config.agent.icon || '🤖'} ${config.agent.name}`,
+        slug: agentConfig.alias,
+        name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
         api: {
           url: `${ENGINE_URL}/api/interactive`,
-          method: 'POST',
-          include: ['history'],
-          static_payload: { agentId },
+          method: "POST",
+          include: ["history", "context"], // Include context for file awareness
+          static_payload: { agentId: agentConfig.id },
         },
-        groups: ['pheromind-agent'],
+        groups: ["pheromind-agent"],
       });
     }
   }
 
-  const configObject = {
-    // This structure is compatible with .roomodes
-    customModes: customModes.sort((a,b) => a.name.localeCompare(b.name)),
-  };
+  const sortedModes = customModes.sort((a, b) => a.name.localeCompare(b.name));
+  const configString = `customModes: ${JSON.stringify(sortedModes, null, 2)}`;
 
-  const fileContent = `// Pheromind Configuration for IDE Integration
-// Copy the 'customModes' array into your IDE's configuration file (e.g., .roomodes).
-module.exports = ${JSON.stringify(configObject, null, 2)};
-`;
+  const newConfigBlock = [
+    PHEROMIND_CONFIG_START_MARKER,
+    "// This block is auto-generated by 'stigmergy install'. Do not edit manually.",
+    configString,
+    PHEROMIND_CONFIG_END_MARKER,
+  ].join("\n");
 
-  await fs.writeFile(CONFIG_PATH, fileContent, 'utf8');
-  console.log(chalk.green('✓ Generated declarative IDE config at pheromind.config.js.'));
-}
+  if (await fs.pathExists(ROO_MODES_PATH)) {
+    // File exists, modify it safely
+    let content = await fs.readFile(ROO_MODES_PATH, "utf8");
+    const markerRegex = new RegExp(
+      `${PHEROMIND_CONFIG_START_MARKER}[\\s\\S]*${PHEROMIND_CONFIG_END_MARKER}`,
+      "g"
+    );
 
-async function adviseOnPackageJson() {
-    console.log(chalk.yellow('\n--- Recommended package.json scripts ---'));
-    console.log('Please ensure these scripts exist in your package.json "scripts" section:');
-    console.log(chalk.green(`
-  "stigmergy:start": "stigmergy start",
-  "stigmergy:build": "stigmergy build --all",
-  "test": "jest"
-    `));
+    if (markerRegex.test(content)) {
+      // Replace existing block
+      content = content.replace(markerRegex, newConfigBlock);
+    } else {
+      // Append new block
+      content += `\n\n${newConfigBlock}`;
+    }
+    await fs.writeFile(ROO_MODES_PATH, content, "utf8");
+  } else {
+    // File doesn't exist, create it from scratch
+    const newFileContent = `// Roo Code Configuration\n\nmodule.exports = {\n  ${newConfigBlock}\n};\n`;
+    await fs.writeFile(ROO_MODES_PATH, newFileContent, "utf8");
+  }
 }
 
 module.exports = { run };
