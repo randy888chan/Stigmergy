@@ -1,123 +1,74 @@
 const fs = require("fs-extra");
 const path = require("path");
-const stateManager = require("./state_manager");
+const yaml = require("js-yaml");
 
 const CWD = process.cwd();
 const DOCS_PATH = path.join(CWD, "docs");
 const BLUEPRINT_PATH = path.join(CWD, "execution-blueprint.yml");
 
-// Helper to check for file existence
-const fileExists = async (fileName) => fs.pathExists(path.join(DOCS_PATH, fileName));
+const fileExists = async (fileName) => fs.pathExists(path.join(CWD, fileName));
 
 function findNextPendingTask(manifest) {
   if (!manifest || !manifest.tasks) return null;
-  for (const task of manifest.tasks) {
-    if (task.status === "PENDING") {
-      const dependenciesMet =
-        !task.dependencies ||
-        task.dependencies.every((depId) => {
-          const depTask = manifest.tasks.find((t) => t.id === depId);
-          return depTask && depTask.status === "COMPLETED";
-        });
-      if (dependenciesMet) return task;
-    }
-  }
-  return null;
+  return manifest.tasks.find(task => {
+    if (task.status !== "PENDING") return false;
+    const dependenciesMet = !task.dependencies || task.dependencies.every(depId => {
+      const depTask = manifest.tasks.find(t => t.id === depId);
+      return depTask && depTask.status === "COMPLETED";
+    });
+    return dependenciesMet;
+  });
 }
 
 async function getNextAction(state) {
-  // --- Phase 3: Execution ---
-  // If a blueprint exists, the highest priority is to execute it.
-  if (await fs.pathExists(BLUEPRINT_PATH)) {
-    if (
-      state.project_status !== "PROJECT_COMPLETE" &&
-      state.project_status !== "EXECUTION_HALTED"
-    ) {
+  // Phase 3: Execution
+  if (await fileExists("execution-blueprint.yml")) {
+    if (!state.project_manifest || state.project_manifest.tasks?.length === 0) {
+        // Ingest blueprint into state if not already done
+        const blueprintContent = await fs.readFile(BLUEPRINT_PATH, 'utf8');
+        const blueprint = yaml.load(blueprintContent);
+        state.project_manifest = blueprint; // This should be saved by the caller
+        return {
+            type: "SYSTEM_TASK",
+            agent: "dispatcher",
+            task: "Ingest the execution-blueprint.yml into the project state.",
+            summary: "Found execution blueprint. Ingesting into state manifest.",
+            newStatus: "READY_FOR_EXECUTION",
+        };
+    }
+
+    if (state.project_status !== "PROJECT_COMPLETE" && state.project_status !== "EXECUTION_HALTED") {
       const nextTask = findNextPendingTask(state.project_manifest);
       if (nextTask) {
         return {
           type: "EXECUTION_TASK",
           agent: nextTask.agent,
-          task: `Execute the task '${nextTask.id}' defined in 'execution-blueprint.yml'. Task summary: ${nextTask.summary}`,
+          task: `Execute the task '${nextTask.id}': ${nextTask.summary}. Review the full blueprint for context.`,
           summary: `Dispatching task '${nextTask.id}' to agent '@${nextTask.agent}'.`,
           newStatus: "EXECUTION_IN_PROGRESS",
+          taskId: nextTask.id,
         };
-      } else if (state.project_manifest?.tasks?.every((t) => t.status === "COMPLETED")) {
-        return {
-          type: "SYSTEM_TASK",
-          agent: "dispatcher", // A system-level agent
-          task: "Finalize project.",
-          summary: "All tasks completed. Project is finished.",
-          newStatus: "PROJECT_COMPLETE",
-        };
+      } else if (state.project_manifest?.tasks?.every(t => t.status === "COMPLETED")) {
+        return { type: "SYSTEM_TASK", agent: "dispatcher", task: "Finalize project.", summary: "All tasks completed.", newStatus: "PROJECT_COMPLETE" };
       }
     }
   }
 
-  // --- Phase 2: Planning ---
-  // The system checks for planning documents in reverse order to find the first missing one.
-
-  // Step 2.3: Create Blueprint
-  if (
-    (await fileExists("architecture.md")) &&
-    (await fileExists("prd.md")) &&
-    !(await fs.pathExists(BLUEPRINT_PATH))
-  ) {
-    return {
-      type: "PLANNING_TASK",
-      agent: "design-architect",
-      task: "All strategic documents are present. Create the final `execution-blueprint.yml` from `docs/architecture.md`.",
-      summary: "Dispatching @winston to create the final execution blueprint.",
-      newStatus: "NEEDS_BLUEPRINT",
-    };
+  // Phase 2: Planning
+  if (await fileExists("docs/prd.md") && !(await fileExists("docs/architecture.md"))) {
+    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create `docs/architecture.md` from the PRD.", summary: "Dispatching @winston for architecture.", newStatus: "NEEDS_ARCHITECTURE" };
+  }
+  if (await fileExists("docs/brief.md") && !(await fileExists("docs/prd.md"))) {
+    return { type: "PLANNING_TASK", agent: "pm", task: "Create `docs/prd.md` from the Project Brief.", summary: "Dispatching @john for PRD.", newStatus: "NEEDS_PRD" };
   }
 
-  // Step 2.2: Create Architecture
-  if (
-    (await fileExists("prd.md")) &&
-    !(await fileExists("architecture.md"))
-  ) {
-    return {
-      type: "PLANNING_TASK",
-      agent: "design-architect",
-      task: "The PRD exists. Create the `docs/architecture.md` document based on its requirements.",
-      summary: "Project requires an architecture document. Dispatching @winston.",
-      newStatus: "NEEDS_ARCHITECTURE",
-    };
+  // Phase 1: Briefing
+  if (!await fileExists("docs/brief.md")) {
+    return { type: "PLANNING_TASK", agent: "analyst", task: `Create a 'docs/brief.md' for the goal: "${state.goal}".`, summary: "Dispatching @mary for Project Brief.", newStatus: "NEEDS_BRIEFING" };
   }
 
-  // Step 2.1: Create PRD
-  if (
-    (await fileExists("brief.md")) &&
-    !(await fileExists("prd.md"))
-  ) {
-    return {
-      type: "PLANNING_TASK",
-      agent: "pm",
-      task: "The Project Brief exists. Create the `docs/prd.md` from its constraints and goals.",
-      summary: "Project requires a PRD. Dispatching @john.",
-      newStatus: "NEEDS_PRD",
-    };
-  }
-
-  // --- Phase 1: Briefing ---
-  if (!(await fileExists("brief.md"))) {
-    return {
-      type: "PLANNING_TASK",
-      agent: "analyst",
-      task: `A project goal has been set: "${
-        state.goal || "Not specified"
-      }". Create a 'docs/brief.md' based on this goal.`,
-      summary: "Project requires a brief. Dispatching @mary.",
-      newStatus: "NEEDS_BRIEFING",
-    };
-  }
-
-  // --- Default/Idle State ---
-  return {
-    type: "WAITING",
-    summary: `System is in '${state.project_status}' state. All planning docs exist, awaiting blueprint execution to start.`,
-  };
+  // Default/Idle State
+  return { type: "WAITING", summary: `System is in '${state.project_status}' state. No immediate action required.` };
 }
 
 module.exports = { getNextAction };
