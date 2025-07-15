@@ -2,7 +2,7 @@ const express = require("express");
 const stateManager = require("./state_manager");
 const agentDispatcher = require("./agent_dispatcher");
 const llmAdapter = require("./llm_adapter");
-const toolExecutor = require("./tool_executor"); // Added for autonomous execution
+const toolExecutor = require("./tool_executor");
 const chalk = require("chalk");
 
 require("dotenv").config();
@@ -13,19 +13,14 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 let isEngineRunning = false;
 
-// --- API for Supervised, Interactive Commands from IDE (e.g., Roo Code) ---
+// API for Supervised, Interactive Commands from IDE (e.g., Roo Code)
 app.post("/api/interactive", async (req, res) => {
   const { agentId, prompt } = req.body;
   console.log(chalk.blue(`[API] Interactive command for '${agentId}': "${prompt}"`));
 
   if (isEngineRunning) {
     console.log(chalk.yellow("[API] Engine is in autonomous mode. Treating command as commentary."));
-    // In a real implementation, this could be broadcast to the running agent.
-    // For now, we acknowledge it but don't interrupt the main loop.
-    return res.json({
-      thought: "The autonomous engine is currently running. Your message has been noted as commentary.",
-      action: null,
-    });
+    return res.json({ thought: "Autonomous engine is running. Message noted as commentary.", action: null });
   }
 
   try {
@@ -37,22 +32,26 @@ app.post("/api/interactive", async (req, res) => {
   }
 });
 
-// --- The New Autonomous Engine Core ---
-async function runAutonomousAgentTask(agentId, taskPrompt) {
+// The New Autonomous Agent Runner
+async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
   console.log(chalk.magenta(`[Agent Runner] Running task for @${agentId}.`));
   let response = await llmAdapter.getCompletion(agentId, taskPrompt);
+  const MAX_TOOL_CALLS = 10;
+  let toolCallCount = 0;
 
-  while (response?.action?.tool) {
-    console.log(
-      chalk.magenta(`[Agent Runner] @${agentId} wants to use tool: ${response.action.tool}`)
-    );
+  while (response?.action?.tool && toolCallCount < MAX_TOOL_CALLS) {
+    toolCallCount++;
+    console.log(chalk.magenta(`[Agent Runner] @${agentId} wants to use tool: ${response.action.tool}`));
     try {
-      const toolResult = await toolExecutor.execute(response.action.tool, response.action.args);
-      const nextPrompt = `This was the result of your last action:\n${toolResult}\n\nBased on this, what is your next step?`;
+      const toolResult = await toolExecutor.execute(response.action.tool, response.action.args, agentId);
+      const nextPrompt = `This was the result of your last action:\n${toolResult}\n\nBased on this, what is your next step? Continue until the task is fully complete.`;
       response = await llmAdapter.getCompletion(agentId, nextPrompt);
     } catch (e) {
       console.error(chalk.red(`[Agent Runner] Tool execution failed for @${agentId}`), e);
-      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nPlease analyze the error and decide your next step. You can try again or use a different approach.`;
+      if (taskId) await stateManager.incrementTaskFailure(taskId);
+      
+      const toolManual = require('fs').readFileSync(require('path').join(__dirname, '..', '.stigmergy-core', 'system_docs', 'Tool_Manual.md'), 'utf8');
+      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nPlease analyze the error. Here is the Tool Manual for reference:\n${toolManual}\n\nDecide your next step. You can try the tool again with different arguments, or use a different tool to solve the problem.`;
       response = await llmAdapter.getCompletion(agentId, errorPrompt);
     }
   }
@@ -61,6 +60,7 @@ async function runAutonomousAgentTask(agentId, taskPrompt) {
   return response?.thought || "Task finished.";
 }
 
+// The New Autonomous Engine Main Loop
 async function mainEngineLoop() {
   isEngineRunning = true;
   console.log(chalk.bold.green("\n--- Pheromind Autonomous Engine Engaged ---\n"));
@@ -79,19 +79,15 @@ async function mainEngineLoop() {
 
     if (nextAction.type === "WAITING") {
       console.log(chalk.gray("[Engine] " + nextAction.summary));
-      await new Promise((resolve) => setTimeout(resolve, 15000)); // Wait longer if idle
+      await new Promise((resolve) => setTimeout(resolve, 15000));
       continue;
     }
 
-    console.log(
-      chalk.yellow(`[Dispatcher] Action: ${nextAction.type} | Agent: @${nextAction.agent}`)
-    );
+    console.log(chalk.yellow(`[Dispatcher] Action: ${nextAction.type} | Agent: @${nextAction.agent}`));
     console.log(chalk.yellow(`[Dispatcher] Summary: ${nextAction.summary}`));
 
-    // This is the core of autonomous execution
-    const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task);
+    const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
 
-    // Update state after the autonomous task is complete
     await stateManager.updateStatus(nextAction.newStatus || state.project_status);
     await stateManager.appendHistory({
       agent_id: nextAction.agent,
@@ -105,13 +101,11 @@ async function mainEngineLoop() {
 }
 
 function start(options = {}) {
-  app.listen(PORT, async () => {
-    console.log(
-      chalk.bold(`[Server] Pheromind is listening on http://localhost:${PORT}`)
-    );
+  const enginePort = process.env.PORT || 3000;
+  app.listen(enginePort, async () => {
+    console.log(chalk.bold(`[Server] Pheromind is listening on http://localhost:${enginePort}`));
     if (options.goal) {
       console.log(chalk.green(`[Engine] Goal received: ${options.goal}. Starting autonomous mode.`));
-      // Initialize state with the goal
       await stateManager.initializeStateWithGoal(options.goal);
       mainEngineLoop();
     } else {
