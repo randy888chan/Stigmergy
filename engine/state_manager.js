@@ -10,9 +10,8 @@ async function getState() {
     if (state) {
         return state;
     }
-    // If file is empty or invalid JSON, initialize with default
     const defaultState = require('../.stigmergy-core/templates/state-tmpl.json');
-    defaultState.history.timestamp = new Date().toISOString();
+    defaultState.history[0].timestamp = new Date().toISOString();
     await fs.writeJson(STATE_FILE_PATH, defaultState, { spaces: 2 });
     return defaultState;
   } catch (e) {
@@ -41,15 +40,16 @@ async function updateStatus(newStatus) {
     return updateState(state);
 }
 
-async function initializeStateWithGoal(goalFilePath) {
-    const goal = await fs.readFile(goalFilePath, 'utf8');
+async function initializeStateWithGoal(goalPrompt) {
+    // Extract the goal from the initial prompt
+    const goal = goalPrompt.replace('*start_project', '').trim();
     const state = await getState();
     state.goal = goal;
     state.project_status = "NEEDS_BRIEFING";
     await appendHistory({
         agent_id: 'system',
         signal: 'GOAL_SET',
-        summary: `Autonomous engine started with goal: ${goal}`
+        summary: `Autonomous engine engaged via IDE with goal: ${goal}`
     });
     return updateState(state);
 }
@@ -66,7 +66,6 @@ async function incrementTaskFailure(taskId) {
     }
     return updateState(state);
 }
-
 
 module.exports = {
   getState,
