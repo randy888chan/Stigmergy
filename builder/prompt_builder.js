@@ -2,7 +2,6 @@ const fs = require("fs-extra");
 const path = require("path");
 const ora = require("ora");
 const chalk = require("chalk");
-const yaml = require("js-yaml");
 const DependencyResolver = require("./dependency_resolver");
 
 const ROOT_DIR = path.resolve(__dirname, "..");
@@ -11,74 +10,41 @@ const OUTPUT_DIR = path.join(process.cwd(), "dist");
 class PromptBuilder {
   constructor() {
     this.resolver = new DependencyResolver(ROOT_DIR);
-    this.templatePath = path.join(
-      ROOT_DIR,
-      ".stigmergy-core",
-      "utils",
-      "web-agent-startup-instructions.md"
-    );
-  }
-
-  async cleanOutput() {
-    await fs.rm(OUTPUT_DIR, { recursive: true, force: true });
+    this.templatePath = path.join(ROOT_DIR, ".stigmergy-core", "utils", "web-agent-startup-instructions.md");
   }
 
   formatSection(filePath, content) {
     const separator = "====================";
     const header = `START: ${filePath.replace(/\\/g, "/")}`;
     const footer = `END: ${filePath.replace(/\\/g, "/")}`;
-    return [`${separator} ${header} ${separator}`, content.trim(), `${separator} ${footer} ${separator}`].join(
-      "\n"
-    );
+    return [`${separator} ${header} ${separator}`, content.trim(), `${separator} ${footer} ${separator}`].join("\n");
   }
 
   async buildTeam(teamId) {
     const spinner = ora(`Building team bundle: ${chalk.cyan(teamId)}`).start();
     try {
-      const teamFilePath = path.join(ROOT_DIR, ".stigmergy-core", "agent-teams", `${teamId}.yml`);
-      if (!(await fs.pathExists(teamFilePath))) {
-        throw new Error(`Team file not found: ${teamId}.yml`);
-      }
-
-      const teamFileContent = await fs.readFile(teamFilePath, "utf8");
-      const teamConfig = yaml.load(teamFileContent);
-      const agentIds = teamConfig?.agents || [];
-
+      const agentIds = await this.resolver.getTeamAgentIds(teamId);
       if (agentIds.length === 0) {
         spinner.warn(`No agents found in team: ${chalk.cyan(teamId)}`);
         return;
       }
 
-      spinner.text = `Found ${agentIds.length} agents in ${chalk.cyan(
-        teamId
-      )}. Resolving dependencies...`;
+      spinner.text = `Found ${agentIds.length} agents. Resolving all dependencies...`;
+      const allDependencies = new Map();
 
-      const allResources = new Map();
       for (const agentId of agentIds) {
-        const deps = await this.resolver.resolveAgentDependencies(agentId);
-        const agentRelPath = path.relative(this.resolver.stigmergyCore, deps.agent.path);
-
-        // Add agent itself
-        if (!allResources.has(agentRelPath)) {
-          allResources.set(agentRelPath, deps.agent.content);
-        }
-
-        // Add its resources
-        for (const resource of deps.resources) {
-          if (!allResources.has(resource.relativePath)) {
-            allResources.set(resource.relativePath, resource.content);
-          }
+        const agentPath = `agents/${agentId}.md`;
+        const agentDeps = await this.resolver.resolveDependencies(agentPath);
+        for (const [p, c] of agentDeps.entries()) {
+            if (!allDependencies.has(p)) allDependencies.set(p,c);
         }
       }
 
-      spinner.text = `Found ${allResources.size} unique files for team ${chalk.cyan(
-        teamId
-      )}. Bundling...`;
-
+      spinner.text = `Found ${allDependencies.size} unique files. Bundling...`;
       const template = await fs.readFile(this.templatePath, "utf8");
       const sections = [template];
 
-      for (const [relativePath, content] of allResources.entries()) {
+      for (const [relativePath, content] of allDependencies.entries()) {
         sections.push(this.formatSection(relativePath, content));
       }
 
@@ -96,7 +62,6 @@ class PromptBuilder {
 
   async buildAllTeams() {
     const allTeamIds = await this.resolver.listTeams();
-    console.log(chalk.bold(`\nBuilding all ${allTeamIds.length} teams...`));
     for (const id of allTeamIds) {
       await this.buildTeam(id);
     }
@@ -105,18 +70,13 @@ class PromptBuilder {
 
 async function runBuilder(options) {
   const builder = new PromptBuilder();
-  await builder.cleanOutput();
-
-  if (options.team) {
-    await builder.buildTeam(options.team);
-  } else if (options.all) {
-    await builder.buildAllTeams();
-  } else {
-    console.log(chalk.yellow("No build option specified. Use --team <id> or --all."));
-    console.log("Example: npx stigmergy build --team team-planning-crew");
-  }
-  console.log(chalk.bold.green("\nPrompt building process complete."));
-  console.log(`Output files are in the ${chalk.cyan("dist/")} directory.`);
+  await fs.rm(OUTPUT_DIR, { recursive: true, force: true }).catch(() => {});
+  
+  if (options.team) await builder.buildTeam(options.team);
+  else if (options.all) await builder.buildAllTeams();
+  else console.log(chalk.yellow("No build option specified. Use --team <id> or --all."));
+  
+  console.log(chalk.bold.green(`\nBuild complete. Output in ${chalk.cyan("dist/")}`));
 }
 
 module.exports = { runBuilder };
