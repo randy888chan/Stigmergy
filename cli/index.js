@@ -15,32 +15,22 @@ program
 program
   .command("install")
   .description("Installs the Pheromind knowledge base and configures your IDE.")
-  .action(async () => {
-    await installer.run();
-  });
+  .action(installer.run);
 
 program
   .command("start")
   .description("Starts the Pheromind Engine.")
-  .option(
-    "-g, --goal <filepath>",
-    "Path to a text file containing the initial project goal to start autonomous mode."
-  )
-  .action((options) => {
-    engine.start(options);
-  });
+  .option("-g, --goal <filepath>", "Path to a text file with the project goal to start autonomous mode.")
+  .action(engine.start);
 
 program
   .command("build")
   .description("Builds self-contained prompt bundles for use in Web UIs.")
   .option("-t, --team <teamId>", "Build a bundle for a specific agent team.")
   .option("--all", "Build all agent teams.")
-  .action(async (options) => {
-    await runBuilder(options);
-  });
+  .action(runBuilder);
 
-async function main() {
-  await program.parseAsync(process.argv);
-}
-
-main();
+program.parseAsync(process.argv).catch(err => {
+    console.error("Command failed:", err);
+    process.exit(1);
+});
