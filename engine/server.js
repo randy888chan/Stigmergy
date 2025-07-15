@@ -13,27 +13,9 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 let isEngineRunning = false;
 
-// API for Supervised, Interactive Commands from IDE (e.g., Roo Code)
-app.post("/api/interactive", async (req, res) => {
-  const { agentId, prompt } = req.body;
-  console.log(chalk.blue(`[API] Interactive command for '${agentId}': "${prompt}"`));
-
-  if (isEngineRunning) {
-    console.log(chalk.yellow("[API] Engine is in autonomous mode. Treating command as commentary."));
-    return res.json({ thought: "Autonomous engine is running. Message noted as commentary.", action: null });
-  }
-
-  try {
-    const response = await llmAdapter.getCompletion(agentId, prompt);
-    res.json(response);
-  } catch (error) {
-    console.error(chalk.red(`[API] Error for ${agentId}:`), error);
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 // The New Autonomous Agent Runner
 async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
+  // ... (This function remains the same as the previous response)
   console.log(chalk.magenta(`[Agent Runner] Running task for @${agentId}.`));
   let response = await llmAdapter.getCompletion(agentId, taskPrompt);
   const MAX_TOOL_CALLS = 10;
@@ -49,19 +31,21 @@ async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
     } catch (e) {
       console.error(chalk.red(`[Agent Runner] Tool execution failed for @${agentId}`), e);
       if (taskId) await stateManager.incrementTaskFailure(taskId);
-      
-      const toolManual = require('fs').readFileSync(require('path').join(__dirname, '..', '.stigmergy-core', 'system_docs', 'Tool_Manual.md'), 'utf8');
-      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nPlease analyze the error. Here is the Tool Manual for reference:\n${toolManual}\n\nDecide your next step. You can try the tool again with different arguments, or use a different tool to solve the problem.`;
+      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nPlease analyze the error and decide your next step. You can try again or use a different approach.`;
       response = await llmAdapter.getCompletion(agentId, errorPrompt);
     }
   }
-
   console.log(chalk.magenta(`[Agent Runner] Task complete for @${agentId}.`));
   return response?.thought || "Task finished.";
 }
 
+
 // The New Autonomous Engine Main Loop
 async function mainEngineLoop() {
+  if (isEngineRunning) {
+    console.log(chalk.yellow("[Engine] Autonomous loop is already running."));
+    return;
+  }
   isEngineRunning = true;
   console.log(chalk.bold.green("\n--- Pheromind Autonomous Engine Engaged ---\n"));
 
@@ -70,7 +54,7 @@ async function mainEngineLoop() {
     console.log(chalk.cyan(`\n[Engine] New cycle started. Current status: ${state.project_status}`));
 
     if (state.project_status === "PROJECT_COMPLETE" || state.project_status === "EXECUTION_HALTED") {
-      console.log(chalk.bold.green("Project is complete or halted. Shutting down engine loop."));
+      console.log(chalk.bold.green("Project is complete or halted. Engine returning to dormant state."));
       isEngineRunning = false;
       break;
     }
@@ -88,6 +72,7 @@ async function mainEngineLoop() {
 
     const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
 
+    // After task, update state
     await stateManager.updateStatus(nextAction.newStatus || state.project_status);
     await stateManager.appendHistory({
       agent_id: nextAction.agent,
@@ -100,17 +85,43 @@ async function mainEngineLoop() {
   }
 }
 
-function start(options = {}) {
-  const enginePort = process.env.PORT || 3000;
-  app.listen(enginePort, async () => {
-    console.log(chalk.bold(`[Server] Pheromind is listening on http://localhost:${enginePort}`));
-    if (options.goal) {
-      console.log(chalk.green(`[Engine] Goal received: ${options.goal}. Starting autonomous mode.`));
-      await stateManager.initializeStateWithGoal(options.goal);
-      mainEngineLoop();
-    } else {
-      console.log(chalk.gray("[Engine] No goal provided. Running in supervised API mode only."));
+
+// API for all IDE interaction
+app.post("/api/interactive", async (req, res) => {
+  const { agentId, prompt } = req.body;
+  console.log(chalk.blue(`[API] Interactive command for '${agentId}': "${prompt}"`));
+
+  // --- AUTONOMY TRIGGER ---
+  // Check if this is the special command to start the autonomous engine
+  if (agentId === "dispatcher" && prompt.toLowerCase().includes("start project")) {
+    if (isEngineRunning) {
+      return res.json({ thought: "The autonomous engine is already running.", action: null });
     }
+    await stateManager.initializeStateWithGoal(prompt);
+    mainEngineLoop(); // Kick off the autonomous loop
+    return res.json({ thought: "Acknowledged. The autonomous engine has been engaged. You can monitor its progress in the terminal.", action: null });
+  }
+
+  if (isEngineRunning) {
+    return res.json({ thought: "Autonomous engine is running. Your message has been noted as commentary.", action: null });
+  }
+
+  // Standard supervised command
+  try {
+    const response = await llmAdapter.getCompletion(agentId, prompt);
+    res.json(response);
+  } catch (error) {
+    console.error(chalk.red(`[API] Error for ${agentId}:`), error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+function start() {
+  const enginePort = process.env.PORT || 3000;
+  app.listen(enginePort, () => {
+    console.log(chalk.bold(`[Server] Pheromind Engine is listening on http://localhost:${enginePort}`));
+    console.log(chalk.gray("[Engine] Running in dormant supervised mode. Awaiting commands from the IDE..."));
   });
 }
 
