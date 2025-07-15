@@ -1,6 +1,6 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "10.0.0",
+  "version": "11.0.0",
   "description": "Pheromind: The Autonomous AI Development System.",
   "main": "cli/index.js",
   "bin": {
@@ -11,7 +11,8 @@
     "stigmergy:start": "node cli/index.js start",
     "stigmergy:build": "node cli/index.js build --all",
     "test": "jest",
-    "test:system": "jest tests/build.test.js",
+    "test:system": "jest tests/system.test.js",
+    "test:engine": "jest tests/dispatcher.test.js",
     "format": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
     "prepare": "husky install"
   },
