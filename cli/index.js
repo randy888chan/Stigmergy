@@ -19,8 +19,7 @@ program
 
 program
   .command("start")
-  .description("Starts the Pheromind Engine.")
-  .option("-g, --goal <filepath>", "Path to a text file with the project goal to start autonomous mode.")
+  .description("Starts the Pheromind Engine in a dormant, listening state.")
   .action(engine.start);
 
 program
