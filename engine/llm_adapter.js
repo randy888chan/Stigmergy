@@ -2,7 +2,7 @@ const OpenAI = require('openai');
 const fs = require('fs-extra');
 const path = require('path');
 const yaml = require('js-yaml');
-const codeGraph = require('../tools/code_graph'); // For RAG
+const codeGraph = require('../tools/code_graph');
 
 require('dotenv').config();
 
@@ -25,60 +25,54 @@ async function getAgentManifest() {
 
 // Proactive RAG function
 async function getCodeContext(prompt) {
-    // A simple heuristic to detect if the prompt is about modifying code
-    const codeKeywords = ['modify function', 'implement class', 'fix bug in', 'refactor file'];
+    const codeKeywords = ['modify function', 'implement class', 'fix bug in', 'refactor file', 'add feature to', 'implement'];
     const isCodeTask = codeKeywords.some(kw => prompt.toLowerCase().includes(kw));
-
     if (!isCodeTask) return "";
 
-    const symbolRegex = /[`'"]([a-zA-Z0-9_]+)[`'"]/g;
+    const symbolRegex = /[`'"]([a-zA-Z0-9_./#]+)[`'"]/g; // More flexible regex
     let match;
-    const symbols = [];
+    const symbols = new Set();
     while ((match = symbolRegex.exec(prompt)) !== null) {
-        symbols.push(match);
+        if (!match[1].endsWith('.md')) { // Avoid matching doc paths
+           symbols.add(match[1].split('#').pop()); // Get the symbol name
+        }
     }
 
-    if (symbols.length === 0) return "";
+    if (symbols.size === 0) return "";
 
     let context = "\n\n--- AUTO-INJECTED CODE CONTEXT ---\n";
     try {
         for (const symbol of symbols) {
             const definition = await codeGraph.getDefinition({ symbolName: symbol });
-            if (definition.length > 0) {
-                const defPath = definition.id.split('#');
+            if (definition.length > 0 && definition[0].id) {
+                const defPath = definition[0].id.split('#')[0];
                 const fileContent = await fs.readFile(path.join(process.cwd(), defPath), 'utf8');
                 context += `Definition for '${symbol}' in '${defPath}':\n\`\`\`\n${fileContent}\n\`\`\`\n`;
             }
         }
         context += "--- END OF CONTEXT ---\n";
-        return context;
+        return context.length > 30 ? context : ""; // Only add if context was found
     } catch (e) {
         console.warn(`[RAG] Could not retrieve code context: ${e.message}`);
-        return ""; // Fail gracefully
+        return "";
     }
 }
 
-
 async function getCompletion(agentId, prompt) {
   const agentPath = path.join(__dirname, '..', '.stigmergy-core', 'agents', `${agentId}.md`);
-  if (!await fs.pathExists(agentPath)) {
-      throw new Error(`Agent file not found for agentId: ${agentId}`);
-  }
+  if (!await fs.pathExists(agentPath)) throw new Error(`Agent file not found: ${agentId}`);
 
   const manifest = await getAgentManifest();
   const agentConfig = manifest.agents.find(a => a.id === agentId);
   if (!agentConfig) throw new Error(`Agent config not found for ${agentId}`);
 
   const modelToUse = agentConfig.model_preference || 'gpt-4-turbo';
-  
   const agentInstructions = await fs.readFile(agentPath, 'utf-8');
   const metaPromptTemplate = await fs.readFile(META_PROMPT_PATH, 'utf-8');
-  
   const finalSystemPrompt = metaPromptTemplate.replace('{{AGENT_INSTRUCTIONS}}', agentInstructions);
 
   let finalUserPrompt = prompt;
-  // If agent is an Executor, try to inject RAG context
-  if (agentConfig.archetype === "Executor") {
+  if (agentConfig.archetype === "Executor" || agentConfig.archetype === "Responder") {
       const codeContext = await getCodeContext(prompt);
       finalUserPrompt += codeContext;
   }
@@ -94,12 +88,12 @@ async function getCompletion(agentId, prompt) {
     response_format: { type: "json_object" },
   });
 
-  const content = response.choices.message.content;
+  const content = response.choices[0].message.content;
   try {
     return JSON.parse(content);
   } catch (error) {
     console.error("[LLM Adapter] Failed to parse LLM JSON response:", content);
-    return { thought: "The model did not return valid JSON. The raw response was: " + content, action: null };
+    return { thought: "The model did not return valid JSON. Raw response: " + content, action: null };
   }
 }
 
