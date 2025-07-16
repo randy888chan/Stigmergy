@@ -1,7 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
 const yaml = require("js-yaml");
-const chalk = require("chalk"); // THIS LINE IS THE FIX
+const chalk = require("chalk");
 const { marked } = require("marked");
 
 class DependencyResolver {
@@ -21,14 +21,14 @@ class DependencyResolver {
     const visited = new Set();
     const dependencies = new Map();
     const queue = [initialRelativePath];
-
+    
     visited.add(initialRelativePath);
 
     while (queue.length > 0) {
       const currentPath = queue.shift();
       const fullPath = path.join(this.stigmergyCore, currentPath);
-
-      if (!(await fs.pathExists(fullPath))) {
+      
+      if (!await fs.pathExists(fullPath)) {
         console.warn(chalk.yellow(`Warning: Dependency not found, skipping: ${currentPath}`));
         continue;
       }
@@ -36,10 +36,10 @@ class DependencyResolver {
       dependencies.set(currentPath, content);
 
       const pathRegex = /[`'"](\.\/|[\w-]+(?:\/[\w-]+)+\.(?:md|yml|yaml|json))[`'"]/g;
-
+      
       let match;
       while ((match = pathRegex.exec(content)) !== null) {
-        const foundPath = path.normalize(match[1]);
+        const foundPath = path.normalize(match[1]); 
         if (foundPath && !visited.has(foundPath)) {
           visited.add(foundPath);
           queue.push(foundPath);
