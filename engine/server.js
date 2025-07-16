@@ -1,4 +1,6 @@
 const express = require("express");
+const fs = require('fs-extra');
+const path = require('path');
 const stateManager = require("./state_manager");
 const agentDispatcher = require("./agent_dispatcher");
 const llmAdapter = require("./llm_adapter");
@@ -27,7 +29,7 @@ async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
       const nextPrompt = `This was the result of your last action:\n${toolResult}\n\nBased on this, what is your next step? Continue until the task is fully complete.`;
       response = await llmAdapter.getCompletion(agentId, nextPrompt);
     } catch (e) {
-      console.error(chalk.red(`[Agent Runner] Tool execution failed for @${agentId}`), e);
+      console.error(chalk.red(`[Agent Runner] Tool execution failed for @${agentId}: ${e.message}`));
       if (taskId) await stateManager.incrementTaskFailure(taskId);
       const toolManual = await fs.readFile(path.join(__dirname, '..', '.stigmergy-core', 'system_docs', 'Tool_Manual.md'), 'utf8');
       const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nHere is the Tool Manual for reference:\n${toolManual}\n\nDecide your next step. You can try the tool again or use a different tool.`;
@@ -63,9 +65,16 @@ async function mainEngineLoop() {
       isEngineRunning = false; // Pause the loop
       break;
     }
+    
+    if (nextAction.type === "WAITING") {
+        console.log(chalk.gray("[Engine] " + nextAction.summary));
+        await new Promise(resolve => setTimeout(resolve, 15000));
+        continue;
+    }
 
     if (nextAction.type === "SYSTEM_TASK" && nextAction.task === "INGEST_BLUEPRINT") {
       await stateManager.ingestBlueprint(nextAction.blueprint);
+      await stateManager.updateStatusAndHistory(nextAction.newStatus, { agent_id: nextAction.agent, signal: `DISPATCH_${nextAction.type}`, summary: nextAction.summary });
     } else {
       const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
       await stateManager.updateStatusAndHistory(nextAction.newStatus, { agent_id: nextAction.agent, signal: `DISPATCH_${nextAction.type}`, summary: `Completed task: ${nextAction.summary}. Agent final thought: ${taskResult}` });
@@ -105,6 +114,7 @@ app.post("/api/interactive", async (req, res) => {
     const response = await llmAdapter.getCompletion(agentId, prompt);
     res.json(response);
   } catch (error) {
+    console.error(chalk.red(`[API] Error for ${agentId}:`), error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
