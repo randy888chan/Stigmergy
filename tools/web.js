@@ -4,7 +4,7 @@ require('dotenv').config();
 // --- Provider Implementations ---
 async function searchWithSerper({ query }) {
   const apiKey = process.env.SEARCH_API_KEY;
-  if (!apiKey) return "SERPER_API_KEY is not configured in .env";
+  if (!apiKey) return "SEARCH_API_KEY for Serper is not configured in .env";
 
   const response = await axios.post('https://google.serper.dev/search', { q: query }, {
     headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' }
@@ -21,8 +21,8 @@ async function searchWithSerper({ query }) {
 async function searchWithBrave({ query }) {
     const apiKey = process.env.BRAVE_API_KEY;
     if (!apiKey) return "BRAVE_API_KEY is not configured in .env";
-    // Placeholder for Brave Search API logic
     console.log(`[Web Tool] Searching with Brave for: "${query}"`);
+    // Placeholder for actual Brave Search API logic
     return `Brave search results for "${query}" (Not yet implemented).`;
 }
 
@@ -35,9 +35,8 @@ async function search({ query }) {
       case 'brave':
         return await searchWithBrave({ query });
       case 'serper':
-        return await searchWithSerper({ query });
       default:
-        return `Error: Unknown search provider '${provider}' configured in .env.`;
+        return await searchWithSerper({ query });
     }
   } catch(error) {
       console.error(`[Web Tool] Search error with ${provider}:`, error.message);
