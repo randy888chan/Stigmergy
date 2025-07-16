@@ -55,7 +55,7 @@ class PromptBuilder {
 
       spinner.succeed(`Built team bundle: ${chalk.green(teamId)}`);
     } catch (error) {
-      spinner.fail(`Failed to build team ${chalk.red(teamId)}: ${error.message}`);
+      spinner.fail(`Failed to build team ${chalk.red(teamId)}`);
       console.error(error);
     }
   }
