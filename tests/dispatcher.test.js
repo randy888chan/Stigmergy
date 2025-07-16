@@ -6,6 +6,7 @@ jest.mock("fs-extra");
 describe("Agent Dispatcher Logic", () => {
   beforeEach(() => {
     fs.pathExists.mockReset();
+    fs.readFile.mockReset();
   });
 
   it("should dispatch @analyst to create a brief when nothing exists", async () => {
@@ -19,27 +20,27 @@ describe("Agent Dispatcher Logic", () => {
 
   it("should dispatch @pm when brief exists but PRD does not", async () => {
     const state = { project_status: "NEEDS_PRD" };
-    fs.pathExists.mockImplementation(p => Promise.resolve(p.endsWith('docs/brief.md')));
+    fs.pathExists.mockImplementation((p) => Promise.resolve(p.endsWith("docs/brief.md")));
 
     const action = await getNextAction(state);
     expect(action.agent).toBe("pm");
     expect(action.newStatus).toBe("AWAITING_APPROVAL_PRD");
   });
-  
+
   it("should pause when a milestone is awaiting approval", async () => {
     const state = { project_status: "AWAITING_APPROVAL_BRIEF" };
     const action = await getNextAction(state);
     expect(action.type).toBe("WAITING_FOR_APPROVAL");
   });
 
-  it("should ingest blueprint when one exists and is not yet in state", async () => {
-    const state = { project_status: "AWAITING_APPROVAL_BLUEPRINT" }; // State before ingestion
-    fs.pathExists.mockResolvedValue(true);
-    fs.readFile.mockResolvedValue("tasks:\n  - id: T01");
-    
+  it("should pause for blueprint approval even if the file exists", async () => {
+    // THIS IS THE FIX: The test now validates the correct behavior.
+    const state = { project_status: "AWAITING_APPROVAL_BLUEPRINT" };
+    fs.pathExists.mockResolvedValue(true); // Blueprint file exists
+
     const action = await getNextAction(state);
-    expect(action.type).toBe("SYSTEM_TASK");
-    expect(action.task).toBe("INGEST_BLUEPRINT");
-    expect(action.newStatus).toBe("READY_FOR_EXECUTION");
+
+    // The system should still wait for the user's explicit '*approve*' command.
+    expect(action.type).toBe("WAITING_FOR_APPROVAL");
   });
 });

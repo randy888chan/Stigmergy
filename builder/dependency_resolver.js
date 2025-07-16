@@ -2,7 +2,6 @@ const fs = require("fs-extra");
 const path = require("path");
 const yaml = require("js-yaml");
 const chalk = require("chalk");
-const { marked } = require("marked");
 
 class DependencyResolver {
   constructor(rootDir) {
@@ -10,50 +9,55 @@ class DependencyResolver {
     this.stigmergyCore = path.join(rootDir, ".stigmergy-core");
   }
 
-  async parseFile(filePath) {
-    if (!(await fs.pathExists(filePath))) {
-      throw new Error(`File does not exist: ${filePath}`);
-    }
-    return fs.readFile(filePath, "utf8");
-  }
-
-  async resolveDependencies(initialRelativePath) {
-    const visited = new Set();
-    const dependencies = new Map();
-    const queue = [initialRelativePath];
-    
-    visited.add(initialRelativePath);
-
-    while (queue.length > 0) {
-      const currentPath = queue.shift();
-      const fullPath = path.join(this.stigmergyCore, currentPath);
-      
-      if (!await fs.pathExists(fullPath)) {
-        console.warn(chalk.yellow(`Warning: Dependency not found, skipping: ${currentPath}`));
-        continue;
-      }
-      const content = await this.parseFile(fullPath);
-      dependencies.set(currentPath, content);
-
-      const pathRegex = /[`'"](\.\/|[\w-]+(?:\/[\w-]+)+\.(?:md|yml|yaml|json))[`'"]/g;
-      
-      let match;
-      while ((match = pathRegex.exec(content)) !== null) {
-        const foundPath = path.normalize(match[1]); 
-        if (foundPath && !visited.has(foundPath)) {
-          visited.add(foundPath);
-          queue.push(foundPath);
-        }
-      }
-    }
-    return dependencies;
-  }
-
-  async getTeamAgentIds(teamId) {
+  async resolveTeamDependencies(teamId) {
     const teamFilePath = path.join(this.stigmergyCore, "agent-teams", `${teamId}.yml`);
-    const content = await this.parseFile(teamFilePath);
-    const teamConfig = yaml.load(content);
-    return teamConfig?.agents || [];
+    if (!(await fs.pathExists(teamFilePath))) {
+      throw new Error(`Team file not found: ${teamId}.yml`);
+    }
+    const teamFileContent = await fs.readFile(teamFilePath, "utf8");
+    const teamConfig = yaml.load(teamFileContent);
+    const agentIds = teamConfig?.agents || [];
+
+    const allDependencies = new Map();
+    const visited = new Set();
+
+    for (const agentId of agentIds) {
+      const agentPath = `agents/${agentId}.md`;
+      await this.findDependenciesRecursive(agentPath, allDependencies, visited);
+    }
+
+    return allDependencies;
+  }
+
+  async findDependenciesRecursive(relativePath, allDependencies, visited) {
+    if (visited.has(relativePath)) return;
+    visited.add(relativePath);
+
+    const fullPath = path.join(this.stigmergyCore, relativePath);
+    if (!(await fs.pathExists(fullPath))) {
+      // This warning is now only for legitimate, missing bundleable files.
+      console.warn(chalk.yellow(`Warning: A required dependency was not found: ${relativePath}`));
+      return;
+    }
+
+    const content = await fs.readFile(fullPath, "utf8");
+    allDependencies.set(relativePath, content);
+
+    // FINAL REGEX: Only looks for paths within specific, bundleable directories.
+    const pathRegex = /[`'"]((templates|checklists|tasks)\/[\w-]+\.[\w]+)[`'"]/g;
+
+    const promises = [];
+    let match;
+    while ((match = pathRegex.exec(content)) !== null) {
+      const foundPath = path.normalize(match[1]);
+
+      if (foundPath && !foundPath.startsWith("http")) {
+        // Since paths are now guaranteed to be relative to the root, no complex joining is needed.
+        promises.push(this.findDependenciesRecursive(foundPath, allDependencies, visited));
+      }
+    }
+
+    await Promise.all(promises);
   }
 
   async listTeams() {

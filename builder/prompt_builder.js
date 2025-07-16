@@ -10,34 +10,34 @@ const OUTPUT_DIR = path.join(process.cwd(), "dist");
 class PromptBuilder {
   constructor() {
     this.resolver = new DependencyResolver(ROOT_DIR);
-    this.templatePath = path.join(ROOT_DIR, ".stigmergy-core", "utils", "web-agent-startup-instructions.md");
+    this.templatePath = path.join(
+      ROOT_DIR,
+      ".stigmergy-core",
+      "utils",
+      "web-agent-startup-instructions.md"
+    );
   }
 
   formatSection(filePath, content) {
     const separator = "====================";
     const header = `START: ${filePath.replace(/\\/g, "/")}`;
     const footer = `END: ${filePath.replace(/\\/g, "/")}`;
-    return [`${separator} ${header} ${separator}`, content.trim(), `${separator} ${footer} ${separator}`].join("\n");
+    return [
+      `${separator} ${header} ${separator}`,
+      content.trim(),
+      `${separator} ${footer} ${separator}`,
+    ].join("\n");
   }
 
   async buildTeam(teamId) {
     const spinner = ora(`Building team bundle: ${chalk.cyan(teamId)}`).start();
     try {
-      const agentIds = await this.resolver.getTeamAgentIds(teamId);
-      if (agentIds.length === 0) {
-        spinner.warn(`No agents found in team: ${chalk.cyan(teamId)}`);
+      // THIS IS THE FIX: Call the correct new method in the resolver.
+      const allDependencies = await this.resolver.resolveTeamDependencies(teamId);
+
+      if (allDependencies.size === 0) {
+        spinner.warn(`No agents or dependencies found for team: ${chalk.cyan(teamId)}`);
         return;
-      }
-
-      spinner.text = `Found ${agentIds.length} agents. Resolving all dependencies...`;
-      const allDependencies = new Map();
-
-      for (const agentId of agentIds) {
-        const agentPath = `agents/${agentId}.md`;
-        const agentDeps = await this.resolver.resolveDependencies(agentPath);
-        for (const [p, c] of agentDeps.entries()) {
-            if (!allDependencies.has(p)) allDependencies.set(p,c);
-        }
       }
 
       spinner.text = `Found ${allDependencies.size} unique files. Bundling...`;
@@ -71,11 +71,11 @@ class PromptBuilder {
 async function runBuilder(options) {
   const builder = new PromptBuilder();
   await fs.rm(OUTPUT_DIR, { recursive: true, force: true }).catch(() => {});
-  
+
   if (options.team) await builder.buildTeam(options.team);
   else if (options.all) await builder.buildAllTeams();
   else console.log(chalk.yellow("No build option specified. Use --team <id> or --all."));
-  
+
   console.log(chalk.bold.green(`\nBuild complete. Output in ${chalk.cyan("dist/")}`));
 }
 

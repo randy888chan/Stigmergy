@@ -36,10 +36,10 @@ program
   });
 
 async function main() {
-    await program.parseAsync(process.argv);
+  await program.parseAsync(process.argv);
 }
 
-main().catch(err => {
-    console.error("Command failed:", err);
-    process.exit(1);
+main().catch((err) => {
+  console.error("Command failed:", err);
+  process.exit(1);
 });
