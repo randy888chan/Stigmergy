@@ -23,18 +23,17 @@ async function getAgentManifest() {
     return agentManifest;
 }
 
-// Proactive RAG function
 async function getCodeContext(prompt) {
     const codeKeywords = ['modify function', 'implement class', 'fix bug in', 'refactor file', 'add feature to', 'implement'];
     const isCodeTask = codeKeywords.some(kw => prompt.toLowerCase().includes(kw));
     if (!isCodeTask) return "";
 
-    const symbolRegex = /[`'"]([a-zA-Z0-9_./#]+)[`'"]/g; // More flexible regex
+    const symbolRegex = /[`'"]([a-zA-Z0-9_./#]+)[`'"]/g;
     let match;
     const symbols = new Set();
     while ((match = symbolRegex.exec(prompt)) !== null) {
-        if (!match[1].endsWith('.md')) { // Avoid matching doc paths
-           symbols.add(match[1].split('#').pop()); // Get the symbol name
+        if (!match[1].endsWith('.md')) {
+           symbols.add(match[1].split('#').pop());
         }
     }
 
@@ -46,12 +45,14 @@ async function getCodeContext(prompt) {
             const definition = await codeGraph.getDefinition({ symbolName: symbol });
             if (definition.length > 0 && definition[0].id) {
                 const defPath = definition[0].id.split('#')[0];
-                const fileContent = await fs.readFile(path.join(process.cwd(), defPath), 'utf8');
-                context += `Definition for '${symbol}' in '${defPath}':\n\`\`\`\n${fileContent}\n\`\`\`\n`;
+                if (await fs.pathExists(path.join(process.cwd(), defPath))) {
+                    const fileContent = await fs.readFile(path.join(process.cwd(), defPath), 'utf8');
+                    context += `Definition for '${symbol}' in '${defPath}':\n\`\`\`\n${fileContent}\n\`\`\`\n`;
+                }
             }
         }
         context += "--- END OF CONTEXT ---\n";
-        return context.length > 30 ? context : ""; // Only add if context was found
+        return context.length > 50 ? context : "";
     } catch (e) {
         console.warn(`[RAG] Could not retrieve code context: ${e.message}`);
         return "";
