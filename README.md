@@ -14,10 +14,9 @@ The system is designed to be controlled entirely from a compatible IDE like Roo 
     ```
     @saul start a new project to build a minimalist blog platform on Vercel.
     ```
-3.  **Autonomous Planning:** The engine will engage, and the swarm will begin the planning process (creating a brief, PRD, etc.). You will see its progress in the terminal.
-4.  **Approve Milestones:** After each major planning document is drafted, the engine will pause and log that it is `AWAITING APPROVAL`. To resume, simply tell the orchestrator to proceed.
-    ```
-    @saul *approve*
+3.  **Autonomous Planning:** The engine will engage, and the swarm will begin the planning process (creating a brief, PRD, etc.). You can monitor its progress in the terminal.
+4.  **Approve Milestones:** After each major planning document is drafted, the engine will pause and log that it is `AWAITING APPROVAL`. To resume the autonomous process, simply tell the orchestrator to proceed.
+    ```    @saul *approve*
     ```
 5.  **Autonomous Execution & Completion:** Once the blueprint is approved, the system will execute all coding tasks without interruption until the final application is built according to the approved plans.
 
@@ -38,4 +37,16 @@ Create a `.env` file in your project root by copying `.env.example`. You will ne
 ### Step 3: Install Project Dependencies
 
 Run `npm install` to ensure your project has all necessary dependencies.
+
+---
+## Optional: Web UI Planning
+
+If you prefer to do high-level strategic planning in an external web-based UI, you can build a self-contained bundle for a planning team.
+
+1.  Run the build command for a team (e.g., `team-planning-crew`).
+2.  This creates a single file: `dist/teams/team-planning-crew.txt`.
+3.  Copy the contents of this file into your Web UI's system prompt for a fully context-aware planning session.
+
+```bash
+npm run build --team team-planning-crew
 ```
