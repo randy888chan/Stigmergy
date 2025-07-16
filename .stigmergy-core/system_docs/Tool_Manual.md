@@ -38,7 +38,7 @@ This tool performs quick, API-driven web searches.
 
 - **`web.search`**: Gets a list of search results for a query.
   - **Arguments:** `{ "query": "your search query" }`
-  - **Returns:** A formatted string of the top 5 search results, including titles, links, and snippets.
+  - **Returns:** A formatted string of the top search results, including titles, links, and snippets.
 
 ---
 
