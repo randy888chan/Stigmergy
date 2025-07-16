@@ -58,4 +58,3 @@ const toolbelt = {
 ```
 
 After these steps, any agent that has `'my_new_tool.yourFunction'` in its `tools` list in the manifest will be able to use it.
-```
