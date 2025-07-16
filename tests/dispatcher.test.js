@@ -33,7 +33,7 @@ describe("Agent Dispatcher Logic", () => {
   });
 
   it("should ingest blueprint when one exists and is not yet in state", async () => {
-    const state = { project_status: "NEEDS_BLUEPRINT" };
+    const state = { project_status: "AWAITING_APPROVAL_BLUEPRINT" }; // State before ingestion
     fs.pathExists.mockResolvedValue(true);
     fs.readFile.mockResolvedValue("tasks:\n  - id: T01");
     
