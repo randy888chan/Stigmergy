@@ -13,9 +13,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 let isEngineRunning = false;
 
-// The New Autonomous Agent Runner
 async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
-  // ... (This function remains the same as the previous response)
   console.log(chalk.magenta(`[Agent Runner] Running task for @${agentId}.`));
   let response = await llmAdapter.getCompletion(agentId, taskPrompt);
   const MAX_TOOL_CALLS = 10;
@@ -23,7 +21,7 @@ async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
 
   while (response?.action?.tool && toolCallCount < MAX_TOOL_CALLS) {
     toolCallCount++;
-    console.log(chalk.magenta(`[Agent Runner] @${agentId} wants to use tool: ${response.action.tool}`));
+    console.log(chalk.magenta(`[Agent Runner] @${agentId} wants to use tool: ${response.action.tool} with args:`, response.action.args));
     try {
       const toolResult = await toolExecutor.execute(response.action.tool, response.action.args, agentId);
       const nextPrompt = `This was the result of your last action:\n${toolResult}\n\nBased on this, what is your next step? Continue until the task is fully complete.`;
@@ -31,7 +29,8 @@ async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
     } catch (e) {
       console.error(chalk.red(`[Agent Runner] Tool execution failed for @${agentId}`), e);
       if (taskId) await stateManager.incrementTaskFailure(taskId);
-      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nPlease analyze the error and decide your next step. You can try again or use a different approach.`;
+      const toolManual = await fs.readFile(path.join(__dirname, '..', '.stigmergy-core', 'system_docs', 'Tool_Manual.md'), 'utf8');
+      const errorPrompt = `Your last tool call failed with this error:\n${e.message}\n\nHere is the Tool Manual for reference:\n${toolManual}\n\nDecide your next step. You can try the tool again or use a different tool.`;
       response = await llmAdapter.getCompletion(agentId, errorPrompt);
     }
   }
@@ -39,8 +38,6 @@ async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
   return response?.thought || "Task finished.";
 }
 
-
-// The New Autonomous Engine Main Loop
 async function mainEngineLoop() {
   if (isEngineRunning) {
     console.log(chalk.yellow("[Engine] Autonomous loop is already running."));
@@ -50,7 +47,7 @@ async function mainEngineLoop() {
   console.log(chalk.bold.green("\n--- Pheromind Autonomous Engine Engaged ---\n"));
 
   while (isEngineRunning) {
-    const state = await stateManager.getState();
+    let state = await stateManager.getState();
     console.log(chalk.cyan(`\n[Engine] New cycle started. Current status: ${state.project_status}`));
 
     if (state.project_status === "PROJECT_COMPLETE" || state.project_status === "EXECUTION_HALTED") {
@@ -61,67 +58,61 @@ async function mainEngineLoop() {
 
     const nextAction = await agentDispatcher.getNextAction(state);
 
-    if (nextAction.type === "WAITING") {
-      console.log(chalk.gray("[Engine] " + nextAction.summary));
-      await new Promise((resolve) => setTimeout(resolve, 15000));
-      continue;
+    if (nextAction.type === "WAITING_FOR_APPROVAL") {
+      console.log(chalk.yellow(nextAction.summary));
+      isEngineRunning = false; // Pause the loop
+      break;
     }
 
-    console.log(chalk.yellow(`[Dispatcher] Action: ${nextAction.type} | Agent: @${nextAction.agent}`));
-    console.log(chalk.yellow(`[Dispatcher] Summary: ${nextAction.summary}`));
-
-    const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
-
-    // After task, update state
-    await stateManager.updateStatus(nextAction.newStatus || state.project_status);
-    await stateManager.appendHistory({
-      agent_id: nextAction.agent,
-      signal: `DISPATCH_${nextAction.type}`,
-      summary: `Completed task: ${nextAction.summary}. Agent final thought: ${taskResult}`,
-    });
+    if (nextAction.type === "SYSTEM_TASK" && nextAction.task === "INGEST_BLUEPRINT") {
+      await stateManager.ingestBlueprint(nextAction.blueprint);
+    } else {
+      const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
+      await stateManager.updateStatusAndHistory(nextAction.newStatus, { agent_id: nextAction.agent, signal: `DISPATCH_${nextAction.type}`, summary: `Completed task: ${nextAction.summary}. Agent final thought: ${taskResult}` });
+    }
 
     console.log(chalk.cyan("[Engine] Cycle complete. Waiting 5 seconds..."));
     await new Promise((resolve) => setTimeout(resolve, 5000));
   }
 }
 
-
-// API for all IDE interaction
 app.post("/api/interactive", async (req, res) => {
   const { agentId, prompt } = req.body;
   console.log(chalk.blue(`[API] Interactive command for '${agentId}': "${prompt}"`));
 
-  // --- AUTONOMY TRIGGER ---
-  // Check if this is the special command to start the autonomous engine
-  if (agentId === "dispatcher" && prompt.toLowerCase().includes("start project")) {
-    if (isEngineRunning) {
-      return res.json({ thought: "The autonomous engine is already running.", action: null });
+  if (agentId === "dispatcher") {
+    if (prompt.toLowerCase().includes("start project")) {
+      if (isEngineRunning) return res.json({ thought: "The autonomous engine is already running." });
+      await stateManager.initializeStateWithGoal(prompt);
+      mainEngineLoop();
+      return res.json({ thought: "Acknowledged. Autonomous engine engaged. Monitor terminal for progress." });
     }
-    await stateManager.initializeStateWithGoal(prompt);
-    mainEngineLoop(); // Kick off the autonomous loop
-    return res.json({ thought: "Acknowledged. The autonomous engine has been engaged. You can monitor its progress in the terminal.", action: null });
+    if (prompt.toLowerCase().includes("*approve")) {
+      const state = await stateManager.getState();
+      if (state.project_status.startsWith("AWAITING_APPROVAL")) {
+        const newStatus = await stateManager.advanceApprovalState();
+        mainEngineLoop();
+        return res.json({ thought: `Approved. Advancing project to ${newStatus}.` });
+      } else {
+        return res.json({ thought: "There is nothing currently awaiting approval." });
+      }
+    }
   }
 
-  if (isEngineRunning) {
-    return res.json({ thought: "Autonomous engine is running. Your message has been noted as commentary.", action: null });
-  }
+  if (isEngineRunning) return res.json({ thought: "Autonomous engine is running. Message noted as commentary." });
 
-  // Standard supervised command
   try {
     const response = await llmAdapter.getCompletion(agentId, prompt);
     res.json(response);
   } catch (error) {
-    console.error(chalk.red(`[API] Error for ${agentId}:`), error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
 
-
 function start() {
-  const enginePort = process.env.PORT || 3000;
-  app.listen(enginePort, () => {
-    console.log(chalk.bold(`[Server] Pheromind Engine is listening on http://localhost:${enginePort}`));
-    console.log(chalk.gray("[Engine] Running in dormant supervised mode. Awaiting commands from the IDE..."));
+  app.listen(process.env.PORT || 3000, () => {
+    console.log(chalk.bold(`[Server] Pheromind Engine is listening on http://localhost:${process.env.PORT || 3000}`));
+    console.log(chalk.gray("[Engine] In dormant mode. Awaiting command from IDE..."));
   });
 }
 
