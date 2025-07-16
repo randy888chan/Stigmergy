@@ -20,7 +20,7 @@ function findNextPendingTask(manifest) {
 }
 
 async function getNextAction(state) {
-  // Check for approval gates first. The loop will pause here.
+  // Gate 1: Check for approval states first.
   if (state.project_status.startsWith("AWAITING_APPROVAL")) {
     return {
       type: "WAITING_FOR_APPROVAL",
@@ -28,12 +28,11 @@ async function getNextAction(state) {
     };
   }
 
-  // Phase 3: Execution
+  // Gate 2: Check for execution phase.
   if (await fileExists("execution-blueprint.yml")) {
     if ((!state.project_manifest || state.project_manifest.tasks?.length === 0) && state.project_status !== "READY_FOR_EXECUTION") {
         const blueprintContent = await fs.readFile(BLUEPRINT_PATH, 'utf8');
         const blueprint = yaml.load(blueprintContent);
-        // This is a signal to the state manager to ingest the blueprint
         return { type: "SYSTEM_TASK", agent: "dispatcher", task: "INGEST_BLUEPRINT", blueprint, summary: "Found execution blueprint. Ingesting into state manifest.", newStatus: "READY_FOR_EXECUTION" };
     }
 
@@ -47,22 +46,20 @@ async function getNextAction(state) {
     }
   }
 
-  // Phase 2: Planning
-  if (await fileExists("docs/architecture.md") && !(await fileExists("execution-blueprint.yml"))) {
-    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create the final `execution-blueprint.yml` from the architecture.", summary: "Dispatching @winston for blueprint.", newStatus: "AWAITING_APPROVAL_BLUEPRINT" };
-  }
-  if (await fileExists("docs/prd.md") && !(await fileExists("docs/architecture.md"))) {
-    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create `docs/architecture.md` from the PRD.", summary: "Dispatching @winston for architecture.", newStatus: "AWAITING_APPROVAL_ARCHITECTURE" };
-  }
-  if (await fileExists("docs/brief.md") && !(await fileExists("docs/prd.md"))) {
-    return { type: "PLANNING_TASK", agent: "pm", task: "Create `docs/prd.md` from the Project Brief.", summary: "Dispatching @john for PRD.", newStatus: "AWAITING_APPROVAL_PRD" };
-  }
-
-  // Phase 1: Briefing
-  if (!await fileExists("docs/brief.md")) {
+  // Gate 3: Check for planning phase (handles new and halfway projects).
+  if (!(await fileExists("docs/brief.md"))) {
     return { type: "PLANNING_TASK", agent: "analyst", task: `Create a 'docs/brief.md' for the goal: "${state.goal}".`, summary: "Dispatching @mary for Project Brief.", newStatus: "AWAITING_APPROVAL_BRIEF" };
   }
-
+  if (!(await fileExists("docs/prd.md"))) {
+    return { type: "PLANNING_TASK", agent: "pm", task: "Create `docs/prd.md` from the Project Brief.", summary: "Dispatching @john for PRD.", newStatus: "AWAITING_APPROVAL_PRD" };
+  }
+  if (!(await fileExists("docs/architecture.md"))) {
+    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create `docs/architecture.md` from the PRD.", summary: "Dispatching @winston for architecture.", newStatus: "AWAITING_APPROVAL_ARCHITECTURE" };
+  }
+  if (!(await fileExists("execution-blueprint.yml"))) {
+    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create the final `execution-blueprint.yml` from the architecture.", summary: "Dispatching @winston for blueprint.", newStatus: "AWAITING_APPROVAL_BLUEPRINT" };
+  }
+  
   // Default/Idle State
   return { type: "WAITING", summary: `System is in '${state.project_status}' state. No immediate action required.` };
 }
