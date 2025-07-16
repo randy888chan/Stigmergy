@@ -26,8 +26,7 @@ Adding a new agent to the swarm is a two-step process.
   archetype: Executor
   model_preference: "claude-3-haiku-20240307"
   tools: [file_system.readFile, shell.execute]
-  permitted_shell_commands: ["ls -la", "npm install"]
-```
+  permitted_shell_commands: ["ls -la", "npm install"]```
 
 ## How to Add a New Tool
 
@@ -54,6 +53,3 @@ const toolbelt = {
   'shell': shell,
   'my_new_tool': myNewTool, // Step 2
 };
-```
-
-After these steps, any agent that has `'my_new_tool.yourFunction'` in its `tools` list in the manifest will be able to use it.
