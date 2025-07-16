@@ -36,7 +36,6 @@ async function execute(toolFullName, args, agentId) {
     throw new Error(`Tool "${toolFullName}" not found in the toolbelt.`);
   }
 
-  // --- Permission Check ---
   const manifest = await getAgentManifest();
   const agentConfig = manifest.agents.find(a => a.id === agentId);
 
@@ -48,7 +47,6 @@ async function execute(toolFullName, args, agentId) {
       throw new Error(`Agent '${agentId}' is not authorized to use tool '${toolFullName}'.`);
   }
 
-  // Specific check for shell.execute
   if (toolFullName === 'shell.execute') {
       const permittedCommands = agentConfig.permitted_shell_commands || [];
       if (!permittedCommands.includes(args.command)) {
