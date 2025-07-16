@@ -24,7 +24,7 @@ This toolset interacts with the local project file system. All paths are relativ
 
 ### **Namespace: `shell`**
 
-This tool executes shell commands. **Warning:** Usage is restricted by agent permissions in the manifest.
+This tool executes shell commands. **Warning:** Usage is restricted by agent permissions in the manifest. The `git push` command is explicitly forbidden.
 
 - **`shell.execute`**: Runs a command in the system's shell.
   - **Arguments:** `{ "command": "ls -la" }`
@@ -34,11 +34,11 @@ This tool executes shell commands. **Warning:** Usage is restricted by agent per
 
 ### **Namespace: `web`**
 
-This tool performs quick, API-driven web searches.
+This tool performs quick, API-driven web searches using a configurable provider.
 
 - **`web.search`**: Gets a list of search results for a query.
   - **Arguments:** `{ "query": "your search query" }`
-  - **Returns:** A formatted string of the top search results, including titles, links, and snippets.
+  - **Returns:** A formatted string of the top search results.
 
 ---
 
@@ -46,7 +46,7 @@ This tool performs quick, API-driven web searches.
 
 This tool performs deep scraping of a single web page.
 
-- **`scraper.scrapeUrl`**: Extracts the primary textual content from a single URL, cleaned for LLM consumption.
+- **`scraper.scrapeUrl`**: Extracts the primary textual content from a single URL.
   - **Arguments:** `{ "url": "https://example.com" }`
   - **Returns:** A string containing the cleaned body text of the page.
 
@@ -54,15 +54,15 @@ This tool performs deep scraping of a single web page.
 
 ### **Namespace: `code_graph`**
 
-This tool interacts with the Neo4j database to understand the project's code structure. Agents MUST use this for any task involving code modification.
+This tool interacts with the Neo4j database to understand the project's code structure.
 
-- **`code_graph.findUsages`**: Finds all files and functions that use a specific symbol (e.g., a function name).
+- **`code_graph.findUsages`**: Finds all files and functions that use a specific symbol.
   - **Arguments:** `{ "symbolName": "updateUser" }`
-  - **Returns:** An array of objects, each detailing where the symbol is used.
+  - **Returns:** An array of objects detailing where the symbol is used.
 
 - **`code_graph.getDefinition`**: Retrieves the definition and type of a symbol.
   - **Arguments:** `{ "symbolName": "updateUser" }`
-  - **Returns:** An object with the symbol's ID (e.g., `src/services/user.js#updateUser`) and its type (e.g., `Function`).
+  - **Returns:** An object with the symbol's ID and its type.
 
 - **`code_graph.getModuleDependencies`**: Lists all modules that a specific file imports.
   - **Arguments:** `{ "filePath": "src/services/user.js" }`
