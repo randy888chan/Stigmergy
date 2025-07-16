@@ -8,10 +8,9 @@ jest.mock("ora", () => () => ({ start: () => ({ succeed: jest.fn(), fail: jest.f
 
 const CWD = process.cwd();
 
-describe("System Tests", () => {
+describe("System Install and Build Tests", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mock for pathExists to avoid boilerplate in every test
     fs.pathExists.mockResolvedValue(false);
   });
 
@@ -36,7 +35,6 @@ describe("System Tests", () => {
         const maryMd = 'I am Mary and I use `templates/brief.md`';
         const briefMd = 'Brief template.';
 
-        // Mock a file system for the resolver
         const fileSystem = {
             [path.join(CWD, ".stigmergy-core", "agent-teams", "test-team.yml")]: teamYml,
             [path.join(CWD, ".stigmergy-core", "agents", "mary.md")]: maryMd,
@@ -44,7 +42,7 @@ describe("System Tests", () => {
         };
         fs.pathExists.mockImplementation(p => Promise.resolve(!!fileSystem[p]));
         fs.readFile.mockImplementation(p => Promise.resolve(fileSystem[p]));
-        fs.readdir.mockResolvedValue(["test-team.yml"]); // For listTeams
+        fs.readdir.mockResolvedValue(["test-team.yml"]);
 
         await runBuilder({ team: "test-team" });
 
