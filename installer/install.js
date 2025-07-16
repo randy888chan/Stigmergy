@@ -61,18 +61,21 @@ async function configureIde() {
   }
 
   const sortedModes = customModes.sort((a, b) => a.name.localeCompare(b.name));
-  const configString = `customModes: ${JSON.stringify(sortedModes, null, 2)}`;
-  const newConfigBlock = `${PHEROMIND_CONFIG_START_MARKER}\n// This block is auto-generated. Do not edit manually.\n${configString}\n${PHEROMIND_CONFIG_END_MARKER}`;
+  const configString = `  customModes: ${JSON.stringify(sortedModes, null, 2).replace(/\n/g, '\n  ')}`;
+  const newConfigBlock = `${PHEROMIND_CONFIG_START_MARKER}\n${configString},\n${PHEROMIND_CONFIG_END_MARKER}`;
 
   let finalContent;
   if (await fs.pathExists(ROO_MODES_PATH)) {
     const content = await fs.readFile(ROO_MODES_PATH, "utf8");
-    const markerRegex = new RegExp(`${PHEROMIND_CONFIG_START_MARKER}[\\s\\S]*?${PHEROMIND_CONFIG_END_MARKER}`, "g");
-    finalContent = markerRegex.test(content)
-      ? content.replace(markerRegex, newConfigBlock)
-      : `${content}\n\n${newConfigBlock}`;
+    const markerRegex = new RegExp(`${PHEROMIND_CONFIG_START_MARKER}[\\s\\S]*?${PHEROMIND_CONFIG_END_MARKER}`, "s");
+    if (markerRegex.test(content)) {
+        finalContent = content.replace(markerRegex, newConfigBlock);
+    } else {
+        // A simple append strategy for now
+        finalContent = `${content.trim().slice(0, -1)},\n${newConfigBlock}\n}`;
+    }
   } else {
-    finalContent = `// Roo Code Configuration\nmodule.exports = {\n  ${configString}\n};\n`;
+    finalContent = `// Roo Code Configuration\nmodule.exports = {\n${configString}\n};\n`;
   }
   await fs.writeFile(ROO_MODES_PATH, finalContent, "utf8");
 }
