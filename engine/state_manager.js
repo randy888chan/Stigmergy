@@ -1,5 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
+const yaml = require('js-yaml');
 
 const STATE_FILE_PATH = path.resolve(process.cwd(), '.ai', 'state.json');
 
@@ -11,21 +12,12 @@ async function getState() {
     await fs.writeJson(STATE_FILE_PATH, defaultState, { spaces: 2 });
     return defaultState;
   }
-  return fs.readJson(STATE_FILE_PATH);
+  return fs.readJson(STATE_FILE_PATH, { throws: false });
 }
 
 async function updateState(newState) {
   await fs.writeJson(STATE_FILE_PATH, newState, { spaces: 2 });
   return newState;
-}
-
-async function appendHistory(historyEvent) {
-  const state = await getState();
-  state.history.push({
-      ...historyEvent,
-      timestamp: new Date().toISOString()
-  });
-  return updateState(state);
 }
 
 async function updateStatusAndHistory(newStatus, historyEvent) {
@@ -43,8 +35,12 @@ async function initializeStateWithGoal(goalPrompt) {
     let state = require('../.stigmergy-core/templates/state-tmpl.json'); // Start fresh
     state.goal = goal;
     state.project_status = "NEEDS_BRIEFING";
-    state.history[0].summary = `Autonomous engine engaged via IDE with goal: ${goal}`;
-    state.history[0].timestamp = new Date().toISOString();
+    state.history = [{
+        agent_id: 'user',
+        signal: 'PROJECT_START',
+        summary: `Autonomous engine engaged via IDE with goal: ${goal}`,
+        timestamp: new Date().toISOString(),
+    }];
     return updateState(state);
 }
 
@@ -75,7 +71,6 @@ async function incrementTaskFailure(taskId) {
         task.failure_count = (task.failure_count || 0) + 1;
         if (task.failure_count >= 2) {
             task.status = "FAILED";
-            // Future: Log to issue_log and dispatch debugger
         }
     }
     return updateState(state);
@@ -84,7 +79,6 @@ async function incrementTaskFailure(taskId) {
 module.exports = {
   getState,
   updateState,
-  appendHistory,
   updateStatusAndHistory,
   initializeStateWithGoal,
   advanceApprovalState,
