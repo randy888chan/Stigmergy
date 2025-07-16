@@ -1,3 +1,4 @@
+```yml
 agent:
   id: "victor"
   alias: "victor"
