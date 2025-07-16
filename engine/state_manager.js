@@ -5,19 +5,13 @@ const STATE_FILE_PATH = path.resolve(process.cwd(), '.ai', 'state.json');
 
 async function getState() {
   await fs.ensureDir(path.dirname(STATE_FILE_PATH));
-  try {
-    const state = await fs.readJson(STATE_FILE_PATH, { throws: false });
-    if (state) {
-        return state;
-    }
+  if (!(await fs.pathExists(STATE_FILE_PATH)) || (await fs.readFile(STATE_FILE_PATH, 'utf8')).trim() === '') {
     const defaultState = require('../.stigmergy-core/templates/state-tmpl.json');
     defaultState.history[0].timestamp = new Date().toISOString();
     await fs.writeJson(STATE_FILE_PATH, defaultState, { spaces: 2 });
     return defaultState;
-  } catch (e) {
-    console.error("Error reading or initializing state file:", e);
-    return require('../.stigmergy-core/templates/state-tmpl.json');
   }
+  return fs.readJson(STATE_FILE_PATH);
 }
 
 async function updateState(newState) {
@@ -34,23 +28,43 @@ async function appendHistory(historyEvent) {
   return updateState(state);
 }
 
-async function updateStatus(newStatus) {
-    const state = await getState();
-    state.project_status = newStatus;
-    return updateState(state);
+async function updateStatusAndHistory(newStatus, historyEvent) {
+  const state = await getState();
+  if (newStatus) state.project_status = newStatus;
+  state.history.push({
+    ...historyEvent,
+    timestamp: new Date().toISOString(),
+  });
+  return updateState(state);
 }
 
 async function initializeStateWithGoal(goalPrompt) {
-    // Extract the goal from the initial prompt
-    const goal = goalPrompt.replace('*start_project', '').trim();
-    const state = await getState();
+    const goal = goalPrompt.replace(/\*start\s*project/i, '').trim();
+    let state = require('../.stigmergy-core/templates/state-tmpl.json'); // Start fresh
     state.goal = goal;
     state.project_status = "NEEDS_BRIEFING";
-    await appendHistory({
-        agent_id: 'system',
-        signal: 'GOAL_SET',
-        summary: `Autonomous engine engaged via IDE with goal: ${goal}`
-    });
+    state.history[0].summary = `Autonomous engine engaged via IDE with goal: ${goal}`;
+    state.history[0].timestamp = new Date().toISOString();
+    return updateState(state);
+}
+
+async function advanceApprovalState() {
+    const state = await getState();
+    const currentStatus = state.project_status;
+    const transitions = {
+        "AWAITING_APPROVAL_BRIEF": "NEEDS_PRD",
+        "AWAITING_APPROVAL_PRD": "NEEDS_ARCHITECTURE",
+        "AWAITING_APPROVAL_ARCHITECTURE": "NEEDS_BLUEPRINT",
+        "AWAITING_APPROVAL_BLUEPRINT": "READY_FOR_EXECUTION",
+    };
+    const newStatus = transitions[currentStatus] || currentStatus;
+    await updateStatusAndHistory(newStatus, { agent_id: 'user', signal: 'MILESTONE_APPROVED', summary: `User approved ${currentStatus}.` });
+    return newStatus;
+}
+
+async function ingestBlueprint(blueprint) {
+    const state = await getState();
+    state.project_manifest = blueprint;
     return updateState(state);
 }
 
@@ -61,7 +75,7 @@ async function incrementTaskFailure(taskId) {
         task.failure_count = (task.failure_count || 0) + 1;
         if (task.failure_count >= 2) {
             task.status = "FAILED";
-            // TODO: Log to issue_log and dispatch debugger
+            // Future: Log to issue_log and dispatch debugger
         }
     }
     return updateState(state);
@@ -71,7 +85,9 @@ module.exports = {
   getState,
   updateState,
   appendHistory,
-  updateStatus,
+  updateStatusAndHistory,
   initializeStateWithGoal,
+  advanceApprovalState,
+  ingestBlueprint,
   incrementTaskFailure
 };
