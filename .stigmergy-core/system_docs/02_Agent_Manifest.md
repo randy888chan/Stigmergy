@@ -15,7 +15,7 @@ agents:
     alias: mary
     archetype: Planner
     model_preference: "claude-3-sonnet-20240229"
-    tools: [web.search, scraper.scrapeUrl]
+    tools: [web.search, scraper.scrapeUrl, file_system.writeFile]
 
   - id: pm
     alias: john
@@ -54,7 +54,8 @@ agents:
     alias: victor
     archetype: Executor
     model_preference: "codestral-latest"
-    tools: [file_system.readFile, file_system.writeFile, web.search]
+    tools: [file_system.readFile, file_system.writeFile, web.search, shell.execute]
+    permitted_shell_commands: ["npx hardhat compile", "npx hardhat test"]
 
   - id: sm
     alias: bob
