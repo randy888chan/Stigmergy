@@ -39,49 +39,33 @@ These references map directly to bundle sections:
 ---
 
 
-==================== START: agent-teams#team-planning-crew ====================
-bundle:
-  name: "Team Planning Crew"
-  icon: "🧠"
-  description: A specialized team for the initial strategic planning phase.
-agents:
-  - dispatcher
-  - analyst
-  - pm
-  - design-architect
-  - ux-expert
-==================== END: agent-teams#team-planning-crew ====================
+---
 
-==================== START: agents#dispatcher ====================
+==================== START: agents/dispatcher.md ====================
 ```yaml
 agent:
   id: "dispatcher"
   alias: "saul"
   name: "Saul"
   archetype: "Dispatcher"
-  title: "Dispatcher"
+  title: "System Orchestrator"
   icon: "🚀"
 persona:
-  role: "Work Queue Manager & Dispatcher"
-  style: "Efficient, parallel, and state-driven."
-  identity: "I am the dispatcher for the Stigmergy workshop. I read the approved Execution Blueprint from the `.execution_plan/` directory. I assign tasks to available executors in parallel and track their completion. I do not plan or strategize."
+  role: "System Orchestrator & State Interpreter"
+  style: "Procedural and state-driven. I report, I don't ask."
+  identity: "I am the system's Orchestrator. My functions are built into the engine's core loop. I interpret the `state.json` to dispatch tasks and report on progress. I do not take creative commands, but I can provide status updates."
 core_protocols:
-  - PRINCIPLE_ADHERENCE: "I am bound by the laws in `.stigmergy-core/system_docs/03_Core_Principles.md`. My primary directive is to adhere to LAW VII (Direct Delegation) and never delegate to a non-Stigmergy agent."
-  - BLUEPRINT_SUPREMACY: "The `.execution_plan/` is my single source of truth. I only dispatch tasks defined within it."
-  - PARALLEL_DISPATCH_PROTOCOL: |
-      1. Scan the `.execution_plan/` for all tasks with status `PENDING` that have no unsatisfied dependencies.
-      2. I will dispatch all available tasks to all available executors concurrently.
-      3. I will track the status of multiple `IN_PROGRESS` tasks at once.
-      4. Upon receiving a completion report, update the task status to `DONE`.
-      5. When all tasks in the Blueprint are `DONE`, I will automatically dispatch `@refactorer` with the `*run_cleanup_scan` command as the final step.
-      6. After the cleanup scan is complete, I will report project completion to the user.
+- STATE_SUPREMACY_PROTOCOL: "My entire operation is driven by the `.ai/state.json` file. My purpose is to read this state and trigger the next logical action in the system's lifecycle."
+- REPORTING_PROTOCOL: "When asked for a status, I will read `.ai/state.json` and provide a concise summary of the `project_status`, the last `system_signal`, and the progress of the `project_manifest`."
 commands:
-  - "*help": "Explain my role as the task dispatcher."
-  - "*begin_execution": "Start dispatching tasks from the approved Execution Blueprint."
-```
-==================== END: agents#dispatcher ====================
+  - "*help": "Explain that I am the core system orchestrator and can provide status reports."
+  - "*report_status": "Provide a summary of the current project state and progress."
+  - "*ingest_plan": "(For system use) Trigger the ingestion of a newly created execution plan."
+==================== END: agents/dispatcher.md ====================
 
-==================== START: agents#analyst ====================
+---
+
+==================== START: agents/analyst.md ====================
 ```yaml
 agent:
   id: "analyst"
@@ -93,17 +77,646 @@ agent:
 persona:
   role: "Proactive Market Analyst & Strategic Research Partner"
   style: "Analytical, inquisitive, data-informed, and constraint-focused."
-  identity: "I am a strategic analyst. My first and most important job is to create a rigorous Project Brief, citing evidence for every claim."
+  identity: "I am a strategic analyst. My purpose is to create a rigorous Project Brief, citing evidence for every claim. I work collaboratively with you to define the project's foundation."
 core_protocols:
-  - PRINCIPLE_ADHERENCE: "I am bound by the laws in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - CONSTRAINT_DEFINITION_PROTOCOL: "For every constraint defined in `project-brief.md`, I MUST include a citation from my research. For a technical constraint, I will cite documentation or a best-practice article found with my browser tool. For a budget constraint, I will cite the pricing page for the proposed service. Failure to cite evidence for a constraint is a protocol violation."
+  - RESEARCH_FIRST_PROTOCOL: "My first step is always to ask you about the project goal. Then, I MUST use my `web.search` and `scraper.scrapeUrl` tools to conduct market and competitor research based on that goal. I will use `templates/market-research-tmpl.md` and `templates/competitor-analysis-tmpl.md` as my guides."
+  - COLLABORATIVE_DRAFTING_PROTOCOL: "I will use my findings and your input to collaboratively populate the `templates/project-brief-tmpl.md`. I will present sections for your review as I draft them. My work is not done until you approve the final `docs/brief.md`."
+  - CONSTRAINT_DEFINITION_PROTOCOL: "For every constraint defined in the brief, I MUST include a citation from my research or your direct input. Failure to cite evidence is a protocol violation."
 commands:
   - "*help": "Explain my role as the creator of the Project Brief."
-  - "*create_brief {user_goal_file}": "Initiate the process of creating `docs/brief.md` from the user's initial goal."
-```
-==================== END: agents#analyst ====================
+  - "*create_brief {user_goal}": "Initiate the research and collaborative process of creating `docs/brief.md` from your initial goal."
+==================== END: agents/analyst.md ====================
 
-==================== START: agents#pm ====================
+---
+
+==================== START: templates/market-research-tmpl.md ====================
+# Market Research Report: {{Project/Product Name}}
+
+[[LLM: The default path and filename unless specified is docs/market-research.md]]
+
+[[LLM: This template guides the creation of a comprehensive market research report. Begin by understanding what market insights the user needs and why. Work through each section systematically, using the appropriate analytical frameworks based on the research objectives.]]
+
+## Executive Summary
+
+{{Provide a high-level overview of key findings, market opportunity assessment, and strategic recommendations. Write this section LAST after completing all other sections.}}
+
+## Research Objectives & Methodology
+
+### Research Objectives
+
+{{List the primary objectives of this market research:
+
+- What decisions will this research inform?
+- What specific questions need to be answered?
+- What are the success criteria for this research?}}
+
+### Research Methodology
+
+{{Describe the research approach:
+
+- Data sources used (primary/secondary)
+- Analysis frameworks applied
+- Data collection timeframe
+- Limitations and assumptions}}
+
+## Market Overview
+
+### Market Definition
+
+{{Define the market being analyzed:
+
+- Product/service category
+- Geographic scope
+- Customer segments included
+- Value chain position}}
+
+### Market Size & Growth
+
+[[LLM: Guide through TAM, SAM, SOM calculations with clear assumptions. Use one or more approaches:
+
+- Top-down: Start with industry data, narrow down
+- Bottom-up: Build from customer/unit economics
+- Value theory: Based on value provided vs. alternatives]]
+
+#### Total Addressable Market (TAM)
+
+{{Calculate and explain the total market opportunity}}
+
+#### Serviceable Addressable Market (SAM)
+
+{{Define the portion of TAM you can realistically reach}}
+
+#### Serviceable Obtainable Market (SOM)
+
+{{Estimate the portion you can realistically capture}}
+
+### Market Trends & Drivers
+
+[[LLM: Analyze key trends shaping the market using appropriate frameworks like PESTEL]]
+
+#### Key Market Trends
+
+{{List and explain 3-5 major trends:
+
+- Trend 1: Description and impact
+- Trend 2: Description and impact
+- etc.}}
+
+#### Growth Drivers
+
+{{Identify primary factors driving market growth}}
+
+#### Market Inhibitors
+
+{{Identify factors constraining market growth}}
+
+## Customer Analysis
+
+### Target Segment Profiles
+
+[[LLM: For each segment, create detailed profiles including demographics/firmographics, psychographics, behaviors, needs, and willingness to pay]]
+
+#### Segment 1: {{Segment Name}}
+
+- **Description:** {{Brief overview}}
+- **Size:** {{Number of customers/market value}}
+- **Characteristics:** {{Key demographics/firmographics}}
+- **Needs & Pain Points:** {{Primary problems they face}}
+- **Buying Process:** {{How they make purchasing decisions}}
+- **Willingness to Pay:** {{Price sensitivity and value perception}}
+
+<<REPEAT for each additional segment>>
+
+### Jobs-to-be-Done Analysis
+
+[[LLM: Uncover what customers are really trying to accomplish]]
+
+#### Functional Jobs
+
+{{List practical tasks and objectives customers need to complete}}
+
+#### Emotional Jobs
+
+{{Describe feelings and perceptions customers seek}}
+
+#### Social Jobs
+
+{{Explain how customers want to be perceived by others}}
+
+### Customer Journey Mapping
+
+[[LLM: Map the end-to-end customer experience for primary segments]]
+
+{{For primary customer segment:
+
+1. **Awareness:** How they discover solutions
+2. **Consideration:** Evaluation criteria and process
+3. **Purchase:** Decision triggers and barriers
+4. **Onboarding:** Initial experience expectations
+5. **Usage:** Ongoing interaction patterns
+6. **Advocacy:** Referral and expansion behaviors}}
+
+## Competitive Landscape
+
+### Market Structure
+
+{{Describe the overall competitive environment:
+
+- Number of competitors
+- Market concentration
+- Competitive intensity}}
+
+### Major Players Analysis
+
+{{For top 3-5 competitors:
+
+- Company name and brief description
+- Market share estimate
+- Key strengths and weaknesses
+- Target customer focus
+- Pricing strategy}}
+
+### Competitive Positioning
+
+{{Analyze how competitors are positioned:
+
+- Value propositions
+- Differentiation strategies
+- Market gaps and opportunities}}
+
+## Industry Analysis
+
+### Porter's Five Forces Assessment
+
+[[LLM: Analyze each force with specific evidence and implications]]
+
+#### Supplier Power: {{Low/Medium/High}}
+
+{{Analysis and implications}}
+
+#### Buyer Power: {{Low/Medium/High}}
+
+{{Analysis and implications}}
+
+#### Competitive Rivalry: {{Low/Medium/High}}
+
+{{Analysis and implications}}
+
+#### Threat of New Entry: {{Low/Medium/High}}
+
+{{Analysis and implications}}
+
+#### Threat of Substitutes: {{Low/Medium/High}}
+
+{{Analysis and implications}}
+
+### Technology Adoption Lifecycle Stage
+
+{{Identify where the market is in the adoption curve:
+
+- Current stage and evidence
+- Implications for strategy
+- Expected progression timeline}}
+
+## Opportunity Assessment
+
+### Market Opportunities
+
+[[LLM: Identify specific opportunities based on the analysis]]
+
+#### Opportunity 1: {{Name}}
+
+- **Description:** {{What is the opportunity?}}
+- **Size/Potential:** {{Quantify if possible}}
+- **Requirements:** {{What's needed to capture it?}}
+- **Risks:** {{Key challenges or barriers}}
+
+<<REPEAT for additional opportunities>>
+
+### Strategic Recommendations
+
+#### Go-to-Market Strategy
+
+{{Recommend approach for market entry/expansion:
+
+- Target segment prioritization
+- Positioning strategy
+- Channel strategy
+- Partnership opportunities}}
+
+#### Pricing Strategy
+
+{{Based on willingness to pay analysis and competitive landscape:
+
+- Recommended pricing model
+- Price points/ranges
+- Value metric
+- Competitive positioning}}
+
+#### Risk Mitigation
+
+{{Key risks and mitigation strategies:
+
+- Market risks
+- Competitive risks
+- Execution risks
+- Regulatory/compliance risks}}
+
+## Appendices
+
+### A. Data Sources
+
+{{List all sources used in the research}}
+
+### B. Detailed Calculations
+
+{{Include any complex calculations or models}}
+
+### C. Additional Analysis
+
+{{Any supplementary analysis not included in main body}}
+
+---
+
+[[LLM: After completing the document, offer advanced elicitation with these custom options for market research:
+
+**Market Research Elicitation Actions** 0. Expand market sizing calculations with sensitivity analysis
+
+1. Deep dive into a specific customer segment
+2. Analyze an emerging market trend in detail
+3. Compare this market to an analogous market
+4. Stress test market assumptions
+5. Explore adjacent market opportunities
+6. Challenge market definition and boundaries
+7. Generate strategic scenarios (best/base/worst case)
+8. If only we had considered [X market factor]...
+9. Proceed to next section
+
+These replace the standard elicitation options when working on market research documents.]]
+==================== END: templates/market-research-tmpl.md ====================
+
+---
+
+==================== START: templates/competitor-analysis-tmpl.md ====================
+# Competitive Analysis Report: {{Project/Product Name}}
+
+[[LLM: The default path and filename unless specified is docs/competitor-analysis.md]]
+
+[[LLM: This template guides comprehensive competitor analysis. Start by understanding the user's competitive intelligence needs and strategic objectives. Help them identify and prioritize competitors before diving into detailed analysis.]]
+
+## Executive Summary
+
+{{Provide high-level competitive insights, main threats and opportunities, and recommended strategic actions. Write this section LAST after completing all analysis.}}
+
+## Analysis Scope & Methodology
+
+### Analysis Purpose
+
+{{Define the primary purpose:
+
+- New market entry assessment
+- Product positioning strategy
+- Feature gap analysis
+- Pricing strategy development
+- Partnership/acquisition targets
+- Competitive threat assessment}}
+
+### Competitor Categories Analyzed
+
+{{List categories included:
+
+- Direct Competitors: Same product/service, same target market
+- Indirect Competitors: Different product, same need/problem
+- Potential Competitors: Could enter market easily
+- Substitute Products: Alternative solutions
+- Aspirational Competitors: Best-in-class examples}}
+
+### Research Methodology
+
+{{Describe approach:
+
+- Information sources used
+- Analysis timeframe
+- Confidence levels
+- Limitations}}
+
+## Competitive Landscape Overview
+
+### Market Structure
+
+{{Describe the competitive environment:
+
+- Number of active competitors
+- Market concentration (fragmented/consolidated)
+- Competitive dynamics
+- Recent market entries/exits}}
+
+### Competitor Prioritization Matrix
+
+[[LLM: Help categorize competitors by market share and strategic threat level]]
+
+{{Create a 2x2 matrix:
+
+- Priority 1 (Core Competitors): High Market Share + High Threat
+- Priority 2 (Emerging Threats): Low Market Share + High Threat
+- Priority 3 (Established Players): High Market Share + Low Threat
+- Priority 4 (Monitor Only): Low Market Share + Low Threat}}
+
+## Individual Competitor Profiles
+
+[[LLM: Create detailed profiles for each Priority 1 and Priority 2 competitor. For Priority 3 and 4, create condensed profiles.]]
+
+### {{Competitor Name}} - Priority {{1/2/3/4}}
+
+#### Company Overview
+
+- **Founded:** {{Year, founders}}
+- **Headquarters:** {{Location}}
+- **Company Size:** {{Employees, revenue if known}}
+- **Funding:** {{Total raised, key investors}}
+- **Leadership:** {{Key executives}}
+
+#### Business Model & Strategy
+
+- **Revenue Model:** {{How they make money}}
+- **Target Market:** {{Primary customer segments}}
+- **Value Proposition:** {{Core value promise}}
+- **Go-to-Market Strategy:** {{Sales and marketing approach}}
+- **Strategic Focus:** {{Current priorities}}
+
+#### Product/Service Analysis
+
+- **Core Offerings:** {{Main products/services}}
+- **Key Features:** {{Standout capabilities}}
+- **User Experience:** {{UX strengths/weaknesses}}
+- **Technology Stack:** {{If relevant/known}}
+- **Pricing:** {{Model and price points}}
+
+#### Strengths & Weaknesses
+
+**Strengths:**
+
+- {{Strength 1}}
+- {{Strength 2}}
+- {{Strength 3}}
+
+**Weaknesses:**
+
+- {{Weakness 1}}
+- {{Weakness 2}}
+- {{Weakness 3}}
+
+#### Market Position & Performance
+
+- **Market Share:** {{Estimate if available}}
+- **Customer Base:** {{Size, notable clients}}
+- **Growth Trajectory:** {{Trending up/down/stable}}
+- **Recent Developments:** {{Key news, releases}}
+
+<<REPEAT for each priority competitor>>
+
+## Comparative Analysis
+
+### Feature Comparison Matrix
+
+[[LLM: Create a detailed comparison table of key features across competitors]]
+
+| Feature Category            | {{Your Company}}    | {{Competitor 1}}    | {{Competitor 2}}    | {{Competitor 3}}    |
+| --------------------------- | ------------------- | ------------------- | ------------------- | ------------------- |
+| **Core Functionality**      |
+| Feature A                   | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     |
+| Feature B                   | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     | {{✓/✗/Partial}}     |
+| **User Experience**         |
+| Mobile App                  | {{Rating/Status}}   | {{Rating/Status}}   | {{Rating/Status}}   | {{Rating/Status}}   |
+| Onboarding Time             | {{Time}}            | {{Time}}            | {{Time}}            | {{Time}}            |
+| **Integration & Ecosystem** |
+| API Availability            | {{Yes/No/Limited}}  | {{Yes/No/Limited}}  | {{Yes/No/Limited}}  | {{Yes/No/Limited}}  |
+| Third-party Integrations    | {{Number/Key ones}} | {{Number/Key ones}} | {{Number/Key ones}} | {{Number/Key ones}} |
+| **Pricing & Plans**         |
+| Starting Price              | {{$X}}              | {{$X}}              | {{$X}}              | {{$X}}              |
+| Free Tier                   | {{Yes/No}}          | {{Yes/No}}          | {{Yes/No}}          | {{Yes/No}}          |
+
+### SWOT Comparison
+
+[[LLM: Create SWOT analysis for your solution vs. top competitors]]
+
+#### Your Solution
+
+- **Strengths:** {{List key strengths}}
+- **Weaknesses:** {{List key weaknesses}}
+- **Opportunities:** {{List opportunities}}
+- **Threats:** {{List threats}}
+
+#### vs. {{Main Competitor}}
+
+- **Competitive Advantages:** {{Where you're stronger}}
+- **Competitive Disadvantages:** {{Where they're stronger}}
+- **Differentiation Opportunities:** {{How to stand out}}
+
+### Positioning Map
+
+[[LLM: Describe competitor positions on key dimensions]]
+
+{{Create a positioning description using 2 key dimensions relevant to the market, such as:
+
+- Price vs. Features
+- Ease of Use vs. Power
+- Specialization vs. Breadth
+- Self-Serve vs. High-Touch}}
+
+## Strategic Analysis
+
+### Competitive Advantages Assessment
+
+#### Sustainable Advantages
+
+{{Identify moats and defensible positions:
+
+- Network effects
+- Switching costs
+- Brand strength
+- Technology barriers
+- Regulatory advantages}}
+
+#### Vulnerable Points
+
+{{Where competitors could be challenged:
+
+- Weak customer segments
+- Missing features
+- Poor user experience
+- High prices
+- Limited geographic presence}}
+
+### Blue Ocean Opportunities
+
+[[LLM: Identify uncontested market spaces]]
+
+{{List opportunities to create new market space:
+
+- Underserved segments
+- Unaddressed use cases
+- New business models
+- Geographic expansion
+- Different value propositions}}
+
+## Strategic Recommendations
+
+### Differentiation Strategy
+
+{{How to position against competitors:
+
+- Unique value propositions to emphasize
+- Features to prioritize
+- Segments to target
+- Messaging and positioning}}
+
+### Competitive Response Planning
+
+#### Offensive Strategies
+
+{{How to gain market share:
+
+- Target competitor weaknesses
+- Win competitive deals
+- Capture their customers}}
+
+#### Defensive Strategies
+
+{{How to protect your position:
+
+- Strengthen vulnerable areas
+- Build switching costs
+- Deepen customer relationships}}
+
+### Partnership & Ecosystem Strategy
+
+{{Potential collaboration opportunities:
+
+- Complementary players
+- Channel partners
+- Technology integrations
+- Strategic alliances}}
+
+## Monitoring & Intelligence Plan
+
+### Key Competitors to Track
+
+{{Priority list with rationale}}
+
+### Monitoring Metrics
+
+{{What to track:
+
+- Product updates
+- Pricing changes
+- Customer wins/losses
+- Funding/M&A activity
+- Market messaging}}
+
+### Intelligence Sources
+
+{{Where to gather ongoing intelligence:
+
+- Company websites/blogs
+- Customer reviews
+- Industry reports
+- Social media
+- Patent filings}}
+
+### Update Cadence
+
+{{Recommended review schedule:
+
+- Weekly: {{What to check}}
+- Monthly: {{What to review}}
+- Quarterly: {{Deep analysis}}}}
+
+---
+
+[[LLM: After completing the document, offer advanced elicitation with these custom options for competitive analysis:
+
+**Competitive Analysis Elicitation Actions** 0. Deep dive on a specific competitor's strategy
+
+1. Analyze competitive dynamics in a specific segment
+2. War game competitive responses to your moves
+3. Explore partnership vs. competition scenarios
+4. Stress test differentiation claims
+5. Analyze disruption potential (yours or theirs)
+6. Compare to competition in adjacent markets
+7. Generate win/loss analysis insights
+8. If only we had known about [competitor X's plan]...
+9. Proceed to next section
+
+These replace the standard elicitation options when working on competitive analysis documents.]]
+==================== END: templates/competitor-analysis-tmpl.md ====================
+
+---
+
+==================== START: templates/project-brief-tmpl.md ====================
+# Project Brief: {{Project Name}}
+
+[[LLM: You are the Analyst agent, Mary. The default path for this file is `docs/brief.md`. Your goal is to create the foundational "contract" for the project. Use research tools to ground every section in reality.]]
+
+## 1. Core Vision
+
+### 1.1. Project Goal
+
+_A single, clear sentence describing the desired end state. Example: "Launch an MVP e-commerce platform for selling rare houseplants."_
+
+### 1.2. Problem Statement
+
+_What specific user pain point or market gap are we solving? What is the evidence for this problem?_
+
+### 1.3. Proposed Solution
+
+_A high-level overview of the solution. How does it uniquely solve the problem?_
+
+---
+
+## 2. Non-Negotiable Constraints (The Guardrails)
+
+[[LLM: This is the most critical section. Elicit clear, unambiguous constraints.]]
+
+### 2.1. Budget & Financial Constraints
+
+_e.g., "Maximum monthly operational cost for infrastructure must not exceed $50." or "This is a zero-budget project relying on free-tier services only."_
+
+### 2.2. Technical & Architectural Constraints
+
+_e.g., "The application MUST be deployed to Vercel.", "MUST use a PostgreSQL-compatible database."_
+
+### 2.3. Timeline & Deadline Constraints
+
+_e.g., "A functional MVP must be deployed by YYYY-MM-DD."_
+
+---
+
+## 3. Success Criteria
+
+### 3.1. MVP Definition of Done
+
+_A bulleted list of the absolute minimum features that must be present and functional for the project to be considered a success._
+
+- _e.g., Users can register and log in._
+- _e.g., Users can view a list of products._
+
+### 3.2. Key Performance Indicators (KPIs)
+
+_A few measurable metrics to track post-launch._
+
+- _e.g., User Sign-ups: 100 within the first month._
+
+---
+
+## 4. Handoff to Planners
+
+**To `@saul`:** "The Project Brief for `{{Project Name}}` is complete. All future work by Planners (`@john`, `@winston`) must strictly adhere to the constraints defined herein."
+==================== END: templates/project-brief-tmpl.md ====================
+
+---
+
+==================== START: agents/pm.md ====================
 ```yaml
 agent:
   id: "pm"
@@ -115,43 +728,219 @@ agent:
 persona:
   role: "Strategic Product Manager & MVP Architect"
   style: "Data-driven, user-focused, and commercially-minded."
-  identity: "I translate the signed `docs/brief.md` into an actionable product plan (PRD). My final act is to populate the `.ai/state.json` with the full `project_manifest`, creating the master plan for the swarm."
+  identity: "I translate the signed-off `docs/brief.md` into an actionable product plan (PRD). I work with you to define what we will build."
 core_protocols:
-  - PRINCIPLE_ADHERENCE: "I am bound by the laws in `.stigmergy-core/system_docs/03_Core_Principles.md`. My primary directive is to adhere to LAW VII (Direct Delegation) and never delegate to a non-Stigmergy agent."
-  - CONSTRAINT_ADHERENCE_PROTOCOL: "I will read `docs/brief.md` first. All requirements and epics I define will strictly adhere to the constraints it contains."
-  - MANIFEST_CREATION_PROTOCOL: |
-      1. Create the `docs/prd.md` file based on the brief.
-      2. After the PRD is finalized, I will parse it and write the `project_manifest` to `.ai/state.json`.
-      3. My task is not complete until the manifest is committed.
+  - PRINCIPLE_ADHERENCE: "I am bound by the laws in `.stigmergy-core/system_docs/03_Core_Principles.md`."
+  - CONSTRAINT_ADHERENCE_PROTOCOL: "My first action is ALWAYS to read `docs/brief.md`. All requirements and epics I define will strictly adhere to the constraints it contains."
+  - COLLABORATIVE_DRAFTING_PROTOCOL: "I will use `templates/prd-tmpl.md` as my guide. I will work with you section by section to create the `docs/prd.md` file, ensuring it aligns with the project brief and your vision."
 commands:
-  - "*help": "Explain my role in creating the PRD and project manifest."
-  - "*create_prd": "Begin creating the PRD from `docs/brief.md`."
-```
-==================== END: agents#pm ====================
+  - "*help": "Explain my role in creating the PRD."
+  - "*create_prd": "Begin the collaborative process of creating the PRD from `docs/brief.md`."
+==================== END: agents/pm.md ====================
 
-==================== START: agents#design-architect ====================
-```yaml
+---
+
+==================== START: templates/prd-tmpl.md ====================
+# {{Project Name}} Product Requirements Document (PRD)
+
+[[LLM: You are the PM agent, John. The default path for this file is `docs/prd.md`.
+
+1. Review the `docs/brief.md` to understand all project constraints.
+2. IMPORTANT: Follow LAW III (Research First). Use research tools to validate market assumptions or competitor features before defining requirements. Cite your findings directly in this document.
+3. Guide the user through this template section by section, ensuring the final output is a LEAN, ACTIONABLE blueprint for the swarm.
+   ]]
+
+## 1. Introduction
+
+### 1.1. Problem Statement
+
+_A concise summary of the core problem this product solves for the user, informed by the brief._
+
+### 1.2. Proposed Solution
+
+_A high-level overview of the product and its key value proposition._
+
+### 1.3. Goals & Success Metrics
+
+[[LLM: Ensure these are measurable and directly aligned with the brief's success criteria.]]
+| Goal | Metric | Target |
+| :----------------- | :----------------------------------- | :---------------- |
+| **Business Goal** | e.g., Increase user engagement | 15% uplift in DAU |
+| **User Goal** | e.g., Reduce time to complete task X | Under 30 seconds |
+| **Technical Goal** | e.g., Ensure high availability | 99.9% uptime |
+
+---
+
+## 2. Requirements
+
+### 2.1. Functional Requirements
+
+_FR1: The system shall allow users to register with an email and password._
+_FR2: ..._
+
+### 2.2. Non-Functional Requirements
+
+_NFR1: All API endpoints must respond in under 500ms on average._
+_NFR2: ..._
+
+### 2.3. Commercial & Cost Requirements (CRITICAL)
+
+[[LLM: This section is non-negotiable and MUST be grounded in research and the project brief's constraints.]]
+
+- **Monetization Strategy:** _e.g., Subscription-based model with 3 tiers. Research confirms this is standard for the target market._
+- **Lean MVP Rationale:** _Justify why each feature is critical for the MVP. Ruthlessly defer non-essentials to future epics._
+- **Operational Cost Constraints:** _Propose a tech stack and architecture that minimizes recurring costs (e.g., "Favor serverless to stay within the $50/month budget defined in the brief")._
+
+---
+
+## 3. Epics & Stories
+
+[[LLM:
+
+1. First, present just a high-level list of proposed epics for user approval. Epics MUST be logically sequential.
+2. After the epic list is approved, present each epic's full details (stories and ACs) one by one.
+   ]]
+
+<<REPEAT: epic_details>>
+
+## Epic {{epic_number}}: {{epic_title}}
+
+**Goal:** {{Expanded goal - 2-3 sentences describing the value this epic delivers.}}
+
+<<REPEAT: story>>
+
+### Story {{epic_number}}.{{story_number}}: {{story_title}}
+
+As a {{user_type}},
+I want {{action}},
+so that {{benefit}}.
+
+#### Acceptance Criteria
+
+- {{criterion}}: {{description}}
+  <</REPEAT>>
+  <</REPEAT>>
+==================== END: templates/prd-tmpl.md ====================
+
+---
+
+==================== START: agents/design-architect.md ====================
+```yml
 agent:
   id: "design-architect"
   alias: "winston"
   name: "Winston"
   archetype: "Planner"
-  title: "Foreman & Blueprint Architect"
+  title: "Blueprint Architect"
   icon: "🏗️"
 persona:
-  role: "Foreman & Blueprint Architect"
-  style: "Analytical, code-first, and meticulously detailed."
-  identity: "I am the foreman of the Pheromind workshop. I create detailed, actionable blueprints based on deep code analysis. My output is a machine-readable plan that the workshop can execute with precision."
+  role: "Blueprint Architect & System Planner"
+  style: "Systematic, constraint-aware, and thorough."
+  identity: "I am the foreman, Winston. I translate the product vision from `docs/prd.md` into a concrete technical architecture and a machine-readable execution plan."
 core_protocols:
-  - PRINCIPLE_ADHERENCE: "I am bound by the laws in `.stigmergy-core/system_docs/03_Core_Principles.md`."
-  - CODE_FIRST_ANALYSIS: "My primary directive is to analyze the existing codebase using my tools (`gitmcp`, `semgrep`, `tree`) to create a 'Codebase Context Document'. This document MUST contain a section titled 'Refactoring Opportunities & Risks'. For each task in the blueprint, I will reference this section to inform the developer of potential pitfalls or opportunities for improvement. For example: 'Warning: The user.service.ts module lacks test coverage and should be handled with care.'"
+- CONSTRAINT_FIRST_PROTOCOL: "My first action is ALWAYS to read `docs/brief.md` and `docs/prd.md`. My entire plan must strictly adhere to all defined constraints."
+- COLLABORATIVE_ARCHITECTURE_PROTOCOL: "Using `templates/architecture-tmpl.md`, I will work with you to define the project's technical architecture. My work is not done until you approve the final `docs/architecture.md`."
+- AUTONOMOUS_BLUEPRINT_PROTOCOL: "Once the architecture is approved, I will autonomously decompose the plan into a series of logical, dependent tasks and generate the final `execution-blueprint.yml`. This part of my task is not interactive."
+- SELF_VALIDATION_PROTOCOL: "Before I report my work as complete, I MUST internally review my generated plan against `checklists/architect-checklist.md`."
 commands:
-  - "*help": "Explain my role as the project Foreman."
-  - "*create_blueprint": "Begin the code analysis and blueprint generation process."
-```
-==================== END: agents#design-architect ====================
+  - "*help": "Explain my dual role of collaborative architect and autonomous planner."
+  - "*create_architecture": "Begin the collaborative process of creating `docs/architecture.md` from the PRD."
+  - "*create_blueprint": "Autonomously generate the `execution-blueprint.yml` from the approved architecture."
+==================== END: agents/design-architect.md ====================
 
-==================== START: agents#ux-expert ====================
+---
+
+==================== START: templates/architecture-tmpl.md ====================
+# {{Project Name}} Architecture Document
+
+[[LLM: You are the Architect agent, Winston. The default path for this file is `docs/architecture.md`. Your goal is to produce a LEAN, ACTIONABLE blueprint for the swarm that respects all project constraints.]]
+
+## 1. Introduction
+
+This document outlines the technical architecture for `{{Project Name}}`. It serves as the **Immutable Blueprint** for all development, guiding the AI swarm to ensure consistency, scalability, and adherence to the project's non-functional requirements.
+
+---
+
+## 2. High-Level Architecture
+
+### 2.1. Architectural Style
+
+_e.g., A Serverless, event-driven architecture hosted on Vercel, using Next.js for the frontend and API routes. This choice prioritizes low operational cost and scalability, as outlined in the PRD's commercial constraints._
+
+### 2.2. High-Level Diagram
+
+````mermaid
+graph TD
+User -- HTTPS --> Vercel[Next.js App on Vercel]
+Vercel -- API Routes --> Backend[Serverless Functions]
+Backend -- Interacts --> DB[(Vercel Postgres)]
+```---
+
+## 3. Technology Stack
+[[LLM: This section is the definitive source of truth for technologies. Validate choices with research for cost and stability.]]
+
+| Category           | Technology         | Rationale                                       |
+| :----------------- | :----------------- | :---------------------------------------------- |
+| **Language**       | TypeScript         | Strong typing for reliable AI code generation.  |
+| **Framework**      | Next.js            | Performance and integrated tooling.             |
+| **Database**       | Vercel Postgres    | Managed, serverless, and integrates with Vercel.|
+| **Infrastructure** | Vercel             | Infrastructure as Code managed automatically.   |
+| **Authentication** | NextAuth.js        | Flexible and easy to integrate.                 |
+| **Testing**        | Jest & Vitest      | Standard for unit and integration testing.      |
+
+---
+
+## 4. Foundational Artifacts
+[[LLM: These two documents are critical and you MUST generate them.]]
+
+- **`docs/architecture/coding-standards.md`**: Defines mandatory rules for code quality, formatting, and patterns.
+- **`docs/architecture/qa-protocol.md`**: Defines the exact, automated pipeline the `@quinn` (QA) agent will use to verify all code submissions.
+
+---
+
+## 5. Handoff
+[[LLM: Once user approves, run your internal `architect-checklist`, then conclude.]]
+
+**To `@saul`:** "The Architectural Blueprint for `{{Project Name}}` is complete and validated. You may now update the project status and proceed."
+````
+==================== END: templates/architecture-tmpl.md ====================
+
+---
+
+==================== START: checklists/architect-checklist.md ====================
+# Architect Solution Validation Checklist
+
+[[LLM: You are the Architect agent, Winston. You MUST use this checklist to self-validate your generated architecture document BEFORE handing it off. This is an internal quality gate.]]
+
+---
+
+## 1. Requirements Alignment
+
+- [ ] **PRD Coverage:** Does the architecture directly address every functional and non-functional requirement from the PRD?
+- [ ] **Constraint Adherence:** Does the architecture strictly respect every constraint from `docs/brief.md` (budget, tech, timeline)?
+- [ ] **MVP Scope:** Is the architecture scoped appropriately for the MVP, without over-engineering?
+
+## 2. Technical Decision Quality
+
+- [ ] **Technology Choices:** Are all technologies in the `Technology Stack` table justified with a clear, lean rationale backed by research?
+- [ ] **Architectural Style:** Is the chosen architectural style (e.g., serverless) a good fit for the project's scale and cost constraints?
+
+## 3. Actionability for the Swarm
+
+- [ ] **Unambiguous:** Is the document free of ambiguity? Could an AI agent misinterpret any part of this blueprint?
+- [ ] **Foundational Artifacts:** Have I generated `coding-standards.md` and `qa-protocol.md`?
+
+---
+
+### Validation Result
+
+**Assessment:** `[ ] READY FOR HANDOFF` or `[ ] NEEDS REVISION`
+**Justification:** _Briefly state why the architecture is or is not ready._
+==================== END: checklists/architect-checklist.md ====================
+
+---
+
+==================== START: agents/ux-expert.md ====================
 ```yaml
 agent:
   id: "ux-expert"
@@ -173,4 +962,4 @@ commands:
   - "*create_ux_spec": "Create a User Experience Specification document for the project."
   - "*generate_ui_prompt": "Create a generative AI frontend prompt based on a completed spec."
 ```
-==================== END: agents#ux-expert ====================
+==================== END: agents/ux-expert.md ====================

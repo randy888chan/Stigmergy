@@ -1,6 +1,7 @@
 const fs = require("fs-extra");
 const path = require("path");
 const yaml = require("js-yaml");
+const chalk = require("chalk"); // THIS LINE IS THE FIX
 const { marked } = require("marked");
 
 class DependencyResolver {
@@ -26,13 +27,18 @@ class DependencyResolver {
     while (queue.length > 0) {
       const currentPath = queue.shift();
       const fullPath = path.join(this.stigmergyCore, currentPath);
+
+      if (!(await fs.pathExists(fullPath))) {
+        console.warn(chalk.yellow(`Warning: Dependency not found, skipping: ${currentPath}`));
+        continue;
+      }
       const content = await this.parseFile(fullPath);
       dependencies.set(currentPath, content);
 
-      const pathRegex = /[`'"]?([a-zA-Z0-9_\-\/]+\.(md|yml|yaml|json))[`'"]?/g;
+      const pathRegex = /[`'"](\.\/|[\w-]+(?:\/[\w-]+)+\.(?:md|yml|yaml|json))[`'"]/g;
+
       let match;
       while ((match = pathRegex.exec(content)) !== null) {
-        // THIS IS THE FIX: Use match[1] which is the captured string, not the whole match array.
         const foundPath = path.normalize(match[1]);
         if (foundPath && !visited.has(foundPath)) {
           visited.add(foundPath);
