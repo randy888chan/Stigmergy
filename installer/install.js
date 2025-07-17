@@ -9,21 +9,7 @@ require("dotenv").config();
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 const CORE_DEST_DIR = path.join(CWD, ".stigmergy-core");
-const ROO_MODES_PATH = path.join(CWD, ".roomodes.js"); // Using .js extension for clarity
-
-// Safely require a module, returning a default if it fails or is invalid
-function safeRequire(filePath) {
-  try {
-    // Bust the require cache to get the latest version on each run
-    delete require.cache[require.resolve(filePath)];
-    return require(filePath);
-  } catch (e) {
-    console.warn(
-      chalk.yellow(`Could not parse existing .roomodes.js file. A new one will be created.`)
-    );
-    return {}; // Return an empty object if file doesn't exist or is invalid
-  }
-}
+const ROO_MODES_PATH = path.join(CWD, ".roomodes");
 
 async function run() {
   const spinner = ora("🚀 Welcome to the Pheromind Framework Installer.").start();
@@ -34,7 +20,7 @@ async function run() {
 
     spinner.text = `Configuring IDE (${path.basename(ROO_MODES_PATH)})...`;
     await configureIde();
-    spinner.succeed(`IDE configuration updated.`);
+    spinner.succeed(`IDE configuration created at .roomodes.`);
 
     console.log(chalk.bold.green("\n✅ Installation complete!"));
   } catch (error) {
@@ -73,30 +59,24 @@ async function configureIde() {
 
   const sortedNewModes = newModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  // Read existing config safely
-  const existingConfig = (await fs.pathExists(ROO_MODES_PATH)) ? safeRequire(ROO_MODES_PATH) : {};
-  const existingModes = existingConfig.customModes || [];
+  // Manually build the string to ensure unquoted keys
+  let modesString = "[\n";
+  sortedNewModes.forEach((mode, index) => {
+    modesString += `    {\n`;
+    modesString += `      slug: "${mode.slug}",\n`; // unquoted key
+    modesString += `      name: "${mode.name}",\n`; // unquoted key
+    modesString += `      api: ${JSON.stringify(mode.api, null, 4).replace(/\n/g, "\n      ")},\n`; // inner object is fine
+    modesString += `      groups: ${JSON.stringify(mode.groups)}\n`; // unquoted key
+    modesString += `    }${index < sortedNewModes.length - 1 ? "," : ""}\n`;
+  });
+  modesString += "  ]";
 
-  // Filter out any old Pheromind modes to ensure a clean update
-  const otherUserModes = existingModes.filter((mode) => !mode.groups?.includes("pheromind-agent"));
-
-  // Combine the user's other modes with our new, updated modes
-  const finalModes = [...otherUserModes, ...sortedNewModes];
-
-  // Create the final configuration object, preserving other exports
-  const finalConfigObject = {
-    ...existingConfig,
-    customModes: finalModes,
-  };
-
-  // Convert the JavaScript object to a formatted string
-  // This is more robust than simple JSON.stringify
-  const fileContent = `// Pheromind & Roo Code Configuration
-// This file is managed by the Pheromind installer.
-// User-defined modes will be preserved.
-
-module.exports = ${JSON.stringify(finalConfigObject, null, 2)};
-`;
+  const fileContent = `
+// Pheromind & Roo Code Configuration
+module.exports = {
+  customModes: ${modesString}
+};
+  `.trim();
 
   await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
 }
