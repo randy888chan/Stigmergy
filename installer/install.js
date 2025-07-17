@@ -4,15 +4,26 @@ const yaml = require("js-yaml");
 const chalk = require("chalk");
 const ora = require("ora");
 
-require('dotenv').config();
+require("dotenv").config();
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 const CORE_DEST_DIR = path.join(CWD, ".stigmergy-core");
-const ROO_MODES_PATH = path.join(CWD, ".roomodes");
+const ROO_MODES_PATH = path.join(CWD, ".roomodes.js"); // Using .js extension for clarity
 
-const PHEROMIND_CONFIG_START_MARKER = "// --- PHEROMIND MODES START ---";
-const PHEROMIND_CONFIG_END_MARKER = "// --- PHEROMIND MODES END ---";
+// Safely require a module, returning a default if it fails or is invalid
+function safeRequire(filePath) {
+  try {
+    // Bust the require cache to get the latest version on each run
+    delete require.cache[require.resolve(filePath)];
+    return require(filePath);
+  } catch (e) {
+    console.warn(
+      chalk.yellow(`Could not parse existing .roomodes.js file. A new one will be created.`)
+    );
+    return {}; // Return an empty object if file doesn't exist or is invalid
+  }
+}
 
 async function run() {
   const spinner = ora("🚀 Welcome to the Pheromind Framework Installer.").start();
@@ -33,7 +44,7 @@ async function run() {
 }
 
 async function configureIde() {
-  const customModes = [];
+  const newModes = [];
   const ENGINE_URL = `http://localhost:${process.env.PORT || 3000}`;
 
   const agentFiles = await fs.readdir(path.join(CORE_DEST_DIR, "agents"));
@@ -47,7 +58,7 @@ async function configureIde() {
     const agentConfig = config?.agent;
     if (!agentConfig?.alias) continue;
 
-    customModes.push({
+    newModes.push({
       slug: agentConfig.alias,
       name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
       api: {
@@ -60,24 +71,34 @@ async function configureIde() {
     });
   }
 
-  const sortedModes = customModes.sort((a, b) => a.name.localeCompare(b.name));
-  const configString = `  customModes: ${JSON.stringify(sortedModes, null, 2).replace(/\n/g, '\n  ')}`;
-  const newConfigBlock = `${PHEROMIND_CONFIG_START_MARKER}\n${configString},\n${PHEROMIND_CONFIG_END_MARKER}`;
+  const sortedNewModes = newModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  let finalContent;
-  if (await fs.pathExists(ROO_MODES_PATH)) {
-    const content = await fs.readFile(ROO_MODES_PATH, "utf8");
-    const markerRegex = new RegExp(`${PHEROMIND_CONFIG_START_MARKER}[\\s\\S]*?${PHEROMIND_CONFIG_END_MARKER}`, "s");
-    if (markerRegex.test(content)) {
-        finalContent = content.replace(markerRegex, newConfigBlock);
-    } else {
-        // A simple append strategy for now
-        finalContent = `${content.trim().slice(0, -1)},\n${newConfigBlock}\n}`;
-    }
-  } else {
-    finalContent = `// Roo Code Configuration\nmodule.exports = {\n${configString}\n};\n`;
-  }
-  await fs.writeFile(ROO_MODES_PATH, finalContent, "utf8");
+  // Read existing config safely
+  const existingConfig = (await fs.pathExists(ROO_MODES_PATH)) ? safeRequire(ROO_MODES_PATH) : {};
+  const existingModes = existingConfig.customModes || [];
+
+  // Filter out any old Pheromind modes to ensure a clean update
+  const otherUserModes = existingModes.filter((mode) => !mode.groups?.includes("pheromind-agent"));
+
+  // Combine the user's other modes with our new, updated modes
+  const finalModes = [...otherUserModes, ...sortedNewModes];
+
+  // Create the final configuration object, preserving other exports
+  const finalConfigObject = {
+    ...existingConfig,
+    customModes: finalModes,
+  };
+
+  // Convert the JavaScript object to a formatted string
+  // This is more robust than simple JSON.stringify
+  const fileContent = `// Pheromind & Roo Code Configuration
+// This file is managed by the Pheromind installer.
+// User-defined modes will be preserved.
+
+module.exports = ${JSON.stringify(finalConfigObject, null, 2)};
+`;
+
+  await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
 }
 
 module.exports = { run };

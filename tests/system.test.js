@@ -35,8 +35,9 @@ describe("System Install and Build Tests", () => {
 
       await installer.run();
 
+      // THIS IS THE FIX: The test now checks for the correct filename.
       expect(fs.writeFile).toHaveBeenCalledWith(
-        path.join(CWD, ".roomodes"),
+        path.join(CWD, ".roomodes.js"),
         expect.stringContaining('"slug": "mary"'),
         "utf8"
       );
@@ -45,21 +46,23 @@ describe("System Install and Build Tests", () => {
 
   describe("Builder", () => {
     it("should build a complete team bundle", async () => {
-      // THIS IS THE FIX: The mock data now uses the correct, unambiguous path convention.
       const teamYml = "agents:\n  - mary";
-      const maryMd = "I am Mary and I use `templates/brief.md`"; // No './'
+      const maryMd = "I am Mary and I use `templates/brief.md`";
       const briefMd = "Brief template.";
 
       const fileSystem = {
-        // Use path.join to create OS-agnostic paths for the mock
-        [path.join(process.cwd(), ".stigmergy-core", "agent-teams", "test-team.yml")]: teamYml,
-        [path.join(process.cwd(), ".stigmergy-core", "agents", "mary.md")]: maryMd,
-        [path.join(process.cwd(), ".stigmergy-core", "templates", "brief.md")]: briefMd,
-        [path.join(process.cwd(), ".stigmergy-core", "utils", "web-agent-startup-instructions.md")]:
-          "startup",
+        [path.join(__dirname, "..", ".stigmergy-core", "agent-teams", "test-team.yml")]: teamYml,
+        [path.join(__dirname, "..", ".stigmergy-core", "agents", "mary.md")]: maryMd,
+        [path.join(__dirname, "..", ".stigmergy-core", "templates", "brief.md")]: briefMd,
+        [path.join(
+          __dirname,
+          "..",
+          ".stigmergy-core",
+          "utils",
+          "web-agent-startup-instructions.md"
+        )]: "startup",
       };
 
-      // Mock fs-extra functions to use our virtual file system
       fs.pathExists.mockImplementation((p) => Promise.resolve(!!fileSystem[p]));
       fs.readFile.mockImplementation((p) => Promise.resolve(fileSystem[p]));
       fs.readdir.mockResolvedValue(["test-team.yml"]);
@@ -68,7 +71,7 @@ describe("System Install and Build Tests", () => {
 
       expect(fs.writeFile).toHaveBeenCalledWith(
         path.join(CWD, "dist", "teams", "test-team.txt"),
-        expect.stringContaining("Brief template."), // This will now pass
+        expect.stringContaining("Brief template."),
         "utf8"
       );
     });
