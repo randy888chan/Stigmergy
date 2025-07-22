@@ -7,12 +7,24 @@ const web = require('../tools/web');
 const scraper = require('../tools/scraper');
 const codeGraph = require('../tools/code_graph');
 
+// NEW: System tool for internal actions
+const system = {
+    requestSecret: async ({ reason, key_name }) => {
+        const err = new Error(reason);
+        err.name = "MissingSecretError";
+        err.key_name = key_name;
+        throw err;
+    },
+    // Can be expanded with other system-level agent actions
+};
+
 const toolbelt = {
   'file_system': fileSystem,
   'shell': shell,
   'web': web,
   'scraper': scraper,
   'code_graph': codeGraph,
+  'system': system
 };
 
 const MANIFEST_PATH = path.join(__dirname, '..', '.stigmergy-core', 'system_docs', '02_Agent_Manifest.md');
@@ -42,16 +54,21 @@ async function execute(toolFullName, args, agentId) {
   if (!agentConfig) {
       throw new Error(`Agent with ID '${agentId}' not found in manifest. Cannot execute tool.`);
   }
-
   if (!agentConfig.tools?.includes(toolFullName)) {
       throw new Error(`Agent '${agentId}' is not authorized to use tool '${toolFullName}'.`);
   }
-
   if (toolFullName === 'shell.execute') {
       const permittedCommands = agentConfig.permitted_shell_commands || [];
       if (!permittedCommands.includes(args.command)) {
           throw new Error(`Agent '${agentId}' is not authorized to execute the command: "${args.command}"`);
       }
+  }
+  // Check for required API keys, now handled in the tools themselves to be cleaner.
+  if (toolFullName === 'web.search' && !process.env.SEARCH_API_KEY) {
+     const err = new Error("Web search requires an API key (e.g., SERPER_API_KEY).");
+     err.name = "MissingApiKeyError";
+     err.key_name = "SEARCH_API_KEY";
+     throw err;
   }
 
   return await toolbelt[namespace][toolName](args);
