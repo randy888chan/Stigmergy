@@ -1,26 +1,36 @@
-# Pheromind System Architecture & Operations Manual
+# Stigmergy System Architecture & Operations Manual (v1.0)
 
-This document describes the high-level architecture and immutable operational rules of the Pheromind Autonomous AI Development System. This is a core part of the **System Constitution**.
+This document describes the high-level architecture and operational rules of the Stigmergy Autonomous AI Development System. This is a core part of the **System Constitution**.
 
-## Core Concept: The State-Driven Loop
+## Core Concept: Uninterruptible, State-Driven Phases
 
-The system operates on a single, continuous work cycle driven by the **Chief Strategist (`@saul`)**. This cycle is not a rigid script but a dynamic loop that reacts to "digital pheromones"—the system's shared state.
+The system operates on a single, continuous work cycle driven by the project's state (`.ai/state.json`). This cycle is not a rigid script but a dynamic state machine that progresses through five distinct, largely uninterruptible phases.
 
-The **`.ai/state.json`** file is the central nervous system of the swarm. It is the sole source of truth for project status and agent coordination.
+1.  **Phase I: The Grand Blueprint (Fully Autonomous)**
+    *   **Trigger:** The user issues a single `start project` command via chat.
+    *   **Process:** A chain of specialized Planner agents is dispatched to create a complete project plan. This includes the Brief, PRD, Architecture, a machine-readable `execution-blueprint.yml`, and a story file for every single task. During this phase, the system also indexes the project's existing code into its Neo4j knowledge graph.
+    *   **User Interaction:** None.
 
-## The Pheromind Cycle: A Unified Workflow
+2.  **Phase II: The Go/No-Go Decision (Single User Interaction)**
+    *   **Trigger:** The "Grand Blueprint" is complete.
+    *   **Process:** The system halts and notifies the user that the entire plan is ready for a final review and approval.
+    *   **User Interaction:** One natural language command to approve execution.
 
-1.  **State Interpretation (Saul):**
+3.  **Phase III: Autonomous Execution (Fully Autonomous)**
+    *   **Trigger:** The user grants approval.
+    *   **Process:** The engine begins executing the blueprint task by task. Executor agents leverage the Neo4j CodeRAG to automatically pull in context about the code they are modifying, dramatically improving accuracy.
+    *   **User Interaction:** None.
 
-    - **Input:** At the start of every cycle, Saul's first action is to read `.ai/state.json`.
-    - **Action:** He acts as the **System Interpreter**, deciding the single most important next step based on his constitutional logic and the Agent Manifest.
+4.  **Phase IV: Deployment & Finalization (Minimal User Interaction)**
+    *   **Trigger:** All coding tasks are complete.
+    *   **Process:** The system runs final deployment and testing scripts.
+    *   **User Interaction:** The system will pause and request any required secrets (API keys, wallet keys) in a single batch.
 
-2.  **Strategic Dispatch (Saul):**
+5.  **Phase V: Self-Improvement (Fully Autonomous)**
+    *   **Trigger:** The project is marked as complete.
+    *   **Process:** The `@metis` agent analyzes the entire project history to find inefficiencies and propose improvements for *future* projects, which are saved for human review. This respects the immutability of the just-completed plan.
+    *   **User Interaction:** None.
 
-    - **Action:** Based on his interpretation, Saul acts as the **Chief Orchestrator**, dispatching one specialist agent to perform a specific task. He then enters a waiting state.
+## Tooling & IDE Integration (MCPs)
 
-3.  **Specialized Execution & Verification (The Swarm):**
-    - **Input:** A specialist agent receives a direct command.
-    - **Action:** The agent performs its narrowly defined task (e.g., `@john` creates the manifest; `@olivia` manages a story's execution).
-    - **Verification:** An Executor's work is followed by a Verifier's programmatic check (`@quinn` runs tests).
-    - **Output:** Upon task completion, the agent's final act is to report back to Saul by leaving a new `system_signal` in the `state.json` file. This "pheromone" is the trigger for Saul's next interpretation cycle.
+Stigmergy supports a hybrid tooling model. Agents can either use their internal, engine-native tools (e.g., `web.search` making an API call) or they can delegate tool execution to the user's IDE via an `IDE_COMMAND`. This allows Stigmergy to leverage the user's existing, pre-configured extensions like Brave Search or Firecrawl MCPs for a more seamless and powerful experience.
