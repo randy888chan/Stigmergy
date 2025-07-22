@@ -1,21 +1,41 @@
 const fs = require('fs-extra');
 const path = require('path');
 const yaml = require('js-yaml');
+const axios = require('axios'); // For internal API calls
 const fileSystem = require('../tools/file_system');
 const shell = require('../tools/shell');
 const web = require('../tools/web');
 const scraper = require('../tools/scraper');
 const codeGraph = require('../tools/code_graph');
 
-// NEW: System tool for internal actions
+// NEW: System tool for internal agent-to-engine communication
 const system = {
+    /**
+     * Called by the @saul agent to signal user consent. Makes an API call
+     * to the engine's own endpoint to trigger the state change.
+     */
+    approveExecution: async () => {
+        const port = process.env.PORT || 3000;
+        try {
+            await axios.post(`http://localhost:${port}/api/system/approve-execution`);
+            return "Execution approval has been signaled to the engine.";
+        } catch (error) {
+            console.error("System tool 'approveExecution' failed:", error.message);
+            return "Failed to signal execution approval to the engine.";
+        }
+    },
+
+    /**
+     * Called by any agent that needs a secret. This throws a special error
+     * that the main engine loop is designed to catch, pausing the system
+     * and triggering a request to the user via the IDE.
+     */
     requestSecret: async ({ reason, key_name }) => {
         const err = new Error(reason);
         err.name = "MissingSecretError";
-        err.key_name = key_name;
+        err.key_name = key_name; // The engine uses this to tell the user WHAT key is needed
         throw err;
     },
-    // Can be expanded with other system-level agent actions
 };
 
 const toolbelt = {
@@ -62,13 +82,6 @@ async function execute(toolFullName, args, agentId) {
       if (!permittedCommands.includes(args.command)) {
           throw new Error(`Agent '${agentId}' is not authorized to execute the command: "${args.command}"`);
       }
-  }
-  // Check for required API keys, now handled in the tools themselves to be cleaner.
-  if (toolFullName === 'web.search' && !process.env.SEARCH_API_KEY) {
-     const err = new Error("Web search requires an API key (e.g., SERPER_API_KEY).");
-     err.name = "MissingApiKeyError";
-     err.key_name = "SEARCH_API_KEY";
-     throw err;
   }
 
   return await toolbelt[namespace][toolName](args);
