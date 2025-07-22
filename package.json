@@ -1,6 +1,6 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Stigmergy: The Autonomous AI Development System.",
   "main": "cli/index.js",
   "bin": {
@@ -9,6 +9,7 @@
   "scripts": {
     "start": "node cli/index.js start",
     "stigmergy:start": "node cli/index.js start",
+    "stigmergy:cleanup": "node cli/index.js cleanup",
     "build": "node cli/index.js build --all",
     "stigmergy:build": "node cli/index.js build --all",
     "test": "jest",
@@ -38,6 +39,7 @@
     "js-yaml": "^4.1.0",
     "neo4j-driver": "^5.20.0",
     "ora": "^5.4.1",
+    "proper-lockfile": "^4.1.2",
     "uuid": "^9.0.1"
   },
   "keywords": [
