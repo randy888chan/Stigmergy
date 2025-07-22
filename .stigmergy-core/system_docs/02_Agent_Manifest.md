@@ -1,6 +1,6 @@
-# This is the single source of truth for agent capabilities and permissions.
+# This is the single source of truth for agent capabilities and permissions for Stigmergy v1.0.
 # The tool executor and LLM adapter use this to configure agent behavior.
-schema_version: 5.0
+schema_version: 5.1
 
 agents:
   # --- Dispatcher ---
@@ -8,7 +8,7 @@ agents:
     alias: saul
     archetype: Dispatcher
     model_preference: "claude-3-haiku-20240307"
-    tools: [file_system.readFile]
+    tools: [file_system.readFile, system.approveExecution]
 
   # --- Planners ---
   - id: analyst
@@ -40,42 +40,41 @@ agents:
     alias: james
     archetype: Executor
     model_preference: "codestral-latest"
-    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, code_graph.getDefinition]
-    permitted_shell_commands: ["npm install", "npm test"]
+    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, code_graph.getDefinition, system.requestSecret]
+    permitted_shell_commands: ["npm install", "npm test", "npm run build"]
 
   - id: refactorer
     alias: rocco
     archetype: Executor
     model_preference: "codestral-latest"
-    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages]
-    permitted_shell_commands: ["npm run lint"]
+    tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, system.requestSecret]
+    permitted_shell_commands: ["npm run lint", "npm run format:check", "npx prettier --write ."]
     
   - id: victor
     alias: victor
     archetype: Executor
     model_preference: "codestral-latest"
-    tools: [file_system.readFile, file_system.writeFile, web.search, shell.execute]
+    tools: [file_system.readFile, file_system.writeFile, web.search, shell.execute, system.requestSecret]
     permitted_shell_commands: ["npx hardhat compile", "npx hardhat test"]
 
   - id: sm
     alias: bob
     archetype: Executor
     model_preference: "claude-3-haiku-20240307"
-    tools: [file_system.readFile]
+    tools: [file_system.readFile, file_system.writeFile]
 
   - id: stigmergy-orchestrator
     alias: olivia
     archetype: Executor
-    model_preference: "claude-3-haiku-20240307"
-    tools: [file_system.readFile, file_system.writeFile]
+    model_prefetools: [file_system.readFile, file_system.writeFile]
 
   # --- Verifiers ---
   - id: qa
     alias: quinn
     archetype: Verifier
     model_preference: "claude-3-haiku-20240307"
-    tools: [shell.execute]
-    permitted_shell_commands: ["npm run lint", "npm audit", "npm test -- --coverage"]
+    tools: [shell.execute, system.requestSecret]
+    permitted_shell_commands: ["npm run lint", "npm audit", "npm test -- --coverage", "npm run deploy:testnet"]
 
   - id: po
     alias: sarah
