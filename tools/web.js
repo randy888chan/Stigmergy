@@ -1,10 +1,16 @@
 const axios = require('axios');
-require('dotenv').config();
 
-// --- Provider Implementations ---
+// No longer loading dotenv here; the engine manages the environment.
+
 async function searchWithSerper({ query }) {
+  // MODIFIED: This check is now the trigger for the system's user input request.
   const apiKey = process.env.SEARCH_API_KEY;
-  if (!apiKey) return "SEARCH_API_KEY for Serper is not configured in .env";
+  if (!apiKey) {
+     const err = new Error("The web search tool requires a Serper API Key (SEARCH_API_KEY).");
+     err.name = "MissingApiKeyError";
+     err.key_name = "SEARCH_API_KEY";
+     throw err;
+  }
 
   const response = await axios.post('https://google.serper.dev/search', { q: query }, {
     headers: { 'X-API-KEY': apiKey, 'Content-Type': 'application/json' }
@@ -17,12 +23,15 @@ async function searchWithSerper({ query }) {
   }
   return `No organic results found for "${query}".`;
 }
-
 async function searchWithBrave({ query }) {
     const apiKey = process.env.BRAVE_API_KEY;
-    if (!apiKey) return "BRAVE_API_KEY is not configured in .env";
-    console.log(`[Web Tool] Searching with Brave for: "${query}"`);
-    // Placeholder for actual Brave Search API logic
+    if (!apiKey) {
+       const err = new Error("The web search tool requires a Brave API Key (BRAVE_API_KEY).");
+       err.name = "MissingApiKeyError";
+       err.key_name = "BRAVE_API_KEY";
+       throw err;
+    }
+    // ... implementation for Brave
     return `Brave search results for "${query}" (Not yet implemented).`;
 }
 
@@ -39,8 +48,12 @@ async function search({ query }) {
         return await searchWithSerper({ query });
     }
   } catch(error) {
+      // Re-throw our custom errors so the engine can catch them
+      if(error.name === "MissingApiKeyError") {
+          throw error;
+      }
       console.error(`[Web Tool] Search error with ${provider}:`, error.message);
-      return `Error performing search with ${provider}: ${error.message}. Check API key.`;
+      return `Error performing search with ${provider}: ${error.message}.`;
   }
 }
 
