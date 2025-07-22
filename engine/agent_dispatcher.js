@@ -1,67 +1,65 @@
+const yaml = require("js-yaml");
 const fs = require("fs-extra");
 const path = require("path");
-const yaml = require("js-yaml");
 
 const CWD = process.cwd();
-const BLUEPRINT_PATH = path.join(CWD, "execution-blueprint.yml");
 
-const fileExists = async (fileName) => fs.pathExists(path.join(CWD, fileName));
-
-function findNextPendingTask(manifest) {
+const findNextPendingTask = (manifest) => {
   if (!manifest || !manifest.tasks) return null;
-  return manifest.tasks.find(task => {
-    if (task.status !== "PENDING") return false;
-    const dependenciesMet = !task.dependencies || task.dependencies.every(depId => {
-      const depTask = manifest.tasks.find(t => t.id === depId);
-      return depTask && depTask.status === "COMPLETED";
-    });
-    return dependenciesMet;
-  });
-}
+  return manifest.tasks.find(task => task.status === "PENDING" && (!task.dependencies || task.dependencies.every(depId => {
+    const depTask = manifest.tasks.find(t => t.id === depId);
+    return depTask && depTask.status === "COMPLETED";
+  })));
+};
 
 async function getNextAction(state) {
-  // Gate 1: Check for approval states first.
-  if (state.project_status.startsWith("AWAITING_APPROVAL")) {
-    return {
-      type: "WAITING_FOR_APPROVAL",
-      summary: `System is paused, awaiting user approval for milestone: ${state.project_status}. Use '@saul *approve*'.`,
-    };
-  }
+  const status = state.project_status;
 
-  // Gate 2: Check for execution phase.
-  if (await fileExists("execution-blueprint.yml")) {
-    if ((!state.project_manifest || state.project_manifest.tasks?.length === 0) && state.project_status !== "READY_FOR_EXECUTION") {
-        const blueprintContent = await fs.readFile(BLUEPRINT_PATH, 'utf8');
-        const blueprint = yaml.load(blueprintContent);
-        return { type: "SYSTEM_TASK", agent: "dispatcher", task: "INGEST_BLUEPRINT", blueprint, summary: "Found execution blueprint. Ingesting into state manifest.", newStatus: "READY_FOR_EXECUTION" };
+  // --- PHASE 1: THE GRAND BLUEPRINT ---
+  if (status === "GRAND_BLUEPRINT_PHASE") {
+    // This is a sequence. Find the first un-created artifact.
+    if (!state.artifacts_created.brief) {
+      return { type: "PLANNING_TASK", agent: "analyst", task: "Autonomously create the Project Brief. Update the shared context upon completion.", newStatus: "GRAND_BLUEPRINT_PHASE" };
     }
-
-    if (state.project_status === "READY_FOR_EXECUTION" || state.project_status === "EXECUTION_IN_PROGRESS") {
-      const nextTask = findNextPendingTask(state.project_manifest);
-      if (nextTask) {
-        return { type: "EXECUTION_TASK", agent: nextTask.agent, task: `Execute the task '${nextTask.id}': ${nextTask.summary}. Review the full blueprint for context.`, summary: `Dispatching task '${nextTask.id}' to agent '@${nextTask.agent}'.`, newStatus: "EXECUTION_IN_PROGRESS", taskId: nextTask.id };
-      } else if (state.project_manifest?.tasks?.every(t => t.status === "COMPLETED")) {
-        return { type: "SYSTEM_TASK", agent: "dispatcher", task: "Finalize project.", summary: "All tasks completed.", newStatus: "PROJECT_COMPLETE" };
-      }
+    if (!state.artifacts_created.prd) {
+      return { type: "PLANNING_TASK", agent: "pm", task: "Using the context, create the PRD. Update context.", newStatus: "GRAND_BLUEPRINT_PHASE" };
+    }
+    if (!state.artifacts_created.architecture) {
+      return { type: "PLANNING_TASK", agent: "design-architect", task: "Using the context, create the Architecture document and all mandatory artifacts (coding standards, QA protocol). Update context.", newStatus: "GRAND_BLUEPRINT_PHASE" };
+    }
+    if (!state.artifacts_created.blueprint_yaml) {
+        return { type: "PLANNING_TASK", agent: "design-architect", task: "Using the approved architecture, generate the final 'execution-blueprint.yml'.", newStatus: "GRAND_BLUEPRINT_PHASE" };
+    }
+    if (!state.artifacts_created.stories) {
+        // Here we'd need to load the blueprint and find the next story to create.
+        // This is a simplification; the state manager would handle this logic.
+        return { type: "PLANNING_TASK", agent: "sm", task: "Decompose the next task from the blueprint into a detailed story file.", newStatus: "GRAND_BLUEPRINT_PHASE"};
+    }
+    // If all artifacts are created, the state manager will have already moved to the next phase.
+  }
+  
+  // --- PHASE 3: EXECUTION ---
+  if (status === "EXECUTION_PHASE") {
+    const nextTask = findNextPendingTask(state.project_manifest);
+    if (nextTask) {
+      const taskDef = `Execute task '${nextTask.id}': ${nextTask.summary}. The full story is in '.ai/stories/${nextTask.id}.md'. Review it for full context and acceptance criteria.`;
+      return { type: "EXECUTION_TASK", agent: nextTask.agent, task: taskDef, summary: `Dispatching task '${nextTask.id}' to agent '@${nextTask.agent}'.`, newStatus: "EXECUTION_PHASE", taskId: nextTask.id };
+    } else {
+       // All tasks are done. Move to deployment.
+      return { type: "SYSTEM_TASK", agent: "dispatcher", task: "All coding tasks complete. Initiating deployment and finalization phase.", newStatus: "DEPLOYMENT_PHASE" };
     }
   }
 
-  // Gate 3: Check for planning phase (handles new and halfway projects).
-  if (!(await fileExists("docs/brief.md"))) {
-    return { type: "PLANNING_TASK", agent: "analyst", task: `Create a 'docs/brief.md' for the goal: "${state.goal}".`, summary: "Dispatching @mary for Project Brief.", newStatus: "AWAITING_APPROVAL_BRIEF" };
+  // --- PHASE 4 & 5 ---
+  if (status === "DEPLOYMENT_PHASE") {
+      return { type: "SYSTEM_TASK", agent: "qa", task: "Run final integration tests and testnet deployment scripts as defined in the QA protocol.", newStatus: "DEPLOYMENT_PHASE" };
   }
-  if (!(await fileExists("docs/prd.md"))) {
-    return { type: "PLANNING_TASK", agent: "pm", task: "Create `docs/prd.md` from the Project Brief.", summary: "Dispatching @john for PRD.", newStatus: "AWAITING_APPROVAL_PRD" };
-  }
-  if (!(await fileExists("docs/architecture.md"))) {
-    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create `docs/architecture.md` from the PRD.", summary: "Dispatching @winston for architecture.", newStatus: "AWAITING_APPROVAL_ARCHITECTURE" };
-  }
-  if (!(await fileExists("execution-blueprint.yml"))) {
-    return { type: "PLANNING_TASK", agent: "design-architect", task: "Create the final `execution-blueprint.yml` from the architecture.", summary: "Dispatching @winston for blueprint.", newStatus: "AWAITING_APPROVAL_BLUEPRINT" };
+  if (status === "SELF_IMPROVEMENT_PHASE") {
+      return { type: "SYSTEM_TASK", agent: "meta", task: "Project complete. Audit the execution history and logs to find inefficiencies and propose improvements.", newStatus: "PROJECT_COMPLETE"};
   }
   
   // Default/Idle State
-  return { type: "WAITING", summary: `System is in '${state.project_status}' state. No immediate action required.` };
+  return { type: "IDLE", summary: `System is in '${status}' state. No immediate action required.` };
 }
 
 module.exports = { getNextAction };
