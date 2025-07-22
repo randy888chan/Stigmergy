@@ -2,7 +2,7 @@ const OpenAI = require('openai');
 const fs = require('fs-extra');
 const path = require('path');
 const yaml = require('js-yaml');
-const codeGraph = require('../tools/code_graph');
+const codeGraph = require('../tools/code_graph'); // Neo4j tool
 
 require('dotenv').config();
 
@@ -13,6 +13,7 @@ const openai = new OpenAI({
 
 const META_PROMPT_PATH = path.join(__dirname, '..', '.stigmergy-core', 'utils', 'meta_prompt_template.md');
 const MANIFEST_PATH = path.join(__dirname, '..', '.stigmergy-core', 'system_docs', '02_Agent_Manifest.md');
+const SHARED_CONTEXT_PATH = path.join(process.cwd(), '.ai', 'project_context.md');
 
 let agentManifest = null;
 async function getAgentManifest() {
@@ -23,43 +24,47 @@ async function getAgentManifest() {
     return agentManifest;
 }
 
-async function getCodeContext(prompt) {
-    const codeKeywords = ['modify function', 'implement class', 'fix bug in', 'refactor file', 'add feature to', 'implement'];
-    const isCodeTask = codeKeywords.some(kw => prompt.toLowerCase().includes(kw));
-    if (!isCodeTask) return "";
-
+// --- NEW: CODE-RAG CONTEXT INJECTION ---
+async function getCodeGraphContext(prompt) {
     const symbolRegex = /[`'"]([a-zA-Z0-9_./#]+)[`'"]/g;
     let match;
     const symbols = new Set();
     while ((match = symbolRegex.exec(prompt)) !== null) {
-        if (!match[1].endsWith('.md')) {
+        if (!match[1].endsWith('.md') && !match[1].endsWith('.yml')) { // Avoid matching doc files
            symbols.add(match[1].split('#').pop());
         }
     }
 
     if (symbols.size === 0) return "";
 
-    let context = "\n\n--- AUTO-INJECTED CODE CONTEXT ---\n";
+    let context = "\n\n--- AUTO-INJECTED CODE-GRAPH CONTEXT ---\n";
     try {
         for (const symbol of symbols) {
             const definition = await codeGraph.getDefinition({ symbolName: symbol });
             if (definition.length > 0 && definition[0].id) {
                 const defPath = definition[0].id.split('#')[0];
-                if (await fs.pathExists(path.join(process.cwd(), defPath))) {
-                    const fileContent = await fs.readFile(path.join(process.cwd(), defPath), 'utf8');
-                    context += `Definition for '${symbol}' in '${defPath}':\n\`\`\`\n${fileContent}\n\`\`\`\n`;
+                const fileNode = { id: defPath, name: path.basename(defPath) }; // simplified node
+                const usages = await codeGraph.findUsages({ symbolName: symbol });
+
+                context += `Context for symbol '${symbol}':\n`;
+                context += `  - DEFINED IN: ${fileNode.name}\n`;
+                if(usages.length > 0) {
+                    context += `  - USED IN: ${usages.map(u => path.basename(u.user)).join(', ')}\n`;
                 }
+                const fileContent = await fs.readFile(path.join(process.cwd(), defPath), 'utf8');
+                context += `\n\`\`\`${path.extname(defPath).substring(1)}\n${fileContent}\n\`\`\`\n\n`;
             }
         }
         context += "--- END OF CONTEXT ---\n";
-        return context.length > 50 ? context : "";
+        return context.length > 100 ? context : ""; // Only add if substantial
     } catch (e) {
-        console.warn(`[RAG] Could not retrieve code context: ${e.message}`);
+        console.warn(chalk.yellow(`[CodeGraph] Could not retrieve context: ${e.message}. Is Neo4j running?`));
         return "";
     }
 }
 
-async function getCompletion(agentId, prompt) {
+
+async function getCompletion(agentId, prompt, taskId) {
   const agentPath = path.join(__dirname, '..', '.stigmergy-core', 'agents', `${agentId}.md`);
   if (!await fs.pathExists(agentPath)) throw new Error(`Agent file not found: ${agentId}`);
 
@@ -70,15 +75,29 @@ async function getCompletion(agentId, prompt) {
   const modelToUse = agentConfig.model_preference || 'gpt-4-turbo';
   const agentInstructions = await fs.readFile(agentPath, 'utf-8');
   const metaPromptTemplate = await fs.readFile(META_PROMPT_PATH, 'utf-8');
-  const finalSystemPrompt = metaPromptTemplate.replace('{{AGENT_INSTRUCTIONS}}', agentInstructions);
-
-  let finalUserPrompt = prompt;
-  if (agentConfig.archetype === "Executor" || agentConfig.archetype === "Responder") {
-      const codeContext = await getCodeContext(prompt);
-      finalUserPrompt += codeContext;
+  
+  // --- NEW: Inject shared project context and story context ---
+  let sharedContext = "";
+  if (await fs.pathExists(SHARED_CONTEXT_PATH)) {
+      sharedContext += await fs.readFile(SHARED_CONTEXT_PATH, 'utf8');
+  }
+  if (taskId) {
+      const storyPath = path.join(process.cwd(), '.ai', 'stories', `${taskId}.md`);
+      if (await fs.pathExists(storyPath)) {
+          sharedContext += `\n\n--- CURRENT TASK STORY ---\n` + await fs.readFile(storyPath, 'utf8');
+      }
   }
 
-  console.log(`[LLM Adapter] Getting completion for '${agentId}' using model '${modelToUse}'...`);
+  const finalSystemPrompt = metaPromptTemplate
+    .replace('{{AGENT_INSTRUCTIONS}}', agentInstructions)
+    .replace('{{SHARED_CONTEXT}}', sharedContext);
+
+  let finalUserPrompt = prompt;
+  if (agentConfig.archetype === "Executor") {
+      finalUserPrompt += await getCodeGraphContext(prompt);
+  }
+
+  console.log(chalk.gray(`[LLM Adapter] Getting completion for '${agentId}' using model '${modelToUse}'...`));
 
   const response = await openai.chat.completions.create({
     model: modelToUse,
@@ -94,7 +113,7 @@ async function getCompletion(agentId, prompt) {
     return JSON.parse(content);
   } catch (error) {
     console.error("[LLM Adapter] Failed to parse LLM JSON response:", content);
-    return { thought: "The model did not return valid JSON. Raw response: " + content, action: null };
+    throw new Error("LLM returned invalid JSON.");
   }
 }
 
