@@ -100,4 +100,4 @@ agents:
     alias: metis
     archetype: Responder
     model_preference: "gpt-4-turbo"
-    tools: [file_system.readFile, file_system.writeFile]
+    tools: [file_system.readFile, file_system.writeFile, stigmergy.createBlueprint] # MODIFIED: Added the new system tool
