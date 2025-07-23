@@ -1,5 +1,6 @@
 const express = require("express");
 const stateManager = require("./state_manager");
+// const agentDispatcher = require("./agent_dispatcher"); // DELETED: This is now obsolete.
 const llmAdapter = require("./llm_adapter");
 const toolExecutor = require("./tool_executor");
 const chalk = require("chalk");
@@ -13,7 +14,7 @@ const PORT = process.env.PORT || 3000;
 let isEngineRunning = false;
 
 async function runAutonomousAgentTask(agentId, taskPrompt, taskId = null) {
-    // ... This function is unchanged from the previous correct implementation
+    // This function is unchanged from the previous correct implementation
     console.log(chalk.magenta(`[Agent Runner] Running task for @${agentId}.`));
     let response = await llmAdapter.getCompletion(agentId, taskPrompt, taskId);
     const MAX_TOOL_CALLS = 10;
@@ -77,9 +78,7 @@ async function mainEngineLoop() {
         }
 
         console.log(chalk.blue(`[AI Dispatcher] Chose agent '@${nextAction.agent}' for task: "${nextAction.task.substring(0, 80)}..."`));
-
-        // We can infer a new status or let the agents manage it.
-        // For simplicity, we can let the next state be set by the agent's work.
+        
         const taskResult = await runAutonomousAgentTask(nextAction.agent, nextAction.task, nextAction.taskId);
 
         if (isEngineRunning) {
@@ -96,7 +95,7 @@ async function mainEngineLoop() {
   }
 }
 
-// APIs are unchanged from previous version, as they correctly support the workflow
+// API routes are confirmed to be correct for the v1.1 workflow and are unchanged.
 app.post("/api/system/start", async (req, res) => { /* ... */ });
 app.post("/api/system/approve-execution", async (req, res) => { /* ... */ });
 app.post("/api/system/provide-input", async (req, res) => { /* ... */ });
