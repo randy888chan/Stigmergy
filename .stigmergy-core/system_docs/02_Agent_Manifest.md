@@ -35,6 +35,12 @@ agents:
     model_preference: "claude-3-haiku-20240307"
     tools: [web.search]
 
+  # --- NEW: Gemini CLI Executor ---
+  - id: gemini-executor
+    alias: gemma
+    archetype: Executor
+    model_preference: "claude-3-haiku-20240307" # This agent only does prompting, so a fast model is fine.
+
   # --- Executors ---
   - id: dev
     alias: james
