@@ -1,10 +1,3 @@
-
----
-
-### **File: `.stigmergy-core/agents/dispatcher.md`**
-
-**Change:** Persona updated to reflect conversational commands and state-driven logic.
-
 ```yaml
 agent:
   id: "dispatcher"
