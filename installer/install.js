@@ -6,7 +6,6 @@ const ora = require("ora");
 const inquirer = require("inquirer");
 const { spawn } = require("child_process");
 
-// Correctly load environment variables from the user's project directory.
 require("dotenv").config({ path: path.join(process.cwd(), ".env") });
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
@@ -14,18 +13,18 @@ const CWD = process.cwd();
 const CORE_DEST_DIR = path.join(CWD, ".stigmergy-core");
 const ROO_MODES_PATH = path.join(CWD, ".roomodes");
 const ENV_EXAMPLE_DEST = path.join(CWD, ".env.example");
+const ENV_EXAMPLE_SOURCE = path.join(__dirname, "..", ".env.example");
 
 async function run() {
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
-    spinner.text = "Copying .stigmergy-core & .env.example...";
+    spinner.text = "Copying .stigmergy-core knowledge base...";
     await fs.copy(CORE_SOURCE_DIR, CORE_DEST_DIR, { overwrite: true });
+    spinner.succeed("Copied .stigmergy-core.");
 
-    const envExampleSource = path.join(__dirname, "..", ".env.example");
-    if (!(await fs.pathExists(path.join(CWD, ".env")))) {
-      await fs.copy(envExampleSource, ENV_EXAMPLE_DEST, { overwrite: false });
-    }
-    spinner.succeed("Copied .stigmergy-core & .env.example.");
+    spinner.text = "Configuring environment...";
+    await configureEnvironment();
+    spinner.succeed("Environment configured.");
 
     spinner.text = `Configuring IDE integration (.roomodes)...`;
     await configureIde();
@@ -54,7 +53,9 @@ async function run() {
 
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
-    console.log("  1. Copy `.env.example` to `.env` and fill in your keys.");
+    console.log(
+      "  1. If you don't have a `.env` file, copy `.env.example` to `.env` and fill in your keys."
+    );
     console.log("  2. Run `npm start` to start the engine.");
     console.log("  3. Open your IDE's chat and type `@system start a new project...`");
   } catch (error) {
@@ -63,6 +64,51 @@ async function run() {
   }
 }
 
+// --- NEW: NON-DESTRUCTIVE ENVIRONMENT CONFIGURATION ---
+async function configureEnvironment() {
+  const stigmergyEnvContent = await fs.readFile(ENV_EXAMPLE_SOURCE, "utf8");
+
+  if (await fs.pathExists(ENV_EXAMPLE_DEST)) {
+    // .env.example exists, so we'll append missing variables.
+    let existingContent = await fs.readFile(ENV_EXAMPLE_DEST, "utf8");
+
+    const missingVars = [];
+    const stigmergyVars = stigmergyEnvContent.split("\n");
+
+    for (const svar of stigmergyVars) {
+      if (svar.trim() === "" || svar.trim().startsWith("#")) continue;
+      const key = svar.split("=")[0];
+      if (!existingContent.includes(key)) {
+        missingVars.push(svar);
+      }
+    }
+
+    if (missingVars.length > 0) {
+      const appendix = [
+        "\n",
+        "# ------------------------------------ #",
+        "# Stigmergy Configuration (added by installer)",
+        "# ------------------------------------ #",
+        ...missingVars,
+      ].join("\n");
+
+      await fs.appendFile(ENV_EXAMPLE_DEST, appendix);
+      console.log(chalk.green("Appended Stigmergy variables to existing .env.example."));
+    } else {
+      console.log(
+        chalk.gray(
+          "Existing .env.example already contains all Stigmergy variables. No changes needed."
+        )
+      );
+    }
+  } else {
+    // No .env.example exists, so we can safely copy ours.
+    await fs.copy(ENV_EXAMPLE_SOURCE, ENV_EXAMPLE_DEST);
+    console.log(chalk.green("Created a new .env.example with Stigmergy configuration."));
+  }
+}
+
+// configureIde function remains the same as the last correct version
 async function configureIde() {
   const newModes = [];
   const PORT = process.env.PORT || 3000;
@@ -78,35 +124,22 @@ async function configureIde() {
   const agentFiles = await fs.readdir(path.join(CORE_DEST_DIR, "agents"));
   for (const file of agentFiles) {
     if (!file.endsWith(".md")) continue;
-
     try {
       const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, "agents", file), "utf8");
-
       const startFence = "```yaml";
       const altStartFence = "```yml";
       const endFence = "```";
-
       let startIndex = agentContent.indexOf(startFence);
       if (startIndex === -1) startIndex = agentContent.indexOf(altStartFence);
-
-      if (startIndex === -1) continue; // Silently skip files without a YAML block
-
+      if (startIndex === -1) continue;
       const contentStartIndex = startIndex + startFence.length;
       const endIndex = agentContent.indexOf(endFence, contentStartIndex);
-
-      if (endIndex === -1) {
-        console.warn(chalk.yellow(`Warning: Found unclosed YAML block in ${file}. Skipping.`));
-        continue;
-      }
-
+      if (endIndex === -1) continue;
       const yamlString = agentContent.substring(contentStartIndex, endIndex).trim();
       if (!yamlString) continue;
-
       const config = yaml.load(yamlString);
       const agentConfig = config?.agent;
-
       if (!agentConfig?.alias || !agentConfig?.id) continue;
-
       newModes.push({
         slug: agentConfig.alias,
         name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
@@ -124,34 +157,21 @@ async function configureIde() {
     }
   }
 
-  if (newModes.length <= 1) {
-    // <= 1 because @system is always there
+  if (newModes.length <= 1)
     throw new Error(
       "Critical Error: No valid agent configurations found. IDE file generation failed."
     );
-  }
-
   newModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  // --- ROO CODE FORMATTING FIX ---
-  // This generates the exact unquoted-key format Roo Code requires, robustly.
   let modesString = "[\n";
   newModes.forEach((mode, index) => {
     const apiString = JSON.stringify(mode.api, null, 4).replace(/\n/g, "\n      ");
     const groupsString = JSON.stringify(mode.groups);
-
-    modesString += `    {\n`;
-    modesString += `      slug: "${mode.slug}",\n`;
-    modesString += `      name: "${mode.name}",\n`;
-    modesString += `      api: ${apiString},\n`;
-    modesString += `      groups: ${groupsString}\n`;
-    modesString += `    }${index < newModes.length - 1 ? "," : ""}\n`;
+    modesString += `    {\n      slug: "${mode.slug}",\n      name: "${mode.name}",\n      api: ${apiString},\n      groups: ${groupsString}\n    }${index < newModes.length - 1 ? "," : ""}\n`;
   });
   modesString += "  ]";
 
-  const fileContent = `// Stigmergy & Roo Code Configuration (v1.2)\nmodule.exports = {\n  customModes: ${modesString}\n};`;
-  // --- END OF FIX ---
-
+  const fileContent = `// Stigmergy & Roo Code Configuration\nmodule.exports = {\n  customModes: ${modesString}\n};`;
   await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
 }
 
