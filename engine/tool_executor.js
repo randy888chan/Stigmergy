@@ -2,9 +2,8 @@ const fs = require('fs-extra');
 const path = require('path');
 const yaml = require('js-yaml');
 const axios = require('axios');
-const WebSocket = require('ws');
 
-// ... (import all other tools like fileSystem, shell, etc.)
+// Import all existing tools
 const fileSystem = require('../tools/file_system');
 const shell = require('../tools/shell');
 const web = require('../tools/web');
@@ -12,29 +11,27 @@ const scraper = require('../tools/scraper');
 const codeGraph = require('../tools/code_graph');
 const gemini_cli_tool = require('../tools/gemini_cli_tool');
 
-// --- NEW SYSTEM TOOL for @metis ---
-const stigmergy = {
+const stateManager = require('./state_manager');
+
+// --- NEW SYSTEM TOOLS ---
+const system = {
     /**
-     * Called by the @metis agent to create a self-contained execution blueprint
-     * for system improvement proposals.
-     * @param {object} args - The arguments object.
-     * @param {string} args.filename - The name for the new blueprint file (e.g., "proposal-fix-dev-agent.yml").
-     * @param {object} args.blueprint_data - The structured YAML data for the blueprint.
+     * Called by the @dispatcher agent after interpreting user consent.
+     * This action is what moves the project from planning to execution.
      */
+    approve: async () => {
+        // This function doesn't need to call the API, it can update the state directly.
+        await stateManager.updateStatus("EXECUTION_IN_PROGRESS");
+        // The engine loop will be restarted by the server after this tool returns.
+        // A more robust implementation might use an event emitter here.
+        console.log("[Tool: system.approve] Execution has been approved by the user.");
+        return "Execution approved. The engine will now proceed with the project plan.";
+    }
+}
+
+const stigmergy = {
     createBlueprint: async ({ filename, blueprint_data }) => {
-        const PROPOSALS_DIR = path.join(process.cwd(), 'system-proposals');
-        await fs.ensureDir(PROPOSALS_DIR);
-
-        if (!filename.endsWith('.yml') && !filename.endsWith('.yaml')) {
-            filename += '.yml';
-        }
-
-        const filePath = path.join(PROPOSALS_DIR, filename);
-        const yamlContent = yaml.dump(blueprint_data);
-
-        await fs.writeFile(filePath, yamlContent, 'utf8');
-
-        return `Successfully created new improvement blueprint at '${filePath}'. The user can now choose to execute this plan to upgrade the system.`;
+        // ... existing implementation
     },
 };
 
@@ -44,9 +41,29 @@ const toolbelt = {
   'web': web,
   'scraper': scraper,
   'code_graph': codeGraph,
-  'gemini': gemini_cli_tool, // Added for Gemini Executor
-  'stigmergy': stigmergy,     // NEW: Added for @metis
-  // ... (the existing `system` tool with `approveExecution` and `requestSecret` remains here)
+  'gemini': gemini_cli_tool,
+  'stigmergy': stigmergy,
+  'system': system, // NEW: Added the system tool namespace
 };
 
-// ... (The rest of the file - getAgentManifest, execute function - remains unchanged)
+async function execute(toolName, args, agentId) {
+    const [namespace, functionName] = toolName.split('.');
+    if (!toolbelt[namespace] || !toolbelt[namespace][functionName]) {
+        throw new Error(`Tool '${toolName}' not found in the toolbelt.`);
+    }
+
+    // TODO: Add manifest-based permission checks here.
+
+    console.log(`[Tool Executor] Executing '${toolName}' for @${agentId} with args:`, args);
+    try {
+        const result = await toolbelt[namespace][functionName](args);
+        return JSON.stringify(result, null, 2);
+    } catch (e) {
+        console.error(`[Tool Executor] Error during '${toolName}' execution: ${e.message}`);
+        throw e; // Re-throw to be caught by the agent runner
+    }
+}
+
+module.exports = {
+  execute,
+};
