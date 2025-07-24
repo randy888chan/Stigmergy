@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 const { Command } = require("commander");
-
 const program = new Command();
 
 program
@@ -13,16 +12,16 @@ program
   .command("install")
   .description("Installs the Stigmergy knowledge base and configures your IDE.")
   .action(async () => {
+    // This now uses an updated installer.
     const installer = require("../installer/install");
     await installer.run();
   });
 
 program
   .command("start")
-  .description("Starts the Stigmergy Engine in a dormant, listening state.")
+  .description("Starts the Stigmergy Engine. Use 'npm start' instead.")
   .action(() => {
-    const engine = require("../engine/server");
-    engine.start();
+    console.log("This command is deprecated. Please use 'npm start' to run the engine server.");
   });
 
 program
@@ -33,18 +32,6 @@ program
   .action(async (options) => {
     const { runBuilder } = require("../builder/prompt_builder");
     await runBuilder(options);
-  });
-
-// NEW: Cleanup command
-program
-  .command("cleanup")
-  .description("Invokes the @refactorer agent to scan for dead code and unused assets.")
-  .action(() => {
-      console.log("Invoking @refactorer agent for cleanup duty...");
-      // This is a simplified invocation. A full implementation would message the running server.
-      // For now, we log the instruction.
-      console.log("To run cleanup, please ensure the server is running and send the following prompt to the '@rocco' agent:");
-      console.log("Execute your JANITOR_PROTOCOL to scan the codebase for cleanup opportunities.");
   });
 
 async function main() {
