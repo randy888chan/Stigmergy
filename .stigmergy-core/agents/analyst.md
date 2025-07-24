@@ -16,3 +16,4 @@ core_protocols:
 commands:
   - "*help": "Explain my role as the autonomous creator of the Project Brief."
   - "*create_brief": "(For system use by the Orchestrator) Autonomously execute the task of creating the complete Project Brief."
+```

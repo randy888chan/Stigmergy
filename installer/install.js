@@ -6,25 +6,31 @@ const ora = require("ora");
 const inquirer = require("inquirer");
 const { spawn } = require("child_process");
 
-require("dotenv").config();
+// Correctly load environment variables from the user's project directory.
+require("dotenv").config({ path: path.join(process.cwd(), ".env") });
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 const CORE_DEST_DIR = path.join(CWD, ".stigmergy-core");
 const ROO_MODES_PATH = path.join(CWD, ".roomodes");
+const ENV_EXAMPLE_DEST = path.join(CWD, ".env.example");
 
 async function run() {
-  const spinner = ora("🚀 Initializing Stigmergy v1.2...").start();
+  const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
-    spinner.text = "Copying .stigmergy-core knowledge base...";
+    spinner.text = "Copying .stigmergy-core & .env.example...";
     await fs.copy(CORE_SOURCE_DIR, CORE_DEST_DIR, { overwrite: true });
-    spinner.succeed("Copied .stigmergy-core knowledge base.");
+
+    const envExampleSource = path.join(__dirname, "..", ".env.example");
+    if (!(await fs.pathExists(path.join(CWD, ".env")))) {
+      await fs.copy(envExampleSource, ENV_EXAMPLE_DEST, { overwrite: false });
+    }
+    spinner.succeed("Copied .stigmergy-core & .env.example.");
 
     spinner.text = `Configuring IDE integration (.roomodes)...`;
     await configureIde();
     spinner.succeed(`IDE configuration created at .roomodes.`);
 
-    // MODIFIED: Smartly check if indexing is possible before asking.
     if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
       const answers = await inquirer.prompt([
         {
@@ -42,20 +48,18 @@ async function run() {
       }
     } else {
       console.log(
-        chalk.yellow(
-          "\nNeo4j indexing skipped. Please configure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in your .env file to enable this feature."
-        )
+        chalk.yellow("\nNeo4j indexing skipped. Configure Neo4j in your .env file to enable this.")
       );
     }
 
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
-    console.log("  1. Fill in your LLM and Neo4j details in the `.env` file if you haven't.");
+    console.log("  1. Copy `.env.example` to `.env` and fill in your keys.");
     console.log("  2. Run `npm start` to start the engine.");
     console.log("  3. Open your IDE's chat and type `@system start a new project...`");
   } catch (error) {
     spinner.fail("Installation failed.");
-    console.error(chalk.red(error));
+    console.error(chalk.red(error.message));
   }
 }
 
@@ -78,29 +82,30 @@ async function configureIde() {
     try {
       const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, "agents", file), "utf8");
 
-      // THE DEFINITIVE REGEX FIX:
-      const yamlMatch = agentContent.match(/```(yaml|yml)\s*\r?\n([\s\S]*?)```/);
+      const startFence = "```yaml";
+      const altStartFence = "```yml";
+      const endFence = "```";
 
-      if (!yamlMatch || !yamlMatch[2]) {
-        // Check for capture group 2
-        console.warn(
-          chalk.yellow(`Warning: Skipping agent file with no valid YAML block: ${file}`)
-        );
+      let startIndex = agentContent.indexOf(startFence);
+      if (startIndex === -1) startIndex = agentContent.indexOf(altStartFence);
+
+      if (startIndex === -1) continue; // Silently skip files without a YAML block
+
+      const contentStartIndex = startIndex + startFence.length;
+      const endIndex = agentContent.indexOf(endFence, contentStartIndex);
+
+      if (endIndex === -1) {
+        console.warn(chalk.yellow(`Warning: Found unclosed YAML block in ${file}. Skipping.`));
         continue;
       }
 
-      // THE DEFINITIVE PARSING FIX: Use capture group 2, which is ONLY the content.
-      const config = yaml.load(yamlMatch[2]);
+      const yamlString = agentContent.substring(contentStartIndex, endIndex).trim();
+      if (!yamlString) continue;
+
+      const config = yaml.load(yamlString);
       const agentConfig = config?.agent;
 
-      if (!agentConfig?.alias || !agentConfig?.id) {
-        console.warn(
-          chalk.yellow(
-            `Warning: Agent file ${file} is missing a required 'id' or 'alias'. Skipping.`
-          )
-        );
-        continue;
-      }
+      if (!agentConfig?.alias || !agentConfig?.id) continue;
 
       newModes.push({
         slug: agentConfig.alias,
@@ -114,29 +119,38 @@ async function configureIde() {
         groups: ["stigmergy-agent"],
       });
     } catch (e) {
-      console.error(
-        chalk.red(`\nError: Failed to parse YAML in agent file: ${file}. Skipping.`),
-        e.message
-      );
+      console.error(chalk.red(`\nError parsing YAML in ${file}. Skipping.`), e.message);
       continue;
     }
   }
 
   if (newModes.length <= 1) {
+    // <= 1 because @system is always there
     throw new Error(
-      "Critical Error: No valid agent configurations were found. The IDE configuration file could not be generated."
+      "Critical Error: No valid agent configurations found. IDE file generation failed."
     );
   }
 
   newModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const modesString = newModes
-    .map(
-      (mode) =>
-        `  {\n    slug: "${mode.slug}",\n    name: "${mode.name}",\n    api: ${JSON.stringify(mode.api, null, 2).replace(/\n/g, "\n    ")},\n    groups: ${JSON.stringify(mode.groups)}\n  }`
-    )
-    .join(",\n");
-  const fileContent = `// Stigmergy & Roo Code Configuration (v1.2)\nmodule.exports = {\n  customModes: [\n${modesString}\n  ]\n};`;
+  // --- ROO CODE FORMATTING FIX ---
+  // This generates the exact unquoted-key format Roo Code requires, robustly.
+  let modesString = "[\n";
+  newModes.forEach((mode, index) => {
+    const apiString = JSON.stringify(mode.api, null, 4).replace(/\n/g, "\n      ");
+    const groupsString = JSON.stringify(mode.groups);
+
+    modesString += `    {\n`;
+    modesString += `      slug: "${mode.slug}",\n`;
+    modesString += `      name: "${mode.name}",\n`;
+    modesString += `      api: ${apiString},\n`;
+    modesString += `      groups: ${groupsString}\n`;
+    modesString += `    }${index < newModes.length - 1 ? "," : ""}\n`;
+  });
+  modesString += "  ]";
+
+  const fileContent = `// Stigmergy & Roo Code Configuration (v1.2)\nmodule.exports = {\n  customModes: ${modesString}\n};`;
+  // --- END OF FIX ---
 
   await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
 }
@@ -145,9 +159,7 @@ async function runIndexer() {
   return new Promise((resolve, reject) => {
     const scriptPath = path.join(__dirname, "..", "indexer", "index.js");
     const indexerProcess = spawn("node", [scriptPath], { stdio: "inherit" });
-    indexerProcess.on("close", (code) =>
-      code === 0 ? resolve() : reject(new Error(`Indexer process exited with code ${code}`))
-    );
+    indexerProcess.on("close", (code) => (code === 0 ? resolve() : reject()));
     indexerProcess.on("error", (err) => reject(err));
   });
 }

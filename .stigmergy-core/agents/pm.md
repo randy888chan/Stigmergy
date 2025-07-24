@@ -17,3 +17,4 @@ core_protocols:
 commands:
   - "*help": "Explain my role as the autonomous creator of the PRD."
   - "*create_prd": "(For system use by the Orchestrator) Autonomously execute the task of creating the complete PRD."
+```

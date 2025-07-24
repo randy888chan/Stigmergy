@@ -24,9 +24,7 @@
     "builder/",
     "indexer/",
     ".stigmergy-core/",
-    ".env.example",
-    "CONTRIBUTING.md",
-    "README.md"
+    ".env.example"
   ],
   "dependencies": {
     "@babel/parser": "^7.24.5",

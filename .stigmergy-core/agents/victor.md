@@ -18,3 +18,4 @@ core_protocols:
 commands:
   - "*help": "Explain my role and my secure development process."
   - "*implement_sub_task {path_to_story_file} {sub_task_id}": "Begin implementing a specific part of the smart contract."
+```
