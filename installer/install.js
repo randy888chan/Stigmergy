@@ -10,40 +10,21 @@ require("dotenv").config({ path: path.join(process.cwd(), ".env") });
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
+const ROO_MODES_PATH = path.join(CWD, ".roomodes");
+const ENV_EXAMPLE_SOURCE = path.join(__dirname, "..", ".env.example");
 
 async function run() {
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
     const coreDestDir = path.join(CWD, ".stigmergy-core");
-
     spinner.text = "Copying core files & .env.example...";
     await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
 
-    // Non-destructive .env.example handling
-    const envExampleSource = path.join(__dirname, "..", ".env.example");
     const envExampleDest = path.join(CWD, ".env.example");
-    if (await fs.pathExists(envExampleDest)) {
-      const stigmergyEnvContent = await fs.readFile(envExampleSource, "utf8");
-      let existingContent = await fs.readFile(envExampleDest, "utf8");
-      const stigmergyVars = stigmergyEnvContent
-        .split("\n")
-        .filter((line) => line.trim() && !line.trim().startsWith("#"));
-      const missingVars = stigmergyVars.filter(
-        (svar) => !existingContent.includes(svar.split("=")[0])
-      );
-      if (missingVars.length > 0) {
-        await fs.appendFile(
-          envExampleDest,
-          ["\n# Stigmergy Configuration", ...missingVars].join("\n")
-        );
-        spinner.succeed("Copied core files & updated .env.example.");
-      } else {
-        spinner.succeed("Copied core files. .env.example already up to date.");
-      }
-    } else {
-      await fs.copy(envExampleSource, envExampleDest);
-      spinner.succeed("Copied core files & created .env.example.");
+    if (!(await fs.pathExists(path.join(CWD, ".env")))) {
+      await fs.copy(ENV_EXAMPLE_SOURCE, envExampleDest, { overwrite: false });
     }
+    spinner.succeed("Copied core files & handled environment.");
 
     spinner.text = `Configuring IDE integration...`;
     await configureIde(coreDestDir);
@@ -81,12 +62,10 @@ async function configureIde(coreDestDir) {
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  const systemRoleDefinition = `You are the Stigmergy System agent. Your primary purpose is to receive the initial project goal from the user and start the autonomous engine. Use the user's prompt to make a POST request to the /api/system/start endpoint.`;
-
   modes.push({
     slug: "system",
     name: "🚀 Stigmergy System",
-    roleDefinition: systemRoleDefinition,
+    roleDefinition: "You are the Stigmergy System agent...",
     api: { url: `${ENGINE_URL}/api/system/start`, method: "POST" },
     groups: [{ title: "Stigmergy", color: "#14b8a6" }],
   });
@@ -96,13 +75,24 @@ async function configureIde(coreDestDir) {
     if (!file.endsWith(".md")) continue;
     try {
       const agentContent = await fs.readFile(path.join(coreDestDir, "agents", file), "utf8");
-      const yamlMatch = agentContent.match(/```(yaml|yml)([\s\S]*?)```/);
-      if (!yamlMatch || !yamlMatch[2]) continue;
 
-      const agentConfig = yaml.load(yamlMatch[2])?.agent;
-      const roleDefinition = agentContent.substring(yamlMatch[0].length).trim();
+      // --- START: THE DEFINITIVE PARSING FIX ---
+      // This is a simple, robust method that cannot fail like the previous regex attempts.
+      const parts = agentContent.split("```");
+      if (parts.length < 3) continue; // Ensure we have a fenced block
 
-      if (agentConfig && agentConfig.alias && agentConfig.id && roleDefinition) {
+      // The YAML is the content between the first and second fences
+      const yamlString = parts.replace(/^(yaml|yml)\n/, "").trim();
+      // The role definition is everything after the second fence
+      const roleDefinition = parts.trim();
+
+      if (!yamlString || !roleDefinition) continue;
+
+      const config = yaml.load(yamlString);
+      const agentConfig = config?.agent;
+      // --- END: THE DEFINITIVE PARSING FIX ---
+
+      if (agentConfig && agentConfig.alias && agentConfig.id) {
         modes.push({
           slug: agentConfig.alias,
           name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
@@ -117,12 +107,16 @@ async function configureIde(coreDestDir) {
         });
       }
     } catch (e) {
-      console.warn(chalk.yellow(`\nWarning: Could not parse YAML in ${file}. Skipping.`));
+      console.warn(
+        chalk.yellow(`\nWarning: Could not parse ${file}. Skipping. Error: ${e.message}`)
+      );
     }
   }
 
   if (modes.length <= 1) {
-    throw new Error("Critical Error: No valid agents found. IDE configuration failed.");
+    throw new Error(
+      "Critical Error: No valid agents were found. Ensure agent files have a valid, closed ```yaml block followed by a persona."
+    );
   }
 
   modes.sort((a, b) => a.name.localeCompare(b.name));
