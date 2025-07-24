@@ -1,10 +1,12 @@
 const fs = require('fs-extra');
 const path = require('path');
-const lockfile = require('proper-lockfile'); // NEW: For safe file writing
+const lockfile = require('proper-lockfile');
 const { v4: uuidv4 } = require('uuid');
 
-const STATE_FILE_PATH = path.resolve(process.cwd(), '.ai', 'state.json');
-const LOCK_PATH = path.resolve(process.cwd(), '.ai', 'state.json.lock');
+// MODIFICATION: Use the central configuration file
+const config = require(path.resolve(process.cwd(), 'stigmergy.config.js'));
+const STATE_FILE_PATH = path.resolve(process.cwd(), config.stateFile);
+const LOCK_PATH = `${STATE_FILE_PATH}.lock`;
 
 async function getState() {
   await fs.ensureDir(path.dirname(STATE_FILE_PATH));
@@ -18,7 +20,6 @@ async function getState() {
 }
 
 async function updateState(newState) {
-  // MODIFIED: Use a lockfile to prevent race conditions.
   await fs.ensureDir(path.dirname(LOCK_PATH));
   let release;
   try {
@@ -35,6 +36,17 @@ async function updateState(newState) {
   return newState;
 }
 
-// All other functions are correct and rely on updateState, so they inherit the lock.
-// No other changes needed to this file from the previous correct implementation.
-// ... (include all other functions like updateStatusAndHistory, initializeStateForGrandBlueprint, etc.)
+async function updateStatusAndHistory(newStatus, historyEvent) {
+  const state = await getState();
+  if (newStatus) state.project_status = newStatus;
+  state.history.push({
+    id: uuidv4(),
+    ...historyEvent,
+    timestamp: new Date().toISOString(),
+  });
+  return updateState(state);
+}
+
+// ... include all other functions from your existing state_manager.js
+// (e.g., initializeStateForGrandBlueprint, recordTaskCompletion, etc.)
+// They do not need to be changed as they rely on the updated functions above.
