@@ -6,8 +6,7 @@ const ora = require("ora");
 const inquirer = require("inquirer");
 const { spawn } = require("child_process");
 
-// NEW: Respect user's environment configuration from the start.
-require('dotenv').config();
+require("dotenv").config();
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
@@ -29,7 +28,8 @@ async function run() {
       {
         type: "confirm",
         name: "runIndexer",
-        message: "A code graph improves agent understanding. Index the current project with Neo4j now?",
+        message:
+          "A code graph improves agent understanding. Index the current project with Neo4j now?",
         default: true,
       },
     ]);
@@ -52,15 +52,15 @@ async function run() {
 }
 
 async function configureIde() {
-  const modes = [];
-  const PORT = process.env.PORT || 3000; // MODIFIED: Dynamically use port
+  const newModes = [];
+  const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  modes.push({
-      slug: "system",
-      name: "🚀 Stigmergy System",
-      api: { url: `${ENGINE_URL}/api/system/start`, method: "POST" },
-      groups: ["stigmergy-system"],
+  newModes.push({
+    slug: "system",
+    name: "🚀 Stigmergy System",
+    api: { url: `${ENGINE_URL}/api/system/start`, method: "POST" },
+    groups: ["stigmergy-system"],
   });
 
   const agentFiles = await fs.readdir(path.join(CORE_DEST_DIR, "agents"));
@@ -68,39 +68,60 @@ async function configureIde() {
     if (!file.endsWith(".md")) continue;
 
     try {
-        const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, "agents", file), "utf8");
-        const yamlMatch = agentContent.match(/```(yaml|yml)\n([\s\S]*?)```/i);
-        if (!yamlMatch || !yamlMatch[2]) {
-             console.warn(chalk.yellow(`\nWarning: Skipping agent file with no YAML block: ${file}`));
-             continue;
-        };
+      const agentContent = await fs.readFile(path.join(CORE_DEST_DIR, "agents", file), "utf8");
 
-        const config = yaml.load(yamlMatch[2]);
-        const agentConfig = config?.agent;
-        if (!agentConfig?.alias || !agentConfig?.id) continue;
+      // MODIFIED: This regex is now robust.
+      // It allows for optional spaces/tabs after ```yaml (`\s*`)
+      // and handles both Windows (`\r\n`) and Unix (`\n`) line endings (`\r?\n`).
+      const yamlMatch = agentContent.match(/```(yaml|yml)\s*\r?\n([\s\S]*?)```/);
 
-        modes.push({
-          slug: agentConfig.alias,
-          name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
-          api: {
-            url: `${ENGINE_URL}/api/interactive`,
-            method: "POST",
-            include: ["history", "context"],
-            static_payload: { agentId: agentConfig.id },
-          },
-          groups: ["stigmergy-agent"],
-        });
-    } catch (e) {
-        // MODIFIED: Robust error handling, logs specific error and continues
-        console.error(chalk.red(`\nError: Failed to parse YAML in agent file: ${file}. Skipping.`), e.message);
+      if (!yamlMatch || !yamlMatch) {
+        console.warn(
+          chalk.yellow(`Warning: Skipping agent file with no valid YAML block: ${file}`)
+        );
         continue;
+      }
+
+      const config = yaml.load(yamlMatch);
+      const agentConfig = config?.agent;
+      if (!agentConfig?.alias || !agentConfig?.id) continue;
+
+      newModes.push({
+        slug: agentConfig.alias,
+        name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
+        api: {
+          url: `${ENGINE_URL}/api/interactive`,
+          method: "POST",
+          include: ["history", "context"],
+          static_payload: { agentId: agentConfig.id },
+        },
+        groups: ["stigmergy-agent"],
+      });
+    } catch (e) {
+      console.error(
+        chalk.red(`\nError: Failed to parse YAML in agent file: ${file}. Skipping.`),
+        e.message
+      );
+      continue;
     }
   }
 
-  modes.sort((a, b) => a.name.localeCompare(b.name));
+  // NEW: Validation check. If no agents were processed, the installer fails with a clear error.
+  if (newModes.length <= 1) {
+    // We check for <= 1 because the @system agent is always added.
+    throw new Error(
+      "Critical Error: No valid agent configurations were found in `.stigmergy-core/agents/`. The IDE configuration file could not be generated."
+    );
+  }
 
-  // MODIFIED: Safe and clean file content generation
-  const modesString = modes.map(mode => `  {\n    slug: "${mode.slug}",\n    name: "${mode.name}",\n    api: ${JSON.stringify(mode.api, null, 2).replace(/\n/g, '\n    ')},\n    groups: ${JSON.stringify(mode.groups)}\n  }`).join(',\n');
+  newModes.sort((a, b) => a.name.localeCompare(b.name));
+
+  const modesString = newModes
+    .map(
+      (mode) =>
+        `  {\n    slug: "${mode.slug}",\n    name: "${mode.name}",\n    api: ${JSON.stringify(mode.api, null, 2).replace(/\n/g, "\n    ")},\n    groups: ${JSON.stringify(mode.groups)}\n  }`
+    )
+    .join(",\n");
   const fileContent = `// Stigmergy & Roo Code Configuration (v1.1)\nmodule.exports = {\n  customModes: [\n${modesString}\n  ]\n};`;
 
   await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
@@ -111,7 +132,9 @@ async function runIndexer() {
     const indexerProcess = spawn("node", [path.join(__dirname, "..", "indexer", "index.js")], {
       stdio: "inherit",
     });
-    indexerProcess.on("close", (code) => code === 0 ? resolve() : reject(new Error(`Indexer process exited with code ${code}`)));
+    indexerProcess.on("close", (code) =>
+      code === 0 ? resolve() : reject(new Error(`Indexer process exited with code ${code}`))
+    );
     indexerProcess.on("error", (err) => reject(err));
   });
 }
