@@ -1,8 +1,9 @@
 {
-  "schema_version": "3.0",
+  "schema_version": "3.1",
   "project_name": "New Stigmergy Project",
   "goal": null,
   "project_status": "NEEDS_INITIALIZATION",
+  "code_indexed": false,
   "artifacts_created": {
     "brief": false,
     "prd": false,
@@ -18,9 +19,9 @@
     {
       "id": "init-001",
       "timestamp": "ISO_TIMESTAMP_PLACEHOLDER",
-      "agent_id": "system",
-      "signal": "INIT",
-      "summary": "Project initialized. State file created."
+      "source": "system",
+      "agent_id": "engine",
+      "message": "Project initialized. State file created."
     }
   ],
   "issue_log": []
