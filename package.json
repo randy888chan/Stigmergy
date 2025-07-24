@@ -7,9 +7,8 @@
     "stigmergy": "cli/index.js"
   },
   "scripts": {
-    "start": "node cli/index.js start",
-    "stigmergy:start": "node cli/index.js start",
-    "stigmergy:cleanup": "node cli/index.js cleanup",
+    "start": "node engine/server.js",
+    "stigmergy:start": "node engine/server.js",
     "build": "node cli/index.js build --all",
     "stigmergy:build": "node cli/index.js build --all",
     "test": "jest",
