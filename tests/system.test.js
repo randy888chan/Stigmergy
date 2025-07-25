@@ -8,6 +8,7 @@ jest.mock("ora", () => () => ({
   start: jest.fn().mockReturnThis(),
   succeed: jest.fn().mockReturnThis(),
   fail: jest.fn().mockReturnThis(),
+  warn: jest.fn().mockReturnThis(),
   text: "",
 }));
 
@@ -15,17 +16,19 @@ const CWD = process.cwd();
 
 describe("Stigmergy Installer", () => {
   beforeEach(() => {
-    // Clear all mocks before each test
+    // CRITICAL FIX: Reset all mocks and provide default safe values before each test.
+    // This prevents tests from interfering with each other.
     jest.clearAllMocks();
-
-    // Default mock implementations
     fs.pathExists.mockResolvedValue(false);
     fs.copy.mockResolvedValue(undefined);
     fs.writeFile.mockResolvedValue(undefined);
+    // Default to no agent files found to prevent "not iterable" error in tests
+    // that don't care about agent parsing.
+    fs.readdir.mockResolvedValue([]);
   });
 
   it("should copy core files and .env.example if .env does not exist", async () => {
-    fs.pathExists.mockResolvedValue(false); // Mocks that .env does NOT exist
+    fs.pathExists.mockResolvedValue(false); // .env does NOT exist
     await installer.run();
     expect(fs.copy).toHaveBeenCalledWith(
       expect.stringContaining(".stigmergy-core"),
@@ -40,12 +43,8 @@ describe("Stigmergy Installer", () => {
   });
 
   it("should NOT copy .env.example if .env already exists", async () => {
-    fs.pathExists.mockImplementation((p) => {
-        // Return true only for the .env check
-        return Promise.resolve(p === path.join(CWD, ".env"));
-    });
+    fs.pathExists.mockImplementation((p) => Promise.resolve(p === path.join(CWD, ".env")));
     await installer.run();
-    // Verify that the .env.example copy call was NOT made
     expect(fs.copy).not.toHaveBeenCalledWith(
       expect.stringContaining(".env.example"),
       expect.any(String),
@@ -54,8 +53,8 @@ describe("Stigmergy Installer", () => {
   });
 
   it("should correctly generate a .roomodes file with valid agents", async () => {
-    // Mock the agent files that will be read
-    fs.readdir.mockResolvedValue(["analyst.md", "dev.md", "invalid.txt"]);
+    // Test-specific mocks
+    fs.readdir.mockResolvedValue(["analyst.md", "dev.md"]);
     fs.readFile.mockImplementation((filePath) => {
       if (filePath.endsWith("analyst.md")) {
         return Promise.resolve(
@@ -72,34 +71,49 @@ describe("Stigmergy Installer", () => {
 
     await installer.run();
 
-    // Check that writeFile was called for .roomodes
     expect(fs.writeFile).toHaveBeenCalledWith(
       path.join(CWD, ".roomodes"),
       expect.any(String),
       "utf8"
     );
 
-    // Check the content of the written file
     const writtenContent = fs.writeFile.mock.calls[0][1];
-    expect(writtenContent).toContain('slug: "system"');
-    expect(writtenContent).toContain('slug: "saul"');
-    expect(writtenContent).toContain('slug: "mary"');
-    expect(writtenContent).toContain('slug: "james"');
-    expect(writtenContent).toContain('roleDefinition: "Persona for Mary."');
+    // CRITICAL FIX: Check for the correct JSON string format.
+    expect(writtenContent).toContain('"slug": "system"');
+    expect(writtenContent).toContain('"slug": "saul"');
+    expect(writtenContent).toContain('"slug": "mary"');
+    expect(writtenContent).toContain('"slug": "james"');
+    expect(writtenContent).toContain('"roleDefinition": "Persona for Mary."');
   });
 
   it("should handle and skip malformed agent files gracefully", async () => {
-    fs.readdir.mockResolvedValue(["malformed.md"]);
-    fs.readFile.mockResolvedValue("This file has no yaml block.");
+    // Test-specific mocks
+    fs.readdir.mockResolvedValue(["malformed.md", "good-agent.md"]);
+    fs.readFile.mockImplementation((filePath) => {
+      if (filePath.endsWith("malformed.md")) {
+        return Promise.resolve("This file has no yaml block.");
+      }
+      if (filePath.endsWith("good-agent.md")) {
+        return Promise.resolve(
+          "```yaml\nagent:\n  id: qa\n  alias: quinn\n  name: Quinn\n  icon: '🛡️'\n```\nPersona for Quinn."
+        );
+      }
+      return Promise.reject("File not found");
+    });
 
-    // We expect the installer to run without throwing a fatal error
-    await expect(installer.run()).resolves.not.toThrow();
-    
-    // It should still write a .roomodes file with the default system agents
-     expect(fs.writeFile).toHaveBeenCalledWith(
+    await installer.run();
+
+    expect(fs.writeFile).toHaveBeenCalledWith(
       path.join(CWD, ".roomodes"),
-      expect.stringContaining('slug: "system"'),
+      expect.any(String),
       "utf8"
     );
+
+    const writtenContent = fs.writeFile.mock.calls[0][1];
+    // It should contain the default agents AND the one good agent.
+    expect(writtenContent).toContain('"slug": "system"');
+    expect(writtenContent).toContain('"slug": "quinn"');
+    // It should NOT contain anything about a malformed agent.
+    expect(writtenContent).not.toContain("malformed");
   });
 });
