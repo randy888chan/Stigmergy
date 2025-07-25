@@ -1,6 +1,6 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Stigmergy: The Autonomous AI Development System.",
   "main": "cli/index.js",
   "bin": {
