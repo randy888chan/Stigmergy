@@ -1,6 +1,6 @@
 const fs = require("fs-extra");
 const path = require("path");
-const installer = require("../installer/install");
+const { run, parseAgentYaml } = require("../installer/install");
 
 // Mock the dependencies
 jest.mock("fs-extra");
@@ -14,106 +14,83 @@ jest.mock("ora", () => () => ({
 
 const CWD = process.cwd();
 
+// --- START: REALISTIC MOCK DATA ---
+const MOCK_ANALYST_FILE = `
+\`\`\`yaml
+agent:
+  id: "analyst"
+  alias: "mary"
+  name: "Mary"
+  icon: "📊"
+persona:
+  role: "Proactive Market Analyst & Strategic Research Partner"
+  style: "Analytical, inquisitive, data-informed, and constraint-focused."
+  identity: "I am a strategic analyst."
+\`\`\`
+`;
+
+const MOCK_DISPATCHER_FILE = `
+\`\`\`yaml
+agent:
+  id: "dispatcher"
+  alias: "saul"
+  name: "Saul"
+  icon: "🧠"
+persona:
+  role: "AI System Orchestrator"
+  identity: "I am Saul, the AI brain of the Stigmergy system."
+\`\`\`
+`;
+
+const MOCK_NO_PERSONA_BLOCK = "```yaml\nagent:\n  id: qa\n  alias: quinn\n```";
+const EXAMPLE_ENV_CONTENT = "LLM_API_KEY=example_key";
+// --- END: REALISTIC MOCK DATA ---
+
 describe("Stigmergy Installer", () => {
-  beforeEach(() => {
-    // CRITICAL FIX: Reset all mocks and provide default safe values before each test.
-    // This prevents tests from interfering with each other.
-    jest.clearAllMocks();
-    fs.pathExists.mockResolvedValue(false);
-    fs.copy.mockResolvedValue(undefined);
-    fs.writeFile.mockResolvedValue(undefined);
-    // Default to no agent files found to prevent "not iterable" error in tests
-    // that don't care about agent parsing.
-    fs.readdir.mockResolvedValue([]);
-  });
-
-  it("should copy core files and .env.example if .env does not exist", async () => {
-    fs.pathExists.mockResolvedValue(false); // .env does NOT exist
-    await installer.run();
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining(".stigmergy-core"),
-      path.join(CWD, ".stigmergy-core"),
-      { overwrite: true }
-    );
-    expect(fs.copy).toHaveBeenCalledWith(
-      expect.stringContaining(".env.example"),
-      path.join(CWD, ".env.example"),
-      { overwrite: false }
-    );
-  });
-
-  it("should NOT copy .env.example if .env already exists", async () => {
-    fs.pathExists.mockImplementation((p) => Promise.resolve(p === path.join(CWD, ".env")));
-    await installer.run();
-    expect(fs.copy).not.toHaveBeenCalledWith(
-      expect.stringContaining(".env.example"),
-      expect.any(String),
-      expect.any(Object)
-    );
-  });
-
-  it("should correctly generate a .roomodes file with valid agents", async () => {
-    // Test-specific mocks
-    fs.readdir.mockResolvedValue(["analyst.md", "dev.md"]);
-    fs.readFile.mockImplementation((filePath) => {
-      if (filePath.endsWith("analyst.md")) {
-        return Promise.resolve(
-          "```yaml\nagent:\n  id: analyst\n  alias: mary\n  name: Mary\n  icon: '📊'\n```\nPersona for Mary."
-        );
-      }
-      if (filePath.endsWith("dev.md")) {
-        return Promise.resolve(
-          "```yml\nagent:\n  id: dev\n  alias: james\n  name: James\n  icon: '💻'\n```\nPersona for James."
-        );
-      }
-      return Promise.reject("File not found");
+  describe("parseAgentYaml", () => {
+    it("should correctly parse a valid agent file", () => {
+      const parsed = parseAgentYaml(MOCK_ANALYST_FILE);
+      expect(parsed).not.toBeNull();
+      expect(parsed.config.agent.id).toBe("analyst");
+      expect(parsed.roleDefinition).toContain("I am a strategic analyst.");
     });
 
-    await installer.run();
-
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      path.join(CWD, ".roomodes"),
-      expect.any(String),
-      "utf8"
-    );
-
-    const writtenContent = fs.writeFile.mock.calls[0][1];
-    // CRITICAL FIX: Check for the correct JSON string format.
-    expect(writtenContent).toContain('"slug": "system"');
-    expect(writtenContent).toContain('"slug": "saul"');
-    expect(writtenContent).toContain('"slug": "mary"');
-    expect(writtenContent).toContain('"slug": "james"');
-    expect(writtenContent).toContain('"roleDefinition": "Persona for Mary."');
+    it("should return null if the persona block is missing from YAML", () => {
+      const parsed = parseAgentYaml(MOCK_NO_PERSONA_BLOCK);
+      expect(parsed).toBeNull();
+    });
   });
 
-  it("should handle and skip malformed agent files gracefully", async () => {
-    // Test-specific mocks
-    fs.readdir.mockResolvedValue(["malformed.md", "good-agent.md"]);
-    fs.readFile.mockImplementation((filePath) => {
-      if (filePath.endsWith("malformed.md")) {
-        return Promise.resolve("This file has no yaml block.");
-      }
-      if (filePath.endsWith("good-agent.md")) {
-        return Promise.resolve(
-          "```yaml\nagent:\n  id: qa\n  alias: quinn\n  name: Quinn\n  icon: '🛡️'\n```\nPersona for Quinn."
-        );
-      }
-      return Promise.reject("File not found");
+  describe("run", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      fs.readFile.mockResolvedValue(EXAMPLE_ENV_CONTENT);
+      fs.readdir.mockResolvedValue([]);
+      fs.pathExists.mockResolvedValue(false);
     });
 
-    await installer.run();
+    it("should generate a .roomodes file that includes all valid agents and skips invalid ones", async () => {
+      fs.readdir.mockResolvedValue(["analyst.md", "dispatcher.md", "no_persona_block.md"]);
+      fs.readFile.mockImplementation((filePath) => {
+        if (filePath.endsWith("analyst.md")) return Promise.resolve(MOCK_ANALYST_FILE);
+        if (filePath.endsWith("dispatcher.md")) return Promise.resolve(MOCK_DISPATCHER_FILE);
+        if (filePath.endsWith("no_persona_block.md")) return Promise.resolve(MOCK_NO_PERSONA_BLOCK);
+        return Promise.resolve(EXAMPLE_ENV_CONTENT);
+      });
 
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      path.join(CWD, ".roomodes"),
-      expect.any(String),
-      "utf8"
-    );
+      await run();
 
-    const writtenContent = fs.writeFile.mock.calls[0][1];
-    // It should contain the default agents AND the one good agent.
-    expect(writtenContent).toContain('"slug": "system"');
-    expect(writtenContent).toContain('"slug": "quinn"');
-    // It should NOT contain anything about a malformed agent.
-    expect(writtenContent).not.toContain("malformed");
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        expect.stringContaining(".roomodes"),
+        expect.any(String),
+        "utf8"
+      );
+      const writtenContent = fs.writeFile.mock.calls[0][1];
+
+      expect(writtenContent).toMatch(/slug: mary/);
+      expect(writtenContent).toMatch(/slug: saul/);
+      expect(writtenContent).toMatch(/I am Saul, the AI brain/);
+      expect(writtenContent).not.toMatch(/slug: quinn/);
+    });
   });
 });

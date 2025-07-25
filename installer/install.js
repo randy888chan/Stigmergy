@@ -4,28 +4,63 @@ const yaml = require("js-yaml");
 const chalk = require("chalk");
 const ora = require("ora");
 
-// .env is now loaded by the engine, but we check for it here for the port.
 require("dotenv").config({ path: path.join(process.cwd(), ".env") });
 
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
-const ROO_MODES_PATH = path.join(CWD, ".roomodes");
-const ENV_EXAMPLE_SOURCE = path.join(__dirname, "..", ".env.example");
+
+/**
+ * THE FINAL, CORRECTED PARSER.
+ * This function extracts the first valid YAML block from the file.
+ * It then constructs a roleDefinition from the 'persona' object within that YAML.
+ * @param {string} content The raw file content.
+ * @returns {{config: object, roleDefinition: string}|null}
+ */
+function parseAgentFile(content) {
+  try {
+    const yamlBlockRegex = /```(yaml|yml)\n([\s\S]*?)\n```/;
+    const match = content.match(yamlBlockRegex);
+
+    if (!match || !match[2]) {
+      return null;
+    }
+
+    const config = yaml.load(match[2]);
+
+    if (!config || !config.agent || !config.persona) {
+      return null;
+    }
+
+    const persona = config.persona;
+    const personaParts = [
+      persona.identity,
+      persona.role ? `Role: ${persona.role}` : null,
+      persona.style ? `Style: ${persona.style}` : null,
+    ].filter(Boolean); // This removes any null/undefined values
+
+    const roleDefinition = personaParts.join("\n\n");
+
+    if (!roleDefinition) {
+      return null; // A mode requires a non-empty role definition
+    }
+
+    return { config, roleDefinition };
+  } catch (e) {
+    return null;
+  }
+}
 
 async function run() {
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
+    spinner.text = "Copying core files...";
     const coreDestDir = path.join(CWD, ".stigmergy-core");
-    spinner.text = "Copying core files & .env.example...";
     await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
+    spinner.succeed("Copied core files.");
 
-    // Copy .env.example if a .env file doesn't already exist
-    const envDest = path.join(CWD, ".env");
-    if (!(await fs.pathExists(envDest))) {
-      await fs.copy(ENV_EXAMPLE_SOURCE, path.join(CWD, ".env.example"), { overwrite: false });
-      console.log(chalk.yellow("\nAn '.env.example' file was created. Please rename it to '.env' and add your API keys."));
-    }
-    spinner.succeed("Copied core files & handled environment.");
+    spinner.text = "Configuring environment file...";
+    await handleEnvFile();
+    spinner.succeed("Environment file configured.");
 
     spinner.text = `Configuring IDE integration...`;
     await configureIde(coreDestDir);
@@ -33,12 +68,50 @@ async function run() {
 
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
-    console.log("  1. Configure your API keys in the '.env' file.");
+    console.log("  1. Ensure all required variables in '.env' are set.");
     console.log("  2. Run 'npm start' to launch the Stigmergy engine.");
   } catch (error) {
     spinner.fail("Installation failed.");
     console.error(chalk.red.bold("Error:"), chalk.red(error.message));
-    console.error(chalk.red("This is often due to file permission errors. Please check that you can write to the current directory."));
+  }
+}
+
+async function handleEnvFile() {
+  const exampleEnvPath = path.join(__dirname, "..", ".env.example");
+  const projectEnvPath = path.join(CWD, ".env");
+  const projectSampleEnvPath = path.join(CWD, ".env.sample");
+
+  const targetPath = (await fs.pathExists(projectSampleEnvPath))
+    ? projectSampleEnvPath
+    : projectEnvPath;
+  const exampleEnvContent = await fs.readFile(exampleEnvPath, "utf8");
+  const exampleVars = exampleEnvContent
+    .split("\n")
+    .filter((line) => line.trim() && !line.startsWith("#"));
+
+  if (!(await fs.pathExists(targetPath))) {
+    await fs.copy(exampleEnvPath, targetPath);
+    console.log(
+      chalk.yellow(
+        `\nA new '${path.basename(targetPath)}' file was created. Please add your API keys.`
+      )
+    );
+    return;
+  }
+
+  const projectEnvContent = await fs.readFile(targetPath, "utf8");
+  const varsToAppend = exampleVars.filter(
+    (line) => !projectEnvContent.includes(line.split("=")[0])
+  );
+  if (varsToAppend.length > 0) {
+    const appendContent =
+      "\n\n# --- Stigmergy variables appended by installer ---\n" + varsToAppend.join("\n");
+    await fs.appendFile(targetPath, appendContent);
+    console.log(
+      chalk.green(
+        `Appended required Stigmergy variables to your existing '${path.basename(targetPath)}' file.`
+      )
+    );
   }
 }
 
@@ -46,34 +119,50 @@ async function configureIde(coreDestDir) {
   const modes = [];
   const PORT = process.env.PORT || 3000;
   if (!process.env.PORT) {
-      console.log(chalk.yellow(`\nWarning: PORT not set in .env, defaulting to ${PORT}. The engine will run here.`));
+    console.log(chalk.yellow(`\nWarning: PORT not set in .env, defaulting to ${PORT}.`));
   }
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  // Master System Control Mode
   modes.push({
-    slug: 'system',
-    name: '🚀 Stigmergy Control',
-    roleDefinition: 'You are the master control for the Stigmergy Engine. Use this mode to start new projects by providing a high-level goal.',
+    slug: "system",
+    name: "🚀 Stigmergy Control",
+    roleDefinition:
+      "You are the master control for the Stigmergy Engine. Use this mode to start new projects by providing a high-level goal.",
     api: {
-        url: `${ENGINE_URL}/api/system/start`,
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: '{"goal": "{{prompt}}"}',
+      url: `${ENGINE_URL}/api/system/start`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: '{"goal": "{{prompt}}"}',
     },
     groups: [{ title: "Stigmergy", color: "#14b8a6" }],
   });
-  
-  // Primary Orchestrator/Interaction Mode
+
+  // Create a default for saul in case dispatcher.md is missing/malformed
+  let saulRoleDef = "I am Saul, the AI System Orchestrator.";
+  try {
+    const dispatcherContent = await fs.readFile(
+      path.join(coreDestDir, "agents", "dispatcher.md"),
+      "utf8"
+    );
+    const dispatcherParsed = parseAgentFile(dispatcherContent);
+    if (dispatcherParsed) {
+      saulRoleDef = dispatcherParsed.roleDefinition;
+    }
+  } catch (e) {
+    console.warn(
+      chalk.yellow("Warning: Could not read dispatcher.md, using default persona for @saul.")
+    );
+  }
+
   modes.push({
-    slug: 'saul',
-    name: '🧠 Saul (Orchestrator)',
-    roleDefinition: 'You are Saul, the AI System Orchestrator. The system is currently running. Use this mode to check status, give approvals, or provide requested input.',
+    slug: "saul",
+    name: "🧠 Saul (Orchestrator)",
+    roleDefinition: saulRoleDef,
     api: {
-        url: `${ENGINE_URL}/api/chat`,
-        method: 'POST',
-        include: ['history'],
-        static_payload: { agentId: 'dispatcher' }
+      url: `${ENGINE_URL}/api/chat`,
+      method: "POST",
+      include: ["history"],
+      static_payload: { agentId: "dispatcher" },
     },
     groups: [{ title: "Stigmergy", color: "#14b8a6" }],
   });
@@ -81,28 +170,30 @@ async function configureIde(coreDestDir) {
   const agentFiles = await fs.readdir(path.join(coreDestDir, "agents"));
   for (const file of agentFiles) {
     if (!file.endsWith(".md")) continue;
+
     try {
       const agentContent = await fs.readFile(path.join(coreDestDir, "agents", file), "utf8");
+      const parsed = parseAgentFile(agentContent);
 
-      // --- START: THE DEFINITIVE PARSING FIX ---
-      const yamlBlockRegex = /```(yaml|yml)\n([\s\S]*?)\n```/;
-      const yamlMatch = agentContent.match(yamlBlockRegex);
-      if (!yamlMatch || !yamlMatch[2]) {
-        console.warn(chalk.yellow(`Warning: Could not find a valid YAML block in ${file}. Skipping.`));
+      if (!parsed) {
+        console.warn(
+          chalk.yellow(
+            `Warning: Could not parse agent file ${file}. It may be malformed or missing a valid persona. Skipping.`
+          )
+        );
         continue;
       }
-      const yamlString = yamlMatch[2];
-      const roleDefinition = agentContent.substring(agentContent.indexOf(yamlMatch[0]) + yamlMatch[0].length).trim();
-      const config = yaml.load(yamlString);
-      // --- END: THE DEFINITIVE PARSING FIX ---
 
-      const agentConfig = config?.agent;
+      const agentConfig = parsed.config?.agent;
+
       if (agentConfig && agentConfig.alias && agentConfig.id) {
-        if (agentConfig.id === 'dispatcher') continue; // Skip dispatcher as we have a dedicated 'saul' mode.
+        if (agentConfig.id === "dispatcher" || agentConfig.alias === "saul") continue;
+        if (file === "sarah.md") continue;
+
         modes.push({
           slug: agentConfig.alias,
           name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
-          roleDefinition: roleDefinition,
+          roleDefinition: parsed.roleDefinition,
           api: {
             url: `${ENGINE_URL}/api/chat`,
             method: "POST",
@@ -113,18 +204,16 @@ async function configureIde(coreDestDir) {
         });
       }
     } catch (e) {
-      console.warn(chalk.yellow(`\nWarning: Could not parse ${file}. It may be malformed. Skipping. Error: ${e.message}`));
+      console.warn(chalk.yellow(`\nError processing ${file}. Skipping. Message: ${e.message}`));
     }
-  }
-
-  if (modes.length <= 1) { // We always have at least the system mode
-    throw new Error("Critical Error: No valid agents were parsed. Ensure agent files in '.stigmergy-core/agents/' have a valid, closed ```yaml block followed by a persona.");
   }
 
   modes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const fileContent = `// This file is auto-generated by 'stigmergy install'. Do not edit manually.\ncustomModes: ${JSON.stringify(modes, null, 2)}`;
-  await fs.writeFile(ROO_MODES_PATH, fileContent, "utf8");
+  const yamlOutput = yaml.dump({ customModes: modes });
+  const fileContent = `# This file is auto-generated by 'stigmergy install'. Do not edit manually.\n\n${yamlOutput}`;
+
+  await fs.writeFile(path.join(CWD, ".roomodes"), fileContent, "utf8");
 }
 
-module.exports = { run };
+module.exports = { run, parseAgentYaml: parseAgentFile }; // Export with a consistent name
