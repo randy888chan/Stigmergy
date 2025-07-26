@@ -56,7 +56,7 @@ async function configureIde(coreDestDir) {
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  const stigmergyGroup = [{ title: "Stigmergy", color: "#14b8a6" }];
+  const stigmergyGroup = ["Stigmergy"];
   const agentsDir = path.join(coreDestDir, "agents");
   const agentFiles = await fs.readdir(agentsDir);
 
@@ -89,7 +89,7 @@ async function configureIde(coreDestDir) {
         include: ["history"],
         static_payload: { agentId: agent.id },
       },
-      groups: stigmergyGroup,
+      groups: [stigmergyGroup],
     });
   }
 
