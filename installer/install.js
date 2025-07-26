@@ -9,18 +9,6 @@ require("dotenv").config({ path: path.join(process.cwd(), ".env") });
 const CORE_SOURCE_DIR = path.join(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 
-function getAgentConfig(agentContent) {
-  try {
-    const yamlBlockRegex = /```(yaml|yml)\n([\s\S]*?)\n```/;
-    const match = agentContent.match(yamlBlockRegex);
-    if (!match || !match[2]) return null;
-    const config = yaml.load(match[2]);
-    return config || null;
-  } catch (e) {
-    return null;
-  }
-}
-
 async function run() {
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
@@ -56,40 +44,59 @@ async function configureIde(coreDestDir) {
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  const stigmergyGroup = ["Stigmergy"];
-  const agentsDir = path.join(coreDestDir, "agents");
-  const agentFiles = await fs.readdir(agentsDir);
+  const agentManifestPath = path.join(coreDestDir, "system_docs", "02_Agent_Manifest.md");
+  const agentManifestContent = await fs.readFile(agentManifestPath, "utf8");
+  const manifest = yaml.load(agentManifestContent);
 
-  for (const file of agentFiles) {
-    if (!file.endsWith(".md")) continue;
+  if (!manifest || !Array.isArray(manifest.agents)) {
+    console.warn(
+      chalk.yellow(
+        "Warning: Agent manifest not found or invalid. Skipping agent mode configuration."
+      )
+    );
+    return;
+  }
 
-    const agentContent = await fs.readFile(path.join(agentsDir, file), "utf8");
-    const config = getAgentConfig(agentContent);
-
-    if (!config?.agent?.id || !config?.agent?.alias || !config?.persona?.identity) {
+  for (const agentConfig of manifest.agents) {
+    if (!agentConfig.id || !agentConfig.alias) {
       continue;
     }
 
-    const { agent, persona } = config;
-    const roleDefinition = [
-      persona.identity,
-      persona.role ? `Role: ${persona.role}` : null,
-      persona.style ? `Style: ${persona.style}` : null,
-    ]
-      .filter(Boolean)
-      .join("\n\n");
+    // For now, we'll use a generic persona. In the future, we might extract this from agent-specific files or add to manifest.
+    const roleDefinition = `You are ${agentConfig.alias}, an AI agent with the ID ${agentConfig.id}.`;
+
+    const agentGroups = [];
+    if (agentConfig.tools) {
+      if (agentConfig.tools.some((tool) => tool.startsWith("file_system.read")))
+        agentGroups.push("read");
+      if (agentConfig.tools.some((tool) => tool.startsWith("file_system.write")))
+        agentGroups.push("edit");
+      if (agentConfig.tools.includes("shell.execute")) agentGroups.push("command");
+      if (
+        agentConfig.tools.includes("web.search") ||
+        agentConfig.tools.includes("scraper.scrapeUrl")
+      )
+        agentGroups.push("browser");
+    }
+
+    if (agentGroups.length === 0) {
+      agentGroups.push("read"); // Default to 'read' if no specific tool-based groups are found
+    }
+
+    const agentName = agentConfig.name || agentConfig.alias;
+    const agentIcon = agentConfig.icon && agentConfig.icon.trim() !== "" ? agentConfig.icon : "🤖";
 
     modes.push({
-      slug: agent.alias,
-      name: `${agent.icon || "🤖"} ${agent.name || agent.alias}`,
+      slug: agentConfig.alias,
+      name: `${agentIcon} ${agentName}`,
       roleDefinition: roleDefinition,
       api: {
         url: `${ENGINE_URL}/api/chat`,
         method: "POST",
         include: ["history"],
-        static_payload: { agentId: agent.id },
+        static_payload: { agentId: agentConfig.id },
       },
-      groups: ["Stigmergy"],
+      groups: agentGroups,
     });
   }
 
@@ -104,7 +111,7 @@ async function configureIde(coreDestDir) {
       headers: { "Content-Type": "application/json" },
       body: '{"goal": "{{prompt}}"}',
     },
-    groups: ["Stigmergy"],
+    groups: ["command"],
   });
 
   modes.sort((a, b) => a.name.localeCompare(b.name));

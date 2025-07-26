@@ -42,15 +42,33 @@ describe("Stigmergy Installer", () => {
     fs.copy.mockResolvedValue();
     fs.writeFile.mockResolvedValue();
     // **THE FIX**: Ensure readdir ALWAYS returns an array.
-    fs.readdir.mockResolvedValue([]);
+    fs.readFile.mockResolvedValue(""); // Default mock for readFile
   });
 
   it("should successfully run and generate a .roomodes file", async () => {
-    // **THE FIX**: Setup the mocks correctly for a successful run.
-    fs.readdir.mockResolvedValue(["analyst.md", "invalid.md"]);
+    // Mock the agent manifest file
+    const MOCK_AGENT_MANIFEST_CONTENT = `
+schema_version: 5.1
+
+agents:
+  - id: dispatcher
+    alias: saul
+    name: Dispatcher
+    icon: "🚀"
+  - id: analyst
+    alias: mary
+    name: Analyst
+    icon: "📊"
+  - id: pm
+    alias: john
+    name: Project Manager
+    icon: "📝"
+`;
+
     fs.readFile.mockImplementation((filePath) => {
-      if (filePath.endsWith("analyst.md")) return Promise.resolve(MOCK_VALID_AGENT_CONTENT);
-      if (filePath.endsWith("invalid.md")) return Promise.resolve(MOCK_INVALID_AGENT_CONTENT);
+      if (filePath.includes("02_Agent_Manifest.md")) {
+        return Promise.resolve(MOCK_AGENT_MANIFEST_CONTENT);
+      }
       return Promise.resolve("");
     });
 
@@ -65,9 +83,10 @@ describe("Stigmergy Installer", () => {
 
     // Verify the content is correct
     const writtenContent = fs.writeFile.mock.calls[0][1];
+    expect(writtenContent).toMatch(/slug: saul/);
     expect(writtenContent).toMatch(/slug: mary/);
+    expect(writtenContent).toMatch(/slug: john/);
     expect(writtenContent).toMatch(/slug: system/);
-    expect(writtenContent).not.toMatch(/invalid/); // Ensure the invalid file was skipped
   });
 
   it("should handle exceptions gracefully", async () => {
