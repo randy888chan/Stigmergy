@@ -56,4 +56,3 @@ All interaction with Stigmergy happens through natural language chat in your IDE
     The system will now autonomously execute the entire blueprint without interruption. It will only pause if it requires a secret key (like a deployment API key) that isn't in your `.env` file.
 
 4.  **Pause and Resume at Will:** You can stop the `npm run stigmergy:start` process at any time. The project state is saved. The next time you run `npm run stigmergy:start`, the engine will pick up exactly where it left off, without repeating any steps.
-```
