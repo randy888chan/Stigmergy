@@ -1,33 +1,48 @@
-# Stigmergy System Architecture & Operations Manual (v2.0)
+# Stigmergy System Architecture & Operations Manual (v1.5 - Operational)
 
 This document describes the high-level architecture and operational rules of the Stigmergy Autonomous AI Development System. This is a core part of the **System Constitution**.
 
-## Core Concept: A Stateful, Conversational Workflow
+## Core Concept: A Chat-Controlled State Machine
 
-The system operates as a persistent, stateful server controlled entirely by natural language chat from within a user's IDE. The engine can be started and stopped at will, and it will automatically resume its work from its last known state, which is recorded in `.ai/state.json`.
+The system operates as a persistent, stateful server controlled entirely by natural language chat from within a user's IDE. The engine's core logic is a **state machine** that reads the `project_status` from `.ai/state.json` and executes the appropriate actions for that state.
 
-The project lifecycle proceeds through distinct phases, managed by the AI orchestrator (`@saul`).
+The engine can be started (`npm run stigmergy:start`) and left running. All project lifecycle actions—starting, pausing, and resuming—are handled via IDE chat commands. The system automatically saves its state, allowing the `stigmergy:start` process to be stopped and restarted at any time, resuming work exactly where it left off.
 
-1.  **Phase I: The Grand Blueprint (Fully Autonomous)**
-    *   **Trigger:** The user issues a single `@system start...` command via chat.
-    *   **Process:** The engine detects this is a new project. It performs a one-time, automatic indexing of the codebase into its Neo4j knowledge graph. Then, a chain of specialized Planner agents is dispatched to create a complete project plan, including the Brief, PRD, Architecture, and a story file for every single task.
-    *   **User Interaction:** None after the initial command.
+### The Project Lifecycle States
 
-2.  **Phase II: The Go/No-Go Decision (Single User Interaction)**
-    *   **Trigger:** The "Grand Blueprint" is 100% complete.
-    *   **Process:** The system halts and the `@saul` agent notifies the user that the plan is ready for final review. The `project_status` is set to `AWAITING_EXECUTION_APPROVAL`.
-    *   **User Interaction:** One natural language command to approve execution (e.g., `@saul The plan looks solid, proceed.`).
+1.  **`NEEDS_INITIALIZATION`** (Dormant State)
+    *   **Description:** The engine is idle, awaiting a new project.
+    *   **Trigger:** The user issues a `@system-start` command with a project goal.
+    *   **Transition:** State becomes `GRAND_BLUEPRINT_PHASE`.
 
-3.  **Phase III: Autonomous Execution (Fully Autonomous & Persistent)**
-    *   **Trigger:** The user grants approval via chat.
-    *   **Process:** The engine's status changes to `EXECUTION_IN_PROGRESS`, and it begins executing the plan task by task. This phase is fully uninterruptible by design.
-    *   **User Interaction:** None, unless an agent requires a secret (e.g., an API key) not present in the `.env` file.
+2.  **`GRAND_BLUEPRINT_PHASE`** (Autonomous Planning)
+    *   **Description:** A sequence of planning agents (`@analyst`, `@pm`, `@design-architect`) run autonomously to create all project documentation, stories, and the execution manifest.
+    *   **Trigger:** Automatic transition from the previous state.
+    *   **Transition:** On completion, the state becomes `AWAITING_EXECUTION_APPROVAL`.
 
-4.  **Phase IV: Pause & Resume (User-Controlled Persistence)**
-    *   **Trigger:** The user stops the engine's process (`npm start`).
-    *   **Process:** The current state is automatically preserved in `.ai/state.json`. When the user runs `npm start` again, the engine reads the state file, sees the `EXECUTION_IN_PROGRESS` status, and immediately resumes work on the current task without repeating any previous steps.
+3.  **`AWAITING_EXECUTION_APPROVAL`** (User Approval Gate)
+    *   **Description:** The system pauses. This is the **single go/no-go decision point** for the user. The `@dispatcher` agent notifies the user that the plan is ready for review.
+    *   **Trigger:** The user gives consent in natural language to the `@dispatcher`.
+    *   **Transition:** State becomes `EXECUTION_IN_PROGRESS`.
 
-5.  **Phase V: Self-Improvement (Autonomous Background Task)**
-    *   **Trigger:** The project is marked as complete.
-    *   **Process:** The `@metis` agent is invoked in a non-blocking background process to analyze the entire project history and generate executable improvement proposals for the system's own core files.
-    *   **User Interaction:** None.
+4.  **`EXECUTION_IN_PROGRESS`** (Autonomous Execution)
+    *   **Description:** The engine iterates through the `project_manifest`, dispatching the configured executor agent (`@gemini-executor` or `@dev`) to complete each task.
+    *   **Trigger:** Automatic transition from the previous state.
+    *   **Transition:** After each task is completed, the state becomes `AWAITING_QA`.
+
+5.  **`AWAITING_QA`** (Autonomous Verification)
+    *   **Description:** The `@qa` agent is dispatched to run the automated tests and quality checks defined in the `qa-protocol.md`.
+    *   **Trigger:** Automatic transition from the previous state.
+    *   **Transition:**
+        *   On success, state returns to `EXECUTION_IN_PROGRESS` to start the next task.
+        *   On failure, state becomes `EXECUTION_FAILED`.
+
+6.  **`PAUSED_BY_USER`** (User-Controlled Pause)
+    *   **Description:** The engine loop is halted. No further actions will be taken until resumed.
+    *   **Trigger:** The user issues a `@system-pause` command from the IDE.
+    *   **Transition:** The user must issue a `@system-resume` command to return the system to its previous state.
+
+7.  **`PROJECT_COMPLETE`** (Terminal State & Self-Improvement)
+    *   **Description:** All tasks in the manifest are completed and verified.
+    *   **Trigger:** The last task successfully passes the `AWAITING_QA` state.
+    *   **Action:** The `@metis` agent is invoked as a non-blocking background process to analyze the project history and propose system improvements. The engine becomes dormant.
