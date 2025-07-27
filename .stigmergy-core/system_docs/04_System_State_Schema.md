@@ -21,7 +21,7 @@ This document defines the official schema for the `.ai/state.json` file. This fi
     - `id` (String): A unique ID for the task, e.g., "T01".
     - `summary` (String): The summary of the task.
     - `agent` (String): The agent alias responsible for the task (e.g., "james").
-    - `status` (Enum: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED").
+    - `status` (Enum: "PENDING" | "IN_PROGRESS" | "AWAITING_QA" | "COMPLETED" | "FAILED").
     - `dependencies` (Array of Strings): A list of task IDs that must be completed first.
     - `failure_count` (Number): Tracks the number of consecutive failures for this task.
 - **`history`** (Array of Objects): The **immutable ledger** of all system actions.
