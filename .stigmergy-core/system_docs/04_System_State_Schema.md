@@ -8,6 +8,7 @@ This document defines the official schema for the `.ai/state.json` file. This fi
 - **`project_name`** (String): The user-defined name of the project.
 - **`goal`** (String): The initial high-level goal provided by the user via the IDE.
 - **`project_status`** (Enum): The current high-level status of the project.
+- **`status_before_pause`** (String | Null): Stores the project status when paused by a user.
   - `NEEDS_INITIALIZATION`: The default state before a project goal is provided.
   - `GRAND_BLUEPRINT_PHASE`: The system is autonomously running the initial planning agents (@pm, @design-architect, etc.).
   - `AWAITING_EXECUTION_APPROVAL`: The entire project plan is complete and paused, waiting for the user's single go/no-go command.
@@ -26,3 +27,4 @@ This document defines the official schema for the `.ai/state.json` file. This fi
     - `failure_count` (Number): Tracks the number of consecutive failures for this task.
 - **`history`** (Array of Objects): The **immutable ledger** of all system actions.
 - **`issue_log`** (Array of Objects): A log of persistent failures requiring a Responder.
+```
