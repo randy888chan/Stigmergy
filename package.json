@@ -26,6 +26,7 @@
   "dependencies": {
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",
+    "@google/generative-ai-cli": "^0.4.0",
     "axios": "^1.7.2",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
