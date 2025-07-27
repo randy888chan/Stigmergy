@@ -39,16 +39,16 @@ function buildRoleDefinition(agentConfig) {
 }
 
 function mapToolsToGroups(tools = []) {
-  const groups = new Set(["read"]);
-  if (
-    tools.some(
-      (tool) => tool.startsWith("file_system.write") || tool.startsWith("file_system.delete")
-    )
-  )
-    groups.add("edit");
-  if (tools.some((tool) => tool.startsWith("shell.execute"))) groups.add("command");
-  if (tools.some((tool) => tool.startsWith("web.") || tool.startsWith("scraper.")))
-    groups.add("browser");
+  const groups = new Set(['read']);
+  if (tools.some(tool => tool.startsWith('file_system.write') || tool.startsWith('file_system.delete'))) {
+    groups.add('edit');
+  }
+  if (tools.some(tool => tool.startsWith('shell.execute'))) {
+    groups.add('command');
+  }
+  if (tools.some(tool => tool.startsWith('web.') || tool.startsWith('scraper.'))) {
+    groups.add('browser');
+  }
   return Array.from(groups);
 }
 
@@ -72,11 +72,12 @@ async function configureIde(coreSourceDir) {
     const agentMdPath = path.join(coreSourceDir, "agents", `${agentEntry.id}.md`);
     let roleDefinition = `You are the ${agentEntry.id} agent.`;
     let agentName = agentEntry.name || agentEntry.alias;
-    let agentIcon = agentEntry.icon || "🤖";
+    let agentIcon = agentEntry.icon || '🤖';
 
     if (await fs.pathExists(agentMdPath)) {
-      const agentContent = await fs.readFile(agentMdPath, "utf8");
+      const agentContent = await fs.readFile(agentMdPath, 'utf8');
       const agentConfig = parseAgentConfig(agentContent);
+
       if (agentConfig) {
         roleDefinition = buildRoleDefinition(agentConfig);
         agentName = agentConfig.agent.name || agentName;
