@@ -194,3 +194,11 @@ function start() {
 if (require.main === module) {
   start();
 }
+
+if (process.env.NODE_ENV === 'test') {
+  module.exports = {
+    _appForTesting: app,
+    stopEngineLoop,
+    mainEngineLoop
+  };
+}
