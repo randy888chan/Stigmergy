@@ -6,7 +6,7 @@ const codeGraph = require('../tools/code_graph');
  * @returns {string[]} A list of potential code symbols.
  */
 function extractSymbolsFromTask(taskContent) {
-  // A more sophisticated regex could identify specific patterns, but this is a robust start.
+  // This regex finds symbols enclosed in backticks, a common markdown convention.
   const symbolRegex = /`([A-Za-z0-9_.]+)`/g;
   const symbols = new Set();
   let match;
@@ -31,7 +31,7 @@ async function getContextForSymbols(symbols) {
       const definition = await codeGraph.getDefinition({ symbolName: symbol });
       const usages = await codeGraph.findUsages({ symbolName: symbol });
 
-      let context = `--- Context for symbol: ${symbol} ---\n`;
+      let context = `--- Context for symbol: \`${symbol}\` ---\n`;
       if (definition.length > 0) {
         context += `Definition: ${JSON.stringify(definition[0])}\n`;
       } else {
@@ -41,7 +41,7 @@ async function getContextForSymbols(symbols) {
       if (usages.length > 0) {
         context += `Found ${usages.length} usage(s):\n`;
         usages.slice(0, 5).forEach((usage) => { // Limit usages to avoid excessive context
-          context += `- Used in: ${usage.user} (Relationship: ${usage.relationship})\n`;
+          context += `- Used in: \`${usage.user}\` (Relationship: ${usage.relationship})\n`;
         });
       } else {
         context += 'No usages found in the code graph.\n';
@@ -49,7 +49,7 @@ async function getContextForSymbols(symbols) {
       return context;
     } catch (error) {
       console.error(`[ContextEnhancer] Error fetching context for symbol ${symbol}:`, error);
-      return `--- Error retrieving context for symbol: ${symbol} ---\n`;
+      return `--- Error retrieving context for symbol: \`${symbol}\` ---\n`;
     }
   });
 
@@ -65,17 +65,18 @@ async function getContextForSymbols(symbols) {
 async function enhance(taskContent) {
   console.log('[ContextEnhancer] Analyzing task for code symbols...');
   const symbols = extractSymbolsFromTask(taskContent);
-  console.log(`[ContextEnhancer] Found symbols: ${symbols.join(', ')}`);
-
-  console.log('[ContextEnhancer] Retrieving context from code graph...');
-  const dynamicContext = await getContextForSymbols(symbols);
-  console.log('[ContextEnhancer] Context retrieval complete.');
-
-  return `
+  if (symbols.length > 0) {
+    console.log(`[ContextEnhancer] Found symbols: ${symbols.join(', ')}`);
+    console.log('[ContextEnhancer] Retrieving context from code graph...');
+    const dynamicContext = await getContextForSymbols(symbols);
+    console.log('[ContextEnhancer] Context retrieval complete.');
+    return `
 --- DYNAMIC CODE GRAPH CONTEXT ---
 ${dynamicContext}
 --- END DYNAMIC CODE GRAPH CONTEXT ---
-  `;
+    `;
+  }
+  return ""; // Return empty string if no symbols are found
 }
 
 module.exports = {
