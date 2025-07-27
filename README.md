@@ -29,10 +29,10 @@ NEO4J_PASSWORD=your_database_password
 
 ### Step 3: Start the Engine
 
-Run `npm start` to get all necessary packages and run the engine. The engine is a local server that will run quietly in the background, waiting for your commands from the IDE chat.
+Run `npm run stigmergy:start` to get all necessary packages and run the engine. The engine is a local server that will run quietly in the background, waiting for your commands from the IDE chat.
 
 ```bash
-npm start
+npm run stigmergy:start
 ```
 You can stop this process at any time (Ctrl+C). When you start it again, it will automatically resume any in-progress work.
 
@@ -55,4 +55,5 @@ All interaction with Stigmergy happens through natural language chat in your IDE
     ```
     The system will now autonomously execute the entire blueprint without interruption. It will only pause if it requires a secret key (like a deployment API key) that isn't in your `.env` file.
 
-4.  **Pause and Resume at Will:** You can stop the `npm start` process at any time. The project state is saved. The next time you run `npm start`, the engine will pick up exactly where it left off, without repeating any steps.
+4.  **Pause and Resume at Will:** You can stop the `npm run stigmergy:start` process at any time. The project state is saved. The next time you run `npm run stigmergy:start`, the engine will pick up exactly where it left off, without repeating any steps.
+```
