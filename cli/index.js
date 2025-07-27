@@ -19,9 +19,9 @@ program
 
 program
   .command("start")
-  .description("Starts the Stigmergy Engine. Use 'npm start' instead.")
+  .description("Starts the Stigmergy Engine. Use 'npm run stigmergy:start' for project integration.")
   .action(() => {
-    console.log("This command is deprecated. Please use 'npm start' to run the engine server.");
+    console.log("This command is deprecated. Please use 'npm run stigmergy:start' to run the engine server.");
   });
 
 program
