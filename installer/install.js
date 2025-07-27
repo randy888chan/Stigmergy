@@ -15,7 +15,6 @@ async function run() {
     spinner.text = "Copying core files...";
     const coreDestDir = path.join(CWD, ".stigmergy-core");
     await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
-    spinner.succeed("Copied core files.");
 
     spinner.text = "Configuring environment file...";
     const exampleEnvPath = path.join(__dirname, "..", ".env.example");
@@ -23,11 +22,10 @@ async function run() {
     if (!(await fs.pathExists(projectEnvPath))) {
       await fs.copy(exampleEnvPath, projectEnvPath);
     }
-    spinner.succeed("Environment file configured.");
 
-    spinner.text = `Configuring IDE integration...`;
+    spinner.text = "Configuring IDE integration...";
     await configureIde(coreDestDir);
-    spinner.succeed(`IDE configuration created at .roomodes.`);
+    spinner.succeed("IDE integration configured in .roomodes");
 
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
@@ -39,6 +37,18 @@ async function run() {
   }
 }
 
+async function getAgentPersona(agentId, coreDestDir) {
+    const agentPath = path.join(coreDestDir, 'agents', `${agentId}.md`);
+    if (!await fs.pathExists(agentPath)) return `Default persona for ${agentId}.`;
+
+    const content = await fs.readFile(agentPath, 'utf8');
+    const yamlMatch = content.match(/```yaml\n([\s\S]*?)\n```/);
+    if (!yamlMatch) return `Default persona for ${agentId}.`;
+
+    const agentConfig = yaml.load(yamlMatch[1]);
+    return agentConfig?.persona?.identity || `AI agent ${agentId}.`;
+}
+
 async function configureIde(coreDestDir) {
   const modes = [];
   const PORT = process.env.PORT || 3000;
@@ -46,78 +56,66 @@ async function configureIde(coreDestDir) {
 
   const agentManifestPath = path.join(coreDestDir, "system_docs", "02_Agent_Manifest.md");
   const agentManifestContent = await fs.readFile(agentManifestPath, "utf8");
-  const manifest = yaml.load(agentManifestContent);
+  const manifest = yaml.load(agentManifestContent.split('---')[0]); // Only parse the YAML part
 
   if (!manifest || !Array.isArray(manifest.agents)) {
-    console.warn(
-      chalk.yellow(
-        "Warning: Agent manifest not found or invalid. Skipping agent mode configuration."
-      )
-    );
-    return;
+    throw new Error("Agent manifest is invalid or not found.");
   }
 
   for (const agentConfig of manifest.agents) {
-    if (!agentConfig.id || !agentConfig.alias) {
-      continue;
-    }
+    if (!agentConfig.id || !agentConfig.alias) continue;
 
-    // For now, we'll use a generic persona. In the future, we might extract this from agent-specific files or add to manifest.
-    const roleDefinition = `You are ${agentConfig.alias}, an AI agent with the ID ${agentConfig.id}.`;
-
-    const agentGroups = [];
-    if (agentConfig.tools) {
-      if (agentConfig.tools.some((tool) => tool.startsWith("file_system.read")))
-        agentGroups.push("read");
-      if (agentConfig.tools.some((tool) => tool.startsWith("file_system.write")))
-        agentGroups.push("edit");
-      if (agentConfig.tools.includes("shell.execute")) agentGroups.push("command");
-      if (
-        agentConfig.tools.includes("web.search") ||
-        agentConfig.tools.includes("scraper.scrapeUrl")
-      )
-        agentGroups.push("browser");
-    }
-
-    if (agentGroups.length === 0) {
-      agentGroups.push("read"); // Default to 'read' if no specific tool-based groups are found
-    }
-
+    const persona = await getAgentPersona(agentConfig.id, coreDestDir);
     const agentName = agentConfig.name || agentConfig.alias;
-    const agentIcon = agentConfig.icon && agentConfig.icon.trim() !== "" ? agentConfig.icon : "🤖";
+    const agentIcon = agentConfig.icon || "🤖";
 
     modes.push({
       slug: agentConfig.alias,
       name: `${agentIcon} ${agentName}`,
-      roleDefinition: roleDefinition,
+      roleDefinition: persona,
       api: {
         url: `${ENGINE_URL}/api/chat`,
         method: "POST",
         include: ["history"],
         static_payload: { agentId: agentConfig.id },
       },
-      groups: agentGroups,
+      groups: ['read'], // Default group
     });
   }
 
-  modes.push({
-    slug: "system",
-    name: "🚀 Stigmergy Control",
-    roleDefinition:
-      "You are the master control for the Stigmergy Engine. Use this mode to start new projects by providing a high-level goal.",
-    api: {
-      url: `${ENGINE_URL}/api/system/start`,
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: '{"goal": "{{prompt}}"}',
+  // --- ADD SYSTEM CONTROL MODES ---
+  modes.push(
+    {
+        slug: "system-start",
+        name: "🚀 Start Project",
+        roleDefinition: "You are the master control. Provide a high-level goal to start a new project.",
+        api: {
+            url: `${ENGINE_URL}/api/system/start`,
+            method: "POST",
+            body: '{"goal": "{{prompt}}"}',
+        },
+        groups: ["command"],
     },
-    groups: ["command"],
-  });
+    {
+        slug: "system-pause",
+        name: "⏸️ Pause Engine",
+        roleDefinition: "You are a system command. Sending any message will pause the autonomous engine.",
+        api: { url: `${ENGINE_URL}/api/control/pause`, method: "POST" },
+        groups: ["command"],
+    },
+    {
+        slug: "system-resume",
+        name: "▶️ Resume Engine",
+        roleDefinition: "You are a system command. Sending any message will resume the autonomous engine.",
+        api: { url: `${ENGINE_URL}/api/control/resume`, method: "POST" },
+        groups: ["command"],
+    }
+  );
 
   modes.sort((a, b) => a.name.localeCompare(b.name));
 
   const yamlOutput = yaml.dump({ customModes: modes });
-  const fileContent = `# This file is auto-generated by 'stigmergy install'. Do not edit manually.\n\n${yamlOutput}`;
+  const fileContent = `# This file is auto-generated by 'stigmergy install'.\n\n${yamlOutput}`;
   await fs.writeFile(path.join(CWD, ".roomodes"), fileContent, "utf8");
 }
 
