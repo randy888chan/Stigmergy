@@ -1,73 +1,110 @@
-# This is the single source of truth for agent capabilities and permissions for Stigmergy v1.0.
+# This is the single source of truth for agent capabilities and permissions.
 
-schema_version: 5.1
+schema_version: 5.2
 
 agents:
 
 # --- Dispatcher ---
-
 - id: dispatcher
   alias: saul
-  tools: [file_system.readFile, system.approveExecution]
+  name: "Saul (Dispatcher)"
+  icon: "🧠"
+  tools: [file_system.readFile, system.approve]
 
 # --- Planners ---
-
 - id: analyst
   alias: mary
-  tools: [web.search, scraper.scrapeUrl, file_system.writeFile]
+  name: "Mary (Analyst)"
+  icon: "📊"
+  tools: [web.search, scraper.scrapeUrl, file_system.writeFile, system.updateStatus]
 
 - id: pm
   alias: john
-  tools: [file_system.readFile, file_system.writeFile]
+  name: "John (PM)"
+  icon: "📋"
+  tools: [file_system.readFile, file_system.writeFile, system.updateStatus]
 
 - id: design-architect
   alias: winston
-  tools: [file_system.readFile, file_system.listFiles, file_system.writeFile]
+  name: "Winston (Architect)"
+  icon: "🏗️"
+  tools: [file_system.readFile, file_system.listFiles, file_system.writeFile, system.updateStatus]
 
 - id: ux-expert
   alias: sally
+  name: "Sally (UX)"
+  icon: "🎨"
   tools: [web.search]
 
 # --- Executors ---
-
 - id: gemini-executor
   alias: gemma
+  name: "Gemma (Gemini)"
+  icon: "✨"
+  tools: [gemini.execute]
 
 - id: dev
   alias: james
-  tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, code_graph.getDefinition, system.requestSecret]
+  name: "James (Dev)"
+  icon: "💻"
+  tools: [file_system.*, shell.execute, code_graph.*]
+  permitted_shell_commands:
+    - "npm install"
+    - "npm test"
+    - "npm run lint"
+    - "jest *"
 
 - id: refactorer
   alias: rocco
-  tools: [file_system.readFile, file_system.writeFile, shell.execute, code_graph.findUsages, system.requestSecret]
+  name: "Rocco (Refactorer)"
+  icon: "🔧"
+  tools: [file_system.*, shell.execute, code_graph.*]
+
 - id: victor
   alias: victor
-  tools: [file_system.readFile, file_system.writeFile, web.search, shell.execute, system.requestSecret]
+  name: "Victor (Solidity)"
+  icon: "📜"
+  tools: [file_system.*, web.search, shell.execute]
 
 - id: sm
   alias: bob
+  name: "Bob (Decomposer)"
+  icon: "分解"
   tools: [file_system.readFile, file_system.writeFile]
 
 - id: stigmergy-orchestrator
   alias: olivia
+  name: "Olivia (Cognitive Decomposer)"
+  icon: "🧠"
   tools: [file_system.readFile, file_system.writeFile]
 
 # --- Verifiers ---
-
 - id: qa
   alias: quinn
-  tools: [shell.execute, system.requestSecret]
-
+  name: "Quinn (QA)"
+  icon: "🛡️"
+  tools: [shell.execute]
+  permitted_shell_commands:
+    - "npm *"
+    - "jest *"
 - id: po
   alias: sarah
+  name: "Sarah (PO)"
+  icon: "📝"
   tools: [file_system.readFile]
 
 # --- Responders ---
-
 - id: debugger
   alias: dexter
-  tools: [file_system.readFile, file_system.writeFile, code_graph.findUsages, shell.execute]
+  name: "Dexter (Debugger)"
+  icon: "🎯"
+  tools: [file_system.*, code_graph.findUsages, shell.execute]
+  permitted_shell_commands:
+      - "npm test"
+      - "jest *"
 
 - id: meta
   alias: metis
+  name: "Metis (Auditor)"
+  icon: "📈"
   tools: [file_system.readFile, file_system.writeFile, stigmergy.createBlueprint]
