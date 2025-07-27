@@ -26,6 +26,10 @@ class DependencyResolver {
       await this.findDependenciesRecursive(agentPath, allDependencies, visited);
     }
 
+    // Also include common utils and system docs for context
+    await this.findDependenciesRecursive('utils/meta_prompt_template.md', allDependencies, visited);
+    await this.findDependenciesRecursive('system_docs/03_Core_Principles.md', allDependencies, visited);
+
     return allDependencies;
   }
 
@@ -35,7 +39,6 @@ class DependencyResolver {
 
     const fullPath = path.join(this.stigmergyCore, relativePath);
     if (!(await fs.pathExists(fullPath))) {
-      // This warning is now only for legitimate, missing bundleable files.
       console.warn(chalk.yellow(`Warning: A required dependency was not found: ${relativePath}`));
       return;
     }
@@ -43,18 +46,14 @@ class DependencyResolver {
     const content = await fs.readFile(fullPath, "utf8");
     allDependencies.set(relativePath, content);
 
-    // FINAL REGEX: Only looks for paths within specific, bundleable directories.
-    const pathRegex = /[`'"]((templates|checklists|tasks)\/[\w-]+\.[\w]+)[`'"]/g;
+    // Improved Regex: Looks for any relative path pointing to a file inside the core directories.
+    const pathRegex = /[`'"]((?:templates|checklists|tasks|utils|system_docs|agents)\/[\w-]+\.[\w]+)[`'"]/g;
 
     const promises = [];
     let match;
     while ((match = pathRegex.exec(content)) !== null) {
       const foundPath = path.normalize(match[1]);
-
-      if (foundPath && !foundPath.startsWith("http")) {
-        // Since paths are now guaranteed to be relative to the root, no complex joining is needed.
-        promises.push(this.findDependenciesRecursive(foundPath, allDependencies, visited));
-      }
+      promises.push(this.findDependenciesRecursive(foundPath, allDependencies, visited));
     }
 
     await Promise.all(promises);
