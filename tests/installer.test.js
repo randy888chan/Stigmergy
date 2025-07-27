@@ -14,6 +14,14 @@ jest.mock("ora", () => {
   };
   return jest.fn(() => oraInstance);
 });
+// Mock chalk to return plain strings
+jest.mock('chalk', () => ({
+  bold: { green: str => str, red: str => str },
+  cyan: str => str,
+  red: str => str,
+  yellow: str => str,
+}));
+
 
 // --- MOCK DATA ---
 const MOCK_MANIFEST_CONTENT = `
@@ -46,21 +54,14 @@ persona:
 describe("Stigmergy Installer", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Default mocks
     fs.pathExists.mockResolvedValue(true);
     fs.copy.mockResolvedValue();
     fs.writeFile.mockResolvedValue();
     
-    // Mock the file reads for manifest and agent definitions
     fs.readFile.mockImplementation((filePath) => {
       const fileName = path.basename(filePath);
-      if (fileName === "02_Agent_Manifest.md") {
-        return Promise.resolve(MOCK_MANIFEST_CONTENT);
-      }
-      if (fileName === "pm.md") {
-        return Promise.resolve(MOCK_PM_AGENT_CONTENT);
-      }
-      // Default for other agents like dispatcher
+      if (fileName === "02_Agent_Manifest.md") return Promise.resolve(MOCK_MANIFEST_CONTENT);
+      if (fileName === "pm.md") return Promise.resolve(MOCK_PM_AGENT_CONTENT);
       return Promise.resolve("`yaml\npersona:\n  identity: 'Default persona.'`");
     });
   });
@@ -93,5 +94,13 @@ describe("Stigmergy Installer", () => {
     expect(pmAgentMode.roleDefinition).toContain("I translate the signed-off Project Brief");
     expect(pmAgentMode.roleDefinition).toContain("CORE PROTOCOLS");
     expect(pmAgentMode.roleDefinition).toContain("EVIDENCE_BASED_ARTIFACT_PROTOCOL");
+  });
+
+  it("should throw an error on failure instead of exiting", async () => {
+    const testError = new Error("Permission denied");
+    fs.copy.mockRejectedValue(testError);
+    
+    // We expect the run function to throw, not to call process.exit
+    await expect(run()).rejects.toThrow(testError);
   });
 });
