@@ -27,4 +27,3 @@ This document defines the official schema for the `.ai/state.json` file. This fi
     - `failure_count` (Number): Tracks the number of consecutive failures for this task.
 - **`history`** (Array of Objects): The **immutable ledger** of all system actions.
 - **`issue_log`** (Array of Objects): A log of persistent failures requiring a Responder.
-```
