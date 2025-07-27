@@ -5,7 +5,6 @@ const { v4: uuidv4 } = require("uuid");
 
 const STATE_FILE_PATH = path.resolve(process.cwd(), ".ai", "state.json");
 const LOCK_PATH = `${STATE_FILE_PATH}.lock`;
-let previousStatusOnPause = null;
 
 async function withLock(operation) {
   await fs.ensureDir(path.dirname(LOCK_PATH));
@@ -71,7 +70,8 @@ async function updateStatus(newStatus, message) {
 async function pauseProject() {
   return withLock(async () => {
     const state = await getState();
-    previousStatusOnPause = state.project_status; // Cache the current state before pausing
+    // Persist the current status to the state file itself.
+    state.status_before_pause = state.project_status;
     state.project_status = "PAUSED_BY_USER";
     state.history.push({
       id: uuidv4(),
@@ -87,9 +87,10 @@ async function pauseProject() {
 async function resumeProject() {
   return withLock(async () => {
     const state = await getState();
-    // Resume to the state before we paused, or a safe default.
-    const statusBeforePause = previousStatusOnPause || 'GRAND_BLUEPRINT_PHASE';
+    // Resume to the persisted state from the file.
+    const statusBeforePause = state.status_before_pause || 'GRAND_BLUEPRINT_PHASE';
     state.project_status = statusBeforePause;
+    state.status_before_pause = null; // Clear the temporary state.
     state.history.push({
       id: uuidv4(),
       timestamp: new Date().toISOString(),
