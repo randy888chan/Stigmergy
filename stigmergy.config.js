@@ -16,13 +16,13 @@ module.exports = {
   // Directory for system improvement proposals from the @meta agent.
   proposalsPath: 'system-proposals',
 
+  // The executor agent to use for coding tasks.
+  // Options: 'gemini' or 'native'.
+  executor_preference: 'gemini',
+
   // Key project documents.
   docs: {
     prd: 'docs/prd.md',
     architecture: 'docs/architecture.md',
   },
-
-  // Setting to control which executor agent is used.
-  // This makes the dispatcher's logic much cleaner.
-  use_gemini_executor: true,
 };
