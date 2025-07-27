@@ -124,9 +124,7 @@ app.post("/api/system/start", async (req, res) => {
   if (!goal) return res.status(400).json({ error: "'goal' is required." });
 
   await stateManager.initializeProject(goal);
-  if (process.env.NEO4J_URI) {
-     runIndexer().catch(e => console.error(chalk.red("[Engine] Background indexing failed:", e.message)));
-  }
+  // Indexing is now an explicit user command via the CLI, no longer triggered automatically.
   mainEngineLoop();
   res.json({ message: "Project initiated. Autonomous planning has begun." });
 });
@@ -171,8 +169,6 @@ app.post("/api/chat", async (req, res) => {
 });
 
 // --- HELPER FUNCTIONS & STARTUP ---
-
-function runIndexer() { /* ... same as before ... */ }
 
 function start() {
   app.listen(PORT, async () => {
