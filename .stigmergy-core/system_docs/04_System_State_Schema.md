@@ -4,22 +4,18 @@ This document defines the official schema for the `.ai/state.json` file. This fi
 
 ## Root Object
 
-- **`schema_version`** (String): The version of this schema. e.g., "3.0".
+- **`schema_version`** (String): The version of this schema. e.g., "3.2".
 - **`project_name`** (String): The user-defined name of the project.
 - **`goal`** (String): The initial high-level goal provided by the user via the IDE.
 - **`project_status`** (Enum): The current high-level status of the project.
-  - `NEEDS_BRIEFING`: Initial state after goal is set.
-  - `AWAITING_APPROVAL_BRIEF`: The brief is drafted and needs user approval.
-  - `NEEDS_PRD`: Brief approved, awaiting PRD.
-  - `AWAITING_APPROVAL_PRD`: PRD is drafted and needs user approval.
-  - `NEEDS_ARCHITECTURE`: PRD approved, awaiting architecture.
-  - `AWAITING_APPROVAL_ARCHITECTURE`: Architecture is drafted, needs approval.
-  - `NEEDS_BLUEPRINT`: Architecture approved, awaiting blueprint.
-  - `AWAITING_APPROVAL_BLUEPRINT`: Blueprint is drafted, needs approval.
-  - `READY_FOR_EXECUTION`: Blueprint is approved, swarm can begin building.
-  - `EXECUTION_IN_PROGRESS`: Actively working on blueprint tasks.
-  - `EXECUTION_HALTED`: A critical, unrecoverable error occurred.
-  - `PROJECT_COMPLETE`: All manifest tasks are complete.
+  - `NEEDS_INITIALIZATION`: The default state before a project goal is provided.
+  - `GRAND_BLUEPRINT_PHASE`: The system is autonomously running the initial planning agents (@pm, @design-architect, etc.).
+  - `AWAITING_EXECUTION_APPROVAL`: The entire project plan is complete and paused, waiting for the user's single go/no-go command.
+  - `EXECUTION_IN_PROGRESS`: The system is autonomously executing the coding tasks from the manifest.
+  - `AWAITING_QA`: A coding task is complete, and the system is running the QA protocol to verify it.
+  - `EXECUTION_FAILED`: A task failed verification or execution repeatedly, requiring intervention from the @debugger.
+  - `PAUSED_BY_USER`: The user has explicitly paused the engine via an IDE command.
+  - `PROJECT_COMPLETE`: All manifest tasks are complete and verified. The @metis agent is triggered for self-improvement analysis.
 - **`project_manifest`** (Object): The master plan derived from the blueprint.
   - **`tasks`** (Array of Objects): A list of all project tasks.
     - `id` (String): A unique ID for the task, e.g., "T01".
