@@ -42,15 +42,4 @@ describe("Engine Control API", () => {
     expect(response.body.message).toBe("Engine resumed.");
     expect(stateManager.resumeProject).toHaveBeenCalledTimes(1);
   });
-});```
-
----
-### **File to Delete**
-
-The following file is a duplicate and will be removed to ensure a single source of truth for agent definitions.
-
-*   **Path:** `.stigmergy-core/agents/sarah.md`
-*   **Action:** **DELETE** this file.
-
----
-**Execution Simulation is complete. The system is now architecturally sound, secure, and aligned with your directives.**
+});
