@@ -1,7 +1,5 @@
 const express = require("express");
 const chalk = require("chalk");
-const path = require("path");
-const { spawn } = require("child_process");
 const stateManager = require("./state_manager");
 const llmAdapter = require("./llm_adapter");
 const toolExecutor = require("./tool_executor");
@@ -9,192 +7,166 @@ const config = require("../stigmergy.config.js");
 
 require("dotenv").config();
 
-const app = express();
-app.use(express.json());
-
-const PORT = process.env.PORT || 3000;
-let isEngineRunning = false;
-let engineLoopHandle = null;
-
-// --- STATE HANDLERS ---
-
-async function handleGrandBlueprintPhase(state) {
-  console.log(chalk.blue("[Engine] Executing Grand Blueprint Phase..."));
-  // This would dispatch a sequence of planner agents (@analyst, @pm, @design-architect).
-  // For now, we simulate the planning and transition the state.
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  await stateManager.updateStatus("AWAITING_EXECUTION_APPROVAL", "Grand Blueprint complete. Awaiting user approval.");
-}
-
-async function handleExecutionInProgress(state) {
-  console.log(chalk.blue("[Engine] Executing next task..."));
-  const nextTask = state.project_manifest.tasks.find(t => t.status === "PENDING");
-
-  if (!nextTask) {
-    await stateManager.updateStatus("PROJECT_COMPLETE", "All tasks in the manifest have been completed.");
-    return;
+// Placeholder for a proper MCP Server implementation
+// In a real scenario, you would use a library like '@mcp/server'
+class McpServer {
+  constructor(handler) {
+    this.handler = handler;
   }
-
-  console.log(chalk.cyan(`[Engine] Starting task: ${nextTask.id} - ${nextTask.summary}`));
-  await stateManager.updateTaskStatus(nextTask.id, "IN_PROGRESS");
-
-  try {
-    const executorAgent = config.executor_preference === 'gemini' ? 'gemini-executor' : 'dev';
-    console.log(`[Engine] Dispatching to executor: @${executorAgent}`);
-    
-    // Simulate agent execution. A real implementation would use the llm_adapter.
-    await new Promise(resolve => setTimeout(resolve, 8000));
-    
-    await stateManager.updateTaskStatus(nextTask.id, "AWAITING_QA");
-  } catch (error) {
-    console.error(chalk.red(`[Engine] Task ${nextTask.id} failed:`), error);
-    await stateManager.recordTaskFailure(nextTask.id);
+  listen(port, callback) {
+    this.handler.listen(port, callback);
   }
 }
 
-async function handleAwaitingQA(state) {
-    console.log(chalk.magenta("[Engine] Verifying last task..."));
-    const taskToVerify = state.project_manifest.tasks.find(t => t.status === "AWAITING_QA");
-    if (!taskToVerify) return; // Should not happen
+class Engine {
+  constructor() {
+    this.isEngineRunning = false;
+    this.engineLoopHandle = null;
+    this.app = express();
+    this.app.use(express.json());
+    this.setupRoutes();
+  }
 
-    // In a real system, the @qa agent would run tests here.
-    // We'll simulate a successful verification.
-    await new Promise(resolve => setTimeout(resolve, 3000));
+  setupRoutes() {
+    this.app.post("/api/system/start", async (req, res) => {
+      const { goal } = req.body;
+      if (!goal) return res.status(400).json({ error: "'goal' is required." });
+
+      await stateManager.initializeProject(goal);
+      this.start();
+      res.json({ message: "Project initiated. Autonomous planning has begun." });
+    });
+
+    this.app.post("/api/control/pause", async (req, res) => {
+        await this.stop("Paused by user");
+        await stateManager.pauseProject();
+        res.json({ message: "Engine has been paused." });
+    });
     
-    await stateManager.updateTaskStatus(taskToVerify.id, "COMPLETED");
-    console.log(chalk.green(`[Engine] Task ${taskToVerify.id} passed QA.`));
-}
+    this.app.post("/api/control/resume", async (req, res) => {
+        await stateManager.resumeProject();
+        this.start();
+        res.json({ message: "Engine has been resumed." });
+    });
+  }
 
-async function handleProjectComplete(state) {
-    console.log(chalk.bold.green("[Engine] Project is complete. Triggering self-improvement audit."));
-    // TODO: Trigger @metis agent via a non-blocking worker thread.
-    await stopEngineLoop("Project Complete");
-}
+  async dispatchAgentForState(state) {
+    const status = state.project_status;
+    console.log(chalk.cyan(`[Engine] Current Status: ${status}`));
 
-const stateHandlers = {
-    'GRAND_BLUEPRINT_PHASE': handleGrandBlueprintPhase,
-    'EXECUTION_IN_PROGRESS': handleExecutionInProgress,
-    'AWAITING_QA': handleAwaitingQA,
-    'PROJECT_COMPLETE': handleProjectComplete,
-};
+    let agentId = null;
+    let taskId = null;
 
-// --- CORE ENGINE LOOP ---
-
-async function mainEngineLoop() {
-    if (isEngineRunning) return;
-    isEngineRunning = true;
-    console.log(chalk.bold.green("\n--- Stigmergy Autonomous Engine Engaged ---\n"));
-
-    const loop = async () => {
-        if (!isEngineRunning) return;
-
-        const state = await stateManager.getState();
-        console.log(chalk.cyan(`[Engine] New cycle. Status: ${state.project_status}`));
-        
-        const handler = stateHandlers[state.project_status];
-
-        if (handler) {
-            await handler(state);
-        } else {
-            console.log(chalk.yellow(`[Engine] Paused. Status: ${state.project_status}. Awaiting user action.`));
-            await stopEngineLoop(`Paused in state: ${state.project_status}`);
+    switch (status) {
+      case 'GRAND_BLUEPRINT_PHASE':
+        // This phase is a sequence of agents. We determine the next one.
+        if (!state.artifacts_created.brief) agentId = 'analyst';
+        else if (!state.artifacts_created.prd) agentId = 'pm';
+        else if (!state.artifacts_created.architecture) agentId = 'design-architect';
+        else {
+          // All planning artifacts are done, move to approval.
+          await stateManager.updateStatus("AWAITING_EXECUTION_APPROVAL", "Grand Blueprint complete. Awaiting user approval.");
+          return;
         }
-        
-        if (isEngineRunning) {
-            engineLoopHandle = setTimeout(loop, 5000); // Wait 5 seconds between cycles
+        break;
+      
+      case 'EXECUTION_IN_PROGRESS':
+        const nextTask = state.project_manifest.tasks.find(t => t.status === "PENDING");
+        if (!nextTask) {
+          await stateManager.updateStatus("PROJECT_COMPLETE", "All tasks completed.");
+          return;
         }
-    };
-    loop();
-}
+        agentId = config.executor_preference === 'gemini' ? 'gemini-executor' : 'dev';
+        taskId = nextTask.id;
+        await stateManager.updateTaskStatus(taskId, "IN_PROGRESS");
+        break;
 
-async function stopEngineLoop(reason) {
-    if (!isEngineRunning) return;
-    console.log(chalk.bold.red(`\n--- Stigmergy Autonomous Engine Disengaged (Reason: ${reason}) ---\n`));
-    isEngineRunning = false;
-    if (engineLoopHandle) {
-        clearTimeout(engineLoopHandle);
-        engineLoopHandle = null;
+      case 'AWAITING_QA':
+        agentId = 'qa';
+        taskId = state.project_manifest.tasks.find(t => t.status === "AWAITING_QA")?.id;
+        break;
+
+      case 'PROJECT_COMPLETE':
+        console.log(chalk.bold.green("[Engine] Project is complete. Triggering self-improvement audit."));
+        agentId = 'meta';
+        break;
+
+      default:
+        console.log(chalk.yellow(`[Engine] Paused in status: ${status}. Awaiting user action or state change.`));
+        await this.stop(`Paused in state: ${status}`);
+        return;
     }
-}
 
-// --- API ENDPOINTS ---
+    if (agentId) {
+      console.log(chalk.blue(`[Engine] Dispatching to @${agentId}` + (taskId ? ` for task ${taskId}` : '')));
+      const response = await llmAdapter.getCompletion(agentId, "Proceed with your core protocol based on the current system state.", taskId);
 
-app.post("/api/system/start", async (req, res) => {
-  const { goal } = req.body;
-  if (!goal) return res.status(400).json({ error: "'goal' is required." });
-
-  await stateManager.initializeProject(goal);
-  // Indexing is now an explicit user command via the CLI, no longer triggered automatically.
-  mainEngineLoop();
-  res.json({ message: "Project initiated. Autonomous planning has begun." });
-});
-
-app.post("/api/control/pause", async (req, res) => {
-    await stopEngineLoop("Paused by user");
-    await stateManager.pauseProject();
-    res.json({ message: "Engine has been paused." });
-});
-
-app.post("/api/control/resume", async (req, res) => {
-    await stateManager.resumeProject();
-    mainEngineLoop();
-    res.json({ message: "Engine has been resumed." });
-});
-
-app.post("/api/chat", async (req, res) => {
-  const { agentId, prompt } = req.body;
-  await stateManager.recordChatMessage({ source: 'user', agentId, message: prompt });
-  
-  let agentResponseText;
-  const state = await stateManager.getState();
-
-  if (state.project_status === "AWAITING_EXECUTION_APPROVAL" && agentId === "dispatcher") {
-    const approvalPrompt = `The system is awaiting project approval. Analyze the user's message for consent. If they approve, call 'system.approve'. Otherwise, explain you will wait. User message: "${prompt}"`;
-    const finalResponse = await llmAdapter.getCompletion(agentId, approvalPrompt, null);
-    
-    if (finalResponse.action?.tool === 'system.approve') {
-        await toolExecutor.execute('system.approve', {}, agentId);
-        agentResponseText = "Approval received. Engaging execution phase.";
-        mainEngineLoop();
-    } else {
-        agentResponseText = finalResponse.thought;
+      if (response.action?.tool) {
+        console.log(chalk.magenta(`[Engine] Agent @${agentId} is calling tool: ${response.action.tool}`));
+        await toolExecutor.execute(response.action.tool, response.action.args, agentId);
+      }
     }
-  } else {
-    const response = await llmAdapter.getCompletion(agentId, prompt, null);
-    agentResponseText = response.thought;
   }
-  
-  await stateManager.recordChatMessage({ source: 'agent', agentId, message: agentResponseText });
-  res.json({ reply: agentResponseText });
-});
 
-// --- HELPER FUNCTIONS & STARTUP ---
+  async runLoop() {
+    if (!this.isEngineRunning) return;
 
-function start() {
-  app.listen(PORT, async () => {
-    console.log(chalk.bold(`[Server] Stigmergy Engine is listening on http://localhost:${PORT}`));
     try {
-        const state = await stateManager.getState();
-        if (['GRAND_BLUEPRINT_PHASE', 'EXECUTION_IN_PROGRESS', 'AWAITING_QA'].includes(state.project_status)) {
-            console.log(chalk.bold.yellow(`[Engine] Resuming project '${state.project_name}' from status: ${state.project_status}`));
-            mainEngineLoop();
-        } else {
-            console.log(chalk.gray("[Engine] In dormant mode. Awaiting IDE command..."));
-        }
-    } catch (e) {
-        console.error(chalk.red("Failed to initialize state."), e);
+      const state = await stateManager.getState();
+      await this.dispatchAgentForState(state);
+    } catch (error) {
+      console.error(chalk.red('[Engine] Error in main loop:'), error);
+      await this.stop('Error occurred');
     }
-  });
+    
+    if (this.isEngineRunning) {
+      this.engineLoopHandle = setTimeout(() => this.runLoop(), 5000);
+    }
+  }
+
+  start() {
+    if (this.isEngineRunning) return;
+    this.isEngineRunning = true;
+    console.log(chalk.bold.green("\n--- Stigmergy Autonomous Engine Engaged ---\n"));
+    this.runLoop();
+  }
+
+  async stop(reason) {
+    if (!this.isEngineRunning) return;
+    console.log(chalk.bold.red(`\n--- Stigmergy Autonomous Engine Disengaged (Reason: ${reason}) ---\n`));
+    this.isEngineRunning = false;
+    if (this.engineLoopHandle) {
+      clearTimeout(this.engineLoopHandle);
+      this.engineLoopHandle = null;
+    }
+  }
+
+  listen(port, callback) {
+    this.app.listen(port, callback);
+  }
+}
+
+function main() {
+    const engine = new Engine();
+    const mcpServer = new McpServer(engine); // Wrap the engine for MCP
+    const PORT = process.env.PORT || 3000;
+
+    mcpServer.listen(PORT, async () => {
+        console.log(chalk.bold(`[Server] Stigmergy Engine is listening on http://localhost:${PORT}`));
+        try {
+            const state = await stateManager.getState();
+            if (['GRAND_BLUEPRINT_PHASE', 'EXECUTION_IN_PROGRESS', 'AWAITING_QA'].includes(state.project_status)) {
+                console.log(chalk.bold.yellow(`[Engine] Resuming project '${state.project_name}' from status: ${state.project_status}`));
+                engine.start();
+            } else {
+                console.log(chalk.gray("[Engine] In dormant mode. Awaiting IDE command..."));
+            }
+        } catch (e) {
+            console.error(chalk.red("Failed to initialize state."), e);
+        }
+    });
 }
 
 if (require.main === module) {
-  start();
-}
-
-if (process.env.NODE_ENV === 'test') {
-  module.exports = {
-    _appForTesting: app,
-    stopEngineLoop,
-    mainEngineLoop
-  };
+  main();
 }
