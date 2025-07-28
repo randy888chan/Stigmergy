@@ -53,17 +53,12 @@ class CodeIntelligenceService {
     return glob(patterns, { cwd: projectPath, ignore: ignorePatterns, absolute: true });
   }
   
-  /**
-   * Parses a single file to extract code entities (nodes) and their relationships.
-   * This is a more advanced parser than the original Stigmergy indexer.
-   */
   async _parseFile(filePath, projectRoot) {
     const code = await fs.readFile(filePath, 'utf8');
     const relativePath = path.relative(projectRoot, filePath);
     const nodes = [];
     const relationships = [];
 
-    // Node for the file itself
     nodes.push({ id: relativePath, type: 'File', name: path.basename(relativePath), path: relativePath, language: path.extname(filePath).substring(1) });
 
     const ast = babelParser.parse(code, {
@@ -73,54 +68,46 @@ class CodeIntelligenceService {
     });
 
     traverse(ast, {
-      // Import declarations to establish dependencies
       ImportDeclaration: (astPath) => {
         const importSource = astPath.node.source.value;
-        // Simple resolution for now. A more advanced system would handle aliases.
-        const resolvedPath = path.relative(projectRoot, path.resolve(path.dirname(filePath), importSource));
-        relationships.push({
-          source: relativePath,
-          target: resolvedPath,
-          type: 'IMPORTS'
-        });
-      },
-      // Function and Class declarations for definitions
-      'FunctionDeclaration|ClassDeclaration': (astPath) => {
-        if (astPath.node.id) {
-          const name = astPath.node.id.name;
-          const type = astPath.node.type === 'ClassDeclaration' ? 'Class' : 'Function';
-          const nodeId = `${relativePath}#${name}`;
-          
-          nodes.push({
-            id: nodeId,
-            type,
-            name,
-            file: relativePath,
-            startLine: astPath.node.loc.start.line,
-            endLine: astPath.node.loc.end.line,
-          });
-          
-          relationships.push({ source: relativePath, target: nodeId, type: 'DEFINES' });
+        if (importSource.startsWith('.')) { // Only handle relative imports for now
+          const resolvedPath = path.relative(projectRoot, path.resolve(path.dirname(filePath), importSource));
+          relationships.push({ source: relativePath, target: resolvedPath, type: 'IMPORTS' });
         }
       },
-      // Call expressions to find usages
+      'FunctionDeclaration|ClassDeclaration|VariableDeclarator': (astPath) => {
+        let name;
+        if (astPath.node.id && astPath.node.id.type === 'Identifier') {
+          name = astPath.node.id.name;
+        } else {
+          return; // Skip anonymous declarations for now
+        }
+        
+        const type = astPath.node.type.replace('Declaration', '').replace('Declarator', '');
+        const nodeId = `${relativePath}#${name}`;
+        
+        nodes.push({
+          id: nodeId,
+          type,
+          name,
+          file: relativePath,
+          startLine: astPath.node.loc.start.line,
+          endLine: astPath.node.loc.end.line,
+        });
+        
+        relationships.push({ source: relativePath, target: nodeId, type: 'DEFINES' });
+      },
       CallExpression: (astPath) => {
         const callee = astPath.node.callee;
         if (callee.type === 'Identifier') {
           const functionName = callee.name;
           const callerNode = astPath.findParent((p) => p.isFunctionDeclaration() || p.isClassMethod());
           
-          if (callerNode && callerNode.node.id) {
-            const callerName = callerNode.node.id.name;
+          if (callerNode && (callerNode.node.id || callerNode.node.key)) {
+            const callerName = (callerNode.node.id || callerNode.node.key).name;
             const callerId = `${relativePath}#${callerName}`;
             
-            // This is a simplification. A real system would need to resolve the target function's ID.
-            // For now, we link the caller to the function by name.
-            relationships.push({
-              source: callerId,
-              targetName: functionName, // We'll resolve this later or query by name
-              type: 'CALLS'
-            });
+            relationships.push({ source: callerId, targetName: functionName, type: 'CALLS' });
           }
         }
       },
@@ -129,57 +116,52 @@ class CodeIntelligenceService {
     return { nodes, relationships };
   }
   
-  /**
-   * Loads the parsed nodes and relationships into the Neo4j database.
-   * Uses efficient batching with UNWIND and MERGE.
-   */
   async _loadDataIntoGraph({ nodes, relationships }) {
     if (nodes.length === 0 && relationships.length === 0) return;
     console.log(`[CodeIntelligence] Loading ${nodes.length} nodes and ${relationships.length} relationships into graph...`);
 
     const session = this.driver.session();
     try {
-      // Batch insert nodes
       await session.run(
         `UNWIND $nodes AS node_data
          MERGE (n:Symbol {id: node_data.id})
-         SET n += node_data`,
+         SET n += node_data, n.type = node_data.type`,
         { nodes }
       );
 
-      // Batch insert DEFINES and IMPORTS relationships
-      await session.run(
-        `UNWIND $relationships AS rel_data
-         MATCH (source {id: rel_data.source})
-         MERGE (target:Symbol {id: rel_data.target})
-         MERGE (source)-[:DEFINES]->(target)`,
-        { relationships: relationships.filter(r => r.type === 'DEFINES') }
-      );
-      
-      await session.run(
-        `UNWIND $relationships AS rel_data
-         MATCH (source:Symbol {id: rel_data.source})
-         MATCH (target:Symbol {id: rel_data.target})
-         MERGE (source)-[:IMPORTS]->(target)`,
-        { relationships: relationships.filter(r => r.type === 'IMPORTS') }
-      );
+      const relationshipQueries = [
+        { type: 'DEFINES', query: 'MERGE (source)-[:DEFINES]->(target)' },
+        { type: 'IMPORTS', query: 'MERGE (source)-[:IMPORTS]->(target)' }
+      ];
 
-      // Batch insert CALLS relationships (by name, as a simplification)
-      await session.run(
-        `UNWIND $relationships AS rel_data
-         MATCH (source:Symbol {id: rel_data.source})
-         MATCH (target:Symbol {name: rel_data.targetName})
-         MERGE (source)-[:CALLS]->(target)`,
-        { relationships: relationships.filter(r => r.type === 'CALLS') }
-      );
+      for (const { type, query } of relationshipQueries) {
+        const rels = relationships.filter(r => r.type === type);
+        if (rels.length > 0) {
+          await session.run(
+            `UNWIND $rels AS rel_data
+             MATCH (source:Symbol {id: rel_data.source})
+             MATCH (target:Symbol {id: rel_data.target})
+             ${query}`,
+            { rels }
+          );
+        }
+      }
+      
+      const callRels = relationships.filter(r => r.type === 'CALLS');
+      if(callRels.length > 0) {
+        await session.run(
+            `UNWIND $rels AS rel_data
+             MATCH (source:Symbol {id: rel_data.source})
+             MATCH (target:Symbol {name: rel_data.targetName})
+             MERGE (source)-[:CALLS]->(target)`,
+            { rels: callRels }
+        );
+      }
     } finally {
       await session.close();
     }
   }
 
-  /**
-   * Public API for the service. Called by the engine.
-   */
   async scanAndIndexProject(projectPath) {
     if (!this.driver) {
       console.warn('[CodeIntelligence] Scan skipped: Neo4j not configured.');
@@ -208,14 +190,11 @@ class CodeIntelligenceService {
     console.log('[CodeIntelligence] Project scan and indexing complete.');
   }
 
-  /**
-   * Public APIs for the tool. Called by agents.
-   */
   async findUsages({ symbolName }) {
     if (!this.driver) return [];
     const query = `
-      MATCH (target {name: $symbolName})<-[r]-(source)
-      RETURN source.name AS user, source.file as file, source.startLine as line, type(r) as relationship
+      MATCH (target {name: $symbolName})<-[r:CALLS]-(source)
+      RETURN source.name AS user, source.file as file, source.startLine as line
     `;
     return this._runQuery(query, { symbolName });
   }
@@ -230,13 +209,14 @@ class CodeIntelligenceService {
     const results = await this._runQuery(query, { symbolName });
     if (results.length === 0) return null;
     
-    const node = results[0];
-    const fullPath = path.join(process.cwd(), node.file);
-    if (!await fs.pathExists(fullPath)) return { ...node, definition: "File not found." };
+    const node = results[0].n;
+    const projectRoot = process.cwd(); // Assume project root is CWD
+    const fullPath = path.join(projectRoot, node.file);
+    if (!await fs.pathExists(fullPath)) return { ...node, definition: "Source file not found." };
     
     const fileContent = await fs.readFile(fullPath, 'utf8');
     const lines = fileContent.split('\n');
-    const definition = lines.slice(node.startLine - 1, node.endLine).join('\n');
+    const definition = lines.slice((node.startLine || 1) - 1, node.endLine).join('\n');
     
     return { ...node, definition };
   }
