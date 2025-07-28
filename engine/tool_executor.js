@@ -3,9 +3,7 @@ const path = require('path');
 const yaml = require('js-yaml');
 const fileSystem = require('../tools/file_system');
 const shell = require('../tools/shell');
-const web = require('../tools/web');
-const scraper = require('../tools/scraper');
-const research = require('../tools/research'); // <-- ADDED
+const research = require('../tools/research'); // <-- UNIFIED RESEARCH TOOL
 const gemini_cli_tool = require('../tools/gemini_cli_tool');
 const stateManager = require('./state_manager');
 
@@ -18,20 +16,13 @@ let agentManifest = null;
 async function getManifest() {
   if (!agentManifest) {
     const content = await fs.readFile(MANIFEST_PATH, 'utf8');
-    const yamlContent = content.match(/```yaml\n([\s\S]*?)\n```|---\n([\s\S]*?)\n---/);
-    agentManifest = yaml.load(yamlContent[1] || yamlContent[2] || content);
+    agentManifest = yaml.load(content);
   }
   return agentManifest;
 }
 
 const system = {
-  approve: async () => {
-    // This is now handled by the user interacting with the @dispatcher agent.
-    // The dispatcher should then call updateStatus.
-    // We keep this for potential future direct approval mechanisms.
-    console.log("[Tool: system.approve] Execution has been approved by direct tool call.");
-    return "Execution approved. The engine will now proceed.";
-  },
+  // ... (system tool functions remain the same)
   updateStatus: async ({ status, message }) => {
     await stateManager.updateStatus(status, message);
     return `System status updated to ${status}.`;
@@ -41,13 +32,13 @@ const system = {
 const toolbelt = {
   'file_system': fileSystem,
   'shell': shell,
-  'web': web,
-  'scraper': scraper,
-  'research': research, // <-- ADDED
-  'code_intelligence': codeIntelligenceService, // <-- ADDED (Placeholder)
+  'research': research, // <-- THE ONLY RESEARCH TOOL NOW
+  'code_intelligence': codeIntelligenceService,
   'gemini': gemini_cli_tool,
   'system': system,
 };
+
+// ... (rest of the file remains the same)
 
 class PermissionDeniedError extends Error {
   constructor(message) {
