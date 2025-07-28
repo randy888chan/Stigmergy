@@ -1,8 +1,8 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "description": "Stigmergy: The Autonomous AI Development System.",
-  "main": "cli/index.js",
+  "main": "engine/server.js",
   "bin": {
     "stigmergy": "cli/index.js"
   },
@@ -18,15 +18,16 @@
     "engine/",
     "installer/",
     "tools/",
+    "services/",
     "builder/",
-    "indexer/",
     ".stigmergy-core/",
     ".env.example"
   ],
   "dependencies": {
+    "@mcp/server": "^0.1.0",
+    "@mendable/firecrawl-js": "^0.0.24",
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",
-    "@google/generative-ai-cli": "^0.4.0",
     "axios": "^1.7.2",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
