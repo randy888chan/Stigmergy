@@ -1,4 +1,4 @@
-#Stigmergy: The Autonomous AI Product Team in Your IDE
+# Stigmergy: The Autonomous AI Product Team in Your IDE
 
 An AI-powered system that translates high-level product goals into market research, visual designs, technical plans, and production-ready code, all orchestrated from within your development environment.
 
