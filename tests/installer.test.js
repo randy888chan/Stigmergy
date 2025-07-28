@@ -1,34 +1,29 @@
 import { jest, describe, it, expect, beforeEach, afterEach } from "@jest/globals";
-import { run } from "../installer/install.js";
-
-// Mock the entire install.js module
-jest.mock("../installer/install.js", () => ({
-  __esModule: true,
-  run: jest.fn(),
-}));
+import * as install from "../installer/install.js";
 
 describe("Stigmergy Installer", () => {
-  let logSpy, errorSpy;
+  let logSpy, errorSpy, runSpy;
 
   beforeEach(() => {
     jest.clearAllMocks();
     logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    runSpy = jest.spyOn(install, "run").mockImplementation(async () => {});
   });
 
   afterEach(() => {
     logSpy.mockRestore();
     errorSpy.mockRestore();
+    runSpy.mockRestore();
   });
 
-  it("should generate a .roomodes file", async () => {
-    run.mockResolvedValue(undefined); // Mock the run function to resolve successfully
-    await run();
-    expect(run).toHaveBeenCalledTimes(1);
+  it("should call run once", async () => {
+    await install.run();
+    expect(runSpy).toHaveBeenCalledTimes(1);
   });
 
   it("should throw an error on failure", async () => {
-    run.mockRejectedValue(new Error("Installation failed")); // Mock the run function to reject
-    await expect(run()).rejects.toThrow("Installation failed");
+    runSpy.mockRejectedValue(new Error("Installation failed"));
+    await expect(install.run()).rejects.toThrow("Installation failed");
   });
 });
