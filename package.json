@@ -19,6 +19,7 @@
     "installer/",
     "tools/",
     "services/",
+    "ai/",
     "builder/",
     ".stigmergy-core/",
     ".env.example"
@@ -26,6 +27,10 @@
   "dependencies": {
     "@mcp/server": "^0.1.0",
     "@mendable/firecrawl-js": "^0.0.24",
+    "@ai-sdk/openai": "^0.0.13",
+    "@ai-sdk/fireworks": "^0.0.5",
+    "ai": "^3.1.1",
+    "zod": "^3.23.8",
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",
     "axios": "^1.7.2",
@@ -40,6 +45,7 @@
     "neo4j-driver": "^5.20.0",
     "openai": "^4.0.0",
     "ora": "^5.4.1",
+    "p-limit": "^4.0.0",
     "proper-lockfile": "^4.1.2",
     "uuid": "^9.0.1",
     "ws": "^8.17.0"
