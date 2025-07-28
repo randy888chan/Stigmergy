@@ -56,3 +56,21 @@ All interaction with Stigmergy happens through natural language chat in your IDE
     The system will now autonomously execute the entire blueprint without interruption. It will only pause if it requires a secret key (like a deployment API key) that isn't in your `.env` file.
 
 4.  **Pause and Resume at Will:** You can stop the `npm run stigmergy:start` process at any time. The project state is saved. The next time you run `npm run stigmergy:start`, the engine will pick up exactly where it left off, without repeating any steps.
+
+   # Stigmergy Core Services
+
+This directory will contain the core, integrated services that power the Stigmergy engine's intelligence.
+
+## Current & Planned Services
+
+### 1. Code Intelligence Service (`code_intelligence_service.js`)
+
+**Status:** Placeholder - To be implemented.
+
+**Purpose:** This service will be the primary interface to the Neo4j knowledge graph. It will be responsible for:
+- **Scanning & Parsing:** Traversing the project codebase, parsing files for different languages (TS, Java, Python), and identifying code entities (classes, functions, etc.) and their relationships.
+- **Graph Ingestion:** Writing the parsed data into the Neo4j database, creating a rich, queryable knowledge graph.
+- **Query Interface:** Providing a set of powerful functions that agents can use to query the graph for deep contextual information (e.g., `findUsages`, `getDefinition`, `getModuleDependencies`).
+
+**Integration Plan:**
+The logic for this service will be adapted from the `jonnoc-coderag` repository. This will be a significant engineering task that should be undertaken after the core autonomous engine and research capabilities are fully functional.
