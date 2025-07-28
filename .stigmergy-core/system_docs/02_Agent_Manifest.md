@@ -1,89 +1,93 @@
-# This is the single source of truth for agent capabilities and permissions.
-# The installer reads this file to generate IDE permissions (.roomodes).
 schema_version: 5.5
 
 agents:
-  # --- Dispatcher ---
-  - id: dispatcher
-    alias: saul
-    name: "Saul (Dispatcher)"
-    icon: "🧠"
-    tools: [file_system.readFile, system.updateStatus]
 
-  # --- Planners ---
-  - id: analyst
-    alias: mary
-    name: "Mary (Analyst)"
-    icon: "📊"
-    tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
+# --- Dispatcher ---
 
-  - id: pm
-    alias: john
-    name: "John (PM)"
-    icon: "📋"
-    tools: [research.deep_dive, file_system.readFile, file_system.writeFile, system.updateStatus]
+- id: dispatcher
+  alias: saul
+  name: "Saul (Dispatcher)"
+  icon: "🧠"
+  tools: [file_system.readFile, system.updateStatus]
 
-  - id: design-architect
-    alias: winston
-    name: "Winston (Architect)"
-    icon: "🏗️"
-    tools: [file_system.*, research.deep_dive, system.updateStatus]
+# --- Planners ---
 
-  - id: ux-expert
-    alias: sally
-    name: "Sally (UX)"
-    icon: "🎨"
-    tools: [research.deep_dive]
+- id: analyst
+  alias: mary
+  name: "Mary (Analyst)"
+  icon: "📊"
+  tools: [research.deep_dive, file_system.writeFile]
 
-  - id: design
-    alias: vinci
-    name: "Vinci (Designer)"
-    icon: "🎨"
-    tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
+- id: pm
+  alias: john
+  name: "John (PM)"
+  icon: "📋"
+  tools: [research.deep_dive, file_system.readFile, file_system.writeFile]
 
-  # --- Executors ---
-  - id: gemini-executor
-    alias: gemma
-    name: "Gemma (Gemini)"
-    icon: "✨"
-    tools: [gemini.execute, file_system.readFile] # Added readFile for context
+- id: design-architect
+  alias: winston
+  name: "Winston (Architect)"
+  icon: "🏗️"
+  tools: [file_system.*, research.deep_dive]
 
-  - id: dev
-    alias: james
-    name: "James (Dev)"
-    icon: "💻"
-    tools: [file_system.*, shell.execute, code_intelligence.*]
-    permitted_shell_commands:
-      - "npm install"
-      - "npm test"
-      - "npm run lint"
-      - "jest *"
+- id: ux-expert
+  alias: sally
+  name: "Sally (UX)"
+  icon: "🎨"
+  tools: [research.deep_dive]
 
-  - id: refactorer
-    alias: rocco
-    name: "Rocco (Refactorer)"
-    icon: "🔧"
-    tools: [file_system.*, shell.execute, code_intelligence.*]
-    permitted_shell_commands: ["npm *"]
+- id: design
+  alias: vinci
+  name: "Vinci (Designer)"
+  icon: "🎨"
+  tools: [research.deep_dive, file_system.writeFile]
 
-  # --- Verifiers ---
-  - id: qa
-    alias: quinn
-    name: "Quinn (QA)"
-    icon: "🛡️"
-    tools: [shell.execute, file_system.readFile]
-    permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
+# --- Executors ---
 
-  # --- Responders ---
-  - id: debugger
-    alias: dexter
-    name: "Dexter (Debugger)"
-    icon: "🎯"
-    tools: [file_system.*, code_intelligence.*, shell.execute]
-    permitted_shell_commands: ["npm test", "jest *"]
+- id: gemini-executor
+  alias: gemma
+  name: "Gemma (Gemini)"
+  icon: "✨"
+  tools: [gemini.execute, file_system.readFile]
 
-  - id: meta
-    alias: metis
-    name: "Metis (Auditor)"
-    icon: "📈"
-    tools: [file_system.readFile]
+- id: dev
+  alias: james
+  name: "James (Dev)"
+  icon: "💻"
+  tools: [file_system.*, shell.execute, code_intelligence.*]
+  permitted_shell_commands:
+  - "npm install"
+  - "npm test"
+  - "npm run lint"
+  - "jest \*"
+
+- id: refactorer
+  alias: rocco
+  name: "Rocco (Refactorer)"
+  icon: "🔧"
+  tools: [file_system.*, shell.execute, code_intelligence.*]
+  permitted_shell_commands: ["npm *"]
+
+# --- Verifiers ---
+
+- id: qa
+  alias: quinn
+  name: "Quinn (QA)"
+  icon: "🛡️"
+  tools: [shell.execute, file_system.readFile]
+  permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
+
+# --- Responders ---
+
+- id: debugger
+  alias: dexter
+  name: "Dexter (Debugger)"
+  icon: "🎯"
+  tools: [file_system.*, code_intelligence.*, shell.execute]
+  permitted_shell_commands: ["npm test", "jest *"]
+
+- id: meta
+  alias: metis
+  name: "Metis (Auditor)"
+  icon: "📈"
+  tools: [file_system.readFile]

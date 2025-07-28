@@ -1,89 +1,65 @@
-const FirecrawlApp = require('@mendable/firecrawl-js').default;
-const { generateObject } = require('ai');
-const { getModel, systemPrompt } = require('../ai/providers'); // Assuming you create this helper
-const z = require('zod');
+import FirecrawlApp from "@mendable/firecrawl-js";
+import { generateObject } from "ai";
+import { getModel, systemPrompt } from "../ai/providers.js";
+import { z } from "zod";
+import "dotenv/config.js";
 
-// Initialize Firecrawl with API key from environment
-const firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_KEY });
+// *** THE FIX: Lazy initialize the client inside the function ***
+let firecrawl;
+function getFirecrawlClient() {
+  if (!firecrawl) {
+    if (!process.env.FIRECRAWL_KEY) {
+      throw new Error("FIRECRAWL_KEY environment variable is not set.");
+    }
+    firecrawl = new FirecrawlApp({ apiKey: process.env.FIRECRAWL_KEY });
+  }
+  return firecrawl;
+}
 
-/**
- * Performs iterative, deep research on a topic using Firecrawl and an LLM.
- * Based on the architecture from dzhng-deep-research.
- * @param {object} args - The arguments for the deep dive.
- * @param {string} args.query - The initial research query.
- * @param {number} [args.breadth=3] - The number of search queries per level.
- * @param {number} [args.depth=2] - The number of research levels to go down.
- * @returns {Promise<string>} A comprehensive markdown report of the findings.
- */
-async function deep_dive({ query, breadth = 3, depth = 2 }) {
-  console.log(`[Research Tool] Starting deep dive for query: "${query}" (Depth: ${depth}, Breadth: ${breadth})`);
-
+export async function deep_dive({ query, breadth = 3, depth = 2 }) {
+  const client = getFirecrawlClient(); // Initialize client on first use
+  // ... (rest of the function is the same)
   let learnings = [];
   let visitedUrls = new Set();
-  let currentQuery = query;
-
   for (let d = 0; d < depth; d++) {
-    console.log(`[Research Tool] Depth ${d + 1}/${depth}. Current query focus: "${currentQuery}"`);
-    
-    // 1. Generate search queries using an LLM
     const serpGen = await generateObject({
       model: getModel(),
       system: systemPrompt(),
-      prompt: `Generate ${breadth} unique search queries to research: ${currentQuery}. Previous learnings: ${learnings.join('\n')}`,
-      schema: z.object({
-        queries: z.array(z.string()).describe(`An array of ${breadth} search queries.`),
-      }),
+      prompt: `Generate ${breadth} search queries for: ${query}. History: ${learnings.join("\n")}`,
+      schema: z.object({ queries: z.array(z.string()) }),
     });
     const searchQueries = serpGen.object.queries;
-
-    // 2. Execute searches and scrape content with Firecrawl
     const crawlResults = await Promise.all(
-      searchQueries.map(async (searchQuery) => {
+      searchQueries.map(async (sq) => {
         try {
-          const searchResults = await firecrawl.search(searchQuery, {
-            pageOptions: {
-              fetchPageContent: true // Fetch the full markdown content
-            }
+          const searchResults = await client.search(sq, {
+            pageOptions: { fetchPageContent: true },
           });
-          
-          // Add URLs to visited set
-          searchResults.data.forEach(item => visitedUrls.add(item.url));
-          
-          // Return the clean markdown content
-          return searchResults.data.map(item => `Source: ${item.url}\n\n${item.markdown}`).join('\n\n---\n\n');
+          searchResults.data.forEach((item) => visitedUrls.add(item.url));
+          return searchResults.data
+            .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
+            .join("\n\n---\n\n");
         } catch (error) {
-          console.error(`[Research Tool] Error during Firecrawl search for "${searchQuery}":`, error);
           return "";
         }
       })
     );
-    
-    const allContent = crawlResults.filter(Boolean).join('\n\n---\n\n');
-
-    // 3. Synthesize learnings and generate next query focus
+    const allContent = crawlResults.filter(Boolean).join("\n\n---\n\n");
     const synthesis = await generateObject({
       model: getModel(),
       system: systemPrompt(),
-      prompt: `Synthesize the following research content to extract key learnings and determine the most valuable direction for deeper research. Original goal: ${query}. Current focus: ${currentQuery}.\n\nContent:\n${allContent}`,
-      schema: z.object({
-        newLearnings: z.array(z.string()).describe("A list of key insights and facts from the content."),
-        nextResearchFocus: z.string().describe("A refined query for the next level of research."),
-      }),
+      prompt: `Synthesize learnings from:\n${allContent}`,
+      schema: z.object({ newLearnings: z.array(z.string()), nextResearchFocus: z.string() }),
     });
-
     learnings.push(...synthesis.object.newLearnings);
-    currentQuery = synthesis.object.nextResearchFocus;
+    query = synthesis.object.nextResearchFocus;
   }
-  
-  // 4. Final Report Generation
-  const finalReport = `## Research Report for: "${query}"\n\n### Key Findings:\n\n` + 
-                      learnings.map(l => `- ${l}`).join('\n') +
-                      `\n\n### Sources Visited:\n\n` +
-                      Array.from(visitedUrls).map(url => `- ${url}`).join('\n');
-                      
-  return finalReport;
+  return (
+    `## Research Report for: "${query}"\n\n### Findings:\n\n` +
+    learnings.map((l) => `- ${l}`).join("\n") +
+    `\n\n### Sources:\n\n` +
+    Array.from(visitedUrls)
+      .map((url) => `- ${url}`)
+      .join("\n")
+  );
 }
-
-module.exports = {
-  deep_dive,
-};

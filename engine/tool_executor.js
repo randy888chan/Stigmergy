@@ -1,44 +1,39 @@
-const fs = require('fs-extra');
-const path = require('path');
-const yaml = require('js-yaml');
-const fileSystem = require('../tools/file_system');
-const shell = require('../tools/shell');
-const research = require('../tools/research'); // <-- UNIFIED RESEARCH TOOL
-const gemini_cli_tool = require('../tools/gemini_cli_tool');
-const stateManager = require('./state_manager');
+import fs from "fs-extra";
+import path from "path";
+import yaml from "js-yaml";
+import * as fileSystem from "../tools/file_system.js";
+import * as shell from "../tools/shell.js";
+import * as research from "../tools/research.js";
+import * as gemini_cli_tool from "../tools/gemini_cli_tool.js";
+import stateManager from "./state_manager.js";
+import codeIntelligenceService from "../services/code_intelligence_service.js";
 
-// Placeholder for the future Code Intelligence Service
-const codeIntelligenceService = require('../services/code_intelligence_service');
-
-const MANIFEST_PATH = path.join(__dirname, '..', '.stigmergy-core', 'system_docs', '02_Agent_Manifest.md');
+const MANIFEST_PATH = path.join(
+  process.cwd(),
+  ".stigmergy-core",
+  "system_docs",
+  "02_Agent_Manifest.md"
+);
 let agentManifest = null;
-
 async function getManifest() {
-  if (!agentManifest) {
-    const content = await fs.readFile(MANIFEST_PATH, 'utf8');
-    agentManifest = yaml.load(content);
-  }
+  if (!agentManifest) agentManifest = yaml.load(await fs.readFile(MANIFEST_PATH, "utf8"));
   return agentManifest;
 }
 
 const system = {
-  // ... (system tool functions remain the same)
   updateStatus: async ({ status, message }) => {
     await stateManager.updateStatus(status, message);
-    return `System status updated to ${status}.`;
-  }
+    return `Status updated to ${status}.`;
+  },
 };
-
 const toolbelt = {
-  'file_system': fileSystem,
-  'shell': shell,
-  'research': research, // <-- THE ONLY RESEARCH TOOL NOW
-  'code_intelligence': codeIntelligenceService,
-  'gemini': gemini_cli_tool,
-  'system': system,
+  file_system: fileSystem,
+  shell: shell,
+  research: research,
+  code_intelligence: codeIntelligenceService,
+  gemini: gemini_cli_tool,
+  system: system,
 };
-
-// ... (rest of the file remains the same)
 
 class PermissionDeniedError extends Error {
   constructor(message) {
@@ -47,42 +42,21 @@ class PermissionDeniedError extends Error {
   }
 }
 
-async function execute(toolName, args, agentId) {
+export async function execute(toolName, args, agentId) {
   const manifest = await getManifest();
-  const agentConfig = manifest.agents.find(a => a.id === agentId);
-
-  if (!agentConfig) {
-    throw new PermissionDeniedError(`Agent '${agentId}' not found in manifest.`);
-  }
-
-  const isPermitted = agentConfig.tools.some(toolPattern => {
-    if (toolPattern.endsWith('.*')) {
-      return toolName.startsWith(toolPattern.slice(0, -1));
-    }
-    return toolName === toolPattern;
-  });
-
-  if (!isPermitted) {
-    throw new PermissionDeniedError(`Agent '${agentId}' is not permitted to use tool '${toolName}'.`);
-  }
-
-  const [namespace, functionName] = toolName.split('.');
-  if (!toolbelt[namespace] || !toolbelt[namespace][functionName]) {
-    throw new Error(`Tool '${toolName}' not found in the toolbelt.`);
-  }
-  
-  const finalArgs = { ...args, agentConfig };
-
-  console.log(`[Tool Executor] Executing '${toolName}' for @${agentId} with args:`, args);
+  const agentConfig = manifest.agents.find((a) => a.id === agentId);
+  if (!agentConfig) throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
+  const isPermitted = (agentConfig.tools || []).some((p) =>
+    p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
+  );
+  if (!isPermitted)
+    throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
+  const [namespace, funcName] = toolName.split(".");
+  if (!toolbelt[namespace]?.[funcName]) throw new Error(`Tool '${toolName}' not found.`);
   try {
-    const result = await toolbelt[namespace][functionName](finalArgs);
+    const result = await toolbelt[namespace][funcName]({ ...args, agentConfig });
     return JSON.stringify(result, null, 2);
   } catch (e) {
-    console.error(`[Tool Executor] Error during '${toolName}' execution: ${e.message}`);
     throw e;
   }
 }
-
-module.exports = {
-  execute,
-};

@@ -1,27 +1,33 @@
 #!/usr/bin/env node
 
-const { Command } = require("commander");
+import { Command } from "commander";
+import pkg from "../package.json" assert { type: "json" };
+import { run as runInstaller } from "../installer/install.js";
+import { runBuilder } from "../builder/prompt_builder.js";
+
 const program = new Command();
 
 program
   .name("stigmergy")
   .description("The command-line interface for the Stigmergy Autonomous Development System.")
-  .version(require("../package.json").version);
+  .version(pkg.version);
 
 program
   .command("install")
   .description("Installs the Stigmergy knowledge base and configures your IDE.")
   .action(async () => {
-    // This now uses an updated installer.
-    const installer = require("../installer/install");
-    await installer.run();
+    await runInstaller();
   });
 
 program
   .command("start")
-  .description("Starts the Stigmergy Engine. Use 'npm run stigmergy:start' for project integration.")
+  .description(
+    "Starts the Stigmergy Engine. Use 'npm run stigmergy:start' for project integration."
+  )
   .action(() => {
-    console.log("This command is deprecated. Please use 'npm run stigmergy:start' to run the engine server.");
+    console.log(
+      "This command is deprecated. Please use 'npm run stigmergy:start' to run the engine server."
+    );
   });
 
 program
@@ -30,7 +36,6 @@ program
   .option("-t, --team <teamId>", "Build a bundle for a specific agent team.")
   .option("--all", "Build all agent teams.")
   .action(async (options) => {
-    const { runBuilder } = require("../builder/prompt_builder");
     await runBuilder(options);
   });
 

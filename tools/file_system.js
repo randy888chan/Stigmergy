@@ -1,36 +1,21 @@
-const fs = require('fs-extra');
-const path = require('path');
-const glob = require('glob');
+import fs from "fs-extra";
+import path from "path";
+import { glob } from "glob";
 
-// All paths are resolved from the project root to prevent directory traversal attacks.
 function resolvePath(filePath) {
   const resolved = path.resolve(process.cwd(), filePath);
-  if (!resolved.startsWith(process.cwd())) {
-    throw new Error(`Forbidden path: ${filePath}. Only paths within the project are allowed.`);
-  }
+  if (!resolved.startsWith(process.cwd())) throw new Error(`Forbidden path: ${filePath}.`);
   return resolved;
 }
-
-async function readFile({ path: filePath }) {
-  const resolvedPath = resolvePath(filePath);
-  return await fs.readFile(resolvedPath, 'utf-8');
+export async function readFile({ path: filePath }) {
+  return fs.readFile(resolvePath(filePath), "utf-8");
 }
-
-async function writeFile({ path: filePath, content }) {
-  const resolvedPath = resolvePath(filePath);
-  await fs.ensureDir(path.dirname(resolvedPath));
-  await fs.writeFile(resolvedPath, content);
-  return `File ${filePath} written successfully.`;
+export async function writeFile({ path: filePath, content }) {
+  const p = resolvePath(filePath);
+  await fs.ensureDir(path.dirname(p));
+  await fs.writeFile(p, content);
+  return `File ${filePath} written.`;
 }
-
-async function listFiles({ directory }) {
-    const resolvedDir = resolvePath(directory);
-    const files = glob.sync('**/*', { cwd: resolvedDir, nodir: true });
-    return files;
+export async function listFiles({ directory }) {
+  return glob("**/*", { cwd: resolvePath(directory), nodir: true });
 }
-
-module.exports = {
-  readFile,
-  writeFile,
-  listFiles,
-};
