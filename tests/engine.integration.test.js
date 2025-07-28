@@ -1,20 +1,24 @@
 import { jest, describe, test, expect, beforeEach, afterAll } from "@jest/globals";
-import * as stateManager from "../engine/state_manager.js";
 import * as llm_adapter from "../engine/llm_adapter.js";
 import { Engine } from "../engine/server.js";
+
+jest.mock("../engine/state_manager.js", () => ({
+  getState: jest.fn(),
+  updateStatus: jest.fn(),
+}));
 
 jest.spyOn(console, "log").mockImplementation(() => {});
 jest.spyOn(console, "error").mockImplementation(() => {});
 
 describe("Autonomous Engine Integration Test", () => {
-  let engine;
-  beforeEach(() => {
+  let engine, stateManager;
+  beforeEach(async () => {
     jest.clearAllMocks();
     engine = new Engine();
     engine.stop("Test Setup");
+    stateManager = await import("../engine/state_manager.js");
 
-    jest
-      .spyOn(stateManager, "getState")
+    stateManager.getState
       .mockResolvedValueOnce({ project_status: "GRAND_BLUEPRINT_PHASE", artifacts_created: {} })
       .mockResolvedValueOnce({
         project_status: "GRAND_BLUEPRINT_PHASE",
@@ -25,7 +29,7 @@ describe("Autonomous Engine Integration Test", () => {
         artifacts_created: { brief: true, prd: true },
       });
     jest.spyOn(llm_adapter, "getCompletion").mockResolvedValue({ action: {} });
-    jest.spyOn(stateManager, "updateStatus").mockResolvedValue();
+    stateManager.updateStatus.mockResolvedValue();
   });
   afterAll(() => {
     jest.restoreAllMocks();
