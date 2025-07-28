@@ -1,6 +1,6 @@
 # This is the single source of truth for agent capabilities and permissions.
 # The installer reads this file to generate IDE permissions (.roomodes).
-schema_version: 5.4
+schema_version: 5.5
 
 agents:
   # --- Dispatcher ---
@@ -8,7 +8,7 @@ agents:
     alias: saul
     name: "Saul (Dispatcher)"
     icon: "🧠"
-    tools: [file_system.readFile, system.approve, system.updateStatus]
+    tools: [file_system.readFile, system.updateStatus]
 
   # --- Planners ---
   - id: analyst
@@ -35,7 +35,7 @@ agents:
     icon: "🎨"
     tools: [research.deep_dive]
 
-  - id: design # <-- NEW DESIGN AGENT
+  - id: design
     alias: vinci
     name: "Vinci (Designer)"
     icon: "🎨"
@@ -46,7 +46,7 @@ agents:
     alias: gemma
     name: "Gemma (Gemini)"
     icon: "✨"
-    tools: [gemini.execute]
+    tools: [gemini.execute, file_system.readFile] # Added readFile for context
 
   - id: dev
     alias: james
@@ -71,7 +71,7 @@ agents:
     alias: quinn
     name: "Quinn (QA)"
     icon: "🛡️"
-    tools: [shell.execute]
+    tools: [shell.execute, file_system.readFile]
     permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
 
   # --- Responders ---
