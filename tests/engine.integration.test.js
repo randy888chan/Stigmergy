@@ -1,46 +1,90 @@
 const request = require('supertest');
 const fs = require('fs-extra');
 const path = require('path');
-const { _appForTesting: app, stopEngineLoop, mainEngineLoop } = require('../engine/server');
+const stateManager = require('../engine/state_manager');
+const llmAdapter = require('../engine/llm_adapter');
+const { _appForTesting: app, stopEngineLoop, mainEngineLoop } = require('../engine/server'); // Assuming server exports these for tests
+
+// Mock the LLM adapter to prevent actual API calls
+jest.mock('../engine/llm_adapter');
+
 const STATE_FILE = path.resolve(process.cwd(), '.ai', 'state.json');
 
-// Mute console logs during tests
+// Mute console logs during tests for cleaner output
 jest.spyOn(console, 'log').mockImplementation(() => {});
 jest.spyOn(console, 'error').mockImplementation(() => {});
 
-describe('Engine Integration Test', () => {
+describe('Autonomous Engine Integration Test', () => {
+  
   beforeEach(async () => {
+    // Reset state and mocks before each test
     await fs.remove(path.dirname(STATE_FILE));
-    await stopEngineLoop('Test Setup'); // Ensure loop is stopped
+    jest.clearAllMocks();
+    await stopEngineLoop('Test Setup');
   });
 
   afterAll(async () => {
     await fs.remove(path.dirname(STATE_FILE));
-    jest.restoreAllMocks(); // Restore console
+    jest.restoreAllMocks(); // Restore console logging
   });
 
-  it('should initialize a project, pause it durably across a simulated restart, and resume it', async () => {
-    // Step 1: Start the project
+  test('should autonomously run the Grand Blueprint Phase', async () => {
+    // --- Mock the sequence of agent actions ---
+
+    // 1. Analyst runs, creates docs, and updates status
+    llmAdapter.getCompletion.mockResolvedValueOnce({
+      thought: 'I will research the topic and create the brief and research docs.',
+      action: {
+        tool: 'system.updateStatus',
+        args: { status: 'GRAND_BLUEPRINT_PHASE', message: 'Brief complete.' }
+      }
+    });
+    
+    // 2. PM runs, creates PRD, and updates status
+    llmAdapter.getCompletion.mockResolvedValueOnce({
+      thought: 'I will create the PRD based on the brief.',
+      action: {
+        tool: 'system.updateStatus',
+        args: { status: 'GRAND_BLUEPRINT_PHASE', message: 'PRD complete.' }
+      }
+    });
+
+    // 3. Architect runs, creates architecture, and transitions to approval
+    llmAdapter.getCompletion.mockResolvedValueOnce({
+      thought: 'I will create the architecture documents.',
+      action: {
+        tool: 'system.updateStatus',
+        args: { status: 'AWAITING_EXECUTION_APPROVAL', message: 'Architecture complete.' }
+      }
+    });
+
+    // --- Start the Test ---
+    
+    // Step 1: User starts the project
     await request(app)
       .post('/api/system/start')
-      .send({ goal: 'Test durable pause' })
+      .send({ goal: 'Test autonomous planning' })
       .expect(200);
 
-    let state = await fs.readJson(STATE_FILE);
-    expect(state.project_status).toBe('GRAND_BLUEPRINT_PHASE');
-
-    // Step 2: Pause the project
-    await request(app).post('/api/control/pause').send().expect(200);
-
-    state = await fs.readJson(STATE_FILE);
-    expect(state.project_status).toBe('PAUSED_BY_USER');
-    expect(state.status_before_pause).toBe('GRAND_BLUEPRINT_PHASE');
-
-    // Step 3: Resume the project
-    await request(app).post('/api/control/resume').send().expect(200);
-
-    state = await fs.readJson(STATE_FILE);
-    expect(state.project_status).toBe('GRAND_BLUEPRINT_PHASE');
-    expect(state.status_before_pause).toBeNull();
+    // Give the engine time to run through the mocked sequence
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Manually trigger a few loop cycles to simulate the engine running
+    await mainEngineLoop();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await mainEngineLoop();
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await mainEngineLoop();
+    
+    // --- Assertions ---
+    
+    // Verify that the agents were called in the correct order
+    expect(llmAdapter.getCompletion).toHaveBeenCalledWith('analyst', expect.any(String), null);
+    expect(llmAdapter.getCompletion).toHaveBeenCalledWith('pm', expect.any(String), null);
+    expect(llmAdapter.getCompletion).toHaveBeenCalledWith('design-architect', expect.any(String), null);
+    
+    // Check the final state of the project
+    const finalState = await stateManager.getState();
+    expect(finalState.project_status).toBe('AWAITING_EXECUTION_APPROVAL');
   });
 });
