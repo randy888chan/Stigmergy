@@ -5,9 +5,12 @@ const fileSystem = require('../tools/file_system');
 const shell = require('../tools/shell');
 const web = require('../tools/web');
 const scraper = require('../tools/scraper');
-const codeGraph = require('../tools/code_graph');
+const research = require('../tools/research'); // <-- ADDED
 const gemini_cli_tool = require('../tools/gemini_cli_tool');
 const stateManager = require('./state_manager');
+
+// Placeholder for the future Code Intelligence Service
+const codeIntelligenceService = require('../services/code_intelligence_service');
 
 const MANIFEST_PATH = path.join(__dirname, '..', '.stigmergy-core', 'system_docs', '02_Agent_Manifest.md');
 let agentManifest = null;
@@ -15,15 +18,18 @@ let agentManifest = null;
 async function getManifest() {
   if (!agentManifest) {
     const content = await fs.readFile(MANIFEST_PATH, 'utf8');
-    agentManifest = yaml.load(content.split('---')[0]);
+    const yamlContent = content.match(/```yaml\n([\s\S]*?)\n```|---\n([\s\S]*?)\n---/);
+    agentManifest = yaml.load(yamlContent[1] || yamlContent[2] || content);
   }
   return agentManifest;
 }
 
 const system = {
   approve: async () => {
-    await stateManager.updateStatus("EXECUTION_IN_PROGRESS");
-    console.log("[Tool: system.approve] Execution has been approved.");
+    // This is now handled by the user interacting with the @dispatcher agent.
+    // The dispatcher should then call updateStatus.
+    // We keep this for potential future direct approval mechanisms.
+    console.log("[Tool: system.approve] Execution has been approved by direct tool call.");
     return "Execution approved. The engine will now proceed.";
   },
   updateStatus: async ({ status, message }) => {
@@ -37,7 +43,8 @@ const toolbelt = {
   'shell': shell,
   'web': web,
   'scraper': scraper,
-  'code_graph': codeGraph,
+  'research': research, // <-- ADDED
+  'code_intelligence': codeIntelligenceService, // <-- ADDED (Placeholder)
   'gemini': gemini_cli_tool,
   'system': system,
 };
@@ -73,10 +80,9 @@ async function execute(toolName, args, agentId) {
     throw new Error(`Tool '${toolName}' not found in the toolbelt.`);
   }
   
-  // Pass the agent config to the tool if it needs it (e.g., for shell commands)
   const finalArgs = { ...args, agentConfig };
 
-  console.log(`[Tool Executor] Executing '${toolName}' for @${agentId}`);
+  console.log(`[Tool Executor] Executing '${toolName}' for @${agentId} with args:`, args);
   try {
     const result = await toolbelt[namespace][functionName](finalArgs);
     return JSON.stringify(result, null, 2);
