@@ -55,6 +55,4 @@ _A few measurable metrics to track post-launch._
 
 ## 4. Handoff to Planners
 
-**To `@saul`:** "The Project Brief for `{{Project Name}}` is complete. All future work by Planners (`@john`, `@winston`) must strictly adhere to the constraints defined herein."
-
-[[LLM: Conclude your work by using the system.updateStatus tool. Set the status to 'GRAND_BLUEPRINT_PHASE' and the message to 'Brief complete. Ready for PRD creation.' and set the artifact_created flag to 'brief'.]]
+[[LLM: Conclude your work by using the system.updateStatus tool. Set the status to 'GRAND_BLUEPRINT_PHASE', the message to 'Brief complete. Ready for PRD creation.', and the artifact_created flag to 'brief'.]]
