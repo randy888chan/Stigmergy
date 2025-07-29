@@ -2,7 +2,6 @@ import express from "express";
 import chalk from "chalk";
 import { Server as McpServer } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-// *** THE FIX: Import named exports correctly using a namespace import ***
 import * as stateManager from "./state_manager.js";
 import { getCompletion } from "./llm_adapter.js";
 import { execute as executeTool } from "./tool_executor.js";
@@ -11,7 +10,6 @@ import "dotenv/config.js";
 import { fileURLToPath } from "url";
 import path from "path";
 
-// This class is now exported for testing
 export class Engine {
   constructor() {
     this.isEngineRunning = false;
@@ -82,24 +80,31 @@ export class Engine {
   }
 }
 
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
+const engine = new Engine();
+
 async function main() {
-  const engine = new Engine();
   const mcpServer = new McpServer({ name: "stigmergy-engine", version: "2.1.0" });
   // ... MCP tool definitions ...
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
 
   const PORT = process.env.PORT || 3000;
-  engine.app.listen(PORT, async () => {
-    console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
-    const state = await stateManager.getState();
-    if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
-      engine.start();
-    }
-  });
+
+  if (isMainModule) {
+    engine.app.listen(PORT, async () => {
+      console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
+      const state = await stateManager.getState();
+      if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
+        engine.start();
+      }
+    });
+  }
 }
 
-const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMainModule) {
   main().catch(console.error);
 }
+
+// Export the app for testing purposes
+export const app = engine.app;
