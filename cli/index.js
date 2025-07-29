@@ -20,17 +20,6 @@ program
   });
 
 program
-  .command("start")
-  .description(
-    "Starts the Stigmergy Engine. Use 'npm run stigmergy:start' for project integration."
-  )
-  .action(() => {
-    console.log(
-      "This command is deprecated. Please use 'npm run stigmergy:start' to run the engine server."
-    );
-  });
-
-program
   .command("build")
   .description("Builds self-contained prompt bundles for use in Web UIs.")
   .option("-t, --team <teamId>", "Build a bundle for a specific agent team.")
