@@ -5,8 +5,8 @@ import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
 import * as gemini_cli_tool from "../tools/gemini_cli_tool.js";
-import stateManager from "./state_manager.js";
-import codeIntelligenceService from "../services/code_intelligence_service.js";
+import * as stateManager from "./state_manager.js"; // <-- FIX: Changed to namespace import
+import * as codeIntelligence from "../tools/code_intelligence.js"; // <-- FIX: Corrected import
 
 const MANIFEST_PATH = path.join(
   process.cwd(),
@@ -30,7 +30,7 @@ const toolbelt = {
   file_system: fileSystem,
   shell: shell,
   research: research,
-  code_intelligence: codeIntelligenceService,
+  code_intelligence: codeIntelligence,
   gemini: gemini_cli_tool,
   system: system,
 };
