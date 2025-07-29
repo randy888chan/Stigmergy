@@ -1,9 +1,11 @@
-const fs = require("fs-extra");
-const path = require("path");
-const ora = require("ora");
-const chalk = require("chalk");
-const DependencyResolver = require("./dependency_resolver");
+import fs from "fs-extra";
+import path from "path";
+import ora from "ora";
+import chalk from "chalk";
+import DependencyResolver from "./dependency_resolver.js";
+import { fileURLToPath } from "url";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(__dirname, "..");
 const OUTPUT_DIR = path.join(process.cwd(), "dist");
 
@@ -32,7 +34,6 @@ class PromptBuilder {
   async buildTeam(teamId) {
     const spinner = ora(`Building team bundle: ${chalk.cyan(teamId)}`).start();
     try {
-      // THIS IS THE FIX: Call the correct new method in the resolver.
       const allDependencies = await this.resolver.resolveTeamDependencies(teamId);
 
       if (allDependencies.size === 0) {
@@ -68,7 +69,7 @@ class PromptBuilder {
   }
 }
 
-async function runBuilder(options) {
+export async function runBuilder(options) {
   const builder = new PromptBuilder();
   await fs.rm(OUTPUT_DIR, { recursive: true, force: true }).catch(() => {});
 
@@ -78,5 +79,3 @@ async function runBuilder(options) {
 
   console.log(chalk.bold.green(`\nBuild complete. Output in ${chalk.cyan("dist/")}`));
 }
-
-module.exports = { runBuilder };
