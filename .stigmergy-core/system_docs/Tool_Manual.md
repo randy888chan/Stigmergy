@@ -1,27 +1,46 @@
 # Pheromind System Tool Manual
 
-This document provides a natural language description of all tools available to the agent swarm. This manual can be provided to an agent as context to help it discover alternative solutions when a task has failed.
+This document provides a natural language description of all tools available to the agent swarm.
 
 ---
 
 ### **Namespace: `file_system`**
 
-This toolset interacts with the local project file system. All paths are relative to the project root.
-
-- **`file_system.readFile`**: Reads the entire content of a file.
-  - **Arguments:** `{ "path": "path/to/file.txt" }`
-  - **Returns:** A string containing the file's content.
-
-- **`file_system.writeFile`**: Writes content to a file, creating directories if they don't exist.
-  - **Arguments:** `{ "path": "path/to/file.txt", "content": "Your content here" }`
-  - **Returns:** A success message string.
-
+- **`file_system.readFile`**: Reads the content of a file.
+- **`file_system.writeFile`**: Writes content to a file.
 - **`file_system.listFiles`**: Lists all files within a directory.
-  - **Arguments:** `{ "directory": "path/to/directory" }`
-  - **Returns:** An array of file paths as strings.
 
 ---
 
+### **Namespace: `shell`**
+
+- **`shell.execute`**: Runs a shell command. Usage is restricted by agent permissions.
+
+---
+
+### **Namespace: `research`**
+
+- **`research.deep_dive`**: Performs an iterative, deep research step on a topic. It returns key learnings and proposes new queries for further investigation.
+
+---
+
+### **Namespace: `code_intelligence`**
+
+- **`code_intelligence.findUsages`**: Finds all files and functions that use a specific code symbol.
+- **`code_intelligence.getDefinition`**: Retrieves the definition and type of a code symbol from the graph.
+
+---
+
+### **Namespace: `system`**
+
+- **`system.updateStatus`**: Allows an agent to update the global project status, signaling a handoff.
+- **`system.approveExecution`**: Used by the dispatcher to signal user consent and start the execution phase.
+
+---
+
+### **Namespace: `stigmergy`**
+
+- **`stigmergy.createBlueprint`**: Used by the meta agent to generate a machine-readable improvement proposal for the system itself.
 ### **Namespace: `shell`**
 
 This tool executes shell commands. **Warning:** Usage is restricted by agent permissions in the manifest. The `git push` command is explicitly forbidden.
