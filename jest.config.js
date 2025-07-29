@@ -1,11 +1,17 @@
 export default {
   testEnvironment: "node",
-  // No transform is needed for modern Node with ESM
+  setupFiles: ["./tests/setup.js"],
   testMatch: ["**/tests/**/*.test.js"],
-  // This helps Jest understand it's an ESM project
-  extensionsToTreatAsEsm: [".js"],
+  transform: {
+    "^.+\\.js$": "babel-jest",
+  },
+  // --- FIX: This is the critical change ---
+  // This pattern tells Jest to NOT ignore the specified ESM modules in node_modules.
+  transformIgnorePatterns: [
+    "/node_modules/(?!(@mendable/firecrawl-js|@ai-sdk|ai|p-limit|@modelcontextprotocol/sdk)/)",
+  ],
+  // -----------------------------------------
   moduleNameMapper: {
-    // This mapping helps with ESM imports if you have issues with extensions
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
 };

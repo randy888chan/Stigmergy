@@ -8,10 +8,11 @@ import traverse from "@babel/traverse";
 class CodeIntelligenceService {
   constructor() {
     this.driver = null;
-    this.initializeDriver();
+    // --- FIX: DO NOT initialize the driver in the constructor. ---
   }
 
   initializeDriver() {
+    // This function is now called lazily.
     if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
       this.driver = neo4j.driver(
         process.env.NEO4J_URI,
@@ -23,7 +24,13 @@ class CodeIntelligenceService {
   }
 
   async _runQuery(query, params) {
-    if (!this.driver) throw new Error("Neo4j driver not initialized.");
+    // --- FIX: This is the gatekeeper. Initialize the driver on first actual use. ---
+    if (!this.driver) {
+      this.initializeDriver();
+    }
+    // If initialization failed, throw an error.
+    if (!this.driver) throw new Error("Neo4j driver not initialized or credentials not set.");
+
     const session = this.driver.session();
     try {
       const result = await session.run(query, params);
@@ -46,7 +53,6 @@ class CodeIntelligenceService {
   }
 
   async _parseFile(filePath, projectRoot) {
-    // This is a simplified parser, can be expanded for more detail
     const code = await fs.readFile(filePath, "utf8");
     const relativePath = path.relative(projectRoot, filePath);
     const nodes = new Map();
@@ -81,7 +87,9 @@ class CodeIntelligenceService {
         if (Array.isArray(nameNode)) nameNode = nameNode[0];
         if (nameNode && nameNode.isIdentifier()) {
           const name = nameNode.node.name;
-          const type = astPath.node.type.replace("Declaration", "").replace("Declarator", "Variable");
+          const type = astPath.node.type
+            .replace("Declaration", "")
+            .replace("Declarator", "Variable");
           const nodeId = `${relativePath}#${name}`;
           nodes.set(nodeId, {
             id: nodeId,
@@ -92,10 +100,14 @@ class CodeIntelligenceService {
             endLine: astPath.node.loc.end.line,
           });
           relationships.push({ source: relativePath, target: nodeId, type: "DEFINES" });
-          if(type === 'Class') {
-            const superClass = astPath.get('superClass');
+          if (type === "Class") {
+            const superClass = astPath.get("superClass");
             if (superClass.isIdentifier()) {
-              relationships.push({ source: nodeId, targetName: superClass.node.name, type: 'EXTENDS'});
+              relationships.push({
+                source: nodeId,
+                targetName: superClass.node.name,
+                type: "EXTENDS",
+              });
             }
           }
         }
@@ -114,7 +126,7 @@ class CodeIntelligenceService {
     });
     return { nodes: Array.from(nodes.values()), relationships };
   }
-  
+
   async _loadDataIntoGraph({ nodes, relationships }) {
     if (nodes.length === 0 && relationships.length === 0) return;
     const session = this.driver.session();
@@ -124,9 +136,9 @@ class CodeIntelligenceService {
         (acc[r.type] = acc[r.type] || []).push(r);
         return acc;
       }, {});
-      for(const relType in relsByType) {
-          const query = `UNWIND $rels AS r MATCH (s:Symbol {id: r.source}), (t:Symbol {id: r.target}) MERGE (s)-[:${relType}]->(t)`;
-          await session.run(query, { rels: relsByType[relType] });
+      for (const relType in relsByType) {
+        const query = `UNWIND $rels AS r MATCH (s:Symbol {id: r.source}), (t:Symbol {id: r.target}) MERGE (s)-[:${relType}]->(t)`;
+        await session.run(query, { rels: relsByType[relType] });
       }
     } finally {
       await session.close();
@@ -134,12 +146,12 @@ class CodeIntelligenceService {
   }
 
   async scanAndIndexProject(projectPath) {
-    if (!this.driver) return console.warn("Scan skipped: Neo4j not configured.");
     await this._clearDatabase();
     console.log("[CodeIntelligence] Starting project scan...");
     const files = await this._findSourceFiles(projectPath);
     console.log(`[CodeIntelligence] Found ${files.length} files to index.`);
-    let allNodes = [], allRelationships = [];
+    let allNodes = [],
+      allRelationships = [];
     for (const file of files) {
       try {
         const { nodes, relationships } = await this._parseFile(file, projectPath);
@@ -153,18 +165,14 @@ class CodeIntelligenceService {
     console.log("[CodeIntelligence] Project scan complete.");
   }
 
-
   async findUsages({ symbolName }) {
-    if (!this.driver) return [];
-    const results = await this._runQuery(
+    return this._runQuery(
       `MATCH (s)-[:CALLS]->(t {name: $symbolName}) RETURN s.name AS user, s.file as file, s.startLine as line`,
       { symbolName }
     );
-    return results.map(r => r.user);
   }
 
   async getDefinition({ symbolName }) {
-    if (!this.driver) return null;
     const results = await this._runQuery(
       `MATCH (n {name: $symbolName}) RETURN n.id as id, n.file as file, n.startLine as startLine, n.endLine as endLine, n.language as language LIMIT 1`,
       { symbolName }
@@ -172,28 +180,24 @@ class CodeIntelligenceService {
     if (results.length === 0) return null;
     const node = results[0];
     const fullPath = path.join(process.cwd(), node.file);
-    if (!(await fs.pathExists(fullPath)))
-      return { ...node, definition: "File not found." };
+    if (!(await fs.pathExists(fullPath))) return { ...node, definition: "File not found." };
     const content = await fs.readFile(fullPath, "utf8");
     const lines = content.split("\n");
     return {
       ...node,
-      definition: lines.slice(node.startLine - 1, node.endLine).join("\n"),
+      definition: lines.slice(node.startLine.low - 1, node.endLine.low).join("\n"),
     };
   }
 
   async getModuleDependencies({ filePath }) {
-    if (!this.driver) return [];
     const results = await this._runQuery(
       `MATCH (:Symbol {id: $filePath})-[:IMPORTS]->(dep:Symbol) RETURN dep.id as dependency`,
       { filePath }
     );
-    return results.map(record => record.dependency);
+    return results.map((record) => record.dependency);
   }
 
   async calculateCKMetrics({ className }) {
-    if (!this.driver) return { wmc: 0, dit: 0, noc: 0, cbo: 0, rfc: 0, lcom: 0 };
-    
     const wmcQuery = `MATCH (c:Symbol {name: $className, type: 'Class'})-[:DEFINES]->(m:Symbol {type: 'Function'}) RETURN count(m) as value`;
     const ditQuery = `MATCH (c:Symbol {name: $className, type: 'Class'})-[:EXTENDS*0..]->(p:Symbol) RETURN count(p) - 1 as value`;
     const nocQuery = `MATCH (c:Symbol {name: $className, type: 'Class'})<-[:EXTENDS]-(child:Symbol) RETURN count(child) as value`;
@@ -211,10 +215,10 @@ class CodeIntelligenceService {
       dit: ditRes[0]?.value?.low || 0,
       noc: nocRes[0]?.value?.low || 0,
       cbo: cboRes[0]?.value?.low || 0,
-      rfc: 0, // Placeholder for more complex calculation
-      lcom: 0 // Placeholder for more complex calculation
+      rfc: 0,
+      lcom: 0,
     };
-    
+
     return metrics;
   }
 }
