@@ -46,7 +46,4 @@ Backend -- Interacts --> DB[(Vercel Postgres)]
 ---
 
 ## 5. Handoff
-[[LLM: Once user approves, run your internal `architect-checklist`, then conclude by using the system.updateStatus tool. Set the message to 'Architecture complete.' and the artifact_created flag to 'architecture'.]]
-
-**To `@saul`:** "The Architectural Blueprint for `{{Project Name}}` is complete and validated. You may now update the project status and proceed."
-````
+[[LLM: Conclude your work by using the system.updateStatus tool. Set the message to 'Architecture complete.' and the artifact_created flag to 'architecture'.]]
