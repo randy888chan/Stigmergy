@@ -68,7 +68,6 @@ export async function updateStatus(newStatus, message, artifact_created = null) 
       message: message || `Status updated to ${newStatus}`,
     });
     
-    // Explicitly update artifact status if provided
     if (artifact_created && state.artifacts_created.hasOwnProperty(artifact_created)) {
       state.artifacts_created[artifact_created] = true;
     }
@@ -95,6 +94,21 @@ export async function resumeProject() {
   });
 }
 
-export async function updateTaskStatus(taskId, status) {
-  // Implementation placeholder
+export async function updateTaskStatus(taskId, newStatus) {
+  return withLock(async () => {
+    const state = await getState();
+    const taskIndex = state.project_manifest?.tasks?.findIndex(t => t.id === taskId);
+
+    if (taskIndex !== -1 && taskIndex !== undefined) {
+      state.project_manifest.tasks[taskIndex].status = newStatus;
+      state.history.push({
+        id: uuidv4(),
+        timestamp: new Date().toISOString(),
+        source: "system",
+        agent_id: "engine",
+        message: `Task ${taskId} status updated to ${newStatus}.`,
+      });
+      await fs.writeJson(STATE_FILE_PATH, state, { spaces: 2 });
+    }
+  });
 }
