@@ -4,7 +4,6 @@ import { getModel, systemPrompt } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
 
-// *** THE FIX: Lazy initialize the client inside the function ***
 let firecrawl;
 function getFirecrawlClient() {
   if (!firecrawl) {
@@ -16,50 +15,53 @@ function getFirecrawlClient() {
   return firecrawl;
 }
 
-export async function deep_dive({ query, breadth = 3, depth = 2 }) {
-  const client = getFirecrawlClient(); // Initialize client on first use
-  // ... (rest of the function is the same)
-  let learnings = [];
-  let visitedUrls = new Set();
-  for (let d = 0; d < depth; d++) {
-    const serpGen = await generateObject({
-      model: getModel(),
-      system: systemPrompt(),
-      prompt: `Generate ${breadth} search queries for: ${query}. History: ${learnings.join("\n")}`,
-      schema: z.object({ queries: z.array(z.string()) }),
-    });
-    const searchQueries = serpGen.object.queries;
-    const crawlResults = await Promise.all(
-      searchQueries.map(async (sq) => {
-        try {
-          const searchResults = await client.search(sq, {
-            pageOptions: { fetchPageContent: true },
-          });
-          searchResults.data.forEach((item) => visitedUrls.add(item.url));
-          return searchResults.data
-            .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
-            .join("\n\n---\n\n");
-        } catch (error) {
-          return "";
-        }
-      })
-    );
-    const allContent = crawlResults.filter(Boolean).join("\n\n---\n\n");
-    const synthesis = await generateObject({
-      model: getModel(),
-      system: systemPrompt(),
-      prompt: `Synthesize learnings from:\n${allContent}`,
-      schema: z.object({ newLearnings: z.array(z.string()), nextResearchFocus: z.string() }),
-    });
-    learnings.push(...synthesis.object.newLearnings);
-    query = synthesis.object.nextResearchFocus;
-  }
-  return (
-    `## Research Report for: "${query}"\n\n### Findings:\n\n` +
-    learnings.map((l) => `- ${l}`).join("\n") +
-    `\n\n### Sources:\n\n` +
-    Array.from(visitedUrls)
-      .map((url) => `- ${url}`)
-      .join("\n")
-  );
+export async function deep_dive({ query, learnings = [] }) {
+  const client = getFirecrawlClient();
+  const serpGen = await generateObject({
+    model: getModel(),
+    system: systemPrompt(),
+    prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
+    ---
+    PRIMARY GOAL: ${query}
+    ---
+    EXISTING LEARNINGS:
+    ${learnings.join("\n") || "No learnings yet."}
+    ---
+    What is the next single most important question to answer?`,
+    schema: z.object({
+      query: z.string().describe("The single best search query to run next."),
+    }),
+  });
+
+  const searchQuery = serpGen.object.query;
+  console.log(`[Research] Executing search: "${searchQuery}"`);
+
+  const searchResults = await client.search(searchQuery, {
+    pageOptions: { fetchPageContent: true },
+  });
+
+  const allContent = searchResults.data
+    .map(item => `Source: ${item.url}\n\n${item.markdown}`)
+    .join("\n\n---\n\n");
+
+  const synthesis = await generateObject({
+    model: getModel(),
+    system: systemPrompt(),
+    prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
+    ---
+    CONTENT:
+    ${allContent}`,
+    schema: z.object({
+      newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
+      next_research_queries: z.array(z.string()).describe("A list of new, more focused search queries to continue the research."),
+    }),
+  });
+
+  const visitedUrls = searchResults.data.map(item => item.url);
+
+  return {
+    new_learnings: synthesis.object.newLearnings,
+    next_research_queries: synthesis.object.next_research_queries,
+    sources: visitedUrls,
+  };
 }
