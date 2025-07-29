@@ -67,25 +67,32 @@ export class Engine {
           console.log(chalk.blue('[Engine] Dispatching @design-architect to create architecture.'));
           return this.triggerAgent('design-architect', 'The PRD is complete. Your task is to create the technical architecture documents.');
         }
-        // NOTE: You can add a step for the @design agent here if needed.
         console.log(chalk.green('[Engine] All planning documents generated. Awaiting user approval.'));
         await stateManager.updateStatus('AWAITING_EXECUTION_APPROVAL', 'Blueprint complete. Please review all documents in the `docs/` directory and approve execution.');
         break;
 
       case 'AWAITING_EXECUTION_APPROVAL':
         console.log(chalk.cyan('[Engine] Paused. Waiting for user to approve execution via a message to @saul (the dispatcher).'));
-        // The trigger for the next step is an external user message. No autonomous action needed here.
         break;
 
       case 'EXECUTION_IN_PROGRESS':
         const nextTask = state.project_manifest?.tasks?.find(t => t.status === 'PENDING');
         if (nextTask) {
           console.log(chalk.blue(`[Engine] Dispatching executor for task: ${nextTask.id}`));
+          await stateManager.updateTaskStatus(nextTask.id, 'IN_PROGRESS');
           const executor = config.executor_preference === 'gemini' ? 'gemini-executor' : 'dev';
           return this.triggerAgent(executor, `Execute task: ${nextTask.summary}`, nextTask.id);
         } else {
           console.log(chalk.green('[Engine] All tasks have been executed.'));
           await stateManager.updateStatus('PROJECT_COMPLETE', 'All tasks have been executed successfully.');
+        }
+        break;
+
+      case 'EXECUTION_FAILED':
+        const failedTask = state.project_manifest?.tasks?.find(t => t.status === 'FAILED');
+        if (failedTask) {
+          console.log(chalk.red(`[Engine] Task ${failedTask.id} has failed. Dispatching @debugger.`));
+          return this.triggerAgent('debugger', `Task ${failedTask.id} failed during execution. Please analyze the code and the error to find a root cause and fix it.`);
         }
         break;
       
