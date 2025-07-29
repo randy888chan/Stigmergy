@@ -6,8 +6,17 @@ import ora from "ora";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 
-const CORE_SOURCE_DIR = path.join(process.cwd(), ".stigmergy-core");
+// --- FIX START: Define __dirname in ESM context ---
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// --- FIX END ---
+
+const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
+
+// ... (rest of the file remains the same)
+// The functions parseAgentConfig, buildRoleDefinition, mapToolsToGroups, configureIde, and run
+// do not need any changes. Only the __dirname definition at the top is required.
 
 /**
  * Parses the YAML frontmatter from an agent's markdown file.
@@ -38,19 +47,12 @@ function buildRoleDefinition(agentConfig) {
   return definition;
 }
 
-/**
- * *** NEW: This is the critical function that correctly maps tools to UI permissions. ***
- * Translates tool permissions from the manifest into Roo Code UI groups.
- * @param {string[]} tools - The list of tools an agent can use (e.g., ["file_system.writeFile", "shell.execute"]).
- * @returns {string[]} The corresponding UI groups (e.g., ["edit", "command"]).
- */
+
 function mapToolsToGroups(tools = []) {
   const groups = new Set();
-  // All agents can implicitly read files if they have any file system tool.
   if (tools.some((tool) => tool.startsWith("file_system"))) {
     groups.add("read");
   }
-  // Agents with write/delete capabilities get the powerful 'edit' group.
   if (
     tools.some(
       (tool) => tool.startsWith("file_system.write") || tool.startsWith("file_system.delete")
@@ -58,11 +60,9 @@ function mapToolsToGroups(tools = []) {
   ) {
     groups.add("edit");
   }
-  // Agents that can execute shell commands get the 'command' group.
   if (tools.some((tool) => tool.startsWith("shell.execute"))) {
     groups.add("command");
   }
-  // Agents with any web capability get the 'browser' group.
   if (
     tools.some(
       (tool) =>
@@ -71,10 +71,6 @@ function mapToolsToGroups(tools = []) {
   ) {
     groups.add("browser");
   }
-  // You can add more mappings here, for example, for MCP tools.
-  // if (tools.some(tool => tool.startsWith('mcp.'))) {
-  //   groups.add('mcp');
-  // }
   return Array.from(groups);
 }
 
@@ -99,7 +95,6 @@ async function configureIde(coreSourceDir) {
     let agentName = agentEntry.name || agentEntry.alias;
     let agentIcon = agentEntry.icon || "🤖";
 
-    // Correctly reads the agent's .md file for the rich persona.
     if (await fs.pathExists(agentMdPath)) {
       const agentContent = await fs.readFile(agentMdPath, "utf8");
       const agentConfig = parseAgentConfig(agentContent);
@@ -115,17 +110,15 @@ async function configureIde(coreSourceDir) {
       name: `${agentIcon} ${agentName}`,
       roleDefinition: roleDefinition,
       api: {
-        url: `${ENGINE_URL}/api/chat`, // This should point to your MCP server endpoint in the future
+        url: `${ENGINE_URL}/api/chat`,
         method: "POST",
         include: ["history"],
         static_payload: { agentId: agentEntry.id },
       },
-      // *** THE FIX: Correctly maps tools to groups ***
       groups: mapToolsToGroups(agentEntry.tools),
     });
   }
 
-  // Add system control modes
   modes.push({
     slug: "system-start",
     name: "🚀 Start Project",
