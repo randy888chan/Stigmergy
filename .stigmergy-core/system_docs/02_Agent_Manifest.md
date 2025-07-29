@@ -1,3 +1,4 @@
+```yml
 schema_version: 5.5
 
 agents:
@@ -8,7 +9,7 @@ agents:
   alias: saul
   name: "Saul (Dispatcher)"
   icon: "🧠"
-  tools: [file_system.readFile, system.updateStatus]
+  tools: [file_system.readFile, system.updateStatus, system.approveExecution]
 
 # --- Planners ---
 
@@ -16,19 +17,19 @@ agents:
   alias: mary
   name: "Mary (Analyst)"
   icon: "📊"
-  tools: [research.deep_dive, file_system.writeFile]
+  tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
 
 - id: pm
   alias: john
   name: "John (PM)"
   icon: "📋"
-  tools: [research.deep_dive, file_system.readFile, file_system.writeFile]
+  tools: [research.deep_dive, file_system.readFile, file_system.writeFile, system.updateStatus]
 
 - id: design-architect
   alias: winston
   name: "Winston (Architect)"
   icon: "🏗️"
-  tools: [file_system.*, research.deep_dive]
+  tools: [file_system.*, research.deep_dive, system.updateStatus]
 
 - id: ux-expert
   alias: sally
@@ -40,7 +41,7 @@ agents:
   alias: vinci
   name: "Vinci (Designer)"
   icon: "🎨"
-  tools: [research.deep_dive, file_system.writeFile]
+  tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
 
 # --- Executors ---
 
@@ -59,7 +60,7 @@ agents:
   - "npm install"
   - "npm test"
   - "npm run lint"
-  - "jest \*"
+  - "jest *"
 
 - id: refactorer
   alias: rocco
@@ -90,4 +91,4 @@ agents:
   alias: metis
   name: "Metis (Auditor)"
   icon: "📈"
-  tools: [file_system.readFile]
+  tools: [file_system.readFile, stigmergy.createBlueprint]
