@@ -48,7 +48,55 @@ export class Engine {
   }
 
   async dispatchAgentForState(state) {
-    // ... implementation from previous steps
+    const status = state.project_status;
+    console.log(chalk.yellow(`[Engine] Current project status: ${status}`));
+
+    const artifacts = state.artifacts_created || {};
+
+    switch (status) {
+      case 'GRAND_BLUEPRINT_PHASE':
+        if (!artifacts.brief) {
+          console.log(chalk.blue('[Engine] Dispatching @analyst to create project brief.'));
+          return this.triggerAgent('analyst', 'The project has been initialized. Your task is to perform research and create the project brief, market research, and competitor analysis documents.');
+        }
+        if (!artifacts.prd) {
+          console.log(chalk.blue('[Engine] Dispatching @pm to create PRD.'));
+          return this.triggerAgent('pm', 'The brief is complete. Your task is to create the Product Requirements Document (PRD).');
+        }
+        if (!artifacts.architecture) {
+          console.log(chalk.blue('[Engine] Dispatching @design-architect to create architecture.'));
+          return this.triggerAgent('design-architect', 'The PRD is complete. Your task is to create the technical architecture documents.');
+        }
+        // NOTE: You can add a step for the @design agent here if needed.
+        console.log(chalk.green('[Engine] All planning documents generated. Awaiting user approval.'));
+        await stateManager.updateStatus('AWAITING_EXECUTION_APPROVAL', 'Blueprint complete. Please review all documents in the `docs/` directory and approve execution.');
+        break;
+
+      case 'AWAITING_EXECUTION_APPROVAL':
+        console.log(chalk.cyan('[Engine] Paused. Waiting for user to approve execution via a message to @saul (the dispatcher).'));
+        // The trigger for the next step is an external user message. No autonomous action needed here.
+        break;
+
+      case 'EXECUTION_IN_PROGRESS':
+        const nextTask = state.project_manifest?.tasks?.find(t => t.status === 'PENDING');
+        if (nextTask) {
+          console.log(chalk.blue(`[Engine] Dispatching executor for task: ${nextTask.id}`));
+          const executor = config.executor_preference === 'gemini' ? 'gemini-executor' : 'dev';
+          return this.triggerAgent(executor, `Execute task: ${nextTask.summary}`, nextTask.id);
+        } else {
+          console.log(chalk.green('[Engine] All tasks have been executed.'));
+          await stateManager.updateStatus('PROJECT_COMPLETE', 'All tasks have been executed successfully.');
+        }
+        break;
+      
+      case 'PROJECT_COMPLETE':
+        console.log(chalk.magentaBright('[Engine] Project is complete. The system is now idle.'));
+        this.stop("Project Complete");
+        break;
+
+      default:
+        console.log(chalk.gray(`[Engine] No autonomous action required for status: ${status}`));
+    }
   }
 
   async runLoop() {
@@ -85,7 +133,6 @@ const engine = new Engine();
 
 async function main() {
   const mcpServer = new McpServer({ name: "stigmergy-engine", version: "2.1.0" });
-  // ... MCP tool definitions ...
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
 
@@ -106,5 +153,4 @@ if (isMainModule) {
   main().catch(console.error);
 }
 
-// Export the app for testing purposes
 export const app = engine.app;
