@@ -3,8 +3,6 @@ import path from "path";
 import lockfile from "proper-lockfile";
 import { v4 as uuidv4 } from "uuid";
 
-// *** THE FIX: All functions are now correctly named exports. No default export. ***
-
 const STATE_FILE_PATH = path.resolve(process.cwd(), ".ai", "state.json");
 const LOCK_PATH = `${STATE_FILE_PATH}.lock`;
 
@@ -58,7 +56,7 @@ export async function initializeProject(goal) {
   return updateState(initialState);
 }
 
-export async function updateStatus(newStatus, message) {
+export async function updateStatus(newStatus, message, artifact_created = null) {
   return withLock(async () => {
     const state = await getState();
     state.project_status = newStatus;
@@ -69,9 +67,12 @@ export async function updateStatus(newStatus, message) {
       agent_id: "engine",
       message: message || `Status updated to ${newStatus}`,
     });
-    if (message?.includes("Brief complete")) state.artifacts_created.brief = true;
-    if (message?.includes("PRD complete")) state.artifacts_created.prd = true;
-    if (message?.includes("Architecture complete")) state.artifacts_created.architecture = true;
+    
+    // Explicitly update artifact status if provided
+    if (artifact_created && state.artifacts_created.hasOwnProperty(artifact_created)) {
+      state.artifacts_created[artifact_created] = true;
+    }
+
     await fs.writeJson(STATE_FILE_PATH, state, { spaces: 2 });
   });
 }
