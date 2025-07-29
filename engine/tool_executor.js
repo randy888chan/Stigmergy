@@ -22,8 +22,8 @@ async function getManifest() {
 }
 
 const system = {
-  updateStatus: async ({ status, message }) => {
-    await stateManager.updateStatus(status, message);
+  updateStatus: async ({ status, message, artifact_created }) => {
+    await stateManager.updateStatus(status, message, artifact_created);
     return `Status updated to ${status}.`;
   },
   approveExecution: async () => {
