@@ -5,8 +5,9 @@ import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
 import * as gemini_cli_tool from "../tools/gemini_cli_tool.js";
-import * as stateManager from "./state_manager.js"; // <-- FIX: Changed to namespace import
-import * as codeIntelligence from "../tools/code_intelligence.js"; // <-- FIX: Corrected import
+import * as stateManager from "./state_manager.js";
+import * as codeIntelligence from "../tools/code_intelligence.js";
+import { clearFileCache } from './llm_adapter.js';
 
 const MANIFEST_PATH = path.join(
   process.cwd(),
@@ -25,7 +26,21 @@ const system = {
     await stateManager.updateStatus(status, message);
     return `Status updated to ${status}.`;
   },
+  approveExecution: async () => {
+    await stateManager.updateStatus('EXECUTION_IN_PROGRESS', 'User approved execution.');
+    return 'Execution approved. The engine will now begin executing tasks.';
+  },
 };
+
+const stigmergy = {
+    createBlueprint: async ({ proposal }) => {
+        const filePath = path.join(process.cwd(), 'system-proposals', `proposal-${Date.now()}.yml`);
+        await fs.ensureDir(path.dirname(filePath));
+        await fs.writeFile(filePath, proposal);
+        return `Improvement blueprint created at ${filePath}`;
+    }
+};
+
 const toolbelt = {
   file_system: fileSystem,
   shell: shell,
@@ -33,6 +48,7 @@ const toolbelt = {
   code_intelligence: codeIntelligence,
   gemini: gemini_cli_tool,
   system: system,
+  stigmergy: stigmergy,
 };
 
 class PermissionDeniedError extends Error {
@@ -46,15 +62,23 @@ export async function execute(toolName, args, agentId) {
   const manifest = await getManifest();
   const agentConfig = manifest.agents.find((a) => a.id === agentId);
   if (!agentConfig) throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
+  
   const isPermitted = (agentConfig.tools || []).some((p) =>
     p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
   );
   if (!isPermitted)
     throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
+  
   const [namespace, funcName] = toolName.split(".");
   if (!toolbelt[namespace]?.[funcName]) throw new Error(`Tool '${toolName}' not found.`);
+  
   try {
     const result = await toolbelt[namespace][funcName]({ ...args, agentConfig });
+    
+    if (toolName.startsWith('file_system.write')) {
+      clearFileCache();
+    }
+    
     return JSON.stringify(result, null, 2);
   } catch (e) {
     throw e;
