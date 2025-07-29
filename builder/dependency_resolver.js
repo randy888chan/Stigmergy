@@ -1,7 +1,7 @@
-const fs = require("fs-extra");
-const path = require("path");
-const yaml = require("js-yaml");
-const chalk = require("chalk");
+import fs from "fs-extra";
+import path from "path";
+import yaml from "js-yaml";
+import chalk from "chalk";
 
 class DependencyResolver {
   constructor(rootDir) {
@@ -27,8 +27,8 @@ class DependencyResolver {
     }
 
     // Also include common utils and system docs for context
-    await this.findDependenciesRecursive('utils/meta_prompt_template.md', allDependencies, visited);
-    await this.findDependenciesRecursive('system_docs/03_Core_Principles.md', allDependencies, visited);
+    await this.findDependenciesRecursive("utils/meta_prompt_template.md", allDependencies, visited);
+    await this.findDependenciesRecursive("system_docs/03_Core_Principles.md", allDependencies, visited);
 
     return allDependencies;
   }
@@ -63,8 +63,8 @@ class DependencyResolver {
     const teamDir = path.join(this.stigmergyCore, "agent-teams");
     if (!(await fs.pathExists(teamDir))) return [];
     const files = await fs.readdir(teamDir);
-    return files.filter((f) => f.endsWith(".yml")).map((f) => path.basename(f, ".yml"));
+    return files.filter(f => f.endsWith(".yml")).map(f => path.basename(f, ".yml"));
   }
 }
 
-module.exports = DependencyResolver;
+export default DependencyResolver;
