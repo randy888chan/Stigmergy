@@ -75,7 +75,7 @@ agents:
   alias: quinn
   name: "Quinn (QA)"
   icon: "🛡️"
-  tools: [shell.execute, file_system.readFile]
+  tools: [shell.execute, file_system.readFile, code_intelligence.*]
   permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
 
 # --- Responders ---
