@@ -22,7 +22,7 @@ Adding a new agent to the swarm is a two-step process.
 **Step 1: Create the Tool Module**
 
 1.  Create a new JavaScript file in the `tools/` directory (e.g., `my_new_tool.js`).
-2.  The module should export an object containing one or more asynchronous functions.
+2.  The module should export one or more asynchronous functions.
 
 **Step 2: Register the Tool in the Toolbelt**
 
@@ -41,16 +41,17 @@ If a tool requires a secret or API key that may not be in the `.env` file, it sh
 
 *   **Pattern:**
     ```javascript
-    // in tools/web.js
-    async function search({ query }) {
-      const apiKey = process.env.SEARCH_API_KEY;
-      if (!apiKey) {
-         const err = new Error("The web search tool requires a Serper API Key (SEARCH_API_KEY).");
-         err.name = "MissingApiKeyError";
-         err.key_name = "SEARCH_API_KEY";
-         throw err;
+    // in tools/research.js
+    import FirecrawlApp from "@mendable/firecrawl-js";
+
+    function getFirecrawlClient() {
+      if (!process.env.FIRECRAWL_KEY) {
+        const err = new Error("The research tool requires a Firecrawl API Key (FIRECRAWL_KEY).");
+        err.name = "MissingApiKeyError";
+        err.key_name = "FIRECRAWL_KEY";
+        throw err;
       }
-      // ... rest of the tool logic
+      return new FirecrawlApp({ apiKey: process.env.FIRECRAWL_KEY });
     }
     ```
 *   **Engine Behavior:** The main loop in `engine/server.js` will catch `MissingApiKeyError` or `MissingSecretError`, pause the autonomous process, and send a request for the key to the user via the IDE.
