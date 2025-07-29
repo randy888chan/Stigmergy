@@ -106,3 +106,8 @@ export async function getCompletion(agentId, prompt, taskId) {
     return { thought: "Error: My response was not valid JSON.", action: null };
   }
 }
+
+export function clearFileCache() {
+  fileCache.clear();
+  console.log('[LLM Adapter] File cache cleared.');
+}
