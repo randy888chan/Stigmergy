@@ -3,20 +3,22 @@ import request from "supertest";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { app, engine } from "../engine/server.js"; // Import both app and the engine instance
+import { app, Engine } from "../engine/server.js";
 import { execute as executeTool } from "../engine/tool_executor.js";
 import "./setup.js";
 
-jest.setTimeout(20000); // A generous timeout for file operations
+jest.setTimeout(20000);
 
 describe("Stigmergy System E2E Test", () => {
   let tempProjectDir;
   const originalCwd = process.cwd();
   let server;
+  let engine;
   let triggerAgentSpy;
 
   beforeAll(async () => {
-    server = app.listen();
+    engine = new Engine();
+    server = engine.app.listen();
 
     tempProjectDir = await fs.mkdtemp(path.join(os.tmpdir(), "stigmergy-e2e-"));
     process.chdir(tempProjectDir);
@@ -24,20 +26,16 @@ describe("Stigmergy System E2E Test", () => {
     const coreTemplatePath = path.join(originalCwd, ".stigmergy-core");
     await fs.copy(coreTemplatePath, path.join(tempProjectDir, ".stigmergy-core"));
 
-    // --- FIX: Explicitly create ALL directories the agents will need ---
     await fs.ensureDir(path.join(tempProjectDir, ".ai"));
     await fs.ensureDir(path.join(tempProjectDir, "docs"));
-    // -----------------------------------------------------------------
   });
 
   beforeEach(() => {
-    // Spy on the real engine instance and replace its `triggerAgent` method.
     triggerAgentSpy = jest
       .spyOn(engine, "triggerAgent")
       .mockImplementation(async (agentId, prompt) => {
         console.log(`[MOCK] Intercepted call to agent: ${agentId}`);
 
-        // Use the REAL tool executor to simulate agent actions. This is a high-fidelity mock.
         try {
           if (agentId === "analyst") {
             await executeTool("file_system.writeFile", {
@@ -60,6 +58,10 @@ describe("Stigmergy System E2E Test", () => {
               artifact_created: "prd",
             });
           } else if (agentId === "design-architect") {
+            await executeTool("file_system.writeFile", {
+                path: "docs/architecture.md",
+                content: "Mock Architecture",
+            });
             await executeTool("system.updateStatus", {
               status: "AWAITING_EXECUTION_APPROVAL",
               message: "Architecture complete.",
@@ -69,7 +71,6 @@ describe("Stigmergy System E2E Test", () => {
           return "Mock agent action completed.";
         } catch (e) {
           console.error(`[MOCK] Error during mocked execution for ${agentId}:`, e);
-          // Stop the engine on error to prevent hangs
           await engine.stop("Error in mock");
           return "Mock agent action failed.";
         }
@@ -77,7 +78,6 @@ describe("Stigmergy System E2E Test", () => {
   });
 
   afterAll(async (done) => {
-    // --- FIX: Properly stop the engine's internal loop before closing the server ---
     await engine.stop("Test suite finished");
     process.chdir(originalCwd);
     await fs.remove(tempProjectDir);
@@ -96,7 +96,7 @@ describe("Stigmergy System E2E Test", () => {
     const stateFilePath = path.join(tempProjectDir, ".ai", "state.json");
     let currentState;
     let attempts = 0;
-    const maxAttempts = 40; // Allow more polls for file I/O
+    const maxAttempts = 40;
 
     while (attempts < maxAttempts) {
       await new Promise((resolve) => setTimeout(resolve, 500));
@@ -109,12 +109,12 @@ describe("Stigmergy System E2E Test", () => {
       attempts++;
     }
 
-    // Final state assertions
     expect(currentState).toBeDefined();
     expect(currentState.project_status).toBe("AWAITING_EXECUTION_APPROVAL");
     expect(currentState.artifacts_created.brief).toBe(true);
+    expect(currentState.artifacts_created.prd).toBe(true);
+    expect(currentState.artifacts_created.architecture).toBe(true);
 
-    // Verify the mock was called correctly
     expect(triggerAgentSpy).toHaveBeenCalledWith("analyst", expect.any(String), null);
     expect(triggerAgentSpy).toHaveBeenCalledWith("pm", expect.any(String), null);
     expect(triggerAgentSpy).toHaveBeenCalledWith("design-architect", expect.any(String), null);
