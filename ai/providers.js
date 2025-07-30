@@ -1,50 +1,40 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { createFireworks } from "@ai-sdk/fireworks";
-import { createAnthropic } from "@ai-sdk/anthropic";
 import "dotenv/config.js";
 
 export function getModel() {
   const config = process.env;
 
+  // 1. Prioritize a custom OpenAI-compatible endpoint (for power users with local LLMs, etc.)
   if (config.OPENAI_ENDPOINT && config.CUSTOM_MODEL) {
     console.log(
       `[AI Provider] Using Custom Endpoint: ${config.OPENAI_ENDPOINT} with model ${config.CUSTOM_MODEL}`
     );
     const provider = createOpenAI({
-      apiKey: config.OPENAI_KEY || "sk-or-v1-abc",
+      apiKey: config.OPENAI_KEY || "sk-or-v1-abc", // Use a dummy key if not provided
       baseURL: config.OPENAI_ENDPOINT,
     });
     return provider(config.CUSTOM_MODEL);
   }
 
+  // 2. Use OpenRouter as the recommended default
   if (config.OPENROUTER_API_KEY) {
     console.log("[AI Provider] Using OpenRouter");
     const openrouter = createOpenAI({
       apiKey: config.OPENROUTER_API_KEY,
       baseURL: "https://openrouter.ai/api/v1",
     });
+    // Allow model override via LITELLM_MODEL_ID, defaulting to Gemini Pro 1.5
     return openrouter(config.LITELLM_MODEL_ID || "google/gemini-pro-1.5");
   }
 
-  if (config.FIREWORKS_KEY) {
-    console.log("[AI Provider] Using Fireworks.ai");
-    const fireworks = createFireworks({ apiKey: config.FIREWORKS_KEY });
-    return fireworks("accounts/fireworks/models/firefunction-v2");
-  }
-
-  if (config.ANTHROPIC_API_KEY) {
-    console.log("[AI Provider] Using Anthropic");
-    const anthropic = createAnthropic({ apiKey: config.ANTHROPIC_API_KEY });
-    return anthropic("claude-3-5-sonnet-20240620");
-  }
-
+  // 3. Fallback to direct OpenAI if no other provider is found
   if (config.OPENAI_KEY) {
     console.log("[AI Provider] Using OpenAI");
     const openai = createOpenAI({ apiKey: config.OPENAI_KEY });
-    return openai("gpt-4o");
+    return openai("gpt-4o"); // A sensible default for direct OpenAI
   }
 
-  throw new Error("No AI provider API key found. Please set an API key in your .env file.");
+  throw new Error("No AI provider API key found. Please set OPENROUTER_API_KEY, OPENAI_KEY, or a custom OPENAI_ENDPOINT in your .env file.");
 }
 
 export function systemPrompt() {
