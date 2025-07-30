@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import * as stateManager from "./state_manager.js";
 import { getCompletion } from "./llm_adapter.js";
 import { execute as executeTool } from "./tool_executor.js";
-import codeIntelligenceService from '../services/code_intelligence_service.js'; // <-- ADDED IMPORT
+import codeIntelligenceService from "../services/code_intelligence_service.js";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -25,16 +25,18 @@ export class Engine {
       if (!goal) return res.status(400).json({ error: "'goal' is required." });
       await stateManager.initializeProject(goal);
 
-      // --- FIX: AUTOMATE CODE INDEXING ON PROJECT START ---
       try {
-          console.log('[Engine] Triggering initial code indexing...');
-          await codeIntelligenceService.scanAndIndexProject(process.cwd());
-          console.log('[Engine] Code indexing complete.');
+        console.log("[Engine] Triggering initial code indexing...");
+        await codeIntelligenceService.scanAndIndexProject(process.cwd());
+        console.log("[Engine] Code indexing complete.");
       } catch (error) {
-          // Log a warning but don't block the project from starting.
-          console.warn(chalk.yellow('[Engine] Automatic code indexing failed. Code-aware features will be limited. Please check Neo4j connection and credentials.'), error.message);
+        console.warn(
+          chalk.yellow(
+            "[Engine] Automatic code indexing failed. Code-aware features will be limited. Please check Neo4j connection and credentials."
+          ),
+          error.message
+        );
       }
-      // ---------------------------------------------------
 
       this.start();
       res.json({ message: "Project initiated." });
@@ -59,23 +61,28 @@ export class Engine {
     return response.thought;
   }
 
-  // --- REFACTORED: INTELLIGENT DISPATCHER LOGIC ---
   async dispatchAgentForState(state) {
     const status = state.project_status;
     console.log(chalk.yellow(`[Engine] Current project status: ${status}`));
 
-    const autonomous_states = ['GRAND_BLUEPRINT_PHASE', 'EXECUTION_IN_PROGRESS', 'EXECUTION_FAILED'];
+    const autonomous_states = [
+      "GRAND_BLUEPRINT_PHASE",
+      "EXECUTION_IN_PROGRESS",
+      "EXECUTION_FAILED",
+    ];
 
     if (autonomous_states.includes(status)) {
-        console.log(chalk.blue('[Engine] Dispatching @dispatcher to determine next action.'));
-        const stateJson = JSON.stringify(state, null, 2);
-        // This prompt asks the dispatcher to analyze the state and decide the next action.
-        const prompt = `System state has been updated. Analyze the current state and determine the next single, most logical action for the swarm.\n\nCURRENT STATE:\n${stateJson}`;
-        return this.triggerAgent('dispatcher', prompt);
+      console.log(chalk.blue("[Engine] Dispatching @dispatcher to determine next action."));
+      const stateJson = JSON.stringify(state, null, 2);
+      const prompt = `System state has been updated. Analyze the current state and determine the next single, most logical action for the swarm.\n\nCURRENT STATE:\n${stateJson}`;
+      return this.triggerAgent("dispatcher", prompt);
     } else {
-        console.log(chalk.gray(`[Engine] No autonomous action required for status: ${status}. Waiting for user interaction or state change.`));
+      console.log(
+        chalk.gray(
+          `[Engine] No autonomous action required for status: ${status}. Waiting for user interaction or state change.`
+        )
+      );
     }
-    // ----------------------------------------------------
   }
 
   async runLoop() {
@@ -108,28 +115,27 @@ export class Engine {
 }
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
-const engine = new Engine();
 
 async function main() {
+  // --- FIX: Instantiate the engine HERE, inside the main execution block ---
+  const engine = new Engine();
+
   const mcpServer = new McpServer({ name: "stigmergy-engine", version: "2.1.0" });
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
 
   const PORT = process.env.PORT || 3000;
 
-  if (isMainModule) {
-    engine.app.listen(PORT, async () => {
-      console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
-      const state = await stateManager.getState();
-      if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
-        engine.start();
-      }
-    });
-  }
+  engine.app.listen(PORT, async () => {
+    console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
+    const state = await stateManager.getState();
+    if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
+      engine.start();
+    }
+  });
 }
 
+// Only run main when this file is executed directly
 if (isMainModule) {
   main().catch(console.error);
 }
-
-export const app = engine.app;

@@ -3,13 +3,24 @@ import path from "path";
 import lockfile from "proper-lockfile";
 import { v4 as uuidv4 } from "uuid";
 
-// --- FIX: Convert static paths to dynamic functions ---
 const getStateFilePath = () => path.resolve(process.cwd(), ".ai", "state.json");
 const getLockPath = () => `${getStateFilePath()}.lock`;
-// ----------------------------------------------------
+
+// --- NEW: Internal, unlocked write function ---
+async function _writeStateUnsafe(state) {
+  const stateFilePath = getStateFilePath();
+  // Ensure the directory exists before writing
+  await fs.ensureDir(path.dirname(stateFilePath));
+  await fs.writeJson(stateFilePath, state, { spaces: 2 });
+}
 
 async function withLock(operation) {
   const stateFilePath = getStateFilePath();
+  // Ensure the file exists before locking. If it doesn't, create an empty object.
+  if (!(await fs.pathExists(stateFilePath))) {
+    await _writeStateUnsafe({});
+  }
+
   const lockPath = getLockPath();
   await fs.ensureDir(path.dirname(lockPath));
   let release;
@@ -28,16 +39,21 @@ export async function getState() {
       path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json")
     );
     defaultState.history[0].timestamp = new Date().toISOString();
-    await fs.writeJson(stateFilePath, defaultState, { spaces: 2 });
+    // Use the unsafe write for initial creation
+    await _writeStateUnsafe(defaultState);
     return defaultState;
   }
   return fs.readJson(stateFilePath);
 }
 
+// updateState now correctly uses the lock on a file that is guaranteed to exist.
 export async function updateState(newState) {
-  return withLock(() => fs.writeJson(getStateFilePath(), newState, { spaces: 2 }));
+  return withLock(async () => {
+    await fs.writeJson(getStateFilePath(), newState, { spaces: 2 });
+  });
 }
 
+// --- REFACTORED: initializeProject uses the direct, unlocked write function ---
 export async function initializeProject(goal) {
   const defaultState = await fs.readJson(
     path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json")
@@ -58,7 +74,8 @@ export async function initializeProject(goal) {
       },
     ],
   };
-  return updateState(initialState);
+  // This is the first write operation; it's safe to do without a lock.
+  return _writeStateUnsafe(initialState);
 }
 
 export async function updateStatus(newStatus, message, artifact_created = null) {
@@ -77,6 +94,7 @@ export async function updateStatus(newStatus, message, artifact_created = null) 
       state.artifacts_created[artifact_created] = true;
     }
 
+    // Use fs.writeJson directly as we are already inside the lock
     await fs.writeJson(getStateFilePath(), state, { spaces: 2 });
   });
 }
@@ -103,7 +121,6 @@ export async function updateTaskStatus(taskId, newStatus) {
   return withLock(async () => {
     const state = await getState();
     const taskIndex = state.project_manifest?.tasks?.findIndex((t) => t.id === taskId);
-
     if (taskIndex !== -1 && taskIndex !== undefined) {
       state.project_manifest.tasks[taskIndex].status = newStatus;
       state.history.push({
