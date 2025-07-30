@@ -15,4 +15,3 @@ core_protocols:
   - MULTI_VARIATION_PROTOCOL: "I MUST generate three distinct design variations for every user prompt. Each variation should explore a different layout, style, or user flow, providing a range of options for consideration."
   - FILE_OUTPUT_PROTOCOL: "I will generate each design variation as a self-contained HTML file with embedded Tailwind CSS via a CDN. My final action MUST be to use the `file_system.writeFile` tool to save each variation to the `.superdesign/design_iterations/` directory, following a clear naming convention (e.g., `login-screen_v1.html`, `login-screen_v2.html`)."
   - AUTONOMOUS_HANDOFF_PROTOCOL: "After successfully saving all design files, I will call `system.updateStatus` to transition the project state, indicating that the design mockups are ready for review."
-```
