@@ -34,29 +34,32 @@ describe("Stigmergy System E2E Test", () => {
     jest.spyOn(console, "warn").mockImplementation(() => {});
     jest.spyOn(console, "error").mockImplementation(() => {});
 
+    let mockCallCount = 0;
     triggerAgentSpy = jest
       .spyOn(engine, "triggerAgent")
       .mockImplementation(async (agentId, prompt) => {
         console.log(`[MOCK] Intercepted call to agent: ${agentId}`);
         try {
           if (agentId === "dispatcher") {
-            const state = await fs.readJson(path.join(tempProjectDir, ".ai", "state.json"));
-            const artifacts = state.artifacts_created || {};
-            if (!artifacts.brief) {
+            mockCallCount++;
+            if (mockCallCount === 1) {
               await executeTool("system.updateStatus", {
                 status: "GRAND_BLUEPRINT_PHASE",
                 artifact_created: "brief",
               });
-            } else if (!artifacts.prd) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } else if (mockCallCount === 2) {
               await executeTool("system.updateStatus", {
                 status: "GRAND_BLUEPRINT_PHASE",
                 artifact_created: "prd",
               });
-            } else if (!artifacts.architecture) {
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } else if (mockCallCount === 3) {
               await executeTool("system.updateStatus", {
                 status: "AWAITING_EXECUTION_APPROVAL",
                 artifact_created: "architecture",
               });
+              await new Promise(resolve => setTimeout(resolve, 100));
             }
           }
           return "Mock agent action completed.";

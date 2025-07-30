@@ -78,10 +78,15 @@ export async function initializeProject(goal) {
   return _writeStateUnsafe(initialState);
 }
 
-export async function updateStatus(newStatus, message, artifact_created = null) {
+export async function updateStatus({ newStatus, message, artifact_created = null }) {
   return withLock(async () => {
     const state = await getState();
-    state.project_status = newStatus;
+
+    // Only update status if a new status is provided
+    if (newStatus) {
+      state.project_status = newStatus;
+    }
+
     state.history.push({
       id: uuidv4(),
       timestamp: new Date().toISOString(),
@@ -94,7 +99,6 @@ export async function updateStatus(newStatus, message, artifact_created = null) 
       state.artifacts_created[artifact_created] = true;
     }
 
-    // Use fs.writeJson directly as we are already inside the lock
     await fs.writeJson(getStateFilePath(), state, { spaces: 2 });
   });
 }
@@ -117,7 +121,7 @@ export async function resumeProject() {
   });
 }
 
-export async function updateTaskStatus(taskId, newStatus) {
+export async function updateTaskStatus({ taskId, newStatus }) {
   return withLock(async () => {
     const state = await getState();
     const taskIndex = state.project_manifest?.tasks?.findIndex((t) => t.id === taskId);
