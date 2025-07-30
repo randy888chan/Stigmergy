@@ -54,11 +54,14 @@ async function getManifest() {
 
 const system = {
   updateStatus: async ({ status, message, artifact_created }) => {
-    await stateManager.updateStatus(status, message, artifact_created);
+    await stateManager.updateStatus({ newStatus: status, message, artifact_created });
     return `Status updated to ${status}.`;
   },
   approveExecution: async () => {
-    await stateManager.updateStatus("EXECUTION_IN_PROGRESS", "User approved execution.");
+    await stateManager.updateStatus({
+      newStatus: "EXECUTION_IN_PROGRESS",
+      message: "User approved execution.",
+    });
     return "Execution approved. The engine will now begin executing tasks.";
   },
 };
