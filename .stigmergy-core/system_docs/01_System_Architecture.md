@@ -46,3 +46,7 @@ The engine can be started (`npm run stigmergy:start`) and left running. All proj
     *   **Description:** All tasks in the manifest are completed and verified.
     *   **Trigger:** The last task successfully passes the `AWAITING_QA` state.
     *   **Action:** The `@metis` agent is invoked as a non-blocking background process to analyze the project history and propose system improvements. The engine becomes dormant.
+
+### Future State Management Considerations
+
+The current state management system, using a single `state.json` file with a lockfile, is robust and ideal for the intended local, single-user environment. If Stigmergy were to be scaled to a multi-user, cloud-based, or distributed system, this state management mechanism should be migrated to a transactional database (e.g., PostgreSQL) or a high-concurrency key-value store (e.g., Redis) to handle the increased load and prevent race conditions.
