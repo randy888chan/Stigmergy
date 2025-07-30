@@ -124,6 +124,9 @@ npm run stigmergy:start
 
 You are now ready to control the Stigmergy engine from your IDE's chat interface.
 
+### Web Agent Prompt Bundler
+
+The `builder/` directory contains tools (`npm run build`) to compile the agent definitions from `.stigmergy-core/` into a single, self-contained text file. This is designed for use cases where the Stigmergy agent knowledge base needs to be run in a browser-based environment (e.g., for cost-effective initial planning in a web UI like Gemini) or a different backend that doesn't use the core engine. This allows for a flexible workflow where high-level planning can be done in a web UI before moving to the IDE for execution.
 ---
 
 ## Contributing
