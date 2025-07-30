@@ -4,7 +4,6 @@ schema_version: 5.5
 agents:
 
 # --- Dispatcher ---
-
 - id: dispatcher
   alias: saul
   name: "Saul (Dispatcher)"
@@ -12,7 +11,6 @@ agents:
   tools: [file_system.readFile, system.updateStatus, system.approveExecution]
 
 # --- Planners ---
-
 - id: analyst
   alias: mary
   name: "Mary (Analyst)"
@@ -44,7 +42,6 @@ agents:
   tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
 
 # --- Executors ---
-
 - id: gemini-executor
   alias: gemma
   name: "Gemma (Gemini)"
@@ -70,7 +67,6 @@ agents:
   permitted_shell_commands: ["npm *"]
 
 # --- Verifiers ---
-
 - id: qa
   alias: quinn
   name: "Quinn (QA)"
@@ -79,7 +75,6 @@ agents:
   permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
 
 # --- Responders ---
-
 - id: debugger
   alias: dexter
   name: "Dexter (Debugger)"
@@ -91,4 +86,4 @@ agents:
   alias: metis
   name: "Metis (Auditor)"
   icon: "📈"
-  tools: [file_system.readFile, stigmergy.createBlueprint]
+  tools: [file_system.readFile, file_system.writeFile, stigmergy.createBlueprint]
