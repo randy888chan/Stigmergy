@@ -8,11 +8,9 @@ import traverse from "@babel/traverse";
 class CodeIntelligenceService {
   constructor() {
     this.driver = null;
-    // --- FIX: DO NOT initialize the driver in the constructor. ---
   }
 
   initializeDriver() {
-    // This function is now called lazily.
     if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
       this.driver = neo4j.driver(
         process.env.NEO4J_URI,
@@ -24,11 +22,9 @@ class CodeIntelligenceService {
   }
 
   async _runQuery(query, params) {
-    // --- FIX: This is the gatekeeper. Initialize the driver on first actual use. ---
     if (!this.driver) {
       this.initializeDriver();
     }
-    // If initialization failed, throw an error.
     if (!this.driver) throw new Error("Neo4j driver not initialized or credentials not set.");
 
     const session = this.driver.session();
