@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import * as stateManager from "./state_manager.js";
 import { getCompletion } from "./llm_adapter.js";
 import { execute as executeTool } from "./tool_executor.js";
-import config from "../stigmergy.config.js";
+import codeIntelligenceService from '../services/code_intelligence_service.js'; // <-- ADDED IMPORT
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -24,6 +24,18 @@ export class Engine {
       const { goal } = req.body;
       if (!goal) return res.status(400).json({ error: "'goal' is required." });
       await stateManager.initializeProject(goal);
+
+      // --- FIX: AUTOMATE CODE INDEXING ON PROJECT START ---
+      try {
+          console.log('[Engine] Triggering initial code indexing...');
+          await codeIntelligenceService.scanAndIndexProject(process.cwd());
+          console.log('[Engine] Code indexing complete.');
+      } catch (error) {
+          // Log a warning but don't block the project from starting.
+          console.warn(chalk.yellow('[Engine] Automatic code indexing failed. Code-aware features will be limited. Please check Neo4j connection and credentials.'), error.message);
+      }
+      // ---------------------------------------------------
+
       this.start();
       res.json({ message: "Project initiated." });
     });
@@ -47,68 +59,23 @@ export class Engine {
     return response.thought;
   }
 
+  // --- REFACTORED: INTELLIGENT DISPATCHER LOGIC ---
   async dispatchAgentForState(state) {
     const status = state.project_status;
     console.log(chalk.yellow(`[Engine] Current project status: ${status}`));
 
-    const artifacts = state.artifacts_created || {};
+    const autonomous_states = ['GRAND_BLUEPRINT_PHASE', 'EXECUTION_IN_PROGRESS', 'EXECUTION_FAILED'];
 
-    switch (status) {
-      case 'GRAND_BLUEPRINT_PHASE':
-        if (!artifacts.brief) {
-          console.log(chalk.blue('[Engine] Dispatching @analyst to create project brief.'));
-          return this.triggerAgent('analyst', 'The project has been initialized. Your task is to perform research and create the project brief, market research, and competitor analysis documents.');
-        }
-        if (!artifacts.prd) {
-          console.log(chalk.blue('[Engine] Dispatching @pm to create PRD.'));
-          return this.triggerAgent('pm', 'The brief is complete. Your task is to create the Product Requirements Document (PRD).');
-        }
-        if (!artifacts.architecture) {
-          console.log(chalk.blue('[Engine] Dispatching @design-architect to create architecture.'));
-          return this.triggerAgent('design-architect', 'The PRD is complete. Your task is to create the technical architecture documents.');
-        }
-        console.log(chalk.green('[Engine] All planning documents generated. Awaiting user approval.'));
-        await stateManager.updateStatus('AWAITING_EXECUTION_APPROVAL', 'Blueprint complete. Please review all documents in the `docs/` directory and approve execution.');
-        break;
-
-      case 'AWAITING_EXECUTION_APPROVAL':
-        console.log(chalk.cyan('[Engine] Paused. Waiting for user to approve execution via a message to @saul (the dispatcher).'));
-        break;
-
-      case 'EXECUTION_IN_PROGRESS':
-        const nextTask = state.project_manifest?.tasks?.find(t => t.status === 'PENDING');
-        if (nextTask) {
-          console.log(chalk.blue(`[Engine] Dispatching executor for task: ${nextTask.id}`));
-          await stateManager.updateTaskStatus(nextTask.id, 'IN_PROGRESS');
-          const executor = config.executor_preference === 'gemini' ? 'gemini-executor' : 'dev';
-          return this.triggerAgent(executor, `Execute task: ${nextTask.summary}`, nextTask.id);
-        } else {
-          console.log(chalk.green('[Engine] All tasks have been executed.'));
-          await stateManager.updateStatus('PROJECT_COMPLETE', 'All tasks have been executed successfully.');
-        }
-        break;
-
-      case 'EXECUTION_FAILED':
-        const failedTask = state.project_manifest?.tasks?.find(t => t.status === 'FAILED');
-        if (failedTask) {
-          if (failedTask.failure_count > 2) {
-              console.log(chalk.magenta(`[Engine] Task ${failedTask.id} has failed repeatedly. Dispatching @metis for self-correction.`));
-              const prompt = `Task ${failedTask.id} ('${failedTask.summary}') has failed ${failedTask.failure_count} times. Analyze the full project state history to find a root cause in an agent's persona or system prompt. Then, read the relevant file, apply a correction, and write it back.`;
-              return this.triggerAgent('meta', prompt, failedTask.id);
-          }
-          console.log(chalk.red(`[Engine] Task ${failedTask.id} has failed. Dispatching @debugger.`));
-          return this.triggerAgent('debugger', `Task ${failedTask.id} failed during execution. Please analyze the code and the error to find a root cause and fix it.`);
-        }
-        break;
-      
-      case 'PROJECT_COMPLETE':
-        console.log(chalk.magentaBright('[Engine] Project is complete. The system is now idle.'));
-        this.stop("Project Complete");
-        break;
-
-      default:
-        console.log(chalk.gray(`[Engine] No autonomous action required for status: ${status}`));
+    if (autonomous_states.includes(status)) {
+        console.log(chalk.blue('[Engine] Dispatching @dispatcher to determine next action.'));
+        const stateJson = JSON.stringify(state, null, 2);
+        // This prompt asks the dispatcher to analyze the state and decide the next action.
+        const prompt = `System state has been updated. Analyze the current state and determine the next single, most logical action for the swarm.\n\nCURRENT STATE:\n${stateJson}`;
+        return this.triggerAgent('dispatcher', prompt);
+    } else {
+        console.log(chalk.gray(`[Engine] No autonomous action required for status: ${status}. Waiting for user interaction or state change.`));
     }
+    // ----------------------------------------------------
   }
 
   async runLoop() {
