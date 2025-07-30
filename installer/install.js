@@ -6,21 +6,12 @@ import ora from "ora";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 
-// --- FIX START: Define __dirname in ESM context ---
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-// --- FIX END ---
 
 const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 
-// ... (rest of the file remains the same)
-// The functions parseAgentConfig, buildRoleDefinition, mapToolsToGroups, configureIde, and run
-// do not need any changes. Only the __dirname definition at the top is required.
-
-/**
- * Parses the YAML frontmatter from an agent's markdown file.
- */
 function parseAgentConfig(content) {
   const yamlMatch = content.match(/```(yaml|yml)?\n([\s\S]*?)\n```/);
   if (!yamlMatch) return null;
@@ -32,9 +23,6 @@ function parseAgentConfig(content) {
   }
 }
 
-/**
- * Builds the rich role definition from the agent's persona.
- */
 function buildRoleDefinition(agentConfig) {
   if (!agentConfig || !agentConfig.persona) {
     return "This is a Stigmergy AI agent.";
@@ -47,29 +35,24 @@ function buildRoleDefinition(agentConfig) {
   return definition;
 }
 
-
 function mapToolsToGroups(tools = []) {
   const groups = new Set();
-  if (tools.some((tool) => tool.startsWith("file_system"))) {
-    groups.add("read");
-  }
-  if (
-    tools.some(
-      (tool) => tool.startsWith("file_system.write") || tool.startsWith("file_system.delete")
-    )
-  ) {
-    groups.add("edit");
-  }
-  if (tools.some((tool) => tool.startsWith("shell.execute"))) {
-    groups.add("command");
-  }
-  if (
-    tools.some(
-      (tool) =>
-        tool.startsWith("web.") || tool.startsWith("scraper.") || tool.startsWith("research.")
-    )
-  ) {
-    groups.add("browser");
+  for (const tool of tools) {
+    if (tool.startsWith("file_system.readFile") || tool === "file_system.*") {
+      groups.add("read");
+    }
+    if (tool.startsWith("file_system.write") || tool.startsWith("file_system.delete") || tool === "file_system.*") {
+      groups.add("edit");
+    }
+    if (tool.startsWith("shell.execute")) {
+      groups.add("command");
+    }
+    if (tool.startsWith("research.")) {
+      groups.add("browser");
+    }
+    if (tool.startsWith("code_intelligence.")) {
+      groups.add("read");
+    }
   }
   return Array.from(groups);
 }
