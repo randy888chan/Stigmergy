@@ -2,7 +2,7 @@ import neo4j from "neo4j-driver";
 import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
-import babelParser from "@babel/parser";
+import * as babelParser from "@babel/parser";
 import traverse from "@babel/traverse";
 
 class CodeIntelligenceService {
@@ -78,14 +78,14 @@ class CodeIntelligenceService {
           relationships.push({ source: relativePath, target: targetPath, type: "IMPORTS" });
         }
       },
-      "FunctionDeclaration|ClassDeclaration|VariableDeclarator": (astPath) => {
-        let nameNode = astPath.get("id");
-        if (Array.isArray(nameNode)) nameNode = nameNode[0];
+      "FunctionDeclaration|ClassDeclaration|VariableDeclarator|ClassMethod": (astPath) => {
+        const nameNode = astPath.get("id") || astPath.get("key");
         if (nameNode && nameNode.isIdentifier()) {
           const name = nameNode.node.name;
-          const type = astPath.node.type
-            .replace("Declaration", "")
-            .replace("Declarator", "Variable");
+          let type = astPath.node.type.replace("Declaration", "").replace("Declarator", "Variable");
+          if (type === "ClassMethod") {
+            type = "Function";
+          }
           const nodeId = `${relativePath}#${name}`;
           nodes.set(nodeId, {
             id: nodeId,
@@ -113,9 +113,18 @@ class CodeIntelligenceService {
         if (callee.isIdentifier()) {
           const functionName = callee.node.name;
           const parentFunc = astPath.findParent((p) => p.isFunction());
-          if (parentFunc && parentFunc.node.id) {
-            const callerId = `${relativePath}#${parentFunc.node.id.name}`;
-            relationships.push({ source: callerId, targetName: functionName, type: "CALLS" });
+          if (parentFunc) {
+            let parentName;
+            if (parentFunc.node.id) {
+              parentName = parentFunc.node.id.name;
+            } else if (parentFunc.node.key) {
+              parentName = parentFunc.node.key.name;
+            }
+
+            if (parentName) {
+              const callerId = `${relativePath}#${parentName}`;
+              relationships.push({ source: callerId, targetName: functionName, type: "CALLS" });
+            }
           }
         }
       },
