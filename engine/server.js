@@ -91,6 +91,11 @@ export class Engine {
       case 'EXECUTION_FAILED':
         const failedTask = state.project_manifest?.tasks?.find(t => t.status === 'FAILED');
         if (failedTask) {
+          if (failedTask.failure_count > 2) {
+              console.log(chalk.magenta(`[Engine] Task ${failedTask.id} has failed repeatedly. Dispatching @metis for self-correction.`));
+              const prompt = `Task ${failedTask.id} ('${failedTask.summary}') has failed ${failedTask.failure_count} times. Analyze the full project state history to find a root cause in an agent's persona or system prompt. Then, read the relevant file, apply a correction, and write it back.`;
+              return this.triggerAgent('meta', prompt, failedTask.id);
+          }
           console.log(chalk.red(`[Engine] Task ${failedTask.id} has failed. Dispatching @debugger.`));
           return this.triggerAgent('debugger', `Task ${failedTask.id} failed during execution. Please analyze the code and the error to find a root cause and fix it.`);
         }
