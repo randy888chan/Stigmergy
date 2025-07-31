@@ -1,0 +1,11 @@
+```yaml
+bundle:
+  name: "Team Business Crew"
+  icon: "💼"
+  description: A specialized team for business planning, valuation, and strategy.
+agents:
+  - dispatcher
+  - analyst
+  - business_planner
+  - valuator
+  - whitepaper_writer
