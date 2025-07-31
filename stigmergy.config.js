@@ -30,6 +30,14 @@ const config = {
     qa_protocol: "docs/architecture/qa-protocol.md",
   },
 
+  // --- Business Planning Documents (NEW) ---
+  business_docs: {
+    business_plan: "docs/business-plan.md",
+    valuation_report: "docs/valuation-report.md",
+    tokenomics_plan: "docs/tokenomics-plan.md",
+    crypto_whitepaper: "docs/crypto-whitepaper.md",
+  },
+
   // --- Context Injection ---
   dev_load_always_files: [
     "docs/architecture/tech-stack.md",
