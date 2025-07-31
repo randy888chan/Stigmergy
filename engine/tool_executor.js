@@ -31,8 +31,8 @@ async function getManifest() {
   if (fileContent.trim().startsWith("```")) {
     // Use a regex to extract content between ```yml and ```
     const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/);
-    if (yamlMatch && yamlMatch) {
-      yamlContent = yamlMatch; // Use the captured group
+    if (yamlMatch && yamlMatch[1]) {
+      yamlContent = yamlMatch[1]; // Use the captured group
     } else {
       throw new Error(
         `Found a YAML code fence in ${MANIFEST_PATH}, but could not parse its content. Check for a closing fence.`
