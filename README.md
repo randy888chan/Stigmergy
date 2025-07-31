@@ -103,21 +103,34 @@ npx @randy888chan/stigmergy install
 
 ### Step 3: Configure Your Environment
 
-After installation, a `.env.example` file will be in your project root. **Rename it to `.env`** and fill in your credentials.
+After installation, a `.env.example` file will be in your project root. **Rename it to `.env`** and fill in your credentials. The system has a flexible AI provider that prioritizes keys in the following order:
+
+1.  **Custom OpenAI-Compatible Endpoint** (e.g., local LLM via LM Studio)
+2.  **OpenRouter** (Recommended for access to many models)
+3.  **Direct OpenAI**
+
+Fill in the variables for the provider you wish to use.
 
 ```
 # .env file
 
-# -- AI Provider Configuration --
-# OpenRouter is recommended for flexibility. Get a key at https://openrouter.ai/
-OPENROUTER_API_KEY=your_openrouter_key
-LITELLM_MODEL_ID=google/gemini-pro-1.5 # You can change this to any model on OpenRouter
+# --- OPTION 1: Custom OpenAI-Compatible Endpoint (HIGHEST PRIORITY) ---
+# Example for a local LLM server via LM Studio or Ollama
+# OPENAI_ENDPOINT="http://localhost:11434/v1"
+# CUSTOM_MODEL="llama3" # The model name your local server is serving
 
-# -- Research Tool Configuration --
+# --- OPTION 2: OpenRouter (RECOMMENDED) ---
+# OPENROUTER_API_KEY=your_openrouter_key
+# LITELLM_MODEL_ID=google/gemini-pro-1.5 # You can change this to any model on OpenRouter
+
+# --- OPTION 3: Direct OpenAI (FALLBACK) ---
+# OPENAI_KEY=your_openai_key
+
+# --- Research Tool Configuration ---
 # Get a free key at https://firecrawl.dev
 FIRECRAWL_KEY=your_firecrawl_key
 
-# -- Neo4j Database Configuration --
+# --- Neo4j Database Configuration ---
 NEO4J_URI=bolt://localhost:7687
 NEO4J_USER=neo4j
 NEO4J_PASSWORD=your_database_password
@@ -133,20 +146,22 @@ npm run stigmergy:start
 
 You are now ready to control the Stigmergy engine from your IDE's chat interface.
 
+---
+
+## System Features & Roadmap
+
 ### Web Agent Prompt Bundler
 
 The `builder/` directory contains tools (`npm run build`) to compile the agent definitions from `.stigmergy-core/` into a single, self-contained text file. This is designed for use cases where the Stigmergy agent knowledge base needs to be run in a browser-based environment (e.g., for cost-effective initial planning in a web UI like Gemini) or a different backend that doesn't use the core engine. This allows for a flexible workflow where high-level planning can be done in a web UI before moving to the IDE for execution.
----
 
-## Contributing & Future Enhancements
+### Contributing
 
 This repository is a foundational engine. Contributions are welcome to expand its capabilities. The key areas for development are:
-
 *   **`services/code_intelligence_service.js`**: Enhancing the code parser to support more languages and extract richer semantic information.
 *   **`tools/code_intelligence.js`**: Adding more sophisticated Cypher queries to expose deeper insights to agents (e.g., semantic search, quality metrics).
 *   **`.stigmergy-core/agents/`**: Creating new, specialized agents for different domains (e.g., DevOps, data science, security).
 
-### **Roadmap: Scalability and Performance**
+### Future Enhancements
 *   **Incremental Code Indexing:** A key future enhancement is to move from a full re-index to an incremental one. This would involve implementing a file watcher to detect changes in the codebase and only update the affected nodes and relationships in the Neo4j graph. This will significantly improve performance and scalability for very large, enterprise-scale projects.
 
 ---
