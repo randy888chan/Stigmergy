@@ -5,6 +5,7 @@ import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
 import * as gemini_cli_tool from "../tools/gemini_cli_tool.js";
+import * as business from "../tools/business_tools.js"; // <-- ADD THIS LINE
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import { clearFileCache } from "./llm_adapter.js";
@@ -30,8 +31,8 @@ async function getManifest() {
   if (fileContent.trim().startsWith("```")) {
     // Use a regex to extract content between ```yml and ```
     const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/);
-    if (yamlMatch && yamlMatch[1]) {
-      yamlContent = yamlMatch[1]; // Use the captured group
+    if (yamlMatch && yamlMatch) {
+      yamlContent = yamlMatch; // Use the captured group
     } else {
       throw new Error(
         `Found a YAML code fence in ${MANIFEST_PATH}, but could not parse its content. Check for a closing fence.`
@@ -81,6 +82,7 @@ const toolbelt = {
   research: research,
   code_intelligence: codeIntelligence,
   gemini: gemini_cli_tool,
+  business: business, // <-- ADD THIS LINE
   system: system,
   stigmergy: stigmergy,
 };
