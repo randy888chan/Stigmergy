@@ -41,6 +41,25 @@ agents:
   icon: "🎨"
   tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
 
+# --- Business Planners (NEW) ---
+- id: business_planner
+  alias: brian
+  name: "Brian (Business)"
+  icon: "📈"
+  tools: [research.deep_dive, file_system.writeFile, system.updateStatus, business.*]
+
+- id: valuator
+  alias: val
+  name: "Val (Valuation)"
+  icon: "💰"
+  tools: [file_system.readFile, system.updateStatus, business.*]
+
+- id: whitepaper_writer
+  alias: whitney
+  name: "Whitney (Whitepaper)"
+  icon: "📜"
+  tools: [file_system.readFile, file_system.writeFile, system.updateStatus, business.*]
+
 # --- Executors ---
 - id: gemini-executor
   alias: gemma
