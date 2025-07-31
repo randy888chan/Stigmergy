@@ -55,6 +55,13 @@ export class Engine {
 
   async triggerAgent(agentId, prompt, taskId = null) {
     const response = await getCompletion(agentId, prompt, taskId);
+
+    // --- RECOMMENDED IMPROVEMENT: Log dispatcher thoughts for auditability ---
+    if (agentId === "dispatcher") {
+      console.log(chalk.magenta.bold(`[Dispatcher Thought] 🧠: ${response.thought}`));
+    }
+    // --------------------------------------------------------------------
+
     if (response.action?.tool) {
       return executeTool(response.action.tool, response.action.args, agentId);
     }
