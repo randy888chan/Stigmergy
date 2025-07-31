@@ -6,6 +6,13 @@ Stigmergy is an autonomous development system that operates as your AI-powered p
 
 The system is architected to be **headless and IDE-native**. The Stigmergy engine runs as a local MCP (Model-Context Protocol) server, acting as the "brain" that your IDE tools (like Roo Code or the SuperDesign extension) communicate with. It is stateful, resumable, and designed for a single, powerful handoff where you provide the vision and the AI team handles the execution.
 
+### **New: Business Strategy Capabilities**
+
+Stigmergy now includes a suite of agents focused on business planning and strategy:
+*   **Business Plan Generation:** A dedicated `@brian` agent can generate a comprehensive business plan, complete with financial projections.
+*   **Business Valuation:** The `@val` agent can perform a data-driven valuation of the business using standard financial models.
+*   **Crypto Whitepaper Authoring:** For web3 projects, the `@whitney` agent can author a detailed technical and tokenomics whitepaper.
+
 ### The New Stigmergy Architecture
 
 The refactored system is a powerful, modular ecosystem that separates concerns for maximum performance and extensibility.
@@ -27,12 +34,14 @@ graph TD
         D -- Executes Tools --> H[Research Tool (Firecrawl)];
         D -- Executes Tools --> I[Code Generation (Gemini CLI)];
         D -- Executes Tools --> J[File System Tools];
+        D -- Executes Tools --> K[Business Tools (Financial Modeling)];
         J -- Writes Files --> G;
     end
 
     style C fill:#82589F,stroke:#6D214F,color:white
     style E fill:#3B3B98,stroke:#1B1464,color:white
     style F fill:#FD7272,stroke:#D63031,color:white
+    style K fill:#2ecc71,stroke:#27ae60,color:white
 ```
 
 ### Core Pillars
