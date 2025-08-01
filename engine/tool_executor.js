@@ -24,13 +24,12 @@ async function getManifest() {
   }
   const fileContent = await fs.readFile(MANIFEST_PATH, "utf8");
 
-  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
   const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!yamlMatch || !yamlMatch) {
+  if (!yamlMatch) {
     throw new Error(`Could not parse YAML from manifest file: ${MANIFEST_PATH}`);
   }
-
-  agentManifest = yaml.load(yamlMatch);
+  // yamlMatch[1] is the actual YAML content
+  agentManifest = yaml.load(yamlMatch[1]);
   return agentManifest;
 }
 
