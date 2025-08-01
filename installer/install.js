@@ -14,8 +14,7 @@ const CWD = process.cwd();
 
 function parseAgentConfig(content) {
   // Use the first capture group (the actual YAML) from the regex match
-  // Loosened the regex to not require a closing ``` since it seems to get truncated on read
-  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*)/);
+  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
   if (!yamlMatch) return null;
   try {
     // yamlMatch[1] is the actual YAML content
@@ -72,8 +71,7 @@ async function configureIde(coreSourceDir) {
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   const manifestContent = await fs.readFile(manifestPath, "utf8");
   // Use the first capture group (the actual YAML) from the regex match
-  // Loosened the regex to not require a closing ``` since it seems to get truncated on read
-  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*)/);
+  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
   if (!yamlMatch) {
     throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
   }
