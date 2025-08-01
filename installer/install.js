@@ -13,11 +13,13 @@ const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 
 function parseAgentConfig(content) {
-  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
-  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!yamlMatch || !yamlMatch) return null;
+  // Use the first capture group (the actual YAML) from the regex match
+  // Loosened the regex to not require a closing ``` since it seems to get truncated on read
+  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*)/);
+  if (!yamlMatch) return null;
   try {
-    return yaml.load(yamlMatch);
+    // yamlMatch[1] is the actual YAML content
+    return yaml.load(yamlMatch[1]);
   } catch (e) {
     console.warn(chalk.yellow(`Warning: Could not parse agent YAML. ${e.message}`));
     return null;
@@ -69,14 +71,14 @@ async function configureIde(coreSourceDir) {
 
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   const manifestContent = await fs.readFile(manifestPath, "utf8");
-
-  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
-  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!yamlMatch || !yamlMatch) {
+  // Use the first capture group (the actual YAML) from the regex match
+  // Loosened the regex to not require a closing ``` since it seems to get truncated on read
+  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*)/);
+  if (!yamlMatch) {
     throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
   }
-  const manifest = yaml.load(yamlMatch);
-  // --------------------------------------------------------------------------
+  // yamlMatch[1] is the actual YAML content
+  const manifest = yaml.load(yamlMatch[1]);
 
   if (!manifest || !Array.isArray(manifest.agents)) {
     throw new Error("Agent manifest is invalid or not found. Cannot generate IDE configuration.");
