@@ -90,15 +90,21 @@ async function configureIde(coreSourceDir) {
     let agentName = agentEntry.name || agentEntry.alias;
     let agentIcon = agentEntry.icon || "🤖";
 
+    let agentConfig = null;
     if (await fs.pathExists(agentMdPath)) {
       const agentContent = await fs.readFile(agentMdPath, "utf8");
-      const agentConfig = parseAgentConfig(agentContent);
+      agentConfig = parseAgentConfig(agentContent);
       if (agentConfig) {
         roleDefinition = buildRoleDefinition(agentConfig);
         agentName = agentConfig.agent.name || agentName;
         agentIcon = agentConfig.agent.icon || agentIcon;
       }
     }
+
+    const tools =
+      agentConfig && agentConfig.agent && agentConfig.agent.tools
+        ? agentConfig.agent.tools
+        : agentEntry.tools;
 
     modes.push({
       slug: agentEntry.alias,
@@ -110,7 +116,7 @@ async function configureIde(coreSourceDir) {
         include: ["history"],
         static_payload: { agentId: agentEntry.id },
       },
-      groups: mapToolsToGroups(agentEntry.tools),
+      groups: mapToolsToGroups(tools),
     });
   }
 
