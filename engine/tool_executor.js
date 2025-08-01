@@ -18,40 +18,21 @@ const MANIFEST_PATH = path.join(
 );
 let agentManifest = null;
 
-// --- DEFINITIVE FIX: Correctly parse YAML from within a Markdown file ---
 async function getManifest() {
   if (agentManifest) {
     return agentManifest;
   }
   const fileContent = await fs.readFile(MANIFEST_PATH, "utf8");
 
-  let yamlContent;
-
-  // Check if the file is using Markdown-style code fences
-  if (fileContent.trim().startsWith("```")) {
-    // Use a regex to extract content between ```yml and ```
-    const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/);
-    if (yamlMatch && yamlMatch[1]) {
-      yamlContent = yamlMatch[1]; // Use the captured group
-    } else {
-      throw new Error(
-        `Found a YAML code fence in ${MANIFEST_PATH}, but could not parse its content. Check for a closing fence.`
-      );
-    }
-  } else {
-    // If no fences, assume the entire file is YAML
-    yamlContent = fileContent;
+  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
+  const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!yamlMatch || !yamlMatch) {
+    throw new Error(`Could not parse YAML from manifest file: ${MANIFEST_PATH}`);
   }
 
-  if (!yamlContent) {
-    throw new Error(`No YAML content could be extracted from the manifest at ${MANIFEST_PATH}`);
-  }
-
-  // Now, load the extracted YAML content
-  agentManifest = yaml.load(yamlContent);
+  agentManifest = yaml.load(yamlMatch);
   return agentManifest;
 }
-// --------------------------------------------------------------------
 
 const system = {
   updateStatus: async ({ status, message, artifact_created }) => {

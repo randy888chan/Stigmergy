@@ -13,10 +13,11 @@ const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 
 function parseAgentConfig(content) {
-  const yamlMatch = content.match(/```(yaml|yml)?\n([\s\S]*?)\n```/);
-  if (!yamlMatch) return null;
+  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
+  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!yamlMatch || !yamlMatch) return null;
   try {
-    return yaml.load(yamlMatch[2]);
+    return yaml.load(yamlMatch);
   } catch (e) {
     console.warn(chalk.yellow(`Warning: Could not parse agent YAML. ${e.message}`));
     return null;
@@ -24,7 +25,7 @@ function parseAgentConfig(content) {
 }
 
 function buildRoleDefinition(agentConfig) {
-  if (!agentConfig || !agentConfig.persona) {
+  if (!agentConfig || !agentConfig.agent || !agentConfig.persona) {
     return "This is a Stigmergy AI agent.";
   }
   const { identity, core_protocols } = agentConfig.persona;
@@ -41,7 +42,11 @@ function mapToolsToGroups(tools = []) {
     if (tool.startsWith("file_system.readFile") || tool === "file_system.*") {
       groups.add("read");
     }
-    if (tool.startsWith("file_system.write") || tool.startsWith("file_system.delete") || tool === "file_system.*") {
+    if (
+      tool.startsWith("file_system.write") ||
+      tool.startsWith("file_system.delete") ||
+      tool === "file_system.*"
+    ) {
       groups.add("edit");
     }
     if (tool.startsWith("shell.execute")) {
@@ -64,7 +69,14 @@ async function configureIde(coreSourceDir) {
 
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   const manifestContent = await fs.readFile(manifestPath, "utf8");
-  const manifest = yaml.load(manifestContent);
+
+  // --- FIX: Use the first capture group (the actual YAML) from the regex match ---
+  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!yamlMatch || !yamlMatch) {
+    throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
+  }
+  const manifest = yaml.load(yamlMatch);
+  // --------------------------------------------------------------------------
 
   if (!manifest || !Array.isArray(manifest.agents)) {
     throw new Error("Agent manifest is invalid or not found. Cannot generate IDE configuration.");
