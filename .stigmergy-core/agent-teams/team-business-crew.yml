@@ -1,8 +1,7 @@
-```yaml
 bundle:
-  name: "Team Business Crew"
+  name: "Team Business Crew (Web-Safe)"
   icon: "💼"
-  description: A specialized team for business planning, valuation, and strategy.
+  description: "A specialized team for business planning, valuation, and strategy. Safe for use in portable web UI environments."
 agents:
   - dispatcher
   - analyst

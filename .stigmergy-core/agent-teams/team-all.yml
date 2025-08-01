@@ -1,18 +1,18 @@
 bundle:
-name: Team All
-icon: 👥
-description: Includes every core system agent for full project lifecycle support.
+  name: "Team All (Local Execution)"
+  icon: "⚙️"
+  description: "The complete agent swarm for full, end-to-end project execution within a local IDE environment. Includes planners and executors."
 agents:
-dispatcher
-analyst
-pm
-design-architect
-ux-expert
-design # <-- NEW
-dev
-gemini-executor # <-- ADDED for completeness
-victor
-qa
-debugger
-refactorer
-meta
+  - dispatcher
+  - analyst
+  - pm
+  - design-architect
+  - ux-expert
+  - design
+  - dev
+  - gemini-executor
+  - victor
+  - qa
+  - debugger
+  - refactorer
+  - meta

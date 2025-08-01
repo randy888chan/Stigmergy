@@ -1,7 +1,12 @@
 #!/usr/bin/env node
 
 import { Command } from "commander";
-import pkg from "../package.json" assert { type: "json" };
+// --- FIX: Use fs.readFileSync to import JSON for broader compatibility ---
+import { readFileSync } from "fs";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json");
+// --------------------------------------------------------------------
 import { run as runInstaller } from "../installer/install.js";
 import { runBuilder } from "../builder/prompt_builder.js";
 
@@ -21,10 +26,18 @@ program
 
 program
   .command("build")
-  .description("Builds self-contained prompt bundles for use in Web UIs.")
-  .option("-t, --team <teamId>", "Build a bundle for a specific agent team.")
-  .option("--all", "Build all agent teams.")
+  .description("Builds self-contained prompt bundles for use in portable Web UIs (e.g., Gemini).") // <-- MODIFIED DESCRIPTION
+  .option(
+    "-t, --team <teamId>",
+    "Build a bundle for a specific agent team (defaults to 'team-web-planners')."
+  ) // <-- MODIFIED DESCRIPTION
+  .option("--all", "Build all available agent teams.")
   .action(async (options) => {
+    // --- IMPROVEMENT: Default to the new web-planners team ---
+    if (!options.team && !options.all) {
+      options.team = "team-web-planners";
+    }
+    // ---------------------------------------------------------
     await runBuilder(options);
   });
 
