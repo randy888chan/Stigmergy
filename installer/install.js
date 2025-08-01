@@ -147,7 +147,7 @@ export async function run() {
   try {
     spinner.text = "Copying core files...";
     const coreDestDir = path.join(CWD, ".stigmergy-core");
-    await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
+    // await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
 
     spinner.text = "Configuring environment file...";
     const exampleEnvPath = path.join(__dirname, "..", ".env.example");
