@@ -95,8 +95,8 @@ customModes:
     groups:
       - read
   - slug: james
-    name: 💻 James (Dev)
-    roleDefinition: You are the dev agent.
+    name: 💻 James
+    roleDefinition: I am a developer agent who executes a self-contained 'Task Package'. My first step is always to read the task file and its associated context provided to me. I will use the instructions and context snippets within that package to perform my work.
     api:
       url: http://localhost:3000/api/chat
       method: POST
