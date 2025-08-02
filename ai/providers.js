@@ -2,39 +2,30 @@ import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config.js";
 
 export function getModel() {
-  const config = process.env;
+  const { AI_API_KEY, AI_API_BASE_URL, AI_MODEL } = process.env;
 
-  // 1. Prioritize a custom OpenAI-compatible endpoint (for power users with local LLMs, etc.)
-  if (config.OPENAI_ENDPOINT && config.CUSTOM_MODEL) {
-    console.log(
-      `[AI Provider] Using Custom Endpoint: ${config.OPENAI_ENDPOINT} with model ${config.CUSTOM_MODEL}`
+  if (!AI_API_KEY || !AI_MODEL) {
+    throw new Error(
+      "Missing AI configuration. Please set AI_API_KEY and AI_MODEL in your .env file."
     );
-    const provider = createOpenAI({
-      apiKey: config.OPENAI_KEY || "sk-or-v1-abc", // Use a dummy key if not provided
-      baseURL: config.OPENAI_ENDPOINT,
-    });
-    return provider(config.CUSTOM_MODEL);
   }
 
-  // 2. Use OpenRouter as the recommended default
-  if (config.OPENROUTER_API_KEY) {
-    console.log("[AI Provider] Using OpenRouter");
-    const openrouter = createOpenAI({
-      apiKey: config.OPENROUTER_API_KEY,
-      baseURL: "https://openrouter.ai/api/v1",
-    });
-    // Allow model override via LITELLM_MODEL_ID, defaulting to Gemini Pro 1.5
-    return openrouter(config.LITELLM_MODEL_ID || "google/gemini-pro-1.5");
+  const providerConfig = {
+    apiKey: AI_API_KEY,
+  };
+
+  if (AI_API_BASE_URL) {
+    providerConfig.baseURL = AI_API_BASE_URL;
   }
 
-  // 3. Fallback to direct OpenAI if no other provider is found
-  if (config.OPENAI_KEY) {
-    console.log("[AI Provider] Using OpenAI");
-    const openai = createOpenAI({ apiKey: config.OPENAI_KEY });
-    return openai("gpt-4o"); // A sensible default for direct OpenAI
-  }
+  console.log(
+    `[AI Provider] Initializing with model "${AI_MODEL}"` +
+      (AI_API_BASE_URL ? ` at ${AI_API_BASE_URL}` : "")
+  );
 
-  throw new Error("No AI provider API key found. Please set OPENROUTER_API_KEY, OPENAI_KEY, or a custom OPENAI_ENDPOINT in your .env file.");
+  const provider = createOpenAI(providerConfig);
+
+  return provider(AI_MODEL);
 }
 
 export function systemPrompt() {
