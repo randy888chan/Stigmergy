@@ -148,6 +148,24 @@ async function configureIde(coreSourceDir) {
   await fs.writeFile(path.join(CWD, ".roomodes"), fileContent, "utf8");
 }
 
+async function addStartScript() {
+  const packageJsonPath = path.join(CWD, "package.json");
+  if (!(await fs.pathExists(packageJsonPath))) {
+    console.warn(
+      chalk.yellow(
+        `\nWarning: Could not find package.json. Please add the following script to your package.json manually:\n  "stigmergy:start": "stigmergy start"`
+      )
+    );
+    return;
+  }
+  const packageJson = await fs.readJson(packageJsonPath);
+  if (!packageJson.scripts) {
+    packageJson.scripts = {};
+  }
+  packageJson.scripts["stigmergy:start"] = "stigmergy start";
+  await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
+}
+
 export async function run() {
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
@@ -165,6 +183,10 @@ export async function run() {
     spinner.text = "Configuring IDE integration...";
     await configureIde(CORE_SOURCE_DIR);
     spinner.succeed("IDE integration configured in .roomodes");
+
+    spinner.text = "Adding start script to package.json...";
+    await addStartScript();
+    spinner.succeed("Start script added to package.json.");
 
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
