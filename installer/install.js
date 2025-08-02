@@ -12,31 +12,6 @@ const __dirname = path.dirname(__filename);
 const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
 
-function parseAgentConfig(content) {
-  // Use the first capture group (the actual YAML) from the regex match
-  const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!yamlMatch) return null;
-  try {
-    // yamlMatch[1] is the actual YAML content
-    return yaml.load(yamlMatch[1]);
-  } catch (e) {
-    console.warn(chalk.yellow(`Warning: Could not parse agent YAML. ${e.message}`));
-    return null;
-  }
-}
-
-function buildRoleDefinition(agentConfig) {
-  if (!agentConfig || !agentConfig.agent || !agentConfig.persona) {
-    return "This is a Stigmergy AI agent.";
-  }
-  const { identity, core_protocols } = agentConfig.persona;
-  let definition = identity || "No identity defined.";
-  if (core_protocols && Array.isArray(core_protocols)) {
-    definition += "\n\n--- CORE PROTOCOLS ---\n" + core_protocols.map((p) => `- ${p}`).join("\n");
-  }
-  return definition;
-}
-
 async function addStartScript() {
   const packageJsonPath = path.join(CWD, "package.json");
   if (!(await fs.pathExists(packageJsonPath))) {
@@ -218,11 +193,7 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
       if (agentId) {
         const agentMdPath = path.join(coreSourceDir, "agents", `${agentId}.md`);
         if (await fs.pathExists(agentMdPath)) {
-          const agentContent = await fs.readFile(agentMdPath, "utf8");
-          const agentConfig = parseAgentConfig(agentContent);
-          if (agentConfig) {
-            mode.roleDefinition = buildRoleDefinition(agentConfig);
-          }
+          mode.roleDefinition = await fs.readFile(agentMdPath, "utf8");
         }
         // Add the API configuration for project-sourced agents
         mode.api = {
@@ -246,7 +217,9 @@ export async function run() {
   try {
     spinner.text = "Copying core files...";
     const coreDestDir = path.join(CWD, ".stigmergy-core");
-    await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
+    if (CORE_SOURCE_DIR !== coreDestDir) {
+      await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
+    }
 
     spinner.text = "Configuring environment file...";
     const exampleEnvPath = path.join(__dirname, "..", ".env.example");

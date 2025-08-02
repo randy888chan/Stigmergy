@@ -8,7 +8,7 @@
     "stigmergy": "cli/index.js"
   },
   "scripts": {
-    "stigmergy:start": "node engine/server.js",
+    "stigmergy:start": "stigmergy start",
     "build": "node cli/index.js build --all",
     "test": "jest",
     "format": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
