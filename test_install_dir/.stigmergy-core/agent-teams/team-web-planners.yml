@@ -1,0 +1,11 @@
+bundle:
+  name: "Team Web Planners"
+  icon: "🌐"
+  description: "A specialized team for high-level strategic planning, designed for portable web UI environments."
+agents:
+  - dispatcher
+  - analyst
+  - pm
+  - design-architect
+  - ux-expert
+  - design
