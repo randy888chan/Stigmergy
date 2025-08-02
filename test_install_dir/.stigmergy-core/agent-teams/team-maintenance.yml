@@ -1,0 +1,9 @@
+bundle:
+  name: "Team Maintenance (Local)"
+  icon: "🛠️"
+  description: "A specialized team for local code health tasks like debugging, refactoring, and assessing code quality."
+agents:
+  - dispatcher
+  - debugger
+  - refactorer
+  - qa
