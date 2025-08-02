@@ -8,6 +8,7 @@ const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
 // --------------------------------------------------------------------
 import { run as runInstaller } from "../installer/install.js";
+import { main as startEngine } from "../engine/server.js";
 import { runBuilder } from "../builder/prompt_builder.js";
 
 const program = new Command();
@@ -39,6 +40,13 @@ program
     }
     // ---------------------------------------------------------
     await runBuilder(options);
+  });
+
+program
+  .command("start")
+  .description("Starts the Stigmergy engine server.")
+  .action(async () => {
+    await startEngine();
   });
 
 async function main() {

@@ -123,7 +123,7 @@ export class Engine {
 
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
-async function main() {
+export async function main() {
   // --- FIX: Instantiate the engine HERE, inside the main execution block ---
   const engine = new Engine();
 
