@@ -11,6 +11,7 @@
     "stigmergy:start": "stigmergy start",
     "build": "node cli/index.js build --all",
     "test": "jest",
+    "test:neo4j": "node scripts/test-neo4j.js",
     "format": "prettier --write \"**/*.{md,js,json,yml,yaml}\"",
     "prepare": "husky install"
   },
@@ -35,6 +36,7 @@
     "@modelcontextprotocol/sdk": "^1.12.1",
     "ai": "^4.1.17",
     "axios": "^1.7.2",
+    "boxen": "^7.1.1",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
     "dotenv": "^16.4.5",
