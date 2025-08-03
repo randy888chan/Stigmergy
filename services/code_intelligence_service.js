@@ -3,7 +3,8 @@ import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import * as babelParser from "@babel/parser";
-import traverse from "@babel/traverse";
+import _traverse from "@babel/traverse";
+const traverse = _traverse.default;
 
 class CodeIntelligenceService {
   constructor() {
@@ -234,7 +235,8 @@ class CodeIntelligenceService {
     if (!this.driver) {
       return {
         success: false,
-        error: "Neo4j driver not initialized. Check your .env credentials (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).",
+        error:
+          "Neo4j driver not initialized. Check your .env credentials (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).",
       };
     }
 
