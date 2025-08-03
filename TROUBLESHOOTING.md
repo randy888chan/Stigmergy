@@ -21,13 +21,34 @@ If you send a message to `@system` or `@saul` and nothing happens, your IDE is l
     *   If you change the `PORT` in `.env` *after* installing, the URLs in `.roomodes` will be wrong.
     *   **Solution:** Simply run `npx @randy888chan/stigmergy install` again. It will safely overwrite `.roomodes` with the correct, updated URLs.
 
-## 3. Neo4j Indexing Issues
+## 3. Agents Are Not Working (No Errors)
 
-The code indexer runs automatically the first time you start a project. If it fails, the system will still work, but agents will have less context about your code.
+This is the most common issue. You start the engine, and it seems to be running, but when you try to interact with agents like `@saul` or `@system`, nothing happens, or they don't perform the actions you expect (like creating files or doing research).
 
-*   **Symptom:** You see an error like `[Engine] Automatic code indexing failed` in your `npm start` terminal.
-*   **Solution 1: Check Database Status:** Is your Neo4j database running? Make sure the application is active.
-*   **Solution 2: Check Credentials:** Double-check that `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` in your `.env` file are 100% correct. Any typo will cause a connection failure.
+*   **Symptom:** The `npm run stigmergy:start` command runs without crashing, but the AI seems unresponsive or unintelligent.
+*   **Cause:** This is almost always a **failed connection to the Neo4j database**. The engine will now fail to start if it cannot connect, but if the connection is lost *after* startup, this can still occur. The "Code Intelligence" service is the brain of the system, and without it, agents cannot function correctly.
+
+*   **Solution: Use the Health Check Endpoint**
+
+    To quickly diagnose this, open a new terminal (while the engine is still running) and use `curl` to check the new health endpoint. (Note: The default port is 3000, but yours may differ if you changed it in `.env`).
+
+    ```bash
+    curl http://localhost:3000/api/system/health
+    ```
+
+    *   **If the connection is GOOD**, you will see a response like this:
+        ```json
+        {"engine":"RUNNING","dependencies":{"neo4j":{"connected":true,"message":"Connection successful."}}}
+        ```
+
+    *   **If the connection is BAD**, you will see a response with an error message:
+        ```json
+        {"engine":"RUNNING","dependencies":{"neo4j":{"connected":false,"message":"Error: Could not connect to any server in your Bolt list..."}}}
+        ```
+
+*   **How to Fix a Bad Connection:**
+    1.  **Is Neo4j Desktop running?** Make sure the application is open and the database itself has been started (it should have a green "Active" status).
+    2.  **Are your credentials correct?** Double- and triple-check the `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` in your `.env` file. A tiny typo will cause the connection to fail. After correcting them, you must restart the Stigmergy engine.
 
 ## 4. "No valid agents were found" Error during Install
 
