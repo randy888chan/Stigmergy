@@ -226,7 +226,6 @@ class CodeIntelligenceService {
 
     return metrics;
   }
-}
 
   async checkConnection() {
     if (!this.driver) {
