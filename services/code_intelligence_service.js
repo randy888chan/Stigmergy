@@ -3,8 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import * as babelParser from "@babel/parser";
-import _traverse from "@babel/traverse";
-const traverse = _traverse.default;
+import traverse from "@babel/traverse";
 
 class CodeIntelligenceService {
   constructor() {
