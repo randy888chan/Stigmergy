@@ -59,31 +59,43 @@ export class Engine {
         res.json({ message: "Project initiated." });
       } catch (error) {
         // --- FIX: Provide a loud, clear error on indexing failure ---
+        const boxen = (await import("boxen")).default;
+        const errorMessage = [
+          chalk.red.bold("Stigmergy Engine Failed to Start"),
+          "",
+          "The connection to the Neo4j database failed. This is a critical error",
+          "that prevents the AI from understanding and working with your codebase.",
+          "",
+          chalk.yellow.bold("Common Causes:"),
+          "1. Neo4j Desktop application is not running.",
+          "2. Incorrect credentials in your `.env` file.",
+          "   - NEO4J_URI (e.g., neo4j://localhost)",
+          "   - NEO4J_USER (e.g., neo4j)",
+          "   - NEO4J_PASSWORD (your-password)",
+          "",
+          chalk.cyan.bold("Next Steps:"),
+          "1. Ensure the Neo4j Desktop app is open and the correct database is 'Active'.",
+          "2. Double-check your `.env` file for typos.",
+          "3. Run `npm run test:neo4j` to diagnose the connection.",
+          "",
+          chalk.red.dim(`Original error: ${error.message}`),
+        ].join("\n");
+
         console.error(
-          chalk.red.bold(
-            "\n--- CRITICAL ERROR: Code Intelligence Indexing Failed ---"
-          )
+          boxen(errorMessage, {
+            padding: 1,
+            margin: 1,
+            borderStyle: "double",
+            borderColor: "red",
+            title: "CRITICAL DATABASE ERROR",
+            titleAlignment: "center",
+          })
         );
-        console.error(
-          chalk.red(
-            "The Stigmergy engine failed to connect to its Neo4j database."
-          )
-        );
-        console.error(
-          chalk.red(
-            "Please check that your Neo4j Desktop application is running and that the"
-          )
-        );
-        console.error(
-          chalk.red(
-            "NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in your .env file are correct."
-          )
-        );
-        console.error(chalk.red.dim(`\nOriginal error: ${error.message}\n`));
 
         // Send a server error response and do NOT start the engine.
         res.status(500).json({
-          error: "Failed to start engine due to Neo4j connection failure.",
+          error:
+            "Failed to start engine due to Neo4j connection failure. Check the server logs for details.",
           details: error.message,
         });
       }
