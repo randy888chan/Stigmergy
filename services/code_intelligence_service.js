@@ -228,4 +228,24 @@ class CodeIntelligenceService {
   }
 }
 
+  async checkConnection() {
+    if (!this.driver) {
+      this.initializeDriver();
+    }
+    if (!this.driver) {
+      return {
+        success: false,
+        error: "Neo4j driver not initialized. Check your .env credentials (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).",
+      };
+    }
+
+    try {
+      await this.driver.verifyConnectivity();
+      return { success: true, message: "Successfully connected to Neo4j." };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+}
+
 export default new CodeIntelligenceService();

@@ -20,6 +20,30 @@ export class Engine {
   }
 
   setupRoutes() {
+    // --- NEW: Health Check Endpoint ---
+    this.app.get("/api/system/health", async (req, res) => {
+      console.log("[Server] Received health check request.");
+      const neo4jStatus = await codeIntelligenceService.checkConnection();
+
+      const healthStatus = {
+        engine: "RUNNING",
+        dependencies: {
+          neo4j: {
+            connected: neo4jStatus.success,
+            message: neo4jStatus.success ? "Connection successful." : neo4jStatus.error,
+          },
+        },
+      };
+
+      if (!neo4jStatus.success) {
+        console.error(chalk.yellow("[Health Check] Neo4j connection failed."), healthStatus);
+        res.status(503).json(healthStatus); // 503 Service Unavailable
+      } else {
+        console.log(chalk.green("[Health Check] All systems nominal."));
+        res.status(200).json(healthStatus);
+      }
+    });
+
     this.app.post("/api/system/start", async (req, res) => {
       const { goal } = req.body;
       if (!goal) return res.status(400).json({ error: "'goal' is required." });
@@ -29,17 +53,40 @@ export class Engine {
         console.log("[Engine] Triggering initial code indexing...");
         await codeIntelligenceService.scanAndIndexProject(process.cwd());
         console.log("[Engine] Code indexing complete.");
-      } catch (error) {
-        console.warn(
-          chalk.yellow(
-            "[Engine] Automatic code indexing failed. Code-aware features will be limited. Please check Neo4j connection and credentials."
-          ),
-          error.message
-        );
-      }
 
-      this.start();
-      res.json({ message: "Project initiated." });
+        // --- FIX: Only start the engine if indexing succeeds ---
+        this.start();
+        res.json({ message: "Project initiated." });
+      } catch (error) {
+        // --- FIX: Provide a loud, clear error on indexing failure ---
+        console.error(
+          chalk.red.bold(
+            "\n--- CRITICAL ERROR: Code Intelligence Indexing Failed ---"
+          )
+        );
+        console.error(
+          chalk.red(
+            "The Stigmergy engine failed to connect to its Neo4j database."
+          )
+        );
+        console.error(
+          chalk.red(
+            "Please check that your Neo4j Desktop application is running and that the"
+          )
+        );
+        console.error(
+          chalk.red(
+            "NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in your .env file are correct."
+          )
+        );
+        console.error(chalk.red.dim(`\nOriginal error: ${error.message}\n`));
+
+        // Send a server error response and do NOT start the engine.
+        res.status(500).json({
+          error: "Failed to start engine due to Neo4j connection failure.",
+          details: error.message,
+        });
+      }
     });
     this.app.post("/api/control/pause", async (req, res) => {
       await this.stop("Paused by user");
