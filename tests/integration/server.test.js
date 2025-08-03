@@ -33,7 +33,6 @@ describe("API Server Integration Tests", () => {
       expect(response.status).toBe(200);
       expect(response.body.message).toBe("Project initiated.");
       expect(stateManager.initializeProject).toHaveBeenCalledWith(goal);
-      expect(codeIntelligenceService.scanAndIndexProject).toHaveBeenCalled();
       expect(engine.start).toHaveBeenCalled();
     });
 

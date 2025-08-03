@@ -60,56 +60,9 @@ export class Engine {
       if (!goal) return res.status(400).json({ error: "'goal' is required." });
       await stateManager.initializeProject(goal);
 
-      try {
-        console.log("[Engine] Triggering initial code indexing...");
-        await codeIntelligenceService.scanAndIndexProject(process.cwd());
-        console.log("[Engine] Code indexing complete.");
-
-        // --- FIX: Only start the engine if indexing succeeds ---
-        this.start();
-        res.json({ message: "Project initiated." });
-      } catch (error) {
-        // --- FIX: Provide a loud, clear error on indexing failure ---
-        const boxen = (await import("boxen")).default;
-        const errorMessage = [
-          chalk.red.bold("Stigmergy Engine Failed to Start"),
-          "",
-          "The connection to the Neo4j database failed. This is a critical error",
-          "that prevents the AI from understanding and working with your codebase.",
-          "",
-          chalk.yellow.bold("Common Causes:"),
-          "1. Neo4j Desktop application is not running.",
-          "2. Incorrect credentials in your `.env` file.",
-          "   - NEO4J_URI (e.g., neo4j://localhost)",
-          "   - NEO4J_USER (e.g., neo4j)",
-          "   - NEO4J_PASSWORD (your-password)",
-          "",
-          chalk.cyan.bold("Next Steps:"),
-          "1. Ensure the Neo4j Desktop app is open and the correct database is 'Active'.",
-          "2. Double-check your `.env` file for typos.",
-          "3. Run `npm run test:neo4j` to diagnose the connection.",
-          "",
-          chalk.red.dim(`Original error: ${error.message}`),
-        ].join("\n");
-
-        console.error(
-          boxen(errorMessage, {
-            padding: 1,
-            margin: 1,
-            borderStyle: "double",
-            borderColor: "red",
-            title: "CRITICAL DATABASE ERROR",
-            titleAlignment: "center",
-          })
-        );
-
-        // Send a server error response and do NOT start the engine.
-        res.status(500).json({
-          error:
-            "Failed to start engine due to Neo4j connection failure. Check the server logs for details.",
-          details: error.message,
-        });
-      }
+      // The indexing is now handled on startup. We just need to start the engine here.
+      this.start();
+      res.json({ message: "Project initiated." });
     });
     this.app.post("/api/control/pause", async (req, res) => {
       await this.stop("Paused by user");
@@ -238,6 +191,16 @@ export async function main() {
   }
 
   console.log(chalk.green("[Server] Neo4j connection successful."));
+
+  try {
+    console.log(chalk.blue("[Engine] Starting initial code indexing..."));
+    await codeIntelligenceService.scanAndIndexProject(process.cwd());
+    console.log(chalk.green("[Engine] Code indexing complete."));
+  } catch (error) {
+    console.error(chalk.red.bold("Failed to index project during startup."), error);
+    // We can choose to exit here if indexing is absolutely critical for any operation
+    process.exit(1);
+  }
 
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
