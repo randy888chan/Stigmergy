@@ -20,6 +20,17 @@ export class Engine {
   }
 
   setupRoutes() {
+    // --- NEW: Root Endpoint ---
+    this.app.get("/", async (req, res) => {
+      const neo4jStatus = await codeIntelligenceService.checkConnection();
+      res.json({
+        status: "Stigmergy Engine is running.",
+        engineStatus: this.isEngineRunning ? "ENGAGED" : "IDLE",
+        neo4jConnection: neo4jStatus,
+        message: "Use the /api endpoints to interact with the engine.",
+      });
+    });
+
     // --- NEW: Health Check Endpoint ---
     this.app.get("/api/system/health", async (req, res) => {
       console.log("[Server] Received health check request.");
@@ -181,10 +192,53 @@ export class Engine {
 const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 
 export async function main() {
-  // --- FIX: Instantiate the engine HERE, inside the main execution block ---
   const engine = new Engine();
-
   const mcpServer = new McpServer({ name: "stigmergy-engine", version: "2.1.0" });
+
+  // --- NEW: Pre-flight check for Neo4j ---
+  console.log(chalk.blue("[Server] Checking Neo4j database connection..."));
+  const neo4jStatus = await codeIntelligenceService.checkConnection();
+
+  if (!neo4jStatus.success) {
+    const boxen = (await import("boxen")).default;
+    const errorMessage = [
+      chalk.red.bold("Stigmergy Engine Failed to Start"),
+      "",
+      "A connection to the Neo4j database could not be established.",
+      "This is a critical requirement for the AI to function.",
+      "",
+      chalk.yellow.bold("Common Causes:"),
+      "1. The Neo4j Desktop application is not running.",
+      "2. Incorrect credentials in your `.env` file.",
+      "   - NEO4J_URI (e.g., neo4j://localhost)",
+      "   - NEO4J_USER (e.g., neo4j)",
+      "   - NEO4J_PASSWORD (your-password)",
+      "",
+      chalk.cyan.bold("Next Steps:"),
+      "1. Ensure the Neo4j Desktop app is open and the correct database is 'Active'.",
+      "2. Verify your `.env` file credentials match the database.",
+      "3. Run `npm run test:neo4j` to diagnose the connection.",
+      "",
+      chalk.red.dim(`Underlying error: ${neo4jStatus.error}`),
+    ].join("\n");
+
+    console.error(
+      boxen(errorMessage, {
+        padding: 1,
+        margin: 1,
+        borderStyle: "double",
+        borderColor: "red",
+        title: "CRITICAL DATABASE ERROR",
+        titleAlignment: "center",
+      })
+    );
+
+    // Exit the process with an error code
+    process.exit(1);
+  }
+
+  console.log(chalk.green("[Server] Neo4j connection successful."));
+
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
 
