@@ -29,7 +29,7 @@ const config = {
   },
 
   features: {
-    neo4j: true,
+    neo4j: "auto", // Options: 'required', 'auto', 'memory'
     businessTools: false,
     advancedResearch: true,
   },
