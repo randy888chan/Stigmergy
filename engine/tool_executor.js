@@ -9,6 +9,7 @@ import * as business from "../tools/business_tools.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import { clearFileCache } from "./llm_adapter.js";
+import { EnhancedError, withRetry } from "../utils/errorHandler.js";
 
 const MANIFEST_PATH = path.join(
   process.cwd(),
@@ -75,28 +76,44 @@ class PermissionDeniedError extends Error {
 }
 
 export async function execute(toolName, args, agentId) {
-  const manifest = await getManifest();
-  const agentConfig = manifest.agents.find((a) => a.id === agentId);
-  if (!agentConfig) throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
-
-  const isPermitted = (agentConfig.tools || []).some((p) =>
-    p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
-  );
-  if (!isPermitted)
-    throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
-
-  const [namespace, funcName] = toolName.split(".");
-  if (!toolbelt[namespace]?.[funcName]) throw new Error(`Tool '${toolName}' not found.`);
-
   try {
-    const result = await toolbelt[namespace][funcName]({ ...args, agentConfig });
+    const manifest = await getManifest();
+    const agentConfig = manifest.agents.find((a) => a.id === agentId);
+    if (!agentConfig) {
+      throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
+    }
+
+    const isPermitted = (agentConfig.tools || []).some((p) =>
+      p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
+    );
+    if (!isPermitted) {
+      throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
+    }
+
+    const [namespace, funcName] = toolName.split(".");
+    if (!toolbelt[namespace]?.[funcName]) {
+      throw new Error(`Tool '${toolName}' not found.`);
+    }
+
+    const toolFn = withRetry(toolbelt[namespace][funcName]);
+    const result = await toolFn({ ...args, agentConfig });
 
     if (toolName.startsWith("file_system.write")) {
       clearFileCache();
     }
 
     return JSON.stringify(result, null, 2);
-  } catch (e) {
-    throw e;
+  } catch (error) {
+    const remediationMap = {
+      Neo4jConnectionError: "Run `npm run test:neo4j` to diagnose database connection",
+      MissingApiKeyError: `Add ${error.key_name} to your .env file`,
+      PermissionDeniedError: "Check agent permissions in manifest",
+    };
+
+    throw new EnhancedError(
+      error.message,
+      error.name,
+      remediationMap[error.name] || "Check logs and report issue"
+    );
   }
 }
