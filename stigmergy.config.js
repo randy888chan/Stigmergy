@@ -9,12 +9,34 @@ const config = {
   proposalsPath: "system-proposals",
 
   // --- Agent Preferences ---
-  executor_preference: "gemini", // Options: 'gemini' or 'native'.
+  executor_preference: "gemini",
 
-  // --- Logging & Debugging ---
-  logging: {
-    debug_log: path.join(".ai", "debug.log"),
-    agent_core_dump: path.join(".ai", "core-dump.md"),
+  // --- Safety and Performance Settings ---
+  security: {
+    allowedDirs: [
+      "src",
+      "public",
+      "docs",
+      "tests",
+      "scripts",
+      ".ai",
+      "services",
+      "engine",
+      "stories",
+      "system-proposals",
+    ],
+    maxFileSizeMB: 5,
+  },
+
+  features: {
+    neo4j: true,
+    businessTools: false,
+    advancedResearch: true,
+  },
+
+  performance: {
+    maxMemoryMB: 768,
+    llmCacheTTL: 300, // 5 minutes
   },
 
   // --- Core Project Planning Documents ---
@@ -44,23 +66,6 @@ const config = {
     "docs/architecture/coding-standards.md",
     "docs/architecture/rest-api-spec.md",
   ],
-
-  // Safety and performance settings
-  security: {
-    allowedDirs: ["src", "docs", "public", "tests", ".ai"],
-    maxFileSizeMB: 5,
-  },
-
-  features: {
-    neo4j: true,
-    businessTools: false,
-    advancedResearch: true,
-  },
-
-  performance: {
-    maxMemoryMB: 768,
-    llmCacheTTL: 300, // 5 minutes
-  },
 };
 
 export default config;

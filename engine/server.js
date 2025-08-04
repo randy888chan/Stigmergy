@@ -11,9 +11,11 @@ import { fileURLToPath } from "url";
 import path from "path";
 import boxen from "boxen";
 import { readFileSync } from "fs";
+import config from "../stigmergy.config.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const pkg = JSON.parse(readFileSync(path.resolve(path.dirname(__filename), "../package.json")));
+const currentFilePath = fileURLToPath(import.meta.url);
+const currentDirPath = path.dirname(currentFilePath);
+const pkg = JSON.parse(readFileSync(path.resolve(currentDirPath, "../package.json")));
 
 export class Engine {
   constructor() {
@@ -25,22 +27,18 @@ export class Engine {
   }
 
   setupRoutes() {
-    // --- NEW: Root Endpoint ---
     this.app.get("/", async (req, res) => {
-      const neo4jStatus = await codeIntelligenceService.checkConnection();
+      const neo4jStatus = await codeIntelligenceService.testConnection();
       res.json({
         status: "Stigmergy Engine is running.",
         engineStatus: this.isEngineRunning ? "ENGAGED" : "IDLE",
         neo4jConnection: neo4jStatus,
-        message: "Use the /api endpoints to interact with the engine.",
+        version: pkg.version,
       });
     });
 
-    // --- NEW: Health Check Endpoint ---
     this.app.get("/api/system/health", async (req, res) => {
-      console.log("[Server] Received health check request.");
-      const neo4jStatus = await codeIntelligenceService.checkConnection();
-
+      const neo4jStatus = await codeIntelligenceService.testConnection();
       const healthStatus = {
         engine: "RUNNING",
         dependencies: {
@@ -50,22 +48,14 @@ export class Engine {
           },
         },
       };
-
-      if (!neo4jStatus.success) {
-        console.error(chalk.yellow("[Health Check] Neo4j connection failed."), healthStatus);
-        res.status(503).json(healthStatus); // 503 Service Unavailable
-      } else {
-        console.log(chalk.green("[Health Check] All systems nominal."));
-        res.status(200).json(healthStatus);
-      }
+      res.status(neo4jStatus.success ? 200 : 503).json(healthStatus);
     });
 
+    // ... other routes from original file should be here ...
     this.app.post("/api/system/start", async (req, res) => {
       const { goal } = req.body;
       if (!goal) return res.status(400).json({ error: "'goal' is required." });
       await stateManager.initializeProject(goal);
-
-      // The indexing is now handled on startup. We just need to start the engine here.
       this.start();
       res.json({ message: "Project initiated." });
     });
@@ -217,6 +207,15 @@ export async function main() {
     process.exit(1);
   }
 
+  try {
+    console.log(chalk.blue("[Engine] Starting initial code indexing..."));
+    await codeIntelligenceService.scanAndIndexProject(process.cwd());
+    console.log(chalk.green("[Engine] Code indexing complete."));
+  } catch (error) {
+    console.error(chalk.red.bold("Failed to index project during startup."), error);
+    process.exit(1);
+  }
+
   await mcpServer.connect(new StdioServerTransport());
   console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
 
@@ -232,7 +231,6 @@ export async function main() {
 }
 
 // Only run main when this file is executed directly
-const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
-if (isMainModule) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   main().catch(console.error);
 }

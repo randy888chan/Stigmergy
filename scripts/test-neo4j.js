@@ -69,6 +69,7 @@ async function testNeo4jConnection() {
           })
         );
       } else {
+        console.log(`Retrying in 2s... (${i}/3)`);
         await new Promise((resolve) => setTimeout(resolve, 2000));
       }
     }
