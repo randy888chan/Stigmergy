@@ -1,12 +1,13 @@
 import codeIntelligenceService from "../services/code_intelligence_service.js";
+import { cachedQuery } from "../utils/queryCache.js";
 
 export async function findUsages({ symbolName }) {
   return codeIntelligenceService.findUsages({ symbolName });
 }
 
-export async function getDefinition({ symbolName }) {
-  return codeIntelligenceService.getDefinition({ symbolName });
-}
+export const getDefinition = cachedQuery("getDefinition", ({ symbolName }) =>
+  codeIntelligenceService.getDefinition({ symbolName })
+);
 
 export async function getModuleDependencies({ filePath }) {
   return codeIntelligenceService.getModuleDependencies({ filePath });

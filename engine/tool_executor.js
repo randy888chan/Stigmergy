@@ -9,7 +9,9 @@ import * as business from "../tools/business_tools.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import { clearFileCache } from "./llm_adapter.js";
-import { EnhancedError, withRetry } from "../utils/errorHandler.js";
+import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
+
+const retryableTools = ["research.deep_dive", "code_intelligence.getDefinition", "gemini.execute"];
 
 const MANIFEST_PATH = path.join(
   process.cwd(),
@@ -95,25 +97,26 @@ export async function execute(toolName, args, agentId) {
       throw new Error(`Tool '${toolName}' not found.`);
     }
 
-    const toolFn = withRetry(toolbelt[namespace][funcName]);
-    const result = await toolFn({ ...args, agentConfig });
+    const toolFn = toolbelt[namespace][funcName];
+    const shouldRetry = retryableTools.includes(toolName);
+    const executor = shouldRetry ? withRetry(toolFn) : toolFn;
+
+    const result = await executor({ ...args, agentConfig });
 
     if (toolName.startsWith("file_system.write")) {
       clearFileCache();
     }
-
     return JSON.stringify(result, null, 2);
   } catch (error) {
-    const remediationMap = {
-      Neo4jConnectionError: "Run `npm run test:neo4j` to diagnose database connection",
-      MissingApiKeyError: `Add ${error.key_name} to your .env file`,
-      PermissionDeniedError: "Check agent permissions in manifest",
-    };
+    let errorType = ERROR_TYPES.TOOL_EXECUTION;
 
-    throw new EnhancedError(
-      error.message,
-      error.name,
-      remediationMap[error.name] || "Check logs and report issue"
+    if (error.name.includes("Neo4j")) errorType = ERROR_TYPES.DB_CONNECTION;
+    if (error.name === "PermissionDeniedError") errorType = ERROR_TYPES.PERMISSION_DENIED;
+
+    throw new OperationalError(
+      `[${agentId}] ${error.message}`,
+      errorType,
+      remediationMap[errorType]
     );
   }
 }
