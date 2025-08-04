@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import lockfile from "proper-lockfile";
 import { v4 as uuidv4 } from "uuid";
+import config from "../stigmergy.config.js";
 
 const getStateFilePath = () => path.resolve(process.cwd(), ".ai", "state.json");
 const getLockPath = () => `${getStateFilePath()}.lock`;
@@ -15,17 +16,23 @@ async function _writeStateUnsafe(state) {
 }
 
 async function withLock(operation) {
+  if (config.features.useSqliteState) {
+    return stateService.withLock(operation);
+  }
+
+  // Original file-based locking
   const stateFilePath = getStateFilePath();
-  // Ensure the file exists before locking. If it doesn't, create an empty object.
   if (!(await fs.pathExists(stateFilePath))) {
     await _writeStateUnsafe({});
   }
 
-  const lockPath = getLockPath();
-  await fs.ensureDir(path.dirname(lockPath));
+  const lockPath = `${stateFilePath}.lock`;
   let release;
   try {
-    release = await lockfile.lock(stateFilePath, { retries: 5, lockfilePath: lockPath });
+    release = await lockfile.lock(stateFilePath, {
+      retries: { retries: 5, maxTimeout: 1000 },
+      lockfilePath: lockPath,
+    });
     return await operation();
   } finally {
     if (release) await release();

@@ -8,26 +8,26 @@ async function testNeo4jConnection() {
   const user = process.env.NEO4J_USER;
   const password = process.env.NEO4J_PASSWORD;
 
-  console.log(chalk.cyan("Attempting to connect to Neo4j..."));
-  console.log(`  URI: ${uri ? uri : chalk.yellow("Not Found!")}`);
-  console.log(`  User: ${user ? user : chalk.yellow("Not Found!")}`);
-  console.log(`  Password: ${password ? "******" : chalk.yellow("Not Found!")}`);
-  console.log("\n");
+  console.log(chalk.blue("Testing Neo4j Connection..."));
 
   if (!uri || !user || !password) {
     const errorMessage = [
-      chalk.red.bold("Connection Test Failed"),
+      chalk.red.bold("Configuration Error"),
       "",
-      "One or more required environment variables are missing.",
-      "Please ensure NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD are set in your .env file.",
+      "Missing required environment variables:",
+      `- NEO4J_URI: ${uri ? "Found" : "Missing"}`,
+      `- NEO4J_USER: ${user ? "Found" : "Missing"}`,
+      `- NEO4J_PASSWORD: ${password ? "******" : "Missing"}`,
+      "",
+      "Please check your .env file",
     ].join("\n");
+
     console.error(
       boxen(errorMessage, {
         padding: 1,
         margin: 1,
         borderStyle: "double",
         borderColor: "red",
-        title: "CONFIGURATION ERROR",
       })
     );
     return;
@@ -35,48 +35,58 @@ async function testNeo4jConnection() {
 
   const driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
 
-  try {
-    await driver.verifyConnectivity();
-    const successMessage = [
-      chalk.green.bold("Connection Test Successful!"),
-      "",
-      "Successfully connected to the Neo4j database.",
-      "The Stigmergy engine should now be able to start correctly.",
-    ].join("\n");
+  // Test with retries
+  let connected = false;
+  for (let i = 1; i <= 3; i++) {
+    try {
+      console.log(`Connection attempt ${i}/3...`);
+      await driver.verifyConnectivity();
+      connected = true;
+      break;
+    } catch (error) {
+      if (i === 3) {
+        const errorMessage = [
+          chalk.red.bold("Connection Failed"),
+          "",
+          `URI: ${uri}`,
+          `User: ${user}`,
+          "",
+          "Possible causes:",
+          "1. Neo4j Desktop not running",
+          "2. Database not active",
+          "3. Network/firewall issues",
+          "",
+          chalk.dim(`Error: ${error.message}`),
+        ].join("\n");
+
+        console.error(
+          boxen(errorMessage, {
+            padding: 1,
+            margin: 1,
+            borderStyle: "double",
+            borderColor: "red",
+            title: "CONNECTION FAILED",
+          })
+        );
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+    }
+  }
+
+  if (connected) {
     console.log(
-      boxen(successMessage, {
+      boxen(chalk.green("✓ Connection Successful"), {
         padding: 1,
         margin: 1,
         borderStyle: "double",
         borderColor: "green",
-        title: "CONNECTION OK",
+        title: "NEO4J CONNECTION",
       })
     );
-  } catch (error) {
-    const errorMessage = [
-      chalk.red.bold("Connection Test Failed"),
-      "",
-      "Could not connect to the Neo4j database with the provided credentials.",
-      "",
-      chalk.yellow.bold("Common Causes:"),
-      "1. Neo4j Desktop application is not running.",
-      '2. The database is not set to "Active" in Neo4j Desktop.',
-      "3. Incorrect credentials (URI, User, or Password) in your .env file.",
-      "",
-      chalk.red.dim(`Original error: ${error.message}`),
-    ].join("\n");
-    console.error(
-      boxen(errorMessage, {
-        padding: 1,
-        margin: 1,
-        borderStyle: "double",
-        borderColor: "red",
-        title: "CONNECTION FAILED",
-      })
-    );
-  } finally {
-    await driver.close();
   }
+
+  await driver.close();
 }
 
 testNeo4jConnection();

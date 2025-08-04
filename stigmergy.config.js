@@ -44,6 +44,23 @@ const config = {
     "docs/architecture/coding-standards.md",
     "docs/architecture/rest-api-spec.md",
   ],
+
+  // Safety and performance settings
+  security: {
+    allowedDirs: ["src", "docs", "public", "tests", ".ai"],
+    maxFileSizeMB: 5,
+  },
+
+  features: {
+    neo4j: true,
+    businessTools: false,
+    advancedResearch: true,
+  },
+
+  performance: {
+    maxMemoryMB: 768,
+    llmCacheTTL: 300, // 5 minutes
+  },
 };
 
 export default config;
