@@ -245,7 +245,19 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
       if (agentId) {
         const agentMdPath = path.join(coreSourceDir, "agents", `${agentId}.md`);
         if (await fs.pathExists(agentMdPath)) {
-          mode.roleDefinition = await fs.readFile(agentMdPath, "utf8");
+          const agentContent = await fs.readFile(agentMdPath, "utf8");
+          const yamlMatch =
+            agentContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/) ||
+            agentContent.match(/([\s\S]*)/);
+          if (yamlMatch) {
+            const agentData = yaml.load(yamlMatch[1]);
+            if (agentData.persona && agentData.persona.role) {
+              mode.roleDefinition = agentData.persona.role;
+            }
+            if (agentData.agent && agentData.agent.name && agentData.agent.icon) {
+              mode.name = `${agentData.agent.icon} ${agentData.agent.name}`;
+            }
+          }
         }
         // Add the API configuration for project-sourced agents
         mode.api = {
