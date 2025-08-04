@@ -10,6 +10,7 @@ const pkg = require("../package.json");
 import { run as runInstaller } from "../installer/install.js";
 import { main as startEngine } from "../engine/server.js";
 import { runBuilder } from "../builder/prompt_builder.js";
+import open from "open";
 
 const program = new Command();
 
@@ -47,6 +48,14 @@ program
   .description("Starts the Stigmergy engine server.")
   .action(async () => {
     await startEngine();
+  });
+
+program
+  .command("dashboard")
+  .description("Open state visualization dashboard")
+  .action(() => {
+    import("../dashboard/server.js");
+    open("http://localhost:8080");
   });
 
 async function main() {

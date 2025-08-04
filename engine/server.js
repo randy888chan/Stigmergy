@@ -12,6 +12,7 @@ import path from "path";
 import boxen from "boxen";
 import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
+import { Spinner } from "cli-spinner";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -167,16 +168,32 @@ export class Engine {
   }
 
   async runLoop() {
-    if (!this.isEngineRunning) return;
+    const spinner = new Spinner({
+      text: "Processing tasks %s",
+      stream: process.stderr,
+      onTick: function (msg) {
+        this.clearLine(this.stream);
+        this.stream.write(msg);
+      },
+    });
+
+    spinner.setSpinnerString("|/-\\");
+    spinner.start();
+
     try {
-      const state = await stateManager.getState();
-      await this.dispatchAgentForState(state);
+      while (this.isEngineRunning) {
+        const state = await stateManager.getState();
+        spinner.text = `[${state.project_status}] ${state.currentTask || "Preparing..."}`;
+
+        await this.dispatchAgentForState(state);
+
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
     } catch (error) {
       console.error(chalk.red("[Engine] Error in loop:"), error);
       await this.stop("Error");
-    }
-    if (this.isEngineRunning) {
-      this.engineLoopHandle = setTimeout(() => this.runLoop(), 5000);
+    } finally {
+      spinner.stop(true);
     }
   }
 
@@ -201,6 +218,14 @@ export async function main() {
 
   // Show system status before starting
   await engine.logSystemStatus();
+
+  // Enable incremental indexing
+  await codeIntelligenceService.enableIncrementalIndexing(process.cwd());
+
+  // Start dashboard server
+  if (config.features.dashboard) {
+    import("../dashboard/server.js");
+  }
 
   const neo4jStatus = await codeIntelligenceService.testConnection();
   if (!neo4jStatus.success) {

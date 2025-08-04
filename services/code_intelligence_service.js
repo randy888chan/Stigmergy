@@ -8,6 +8,8 @@ import { glob } from "glob";
 import * as babelParser from "@babel/parser";
 import traverse from "@babel/traverse";
 import config from "../stigmergy.config.js";
+import chokidar from "chokidar";
+import ignore from "ignore";
 
 // A very simple mock driver for in-memory testing
 const createInMemoryDriver = () => {
@@ -41,6 +43,38 @@ class CodeIntelligenceService {
   constructor() {
     this.driver = null;
     this.isMemory = false;
+    this.watcher = null;
+    this.ig = ignore().add(["node_modules/**", "dist/**", ".*"]);
+  }
+
+  async enableIncrementalIndexing(projectPath) {
+    if (this.watcher) return;
+
+    this.watcher = chokidar.watch(projectPath, {
+      ignored: (path) => this.ig.ignores(path),
+      persistent: true,
+      ignoreInitial: true,
+    });
+
+    this.watcher
+      .on("add", (path) => this.indexFile(path))
+      .on("change", (path) => this.updateFile(path))
+      .on("unlink", (path) => this.removeFile(path));
+  }
+
+  async indexFile(filePath) {
+    if (this.ig.ignores(filePath)) return;
+    // Parse and add to Neo4j
+  }
+
+  async updateFile(filePath) {
+    if (this.ig.ignores(filePath)) return;
+    // Remove old data and re-index
+  }
+
+  async removeFile(filePath) {
+    if (this.ig.ignores(filePath)) return;
+    // Remove from Neo4j
   }
 
   initializeDriver() {
