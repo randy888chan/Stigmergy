@@ -2,6 +2,13 @@
 schema_version: 5.5
 
 agents:
+  # --- System ---
+  - id: system
+    alias: system
+    name: "System Controller"
+    icon: "⚙️"
+    tools: [system.executeCommand]
+
   # --- Dispatcher ---
   - id: dispatcher
     alias: saul

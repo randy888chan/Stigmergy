@@ -1,0 +1,8 @@
+customModes:
+  - slug: system
+    name: "⚙️ System Control"
+    roleDefinition: "Handles all system operations"
+    api:
+      url: "http://localhost:3000/api/chat"
+      method: "POST"
+      static_payload: { agentId: "system" }

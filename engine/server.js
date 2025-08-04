@@ -4,8 +4,9 @@ import { Server as McpServer } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import * as stateManager from "./state_manager.js";
 import { getCompletion } from "./llm_adapter.js";
-import { execute as executeTool } from "./tool_executor.js";
+import { createExecutor } from "./tool_executor.js";
 import codeIntelligenceService from "../services/code_intelligence_service.js";
+import dashboardRouter from "./dashboard.js";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -24,6 +25,7 @@ export class Engine {
     this.engineLoopHandle = null;
     this.app = express();
     this.app.use(express.json());
+    this.executeTool = createExecutor(this);
     this.setupRoutes();
   }
 
@@ -52,23 +54,19 @@ export class Engine {
       res.status(neo4jStatus.success ? 200 : 503).json(healthStatus);
     });
 
-    // ... other routes from original file should be here ...
-    this.app.post("/api/system/start", async (req, res) => {
-      const { goal } = req.body;
-      if (!goal) return res.status(400).json({ error: "'goal' is required." });
-      await stateManager.initializeProject(goal);
-      this.start();
-      res.json({ message: "Project initiated." });
-    });
-    this.app.post("/api/control/pause", async (req, res) => {
-      await this.stop("Paused by user");
-      await stateManager.pauseProject();
-      res.json({ message: "Engine has been paused." });
-    });
-    this.app.post("/api/control/resume", async (req, res) => {
-      await stateManager.resumeProject();
-      this.start();
-      res.json({ message: "Engine has been resumed." });
+    this.app.use("/dashboard", dashboardRouter);
+
+    this.app.post("/api/chat", async (req, res) => {
+      const { agentId, prompt, taskId } = req.body;
+      if (!agentId || !prompt) {
+        return res.status(400).json({ error: "agentId and prompt are required." });
+      }
+      try {
+        const result = await this.triggerAgent(agentId, prompt, taskId);
+        res.json({ response: result });
+      } catch (error) {
+        res.status(500).json({ error: error.message });
+      }
     });
   }
 
@@ -138,7 +136,7 @@ export class Engine {
     }
 
     if (response.action?.tool) {
-      return executeTool(response.action.tool, response.action.args, agentId);
+      return this.executeTool(response.action.tool, response.action.args, agentId);
     }
     return response.thought;
   }
@@ -221,11 +219,6 @@ export async function main() {
 
   // Enable incremental indexing
   await codeIntelligenceService.enableIncrementalIndexing(process.cwd());
-
-  // Start dashboard server
-  if (config.features.dashboard) {
-    import("../dashboard/server.js");
-  }
 
   const neo4jStatus = await codeIntelligenceService.testConnection();
   if (!neo4jStatus.success) {

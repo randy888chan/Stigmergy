@@ -31,44 +31,9 @@ async function getManifest() {
   if (!yamlMatch) {
     throw new Error(`Could not parse YAML from manifest file: ${MANIFEST_PATH}`);
   }
-  // yamlMatch[1] is the actual YAML content
   agentManifest = yaml.load(yamlMatch[1]);
   return agentManifest;
 }
-
-const system = {
-  updateStatus: async ({ status, message, artifact_created }) => {
-    await stateManager.updateStatus({ newStatus: status, message, artifact_created });
-    return `Status updated to ${status}.`;
-  },
-  approveExecution: async () => {
-    await stateManager.updateStatus({
-      newStatus: "EXECUTION_IN_PROGRESS",
-      message: "User approved execution.",
-    });
-    return "Execution approved. The engine will now begin executing tasks.";
-  },
-};
-
-const stigmergy = {
-  createBlueprint: async ({ proposal }) => {
-    const filePath = path.join(process.cwd(), "system-proposals", `proposal-${Date.now()}.yml`);
-    await fs.ensureDir(path.dirname(filePath));
-    await fs.writeFile(filePath, proposal);
-    return `Improvement blueprint created at ${filePath}`;
-  },
-};
-
-const toolbelt = {
-  file_system: fileSystem,
-  shell: shell,
-  research: research,
-  code_intelligence: codeIntelligence,
-  gemini: gemini_cli_tool,
-  business: business,
-  system: system,
-  stigmergy: stigmergy,
-};
 
 class PermissionDeniedError extends Error {
   constructor(message) {
@@ -77,46 +42,112 @@ class PermissionDeniedError extends Error {
   }
 }
 
-export async function execute(toolName, args, agentId) {
-  try {
-    const manifest = await getManifest();
-    const agentConfig = manifest.agents.find((a) => a.id === agentId);
-    if (!agentConfig) {
-      throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
+export function createExecutor(engine) {
+  const system = {
+    executeCommand: async ({ command }) => {
+      const normalized = command.toLowerCase().trim();
+
+      if (normalized.startsWith("start project")) {
+        const goal = command.replace(/start project/i, "").trim();
+        await stateManager.initializeProject(goal);
+        engine.start();
+        return `Project started: ${goal}`;
+      }
+
+      switch (normalized) {
+        case "pause":
+        case "stop":
+          await engine.stop("Paused by user");
+          return "Engine paused";
+
+        case "resume":
+        case "continue":
+          engine.start();
+          return "Engine resumed";
+
+        case "status":
+          return stateManager.getState();
+
+        case "help":
+          return `Available commands:
+          - start project [your goal]
+          - pause/stop
+          - resume/continue
+          - status`;
+
+        default:
+          throw new Error(`Unknown command: ${command}`);
+      }
+    },
+  };
+
+  const stigmergy = {
+    createBlueprint: async ({ proposal }) => {
+      const filePath = path.join(process.cwd(), "system-proposals", `proposal-${Date.now()}.yml`);
+      await fs.ensureDir(path.dirname(filePath));
+      await fs.writeFile(filePath, proposal);
+      return `Improvement blueprint created at ${filePath}`;
+    },
+  };
+
+  const toolbelt = {
+    file_system: fileSystem,
+    shell: shell,
+    research: research,
+    code_intelligence: codeIntelligence,
+    gemini: gemini_cli_tool,
+    business: business,
+    system: system,
+    stigmergy: stigmergy,
+  };
+
+  return async function execute(toolName, args, agentId) {
+    try {
+      const manifest = await getManifest();
+      const agentConfig = manifest.agents.find((a) => a.id === agentId);
+      if (!agentConfig) {
+        throw new PermissionDeniedError(`Agent '${agentId}' not found.`);
+      }
+
+      const isPermitted = (agentConfig.tools || []).some((p) =>
+        p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
+      );
+      if (!isPermitted) {
+        throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
+      }
+
+      const [namespace, funcName] = toolName.split(".");
+      if (!toolbelt[namespace]?.[funcName]) {
+        throw new Error(`Tool '${toolName}' not found.`);
+      }
+
+      const toolFn = toolbelt[namespace][funcName];
+      const shouldRetry = retryableTools.includes(toolName);
+      const executor = shouldRetry ? withRetry(toolFn) : toolFn;
+
+      const result = await executor({ ...args, agentConfig });
+
+      if (toolName.startsWith("file_system.write")) {
+        clearFileCache();
+      }
+      return JSON.stringify(result, null, 2);
+    } catch (error) {
+      let errorType = ERROR_TYPES.TOOL_EXECUTION;
+
+      if (error.name.includes("Neo4j")) errorType = ERROR_TYPES.DB_CONNECTION;
+      if (error.name === "PermissionDeniedError") errorType = ERROR_TYPES.PERMISSION_DENIED;
+
+      throw new OperationalError(
+        `[${agentId}] ${error.message}`,
+        errorType,
+        remediationMap[errorType]
+      );
     }
+  };
+}
 
-    const isPermitted = (agentConfig.tools || []).some((p) =>
-      p.endsWith(".*") ? toolName.startsWith(p.slice(0, -1)) : toolName === p
-    );
-    if (!isPermitted) {
-      throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
-    }
-
-    const [namespace, funcName] = toolName.split(".");
-    if (!toolbelt[namespace]?.[funcName]) {
-      throw new Error(`Tool '${toolName}' not found.`);
-    }
-
-    const toolFn = toolbelt[namespace][funcName];
-    const shouldRetry = retryableTools.includes(toolName);
-    const executor = shouldRetry ? withRetry(toolFn) : toolFn;
-
-    const result = await executor({ ...args, agentConfig });
-
-    if (toolName.startsWith("file_system.write")) {
-      clearFileCache();
-    }
-    return JSON.stringify(result, null, 2);
-  } catch (error) {
-    let errorType = ERROR_TYPES.TOOL_EXECUTION;
-
-    if (error.name.includes("Neo4j")) errorType = ERROR_TYPES.DB_CONNECTION;
-    if (error.name === "PermissionDeniedError") errorType = ERROR_TYPES.PERMISSION_DENIED;
-
-    throw new OperationalError(
-      `[${agentId}] ${error.message}`,
-      errorType,
-      remediationMap[errorType]
-    );
+export function _resetManifestCache() {
+  if (process.env.NODE_ENV === "test") {
+    agentManifest = null;
   }
 }

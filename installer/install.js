@@ -115,29 +115,15 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
 
   const modes = [
     {
-      slug: "system-pause",
-      name: "⏸️ Pause Engine",
-      roleDefinition: "Pause the autonomous engine.",
-      api: { url: `${ENGINE_URL}/api/control/pause`, method: "POST" },
-      groups: ["command"],
-    },
-    {
-      slug: "system-resume",
-      name: "▶️ Resume Engine",
-      roleDefinition: "Resume the autonomous engine.",
-      api: { url: `${ENGINE_URL}/api/control/resume`, method: "POST" },
-      groups: ["command"],
-    },
-    {
-      slug: "system-start",
-      name: "🚀 Start Project",
-      roleDefinition: "Provide a high-level goal to start a new project.",
+      slug: "system",
+      name: "⚙️ System Control",
+      roleDefinition: "Handles all system operations",
+      source: "project",
       api: {
-        url: `${ENGINE_URL}/api/system/start`,
+        url: `${ENGINE_URL}/api/chat`,
         method: "POST",
-        body: '{"goal": "{{prompt}}"}',
+        static_payload: { agentId: "system" },
       },
-      groups: ["command"],
     },
     {
       slug: "gemma",
