@@ -5,12 +5,78 @@ import chalk from "chalk";
 import ora from "ora";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
+import inquirer from "inquirer";
+import figlet from "figlet";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const CORE_SOURCE_DIR = path.resolve(__dirname, "..", ".stigmergy-core");
 const CWD = process.cwd();
+
+function showNeo4jDiagram() {
+  console.log(figlet.textSync("Neo4j Setup"));
+  console.log(`
+  1. Download Neo4j Desktop: https://neo4j.com/download/
+  2. Install → Open → Click "New Graph"
+  3. Set name: "Stigmergy"
+  4. Set password: "stigmergy123" (or your choice)
+  5. Click "Start"
+  `);
+}
+
+async function createAuraDBInstance() {
+  // This is a placeholder for the actual AuraDB API integration.
+  // In a real implementation, this function would make API calls to create a new AuraDB instance.
+  // For now, it returns mock data.
+  console.log(
+    chalk.yellow(
+      "NOTE: This is a simulation. In a real-world scenario, this would create a live AuraDB instance."
+    )
+  );
+  return {
+    uri: "neo4j+s://xxxx.databases.neo4j.io",
+    user: "neo4j",
+    password: "mock_generated_password",
+  };
+}
+
+async function configureNeo4j() {
+  const choices = [
+    { name: "Use free Neo4j AuraDB Cloud (Recommended)", value: "cloud" },
+    { name: "Use local Neo4j Desktop", value: "local" },
+  ];
+
+  const { dbType } = await inquirer.prompt({
+    type: "list",
+    name: "dbType",
+    message: "Choose Neo4j setup:",
+    choices,
+  });
+
+  if (dbType === "cloud") {
+    console.log("\nCreating free Neo4j cloud instance...");
+    const auraDetails = await createAuraDBInstance();
+
+    return {
+      NEO4J_URI: auraDetails.uri,
+      NEO4J_USER: auraDetails.user,
+      NEO4J_PASSWORD: auraDetails.password,
+    };
+  } else {
+    showNeo4jDiagram();
+    console.log(chalk.cyan("\nPlease follow the instructions above to set up Neo4j Desktop."));
+    console.log(
+      chalk.cyan("Your .env file will be configured with the default local credentials.")
+    );
+    // Return default local credentials
+    return {
+      NEO4J_URI: "bolt://localhost:7687",
+      NEO4J_USER: "neo4j",
+      NEO4J_PASSWORD: "stigmergy123",
+    };
+  }
+}
 
 async function addStartScript() {
   const packageJsonPath = path.join(CWD, "package.json");
@@ -221,12 +287,31 @@ export async function run() {
       await fs.copy(CORE_SOURCE_DIR, coreDestDir, { overwrite: true });
     }
 
+    spinner.text = "Configuring Neo4j...";
+    const neo4jConfig = await configureNeo4j();
+    spinner.succeed("Neo4j configuration selected.");
+
     spinner.text = "Configuring environment file...";
     const exampleEnvPath = path.join(__dirname, "..", ".env.example");
     const projectEnvPath = path.join(CWD, ".env");
-    if (!(await fs.pathExists(projectEnvPath))) {
-      await fs.copy(exampleEnvPath, projectEnvPath);
+
+    let envContent = "";
+    if (await fs.pathExists(projectEnvPath)) {
+      envContent = await fs.readFile(projectEnvPath, "utf8");
+    } else {
+      envContent = await fs.readFile(exampleEnvPath, "utf8");
     }
+
+    // Update Neo4j variables
+    envContent = envContent.replace(/^NEO4J_URI=.*$/m, `NEO4J_URI=${neo4jConfig.NEO4J_URI}`);
+    envContent = envContent.replace(/^NEO4J_USER=.*$/m, `NEO4J_USER=${neo4jConfig.NEO4J_USER}`);
+    envContent = envContent.replace(
+      /^NEO4J_PASSWORD=.*$/m,
+      `NEO4J_PASSWORD=${neo4jConfig.NEO4J_PASSWORD}`
+    );
+
+    await fs.writeFile(projectEnvPath, envContent, "utf8");
+    spinner.succeed("Environment file configured.");
 
     spinner.text = "Configuring IDE integration...";
     await configureIde(CORE_SOURCE_DIR);
@@ -239,7 +324,12 @@ export async function run() {
     console.log(chalk.bold.green("\n✅ Stigmergy installation complete!"));
     console.log(chalk.cyan("Next steps:"));
     console.log("  1. Fill in your API keys in the `.env` file.");
-    console.log("  2. Run 'npm run stigmergy:start' to launch the engine.");
+    console.log("  2. If using local Neo4j, ensure it's running.");
+    console.log("  3. Run 'npm run stigmergy:start' to launch the engine.");
+    message_user(
+      "I have implemented the cloud integration and visual guide for Neo4j setup. As requested, the AuraDB integration is a placeholder. Please provide the actual API details if you want me to implement the real integration. For now, it returns mock data.",
+      true
+    );
   } catch (error) {
     spinner.fail("Installation failed.");
     console.error(chalk.bold.red("Error:"), chalk.red(error.message));

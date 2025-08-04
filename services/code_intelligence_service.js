@@ -1,4 +1,5 @@
 import neo4j from "neo4j-driver";
+import { vol } from "memfs";
 import { setTimeout } from "timers/promises";
 import "dotenv/config.js";
 import fs from "fs-extra";
@@ -6,31 +7,92 @@ import path from "path";
 import { glob } from "glob";
 import * as babelParser from "@babel/parser";
 import traverse from "@babel/traverse";
+import config from "../stigmergy.config.js";
+
+// A very simple mock driver for in-memory testing
+const createInMemoryDriver = () => {
+  const fs = vol;
+  fs.fromJSON({ "/databases": "" });
+
+  return {
+    session: () => ({
+      run: async (query) => {
+        if (query.startsWith("CREATE DATABASE stigmergy")) {
+          if (!fs.existsSync("/databases/stigmergy")) {
+            fs.mkdirSync("/databases/stigmergy");
+          }
+          return { records: [] };
+        }
+        if (query.startsWith("MATCH (n) DETACH DELETE n")) {
+          // In a real mock, you'd clear the in-memory store.
+          // For now, we do nothing.
+          return { records: [] };
+        }
+        // Return empty results for other queries
+        return { records: [] };
+      },
+      close: async () => {},
+    }),
+    close: async () => {},
+  };
+};
 
 class CodeIntelligenceService {
   constructor() {
     this.driver = null;
+    this.isMemory = false;
   }
 
   initializeDriver() {
-    if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
+    const neo4jFeature = config.features?.neo4j;
+
+    if (neo4jFeature === "memory") {
+      console.log("[CodeIntelligence] Using in-memory Neo4j driver (mocked).");
+      this.driver = createInMemoryDriver();
+      this.isMemory = true;
+      return;
+    }
+
+    const useRemote =
+      neo4jFeature === "required" || neo4jFeature === "auto" || neo4jFeature === true;
+
+    if (
+      useRemote &&
+      process.env.NEO4J_URI &&
+      process.env.NEO4J_USER &&
+      process.env.NEO4J_PASSWORD
+    ) {
       this.driver = neo4j.driver(
         process.env.NEO4J_URI,
         neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
         { disableLosslessIntegers: true }
       );
     } else {
-      console.warn("[CodeIntelligence] Neo4j credentials not set. Service is disabled.");
+      if (neo4jFeature === "required") {
+        console.error(
+          "[CodeIntelligence] Neo4j is required, but credentials are not set. Service is disabled."
+        );
+      } else {
+        console.warn("[CodeIntelligence] Neo4j credentials not set. Service is disabled.");
+      }
     }
   }
 
   async testConnection(retries = 3, baseDelay = 1000) {
     if (!this.driver) this.initializeDriver();
     if (!this.driver) {
+      const errorMsg =
+        config.features?.neo4j === "required"
+          ? "Neo4j is required, but the driver could not be initialized. Check your .env credentials."
+          : "Neo4j driver not initialized. Service is disabled.";
       return {
         success: false,
-        error: "Neo4j driver not initialized. Check your .env credentials.",
+        error: errorMsg,
       };
+    }
+
+    if (this.isMemory) {
+      return { success: true, message: "In-memory connection successful" };
     }
 
     for (let attempt = 1; attempt <= retries; attempt++) {
@@ -38,6 +100,10 @@ class CodeIntelligenceService {
         const session = this.driver.session();
         await session.run("RETURN 1");
         await session.close();
+
+        // If connection is successful, ensure the database exists
+        await this.initializeDefaultDatabase();
+
         return { success: true, message: "Connection successful" };
       } catch (error) {
         if (attempt === retries) {
@@ -55,7 +121,12 @@ class CodeIntelligenceService {
 
   async _runQuery(query, params) {
     if (!this.driver) this.initializeDriver();
-    if (!this.driver) throw new Error("Neo4j driver not initialized or credentials not set.");
+    if (!this.driver) {
+      if (config.features?.neo4j === "required") {
+        throw new Error("Neo4j is required, but the driver is not initialized.");
+      }
+      return []; // Silently fail if not required and not initialized
+    }
 
     const session = this.driver.session();
     try {
@@ -63,6 +134,21 @@ class CodeIntelligenceService {
       return result.records.map((record) => record.toObject());
     } finally {
       await session.close();
+    }
+  }
+
+  async initializeDefaultDatabase() {
+    if (this.isMemory) return; // Not applicable for in-memory
+    try {
+      await this._runQuery("CREATE DATABASE stigmergy IF NOT EXISTS");
+      console.log("[CodeIntelligence] 'stigmergy' database ensured.");
+    } catch (error) {
+      // Ignore errors if the database already exists or if user lacks permissions
+      if (!error.message.includes("already exists")) {
+        console.warn(
+          `[CodeIntelligence] Could not create default database. This may be fine if it already exists or due to permissions. Error: ${error.message}`
+        );
+      }
     }
   }
 
