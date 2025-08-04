@@ -1,8 +1,6 @@
 import { generateObject } from "ai";
 import { getModel } from "../ai/providers.js";
 import { z } from "zod";
-import yahooFinance from 'yahoo-finance2';
-
 /**
  * Generates a 3-year financial projection.
  * For now, this is a placeholder that returns a structured markdown table.
@@ -20,61 +18,27 @@ export async function generateFinancialProjections({ revenue_assumptions, cost_a
 | Net Income            | $15,000     | $187,500    | $600,000    |
 `;
   return {
-    thought: "Generated a simplified 3-year financial projection based on the provided assumptions. The model assumes a 5x growth in Year 2 and 3x in Year 3.",
+    thought:
+      "Generated a simplified 3-year financial projection based on the provided assumptions. The model assumes a 5x growth in Year 2 and 3x in Year 3.",
     projections_table: projections,
   };
 }
 
 /**
- * Fetches market comparables for a given industry.
- * Uses yahoo-finance2 to get data for a few sample public companies.
- */
-export async function getMarketComparables({ industry }) {
-  const tickers = {
-    'SaaS': ['CRM', 'MSFT', 'ADBE'],
-    'E-commerce': ['AMZN', 'SHOP', 'ETSY'],
-    'Crypto': ['COIN', 'MSTR'],
-  };
-  const selected_tickers = tickers[industry] || tickers['SaaS'];
-
-  try {
-    const quotes = await Promise.all(
-        selected_tickers.map(ticker => yahooFinance.quote(ticker))
-    );
-
-    const comparables = quotes.map(q => ({
-        symbol: q.symbol,
-        name: q.longName,
-        marketCap: q.marketCap,
-        forwardPE: q.forwardPE,
-        trailingPE: q.trailingPE,
-    }));
-
-    return {
-        thought: `Fetched financial data for comparable companies in the ${industry} sector using their stock tickers.`,
-        comparables: comparables,
-    };
-  } catch (error) {
-    console.error("Failed to fetch market comparables:", error);
-    return {
-        thought: `Could not fetch real-time market data due to an error: ${error.message}. Returning placeholder data.`,
-        comparables: [],
-    };
-  }
-}
-
-/**
  * A placeholder for a complex Discounted Cash Flow (DCF) calculation.
  */
-export async function calculateDCF({ projections, discount_rate = 0.1, terminal_growth_rate = 0.02 }) {
-    // This is a highly simplified placeholder. A real implementation would be complex.
-    const valuation = 5000000; // Placeholder value
-    return {
-        thought: `Calculated a simplified DCF valuation. Assumed a discount rate of ${discount_rate * 100}% and a terminal growth rate of ${terminal_growth_rate * 100}%.`,
-        valuation: valuation.toLocaleString('en-US', { style: 'currency', currency: 'USD' }),
-    };
+export async function calculateDCF({
+  projections,
+  discount_rate = 0.1,
+  terminal_growth_rate = 0.02,
+}) {
+  // This is a highly simplified placeholder. A real implementation would be complex.
+  const valuation = 5000000; // Placeholder value
+  return {
+    thought: `Calculated a simplified DCF valuation. Assumed a discount rate of ${discount_rate * 100}% and a terminal growth rate of ${terminal_growth_rate * 100}%.`,
+    valuation: valuation.toLocaleString("en-US", { style: "currency", currency: "USD" }),
+  };
 }
-
 
 /**
  * Designs a standard tokenomics model.
@@ -91,10 +55,11 @@ export async function designTokenomics({ token_name, total_supply, allocation_de
       { category: "Private Sale", percentage: 15, cliff_months: 6, vesting_months: 18 },
       { category: "Liquidity/MM", percentage: 10, cliff_months: 0, vesting_months: 0 },
       { category: "Airdrop", percentage: 5, cliff_months: 0, vesting_months: 0 },
-    ]
+    ],
   };
   return {
-    thought: "Generated a standard tokenomics model with a typical allocation for various stakeholders.",
+    thought:
+      "Generated a standard tokenomics model with a typical allocation for various stakeholders.",
     tokenomics_model: model,
-  }
+  };
 }

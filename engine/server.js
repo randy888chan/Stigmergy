@@ -13,7 +13,7 @@ import boxen from "boxen";
 import { readFileSync } from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
-const pkg = JSON.parse(readFileSync(path.resolve(path.dirname(__filename), '../package.json')));
+const pkg = JSON.parse(readFileSync(path.resolve(path.dirname(__filename), "../package.json")));
 
 export class Engine {
   constructor() {
@@ -79,6 +79,64 @@ export class Engine {
       this.start();
       res.json({ message: "Engine has been resumed." });
     });
+  }
+
+  async logSystemStatus() {
+    const neo4jStatus = await codeIntelligenceService.testConnection();
+    const firecrawlStatus = process.env.FIRECRAWL_KEY ? "✓ Ready" : "⚠ Disabled";
+    const aiModel = process.env.AI_MODEL || "Not configured";
+
+    const statusMessage = [
+      chalk.green.bold("Stigmergy Engine Status"),
+      `Version: ${pkg.version}`,
+      `PID: ${process.pid}`,
+      `Node: ${process.version}`,
+      `Environment: ${process.env.NODE_ENV || "development"}`,
+      "",
+      chalk.bold("Services:"),
+      `- Neo4j: ${neo4jStatus.success ? chalk.green("✓ Connected") : chalk.red("✗ Disconnected")}`,
+      `- AI Provider: ${chalk.cyan(aiModel)}`,
+      `- Research Tool: ${firecrawlStatus}`,
+      "",
+      chalk.dim(`Listening on port ${process.env.PORT || 3000}`),
+    ].join("\n");
+
+    console.log(
+      boxen(statusMessage, {
+        padding: 1,
+        margin: 1,
+        borderStyle: "round",
+        borderColor: neo4jStatus.success ? "green" : "red",
+        title: "System Startup",
+        titleAlignment: "center",
+      })
+    );
+
+    if (!neo4jStatus.success) {
+      console.error(
+        boxen(
+          [
+            chalk.red.bold("CRITICAL DATABASE ERROR"),
+            "",
+            "Engine cannot function without Neo4j connection.",
+            "",
+            chalk.yellow("Troubleshooting Steps:"),
+            "1. Ensure Neo4j Desktop is running",
+            "2. Verify database is active (green status)",
+            "3. Check credentials in .env file",
+            "4. Run " + chalk.cyan("npm run test:neo4j") + " to diagnose",
+            "",
+            chalk.dim(`Error: ${neo4jStatus.error}`),
+          ].join("\n"),
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: "double",
+            borderColor: "red",
+          }
+        )
+      );
+    }
   }
 
   async triggerAgent(agentId, prompt, taskId = null) {
@@ -147,63 +205,15 @@ export class Engine {
   }
 }
 
-const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
-
 export async function main() {
   const engine = new Engine();
-  const mcpServer = new McpServer({ name: "stigmergy-engine", version: "2.1.0" });
+  const mcpServer = new McpServer({ name: "stigmergy-engine", version: pkg.version });
 
-  // --- NEW: Pre-flight check for Neo4j ---
-  console.log(chalk.blue("[Server] Checking Neo4j database connection..."));
-  const neo4jStatus = await codeIntelligenceService.checkConnection();
+  // Show system status before starting
+  await engine.logSystemStatus();
 
+  const neo4jStatus = await codeIntelligenceService.testConnection();
   if (!neo4jStatus.success) {
-    const boxen = (await import("boxen")).default;
-    const errorMessage = [
-      chalk.red.bold("Stigmergy Engine Failed to Start"),
-      "",
-      "A connection to the Neo4j database could not be established.",
-      "This is a critical requirement for the AI to function.",
-      "",
-      chalk.yellow.bold("Common Causes:"),
-      "1. The Neo4j Desktop application is not running.",
-      "2. Incorrect credentials in your `.env` file.",
-      "   - NEO4J_URI (e.g., neo4j://localhost)",
-      "   - NEO4J_USER (e.g., neo4j)",
-      "   - NEO4J_PASSWORD (your-password)",
-      "",
-      chalk.cyan.bold("Next Steps:"),
-      "1. Ensure the Neo4j Desktop app is open and the correct database is 'Active'.",
-      "2. Verify your `.env` file credentials match the database.",
-      "3. Run `npm run test:neo4j` to diagnose the connection.",
-      "",
-      chalk.red.dim(`Underlying error: ${neo4jStatus.error}`),
-    ].join("\n");
-
-    console.error(
-      boxen(errorMessage, {
-        padding: 1,
-        margin: 1,
-        borderStyle: "double",
-        borderColor: "red",
-        title: "CRITICAL DATABASE ERROR",
-        titleAlignment: "center",
-      })
-    );
-
-    // Exit the process with an error code
-    process.exit(1);
-  }
-
-  console.log(chalk.green("[Server] Neo4j connection successful."));
-
-  try {
-    console.log(chalk.blue("[Engine] Starting initial code indexing..."));
-    await codeIntelligenceService.scanAndIndexProject(process.cwd());
-    console.log(chalk.green("[Engine] Code indexing complete."));
-  } catch (error) {
-    console.error(chalk.red.bold("Failed to index project during startup."), error);
-    // We can choose to exit here if indexing is absolutely critical for any operation
     process.exit(1);
   }
 
@@ -222,6 +232,7 @@ export async function main() {
 }
 
 // Only run main when this file is executed directly
+const isMainModule = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMainModule) {
   main().catch(console.error);
 }
