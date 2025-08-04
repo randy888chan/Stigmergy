@@ -1,6 +1,6 @@
 {
   "name": "@randy888chan/stigmergy",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Stigmergy: The Autonomous AI Development System.",
   "type": "module",
   "main": "engine/server.js",
@@ -36,7 +36,6 @@
     "@modelcontextprotocol/sdk": "^1.12.1",
     "ai": "^4.1.17",
     "axios": "^1.7.2",
-    "better-sqlite3": "^9.4.3",
     "boxen": "^7.1.1",
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
@@ -46,7 +45,6 @@
     "glob": "^10.4.2",
     "inquirer": "^8.2.4",
     "js-yaml": "^4.1.0",
-    "lunr": "^2.3.9",
     "neo4j-driver": "^5.20.0",
     "ora": "^5.4.1",
     "p-limit": "^4.0.0",
@@ -74,8 +72,6 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
-    "@types/better-sqlite3": "^7.6.5",
-    "@types/lunr": "^2.3.5",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "husky": "^9.0.11",
     "jest": "^29.7.0",

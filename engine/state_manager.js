@@ -7,26 +7,19 @@ import config from "../stigmergy.config.js";
 const getStateFilePath = () => path.resolve(process.cwd(), ".ai", "state.json");
 const getLockPath = () => `${getStateFilePath()}.lock`;
 
-// --- NEW: Internal, unlocked write function ---
 async function _writeStateUnsafe(state) {
   const stateFilePath = getStateFilePath();
-  // Ensure the directory exists before writing
   await fs.ensureDir(path.dirname(stateFilePath));
   await fs.writeJson(stateFilePath, state, { spaces: 2 });
 }
 
 async function withLock(operation) {
-  if (config.features.useSqliteState) {
-    return stateService.withLock(operation);
-  }
-
-  // Original file-based locking
   const stateFilePath = getStateFilePath();
   if (!(await fs.pathExists(stateFilePath))) {
     await _writeStateUnsafe({});
   }
 
-  const lockPath = `${stateFilePath}.lock`;
+  const lockPath = getLockPath();
   let release;
   try {
     release = await lockfile.lock(stateFilePath, {
@@ -46,21 +39,18 @@ export async function getState() {
       path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json")
     );
     defaultState.history[0].timestamp = new Date().toISOString();
-    // Use the unsafe write for initial creation
     await _writeStateUnsafe(defaultState);
     return defaultState;
   }
   return fs.readJson(stateFilePath);
 }
 
-// updateState now correctly uses the lock on a file that is guaranteed to exist.
 export async function updateState(newState) {
   return withLock(async () => {
     await fs.writeJson(getStateFilePath(), newState, { spaces: 2 });
   });
 }
 
-// --- REFACTORED: initializeProject uses the direct, unlocked write function ---
 export async function initializeProject(goal) {
   const defaultState = await fs.readJson(
     path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json")
@@ -81,7 +71,6 @@ export async function initializeProject(goal) {
       },
     ],
   };
-  // This is the first write operation; it's safe to do without a lock.
   return _writeStateUnsafe(initialState);
 }
 
@@ -89,7 +78,6 @@ export async function updateStatus({ newStatus, message, artifact_created = null
   return withLock(async () => {
     const state = await getState();
 
-    // Only update status if a new status is provided
     if (newStatus) {
       state.project_status = newStatus;
     }

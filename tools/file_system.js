@@ -1,8 +1,9 @@
 import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
+import config from "../stigmergy.config.js";
 
-const SAFE_DIRECTORIES = new Set([
+const SAFE_DIRECTORIES = config.security?.allowedDirs || [
   "src",
   "public",
   "docs",
@@ -11,7 +12,9 @@ const SAFE_DIRECTORIES = new Set([
   ".ai",
   "services",
   "engine",
-]);
+  "stories",
+  "system-proposals",
+];
 
 export function resolvePath(filePath) {
   if (!filePath || typeof filePath !== "string") {
@@ -27,9 +30,22 @@ export function resolvePath(filePath) {
   }
 
   // Verify first directory is safe
-  const rootDir = relative.split(path.sep)[0];
-  if (!SAFE_DIRECTORIES.has(rootDir)) {
+  const rootDir = relative.split(path.sep)[0] || relative;
+  if (!SAFE_DIRECTORIES.includes(rootDir)) {
     throw new Error(`Access restricted to ${rootDir} directory`);
+  }
+
+  // Check file size limit
+  if (config.security?.maxFileSizeMB) {
+    try {
+      const stats = fs.statSync(resolved);
+      const maxBytes = config.security.maxFileSizeMB * 1024 * 1024;
+      if (stats.size > maxBytes) {
+        throw new Error(`File exceeds size limit of ${config.security.maxFileSizeMB}MB`);
+      }
+    } catch (e) {
+      // File doesn't exist yet, skip size check
+    }
   }
 
   return resolved;
