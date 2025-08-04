@@ -9,6 +9,11 @@ import codeIntelligenceService from "../services/code_intelligence_service.js";
 import "dotenv/config.js";
 import { fileURLToPath } from "url";
 import path from "path";
+import boxen from "boxen";
+import { readFileSync } from "fs";
+
+const __filename = fileURLToPath(import.meta.url);
+const pkg = JSON.parse(readFileSync(path.resolve(path.dirname(__filename), '../package.json')));
 
 export class Engine {
   constructor() {
