@@ -10,13 +10,14 @@ describe("errorHandler", () => {
   describe("OperationalError", () => {
     it("should create an error with custom properties", () => {
       const error = new OperationalError(
-        "test message",
+        "test_message_key",
         ERROR_TYPES.TOOL_EXECUTION,
-        remediationMap[ERROR_TYPES.TOOL_EXECUTION]
+        "test_remediation_key"
       );
-      expect(error.message).toBe("test message");
+      expect(error.message).toBe("test_message_key");
+      expect(error.message_key).toBe("test_message_key");
       expect(error.type).toBe(ERROR_TYPES.TOOL_EXECUTION);
-      expect(error.remediation).toBe(remediationMap[ERROR_TYPES.TOOL_EXECUTION]);
+      expect(error.remediation_key).toBe("test_remediation_key");
       expect(error.isOperational).toBe(true);
     });
   });

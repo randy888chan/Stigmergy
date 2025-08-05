@@ -225,6 +225,12 @@ export async function main() {
     process.exit(1);
   }
 
+  // After Neo4j connection test
+  const limitations = await codeIntelligenceService.detectNeo4jLimitations();
+  if (limitations.warning) {
+    console.warn(chalk.yellow(`Warning: ${limitations.warning}`));
+  }
+
   try {
     console.log(chalk.blue("[Engine] Starting initial code indexing..."));
     await codeIntelligenceService.scanAndIndexProject(process.cwd());

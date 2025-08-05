@@ -112,6 +112,37 @@ class CodeIntelligenceService {
     }
   }
 
+  async detectNeo4jLimitations() {
+    if (!this.driver || this.isMemory) {
+      return {}; // No limitations to check for non-persistent DB
+    }
+    try {
+      const session = this.driver.session();
+      const result = await session.run(
+        "CALL dbms.components() YIELD versions, edition UNWIND versions AS version RETURN edition, version"
+      );
+      await session.close();
+
+      if (result.records.length === 0) {
+        return { error: "Could not determine Neo4j edition." };
+      }
+
+      const record = result.records[0];
+      if (record.get("edition") === "community") {
+        return {
+          warning: "Neo4j Community Edition detected",
+          limitation: "Database size limited to 4GB",
+          recommendation: "Upgrade to Enterprise for large projects",
+        };
+      }
+      return {}; // Enterprise or other, no specific limitations to warn about
+    } catch (error) {
+      // This can fail if the procedure doesn't exist (e.g., AuraDB free tier)
+      console.warn(`[CodeIntelligence] Neo4j limitation check failed: ${error.message}`);
+      return { error: "Limitation check failed" };
+    }
+  }
+
   async testConnection(retries = 3, baseDelay = 1000) {
     if (!this.driver) this.initializeDriver();
     if (!this.driver) {

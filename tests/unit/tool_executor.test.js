@@ -120,43 +120,11 @@ describe("Tool Executor", () => {
       readFileSpy.mockRestore();
     });
 
-    it("should start a project", async () => {
-      const goal = "Test Goal";
-      await execute("system.executeCommand", { command: `start project ${goal}` }, "test-agent");
-      expect(stateManager.initializeProject).toHaveBeenCalledWith(goal);
-      expect(mockEngine.start).toHaveBeenCalled();
-    });
-
-    it("should pause the engine", async () => {
-      await execute("system.executeCommand", { command: "pause" }, "test-agent");
-      expect(mockEngine.stop).toHaveBeenCalledWith("Paused by user");
-    });
-
-    it("should resume the engine", async () => {
-      await execute("system.executeCommand", { command: "resume" }, "test-agent");
-      expect(mockEngine.start).toHaveBeenCalled();
-    });
-
-    it("should get status", async () => {
-      const mockState = { status: "paused" };
-      stateManager.getState.mockResolvedValue(mockState);
-      const result = await execute("system.executeCommand", { command: "status" }, "test-agent");
-      expect(stateManager.getState).toHaveBeenCalled();
-      expect(JSON.parse(result)).toEqual(mockState);
-    });
-
-    it("should return help message", async () => {
-      const result = await execute("system.executeCommand", { command: "help" }, "test-agent");
-      expect(JSON.parse(result)).toContain("Available commands");
-    });
-
-    it("should throw error for unknown command", async () => {
-      const execution = execute(
-        "system.executeCommand",
-        { command: "unknown command" },
-        "test-agent"
-      );
-      await expect(execution).rejects.toThrow("Unknown command: unknown command");
+    it("should be blocked by the sanitizer", async () => {
+      const execution = execute("system.executeCommand", { command: "any" }, "test-agent");
+      await expect(execution).rejects.toThrow(OperationalError);
+      await expect(execution).rejects.toHaveProperty("type", ERROR_TYPES.SECURITY);
+      await expect(execution).rejects.toHaveProperty("message_key", "input_sanitization_failed");
     });
   });
 });

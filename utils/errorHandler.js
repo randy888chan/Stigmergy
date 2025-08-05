@@ -1,11 +1,27 @@
+import { localizeError } from "./localization.js";
+
 // utils/errorHandler.js
 export class OperationalError extends Error {
-  constructor(message, type, remediation) {
-    super(message);
+  constructor(message_key, type, remediation_key) {
+    super(message_key); // Store key instead of message
     this.name = "OperationalError";
+    this.message_key = message_key;
+    this.remediation_key = remediation_key;
     this.type = type;
-    this.remediation = remediation;
     this.isOperational = true;
+  }
+}
+
+// In any error reporting
+export function handleError(error, userLang) {
+  if (error instanceof OperationalError) {
+    const localized = localizeError(error, userLang);
+    console.error(localized.message);
+    if (localized.remediation) {
+      console.info(localized.remediation);
+    }
+  } else {
+    console.error(error.message);
   }
 }
 
@@ -14,6 +30,7 @@ export const ERROR_TYPES = {
   TOOL_EXECUTION: "ToolExecutionError",
   AGENT_FAILURE: "AgentFailure",
   PERMISSION_DENIED: "PermissionDenied",
+  SECURITY: "SecurityError",
 };
 
 export const remediationMap = {
