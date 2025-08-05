@@ -18,7 +18,7 @@ describe("Input Sanitization", () => {
 
   it("should block restricted tools", () => {
     expect(() => {
-      sanitizeToolCall("system.executeCommand", {
+      sanitizeToolCall("shell.execute", {
         command: "ls",
       });
     }).toThrow("Restricted tool access");

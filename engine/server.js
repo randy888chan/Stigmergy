@@ -65,7 +65,8 @@ export class Engine {
         const result = await this.triggerAgent(agentId, prompt, taskId);
         res.json({ response: result });
       } catch (error) {
-        res.status(500).json({ error: error.message });
+        console.error("Error in /api/chat:", error);
+        res.status(500).json({ error: error.message, stack: error.stack });
       }
     });
   }

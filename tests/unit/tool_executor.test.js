@@ -121,7 +121,10 @@ describe("Tool Executor", () => {
     });
 
     it("should be blocked by the sanitizer", async () => {
-      const execution = execute("system.executeCommand", { command: "any" }, "test-agent");
+      // To test the sanitizer, we need to bypass the permission check,
+      // so we grant permission to the otherwise blocked tool.
+      readFileSpy.mockResolvedValue("```yaml\n" + getMockManifest(["shell.execute"]) + "\n```");
+      const execution = execute("shell.execute", { command: "any" }, "test-agent");
       await expect(execution).rejects.toThrow(OperationalError);
       await expect(execution).rejects.toHaveProperty("type", ERROR_TYPES.SECURITY);
       await expect(execution).rejects.toHaveProperty("message_key", "input_sanitization_failed");

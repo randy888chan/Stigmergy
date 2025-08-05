@@ -1,4 +1,4 @@
-const TOOL_BLACKLIST = ["system.executeCommand", "shell.execute"];
+const TOOL_BLACKLIST = ["shell.execute"];
 
 export function sanitizeToolCall(toolName, args) {
   // Prevent dangerous tool combinations

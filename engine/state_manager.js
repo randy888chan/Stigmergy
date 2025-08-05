@@ -5,9 +5,7 @@ import fs from "fs-extra";
 import path from "path";
 
 const DB_PATH =
-  process.env.NODE_ENV === "test"
-    ? ":memory:"
-    : path.resolve(process.cwd(), ".ai", "state.db");
+  process.env.NODE_ENV === "test" ? ":memory:" : path.resolve(process.cwd(), ".ai", "state.db");
 
 async function initDB() {
   if (process.env.NODE_ENV !== "test") {
@@ -39,7 +37,9 @@ async function _getState(db) {
   const defaultStatePath = path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json");
   if (await fs.pathExists(defaultStatePath)) {
     const defaultState = await fs.readJson(defaultStatePath);
-    defaultState.history[0].timestamp = new Date().toISOString();
+    if (defaultState.history && defaultState.history.length > 0) {
+      defaultState.history[0].timestamp = new Date().toISOString();
+    }
     await _updateState(db, defaultState);
     return defaultState;
   }
