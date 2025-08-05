@@ -45,10 +45,13 @@ class CodeIntelligenceService {
     this.isMemory = false;
     this.watcher = null;
     this.ig = ignore().add(["node_modules/**", "dist/**", ".*"]);
+    this.projectRoot = null;
   }
 
   async enableIncrementalIndexing(projectPath) {
     if (this.watcher) return;
+
+    this.projectRoot = projectPath;
 
     this.watcher = chokidar.watch(projectPath, {
       ignored: (path) => this.ig.ignores(path),
@@ -63,18 +66,42 @@ class CodeIntelligenceService {
   }
 
   async indexFile(filePath) {
-    if (this.ig.ignores(filePath)) return;
-    // Parse and add to Neo4j
+    if (!this.projectRoot) return;
+    try {
+      console.log(`[CodeIntelligence] Indexing new file: ${filePath}`);
+      const { nodes, relationships } = await this._parseFile(filePath, this.projectRoot);
+      if (nodes.length > 0) {
+        await this._loadDataIntoGraph({ nodes, relationships });
+        console.log(`[CodeIntelligence] Successfully indexed file: ${filePath}`);
+      }
+    } catch (error) {
+      console.error(`[CodeIntelligence] Error indexing file ${filePath}:`, error);
+    }
   }
 
   async updateFile(filePath) {
-    if (this.ig.ignores(filePath)) return;
-    // Remove old data and re-index
+    if (!this.projectRoot) return;
+    console.log(`[CodeIntelligence] Queued update for file: ${filePath}`);
+    await this.removeFile(filePath);
+    await this.indexFile(filePath);
   }
 
   async removeFile(filePath) {
-    if (this.ig.ignores(filePath)) return;
-    // Remove from Neo4j
+    if (!this.projectRoot) return;
+    try {
+      const relativePath = path.relative(this.projectRoot, filePath);
+      if (this.ig.ignores(relativePath)) return;
+      console.log(`[CodeIntelligence] Removing file from index: ${relativePath}`);
+      const query = `
+        MATCH (f:File { id: $id })
+        OPTIONAL MATCH (f)-[:CONTAINS]->(contained)
+        DETACH DELETE f, contained
+      `;
+      await this._runQuery(query, { id: relativePath });
+      console.log(`[CodeIntelligence] Successfully removed file: ${relativePath}`);
+    } catch (error) {
+      console.error(`[CodeIntelligence] Error removing file ${filePath}:`, error);
+    }
   }
 
   initializeDriver() {
@@ -230,15 +257,151 @@ class CodeIntelligenceService {
   }
 
   async _parseFile(filePath, projectRoot) {
-    // ... existing implementation ...
+    const code = await fs.readFile(filePath, "utf-8");
+    const relativePath = path.relative(projectRoot, filePath);
+
+    if (this.ig.ignores(relativePath)) {
+      return { nodes: [], relationships: [] };
+    }
+
+    const ast = babelParser.parse(code, {
+      sourceType: "module",
+      plugins: ["jsx", "typescript", "classProperties", "objectRestSpread"],
+      errorRecovery: true,
+    });
+
+    const nodes = [];
+    const relationships = [];
+
+    const fileId = relativePath;
+    nodes.push({
+      id: fileId,
+      type: "File",
+      properties: { name: path.basename(relativePath), path: relativePath },
+    });
+
+    traverse(ast, {
+      ImportDeclaration: (astPath) => {
+        const source = astPath.node.source.value;
+        if (source.startsWith(".")) {
+          const targetPath = path.resolve(path.dirname(filePath), source);
+          const targetRelativePath = path.relative(projectRoot, targetPath);
+          relationships.push({
+            sourceId: fileId,
+            targetId: targetRelativePath,
+            type: "IMPORTS",
+          });
+        }
+      },
+      FunctionDeclaration: (astPath) => {
+        if (astPath.node.id) {
+          const functionName = astPath.node.id.name;
+          const functionId = `${relativePath}#${functionName}`;
+          nodes.push({
+            id: functionId,
+            type: "Function",
+            properties: { name: functionName, file: relativePath },
+          });
+          relationships.push({
+            sourceId: fileId,
+            targetId: functionId,
+            type: "CONTAINS",
+          });
+        }
+      },
+      ClassDeclaration: (astPath) => {
+        if (astPath.node.id) {
+          const className = astPath.node.id.name;
+          const classId = `${relativePath}#${className}`;
+          nodes.push({
+            id: classId,
+            type: "Class",
+            properties: { name: className, file: relativePath },
+          });
+          relationships.push({
+            sourceId: fileId,
+            targetId: classId,
+            type: "CONTAINS",
+          });
+        }
+      },
+    });
+
+    return { nodes, relationships };
   }
 
   async _loadDataIntoGraph({ nodes, relationships }) {
-    // ... existing implementation ...
+    if (!this.driver || this.isMemory) return;
+
+    const session = this.driver.session({ database: "stigmergy" });
+    const tx = session.beginTransaction();
+    try {
+      const nodesByType = nodes.reduce((acc, node) => {
+        if (!acc[node.type]) {
+          acc[node.type] = [];
+        }
+        acc[node.type].push({ id: node.id, properties: node.properties });
+        return acc;
+      }, {});
+
+      for (const type in nodesByType) {
+        const query = `
+          UNWIND $nodes AS node
+          MERGE (n:${type} { id: node.id })
+          SET n += node.properties
+        `;
+        await tx.run(query, { nodes: nodesByType[type] });
+      }
+
+      const relsByType = relationships.reduce((acc, rel) => {
+        if (!acc[rel.type]) {
+          acc[rel.type] = [];
+        }
+        acc[rel.type].push({ sourceId: rel.sourceId, targetId: rel.targetId });
+        return acc;
+      }, {});
+
+      for (const type in relsByType) {
+        const query = `
+          UNWIND $rels AS rel
+          MATCH (a { id: rel.sourceId }), (b { id: rel.targetId })
+          MERGE (a)-[:${type}]->(b)
+        `;
+        await tx.run(query, { rels: relsByType[type] });
+      }
+
+      await tx.commit();
+    } catch (error) {
+      console.error("[CodeIntelligence] Error loading data into graph:", error);
+      await tx.rollback();
+    } finally {
+      await session.close();
+    }
   }
 
   async scanAndIndexProject(projectPath) {
-    // ... existing implementation ...
+    if (!this.driver) {
+      console.warn("[CodeIntelligence] Driver not initialized. Skipping project scan.");
+      return;
+    }
+    console.log("[CodeIntelligence] Starting project scan and index...");
+    this.projectRoot = projectPath;
+
+    await this._clearDatabase();
+    console.log("[CodeIntelligence] Cleared existing graph data.");
+
+    const files = await this._findSourceFiles(projectPath);
+    console.log(`[CodeIntelligence] Found ${files.length} source files to index.`);
+
+    // Use Promise.all for parallel indexing (can be faster)
+    const indexingPromises = files.map((file) => this.indexFile(file));
+    await Promise.all(indexingPromises);
+
+    console.log("[CodeIntelligence] Initial project scan complete.");
+
+    // Enable incremental indexing for future changes
+    await this.enableIncrementalIndexing(projectPath);
+    console.log("[CodeIntelligence] Incremental indexing enabled.");
   }
 
   async findUsages({ symbolName }) {

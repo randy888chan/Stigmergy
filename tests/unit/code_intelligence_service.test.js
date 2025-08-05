@@ -3,11 +3,13 @@ import codeIntelligenceService from "../../services/code_intelligence_service.js
 import neo4j from "neo4j-driver";
 import fs from "fs-extra";
 import { glob } from "glob";
+import chokidar from "chokidar";
 
 // Mock the external dependencies
 jest.mock("neo4j-driver");
 jest.mock("fs-extra");
 jest.mock("glob");
+jest.mock("chokidar");
 
 describe("Code Intelligence Service", () => {
   let mockSession;
@@ -103,5 +105,90 @@ describe("Neo4j Limitation Detection", () => {
     mockSession.run.mockRejectedValue(new Error("Connection failed"));
     const result = await codeIntelligenceService.detectNeo4jLimitations();
     expect(result.error).toContain("failed");
+  });
+});
+
+describe("Incremental Indexing", () => {
+  let mockSession;
+  let mockWatcher;
+  const projectPath = "/test/project";
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    mockWatcher = {
+      on: jest.fn().mockReturnThis(),
+    };
+    chokidar.watch.mockReturnValue(mockWatcher);
+
+    // Reset the watcher on the service instance before each test
+    codeIntelligenceService.watcher = null;
+
+    const mockTransaction = {
+      run: jest.fn().mockResolvedValue({ records: [] }),
+      commit: jest.fn().mockResolvedValue(undefined),
+      rollback: jest.fn().mockResolvedValue(undefined),
+    };
+    mockSession = {
+      run: jest.fn().mockResolvedValue({ records: [] }),
+      close: jest.fn().mockResolvedValue(undefined),
+      beginTransaction: jest.fn().mockReturnValue(mockTransaction),
+    };
+    const mockDriver = {
+      session: jest.fn(() => mockSession),
+      close: jest.fn().mockResolvedValue(undefined),
+    };
+    neo4j.driver.mockReturnValue(mockDriver);
+    codeIntelligenceService.driver = mockDriver;
+    codeIntelligenceService.projectRoot = projectPath;
+
+    fs.readFile.mockResolvedValue("const a = 1;");
+  });
+
+  it("should start watching files when incremental indexing is enabled", async () => {
+    await codeIntelligenceService.enableIncrementalIndexing(projectPath);
+    expect(chokidar.watch).toHaveBeenCalledWith(projectPath, expect.any(Object));
+    expect(mockWatcher.on).toHaveBeenCalledWith("add", expect.any(Function));
+    expect(mockWatcher.on).toHaveBeenCalledWith("change", expect.any(Function));
+    expect(mockWatcher.on).toHaveBeenCalledWith("unlink", expect.any(Function));
+  });
+
+  it("should index a new file on 'add' event", async () => {
+    await codeIntelligenceService.enableIncrementalIndexing(projectPath);
+    const addCallback = mockWatcher.on.mock.calls.find((call) => call[0] === "add")[1];
+
+    const filePath = "/test/project/newFile.js";
+    await addCallback(filePath);
+
+    expect(fs.readFile).toHaveBeenCalledWith(filePath, "utf-8");
+    expect(mockSession.beginTransaction).toHaveBeenCalled();
+  });
+
+  it("should update a file on 'change' event", async () => {
+    await codeIntelligenceService.enableIncrementalIndexing(projectPath);
+    const changeCallback = mockWatcher.on.mock.calls.find((call) => call[0] === "change")[1];
+    const filePath = "/test/project/existingFile.js";
+
+    await changeCallback(filePath);
+
+    // It should first try to remove the file via _runQuery
+    expect(mockSession.run).toHaveBeenCalledWith(expect.stringContaining("DETACH DELETE"), {
+      id: "existingFile.js",
+    });
+    // Then it should index it again
+    expect(fs.readFile).toHaveBeenCalledWith(filePath, "utf-8");
+    expect(mockSession.beginTransaction).toHaveBeenCalled();
+  });
+
+  it("should remove a file on 'unlink' event", async () => {
+    await codeIntelligenceService.enableIncrementalIndexing(projectPath);
+    const unlinkCallback = mockWatcher.on.mock.calls.find((call) => call[0] === "unlink")[1];
+    const filePath = "/test/project/deletedFile.js";
+
+    await unlinkCallback(filePath);
+
+    expect(mockSession.run).toHaveBeenCalledWith(expect.stringContaining("DETACH DELETE"), {
+      id: "deletedFile.js",
+    });
   });
 });
