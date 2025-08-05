@@ -19,6 +19,12 @@ describe("Stigmergy Engine API", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // --- FIX: Explicitly mock the functions within stateManager ---
+    jest.spyOn(stateManager, "initializeProject").mockResolvedValue(undefined);
+    jest.spyOn(stateManager, "getState").mockResolvedValue({ project_status: "TESTING" });
+    // ---
+
     engine = new Engine();
     app = engine.app;
     // Mock methods on the specific instance
