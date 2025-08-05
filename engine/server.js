@@ -93,64 +93,6 @@ export class Engine {
     });
   }
 
-  async logSystemStatus() {
-    const neo4jStatus = await codeIntelligenceService.testConnection();
-    const firecrawlStatus = process.env.FIRECRAWL_KEY ? "✓ Ready" : "⚠ Disabled";
-    const aiModel = process.env.AI_MODEL || "Not configured";
-
-    const statusMessage = [
-      chalk.green.bold("Stigmergy Engine Status"),
-      `Version: ${pkg.version}`,
-      `PID: ${process.pid}`,
-      `Node: ${process.version}`,
-      `Environment: ${process.env.NODE_ENV || "development"}`,
-      "",
-      chalk.bold("Services:"),
-      `- Neo4j: ${neo4jStatus.success ? chalk.green("✓ Connected") : chalk.red("✗ Disconnected")}`,
-      `- AI Provider: ${chalk.cyan(aiModel)}`,
-      `- Research Tool: ${firecrawlStatus}`,
-      "",
-      chalk.dim(`Listening on port ${process.env.PORT || 3000}`),
-    ].join("\n");
-
-    console.log(
-      boxen(statusMessage, {
-        padding: 1,
-        margin: 1,
-        borderStyle: "round",
-        borderColor: neo4jStatus.success ? "green" : "red",
-        title: "System Startup",
-        titleAlignment: "center",
-      })
-    );
-
-    if (!neo4jStatus.success) {
-      console.error(
-        boxen(
-          [
-            chalk.red.bold("CRITICAL DATABASE ERROR"),
-            "",
-            "Engine cannot function without Neo4j connection.",
-            "",
-            chalk.yellow("Troubleshooting Steps:"),
-            "1. Ensure Neo4j Desktop is running",
-            "2. Verify database is active (green status)",
-            "3. Check credentials in .env file",
-            "4. Run " + chalk.cyan("npm run test:neo4j") + " to diagnose",
-            "",
-            chalk.dim(`Error: ${neo4jStatus.error}`),
-          ].join("\n"),
-          {
-            padding: 1,
-            margin: 1,
-            borderStyle: "double",
-            borderColor: "red",
-          }
-        )
-      );
-    }
-  }
-
   async triggerAgent(agentId, prompt, taskId = null) {
     const response = await getCompletion(agentId, prompt, taskId);
 
@@ -237,15 +179,91 @@ export async function main() {
   const engine = new Engine();
   const mcpServer = new McpServer({ name: "stigmergy-engine", version: pkg.version });
 
-  // Show system status before starting
-  await engine.logSystemStatus();
-
   // Enable incremental indexing
   await codeIntelligenceService.enableIncrementalIndexing(process.cwd());
 
   const neo4jStatus = await codeIntelligenceService.testConnection();
+  const neo4jFeature = config.features?.neo4j;
+
+  // Handle Neo4j status based on whether it's required or optional
   if (!neo4jStatus.success) {
-    process.exit(1);
+    if (neo4jFeature === "required") {
+      console.error(
+        boxen(
+          [
+            chalk.red.bold("CRITICAL DATABASE ERROR"),
+            "",
+            "Engine requires Neo4j connection to function properly.",
+            "",
+            chalk.yellow("Troubleshooting Steps:"),
+            "1. Ensure Neo4j Desktop is running",
+            "2. Verify database is active (green status)",
+            "3. Check credentials in .env file",
+            "4. Run " + chalk.cyan("npm run test:neo4j") + " to diagnose",
+            "",
+            chalk.dim(`Error: ${neo4jStatus.error}`),
+          ].join("\n"),
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: "double",
+            borderColor: "red",
+            title: "System Startup",
+            titleAlignment: "center",
+          }
+        )
+      );
+
+      // Only exit if Neo4j is required and connection fails
+      process.exit(1);
+    } else {
+      console.log(
+        boxen(
+          [
+            chalk.yellow.bold("Neo4j Connection Warning"),
+            "",
+            "Neo4j is not available, but the system can continue with limited functionality.",
+            "Code intelligence features will be unavailable until connection is restored.",
+            "",
+            "Error: " + neo4jStatus.error,
+            "",
+            chalk.dim("Tip: Run 'npm run test:neo4j' to diagnose connection issues"),
+          ].join("\n"),
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: "round",
+            borderColor: "yellow",
+            title: "System Startup",
+            titleAlignment: "center",
+          }
+        )
+      );
+
+      // Continue execution with limited functionality
+    }
+  } else {
+    // Neo4j connection successful - check for limitations
+    if (neo4jStatus.limitations && neo4jStatus.limitations.warning) {
+      console.warn(
+        boxen(
+          [
+            chalk.yellow.bold("Neo4j Limitation Notice"),
+            "",
+            neo4jStatus.limitations.warning,
+            neo4jStatus.limitations.limitation,
+            "",
+            chalk.dim(neo4jStatus.limitations.recommendation),
+          ].join("\n"),
+          {
+            padding: 1,
+            margin: 1,
+            borderStyle: "round",
+            borderColor: "yellow",
+          }
+        )
+      );
+    }
   }
 
   // After Neo4j connection test

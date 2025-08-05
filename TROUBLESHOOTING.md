@@ -21,33 +21,65 @@ If you send a message to `@system` or `@saul` and nothing happens, your IDE is l
   - If you change the `PORT` in `.env` _after_ installing, the URLs in `.roomodes` will be wrong.
   - **Solution:** Simply run `npx @randy888chan/stigmergy install` again. It will safely overwrite `.roomodes` with the correct, updated URLs.
 
-## 3. Engine Fails to Start or AI is Unresponsive
+## 2. Neo4j Connection Issues
 
-This is the most common and critical issue. It manifests in two ways:
+Stigmergy uses Neo4j for advanced code intelligence, but is designed to operate with limited functionality when Neo4j is unavailable.
 
-1.  You run `npm run stigmergy:start` and the process exits immediately with a large red "CRITICAL DATABASE ERROR" message.
-2.  The engine seems to start, but agents like `@saul` are unresponsive, don't perform tasks (like research or coding), or get stuck in a loop asking what to do.
+### Common Symptoms
 
-- **Cause:** In both cases, the cause is a **failed connection to the Neo4j database**. The database is the AI's "brain," allowing it to understand your code. If the engine cannot connect to it, it cannot function.
+- "Neo4j Connection Warning" during startup (yellow box)
+- "Code intelligence features temporarily unavailable" messages
+- Slower analysis of code structure and dependencies
 
-- **Solution: Use the Neo4j Connection Tester**
+### Troubleshooting Steps
 
-  We've included a simple tool to diagnose this specific problem. In your terminal, run:
+#### 1. Check Current Connection Status
 
-  ```bash
-  npm run test:neo4j
-  ```
+```bash
+npm run test:neo4j
+```
 
-  This script will attempt to connect to Neo4j using the credentials in your `.env` file and give you a clear, color-coded report.
-  - **If you get a GREEN `CONNECTION OK` box:** Your credentials are correct and the database is reachable. If agents are still not working, the problem lies elsewhere.
-  - **If you get a RED `CONNECTION FAILED` box:** The script could reach the server, but the login failed. This means your `NEO4J_URI` is likely correct, but your `NEO4J_USER` or `NEO4J_PASSWORD` are wrong.
-  - **If you get a RED `CONFIGURATION ERROR` box:** The script couldn't even find the required credentials in your `.env` file.
+This will give you a detailed report of your Neo4j connection status.
 
-- **How to Fix a Bad Connection:**
-  1.  **Is Neo4j Desktop running?** Make sure the application is open.
-  2.  **Is your database active?** Inside Neo4j Desktop, find your project's database and make sure it has a green "Active" status. Click the "Start" button if it's stopped.
-  3.  **Are your credentials correct?** Double- and triple-check the `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` values in your project's `.env` file. A tiny typo will cause the connection to fail.
-  4.  **Restart the engine.** After making any changes to your `.env` file or Neo4j, stop the Stigmergy engine (`Ctrl+C`) and restart it with `npm run stigmergy:start`.
+#### 2. Understanding Connection Status
+
+| Status                             | Meaning                                                                      | Action                                               |
+| ---------------------------------- | ---------------------------------------------------------------------------- | ---------------------------------------------------- |
+| **CONNECTION OK** (green)          | Neo4j is connected and functioning properly                                  | No action needed                                     |
+| **LIMITED FUNCTIONALITY** (yellow) | Neo4j is connected but has limitations (e.g., Community Edition size limits) | Consider upgrading Neo4j edition for larger projects |
+| **FALLING BACK** (yellow)          | Neo4j is unavailable but system is using fallback verification               | Fix Neo4j connection for full functionality          |
+| **CRITICAL ERROR** (red)           | Neo4j is required but connection failed                                      | Must fix before continuing                           |
+
+#### 3. Fixing Connection Issues
+
+**If you get a "FALLING BACK" status:**
+
+1. Ensure Neo4j Desktop is running
+2. Verify your database is active (green status in Neo4j Desktop)
+3. Check your `.env` file has correct credentials:
+   ```
+   NEO4J_URI=bolt://localhost:7687
+   NEO4J_USER=neo4j
+   NEO4J_PASSWORD=your_password
+   ```
+
+**If you get a "CRITICAL ERROR" status:**
+
+1. Run `npm run test:neo4j` for detailed diagnostics
+2. Try restarting Neo4j Desktop
+3. Reset your Neo4j password if needed (default is often "neo4j" initially)
+4. Check for firewall issues blocking port 7687
+
+#### 4. Using the System While Fixing Neo4j
+
+When Neo4j is unavailable, Stigmergy automatically:
+
+- Uses fallback verification for basic checks
+- Continues planning and documentation tasks
+- Logs issues for later review
+- Alerts when connection is restored
+
+You can continue most development activities, but code intelligence features (like dependency analysis) will be limited until Neo4j is available.
 
 ## 4. "No valid agents were found" Error during Install
 
