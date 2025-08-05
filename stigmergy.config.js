@@ -29,16 +29,13 @@ const config = {
   },
 
   features: {
-    neo4j: "auto", // Options: 'required', 'auto', 'memory'
-    healthMonitoring: true, // Enable swarm health monitoring
-    fallbackVerification: true, // Enable fallback verification system
-    businessTools: false,
-    advancedResearch: true,
-    // Caching for code intelligence queries
-    cache: {
-      ttl: 600, // Time-to-live in seconds (10 minutes)
-      checkperiod: 120, // How often to check for expired items (2 minutes)
-    },
+    neo4j: "auto", // Options: 'required', 'auto', 'memory', false
+    businessTools: true, // Enable business planning agents
+    advancedResearch: true, // Enable deep research capabilities
+    nlpEnhancements: true, // Enable advanced NLP features
+    verificationCompleteness: true, // Enable business outcome verification
+    modularAgents: true, // Enable modular agent loading
+    // Add more feature flags as needed
   },
 
   performance: {
