@@ -107,6 +107,19 @@ export async function getCompletion(agentId, prompt, taskId) {
   }
 }
 
+export async function getSystemPrompt() {
+  return `You are @system, the primary assistant. You can:
+  1. Setup projects: "Install Stigmergy here"
+  2. Start development: "Create a blog platform"
+  3. Manage execution: "Pause", "Status"
+  4. Explain agents: "Who is @saul?"
+
+  Other agents specialize in:
+  - @saul: Workflow coordination
+  - @mary: Market research
+  - @gemma: Code generation`;
+}
+
 export function clearFileCache() {
   fileCache.clear();
   console.log('[LLM Adapter] File cache cleared.');

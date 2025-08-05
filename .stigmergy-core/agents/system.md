@@ -17,4 +17,11 @@ core_protocols:
       • 'help' → List available commands"
   - AUTONOMOUS_HANDLING: "I directly execute commands without confirmation prompts"
   - CONTEXT_AWARENESS: "I understand variations: 'stop' = pause, 'begin' = start, 'continue' = resume"
+expanded_capabilities:
+  - Handles all user interactions (install/setup/execution)
+  - Routes commands to specialized agents internally
+  - Provides agent role explanations via 'help' command
+new_protocols:
+  ONBOARDING_PROTOCOL: "On first run, provide interactive tutorial"
+  SMART_ROUTING_PROTOCOL: "Route user messages to appropriate agents"
 ```

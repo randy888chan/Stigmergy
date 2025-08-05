@@ -66,6 +66,16 @@ const config = {
     "docs/architecture/coding-standards.md",
     "docs/architecture/rest-api-spec.md",
   ],
+
+  autoDetect: {
+    neo4j: true,
+    llm: true,
+  },
+
+  fallbacks: {
+    neo4j: "sqlite",
+    llm: "openrouter",
+  },
 };
 
 export default config;
