@@ -30,6 +30,7 @@ async function getManifest() {
     return agentManifest;
   }
   const fileContent = await fs.readFile(MANIFEST_PATH, "utf8");
+  console.log("fileContent", fileContent);
 
   const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
   if (!yamlMatch) {

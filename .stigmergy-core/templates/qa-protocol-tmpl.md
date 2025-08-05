@@ -1,7 +1,5 @@
 # Project Quality Assurance (QA) Protocol
 
-[[LLM: This is a template for the project-specific QA protocol, which MUST be saved as `docs/architecture/qa-protocol.md`. The `@quinn` agent will programmatically execute the commands listed here.]]
-
 This document outlines the mandatory, automated protocol for the `@quinn` (QA) agent. If any command exits with a non-zero code, the verification FAILS.
 
 ## QA Validation Pipeline

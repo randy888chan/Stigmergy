@@ -1,7 +1,5 @@
 # Project Brief: {{Project Name}}
 
-[[LLM: You are the Analyst agent, Mary. The default path for this file is `docs/brief.md`. Your goal is to create the foundational "contract" for the project. Use research tools to ground every section in reality.]]
-
 ## 1. Core Vision
 
 ### 1.1. Project Goal
@@ -19,8 +17,6 @@ _A high-level overview of the solution. How does it uniquely solve the problem?_
 ---
 
 ## 2. Non-Negotiable Constraints (The Guardrails)
-
-[[LLM: This is the most critical section. Elicit clear, unambiguous constraints.]]
 
 ### 2.1. Budget & Financial Constraints
 
@@ -54,5 +50,3 @@ _A few measurable metrics to track post-launch._
 ---
 
 ## 4. Handoff to Planners
-
-[[LLM: Conclude your work by using the system.updateStatus tool. Set the status to 'GRAND_BLUEPRINT_PHASE', the message to 'Brief complete. Ready for PRD creation.', and the artifact_created flag to 'brief'.]]

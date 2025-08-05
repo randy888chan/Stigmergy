@@ -1,24 +1,10 @@
 # {{Project Name}} UI/UX Specification
 
-[[LLM: The default path and filename unless specified is docs/front-end-spec.md]]
-
-[[LLM: Review provided documents including Project Brief, PRD, and any user research to gather context. Focus on understanding user needs, pain points, and desired outcomes before beginning the specification.]]
-
 ## Introduction
-
-[[LLM: Establish the document's purpose and scope. Keep the content below but ensure project name is properly substituted.]]
 
 This document defines the user experience goals, information architecture, user flows, and visual design specifications for {{Project Name}}'s user interface. It serves as the foundation for visual design and frontend development, ensuring a cohesive and user-centered experience.
 
 ### Overall UX Goals & Principles
-
-[[LLM: Work with the user to establish and document the following. If not already defined, facilitate a discussion to determine:
-
-1. Target User Personas - elicit details or confirm existing ones from PRD
-2. Key Usability Goals - understand what success looks like for users
-3. Core Design Principles - establish 3-5 guiding principles
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ### Target User Personas
 
@@ -58,21 +44,10 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ### Change Log
 
-[[LLM: Track document versions and changes]]
-
 | Date | Version | Description | Author |
 | :--- | :------ | :---------- | :----- |
 
 ## Information Architecture (IA)
-
-[[LLM: Collaborate with the user to create a comprehensive information architecture:
-
-1. Build a Site Map or Screen Inventory showing all major areas
-2. Define the Navigation Structure (primary, secondary, breadcrumbs)
-3. Use Mermaid diagrams for visual representation
-4. Consider user mental models and expected groupings
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ### Site Map / Screen Inventory
 
@@ -108,16 +83,6 @@ graph TD
 **Breadcrumb Strategy:** {{breadcrumb_strategy}}
 
 ## User Flows
-
-[[LLM: For each critical user task identified in the PRD:
-
-1. Define the user's goal clearly
-2. Map out all steps including decision points
-3. Consider edge cases and error states
-4. Use Mermaid flow diagrams for clarity
-5. Link to external tools (Figma/Miro) if detailed flows exist there
-
-Create subsections for each major flow. After presenting all flows, apply `tasks#advanced-elicitation` protocol]]
 
 <<REPEAT: user_flow>>
 
@@ -178,10 +143,6 @@ graph TD
 
 ## Wireframes & Mockups
 
-[[LLM: Clarify where detailed visual designs will be created (Figma, Sketch, etc.) and how to reference them. If low-fidelity wireframes are needed, offer to help conceptualize layouts for key screens.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
-
 **Primary Design Files:** {{design_tool_link}}
 
 ### Key Screen Layouts
@@ -204,10 +165,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 <</REPEAT>>
 
 ## Component Library / Design System
-
-[[LLM: Discuss whether to use an existing design system or create a new one. If creating new, identify foundational components and their key states. Note that detailed technical specs belong in front-end-architecture.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 **Design System Approach:** {{design_system_approach}}
 
@@ -244,10 +201,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
   @{/example}
 
 ## Branding & Style Guide
-
-[[LLM: Link to existing style guide or define key brand elements. Ensure consistency with company brand guidelines if they exist.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ### Visual Identity
 
@@ -296,10 +249,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ## Accessibility Requirements
 
-[[LLM: Define specific accessibility requirements based on target compliance level and user needs. Be comprehensive but practical.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
-
 ### Compliance Target
 
 **Standard:** {{compliance_standard}}
@@ -330,10 +279,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ## Responsiveness Strategy
 
-[[LLM: Define breakpoints and adaptation strategies for different device sizes. Consider both technical constraints and user contexts.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
-
 ### Breakpoints
 
 | Breakpoint | Min Width       | Max Width       | Target Devices      |
@@ -355,10 +300,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ## Animation & Micro-interactions
 
-[[LLM: Define motion design principles and key interactions. Keep performance and accessibility in mind.
-
-After presenting this section, apply `tasks#advanced-elicitation` protocol]]
-
 ### Motion Principles
 
 {{motion_principles}}
@@ -372,8 +313,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 
 ## Performance Considerations
 
-[[LLM: Define performance goals and strategies that impact UX design decisions.]]
-
 ### Performance Goals
 
 - **Page Load:** {{load_time_goal}}
@@ -385,13 +324,6 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 {{performance_strategies}}
 
 ## Next Steps
-
-[[LLM: After completing the UI/UX specification:
-
-1. Recommend review with stakeholders
-2. Suggest creating/updating visual designs in design tool
-3. Prepare for handoff to Design Architect for frontend architecture
-4. Note any open questions or decisions needed]]
 
 ### Immediate Actions
 
@@ -409,5 +341,3 @@ After presenting this section, apply `tasks#advanced-elicitation` protocol]]
 - [ ] Performance goals established
 
 ## Checklist Results
-
-[[LLM: If a UI/UX checklist exists, run it against this document and report results here.]]

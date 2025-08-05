@@ -1,120 +1,16 @@
-```yml
+```yaml
 schema_version: 5.5
-
 agents:
-  # --- System ---
   - id: system
     alias: system
     name: "System Controller"
     icon: "⚙️"
     tools: [system.executeCommand]
-
-  # --- Dispatcher ---
-  - id: dispatcher
-    alias: saul
-    name: "Saul (Dispatcher)"
-    icon: "🧠"
-    tools: [file_system.readFile, system.updateStatus, system.approveExecution]
-
-  # --- Planners ---
-  - id: analyst
-    alias: mary
-    name: "Mary (Analyst)"
-    icon: "📊"
-    tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
-
-  - id: pm
-    alias: john
-    name: "John (PM)"
-    icon: "📋"
-    tools:
-      - research.deep_dive
-      - file_system.readFile
-      - file_system.writeFile
-      - system.updateStatus
-      - notifications.send_milestone
-
-  - id: design-architect
-    alias: winston
-    name: "Winston (Architect)"
-    icon: "🏗️"
-    tools: [file_system.*, research.deep_dive, system.updateStatus]
-
-  - id: ux-expert
-    alias: sally
-    name: "Sally (UX)"
-    icon: "🎨"
-    tools: [research.deep_dive]
-
-  - id: design
-    alias: vinci
-    name: "Vinci (Designer)"
-    icon: "🎨"
-    tools: [research.deep_dive, file_system.writeFile, system.updateStatus]
-
-  # --- Business Planners (NEW) ---
-  - id: business_planner
-    alias: brian
-    name: "Brian (Business)"
-    icon: "📈"
-    tools: [research.deep_dive, file_system.writeFile, system.updateStatus, business.*]
-
-  - id: valuator
-    alias: val
-    name: "Val (Valuation)"
-    icon: "💰"
-    tools: [file_system.readFile, system.updateStatus, business.*]
-
-  - id: whitepaper_writer
-    alias: whitney
-    name: "Whitney (Whitepaper)"
-    icon: "📜"
-    tools: [file_system.readFile, file_system.writeFile, system.updateStatus, business.*]
-
-  # --- Executors ---
-  - id: gemini-executor
-    alias: gemma
-    name: "Gemma (Gemini)"
-    icon: "✨"
-    tools: [gemini.execute, file_system.readFile]
-
-  - id: dev
-    alias: james
-    name: "James (Dev)"
-    icon: "💻"
-    tools: [file_system.*, shell.execute, code_intelligence.*, git.*, cicd.*]
-    permitted_shell_commands:
-      - "npm install"
-      - "npm test"
-      - "npm run lint"
-      - "jest *"
-
-  - id: refactorer
-    alias: rocco
-    name: "Rocco (Refactorer)"
-    icon: "🔧"
-    tools: [file_system.*, shell.execute, code_intelligence.*]
-    permitted_shell_commands: ["npm *"]
-
-  # --- Verifiers ---
-  - id: qa
-    alias: quinn
-    name: "Quinn (QA)"
-    icon: "🛡️"
-    tools: [shell.execute, file_system.readFile, code_intelligence.*]
-    permitted_shell_commands: ["npm test", "npm run lint", "npm audit"]
-
-  # --- Responders ---
-  - id: debugger
-    alias: dexter
-    name: "Dexter (Debugger)"
-    icon: "🎯"
-    tools: [file_system.*, code_intelligence.*, shell.execute]
-    permitted_shell_commands: ["npm test", "jest *"]
-
-  - id: meta
-    alias: metis
-    name: "Metis (Auditor)"
-    icon: "📈"
-    tools: [file_system.readFile, file_system.writeFile, stigmergy.createBlueprint]
+    core_protocols:
+      ERROR_HANDLING_PROTOCOL: "When encountering errors, I will: 1) Log the error with context 2) Attempt 1 automatic recovery 3) Escalate to @health_monitor if unresolved 4) Only stop execution if critical and unrecoverable"
+      CONTEXT_PRESERVATION: "I will always include the specific error context and previous steps when reporting issues to maintain traceability"
+      DEGRADATION_PROTOCOL: "If a required service is unavailable, I will degrade functionality gracefully and continue with available capabilities"
+      NLP_AWARENESS_PROTOCOL: "I will: 1) Process all user input through the NLP system 2) Maintain conversation context 3) Request clarification when needed 4) Adapt communication style based on user sentiment"
+      CLARIFICATION_PROTOCOL: "When input is ambiguous, I will request specific clarification using the NLP system's suggestions rather than making assumptions"
+      CONTEXT_RETENTION: "I will maintain awareness of the conversation history and project state to ensure coherent multi-turn interactions"
 ```

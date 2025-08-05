@@ -135,21 +135,6 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
       source: "project",
     },
     {
-      slug: "sally",
-      name: "🎨 Sally",
-      roleDefinition:
-        "I am a UX Expert specializing in user experience design and creating intuitive interfaces. My work informs the product and architectural plans to ensure we build something people love.",
-      groups: ["browser", "edit", "mcp", "read"],
-      source: "project",
-    },
-    {
-      slug: "vinci",
-      name: "🎨 Vinci (Designer)",
-      roleDefinition: "You are the design agent.",
-      groups: ["browser", "edit", "read", "mcp"],
-      source: "project",
-    },
-    {
       slug: "dexter",
       name: "🎯 Dexter",
       roleDefinition:
@@ -236,6 +221,13 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
       roleDefinition:
         "I am the guardian of quality. I act as the first check on the Foreman's blueprint, identifying risks and enforcing schema integrity before they become bugs. I then act as the final check on the developer's code.",
       groups: ["command", "read", "edit", "mcp"],
+      source: "project",
+    },
+    {
+      slug: "error_handler",
+      name: "🔥 Error Handler",
+      roleDefinition: "Centralized error handling and recovery coordination for the swarm.",
+      groups: ["read", "edit", "command", "mcp"],
       source: "project",
     },
   ];

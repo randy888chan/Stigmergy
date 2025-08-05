@@ -17,12 +17,6 @@ so that {{benefit}}
 
 ## Dev Notes
 
-<!--
-  This section is populated by @bob (Task Decomposer).
-  It contains only the critical, specific technical context from the
-  architecture documents needed for this story.
--->
-
 **Relevant Architectural Snippets:**
 
 - **Data Model `{{model_name}}` [Source: docs/architecture/data-models.md]:**
