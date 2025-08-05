@@ -1,3 +1,4 @@
+import { runPreChecks } from "./precheck.js";
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
@@ -277,6 +278,18 @@ export async function configureIde(coreSourceDir, outputPath = path.join(CWD, ".
 }
 
 export async function run() {
+  const precheckResults = await runPreChecks();
+  const failedChecks = Object.entries(precheckResults).filter(([, r]) => !r.valid);
+
+  if (failedChecks.length > 0) {
+    console.error(chalk.bold.red("Pre-installation checks failed:"));
+    for (const [name, result] of failedChecks) {
+      console.error(chalk.red(`  - ${name}: ${result.error || "Failed"}`));
+    }
+    throw new Error("Pre-installation checks failed. Please fix the issues above and try again.");
+  }
+  console.log(chalk.green("✅ Pre-installation checks passed."));
+
   const spinner = ora("🚀 Initializing Stigmergy...").start();
   try {
     spinner.text = "Copying core files...";
