@@ -55,3 +55,53 @@ describe("Code Intelligence Service", () => {
     expect(neo4j.driver).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Neo4j Limitation Detection", () => {
+  const mockSession = {
+    run: jest.fn(),
+    close: jest.fn(),
+  };
+
+  beforeEach(() => {
+    const mockDriver = {
+      session: () => mockSession,
+      close: jest.fn().mockResolvedValue(undefined),
+    };
+    neo4j.driver.mockReturnValue(mockDriver);
+    codeIntelligenceService.driver = mockDriver;
+    codeIntelligenceService.isMemory = false;
+  });
+
+  it("should detect Community Edition limitations", async () => {
+    mockSession.run.mockResolvedValue({
+      records: [
+        {
+          get: () => "community",
+        },
+      ],
+    });
+
+    const result = await codeIntelligenceService.detectNeo4jLimitations();
+    expect(result.warning).toContain("Community Edition");
+    expect(result.limitation).toContain("4GB");
+  });
+
+  it("should return no warnings for Enterprise Edition", async () => {
+    mockSession.run.mockResolvedValue({
+      records: [
+        {
+          get: () => "enterprise",
+        },
+      ],
+    });
+
+    const result = await codeIntelligenceService.detectNeo4jLimitations();
+    expect(result.warning).toBeUndefined();
+  });
+
+  it("should handle detection failures", async () => {
+    mockSession.run.mockRejectedValue(new Error("Connection failed"));
+    const result = await codeIntelligenceService.detectNeo4jLimitations();
+    expect(result.error).toContain("failed");
+  });
+});

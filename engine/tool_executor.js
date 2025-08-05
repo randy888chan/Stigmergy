@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
+import { sanitizeToolCall } from "../utils/sanitization.js";
 import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
@@ -116,6 +117,17 @@ export function createExecutor(engine) {
         throw new PermissionDeniedError(`Agent '${agentId}' not permitted for tool '${toolName}'.`);
       }
 
+      let safeArgs;
+      try {
+        safeArgs = sanitizeToolCall(toolName, args);
+      } catch (sanitizationError) {
+        throw new OperationalError(
+          "input_sanitization_failed",
+          ERROR_TYPES.SECURITY,
+          "sanitization_protocol"
+        );
+      }
+
       const [namespace, funcName] = toolName.split(".");
       if (!toolbelt[namespace]?.[funcName]) {
         throw new Error(`Tool '${toolName}' not found.`);
@@ -125,7 +137,7 @@ export function createExecutor(engine) {
       const shouldRetry = retryableTools.includes(toolName);
       const executor = shouldRetry ? withRetry(toolFn) : toolFn;
 
-      const result = await executor({ ...args, agentConfig });
+      const result = await executor({ ...safeArgs, agentConfig });
 
       if (toolName.startsWith("file_system.write")) {
         clearFileCache();
@@ -137,8 +149,12 @@ export function createExecutor(engine) {
       if (error.name.includes("Neo4j")) errorType = ERROR_TYPES.DB_CONNECTION;
       if (error.name === "PermissionDeniedError") errorType = ERROR_TYPES.PERMISSION_DENIED;
 
+      if (error instanceof OperationalError) {
+        throw error;
+      }
+
       throw new OperationalError(
-        `[${agentId}] ${error.message}`,
+        error.message, // Keep original message for non-operational errors
         errorType,
         remediationMap[errorType]
       );

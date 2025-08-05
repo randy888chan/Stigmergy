@@ -1,0 +1,48 @@
+import { runPreChecks } from "../../installer/precheck.js";
+import codeIntelligenceService from "../../services/code_intelligence_service.js";
+import { t } from "../../utils/localization.js";
+import { OperationalError } from "../../utils/errorHandler.js";
+import fs from "fs";
+import { jest } from "@jest/globals";
+
+jest.mock("../../services/code_intelligence_service.js");
+
+describe("Full Installation Workflow", () => {
+  beforeAll(() => {
+    // Mock platform-specific behavior
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+      writable: true,
+    });
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("should complete successful installation", async () => {
+    const precheckResults = await runPreChecks();
+    // This check is now more complex. Let's check the windows one.
+    expect(precheckResults["Windows Permissions"].valid).toBe(true);
+
+    codeIntelligenceService.detectNeo4jLimitations.mockResolvedValue({});
+    const neo4jLimitations = await codeIntelligenceService.detectNeo4jLimitations();
+    expect(neo4jLimitations.warning).toBeUndefined();
+
+    // Verify localization works
+    expect(t("permission_denied", "es")).toContain("permiso");
+  });
+
+  it("should handle Windows permission errors", async () => {
+    const accessSyncSpy = jest.spyOn(fs, "accessSync").mockImplementation(() => {
+      throw new Error("Permission denied");
+    });
+
+    const precheckResults = await runPreChecks();
+    expect(precheckResults["Windows Permissions"].valid).toBe(false);
+
+    const error = new OperationalError("permission_denied", "PERMISSION_DENIED", "run_as_admin");
+    expect(t(error.message_key, "es")).toContain("permiso");
+    accessSyncSpy.mockRestore();
+  });
+});
