@@ -58,12 +58,14 @@ describe("Stigmergy Engine API", () => {
 
       const response = await request(app).get("/dashboard/state");
       expect(response.status).toBe(200);
-      expect(response.body.simplified).toEqual({
-        project: "Test Project",
-        status: "RUNNING",
-        progress: "1/2",
-        current: "Doing something",
+      // The API now returns the full state object, so we check the properties directly.
+      expect(response.body).toMatchObject({
+        project_name: "Test Project",
+        project_status: "RUNNING",
+        current_task: "Doing something",
       });
+      // We can also check if the tasks array is present
+      expect(response.body.project_manifest.tasks).toHaveLength(2);
     });
   });
 

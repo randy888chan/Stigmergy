@@ -1,7 +1,172 @@
-<div id="onboarding-flow">
-  <div class="step" data-step="1">Welcome to Stigmergy!</div>
-  <div class="step" data-step="2">Agents:
-    <div class="agent-card" data-agent="system">Your main assistant</div>
-  </div>
-  <div class="step" data-step="3">Try: "Start a blog project"</div>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stigmergy Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .dashboard {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        h1, h2 {
+            color: #1a253c;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            color: #fff;
+        }
+        .status-running { background-color: #27ae60; }
+        .status-paused { background-color: #f39c12; }
+        .status-stopped { background-color: #c0392b; }
+        .status-default { background-color: #7f8c8d; }
+
+        .progress-section { margin: 20px 0; }
+        .progress-bar-container {
+            width: 100%;
+            background-color: #eef2f5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background-color: #3498db;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            transition: width 0.5s ease-in-out;
+        }
+        #activity-log {
+            list-style-type: none;
+            padding: 0;
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #eef2f5;
+            border-radius: 4px;
+        }
+        #activity-log li {
+            padding: 12px;
+            border-bottom: 1px solid #eef2f5;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9em;
+        }
+        #activity-log li:last-child { border-bottom: none; }
+        #activity-log .log-msg { font-family: monospace; }
+        #activity-log .log-meta { color: #7f8c8d; white-space: nowrap; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h1>Stigmergy Project Dashboard</h1>
+
+        <p><strong>Project:</strong> <span id="project-name">Loading...</span></p>
+        <p><strong>Status:</strong> <span id="project-status" class="status-badge status-default">Loading...</span></p>
+
+        <div class="progress-section">
+            <h2>Task Progress</h2>
+            <div class="progress-bar-container">
+                <div id="progress-bar" class="progress-bar">0%</div>
+            </div>
+            <p><span id="progress-text">0/0 Tasks Completed</span></p>
+        </div>
+
+        <h2>Agent Activity Log</h2>
+        <ul id="activity-log">
+            <li>Loading log...</li>
+        </ul>
+    </div>
+
+    <script>
+        const API_ENDPOINT = '/dashboard/state';
+
+        async function fetchData() {
+            try {
+                const response = await fetch(API_ENDPOINT);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const state = await response.json();
+                updateUI(state);
+            } catch (error) {
+                console.error("Failed to fetch dashboard data:", error);
+                document.getElementById('project-name').textContent = "Error loading data";
+            }
+        }
+
+        function updateUI(state) {
+            // Update Project Name and Status
+            document.getElementById('project-name').textContent = state.project_name || 'N/A';
+            const statusEl = document.getElementById('project-status');
+            statusEl.textContent = state.project_status || 'UNKNOWN';
+            statusEl.className = 'status-badge'; // reset classes
+            switch(state.project_status) {
+                case 'EXECUTION_IN_PROGRESS':
+                    statusEl.classList.add('status-running');
+                    break;
+                case 'PAUSED_BY_USER':
+                    statusEl.classList.add('status-paused');
+                    break;
+                case 'EXECUTION_HALTED':
+                case 'EXECUTION_FAILED':
+                    statusEl.classList.add('status-stopped');
+                    break;
+                default:
+                    statusEl.classList.add('status-default');
+            }
+
+            // Update Progress Bar
+            const tasks = state.project_manifest?.tasks || [];
+            const totalTasks = tasks.length;
+            const completedTasks = tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED').length;
+            const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = `${progressPercentage}%`;
+            progressBar.textContent = `${progressPercentage}%`;
+            document.getElementById('progress-text').textContent = `${completedTasks}/${totalTasks} Tasks Completed`;
+
+            // Update Activity Log
+            const activityLog = document.getElementById('activity-log');
+            activityLog.innerHTML = ''; // Clear existing logs
+            if (state.history && state.history.length > 0) {
+                state.history.slice().reverse().forEach(logEntry => {
+                    const li = document.createElement('li');
+                    const timestamp = new Date(logEntry.timestamp).toLocaleTimeString();
+                    li.innerHTML = `
+                        <span class="log-msg">[${logEntry.agent_id}] ${logEntry.message}</span>
+                        <span class="log-meta">${timestamp}</span>
+                    `;
+                    activityLog.appendChild(li);
+                });
+            } else {
+                activityLog.innerHTML = '<li>No activity yet.</li>';
+            }
+        }
+
+        // Fetch data on initial load and then every 3 seconds
+        fetchData();
+        setInterval(fetchData, 3000);
+    </script>
+
+</body>
+</html>

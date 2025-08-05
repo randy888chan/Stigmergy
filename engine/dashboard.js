@@ -14,14 +14,7 @@ router.get("/state", async (req, res) => {
       (t) => t.status === "DONE" || t.status === "COMPLETED"
     ).length;
 
-    res.json({
-      simplified: {
-        project: state.project_name,
-        status: state.project_status,
-        progress: `${completedTasks}/${totalTasks}`,
-        current: state.current_task || null,
-      },
-    });
+    res.json(state);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
