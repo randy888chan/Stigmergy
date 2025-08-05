@@ -30,6 +30,8 @@ const config = {
 
   features: {
     neo4j: "auto", // Options: 'required', 'auto', 'memory'
+    healthMonitoring: true, // Enable swarm health monitoring
+    fallbackVerification: true, // Enable fallback verification system
     businessTools: false,
     advancedResearch: true,
     // Caching for code intelligence queries

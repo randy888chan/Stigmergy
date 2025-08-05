@@ -60,7 +60,11 @@ class CodeIntelligenceService {
     this.projectRoot = projectPath;
 
     this.watcher = chokidar.watch(projectPath, {
-      ignored: (path) => this.ig.ignores(path),
+      ignored: (p) => {
+        const relativePath = path.relative(projectPath, p);
+        if (relativePath === "") return false;
+        return this.ig.ignores(relativePath);
+      },
       persistent: true,
       ignoreInitial: true,
     });
@@ -113,34 +117,40 @@ class CodeIntelligenceService {
   initializeDriver() {
     const neo4jFeature = config.features?.neo4j;
 
+    // Handle memory mode first
     if (neo4jFeature === "memory") {
       console.log("[CodeIntelligence] Using in-memory Neo4j driver (mocked).");
       this.driver = createInMemoryDriver();
       this.isMemory = true;
+      this.connectionStatus = "MEMORY";
       return;
     }
 
-    const useRemote =
-      neo4jFeature === "required" || neo4jFeature === "auto" || neo4jFeature === true;
+    // Check if Neo4j is required or optional
+    const isRequired = neo4jFeature === "required";
 
-    if (
-      useRemote &&
-      process.env.NEO4J_URI &&
-      process.env.NEO4J_USER &&
-      process.env.NEO4J_PASSWORD
-    ) {
-      this.driver = neo4j.driver(
-        process.env.NEO4J_URI,
-        neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
-        { disableLosslessIntegers: true }
-      );
-    } else {
-      if (neo4jFeature === "required") {
-        console.error(
-          "[CodeIntelligence] Neo4j is required, but credentials are not set. Service is disabled."
+    // Only attempt connection if credentials exist
+    if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
+      try {
+        this.driver = neo4j.driver(
+          process.env.NEO4J_URI,
+          neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
+          { disableLosslessIntegers: true }
         );
+        this.connectionStatus = "INITIALIZED";
+        console.log("[CodeIntelligence] Neo4j driver initialized (pending connection test)");
+        return;
+      } catch (error) {
+        console.warn(`[CodeIntelligence] Failed to initialize Neo4j driver: ${error.message}`);
+        this.connectionStatus = "FAILED_INITIALIZATION";
+      }
+    } else {
+      const status = isRequired ? "REQUIRED_MISSING" : "OPTIONAL_MISSING";
+      this.connectionStatus = status;
+      if (isRequired) {
+        console.error("[CodeIntelligence] Neo4j is required but credentials are missing in .env");
       } else {
-        console.warn("[CodeIntelligence] Neo4j credentials not set. Service is disabled.");
+        console.log("[CodeIntelligence] Neo4j credentials not set. Service is disabled (optional)");
       }
     }
   }
@@ -177,43 +187,92 @@ class CodeIntelligenceService {
   }
 
   async testConnection(retries = 3, baseDelay = 1000) {
+    // Return cached status if recently checked
+    if (this.lastConnectionCheck && Date.now() - this.lastConnectionCheck < 5000) {
+      return this.lastConnectionStatus;
+    }
+
     if (!this.driver) this.initializeDriver();
+
+    // Handle different connection status scenarios
+    switch (this.connectionStatus) {
+      case "MEMORY":
+        this.lastConnectionStatus = { success: true, type: "memory" };
+        this.lastConnectionCheck = Date.now();
+        return this.lastConnectionStatus;
+
+      case "REQUIRED_MISSING":
+        const errorMsg = "Neo4j is required but credentials are missing in .env";
+        this.lastConnectionStatus = { success: false, error: errorMsg, type: "required_missing" };
+        this.lastConnectionCheck = Date.now();
+        return this.lastConnectionStatus;
+
+      case "OPTIONAL_MISSING":
+        this.lastConnectionStatus = {
+          success: false,
+          error: "Neo4j credentials not configured",
+          type: "optional_missing",
+          warning: "Code intelligence features will be limited",
+        };
+        this.lastConnectionCheck = Date.now();
+        return this.lastConnectionStatus;
+
+      case "FAILED_INITIALIZATION":
+        this.lastConnectionStatus = {
+          success: false,
+          error: "Failed to initialize Neo4j driver",
+          type: "initialization_failed",
+        };
+        this.lastConnectionCheck = Date.now();
+        return this.lastConnectionStatus;
+    }
+
+    // Only attempt connection if driver exists
     if (!this.driver) {
       const errorMsg =
         config.features?.neo4j === "required"
           ? "Neo4j is required, but the driver could not be initialized. Check your .env credentials."
           : "Neo4j driver not initialized. Service is disabled.";
-      return {
+      this.lastConnectionStatus = { success: false, error: errorMsg, type: "no_driver" };
+      this.lastConnectionCheck = Date.now();
+      return this.lastConnectionStatus;
+    }
+
+    try {
+      const session = this.driver.session();
+      await session.run("RETURN 1 AS test");
+      await session.close();
+
+      // Check for limitations after successful connection
+      const limitations = await this.detectNeo4jLimitations();
+
+      this.lastConnectionStatus = {
+        success: true,
+        type: "connected",
+        limitations: limitations,
+      };
+      this.lastConnectionCheck = Date.now();
+      return this.lastConnectionStatus;
+    } catch (error) {
+      // Implement exponential backoff retry logic
+      if (retries > 0) {
+        const delay = baseDelay * Math.pow(2, 3 - retries);
+        await new Promise((resolve) => setTimeout(resolve, delay));
+        return this.testConnection(retries - 1, baseDelay);
+      }
+
+      // Store detailed error information
+      const errorType = this._categorizeConnectionError(error);
+      const errorMsg = this._formatConnectionError(error, errorType);
+
+      this.lastConnectionStatus = {
         success: false,
         error: errorMsg,
+        errorType: errorType,
+        type: "connection_failed",
       };
-    }
-
-    if (this.isMemory) {
-      return { success: true, message: "In-memory connection successful" };
-    }
-
-    for (let attempt = 1; attempt <= retries; attempt++) {
-      try {
-        const session = this.driver.session();
-        await session.run("RETURN 1");
-        await session.close();
-
-        // If connection is successful, ensure the database exists
-        await this.initializeDefaultDatabase();
-
-        return { success: true, message: "Connection successful" };
-      } catch (error) {
-        if (attempt === retries) {
-          return {
-            success: false,
-            error: `Connection failed after ${retries} attempts: ${error.message}`,
-          };
-        }
-        const delay = baseDelay * Math.pow(2, attempt - 1);
-        console.warn(`[Neo4j] Connection attempt ${attempt} failed. Retrying in ${delay}ms...`);
-        await setTimeout(delay);
-      }
+      this.lastConnectionCheck = Date.now();
+      return this.lastConnectionStatus;
     }
   }
 
@@ -270,7 +329,7 @@ class CodeIntelligenceService {
     const records = await this._runQuery(query);
     // Convert to a Map for efficient lookups
     const fileMap = new Map();
-    records.forEach(record => {
+    records.forEach((record) => {
       fileMap.set(record.path, record.lastModified);
     });
     return fileMap;
@@ -545,6 +604,35 @@ class CodeIntelligenceService {
     const metrics = result.length > 0 ? result[0] : {};
     this.cache.set(cacheKey, metrics);
     return metrics;
+  }
+  // Helper method to categorize connection errors
+  _categorizeConnectionError(error) {
+    if (error.code === "ECONNREFUSED" || error.code === "ENOTFOUND") {
+      return "connection_refused";
+    } else if (
+      error.code === "Neo.ClientError.Security.Unauthorized" ||
+      error.message.includes("authentication failed")
+    ) {
+      return "authentication_failed";
+    } else if (error.message.includes("timeout")) {
+      return "connection_timeout";
+    }
+    return "unknown_error";
+  }
+
+  // Helper method to format user-friendly error messages
+  _formatConnectionError(error, errorType) {
+    const messages = {
+      connection_refused:
+        "Cannot connect to Neo4j server. Check if Neo4j Desktop is running and the URI is correct.",
+      authentication_failed:
+        "Authentication failed. Check your Neo4j username and password in .env file.",
+      connection_timeout:
+        "Connection timed out. Check your network connection and Neo4j server status.",
+      unknown_error: `Connection failed: ${error.message}`,
+    };
+
+    return messages[errorType] || messages.unknown_error;
   }
 }
 
