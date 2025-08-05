@@ -69,6 +69,28 @@ export class Engine {
         res.status(500).json({ error: error.message, stack: error.stack });
       }
     });
+
+    this.app.post("/api/control/pause", async (req, res) => {
+      try {
+        await stateManager.pauseProject();
+        this.stop("Paused by user API request");
+        res.status(200).json({ message: "Engine paused successfully." });
+      } catch (error) {
+        console.error("Error pausing engine:", error);
+        res.status(500).json({ error: "Failed to pause engine." });
+      }
+    });
+
+    this.app.post("/api/control/resume", async (req, res) => {
+      try {
+        await stateManager.resumeProject();
+        this.start();
+        res.status(200).json({ message: "Engine resumed successfully." });
+      } catch (error) {
+        console.error("Error resuming engine:", error);
+        res.status(500).json({ error: "Failed to resume engine." });
+      }
+    });
   }
 
   async logSystemStatus() {

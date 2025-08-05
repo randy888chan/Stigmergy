@@ -27,7 +27,12 @@ agents:
     alias: john
     name: "John (PM)"
     icon: "📋"
-    tools: [research.deep_dive, file_system.readFile, file_system.writeFile, system.updateStatus]
+    tools:
+      - research.deep_dive
+      - file_system.readFile
+      - file_system.writeFile
+      - system.updateStatus
+      - notifications.send_milestone
 
   - id: design-architect
     alias: winston
@@ -77,7 +82,7 @@ agents:
     alias: james
     name: "James (Dev)"
     icon: "💻"
-    tools: [file_system.*, shell.execute, code_intelligence.*]
+    tools: [file_system.*, shell.execute, code_intelligence.*, git.*, cicd.*]
     permitted_shell_commands:
       - "npm install"
       - "npm test"

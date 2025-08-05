@@ -7,6 +7,9 @@ import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
 import * as gemini_cli_tool from "../tools/gemini_cli_tool.js";
 import * as business from "../tools/business_tools.js";
+import * as cicd from "../tools/cicd_tool.js";
+import * as git from "../tools/git_tool.js";
+import * as notifications from "../tools/notification_tool.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import { clearFileCache } from "./llm_adapter.js";
@@ -98,6 +101,9 @@ export function createExecutor(engine) {
     code_intelligence: codeIntelligence,
     gemini: gemini_cli_tool,
     business: business,
+    cicd: cicd,
+    git: git,
+    notifications: notifications,
     system: system,
     stigmergy: stigmergy,
   };

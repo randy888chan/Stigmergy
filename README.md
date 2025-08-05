@@ -9,9 +9,10 @@ The system is architected to be **headless and IDE-native**. The Stigmergy engin
 ### **New: Business Strategy Capabilities**
 
 Stigmergy now includes a suite of agents focused on business planning and strategy:
-*   **Business Plan Generation:** A dedicated `@brian` agent can generate a comprehensive business plan, complete with financial projections.
-*   **Business Valuation:** The `@val` agent can perform a data-driven valuation of the business using standard financial models.
-*   **Crypto Whitepaper Authoring:** For web3 projects, the `@whitney` agent can author a detailed technical and tokenomics whitepaper.
+
+- **Business Plan Generation:** A dedicated `@brian` agent can generate a comprehensive business plan, complete with financial projections.
+- **Business Valuation:** The `@val` agent can perform a data-driven valuation of the business using standard financial models.
+- **Crypto Whitepaper Authoring:** For web3 projects, the `@whitney` agent can author a detailed technical and tokenomics whitepaper.
 
 ### The New Stigmergy Architecture
 
@@ -46,10 +47,10 @@ graph TD
 
 ### Core Pillars
 
-*   **🧠 True Autonomy:** The engine is a real, state-driven orchestrator. It autonomously sequences agents for planning, design, and execution based on project state, not a simulation.
-*   **📈 Deep Research & Strategy:** Planning agents are supercharged with an iterative deep research tool. They perform market and competitor analysis to create high-quality, evidence-based product documents, not just placeholder content.
-*   **🎨 Visual Design Integration:** A dedicated design agent (`@vinci`) generates multiple UI/UX mockups as HTML/SVG files, which can be visualized and iterated upon in a companion VS Code extension like **SuperDesign**.
-*   **🕸️ Graph-Based Code Intelligence:** The system builds a rich knowledge graph of your codebase in Neo4j (inspired by `jonnoc-coderag`). This gives execution agents a deep, real-time understanding of your existing code, dramatically improving the quality and context-awareness of generated code.
+- **🧠 True Autonomy:** The engine is a real, state-driven orchestrator. It autonomously sequences agents for planning, design, and execution based on project state, not a simulation.
+- **📈 Deep Research & Strategy:** Planning agents are supercharged with an iterative deep research tool. They perform market and competitor analysis to create high-quality, evidence-based product documents, not just placeholder content.
+- **🎨 Visual Design Integration:** A dedicated design agent (`@vinci`) generates multiple UI/UX mockups as HTML/SVG files, which can be visualized and iterated upon in a companion VS Code extension like **SuperDesign**.
+- **🕸️ Graph-Based Code Intelligence:** The system builds a rich knowledge graph of your codebase in Neo4j (inspired by `jonnoc-coderag`). This gives execution agents a deep, real-time understanding of your existing code, dramatically improving the quality and context-awareness of generated code.
 
 ---
 
@@ -58,25 +59,28 @@ graph TD
 All interaction with Stigmergy happens through your IDE's AI chat interface, which acts as a client to the Stigmergy MCP server.
 
 1.  **Project Kickoff:** With the engine running, you provide your project goal to the system agent in your IDE.
+
     ```
     @system start a new project to build a minimalist blog platform on Vercel.
     ```
 
 2.  **Autonomous Strategy & Research Phase:** The system is now **fully autonomous**.
-    *   The `@analyst` agent is dispatched. It uses the **Firecrawl-powered research tool** to perform a deep dive into the market, saving `market-research.md` and `competitor-analysis.md` to your `docs/` folder.
-    *   It then generates a comprehensive `brief.md` based on its findings.
-    *   The engine's state updates, and the `@pm` agent is dispatched to create a detailed `prd.md`.
+    - The `@analyst` agent is dispatched. It uses the **Firecrawl-powered research tool** to perform a deep dive into the market, saving `market-research.md` and `competitor-analysis.md` to your `docs/` folder.
+    - It then generates a comprehensive `brief.md` based on its findings.
+    - The engine's state updates, and the `@pm` agent is dispatched to create a detailed `prd.md`.
 
 3.  **Autonomous Design Phase:**
-    *   The `@design` agent runs. It researches modern UI patterns and generates three distinct HTML/SVG mockup variations for the core UI.
-    *   It saves these files to the `.superdesign/design_iterations/` directory. If you are using the SuperDesign extension, its canvas will automatically update to display these visual options.
+    - The `@design` agent runs. It researches modern UI patterns and generates three distinct HTML/SVG mockup variations for the core UI.
+    - It saves these files to the `.superdesign/design_iterations/` directory. If you are using the SuperDesign extension, its canvas will automatically update to display these visual options.
 
 4.  **The Single "Go/No-Go" Decision:** Once the entire plan and design are complete, the system's orchestrator notifies you in the chat. This is your **one and only approval gate**. Review all generated documents in `docs/` and the visual mockups.
 
 5.  **Final Approval & Autonomous Execution:** To give the final green light, you send an approval message.
+
     ```
     @saul The plan and design look solid. You are approved to begin execution.
     ```
+
     The system now autonomously executes the entire blueprint. The `@dev` and `@gemini-executor` agents use the **Code Intelligence Service** to pull real-time context about the codebase as they write and modify files, ensuring high-quality, context-aware output.
 
 6.  **Pause and Resume at Will:** You can stop the `npm run stigmergy:start` process at any time. The project state is saved. The next time you run it, the engine will pick up exactly where it left off.
@@ -90,8 +94,9 @@ Getting started is a simple four-step process.
 ### Step 1: Install Prerequisites
 
 Stigmergy's code intelligence service requires a running **Neo4j** database.
-*   **Install Neo4j Desktop:** Download and install from the official [Neo4j website](https://neo4j.com/download/).
-*   **Create and start a database.** Note the password you set.
+
+- **Install Neo4j Desktop:** Download and install from the official [Neo4j website](https://neo4j.com/download/).
+- **Create and start a database.** Note the password you set.
 
 ### Step 2: Install Stigmergy
 
@@ -157,12 +162,31 @@ The `builder/` directory contains tools (`npm run build`) to compile the agent d
 ### Contributing
 
 This repository is a foundational engine. Contributions are welcome to expand its capabilities. The key areas for development are:
-*   **`services/code_intelligence_service.js`**: Enhancing the code parser to support more languages and extract richer semantic information.
-*   **`tools/code_intelligence.js`**: Adding more sophisticated Cypher queries to expose deeper insights to agents (e.g., semantic search, quality metrics).
-*   **`.stigmergy-core/agents/`**: Creating new, specialized agents for different domains (e.g., DevOps, data science, security).
+
+- **`services/code_intelligence_service.js`**: Enhancing the code parser to support more languages and extract richer semantic information.
+- **`tools/code_intelligence.js`**: Adding more sophisticated Cypher queries to expose deeper insights to agents (e.g., semantic search, quality metrics).
+- **`.stigmergy-core/agents/`**: Creating new, specialized agents for different domains (e.g., DevOps, data science, security).
 
 ### Future Enhancements
-*   **Incremental Code Indexing:** A key future enhancement is to move from a full re-index to an incremental one. This would involve implementing a file watcher to detect changes in the codebase and only update the affected nodes and relationships in the Neo4j graph. This will significantly improve performance and scalability for very large, enterprise-scale projects.
+
+- **Incremental Code Indexing:** A key future enhancement is to move from a full re-index to an incremental one. This would involve implementing a file watcher to detect changes in the codebase and only update the affected nodes and relationships in the Neo4j graph. This will significantly improve performance and scalability for very large, enterprise-scale projects.
+
+---
+
+## Learn More
+
+To get the most out of Stigmergy, explore the detailed documentation and examples:
+
+- **[📄 How to Create Custom Agents](./docs/custom_agents_guide.md)**: A step-by-step guide to creating your own specialized agents to extend the system's capabilities.
+- **[🚀 Advanced Features and Tools](./docs/advanced_features.md)**: Learn how to use powerful tools like `research.deep_dive` and `code_intelligence.findUsages`.
+
+### Example Use Cases
+
+Explore these real-world examples to see how Stigmergy can be applied to different types of projects:
+
+- **[SaaS Application](./examples/saas_app/README.md)**: See how Stigmergy can build a complete SaaS platform from a high-level goal.
+- **[Refactoring Legacy Code](./examples/refactoring_legacy_code/README.md)**: Learn how Stigmergy uses its code intelligence features to safely refactor an old codebase.
+- **[Workflow Modification](./examples/workflow_modification/)**: Examples of how to customize agent teams for specific project needs, like web development or data processing.
 
 ---
 

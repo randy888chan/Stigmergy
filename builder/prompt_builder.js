@@ -20,19 +20,8 @@ class PromptBuilder {
     );
   }
 
-  formatSection(filePath, content) {
-    const separator = "====================";
-    const header = `START: ${filePath.replace(/\\/g, "/")}`;
-    const footer = `END: ${filePath.replace(/\\/g, "/")}`;
-    return [
-      `${separator} ${header} ${separator}`,
-      content.trim(),
-      `${separator} ${footer} ${separator}`,
-    ].join("\n");
-  }
-
   async buildTeam(teamId) {
-    const spinner = ora(`Building team bundle: ${chalk.cyan(teamId)}`).start();
+    const spinner = ora(`Building team JSON bundle: ${chalk.cyan(teamId)}`).start();
     try {
       const allDependencies = await this.resolver.resolveTeamDependencies(teamId);
 
@@ -41,20 +30,40 @@ class PromptBuilder {
         return;
       }
 
-      spinner.text = `Found ${allDependencies.size} unique files. Bundling...`;
-      const template = await fs.readFile(this.templatePath, "utf8");
-      const sections = [template];
+      spinner.text = `Found ${allDependencies.size} unique files. Bundling into JSON...`;
 
+      const startupInstructions = await fs.readFile(this.templatePath, "utf8");
+
+      const data = [];
+      // Add startup instructions as the first item
+      data.push({
+        path: ".stigmergy-core/utils/web-agent-startup-instructions.md",
+        content: startupInstructions,
+      });
+
+      // Add all other resolved dependencies
       for (const [relativePath, content] of allDependencies.entries()) {
-        sections.push(this.formatSection(relativePath, content));
+        data.push({
+          path: relativePath,
+          content: content.trim(),
+        });
       }
 
-      const bundle = sections.join("\n\n---\n\n");
-      const outputFile = path.join(OUTPUT_DIR, "teams", `${teamId}.txt`);
-      await fs.ensureDir(path.dirname(outputFile));
-      await fs.writeFile(outputFile, bundle, "utf8");
+      const bundle = {
+        metadata: {
+          teamId: teamId,
+          buildDate: new Date().toISOString(),
+          fileCount: data.length,
+        },
+        data: data,
+      };
 
-      spinner.succeed(`Built team bundle: ${chalk.green(teamId)}`);
+      const jsonBundle = JSON.stringify(bundle, null, 2);
+      const outputFile = path.join(OUTPUT_DIR, "teams", `${teamId}.json`);
+      await fs.ensureDir(path.dirname(outputFile));
+      await fs.writeFile(outputFile, jsonBundle, "utf8");
+
+      spinner.succeed(`Built team JSON bundle: ${chalk.green(teamId)}`);
     } catch (error) {
       spinner.fail(`Failed to build team ${chalk.red(teamId)}`);
       console.error(error);

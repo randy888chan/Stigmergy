@@ -10,6 +10,7 @@ import traverse from "@babel/traverse";
 import config from "../stigmergy.config.js";
 import chokidar from "chokidar";
 import ignore from "ignore";
+import NodeCache from "node-cache";
 
 // A very simple mock driver for in-memory testing
 const createInMemoryDriver = () => {
@@ -46,6 +47,11 @@ class CodeIntelligenceService {
     this.watcher = null;
     this.ig = ignore().add(["node_modules/**", "dist/**", ".*"]);
     this.projectRoot = null;
+    const cacheConfig = config.features?.cache || {};
+    this.cache = new NodeCache({
+      stdTTL: cacheConfig.ttl || 600,
+      checkperiod: cacheConfig.checkperiod || 120,
+    });
   }
 
   async enableIncrementalIndexing(projectPath) {
@@ -405,19 +411,80 @@ class CodeIntelligenceService {
   }
 
   async findUsages({ symbolName }) {
-    // ... existing implementation ...
+    const cacheKey = `findUsages:${symbolName}`;
+    const cachedResult = this.cache.get(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const query = `
+      MATCH (symbolNode)
+      WHERE symbolNode.name = $symbolName
+      WITH symbolNode
+      // Find the file containing the original symbol
+      MATCH (definingFile:File)-[:CONTAINS]->(symbolNode)
+      // Find files that import the defining file
+      MATCH (importer:File)-[:IMPORTS]->(definingFile)
+      RETURN importer.path AS importingFile, symbolNode.type AS symbolType
+      LIMIT 100
+    `;
+    const result = await this._runQuery(query, { symbolName });
+    this.cache.set(cacheKey, result);
+    return result;
   }
 
   async getDefinition({ symbolName }) {
-    // ... existing implementation ...
+    const cacheKey = `getDefinition:${symbolName}`;
+    const cachedResult = this.cache.get(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const query = `
+      MATCH (symbolNode)
+      WHERE symbolNode.name = $symbolName
+      RETURN symbolNode.file AS file, symbolNode.type AS type, symbolNode.id AS id
+      LIMIT 1
+    `;
+    const result = await this._runQuery(query, { symbolName });
+    this.cache.set(cacheKey, result);
+    return result.length > 0 ? result[0] : null;
   }
 
   async getModuleDependencies({ filePath }) {
-    // ... existing implementation ...
+    const cacheKey = `getModuleDependencies:${filePath}`;
+    const cachedResult = this.cache.get(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    const query = `
+      MATCH (f:File {id: $filePath})-[:IMPORTS]->(dep:File)
+      RETURN dep.path AS dependency
+      LIMIT 100
+    `;
+    const result = await this._runQuery(query, { filePath });
+    this.cache.set(cacheKey, result);
+    return result;
   }
 
   async calculateCKMetrics({ className }) {
-    // ... existing implementation ...
+    const cacheKey = `calculateCKMetrics:${className}`;
+    const cachedResult = this.cache.get(cacheKey);
+    if (cachedResult) return cachedResult;
+
+    // This is a simplified version. A full implementation would be more complex.
+    const query = `
+      MATCH (c:Class {name: $className})
+      // WMC: Count methods in the class
+      OPTIONAL MATCH (c)-[:CONTAINS]->(m:Function)
+      WITH c, count(m) AS wmc
+      // DIT: Depth of Inheritance Tree (simplified)
+      OPTIONAL MATCH p=(c)-[:EXTENDS*0..]->()
+      WITH c, wmc, size(nodes(p)) - 1 AS dit
+      // NOC: Number of Children
+      OPTIONAL MATCH (child)-[:EXTENDS]->(c)
+      RETURN c.name AS className, wmc, dit, count(child) AS noc
+      LIMIT 1
+    `;
+    const result = await this._runQuery(query, { className });
+    const metrics = result.length > 0 ? result[0] : {};
+    this.cache.set(cacheKey, metrics);
+    return metrics;
   }
 }
 
