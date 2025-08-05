@@ -143,6 +143,11 @@ describe("Incremental Indexing", () => {
     codeIntelligenceService.projectRoot = projectPath;
 
     fs.readFile.mockResolvedValue("const a = 1;");
+    fs.stat.mockResolvedValue({
+      mtime: {
+        getTime: () => 1000,
+      },
+    });
   });
 
   it("should start watching files when incremental indexing is enabled", async () => {
@@ -190,5 +195,123 @@ describe("Incremental Indexing", () => {
     expect(mockSession.run).toHaveBeenCalledWith(expect.stringContaining("DETACH DELETE"), {
       id: "deletedFile.js",
     });
+  });
+});
+
+describe("Project Scanning and Indexing", () => {
+  const projectPath = "/test/project";
+  let indexFileSpy, updateFileSpy, removeFileSpy;
+
+  beforeEach(() => {
+    // Spy on the methods that perform the actual work
+    indexFileSpy = jest.spyOn(codeIntelligenceService, "indexFile").mockResolvedValue();
+    updateFileSpy = jest.spyOn(codeIntelligenceService, "updateFile").mockResolvedValue();
+    removeFileSpy = jest.spyOn(codeIntelligenceService, "removeFile").mockResolvedValue();
+
+    // Mock fs.stat for consistent modification times
+    fs.stat.mockImplementation(async (path) => ({
+      mtime: {
+        getTime: () => {
+          if (path.includes("modified")) return 2000;
+          return 1000;
+        },
+      },
+    }));
+
+    // Mock driver and session
+    const mockSession = {
+      run: jest.fn().mockResolvedValue({ records: [] }),
+      close: jest.fn().mockResolvedValue(undefined),
+    };
+    const mockDriver = {
+      session: jest.fn(() => mockSession),
+      close: jest.fn().mockResolvedValue(undefined),
+    };
+    neo4j.driver.mockReturnValue(mockDriver);
+    codeIntelligenceService.driver = mockDriver;
+  });
+
+  afterEach(() => {
+    // Restore the original methods
+    indexFileSpy.mockRestore();
+    updateFileSpy.mockRestore();
+    removeFileSpy.mockRestore();
+    jest.restoreAllMocks();
+  });
+
+  it("should index new files", async () => {
+    // Graph has one file, filesystem has two
+    jest
+      .spyOn(codeIntelligenceService, "_getGraphFiles")
+      .mockResolvedValue(new Map([["existing.js", 1000]]));
+    glob.glob.mockResolvedValue(["/test/project/existing.js", "/test/project/new.js"]);
+
+    await codeIntelligenceService.scanAndIndexProject(projectPath);
+
+    expect(indexFileSpy).toHaveBeenCalledWith("/test/project/new.js");
+    expect(updateFileSpy).not.toHaveBeenCalled();
+    expect(removeFileSpy).not.toHaveBeenCalled();
+  });
+
+  it("should update modified files", async () => {
+    // Graph has an old version of the file
+    jest
+      .spyOn(codeIntelligenceService, "_getGraphFiles")
+      .mockResolvedValue(new Map([["modified.js", 1000]]));
+    glob.glob.mockResolvedValue(["/test/project/modified.js"]);
+
+    await codeIntelligenceService.scanAndIndexProject(projectPath);
+
+    expect(updateFileSpy).toHaveBeenCalledWith("/test/project/modified.js");
+    expect(indexFileSpy).not.toHaveBeenCalled();
+    expect(removeFileSpy).not.toHaveBeenCalled();
+  });
+
+  it("should remove deleted files", async () => {
+    // Graph has a file that's no longer on the filesystem
+    jest
+      .spyOn(codeIntelligenceService, "_getGraphFiles")
+      .mockResolvedValue(new Map([["deleted.js", 1000]]));
+    glob.glob.mockResolvedValue([]);
+
+    await codeIntelligenceService.scanAndIndexProject(projectPath);
+
+    expect(removeFileSpy).toHaveBeenCalledWith("/test/project/deleted.js");
+    expect(indexFileSpy).not.toHaveBeenCalled();
+    expect(updateFileSpy).not.toHaveBeenCalled();
+  });
+
+  it("should handle a mix of new, modified, and deleted files", async () => {
+    jest.spyOn(codeIntelligenceService, "_getGraphFiles").mockResolvedValue(
+      new Map([
+        ["existing.js", 1000],
+        ["modified.js", 1000],
+        ["deleted.js", 1000],
+      ])
+    );
+    glob.glob.mockResolvedValue([
+      "/test/project/existing.js",
+      "/test/project/modified.js",
+      "/test/project/new.js",
+    ]);
+
+    await codeIntelligenceService.scanAndIndexProject(projectPath);
+
+    expect(indexFileSpy).toHaveBeenCalledWith("/test/project/new.js");
+    expect(updateFileSpy).toHaveBeenCalledWith("/test/project/modified.js");
+    expect(removeFileSpy).toHaveBeenCalledWith("/test/project/deleted.js");
+  });
+
+  it("should do nothing if project is up to date", async () => {
+    jest
+      .spyOn(codeIntelligenceService, "_getGraphFiles")
+      .mockResolvedValue(new Map([["existing.js", 1000]]));
+    glob.glob.mockResolvedValue(["/test/project/existing.js"]);
+
+    await codeIntelligenceService.scanAndIndexProject(projectPath);
+
+    expect(indexFileSpy).not.toHaveBeenCalled();
+    expect(updateFileSpy).not.toHaveBeenCalled();
+    expect(removeFileSpy).not.toHaveBeenCalled();
   });
 });

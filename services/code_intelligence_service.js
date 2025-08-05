@@ -262,9 +262,24 @@ class CodeIntelligenceService {
     });
   }
 
+  async _getGraphFiles() {
+    const query = `
+      MATCH (f:File)
+      RETURN f.path AS path, f.lastModified AS lastModified
+    `;
+    const records = await this._runQuery(query);
+    // Convert to a Map for efficient lookups
+    const fileMap = new Map();
+    records.forEach(record => {
+      fileMap.set(record.path, record.lastModified);
+    });
+    return fileMap;
+  }
+
   async _parseFile(filePath, projectRoot) {
     const code = await fs.readFile(filePath, "utf-8");
     const relativePath = path.relative(projectRoot, filePath);
+    const stats = await fs.stat(filePath);
 
     if (this.ig.ignores(relativePath)) {
       return { nodes: [], relationships: [] };
@@ -283,7 +298,11 @@ class CodeIntelligenceService {
     nodes.push({
       id: fileId,
       type: "File",
-      properties: { name: path.basename(relativePath), path: relativePath },
+      properties: {
+        name: path.basename(relativePath),
+        path: relativePath,
+        lastModified: stats.mtime.getTime(),
+      },
     });
 
     traverse(ast, {
@@ -390,20 +409,61 @@ class CodeIntelligenceService {
       console.warn("[CodeIntelligence] Driver not initialized. Skipping project scan.");
       return;
     }
-    console.log("[CodeIntelligence] Starting project scan and index...");
+    console.log("[CodeIntelligence] Starting project sync...");
     this.projectRoot = projectPath;
 
-    await this._clearDatabase();
-    console.log("[CodeIntelligence] Cleared existing graph data.");
+    // 1. Get graph and filesystem state
+    const graphFilesMap = await this._getGraphFiles();
+    const projectFilePaths = await this._findSourceFiles(projectPath);
 
-    const files = await this._findSourceFiles(projectPath);
-    console.log(`[CodeIntelligence] Found ${files.length} source files to index.`);
+    const projectFilesWithStats = await Promise.all(
+      projectFilePaths.map(async (filePath) => {
+        const relativePath = path.relative(projectPath, filePath);
+        const stats = await fs.stat(filePath);
+        return { filePath, relativePath, lastModified: stats.mtime.getTime() };
+      })
+    );
 
-    // Use Promise.all for parallel indexing (can be faster)
-    const indexingPromises = files.map((file) => this.indexFile(file));
-    await Promise.all(indexingPromises);
+    const projectFilesMap = new Map(projectFilesWithStats.map((f) => [f.relativePath, f]));
 
-    console.log("[CodeIntelligence] Initial project scan complete.");
+    // 2. Identify changes
+    const filesToIndex = [];
+    const filesToUpdate = [];
+
+    for (const [relativePath, fileData] of projectFilesMap.entries()) {
+      if (!graphFilesMap.has(relativePath)) {
+        filesToIndex.push(fileData.filePath);
+      } else {
+        const graphLastModified = graphFilesMap.get(relativePath);
+        if (fileData.lastModified > graphLastModified) {
+          filesToUpdate.push(fileData.filePath);
+        }
+      }
+    }
+
+    const filesToRemove = [];
+    for (const graphFilePath of graphFilesMap.keys()) {
+      if (!projectFilesMap.has(graphFilePath)) {
+        filesToRemove.push(path.join(projectPath, graphFilePath));
+      }
+    }
+
+    // 3. Process changes
+    if (filesToIndex.length > 0 || filesToUpdate.length > 0 || filesToRemove.length > 0) {
+      console.log(
+        `[CodeIntelligence] Syncing... ${filesToIndex.length} new, ${filesToUpdate.length} modified, ${filesToRemove.length} deleted.`
+      );
+
+      const indexPromises = filesToIndex.map((file) => this.indexFile(file));
+      const updatePromises = filesToUpdate.map((file) => this.updateFile(file));
+      const removePromises = filesToRemove.map((file) => this.removeFile(file));
+
+      await Promise.all([...indexPromises, ...updatePromises, ...removePromises]);
+
+      console.log("[CodeIntelligence] Project sync complete.");
+    } else {
+      console.log("[CodeIntelligence] Project is already up to date.");
+    }
 
     // Enable incremental indexing for future changes
     await this.enableIncrementalIndexing(projectPath);
