@@ -18,5 +18,5 @@ tools:
   - "read"
   - "edit"
   - "browser"
-  - "MCP"
+  - "mcpsource: project"
 ```

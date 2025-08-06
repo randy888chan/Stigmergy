@@ -18,11 +18,14 @@ export default async function build() {
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
       // 2. Start building the bundle content
-      let bundle = `# Web Agent Bundle: ${teamData.name}\n\n`;
-      bundle += "You are now operating as a specialized AI agent from the Stigmergy framework. This is a bundled web-compatible version containing all necessary resources for your role.\n\n";
+      let bundle = `# Web Agent Bundle: ${teamData.bundle.name}\n\n`;
+      bundle +=
+        "You are now operating as a specialized AI agent from the Stigmergy framework. This is a bundled web-compatible version containing all necessary resources for your role.\n\n";
       bundle += "## Important Instructions\n";
-      bundle += "1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.\n";
-      bundle += "2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:\n";
+      bundle +=
+        "1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.\n";
+      bundle +=
+        "2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:\n";
       bundle += "- `==================== START: folder#filename ====================`\n";
       bundle += "- `==================== END: folder#filename ====================`\n\n";
 
@@ -43,12 +46,18 @@ export default async function build() {
               bundle += `# ${agentData.agent.name} (${agentData.agent.alias})\n\n`;
 
               // Add persona role
-              bundle += `**Role**: ${agentData.agent.persona.role}\n\n`;
+              bundle += `**Role**: ${agentData.persona.role}\n\n`;
 
               // Add core protocols
               bundle += `**Core Protocols**:\n`;
               for (const protocol of agentData.core_protocols) {
-                bundle += `- ${protocol}\n`;
+                if (typeof protocol === "string") {
+                  bundle += `- ${protocol}\n`;
+                } else if (typeof protocol === "object") {
+                  for (const key in protocol) {
+                    bundle += `- ${key}: ${protocol[key]}\n`;
+                  }
+                }
               }
               bundle += "\n";
 
@@ -80,10 +89,10 @@ export default async function build() {
       console.log(`✅ Created web agent bundle: ${teamName}.txt`);
     }
 
-    console.log('✅ Build complete. Web agent bundles created in /dist');
+    console.log("✅ Build complete. Web agent bundles created in /dist");
     return true;
   } catch (error) {
-    console.error('❌ Build failed:', error);
+    console.error("❌ Build failed:", error);
     return false;
   }
 }

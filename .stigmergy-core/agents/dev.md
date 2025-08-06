@@ -19,5 +19,5 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "MCP"
+  - "mcpsource: execution"
 ```

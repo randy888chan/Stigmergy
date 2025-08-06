@@ -17,5 +17,5 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "MCP"
+  - "mcpsource: project"
 ```

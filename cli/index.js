@@ -88,8 +88,8 @@ program
   .description("Builds agent definitions into a bundle.")
   .option("--all", "Build all agents", true)
   .action(async () => {
-    const { buildAgents } = await import("./commands/build.js");
-    await buildAgents();
+    const { default: build } = await import("./commands/build.js");
+    await build();
   });
 
 program

@@ -1,96 +1,90 @@
 import fs from "fs-extra";
 import path from "path";
-import { glob } from "glob";
 import yaml from "js-yaml";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
-// This allows us to get the path to the package's root directory
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+export async function configureIde(
+  coreSourceDir,
+  outputPath = path.join(process.cwd(), ".roomodes")
+) {
+  const PORT = process.env.PORT || 3000;
+  const ENGINE_URL = `http://localhost:${PORT}`;
 
-async function install() {
-  console.log("Stigmergy install process started...");
-  const targetDir = process.cwd(); // This will be the tempDir when run by the test
-  const sourceDir = path.resolve(__dirname, "../../.stigmergy-core");
+  // 1. Load the agent manifest
+  const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
+  const manifestContent = await fs.readFile(manifestPath, "utf8");
+  const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!manifestYamlMatch) {
+    throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
+  }
+  const manifest = yaml.load(manifestYamlMatch[1]);
 
-  try {
-    // 1. Copy the .stigmergy-core directory from the package to the target location.
-    // This simulates a real package installation.
-    const destStigmergyDir = path.join(targetDir, ".stigmergy-core");
-    await fs.copy(sourceDir, destStigmergyDir);
-    console.log(`Copied .stigmergy-core to ${targetDir}`);
+  // 2. Create customModes array
+  const customModes = [];
 
-    // 2. Generate the .roomodes file based on the agents that were just copied.
-    const CWD = process.cwd();
-    const outputPath = path.join(CWD, ".roomodes");
-    const coreSourceDir = destStigmergyDir;
-    const PORT = process.env.PORT || 3000;
-    const ENGINE_URL = `http://localhost:${PORT}`;
+  for (const agent of manifest.agents) {
+    const agentFile = path.join(coreSourceDir, "agents", `${agent.id}.md`);
+    if (await fs.pathExists(agentFile)) {
+      const content = await fs.readFile(agentFile, "utf8");
+      const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
 
-    // 1. Load the agent manifest
-    const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
-    const manifestContent = await fs.readFile(manifestPath, "utf8");
-    const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-    if (!manifestYamlMatch) {
-      throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
-    }
-    const manifest = yaml.load(manifestYamlMatch[1]);
+      if (yamlMatch && yamlMatch[1]) {
+        try {
+          const agentData = yaml.load(yamlMatch[1]);
 
-    // 2. Create customModes array
-    const customModes = [];
-
-    for (const agent of manifest.agents) {
-      const agentFile = path.join(coreSourceDir, "agents", `${agent.id}.md`);
-      if (await fs.pathExists(agentFile)) {
-        const content = await fs.readFile(agentFile, "utf8");
-        const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-
-        if (yamlMatch && yamlMatch[1]) {
-          try {
-            const agentData = yaml.load(yamlMatch[1]);
-
-            // Get persona role from agent definition
-            let roleDefinition = "";
-            if (agentData.agent && agentData.agent.persona && agentData.agent.persona.role) {
-              roleDefinition = agentData.agent.persona.role;
-            }
-
-            // CRITICAL: Get tools from agent definition
-            const tools = agentData.tools || ["read", "edit"];
-            const source = agentData.source || "project";
-
-            // Add the agent to customModes with CORRECT group format
-            customModes.push({
-              slug: agent.alias,
-              name: `${agentData.agent.icon} ${agentData.agent.name}`,
-              roleDefinition: roleDefinition,
-              groups: tools,  // USE TOOLS FROM AGENT DEFINITION
-              api: {
-                url: `${ENGINE_URL}/api/chat`,
-                method: "POST",
-                include: ["history"]
-              },
-              source: source
-            });
-          } catch (e) {
-            console.warn(`Skipping agent due to YAML parse error: ${agent.id}`);
+          let roleDefinition = "";
+          if (agentData.persona && agentData.persona.role) {
+            roleDefinition = agentData.persona.role;
           }
+
+          const tools = agentData.tools || ["read", "edit"];
+
+          customModes.push({
+            slug: agentData.agent.alias,
+            name: `${agentData.agent.icon} ${agentData.agent.name}`,
+            roleDefinition: roleDefinition,
+            groups: tools,
+            api: {
+              url: `${ENGINE_URL}/api/chat`,
+              method: "POST",
+              include: ["history"],
+            },
+            source: agentData.source,
+          });
+        } catch (e) {
+          console.warn(`Skipping agent due to YAML parse error: ${agent.id}`);
         }
       }
     }
+  }
 
-    // 3. Sort modes alphabetically by name
-    customModes.sort((a, b) => a.name.localeCompare(b.name));
+  // 3. Sort modes alphabetically by name
+  customModes.sort((a, b) => a.name.localeCompare(b.name));
 
-    // 4. Generate the YAML output with CORRECT format
-    const yamlOutput = yaml.dump({ customModes: customModes }, { lineWidth: -1 });
-    const fileContent = `# This file is auto-generated by 'stigmergy install'.\n\n${yamlOutput}`;
-    await fs.writeFile(outputPath, fileContent, "utf8");
+  // 4. Generate the YAML output with CORRECT format
+  const yamlOutput = yaml.dump({ customModes: customModes }, { lineWidth: -1 });
+  const fileContent = `# This file is auto-generated by 'stigmergy install'.\n\n${yamlOutput}`;
+  await fs.writeFile(outputPath, fileContent, "utf8");
+}
 
-    console.log(
-      `✅ Install complete. .roomodes file created with ${customModes.length} agents.`
-    );
+async function install() {
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  console.log("Stigmergy install process started...");
+  const targetDir = process.cwd();
+  const sourceDir = path.resolve(__dirname, "../../.stigmergy-core");
+
+  try {
+    const destStigmergyDir = path.join(targetDir, ".stigmergy-core");
+    if (!(await fs.pathExists(destStigmergyDir))) {
+      await fs.copy(sourceDir, destStigmergyDir);
+      console.log(`Copied .stigmergy-core to ${targetDir}`);
+    }
+
+    await configureIde(destStigmergyDir);
+
+    console.log(`✅ Install complete. .roomodes file created.`);
     return true;
   } catch (error) {
     console.error("❌ An unexpected error occurred during the install process:");
