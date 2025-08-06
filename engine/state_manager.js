@@ -1,77 +1,20 @@
-import { open } from "sqlite";
-import sqlite3 from "sqlite3";
 import { v4 as uuidv4 } from "uuid";
-import fs from "fs-extra";
-import path from "path";
+import { FileStateManager } from "../src/infrastructure/state/fileStateManager.js";
 
-const DB_PATH =
-  process.env.NODE_ENV === "test" ? ":memory:" : path.resolve(process.cwd(), ".ai", "state.db");
-
-async function initDB() {
-  if (process.env.NODE_ENV !== "test") {
-    await fs.ensureDir(path.dirname(DB_PATH));
-  }
-  const db = await open({
-    filename: DB_PATH,
-    driver: sqlite3.Database,
-  });
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS state (
-      key TEXT PRIMARY KEY,
-      value TEXT
-    )
-  `);
-  return db;
-}
-
-async function _getState(db) {
-  const result = await db.get('SELECT value FROM state WHERE key = "current"');
-  if (result) {
-    try {
-      return JSON.parse(result.value);
-    } catch (e) {
-      console.error("Failed to parse state from DB, returning null.", e);
-      return null;
-    }
-  }
-  const defaultStatePath = path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json");
-  if (await fs.pathExists(defaultStatePath)) {
-    const defaultState = await fs.readJson(defaultStatePath);
-    if (defaultState.history && defaultState.history.length > 0) {
-      defaultState.history[0].timestamp = new Date().toISOString();
-    }
-    await _updateState(db, defaultState);
-    return defaultState;
-  }
-  return null;
-}
-
-async function _updateState(db, state) {
-  await db.run(
-    "INSERT OR REPLACE INTO state (key, value) VALUES (?, ?)",
-    "current",
-    JSON.stringify(state, null, 2)
-  );
-}
+const fileStateManager = new FileStateManager();
 
 export async function getState() {
-  const db = await initDB();
-  return _getState(db);
+  return fileStateManager.getState();
 }
 
-export async function updateState(newState) {
-  const db = await initDB();
-  await _updateState(db, newState);
+export async function updateState(event) {
+  return fileStateManager.updateState(event);
 }
 
 export async function initializeProject(goal) {
-  const db = await initDB();
-  const defaultState = await fs.readJson(
-    path.join(process.cwd(), ".stigmergy-core/templates/state-tmpl.json")
-  );
   const projectName = goal.substring(0, 30).replace(/[^a-zA-Z0-9]/g, "-");
-  const initialState = {
-    ...defaultState,
+  const event = {
+    type: "PROJECT_INITIALIZED",
     project_name: projectName,
     goal,
     project_status: "GRAND_BLUEPRINT_PHASE",
@@ -85,61 +28,89 @@ export async function initializeProject(goal) {
       },
     ],
   };
-  await _updateState(db, initialState);
+  return fileStateManager.updateState(event);
 }
 
 export async function updateStatus({ newStatus, message, artifact_created = null }) {
-  const db = await initDB();
-  const state = await _getState(db);
+  const state = await getState();
+  const event = {
+    type: "STATUS_UPDATED",
+    project_status: newStatus,
+    history: [
+      ...state.history,
+      {
+        id: uuidv4(),
+        timestamp: new Date().toISOString(),
+        source: "system",
+        agent_id: "engine",
+        message: message || `Status updated to ${newStatus}`,
+      },
+    ],
+  };
 
-  if (newStatus) {
-    state.project_status = newStatus;
+  if (
+    artifact_created &&
+    state.artifacts_created &&
+    state.artifacts_created.hasOwnProperty(artifact_created)
+  ) {
+    event.artifacts_created = {
+      ...state.artifacts_created,
+      [artifact_created]: true,
+    };
   }
 
-  state.history.push({
-    id: uuidv4(),
-    timestamp: new Date().toISOString(),
-    source: "system",
-    agent_id: "engine",
-    message: message || `Status updated to ${newStatus}`,
-  });
-
-  if (artifact_created && state.artifacts_created.hasOwnProperty(artifact_created)) {
-    state.artifacts_created[artifact_created] = true;
-  }
-
-  await _updateState(db, state);
+  return fileStateManager.updateState(event);
 }
 
 export async function pauseProject() {
-  const db = await initDB();
-  const state = await _getState(db);
-  state.status_before_pause = state.project_status;
-  state.project_status = "PAUSED_BY_USER";
-  await _updateState(db, state);
+  const state = await getState();
+  const event = {
+    type: "PROJECT_PAUSED",
+    status_before_pause: state.project_status,
+    project_status: "PAUSED_BY_USER",
+  };
+  return fileStateManager.updateState(event);
 }
 
 export async function resumeProject() {
-  const db = await initDB();
-  const state = await _getState(db);
-  state.project_status = state.status_before_pause || "GRAND_BLUEPRINT_PHASE";
-  state.status_before_pause = null;
-  await _updateState(db, state);
+  const state = await getState();
+  const event = {
+    type: "PROJECT_RESUMED",
+    project_status: state.status_before_pause || "GRAND_BLUEPRINT_PHASE",
+    status_before_pause: null,
+  };
+  return fileStateManager.updateState(event);
 }
 
 export async function updateTaskStatus({ taskId, newStatus }) {
-  const db = await initDB();
-  const state = await _getState(db);
+  const state = await getState();
   const taskIndex = state.project_manifest?.tasks?.findIndex((t) => t.id === taskId);
+
   if (taskIndex !== -1 && taskIndex !== undefined) {
-    state.project_manifest.tasks[taskIndex].status = newStatus;
-    state.history.push({
-      id: uuidv4(),
-      timestamp: new Date().toISOString(),
-      source: "system",
-      agent_id: "engine",
-      message: `Task ${taskId} status updated to ${newStatus}.`,
-    });
-    await _updateState(db, state);
+    const newTasks = [...state.project_manifest.tasks];
+    newTasks[taskIndex] = { ...newTasks[taskIndex], status: newStatus };
+
+    const event = {
+      type: "TASK_STATUS_UPDATED",
+      project_manifest: {
+        ...state.project_manifest,
+        tasks: newTasks,
+      },
+      history: [
+        ...state.history,
+        {
+          id: uuidv4(),
+          timestamp: new Date().toISOString(),
+          source: "system",
+          agent_id: "engine",
+          message: `Task ${taskId} status updated to ${newStatus}.`,
+        },
+      ],
+    };
+    return fileStateManager.updateState(event);
   }
+}
+
+export function subscribeToChanges(callback) {
+  fileStateManager.subscribeToChanges(callback);
 }
