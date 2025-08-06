@@ -1,0 +1,136 @@
+[
+  {
+    "id": "whitepaper_writer",
+    "alias": "whitney",
+    "name": "Whitney",
+    "archetype": "Executor",
+    "title": "Technical Whitepaper Author",
+    "icon": "📜"
+  },
+  {
+    "id": "victor",
+    "alias": "victor",
+    "name": "Victor",
+    "archetype": "Executor",
+    "title": "Expert Smart Contract Developer",
+    "icon": "📜"
+  },
+  {
+    "id": "valuator",
+    "alias": "val",
+    "name": "Val",
+    "archetype": "Verifier",
+    "title": "Business Valuation Analyst",
+    "icon": "💰"
+  },
+  {
+    "id": "ux-expert",
+    "alias": "sally",
+    "name": "Sally",
+    "archetype": "Planner",
+    "title": "UX Expert",
+    "icon": "🎨"
+  },
+  {
+    "id": "system",
+    "alias": "system",
+    "name": "System Controller",
+    "icon": "⚙️"
+  },
+  {
+    "id": "stigmergy-orchestrator",
+    "alias": "olivia",
+    "name": "Olivia",
+    "archetype": "Executor",
+    "title": "Cognitive Task Decomposer",
+    "icon": "🧠"
+  },
+  {
+    "id": "refactorer",
+    "alias": "rocco",
+    "name": "Rocco",
+    "archetype": "Executor",
+    "title": "Code & System Specialist",
+    "icon": "🔧"
+  },
+  {
+    "id": "qa",
+    "alias": "quinn",
+    "name": "Quinn",
+    "archetype": "Verifier",
+    "title": "Quality & Risk Assessor",
+    "icon": "🛡️"
+  },
+  {
+    "id": "pm",
+    "alias": "john",
+    "name": "John",
+    "archetype": "Planner",
+    "title": "Strategic Product Manager",
+    "icon": "📋"
+  },
+  {
+    "id": "gemini-executor",
+    "alias": "gemma",
+    "name": "Gemma",
+    "archetype": "Executor",
+    "title": "Gemini CLI Prompt Engineer",
+    "icon": "✨"
+  },
+  {
+    "id": "dispatcher",
+    "alias": "saul",
+    "name": "Saul",
+    "archetype": "Dispatcher",
+    "title": "AI System Orchestrator",
+    "icon": "🧠"
+  },
+  {
+    "id": "dev",
+    "alias": "james",
+    "name": "James",
+    "archetype": "Executor",
+    "title": "Task Package Executor",
+    "icon": "💻"
+  },
+  {
+    "id": "design",
+    "alias": "vinci",
+    "name": "Vinci",
+    "archetype": "Planner",
+    "title": "AI UI/UX Designer",
+    "icon": "🎨"
+  },
+  {
+    "id": "design-architect",
+    "alias": "winston",
+    "name": "Winston",
+    "archetype": "Planner",
+    "title": "Blueprint Architect",
+    "icon": "🏗️"
+  },
+  {
+    "id": "debugger",
+    "alias": "dexter",
+    "name": "Dexter",
+    "archetype": "Responder",
+    "title": "Root Cause Analyst",
+    "icon": "🎯"
+  },
+  {
+    "id": "business_planner",
+    "alias": "brian",
+    "name": "Brian",
+    "archetype": "Planner",
+    "title": "Strategic Business Planner",
+    "icon": "📈"
+  },
+  {
+    "id": "analyst",
+    "alias": "mary",
+    "name": "Mary",
+    "archetype": "Planner",
+    "title": "Proactive Market Analyst",
+    "icon": "📊"
+  }
+]

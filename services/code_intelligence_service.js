@@ -257,7 +257,9 @@ class CodeIntelligenceService {
       // Implement exponential backoff retry logic
       if (retries > 0) {
         const delay = baseDelay * Math.pow(2, 3 - retries);
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        // The imported setTimeout from timers/promises is already a promise-based function.
+        // No need to wrap it in a new Promise.
+        await setTimeout(delay);
         return this.testConnection(retries - 1, baseDelay);
       }
 
