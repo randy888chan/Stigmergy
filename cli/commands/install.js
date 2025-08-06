@@ -23,7 +23,7 @@ async function install() {
 
     // 2. Generate the .roomodes file based on the agents that were just copied.
     const agentsDir = path.join(destStigmergyDir, "agents");
-    const agentFiles = await glob(path.join(agentsDir, "*.md"));
+    const agentFiles = await glob(path.join(agentsDir, "*.{md,yml}"));
 
     let agentsForRoomodes = [];
     for (const file of agentFiles) {

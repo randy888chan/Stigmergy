@@ -16,7 +16,7 @@ async function buildAgents() {
   let allAgents = [];
 
   try {
-    const agentFiles = await glob(path.join(agentsDir, "*.md"));
+    const agentFiles = await glob(path.join(agentsDir, "*.{md,yml}"));
     console.log(`Found ${agentFiles.length} agent files.`);
 
     for (const file of agentFiles) {

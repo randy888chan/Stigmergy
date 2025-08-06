@@ -33,7 +33,7 @@ describe("System Configuration Consistency", () => {
 
   beforeAll(async () => {
     // Find all agent definition files to be used in multiple tests.
-    agentFiles = await glob(path.join(agentsDir, "*.md"));
+    agentFiles = await glob(path.join(agentsDir, "*.{md,yml}"));
     console.log("Found agent files:", agentFiles);
 
     // Parse the Agent Manifest to get the list of declared agent IDs.
@@ -127,19 +127,18 @@ describe("System Configuration Consistency", () => {
             agentIdsFromFiles.push(agentData.agent.id);
           }
         } catch (parseErr) {
-          console.error(`(Manifest Test) Error parsing YAML in ${file}:`, parseErr.message);
+          // We expect parsing to fail for some files, so we don't log it here as an error.
+          // The build test will handle the failure.
         }
       }
     }
 
-    const missingInManifest = agentIdsFromFiles.filter((id) => !manifestAgentIds.includes(id));
-
     // For clearer debugging
-    console.log("Agent IDs from Files:", agentIdsFromFiles.sort());
+    console.log("Agent IDs successfully parsed from Files:", agentIdsFromFiles.sort());
     console.log("Agent IDs from Manifest:", manifestAgentIds.sort());
-    console.log("IDs Missing in Manifest:", missingInManifest.sort());
 
-    expect(missingInManifest).toEqual([]);
+    // Stricter check: The list of IDs from successfully parsed files and the manifest should be identical.
+    expect(agentIdsFromFiles.sort()).toEqual(manifestAgentIds.sort());
   });
 
   // Set dummy env vars for this specific test if .env isn't ready
@@ -148,25 +147,41 @@ describe("System Configuration Consistency", () => {
   process.env.NEO4J_PASSWORD = process.env.NEO4J_PASSWORD || "password-to-force-failure";
 
   test("Code Intelligence Service should attempt Neo4j connection and report status", async () => {
-    try {
-      const isConnected = await codeIntelligenceService.testConnection();
-      console.log("Neo4j Connection Test Result:", isConnected);
-      expect(typeof isConnected).toBe("boolean");
-    } catch (error) {
-      console.log("Neo4j Connection Test Error (Expected if misconfigured):", error.message);
-      expect(error).toBeDefined();
-    }
+    const connectionStatus = await codeIntelligenceService.testConnection();
+    console.log("Neo4j Connection Test Result:", connectionStatus);
+
+    // The service should return a status object.
+    expect(typeof connectionStatus).toBe("object");
+    expect(connectionStatus).toHaveProperty("success");
+
+    // In this misconfigured test setup, we expect the connection to fail.
+    expect(connectionStatus.success).toBe(false);
+    expect(connectionStatus.error).toBeDefined();
   }, 10000);
 
-  test("npm run build should execute without throwing unhandled exceptions", async () => {
+  test("npm run build should process all agent files successfully", async () => {
     try {
+      // Clean previous build artifacts
+      await fs.remove(path.join(projectRoot, "dist"));
+
       const { stdout, stderr } = await exec("npm run build", { cwd: projectRoot, timeout: 30000 });
       console.log("Build stdout:", stdout);
       if (stderr) {
+        // Fail the test if there are any warnings about skipping files.
+        // This makes the test sensitive to silent failures.
+        if (stderr.includes("Skipping file")) {
+          throw new Error(`Build process produced warnings about skipping files:\n${stderr}`);
+        }
         console.log("Build stderr (might contain warnings):", stderr);
       }
-      // If the command completes without an error, the test passes.
-      expect(true).toBe(true);
+
+      // Verify the output
+      const outputPath = path.join(projectRoot, "dist", "agents.json");
+      const builtAgents = await fs.readJson(outputPath);
+      const agentFileCount = agentFiles.length;
+
+      console.log(`Found ${agentFileCount} agent files. Built ${builtAgents.length} agents.`);
+      expect(builtAgents.length).toBe(agentFileCount);
     } catch (error) {
       console.error("Build process failed:", error);
       // Fail the test explicitly if the build command throws an error.
@@ -174,7 +189,7 @@ describe("System Configuration Consistency", () => {
     }
   }, 40000);
 
-  test("npx stigmergy install should generate .roomodes consistent with agents", async () => {
+  test("npx stigmergy install should generate .roomodes consistent with all source agents", async () => {
     const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "stigmergy-install-test-"));
     console.log("Testing install in temp dir:", tempDir);
 
@@ -182,6 +197,9 @@ describe("System Configuration Consistency", () => {
       const installCommand = `node ${path.join(projectRoot, "cli/index.js")} install`;
       const { stdout, stderr } = await exec(installCommand, { cwd: tempDir, timeout: 30000 });
       console.log("Install stdout:", stdout);
+      if (stderr && stderr.includes("Skipping file")) {
+        throw new Error(`Install process produced warnings about skipping files:\n${stderr}`);
+      }
       if (stderr) console.log("Install stderr:", stderr);
 
       const roomodesPath = path.join(tempDir, ".roomodes");
@@ -190,49 +208,33 @@ describe("System Configuration Consistency", () => {
 
       if (roomodesExists) {
         const roomodesContent = await fs.readFile(roomodesPath, "utf8");
-        console.log(".roomodes content:", roomodesContent);
-        let roomodesData;
-        try {
-          roomodesData = JSON.parse(roomodesContent);
-        } catch (parseErr) {
-          throw new Error("Could not parse generated .roomodes file as JSON.");
-        }
+        const roomodesData = JSON.parse(roomodesContent);
+        const roomodesAgentIds = roomodesData.map((item) => item.id);
 
-        const agentsDirInTemp = path.join(tempDir, ".stigmergy-core", "agents");
-        const agentFilesInTemp = await glob(path.join(agentsDirInTemp, "*.md"));
-        const agentIdsFromTempFiles = [];
-        for (const file of agentFilesInTemp) {
+        // Get the canonical list of agent IDs from the source directory, not the temp one.
+        // This ensures the install script isn't just consistent with its own flawed copy.
+        const sourceAgentIds = [];
+        for (const file of agentFiles) {
           const content = await fs.readFile(file, "utf8");
-          let yamlContent = null;
-
           const mdMatch = content.match(/```yml\s*([\s\S]*?)\s*```/);
-          if (mdMatch && mdMatch[1]) {
-            yamlContent = mdMatch[1];
-          } else {
-            yamlContent = content;
-          }
-
-          if (yamlContent) {
-            try {
-              const agentData = yaml.load(yamlContent);
-              if (agentData && agentData.agent && agentData.agent.id) {
-                agentIdsFromTempFiles.push(agentData.agent.id);
-              }
-            } catch (e) {
-              // Ignore parse errors for this check, as other tests handle them.
+          let yamlContent = mdMatch ? mdMatch[1] : content;
+          try {
+            const agentData = yaml.load(yamlContent);
+            if (agentData && agentData.agent && agentData.agent.id) {
+              sourceAgentIds.push(agentData.agent.id);
             }
+          } catch (e) {
+            // If source files have errors, this test might reflect that.
+            // The primary test for this is the build test, but this is a good secondary check.
           }
         }
 
-        // Assuming .roomodes is an array of objects with an 'id' field.
-        const roomodesAgentIds = Array.isArray(roomodesData)
-          ? roomodesData.map((item) => item.id).filter((id) => id)
-          : [];
-
-        console.log("Agent IDs from Copied Files:", agentIdsFromTempFiles.sort());
+        console.log("Agent IDs from Source Files:", sourceAgentIds.sort());
         console.log("Agent IDs from .roomodes:", roomodesAgentIds.sort());
 
-        expect(roomodesAgentIds.sort()).toEqual(agentIdsFromTempFiles.sort());
+        // The generated .roomodes file should contain all agents that can be successfully parsed.
+        // We compare against the successfully parsed sourceAgentIds.
+        expect(roomodesAgentIds.sort()).toEqual(sourceAgentIds.sort());
       }
     } finally {
       await fs.remove(tempDir);
