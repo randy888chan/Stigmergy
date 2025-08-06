@@ -8,7 +8,7 @@
     "stigmergy": "cli/index.js"
   },
   "scripts": {
-    "stigmergy:start": "stigmergy start",
+    "stigmergy:start": "node engine/server.js",
     "build": "node cli/index.js build --all",
     "test": "jest",
     "test:neo4j": "node .stigmergy-core/utils/neo4j_diagnostic.js",
@@ -18,7 +18,14 @@
     "prepare": "husky install",
     "cleanup:templates": "node scripts/cleanup-templates.js",
     "cleanup:docs": "node scripts/cleanup-docs.js",
-    "optimize": "npm run cleanup:templates && npm run cleanup:docs"
+    "optimize": "npm run cleanup:templates && npm run cleanup:docs",
+    "setup:complete": "node scripts/setup-lightweight.js",
+    "setup:neo4j-only": "node scripts/setup-neo4j.js",
+    "setup:gemini": "node scripts/setup-gemini.js",
+    "state:monitor": "node scripts/monitor-state.js",
+    "health:check": "node scripts/check-health.js",
+    "test:autonomy": "jest tests/integration/autonomous-flow.test.js",
+    "test:neo4j-e2e": "jest tests/e2e/neo4j-setup.test.js"
   },
   "files": [
     "cli/",
@@ -64,8 +71,6 @@
     "p-limit": "^4.0.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.2",
-    "sqlite": "^5.1.1",
-    "sqlite3": "^5.1.7",
     "uuid": "^9.0.1",
     "zod": "^3.23.8"
   },
@@ -89,6 +94,7 @@
   },
   "devDependencies": {
     "@babel/preset-env": "^7.28.0",
+    "@types/vscode": "^1.87.0",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "fs-extra": "^11.2.0",
     "glob": "^10.4.2",
@@ -99,7 +105,8 @@
     "jest-transform-stub": "^2.0.0",
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.2",
-    "supertest": "^7.0.0"
+    "supertest": "^7.0.0",
+    "vscode": "^1.1.37"
   },
   "lint-staged": {
     "**/*.{md,js,json,yml,yaml}": [

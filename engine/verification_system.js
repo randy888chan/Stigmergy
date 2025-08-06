@@ -7,6 +7,8 @@
 const businessMetrics = require("./business_metrics");
 import codeIntelligenceService from "../services/code_intelligence_service.js";
 import fallbackVerifier from "./fallback_verifier.js";
+import { SemanticValidator } from "../src/verification/semanticValidator.js";
+import { glob } from "glob";
 
 async function _verifyWithNeo4j(projectPath) {
   // Placeholder for Neo4j-based verification
@@ -21,16 +23,41 @@ async function _verifyWithNeo4jRequirements(projectPath) {
 }
 
 export async function verifyCodeHealth(projectPath) {
+  const semanticValidator = new SemanticValidator();
+  const sourceFiles = await glob("**/*.{js,jsx,ts,tsx}", {
+    cwd: projectPath,
+    ignore: ["node_modules/**", "dist/**", "build/**", ".*/**"],
+    absolute: true,
+  });
+
+  let allIssues = [];
+  for (const file of sourceFiles) {
+    const { issues } = await semanticValidator.validateCodeQuality(file);
+    allIssues = [...allIssues, ...issues];
+  }
+
+  const semanticResult = {
+    valid: allIssues.length === 0,
+    issues: allIssues,
+  };
+
+  console.log(`[Verification] Semantic validation result: ${semanticResult.valid}`);
+
   const neo4jStatus = await codeIntelligenceService.testConnection();
+  let baseVerification;
 
   if (neo4jStatus.success) {
-    // Use Neo4j-based verification when available
-    return _verifyWithNeo4j(projectPath);
+    baseVerification = await _verifyWithNeo4j(projectPath);
   } else {
-    // Fall back to file-based verification when Neo4j is unavailable
     console.log("[Verification] Neo4j unavailable, using fallback verification");
-    return fallbackVerifier.verifyCodeStandards(projectPath);
+    baseVerification = await fallbackVerifier.verifyCodeStandards(projectPath);
   }
+
+  return {
+    success: baseVerification.success && semanticResult.valid,
+    message: baseVerification.message,
+    semanticIssues: semanticResult.issues,
+  };
 }
 
 export async function verifyProjectRequirements(projectPath) {

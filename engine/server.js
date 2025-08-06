@@ -14,6 +14,7 @@ import boxen from "boxen";
 import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { Spinner } from "cli-spinner";
+import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -26,6 +27,7 @@ export class Engine {
     this.app = express();
     this.app.use(express.json());
     this.executeTool = createExecutor(this);
+    this.healthMonitor = new LightweightHealthMonitor();
     this.setupRoutes();
   }
 
@@ -94,6 +96,7 @@ export class Engine {
   }
 
   async triggerAgent(agentId, prompt, taskId = null) {
+    this.healthMonitor.recordHealth(agentId, "healthy", { prompt: prompt.substring(0, 100) });
     const response = await getCompletion(agentId, prompt, taskId);
 
     if (agentId === "dispatcher" && response.thought) {
@@ -160,11 +163,19 @@ export class Engine {
     }
   }
 
+  async monitorHealth() {
+    const summary = await this.healthMonitor.getHealthSummary();
+    console.log(
+      chalk.blue(`[Health] Agents: ${summary.healthyAgents}/${summary.totalAgents} healthy.`)
+    );
+  }
+
   start() {
     if (this.isEngineRunning) return;
     this.isEngineRunning = true;
     console.log(chalk.bold.green("\n--- Stigmergy Engine Engaged ---\n"));
     this.runLoop();
+    setInterval(() => this.monitorHealth(), 30000);
   }
 
   async stop(reason) {
