@@ -6,7 +6,7 @@ agent:
   archetype: "Verifier"
   title: "Quality & Risk Assessor"
   icon: "🛡️"
-source: execution
+  source: execution
 persona:
   role: "Quality & Risk Assessor"
   style: "Proactive, meticulous, and analytical."
@@ -20,5 +20,4 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "mcpsource: execution"
 ```

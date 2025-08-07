@@ -6,7 +6,7 @@ agent:
   archetype: "Executor"
   title: "Technical Whitepaper Author"
   icon: "📜"
-source: project
+  source: project
 persona:
   role: "Technical & Business Whitepaper Author"
   style: "Articulate, precise, persuasive, and technically deep."
@@ -19,5 +19,4 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "mcpsource: project"
 ```

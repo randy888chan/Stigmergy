@@ -6,7 +6,7 @@ agent:
   archetype: "Dispatcher"
   title: "AI System Orchestrator"
   icon: "🧠"
-source: project
+  source: project
 persona:
   role: "AI System Orchestrator"
   style: "Logical, analytical, and strictly procedural."
@@ -24,5 +24,4 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "mcpsource: project"
 ```

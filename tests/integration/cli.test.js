@@ -7,7 +7,7 @@ import build from "../../cli/commands/build.js";
 const CWD = process.cwd();
 const TEST_DIR = path.join(CWD, "test-project-cli");
 
-describe.skip("CLI Commands Direct Call", () => {
+describe("CLI Commands Direct Call", () => {
   beforeEach(async () => {
     await fs.ensureDir(TEST_DIR);
     await fs.copy(path.resolve(CWD, ".stigmergy-core"), path.join(TEST_DIR, ".stigmergy-core"));

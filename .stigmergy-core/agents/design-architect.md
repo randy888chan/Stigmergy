@@ -6,7 +6,7 @@ agent:
   archetype: "Planner"
   title: "Blueprint Architect"
   icon: "🏗️"
-source: project
+  source: project
 persona:
   role: "Blueprint Architect & System Planner"
   style: "Systematic, constraint-aware, and thorough."
@@ -26,5 +26,4 @@ tools:
   - "edit"
   - "browser"
   - "state_manager"
-  - "mcpsource: project"
 ```
