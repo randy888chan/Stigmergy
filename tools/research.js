@@ -1,11 +1,29 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
-import { getModel, systemPrompt } from "../ai/providers.js";
+import { getModel } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
 import chalk from "chalk"; // <-- ADD THIS IMPORT
+import fs from "fs-extra";
+import yaml from "js-yaml";
+import path from "path";
 
 let firecrawl;
+
+async function getResearchPrompt() {
+  const systemAgentPath = path.join(process.cwd(), ".stigmergy-core", "agents", "system.md");
+  const fileContent = await fs.readFile(systemAgentPath, "utf8");
+  const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!yamlMatch) {
+    throw new Error("Could not parse YAML from system.md");
+  }
+  const agentData = yaml.load(yamlMatch[1]);
+  const promptTemplate = agentData.research_prompt;
+
+  const now = new Date().toISOString();
+  return promptTemplate.replace("{now}", now);
+}
+
 function getFirecrawlClient() {
   if (!firecrawl) {
     if (!process.env.FIRECRAWL_KEY) {
@@ -22,7 +40,7 @@ export async function deep_dive({ query, learnings = [] }) {
     const client = getFirecrawlClient();
     const serpGen = await generateObject({
       model: getModel(),
-      system: systemPrompt(),
+      system: await getResearchPrompt(),
       prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
     ---
     PRIMARY GOAL: ${query}
@@ -44,23 +62,25 @@ export async function deep_dive({ query, learnings = [] }) {
     });
 
     const allContent = searchResults.data
-      .map(item => `Source: ${item.url}\n\n${item.markdown}`)
+      .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
       .join("\n\n---\n\n");
 
     const synthesis = await generateObject({
       model: getModel(),
-      system: systemPrompt(),
+      system: await getResearchPrompt(),
       prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
     CONTENT:
     ${allContent}`,
       schema: z.object({
         newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
-        next_research_queries: z.array(z.string()).describe("A list of new, more focused search queries to continue the research."),
+        next_research_queries: z
+          .array(z.string())
+          .describe("A list of new, more focused search queries to continue the research."),
       }),
     });
 
-    const visitedUrls = searchResults.data.map(item => item.url);
+    const visitedUrls = searchResults.data.map((item) => item.url);
 
     return {
       new_learnings: synthesis.object.newLearnings,
@@ -68,7 +88,10 @@ export async function deep_dive({ query, learnings = [] }) {
       sources: visitedUrls,
     };
   } catch (error) {
-    console.error(chalk.red(`[Research Tool] Deep dive failed for query "${query}":`), error.message);
+    console.error(
+      chalk.red(`[Research Tool] Deep dive failed for query "${query}":`),
+      error.message
+    );
     return {
       thought: `The research tool failed to execute the deep dive due to an external error: ${error.message}. Returning empty results to allow the system to proceed.`,
       new_learnings: [],

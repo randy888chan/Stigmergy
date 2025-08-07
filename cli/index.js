@@ -3,7 +3,6 @@
 import { Command } from "commander";
 import { createRequire } from "module";
 import { SystemValidator } from "../src/bootstrap/system_validator.js";
-import { HybridOrchestrator } from "../src/orchestration/hybrid_orchestrator.js";
 import { main as startEngine } from "../engine/server.js";
 import open from "open";
 import inquirer from "inquirer";
@@ -19,42 +18,6 @@ program
   .name("stigmergy")
   .description("Stigmergy 3.0: A Hybrid Autonomous System for development.")
   .version(pkg.version);
-
-/**
- * The new, unified entry point for the system.
- * It validates the environment and starts the autonomous orchestration.
- */
-program
-  .command("bootstrap")
-  .description("Bootstrap the entire Stigmergy system with validation and run orchestration.")
-  .argument(
-    "[goal]",
-    "The high-level development goal to orchestrate.",
-    "Create a simple portfolio site with React and a contact form."
-  )
-  .action(async (goal) => {
-    console.log("🚀 Stigmergy 3.0 Bootstrap sequence initiated...");
-
-    const validator = new SystemValidator();
-    const health = await validator.comprehensiveCheck();
-
-    const isSystemHealthy = !Object.values(health).some((r) => !r.success);
-
-    if (isSystemHealthy) {
-      console.log("\n✅ System is healthy. Starting autonomous orchestration...");
-      const orchestrator = new HybridOrchestrator();
-      const result = await orchestrator.orchestrateWithHybridApproach(goal);
-
-      console.log("\n🎯 Orchestration Demo Completed:");
-      console.log(JSON.stringify(result, null, 2));
-    } else {
-      console.error("\n❌ System health checks failed. Bootstrap aborted.");
-      console.error(
-        "Please review the errors above. The system may have attempted to auto-repair some issues."
-      );
-      process.exit(1);
-    }
-  });
 
 program
   .command("start")

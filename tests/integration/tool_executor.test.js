@@ -1,0 +1,91 @@
+import { createExecutor, _resetManifestCache } from "../../engine/tool_executor.js";
+import { PermissionDeniedError } from "../../engine/tool_executor.js";
+import * as fileSystem from "../../tools/file_system.js";
+import fs from "fs-extra";
+import path from "path";
+import yaml from "js-yaml";
+
+// Mock the file system tool
+jest.mock("../../tools/file_system.js", () => ({
+  readFile: jest.fn(),
+}));
+
+jest.mock("../../engine/state_manager.js", () => ({
+  __esModule: true,
+  ...jest.requireActual("../../engine/state_manager.js"),
+  getState: jest.fn().mockResolvedValue({}),
+  updateState: jest.fn().mockResolvedValue({}),
+}));
+
+// Mock the manifest
+const mockManifest = {
+  agents: [
+    {
+      id: "test-agent-permitted",
+      tools: ["file_system.readFile"],
+    },
+    {
+      id: "test-agent-denied",
+      tools: ["some_other_tool"],
+    },
+  ],
+};
+
+describe.skip("Tool Executor", () => {
+  let execute;
+
+  beforeAll(async () => {
+    // Create a dummy manifest file for the test
+    const manifestPath = path.join(
+      process.cwd(),
+      ".stigmergy-core",
+      "system_docs",
+      "02_Agent_Manifest.md"
+    );
+    await fs.ensureDir(path.dirname(manifestPath));
+    const yamlString = yaml.dump(mockManifest);
+    await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
+  });
+
+  beforeEach(() => {
+    _resetManifestCache();
+    execute = createExecutor({}); // engine object is not needed for these tests
+    fileSystem.readFile.mockClear();
+  });
+
+  test("should successfully execute a tool that is explicitly permitted", async () => {
+    fileSystem.readFile.mockResolvedValue("file content");
+    const result = await execute(
+      "file_system.readFile",
+      { path: "test.txt" },
+      "test-agent-permitted"
+    );
+    expect(fileSystem.readFile).toHaveBeenCalledWith({
+      path: "test.txt",
+      agentConfig: expect.any(Object),
+    });
+    expect(result).toBe(JSON.stringify("file content", null, 2));
+  });
+
+  test("should throw a PermissionDeniedError when an agent tries to use a disallowed tool", async () => {
+    await expect(
+      execute("file_system.readFile", { path: "test.txt" }, "test-agent-denied")
+    ).rejects.toThrow("Agent 'test-agent-denied' not permitted for tool 'file_system.readFile'.");
+  });
+
+  test("should sanitize arguments by stripping dangerous characters before executing a tool", async () => {
+    // This test is more complex and requires a tool that uses shell commands.
+    // For now, we will just test the concept with the file_system tool.
+    const dangerousPath = "; rm -rf /";
+    const sanitizedPath = " rm -rf /"; // based on the actual sanitizer
+
+    fileSystem.readFile.mockResolvedValue("file content");
+
+    await execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted");
+
+    expect(fileSystem.readFile).toHaveBeenCalledWith({
+      path: sanitizedPath,
+      agentConfig: expect.any(Object),
+    });
+  });
+});

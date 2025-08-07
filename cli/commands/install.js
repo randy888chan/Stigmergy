@@ -24,40 +24,81 @@ export async function configureIde(
   const customModes = [];
 
   for (const agent of manifest.agents) {
-    const agentFile = path.join(coreSourceDir, "agents", `${agent.id}.md`);
-    if (await fs.pathExists(agentFile)) {
-      const content = await fs.readFile(agentFile, "utf8");
-      const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+    const agentFilePath = path.join(coreSourceDir, "agents", `${agent.id}.md`);
+
+    if (await fs.pathExists(agentFilePath)) {
+      // 1. Read the RAW file content to use as the roleDefinition
+      const rawAgentDefinition = await fs.readFile(agentFilePath, "utf8");
+
+      // 2. Parse the YAML from the file to get structured data
+      const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
 
       if (yamlMatch && yamlMatch[1]) {
         try {
           const agentData = yaml.load(yamlMatch[1]);
 
-          let roleDefinition = "";
-          if (agentData.persona && agentData.persona.role) {
-            roleDefinition = agentData.persona.role;
+          // 3. Initialize variables for the new structure
+          const finalGroups = [];
+          let source = null; // Default to null
+
+          // 4. Correctly parse the 'tools' array
+          const tools = agentData.tools || []; // Ensure tools is an array
+          for (const tool of tools) {
+            if (tool.startsWith("mcpsource:")) {
+              // If it's a source directive, extract the value
+              source = tool.split(":")[1].trim();
+            } else {
+              // Otherwise, it's a normal group
+              finalGroups.push(tool);
+            }
           }
 
-          const tools = agentData.tools || ["read", "edit"];
-
-          customModes.push({
+          // 5. Build the final customMode object with the correct structure
+          const mode = {
             slug: agentData.agent.alias,
             name: `${agentData.agent.icon} ${agentData.agent.name}`,
-            roleDefinition: roleDefinition,
-            groups: tools,
+            roleDefinition: rawAgentDefinition, // Use the full raw definition
+            groups: finalGroups, // Use the filtered groups
             api: {
               url: `${ENGINE_URL}/api/chat`,
               method: "POST",
               include: ["history"],
+              // Add the static_payload as seen in the correct example
+              static_payload: {
+                agentId: agentData.agent.id,
+              },
             },
-            source: agentData.source,
-          });
+          };
+
+          // 6. Only add the source key if it was found
+          if (source) {
+            mode.source = source;
+          }
+
+          customModes.push(mode);
         } catch (e) {
-          console.warn(`Skipping agent due to YAML parse error: ${agent.id}`);
+          console.warn(`Skipping agent due to YAML parse error in ${agent.id}: ${e.message}`);
         }
       }
     }
   }
+
+  customModes.unshift(
+    {
+      slug: "system-resume",
+      name: "▶️ Resume Engine",
+      roleDefinition: "Resume the autonomous engine.",
+      api: { url: `${ENGINE_URL}/api/control/resume`, method: "POST" },
+      groups: ["command"],
+    },
+    {
+      slug: "system-pause",
+      name: "⏸️ Pause Engine",
+      roleDefinition: "Pause the autonomous engine.",
+      api: { url: `${ENGINE_URL}/api/control/pause`, method: "POST" },
+      groups: ["command"],
+    }
+  );
 
   // 3. Sort modes alphabetically by name
   customModes.sort((a, b) => a.name.localeCompare(b.name));

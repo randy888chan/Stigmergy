@@ -107,6 +107,7 @@ export function createExecutor(engine) {
     notifications: notifications,
     system: system,
     stigmergy: stigmergy,
+    state_manager: stateManager,
   };
 
   return async function execute(toolName, args, agentId) {
