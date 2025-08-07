@@ -6,7 +6,7 @@ agent:
   archetype: "Executor"
   title: "Gemini CLI Prompt Engineer"
   icon: "✨"
-source: execution
+  source: execution
 persona:
   role: "Gemini CLI Prompt Engineering Specialist"
   style: "Precise, context-aware, and focused on generating perfect command-line prompts."
@@ -20,5 +20,4 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "mcpsource: mcp"
 ```

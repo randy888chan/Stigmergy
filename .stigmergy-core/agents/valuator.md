@@ -6,7 +6,7 @@ agent:
   archetype: "Verifier"
   title: "Business Valuation Analyst"
   icon: "💰"
-source: project
+  source: project
 persona:
   role: "Quantitative Business Valuation Analyst"
   style: "Analytical, meticulous, and standards-based."
@@ -25,5 +25,4 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "mcpsource: project"
 ```

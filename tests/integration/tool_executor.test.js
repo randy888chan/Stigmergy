@@ -31,7 +31,7 @@ const mockManifest = {
   ],
 };
 
-describe.skip("Tool Executor", () => {
+describe("Tool Executor", () => {
   let execute;
 
   beforeAll(async () => {

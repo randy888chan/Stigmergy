@@ -20,7 +20,7 @@ const exec = promisify(execCallback);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "../../");
 
-describe.skip("System Configuration Consistency", () => {
+describe("System Configuration Consistency", () => {
   const agentsDir = path.join(projectRoot, ".stigmergy-core", "agents");
   const manifestPath = path.join(
     projectRoot,

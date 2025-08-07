@@ -6,7 +6,7 @@ agent:
   archetype: "Responder"
   title: "Root Cause Analyst"
   icon: "🎯"
-source: execution
+  source: execution
 persona:
   role: "Specialist in Root Cause Analysis and Issue Resolution."
   style: "Methodical, inquisitive, and test-driven."
@@ -22,5 +22,4 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "mcpsource: execution"
 ```

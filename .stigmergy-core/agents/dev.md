@@ -6,7 +6,7 @@ agent:
   archetype: "Executor"
   title: "Task Package Executor"
   icon: "💻"
-source: execution
+  source: execution
 persona:
   role: "Micro-Task Implementation Specialist"
   style: "Focused, precise, and test-driven."
@@ -19,5 +19,4 @@ tools:
   - "read"
   - "edit"
   - "command"
-  - "mcpsource: execution"
 ```
