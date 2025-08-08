@@ -51,69 +51,47 @@ async function getSharedContext() {
   return context;
 }
 
-export async function getCompletion(agentId, prompt, taskId) {
+export async function getCompletion(agentId, prompt) {
   if (!llm) {
     llm = getModel();
   }
 
-  const agentPath = path.join(process.cwd(), ".stigmergy-core", "agents", `${agentId}.md`);
-  const agentInstructions = await getCachedFile(agentPath);
-  const metaPromptTemplate = await getCachedFile(META_PROMPT_PATH);
-
-  let sharedContext = await getSharedContext();
-
-  const statePath = path.join(process.cwd(), ".ai", "state.json");
-  const stateContent = await getCachedFile(statePath);
-  if (stateContent) {
-    sharedContext += `--- START CURRENT STATE: .ai/state.json ---\n${stateContent}\n--- END CURRENT STATE ---\n\n`;
-  }
-
-  let taskContent = "";
-  if (taskId) {
-    const storyPath = path.join(process.cwd(), ".ai", "stories", `${taskId}.md`);
-    if (await fs.pathExists(storyPath)) {
-      taskContent = await fs.readFile(storyPath, "utf8");
-      sharedContext += `\n\n--- CURRENT TASK: ${taskId}.md ---\n` + taskContent;
-    }
-  }
-
-  if (taskContent) {
-    const dynamicContext = await enhanceContext(taskContent);
-    sharedContext += "\n\n" + dynamicContext;
-  }
-
-  const finalSystemPrompt = metaPromptTemplate
-    .replace("{{AGENT_INSTRUCTIONS}}", agentInstructions)
-    .replace("{{SHARED_CONTEXT}}", sharedContext);
-
-  const finalPrompt = `${finalSystemPrompt}\n\nUser query: ${prompt}`;
+  const systemPrompt = `You are ${agentId}. Respond in JSON format: {thought, action}`;
 
   try {
-    const result = await llm.generate({ prompt: finalPrompt });
+    const response = await llm.generate({
+      system: systemPrompt,
+      prompt: prompt
+    });
 
-    let rawJSON = result.text;
-    if (!rawJSON && result.choices && result.choices.length > 0) {
-      rawJSON = result.choices[0].message.content;
+    let rawJSON = response.text;
+    if (!rawJSON && response.choices && response.choices.length > 0) {
+      rawJSON = response.choices[0].message.content;
     }
 
     if (!rawJSON) {
-      console.error("LLM response did not contain expected text or content field:", result);
+      console.error("LLM response did not contain expected text or content field:", response);
       return { thought: "Error: Received an empty response from the LLM.", action: null };
     }
 
-    const response = JSON.parse(rawJSON);
-
-    if (!response.action) {
-      const clarification = nlpProcessor.generateClarificationRequest(agentId, prompt);
-      if (clarification) {
-        return { thought: clarification.message, action: null };
+    try {
+      const jsonMatch = rawJSON.match(/```(?:json)?\n([\s\S]*?)\s*```/);
+      if (jsonMatch) {
+        return JSON.parse(jsonMatch[1]);
       }
+      return JSON.parse(rawJSON);
+    } catch {
+      return {
+        thought: "My response wasn't valid JSON. Please try again.",
+        action: null
+      };
     }
-
-    return response;
-  } catch (e) {
-    console.error("Failed to parse LLM response as JSON. Raw response:", e.body);
-    return { thought: "Error: My response was not valid JSON.", action: null };
+  } catch (error) {
+    console.error(`LLM Adapter error: ${error.message}`, error);
+    return {
+      thought: `I encountered an error: ${error.message}`,
+      action: null
+    };
   }
 }
 

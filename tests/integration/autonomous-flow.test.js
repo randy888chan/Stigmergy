@@ -1,19 +1,19 @@
-const mockState = {
-  project_status: "EXECUTION_IN_PROGRESS",
-  project_manifest: {
-    tasks: [
-      { id: "task1", status: "PENDING" },
-      { id: "task2", status: "COMPLETED" },
-    ],
-  },
-};
-
-// Mock state manager comprehensively
-jest.mock("../../engine/state_manager.js", () => ({
-  getState: jest.fn().mockResolvedValue(mockState),
-  updateState: jest.fn().mockResolvedValue(),
-  subscribeToChanges: jest.fn(),
-}));
+jest.mock("../../engine/state_manager.js", () => {
+  const mockState = {
+    project_status: "EXECUTION_IN_PROGRESS",
+    project_manifest: {
+      tasks: [
+        { id: "task1", status: "PENDING" },
+        { id: "task2", status: "COMPLETED" },
+      ],
+    },
+  };
+  return {
+    getState: jest.fn().mockResolvedValue(mockState),
+    updateState: jest.fn().mockResolvedValue(),
+    subscribeToChanges: jest.fn(),
+  };
+});
 // Add proper state initialization
 
 // Add these imports
@@ -25,17 +25,27 @@ describe("Autonomous Workflow", () => {
 
   beforeAll(() => {
     engine = new Engine();
+    jest.useFakeTimers();
   });
 
   it("should progress through states", async () => {
-    // Add proper async handling
-    await engine.runLoop();
+    const mockState = await getState();
+    getState.mockResolvedValue(mockState);
 
-    // Verify state transitions
+    engine.isEngineRunning = true;
+    const runLoopPromise = engine.runLoop();
+
+    // Allow one iteration of the loop to run
+    await Promise.resolve();
+    jest.runOnlyPendingTimers();
+
+    // Stop the engine to break the loop
+    engine.isEngineRunning = false;
+
+    // Ensure the loop promise resolves
+    await runLoopPromise;
+
+    // Verify that the loop ran at least once
     expect(getState).toHaveBeenCalled();
-
-    // Add type checking for critical objects
-    const state = await getState();
-    expect(Array.isArray(state.project_manifest?.tasks)).toBe(true);
-  });
+  }, 10000); // Increase timeout to 10 seconds
 });

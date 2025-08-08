@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import crypto from "crypto";
 import { EventEmitter } from "events";
+import properLockfile from 'proper-lockfile';
 
 const STATE_DIR = path.join(process.cwd(), ".ai", "state");
 const STATE_FILE = path.join(STATE_DIR, "current.json");
@@ -10,7 +11,6 @@ export class FileStateManager extends EventEmitter {
   constructor() {
     super();
     this.eventsFile = path.join(STATE_DIR, "events.jsonl");
-    this.lockFile = path.join(STATE_DIR, "state.lock");
     this.currentStateFile = STATE_FILE;
     this.initialize();
   }
@@ -23,7 +23,7 @@ export class FileStateManager extends EventEmitter {
   }
 
   async updateState(event) {
-    const lock = await this.acquireLock();
+    const release = await properLockfile.lock(STATE_DIR);
     try {
       // Append event to event log
       await fs.appendFile(
@@ -46,28 +46,8 @@ export class FileStateManager extends EventEmitter {
       this.emit("stateChanged", newState);
       return newState;
     } finally {
-      await this.releaseLock(lock);
+      await release();
     }
-  }
-
-  async acquireLock() {
-    const lockId = crypto.randomUUID();
-    const lockPath = `${this.lockFile}.${lockId}`;
-
-    try {
-      await fs.writeFile(lockPath, process.pid.toString(), { flag: "wx" });
-      return lockId;
-    } catch (error) {
-      if (error.code === "EEXIST") {
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        return this.acquireLock();
-      }
-      throw error;
-    }
-  }
-
-  async releaseLock(lockId) {
-    await fs.remove(`${this.lockFile}.${lockId}`);
   }
 
   async getState() {

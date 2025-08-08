@@ -1,94 +1,110 @@
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
 
 export async function configureIde(
   coreSourceDir,
   outputPath = path.join(process.cwd(), ".roomodes")
 ) {
   console.log("Configuring IDE...");
-  console.log("coreSourceDir:", coreSourceDir);
-  console.log("outputPath:", outputPath);
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  // 1. Load the agent manifest
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
+  if (!fs.existsSync(manifestPath)) {
+      console.warn("Agent Manifest not found. Skipping IDE configuration.")
+      return;
+  }
   const manifestContent = await fs.readFile(manifestPath, "utf8");
 
-  // FIX: Extract only the YAML content between the code fences
-  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!yamlMatch || !yamlMatch[1]) {
+  const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!manifestYamlMatch || !manifestYamlMatch[1]) {
     throw new Error(`Invalid manifest format in ${manifestPath}`);
   }
+  const manifest = yaml.load(manifestYamlMatch[1]);
 
-  const manifest = yaml.load(yamlMatch[1]); // Use only the extracted YAML
-
-  // 2. Create customModes array
   const customModes = [];
+  const existingAliases = new Set();
+  const agentsDir = path.join(coreSourceDir, 'agents');
 
   for (const agent of manifest.agents) {
-    console.log("Processing agent:", agent.id);
-    const agentFilePath = path.join(coreSourceDir, "agents", `${agent.id}.md`);
-    console.log("Agent file path:", agentFilePath);
+    const agentId = agent.id;
+    const agentExtensions = ['.md', '.yml', '.yaml'];
+    let rawAgentDefinition = null;
+    let agentFile = null;
 
-    if (await fs.pathExists(agentFilePath)) {
-      // 1. Read the RAW file content to use as the roleDefinition
-      const rawAgentDefinition = await fs.readFile(agentFilePath, "utf8");
-      console.log("Agent raw definition:", rawAgentDefinition);
+    for (const ext of agentExtensions) {
+        const currentFile = `${agentId}${ext}`;
+        const agentPath = path.join(agentsDir, currentFile);
+        if (await fs.pathExists(agentPath)) {
+            rawAgentDefinition = await fs.readFile(agentPath, 'utf8');
+            agentFile = currentFile;
+            break;
+        }
+    }
 
-      // 2. Parse the YAML from the file to get structured data
-      const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+    if (!rawAgentDefinition) {
+        console.warn(`Skipping agent ${agentId}: No definition file found.`);
+        continue;
+    }
 
-      if (yamlMatch && yamlMatch[1]) {
-        try {
-          const agentData = yaml.load(yamlMatch[1]);
+    try {
+      let agentData = {};
+      try {
+        const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+        if (yamlMatch) {
+          agentData = yaml.load(yamlMatch[1]);
+        }
+      } catch (e) {
+        console.warn(`Using minimal definition for ${agentId}: ${e.message}`);
+        agentData = { agent: { id: agentId, name: agentId } };
+      }
 
-          // 3. Initialize variables for the new structure
-          const finalGroups = [];
-          let source = null; // Default to null
+      if (!agentData.agent) {
+        console.warn(`Agent data for ${agentId} is missing 'agent' property. Skipping.`);
+        continue;
+      }
 
-          // 4. Correctly parse the 'tools' array
-          const tools = agentData.tools || []; // Ensure tools is an array
-          for (const tool of tools) {
-            if (tool.startsWith("mcp:")) {
-              // If it's a source directive, extract the value
-              source = tool.split(":")[1].trim();
-            } else {
-              // Otherwise, it's a normal group
-              finalGroups.push(tool);
-            }
-          }
+      let alias = agentData.agent?.alias || `@${agentId.split('_')[0]}`;
+      if (existingAliases.has(alias)) {
+        console.warn(`Duplicate alias detected: ${alias}`);
+        alias = `${alias}_${agentId}`; // Add unique suffix
+      }
+      existingAliases.add(alias);
 
-          // 5. Build the final customMode object with the correct structure
-          const mode = {
-            slug: agentData.agent.alias,
-            name: `${agentData.agent.icon} ${agentData.agent.name}`,
-            roleDefinition: rawAgentDefinition, // Use the full raw definition
-            groups: finalGroups, // Use the filtered groups
-            api: {
-              url: `${ENGINE_URL}/api/chat`,
-              method: "POST",
-              include: ["history"],
-              // Add the static_payload as seen in the correct example
-              static_payload: {
-                agentId: agentData.agent.id,
-              },
-            },
-          };
-
-          // 6. Only add the source key if it was found
-          if (source) {
-            mode.source = source;
-          }
-
-          customModes.push(mode);
-        } catch (e) {
-          console.warn(`Skipping agent due to YAML parse error in ${agent.id}: ${e.message}`);
+      const finalGroups = [];
+      let source = null;
+      const tools = agentData.tools || [];
+      for (const tool of tools) {
+        if (tool.startsWith("mcp:")) {
+          source = tool.split(":")[1].trim();
+        } else {
+          finalGroups.push(tool);
         }
       }
+
+      const mode = {
+        slug: alias,
+        name: `${agentData.agent.icon || '🤖'} ${agentData.agent.name}`,
+        roleDefinition: rawAgentDefinition,
+        groups: finalGroups,
+        api: {
+          url: `${ENGINE_URL}/api/chat`,
+          method: "POST",
+          include: ["history"],
+          static_payload: {
+            agentId: agentData.agent.id,
+          },
+        },
+      };
+
+      if (source) {
+        mode.source = source;
+      }
+
+      customModes.push(mode);
+    } catch (error) {
+      console.error(`Skipping agent ${agentFile}: ${error.message}`);
     }
   }
 
@@ -109,37 +125,28 @@ export async function configureIde(
     }
   );
 
-  // 3. Sort modes alphabetically by name
   customModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  // 4. Generate the YAML output with CORRECT format
   const yamlOutput = yaml.dump({ customModes: customModes }, { lineWidth: -1 });
   const fileContent = `# This file is auto-generated by 'stigmergy install'.\n\n${yamlOutput}`;
   await fs.writeFile(outputPath, fileContent, "utf8");
 }
 
 async function install() {
-  console.log("Starting install function...");
-  console.log("Stigmergy install process started...");
+  console.log("Starting install...");
   const targetDir = process.cwd();
-  const sourceDir = path.resolve(process.cwd(), ".stigmergy-core");
 
-  try {
-    console.log("Copying .stigmergy-core directory...");
-    const destStigmergyDir = path.join(targetDir, ".stigmergy-core");
-    if (!(await fs.pathExists(destStigmergyDir))) {
-      await fs.copy(sourceDir, destStigmergyDir);
-      console.log(`Copied .stigmergy-core to ${targetDir}`);
-    }
+  // Respect the core_path from global config if it's set (for testing)
+  const coreDir = global.StigmergyConfig?.core_path || path.join(targetDir, ".stigmergy-core");
 
-    console.log("Calling configureIde...");
-    await configureIde(destStigmergyDir);
-
-    console.log(`✅ Install complete. .roomodes file created.`);
+  if (fs.existsSync(coreDir)) {
+    console.log("✅ .stigmergy-core already exists - preserving your brain");
+    await configureIde(coreDir);
+    console.log(`✅ Install complete. .roomodes file updated.`);
     return true;
-  } catch (error) {
-    console.error("❌ An unexpected error occurred during the install process:");
-    console.error(error);
+  } else {
+    console.error("❌ CRITICAL: .stigmergy-core not found in the project root.");
+    console.error("Please ensure the .stigmergy-core directory is present to run the install.");
     return false;
   }
 }
