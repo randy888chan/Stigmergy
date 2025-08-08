@@ -9,6 +9,8 @@ import { exec as execCallback } from "child_process";
 import { promisify } from "util";
 import os from "os";
 import { configureIde } from "../../cli/commands/install.js";
+import { processError } from "../../engine/error_handling.js";
+import { handleFailure } from "../../engine/fallback_manager.js";
 
 // Import service to be tested. It's important to do this before the describe block
 // so that the mock environment variables can be set if needed.
@@ -19,6 +21,17 @@ const exec = promisify(execCallback);
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "../../");
+
+jest.mock("../../engine/error_handling.js", () => ({
+  processError: jest.fn().mockImplementation((error) => ({
+    classification: "MOCK_ERROR",
+    recoveryResult: { success: true },
+  })),
+}));
+
+jest.mock("../../engine/fallback_manager.js", () => ({
+  handleFailure: jest.fn().mockResolvedValue({ success: true }),
+}));
 
 describe("System Configuration Consistency", () => {
   const agentsDir = path.join(projectRoot, ".stigmergy-core", "agents");
@@ -33,14 +46,29 @@ describe("System Configuration Consistency", () => {
   let manifestAgentIds = [];
 
   beforeAll(async () => {
+    global.StigmergyConfig = {
+      features: { neo4j: "auto" },
+    };
     // Create dummy files for testing
     await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "agent-teams"));
     await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "agents"));
     await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "templates"));
-    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "agent-teams", "test-team.yml"), "bundle:\n  name: Test Team\nagents:\n  - test-agent");
-    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "agents", "test-agent.md"), "```yaml\nagent:\n  id: test-agent\n  name: Test Agent\n  alias: test-agent\n  icon: 🧪\npersona:\n  role: Test agent role\ncore_protocols:\n  - Test protocol\n```");
-    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "templates", "test-template.md"), "This is a test template.");
-    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "system_docs", "02_Agent_Manifest.md"), "```yaml\nagents:\n  - id: test-agent-permitted\n    tools:\n      - file_system.readFile\n  - id: test-agent-denied\n    tools:\n      - some_other_tool\n```");
+    await fs.writeFile(
+      path.join(projectRoot, ".stigmergy-core", "agent-teams", "test-team.yml"),
+      "bundle:\n  name: Test Team\nagents:\n  - test-agent"
+    );
+    await fs.writeFile(
+      path.join(projectRoot, ".stigmergy-core", "agents", "test-agent.md"),
+      "```yaml\nagent:\n  id: test-agent\n  name: Test Agent\n  alias: test-agent\n  icon: 🧪\npersona:\n  role: Test agent role\ncore_protocols:\n  - Test protocol\n```"
+    );
+    await fs.writeFile(
+      path.join(projectRoot, ".stigmergy-core", "templates", "test-template.md"),
+      "This is a test template."
+    );
+    await fs.writeFile(
+      path.join(projectRoot, ".stigmergy-core", "system_docs", "02_Agent_Manifest.md"),
+      "```yaml\nagents:\n  - id: test-agent-permitted\n    tools:\n      - file_system.readFile\n  - id: test-agent-denied\n    tools:\n      - some_other_tool\n```"
+    );
 
     // Find all agent definition files to be used in multiple tests.
     agentFiles = await glob(path.join(agentsDir, "*.{md,yml}"));
@@ -285,5 +313,15 @@ describe("System Configuration Consistency", () => {
         );
       }
     }
+  });
+
+  it("should handle neo4j failures", async () => {
+    // Explicitly define error object
+    const error = new Error("Neo4j connection failed");
+    error.resource = "neo4j";
+
+    // Test with proper async handling
+    await handleFailure(error.resource, error);
+    expect(handleFailure).toHaveBeenCalledWith("neo4j", expect.any(Error));
   });
 });

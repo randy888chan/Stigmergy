@@ -3,9 +3,9 @@
  * Connects technical implementation to business outcomes
  */
 
-const fs = require("fs-extra");
-const path = require("path");
-const natural = require("natural"); // For NLP analysis of goals
+import fs from "fs-extra";
+import path from "path";
+import natural from "natural"; // For NLP analysis of goals
 
 // Business objective types and their verification approaches
 const OBJECTIVE_TYPES = {
@@ -40,7 +40,7 @@ class BusinessMetrics {
     // Train with examples for each objective type
     Object.entries(OBJECTIVE_TYPES).forEach(([type, config]) => {
       config.keywords.forEach((keyword) => {
-        this.classifier.addClassDocument(type, keyword);
+        this.classifier.addDocument(keyword, type);
       });
     });
 
@@ -190,4 +190,4 @@ class BusinessMetrics {
   }
 }
 
-module.exports = new BusinessMetrics();
+export default new BusinessMetrics();

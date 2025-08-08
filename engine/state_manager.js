@@ -7,7 +7,15 @@ export async function getState() {
   return fileStateManager.getState();
 }
 
+function validateState(state) {
+  if (!state.project_status) throw new TypeError("Missing project_status");
+  if (state.project_manifest && !Array.isArray(state.project_manifest.tasks)) {
+    throw new TypeError("project_manifest.tasks must be an array");
+  }
+}
+
 export async function updateState(event) {
+  validateState(event); // Add this line
   return fileStateManager.updateState(event);
 }
 
@@ -29,6 +37,24 @@ export async function initializeProject(goal) {
     ],
   };
   return fileStateManager.updateState(event);
+}
+
+import { verifyMilestone } from "./verification_system.js";
+import swarmMemory from "./swarm_memory.js";
+
+export async function transitionToState(newStatus, milestone) {
+  const verified = await verifyMilestone(milestone);
+  if (verified) {
+    await updateStatus({
+      newStatus,
+      artifact_created: milestone,
+    });
+  } else {
+    swarmMemory.recordLesson({
+      pattern: `milestone-failure-${milestone}`,
+      solution: "Reassign to @debugger with full context",
+    });
+  }
 }
 
 export async function updateStatus({ newStatus, message, artifact_created = null }) {
