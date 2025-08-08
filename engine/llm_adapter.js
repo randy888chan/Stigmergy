@@ -3,6 +3,7 @@ import path from "path";
 import { enhance as enhanceContext } from "./context_enhancer.js";
 import { getModel } from "../ai/providers.js";
 import "dotenv/config.js";
+import nlpProcessor from "./nlp_processor.js";
 
 let llm;
 
@@ -100,7 +101,16 @@ export async function getCompletion(agentId, prompt, taskId) {
       return { thought: "Error: Received an empty response from the LLM.", action: null };
     }
 
-    return JSON.parse(rawJSON);
+    const response = JSON.parse(rawJSON);
+
+    if (!response.action) {
+      const clarification = nlpProcessor.generateClarificationRequest(agentId, prompt);
+      if (clarification) {
+        return { thought: clarification.message, action: null };
+      }
+    }
+
+    return response;
   } catch (e) {
     console.error("Failed to parse LLM response as JSON. Raw response:", e.body);
     return { thought: "Error: My response was not valid JSON.", action: null };
@@ -122,5 +132,21 @@ export async function getSystemPrompt() {
 
 export function clearFileCache() {
   fileCache.clear();
-  console.log('[LLM Adapter] File cache cleared.');
+  console.log("[LLM Adapter] File cache cleared.");
+}
+
+/**
+ * Decomposes a high-level goal into a series of smaller, actionable tasks.
+ * @param {string} goal The high-level goal to decompose.
+ * @returns {Promise<Array<object>>} A list of tasks.
+ */
+export async function decomposeGoal(goal) {
+  // This is a placeholder for a more advanced goal decomposition implementation.
+  // In a real system, this would involve a more sophisticated LLM prompt
+  // and a more structured output format.
+  console.log(`Decomposing goal: ${goal}`);
+  return [
+    { id: "task1", description: "First task" },
+    { id: "task2", description: "Second task" },
+  ];
 }

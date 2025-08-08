@@ -16,6 +16,7 @@ import config from "../stigmergy.config.js";
 import { Spinner } from "cli-spinner";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
 import * as AgentPerformance from "./agent_performance.js";
+const swarmMemory = require("./swarm_memory.js");
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -105,7 +106,13 @@ export class Engine {
     }
 
     if (response.action?.tool) {
-      return this.executeTool(response.action.tool, response.action.args, agentId);
+      const result = await this.executeTool(response.action.tool, response.action.args, agentId);
+      swarmMemory.recordLesson({
+        agentId,
+        taskType: response.action.tool,
+        success: result.success,
+      });
+      return result;
     }
     return response.thought;
   }
@@ -122,8 +129,24 @@ export class Engine {
 
     if (autonomous_states.includes(status)) {
       console.log(chalk.blue("[Engine] Dispatching @dispatcher to determine next action."));
-      const stateJson = JSON.stringify(state, null, 2);
-      const prompt = `System state has been updated. Analyze the current state and determine the next single, most logical action for the swarm.\n\nCURRENT STATE:\n${stateJson}`;
+      let prompt = `System state has been updated. Analyze the current state and determine the next single, most logical action for the swarm.\n\nCURRENT STATE:\n${JSON.stringify(
+        state,
+        null,
+        2
+      )}`;
+
+      if (status === "EXECUTION_FAILED") {
+        const recommendations = await swarmMemory.getPatternRecommendations(state.failureReason, [
+          "database-connection",
+          "api-integration",
+        ]);
+        if (recommendations.length > 0) {
+          prompt += `\n\n[Swarm Memory] Recommendations for handling failure: ${JSON.stringify(
+            recommendations
+          )}`;
+        }
+      }
+
       return this.triggerAgent("dispatcher", prompt);
     } else {
       console.log(
@@ -142,7 +165,7 @@ export class Engine {
       const nextAgent = await this.selectOptimalAgent(state);
       await this.dispatch(nextAgent, state);
 
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
     }
   }
 

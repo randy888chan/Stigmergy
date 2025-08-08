@@ -4,7 +4,7 @@
  */
 
 // Add to existing imports
-const businessMetrics = require("./business_metrics");
+import businessMetrics from "./business_metrics.js";
 import codeIntelligenceService from "../services/code_intelligence_service.js";
 import fallbackVerifier from "./fallback_verifier.js";
 import { SemanticValidator } from "../src/verification/semanticValidator.js";
@@ -82,7 +82,10 @@ export async function verifyBusinessOutcomes(milestone) {
     const technicalVerification = await this.verifyCodeHealth(milestone.projectPath);
 
     // Then verify business outcomes
-    const businessVerification = await this._verifyBusinessImpact(milestone.projectPath, milestone.goal);
+    const businessVerification = await this._verifyBusinessImpact(
+      milestone.projectPath,
+      milestone.goal
+    );
 
     // Combine results
     return {
@@ -196,14 +199,46 @@ function _calculateOverallConfidence(technical, business) {
   return technical.confidenceScore * 0.3 + business.confidenceScore * 0.7;
 }
 
+// Mock objects for shouldAutoApprove. In a real implementation, these would be imported.
+const config = {
+  autoApproveThreshold: 0.9,
+  maxAutoApproveComplexity: 5,
+};
+
+const riskEvaluator = {
+  assess: (task) => {
+    // Mock risk assessment based on task properties.
+    let confidence = 0.95;
+    if (task.description && task.description.toLowerCase().includes("critical")) {
+      confidence = 0.7;
+    }
+    return { confidence };
+  },
+};
+
+/**
+ * Determines if a task should be auto-approved based on risk and complexity.
+ * @param {object} task The task to evaluate.
+ * @returns {boolean} True if the task should be auto-approved, false otherwise.
+ */
+export function shouldAutoApprove(task) {
+  // This is a placeholder for AI-driven verification of acceptance criteria.
+  // The current implementation uses a mock risk evaluator.
+  const riskAssessment = riskEvaluator.assess(task);
+  return (
+    riskAssessment.confidence > config.autoApproveThreshold &&
+    task.complexity < config.maxAutoApproveComplexity
+  );
+}
+
 export async function verifyMilestone(milestone) {
   const results = await Promise.all([
     verifyTechnicalImplementation(milestone),
     verifyBusinessOutcomes(milestone),
-    verifyArchitecturalCompliance(milestone)
+    verifyArchitecturalCompliance(milestone),
   ]);
 
-  return results.every(r => r.success);
+  return results.every((r) => r.success);
 }
 
 async function verifyTechnicalImplementation(milestone) {

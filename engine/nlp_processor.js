@@ -3,16 +3,39 @@
  * Handles context-aware interpretation across all system states
  */
 
-const natural = require("natural");
+import natural from "natural";
 const sentiment = new natural.SentimentAnalyzer("English", natural.PorterStemmer, "afinn");
 const tokenizer = new natural.WordTokenizer();
-const { NlpManager } = require("node-nlp");
+import nlp from "node-nlp";
+import fs from "fs-extra";
+import path from "path";
 
 class NLPProcessor {
   constructor() {
-    this.intentManager = new NlpManager({ languages: ["en"], forceNER: true });
+    this.intentManager = new nlp.NlpManager({ languages: ["en"], forceNER: true });
     this.contextMemory = new Map();
+    this.memoryPath = path.join(process.cwd(), ".ai", "nlp_memory.json");
+    this.loadMemory();
     this.setupIntents();
+  }
+
+  async loadMemory() {
+    try {
+      if (await fs.pathExists(this.memoryPath)) {
+        const memoryData = await fs.readJson(this.memoryPath);
+        this.contextMemory = new Map(Object.entries(memoryData));
+      }
+    } catch (error) {
+      console.error("Error loading NLP memory:", error);
+    }
+  }
+
+  async saveMemory() {
+    try {
+      await fs.writeJson(this.memoryPath, Object.fromEntries(this.contextMemory));
+    } catch (error) {
+      console.error("Error saving NLP memory:", error);
+    }
   }
 
   /**
@@ -34,6 +57,12 @@ class NLPProcessor {
     this.intentManager.addDocument("en", "change the design", "design.update");
     this.intentManager.addDocument("en", "update the UI", "design.update");
 
+    this.intentManager.addDocument("en", "run the tests", "test.run");
+    this.intentManager.addDocument("en", "test the application", "test.run");
+
+    this.intentManager.addDocument("en", "deploy the application", "deploy.start");
+    this.intentManager.addDocument("en", "push to production", "deploy.start");
+
     // Train the model
     await this.intentManager.train();
   }
@@ -48,8 +77,10 @@ class NLPProcessor {
     // Maintain context across conversations
     this.contextMemory.set(context.sessionId, {
       lastIntent: intent,
-      entities
+      entities,
     });
+
+    await this.saveMemory();
 
     return this.generateAction(intent, entities);
   }
@@ -58,14 +89,14 @@ class NLPProcessor {
     // This is a placeholder.
     // The user did not provide the implementation for this function.
     console.log(`Classifying intent for userInput ${userInput}`);
-    return { intent: 'test-intent', entities: [] };
+    return { intent: "test-intent", entities: [] };
   }
 
   generateAction(intent, entities) {
     // This is a placeholder.
     // The user did not provide the implementation for this function.
     console.log(`Generating action for intent ${intent} with entities ${JSON.stringify(entities)}`);
-    return { action: 'test-action' };
+    return { action: "test-action" };
   }
 
   /**
@@ -261,8 +292,7 @@ class NLPProcessor {
 
   _interpretComplexCommand(command) {
     // Parse multi-step instructions
-    return command.split(/(then|after that|next)/i)
-      .map(step => this.parseStep(step.trim()));
+    return command.split(/(then|after that|next)/i).map((step) => this.parseStep(step.trim()));
   }
 
   parseStep(step) {
@@ -274,4 +304,4 @@ class NLPProcessor {
 }
 
 // Export singleton instance
-module.exports = new NLPProcessor();
+export default new NLPProcessor();

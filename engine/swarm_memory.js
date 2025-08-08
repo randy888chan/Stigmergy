@@ -3,9 +3,9 @@
  * Retains lessons across projects for continuous improvement
  */
 
-const fs = require("fs-extra");
-const path = require("path");
-const { v4: uuidv4 } = require("uuid");
+import fs from "fs-extra";
+import path from "path";
+import { v4 as uuidv4 } from "uuid";
 import * as AgentPerformance from "./agent_performance.js";
 
 class SwarmMemory {
@@ -40,11 +40,7 @@ class SwarmMemory {
     this.errorPatterns.set(lesson.pattern, lesson.solution);
 
     // Update agent performance metrics
-    await AgentPerformance.recordResolution(
-      lesson.agentId,
-      lesson.taskType,
-      lesson.success
-    );
+    await AgentPerformance.recordResolution(lesson.agentId, lesson.taskType, lesson.success);
   }
 
   /**
@@ -204,4 +200,4 @@ class SwarmMemory {
 }
 
 // Export singleton instance
-module.exports = new SwarmMemory();
+export default new SwarmMemory();
