@@ -73,19 +73,16 @@ describe("Tool Executor", () => {
     ).rejects.toThrow("Agent 'test-agent-denied' not permitted for tool 'file_system.readFile'.");
   });
 
-  test("should sanitize arguments by stripping dangerous characters before executing a tool", async () => {
-    // This test is more complex and requires a tool that uses shell commands.
-    // For now, we will just test the concept with the file_system tool.
-    const dangerousPath = "; rm -rf /";
-    const sanitizedPath = " rm -rf /"; // based on the actual sanitizer
+  test("should throw an error for invalid arguments based on Zod schema", async () => {
+    const dangerousPath = "; rm -rf /"; // This is not a valid path according to most file systems.
 
-    fileSystem.readFile.mockResolvedValue("file content");
+    // We expect the executor to throw an 'input_sanitization_failed' error
+    // because the new Zod-based sanitizer will reject the input.
+    await expect(
+      execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted")
+    ).rejects.toThrow("input_sanitization_failed");
 
-    await execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted");
-
-    expect(fileSystem.readFile).toHaveBeenCalledWith({
-      path: sanitizedPath,
-      agentConfig: expect.any(Object),
-    });
+    // Ensure the underlying tool was NOT called
+    expect(fileSystem.readFile).not.toHaveBeenCalled();
   });
 });

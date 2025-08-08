@@ -64,17 +64,17 @@
     "inquirer": "^8.2.4",
     "js-yaml": "^4.1.0",
     "memfs": "^4.9.3",
-    "neo4j-driver": "^5.20.0",
     "natural": "^7.0.0",
-    "node-nlp": "^4.27.0",
+    "neo4j-driver": "^5.20.0",
     "node-cache": "^5.1.2",
+    "node-nlp": "^4.27.0",
     "open": "^10.1.0",
     "ora": "^5.4.1",
     "p-limit": "^4.0.0",
     "proper-lockfile": "^4.1.2",
     "semver": "^7.7.2",
     "uuid": "^9.0.1",
-    "zod": "^3.23.8"
+    "zod": "^3.25.76"
   },
   "keywords": [
     "stigmergy",

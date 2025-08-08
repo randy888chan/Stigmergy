@@ -4,12 +4,11 @@ export async function testNeo4j() {
   try {
     const result = await codeIntelligenceService.testConnection();
 
-    // FIX: Properly handle test output
-    if (result.success) {
-      console.log("Neo4j connection successful!");
+    if (result.success && result.type === 'connected') {
+      console.log("✅ Neo4j connection verified");
       process.exit(0);
     } else {
-      console.error("Neo4j connection failed:", result.error);
+      console.error("❌ Neo4j connection failed:", result.error);
       process.exit(1);
     }
   } catch (error) {

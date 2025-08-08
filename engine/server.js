@@ -15,8 +15,8 @@ import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { Spinner } from "cli-spinner";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
-import * as AgentPerformance from "./agent_performance.js";
-const swarmMemory = require("./swarm_memory.js");
+import AgentPerformance from "./agent_performance.js";
+import swarmMemory from "./swarm_memory.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -177,8 +177,8 @@ export class Engine {
 
   async selectOptimalAgent(state) {
     // Use performance metrics to select best agent
-    const metrics = await AgentPerformance.getPerformanceInsights();
-    return metrics.bestAgentForTask(state.currentTaskType);
+    const bestAgent = await AgentPerformance.getBestAgentForTask(state.currentTaskType);
+    return bestAgent;
   }
 
   async monitorHealth() {

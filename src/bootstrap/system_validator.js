@@ -17,6 +17,7 @@ export class SystemValidator {
   async comprehensiveCheck() {
     console.log('--- Starting Comprehensive System Health Check ---');
     this.results = {
+      core: await this.validateCoreIntegrity(),
       neo4j: await this.validateNeo4j(),
       build: await this.validateBuildSystem(),
       ide: await this.validateIDEIntegration(),
@@ -33,6 +34,36 @@ export class SystemValidator {
     }
 
     return this.results;
+  }
+
+  async validateCoreIntegrity() {
+    console.log('Checking core integrity...');
+    const corePath = path.join(process.cwd(), '.stigmergy-core');
+    if (!fs.existsSync(corePath)) {
+        return { success: false, error: '.stigmergy-core directory not found.' };
+    }
+
+    const requiredPaths = [
+      'agents/',
+      'templates/',
+      'system_docs/00_System_Goal.md'
+    ];
+
+    const missing = [];
+    for (const p of requiredPaths) {
+      if (!fs.existsSync(path.join(corePath, p))) {
+        missing.push(p);
+      }
+    }
+
+    if (missing.length > 0) {
+      const error = `CRITICAL: Core integrity compromised. Missing: ${missing.join(', ')}`;
+      console.error(`  -> ${error}`);
+      return { success: false, error };
+    }
+
+    console.log('  -> Core integrity verified.');
+    return { success: true, message: "Core integrity verified" };
   }
 
   async validateNeo4j() {
