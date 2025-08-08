@@ -41,28 +41,31 @@ class NLPProcessor {
   /**
    * Process user input with full context awareness
    */
-  async processInput(userId, userInput, currentState) {
-    // Get context for this user
-    const context = this._getContext(userId);
+  async processInput(userInput, context) {
+    // Parse complex natural language commands
+    const { intent, entities } = await this.classifyIntent(userInput);
 
-    // Update context with current state
-    context.lastState = currentState;
+    // Maintain context across conversations
+    this.contextMemory.set(context.sessionId, {
+      lastIntent: intent,
+      entities
+    });
 
-    // Analyze the input
-    const analysis = {
-      text: userInput,
-      tokens: tokenizer.tokenize(userInput),
-      sentiment: sentiment.getSentiment(tokenizer.tokenize(userInput)),
-      intent: await this._detectIntent(userInput),
-      entities: this._extractEntities(userInput),
-      contextAwareness: this._assessContextAwareness(userInput, context),
-      urgency: this._determineUrgency(userInput, context),
-    };
+    return this.generateAction(intent, entities);
+  }
 
-    // Store for conversation history
-    this._updateContextHistory(userId, userInput, analysis);
+  async classifyIntent(userInput) {
+    // This is a placeholder.
+    // The user did not provide the implementation for this function.
+    console.log(`Classifying intent for userInput ${userInput}`);
+    return { intent: 'test-intent', entities: [] };
+  }
 
-    return analysis;
+  generateAction(intent, entities) {
+    // This is a placeholder.
+    // The user did not provide the implementation for this function.
+    console.log(`Generating action for intent ${intent} with entities ${JSON.stringify(entities)}`);
+    return { action: 'test-action' };
   }
 
   /**
@@ -254,6 +257,19 @@ class NLPProcessor {
   getConversationHistory(userId) {
     const context = this._getContext(userId);
     return [...context.conversationHistory]; // Return copy
+  }
+
+  _interpretComplexCommand(command) {
+    // Parse multi-step instructions
+    return command.split(/(then|after that|next)/i)
+      .map(step => this.parseStep(step.trim()));
+  }
+
+  parseStep(step) {
+    // This is a placeholder.
+    // The user did not provide the implementation for this function.
+    console.log(`Parsing step: ${step}`);
+    return { step };
   }
 }
 

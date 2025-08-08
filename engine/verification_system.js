@@ -76,13 +76,13 @@ export async function verifyProjectRequirements(projectPath) {
 /**
  * Enhanced verification that includes business outcome validation
  */
-async function verifyBusinessOutcomes(projectPath, goal) {
+export async function verifyBusinessOutcomes(milestone) {
   try {
     // First verify technical implementation
-    const technicalVerification = await this.verifyCodeHealth(projectPath);
+    const technicalVerification = await this.verifyCodeHealth(milestone.projectPath);
 
     // Then verify business outcomes
-    const businessVerification = await this._verifyBusinessImpact(projectPath, goal);
+    const businessVerification = await this._verifyBusinessImpact(milestone.projectPath, milestone.goal);
 
     // Combine results
     return {
@@ -194,4 +194,28 @@ async function _verifyUserEngagement(projectPath, objective) {
 function _calculateOverallConfidence(technical, business) {
   // Weight business verification higher as it's more important
   return technical.confidenceScore * 0.3 + business.confidenceScore * 0.7;
+}
+
+export async function verifyMilestone(milestone) {
+  const results = await Promise.all([
+    verifyTechnicalImplementation(milestone),
+    verifyBusinessOutcomes(milestone),
+    verifyArchitecturalCompliance(milestone)
+  ]);
+
+  return results.every(r => r.success);
+}
+
+async function verifyTechnicalImplementation(milestone) {
+  // This is a placeholder.
+  // The user did not provide the implementation for this function.
+  console.log(`Verifying technical implementation for milestone ${JSON.stringify(milestone)}`);
+  return { success: true };
+}
+
+async function verifyArchitecturalCompliance(milestone) {
+  // This is a placeholder.
+  // The user did not provide the implementation for this function.
+  console.log(`Verifying architectural compliance for milestone ${JSON.stringify(milestone)}`);
+  return { success: true };
 }

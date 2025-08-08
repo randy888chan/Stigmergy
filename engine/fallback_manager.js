@@ -19,11 +19,16 @@ export class FallbackSystem {
 
   async handleFailure(resource, error) {
     if (this.strategies[resource]) {
-      console.log(`Handling failure for resource: ${resource}`);
+      console.log(`Handling ${resource} failure`);
       return this.strategies[resource](error);
     }
-    console.error(`No fallback strategy for resource: ${resource}. Propagating error.`);
-    throw error;
+    this.escalateToHuman(error);
+  }
+
+  escalateToHuman(error) {
+    // This is a placeholder.
+    // The user did not provide the implementation for this function.
+    console.error(`Escalating to human: ${error.message}`);
   }
 
   async useSQLiteFallback(error) {

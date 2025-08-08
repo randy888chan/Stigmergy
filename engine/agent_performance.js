@@ -3,8 +3,8 @@
  * Measures and analyzes agent effectiveness for intelligent task routing
  */
 
-const fs = require("fs-extra");
-const path = require("path");
+import fs from "fs-extra";
+import path from "path";
 
 class AgentPerformance {
   constructor() {
@@ -244,4 +244,4 @@ class AgentPerformance {
 }
 
 // Export singleton instance
-module.exports = new AgentPerformance();
+export default new AgentPerformance();

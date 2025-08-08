@@ -17,11 +17,14 @@ export async function configureIde(
   // 1. Load the agent manifest
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   const manifestContent = await fs.readFile(manifestPath, "utf8");
-  const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!manifestYamlMatch) {
-    throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
+
+  // FIX: Extract only the YAML content between the code fences
+  const yamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  if (!yamlMatch || !yamlMatch[1]) {
+    throw new Error(`Invalid manifest format in ${manifestPath}`);
   }
-  const manifest = yaml.load(manifestYamlMatch[1]);
+
+  const manifest = yaml.load(yamlMatch[1]); // Use only the extracted YAML
 
   // 2. Create customModes array
   const customModes = [];
@@ -117,11 +120,9 @@ export async function configureIde(
 
 async function install() {
   console.log("Starting install function...");
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
   console.log("Stigmergy install process started...");
   const targetDir = process.cwd();
-  const sourceDir = path.resolve(__dirname, "../../.stigmergy-core");
+  const sourceDir = path.resolve(process.cwd(), ".stigmergy-core");
 
   try {
     console.log("Copying .stigmergy-core directory...");

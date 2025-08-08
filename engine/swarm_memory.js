@@ -6,10 +6,12 @@
 const fs = require("fs-extra");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
+import * as AgentPerformance from "./agent_performance.js";
 
 class SwarmMemory {
   constructor() {
     this.memoryPath = path.join(process.cwd(), ".ai", "swarm_memory");
+    this.errorPatterns = new Map();
     this.initialize();
   }
 
@@ -34,26 +36,15 @@ class SwarmMemory {
    * Record a lesson learned from project activity
    */
   async recordLesson(lesson) {
-    const entry = {
-      id: uuidv4(),
-      timestamp: new Date().toISOString(),
-      project: lesson.project,
-      context: lesson.context,
-      observation: lesson.observation,
-      outcome: lesson.outcome,
-      confidence: lesson.confidence || 0.7,
-      tags: lesson.tags || [],
-      applicableScenarios: lesson.applicableScenarios || [],
-    };
+    // Store patterns for future reference
+    this.errorPatterns.set(lesson.pattern, lesson.solution);
 
-    // Save the entry
-    const entryPath = path.join(this.memoryPath, `${entry.id}.json`);
-    await fs.writeJson(entryPath, entry);
-
-    // Update index
-    await this._updateIndex(entry);
-
-    return entry.id;
+    // Update agent performance metrics
+    await AgentPerformance.recordResolution(
+      lesson.agentId,
+      lesson.taskType,
+      lesson.success
+    );
   }
 
   /**

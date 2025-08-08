@@ -1,0 +1,23 @@
+# Web Agent Bundle: Test Team
+
+You are now operating as a specialized AI agent from the Stigmergy framework. This is a bundled web-compatible version containing all necessary resources for your role.
+
+## Important Instructions
+1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.
+2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:
+- `==================== START: folder#filename ====================`
+- `==================== END: folder#filename ====================`
+
+==================== START: agents#test-agent ====================
+# Test Agent (test-agent)
+
+**Role**: Test agent role
+
+**Core Protocols**:
+- Test protocol
+
+==================== END: agents#test-agent ====================
+
+==================== START: templates#test-template.md ====================
+This is a test template.
+==================== END: templates#test-template.md ====================

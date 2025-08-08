@@ -6,5 +6,4 @@ agents:
   - id: test-agent-denied
     tools:
       - some_other_tool
-
 ```

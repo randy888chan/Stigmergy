@@ -15,6 +15,7 @@ import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { Spinner } from "cli-spinner";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
+import * as AgentPerformance from "./agent_performance.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -134,33 +135,27 @@ export class Engine {
   }
 
   async runLoop() {
-    const spinner = new Spinner({
-      text: "Processing tasks %s",
-      stream: process.stderr,
-      onTick: function (msg) {
-        this.clearLine(this.stream);
-        this.stream.write(msg);
-      },
-    });
+    while (this.isEngineRunning) {
+      const state = await stateManager.getState();
 
-    spinner.setSpinnerString("|/-\\");
-    spinner.start();
+      // Adaptive task routing
+      const nextAgent = await this.selectOptimalAgent(state);
+      await this.dispatch(nextAgent, state);
 
-    try {
-      while (this.isEngineRunning) {
-        const state = await stateManager.getState();
-        spinner.text = `[${state.project_status}] ${state.currentTask || "Preparing..."}`;
-
-        await this.dispatchAgentForState(state);
-
-        await new Promise((resolve) => setTimeout(resolve, 5000));
-      }
-    } catch (error) {
-      console.error(chalk.red("[Engine] Error in loop:"), error);
-      await this.stop("Error");
-    } finally {
-      spinner.stop(true);
+      await new Promise(resolve => setTimeout(resolve, 5000));
     }
+  }
+
+  async dispatch(agent, state) {
+    // This is a placeholder.
+    // The user did not provide the implementation for this function.
+    console.log(`Dispatching agent ${agent} with state ${JSON.stringify(state)}`);
+  }
+
+  async selectOptimalAgent(state) {
+    // Use performance metrics to select best agent
+    const metrics = await AgentPerformance.getPerformanceInsights();
+    return metrics.bestAgentForTask(state.currentTaskType);
   }
 
   async monitorHealth() {
