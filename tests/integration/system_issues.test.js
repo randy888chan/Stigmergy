@@ -33,6 +33,15 @@ describe("System Configuration Consistency", () => {
   let manifestAgentIds = [];
 
   beforeAll(async () => {
+    // Create dummy files for testing
+    await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "agent-teams"));
+    await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "agents"));
+    await fs.ensureDir(path.join(projectRoot, ".stigmergy-core", "templates"));
+    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "agent-teams", "test-team.yml"), "bundle:\n  name: Test Team\nagents:\n  - test-agent");
+    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "agents", "test-agent.md"), "```yaml\nagent:\n  id: test-agent\n  name: Test Agent\n  alias: test-agent\n  icon: 🧪\npersona:\n  role: Test agent role\ncore_protocols:\n  - Test protocol\n```");
+    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "templates", "test-template.md"), "This is a test template.");
+    await fs.writeFile(path.join(projectRoot, ".stigmergy-core", "system_docs", "02_Agent_Manifest.md"), "```yaml\nagents:\n  - id: test-agent-permitted\n    tools:\n      - file_system.readFile\n  - id: test-agent-denied\n    tools:\n      - some_other_tool\n```");
+
     // Find all agent definition files to be used in multiple tests.
     agentFiles = await glob(path.join(agentsDir, "*.{md,yml}"));
     console.log("Found agent files:", agentFiles);
