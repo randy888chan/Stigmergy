@@ -18,4 +18,5 @@ tools:
   - "read"
   - "edit"
   - "browser"
+  - "mcp: project"
 ```

@@ -22,4 +22,5 @@ tools:
   - "read"
   - "edit"
   - "command"
+  - "mcp: execution"
 ```
