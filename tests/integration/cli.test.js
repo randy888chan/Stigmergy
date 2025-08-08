@@ -11,6 +11,10 @@ describe("CLI Commands Direct Call", () => {
   beforeEach(async () => {
     await fs.ensureDir(TEST_DIR);
     await fs.copy(path.resolve(CWD, ".stigmergy-core"), path.join(TEST_DIR, ".stigmergy-core"));
+    await fs.copy(
+      path.resolve(CWD, ".stigmergy-core/system_docs/02_Agent_Manifest.md"),
+      path.join(TEST_DIR, ".stigmergy-core/system_docs/02_Agent_Manifest.md")
+    );
     process.chdir(TEST_DIR);
   });
 

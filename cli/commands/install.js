@@ -8,6 +8,9 @@ export async function configureIde(
   coreSourceDir,
   outputPath = path.join(process.cwd(), ".roomodes")
 ) {
+  console.log("Configuring IDE...");
+  console.log("coreSourceDir:", coreSourceDir);
+  console.log("outputPath:", outputPath);
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
@@ -24,11 +27,14 @@ export async function configureIde(
   const customModes = [];
 
   for (const agent of manifest.agents) {
+    console.log("Processing agent:", agent.id);
     const agentFilePath = path.join(coreSourceDir, "agents", `${agent.id}.md`);
+    console.log("Agent file path:", agentFilePath);
 
     if (await fs.pathExists(agentFilePath)) {
       // 1. Read the RAW file content to use as the roleDefinition
       const rawAgentDefinition = await fs.readFile(agentFilePath, "utf8");
+      console.log("Agent raw definition:", rawAgentDefinition);
 
       // 2. Parse the YAML from the file to get structured data
       const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
@@ -44,7 +50,7 @@ export async function configureIde(
           // 4. Correctly parse the 'tools' array
           const tools = agentData.tools || []; // Ensure tools is an array
           for (const tool of tools) {
-            if (tool.startsWith("mcpsource:")) {
+            if (tool.startsWith("mcp:")) {
               // If it's a source directive, extract the value
               source = tool.split(":")[1].trim();
             } else {
@@ -110,6 +116,7 @@ export async function configureIde(
 }
 
 async function install() {
+  console.log("Starting install function...");
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   console.log("Stigmergy install process started...");
@@ -117,12 +124,14 @@ async function install() {
   const sourceDir = path.resolve(__dirname, "../../.stigmergy-core");
 
   try {
+    console.log("Copying .stigmergy-core directory...");
     const destStigmergyDir = path.join(targetDir, ".stigmergy-core");
     if (!(await fs.pathExists(destStigmergyDir))) {
       await fs.copy(sourceDir, destStigmergyDir);
       console.log(`Copied .stigmergy-core to ${targetDir}`);
     }
 
+    console.log("Calling configureIde...");
     await configureIde(destStigmergyDir);
 
     console.log(`✅ Install complete. .roomodes file created.`);

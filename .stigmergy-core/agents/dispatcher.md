@@ -24,4 +24,5 @@ tools:
   - "read"
   - "edit"
   - "command"
+  - "mcp: project"
 ```

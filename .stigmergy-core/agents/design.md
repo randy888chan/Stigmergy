@@ -21,5 +21,5 @@ tools:
   - "research"
   - "file_system"
   - "state_manager"
-  - "mcpsource: project"
+  - "mcp: project"
 ```

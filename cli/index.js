@@ -64,14 +64,16 @@ program
   });
 
 async function main() {
-  // Set the default command to 'bootstrap' if no other command is provided
-  if (process.argv.length <= 2) {
-    process.argv.push("bootstrap");
+  try {
+    // Set the default command to 'bootstrap' if no other command is provided
+    if (process.argv.length <= 2) {
+      process.argv.push("bootstrap");
+    }
+    await program.parseAsync(process.argv);
+  } catch (err) {
+    console.error("❌ Unhandled exception in main:", err);
+    process.exit(1);
   }
-  await program.parseAsync(process.argv);
 }
 
-main().catch((err) => {
-  console.error("❌ Command failed:", err);
-  process.exit(1);
-});
+main();
