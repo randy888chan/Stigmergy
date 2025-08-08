@@ -2,7 +2,7 @@ import express from "express";
 import chalk from "chalk";
 import { Server as McpServer } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import * as stateManager from "./state_manager.js";
+import { getState, updateState, pauseProject, resumeProject } from "./state_manager.js";
 import { getCompletion } from "./llm_adapter.js";
 import { createExecutor } from "./tool_executor.js";
 import codeIntelligenceService from "../services/code_intelligence_service.js";
@@ -15,8 +15,8 @@ import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { Spinner } from "cli-spinner";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
-import * as AgentPerformance from "./agent_performance.js";
-const swarmMemory = require("./swarm_memory.js");
+import AgentPerformance from "./agent_performance.js";
+import swarmMemory from "./swarm_memory.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -76,7 +76,7 @@ export class Engine {
 
     this.app.post("/api/control/pause", async (req, res) => {
       try {
-        await stateManager.pauseProject();
+        await pauseProject();
         this.stop("Paused by user API request");
         res.status(200).json({ message: "Engine paused successfully." });
       } catch (error) {
@@ -87,7 +87,7 @@ export class Engine {
 
     this.app.post("/api/control/resume", async (req, res) => {
       try {
-        await stateManager.resumeProject();
+        await resumeProject();
         this.start();
         res.status(200).json({ message: "Engine resumed successfully." });
       } catch (error) {
@@ -159,7 +159,7 @@ export class Engine {
 
   async runLoop() {
     while (this.isEngineRunning) {
-      const state = await stateManager.getState();
+      const state = await getState();
 
       // Adaptive task routing
       const nextAgent = await this.selectOptimalAgent(state);
@@ -177,8 +177,9 @@ export class Engine {
 
   async selectOptimalAgent(state) {
     // Use performance metrics to select best agent
-    const metrics = await AgentPerformance.getPerformanceInsights();
-    return metrics.bestAgentForTask(state.currentTaskType);
+    const bestAgent = await AgentPerformance.getBestAgentForTask(state.currentTaskType);
+    // Fallback to a default agent if no best agent is found
+    return bestAgent || "dispatcher";
   }
 
   async monitorHealth() {
