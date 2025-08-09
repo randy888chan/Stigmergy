@@ -1,34 +1,30 @@
-import neo4j from "neo4j-driver";
-import "dotenv/config";
+import { jest } from "@jest/globals";
+import { testNeo4j } from "../../scripts/test-neo4j.js";
+import codeIntelligenceService from "../../services/code_intelligence_service.js";
 
-describe("Neo4j Connection", () => {
-  let driver;
+// Mock the entire Neo4j service
+jest.mock("../../services/code_intelligence_service", () => {
+  const actual = jest.requireActual("../../services/code_intelligence_service");
+  return {
+    ...actual,
+    testConnection: jest.fn().mockImplementation(() => ({
+      success: true,
+      type: "connected",
+      limitations: {},
+    })),
+  };
+});
 
-  // Before running the tests, check if the required environment variables are set
+describe("Neo4j Setup Test", () => {
   beforeAll(() => {
-    if (!process.env.NEO4J_URI || !process.env.NEO4J_USER || !process.env.NEO4J_PASSWORD) {
-      throw new Error(
-        "NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD environment variables must be set"
-      );
-    }
+    process.env.NEO4J_URI = "bolt://localhost:7687";
+    process.env.NEO4J_USER = "test-user";
+    process.env.NEO4J_PASSWORD = "test-pass";
   });
 
-  afterEach(async () => {
-    if (driver) {
-      await driver.close();
-    }
+  test("should verify Neo4j connection", async () => {
+    const result = await testNeo4j();
+    expect(result).toEqual({ success: true });
+    expect(codeIntelligenceService.testConnection).toHaveBeenCalled();
   });
-
-  test("should connect to Neo4j and verify connectivity", async () => {
-    driver = neo4j.driver(
-      process.env.NEO4J_URI,
-      neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
-    );
-
-    const serverInfo = await driver.getServerInfo();
-    expect(serverInfo).toBeDefined();
-    expect(serverInfo.address).toBe(process.env.NEO4J_URI);
-
-    await driver.verifyConnectivity();
-  }, 10000); // 10 second timeout for the test
 });

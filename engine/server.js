@@ -17,6 +17,7 @@ import { Spinner } from "cli-spinner";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
 import AgentPerformance from "./agent_performance.js";
 import swarmMemory from "./swarm_memory.js";
+import coreBackup from "../services/core_backup.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -205,123 +206,129 @@ export class Engine {
 }
 
 export async function main() {
-  const engine = new Engine();
-  const mcpServer = new McpServer({ name: "stigmergy-engine", version: pkg.version });
-
-  // Enable incremental indexing
-  await codeIntelligenceService.enableIncrementalIndexing(process.cwd());
-
-  const neo4jStatus = await codeIntelligenceService.testConnection();
-  const neo4jFeature = config.features?.neo4j;
-
-  // Handle Neo4j status based on whether it's required or optional
-  if (!neo4jStatus.success) {
-    if (neo4jFeature === "required") {
-      console.error(
-        boxen(
-          [
-            chalk.red.bold("CRITICAL DATABASE ERROR"),
-            "",
-            "Engine requires Neo4j connection to function properly.",
-            "",
-            chalk.yellow("Troubleshooting Steps:"),
-            "1. Ensure Neo4j Desktop is running",
-            "2. Verify database is active (green status)",
-            "3. Check credentials in .env file",
-            "4. Run " + chalk.cyan("npm run test:neo4j") + " to diagnose",
-            "",
-            chalk.dim(`Error: ${neo4jStatus.error}`),
-          ].join("\n"),
-          {
-            padding: 1,
-            margin: 1,
-            borderStyle: "double",
-            borderColor: "red",
-            title: "System Startup",
-            titleAlignment: "center",
-          }
-        )
-      );
-
-      // Only exit if Neo4j is required and connection fails
-      process.exit(1);
-    } else {
-      console.log(
-        boxen(
-          [
-            chalk.yellow.bold("Neo4j Connection Warning"),
-            "",
-            "Neo4j is not available, but the system can continue with limited functionality.",
-            "Code intelligence features will be unavailable until connection is restored.",
-            "",
-            "Error: " + neo4jStatus.error,
-            "",
-            chalk.dim("Tip: Run 'npm run test:neo4j' to diagnose connection issues"),
-          ].join("\n"),
-          {
-            padding: 1,
-            margin: 1,
-            borderStyle: "round",
-            borderColor: "yellow",
-            title: "System Startup",
-            titleAlignment: "center",
-          }
-        )
-      );
-
-      // Continue execution with limited functionality
-    }
-  } else {
-    // Neo4j connection successful - check for limitations
-    if (neo4jStatus.limitations && neo4jStatus.limitations.warning) {
-      console.warn(
-        boxen(
-          [
-            chalk.yellow.bold("Neo4j Limitation Notice"),
-            "",
-            neo4jStatus.limitations.warning,
-            neo4jStatus.limitations.limitation,
-            "",
-            chalk.dim(neo4jStatus.limitations.recommendation),
-          ].join("\n"),
-          {
-            padding: 1,
-            margin: 1,
-            borderStyle: "round",
-            borderColor: "yellow",
-          }
-        )
-      );
-    }
-  }
-
-  // After Neo4j connection test
-  const limitations = await codeIntelligenceService.detectNeo4jLimitations();
-  if (limitations.warning) {
-    console.warn(chalk.yellow(`Warning: ${limitations.warning}`));
-  }
-
   try {
-    console.log(chalk.blue("[Engine] Starting initial code indexing..."));
-    await codeIntelligenceService.scanAndIndexProject(process.cwd());
-    console.log(chalk.green("[Engine] Code indexing complete."));
+    await coreBackup.autoBackup();
+    const engine = new Engine();
+    const mcpServer = new McpServer({ name: "stigmergy-engine", version: pkg.version });
+
+    // Enable incremental indexing
+    await codeIntelligenceService.enableIncrementalIndexing(process.cwd());
+
+    const neo4jStatus = await codeIntelligenceService.testConnection();
+    const neo4jFeature = config.features?.neo4j;
+
+    // Handle Neo4j status based on whether it's required or optional
+    if (!neo4jStatus.success) {
+      if (neo4jFeature === "required") {
+        console.error(
+          boxen(
+            [
+              chalk.red.bold("CRITICAL DATABASE ERROR"),
+              "",
+              "Engine requires Neo4j connection to function properly.",
+              "",
+              chalk.yellow("Troubleshooting Steps:"),
+              "1. Ensure Neo4j Desktop is running",
+              "2. Verify database is active (green status)",
+              "3. Check credentials in .env file",
+              "4. Run " + chalk.cyan("npm run test:neo4j") + " to diagnose",
+              "",
+              chalk.dim(`Error: ${neo4jStatus.error}`),
+            ].join("\n"),
+            {
+              padding: 1,
+              margin: 1,
+              borderStyle: "double",
+              borderColor: "red",
+              title: "System Startup",
+              titleAlignment: "center",
+            }
+          )
+        );
+
+        // Only exit if Neo4j is required and connection fails
+        process.exit(1);
+      } else {
+        console.log(
+          boxen(
+            [
+              chalk.yellow.bold("Neo4j Connection Warning"),
+              "",
+              "Neo4j is not available, but the system can continue with limited functionality.",
+              "Code intelligence features will be unavailable until connection is restored.",
+              "",
+              "Error: " + neo4jStatus.error,
+              "",
+              chalk.dim("Tip: Run 'npm run test:neo4j' to diagnose connection issues"),
+            ].join("\n"),
+            {
+              padding: 1,
+              margin: 1,
+              borderStyle: "round",
+              borderColor: "yellow",
+              title: "System Startup",
+              titleAlignment: "center",
+            }
+          )
+        );
+
+        // Continue execution with limited functionality
+      }
+    } else {
+      // Neo4j connection successful - check for limitations
+      if (neo4jStatus.limitations && neo4jStatus.limitations.warning) {
+        console.warn(
+          boxen(
+            [
+              chalk.yellow.bold("Neo4j Limitation Notice"),
+              "",
+              neo4jStatus.limitations.warning,
+              neo4jStatus.limitations.limitation,
+              "",
+              chalk.dim(neo4jStatus.limitations.recommendation),
+            ].join("\n"),
+            {
+              padding: 1,
+              margin: 1,
+              borderStyle: "round",
+              borderColor: "yellow",
+            }
+          )
+        );
+      }
+    }
+
+    // After Neo4j connection test
+    const limitations = await codeIntelligenceService.detectNeo4jLimitations();
+    if (limitations.warning) {
+      console.warn(chalk.yellow(`Warning: ${limitations.warning}`));
+    }
+
+    try {
+      console.log(chalk.blue("[Engine] Starting initial code indexing..."));
+      await codeIntelligenceService.scanAndIndexProject(process.cwd());
+      console.log(chalk.green("[Engine] Code indexing complete."));
+    } catch (error) {
+      console.error(chalk.red.bold("Failed to index project during startup."), error);
+      process.exit(1);
+    }
+
+    await mcpServer.connect(new StdioServerTransport());
+    console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
+
+    const PORT = process.env.PORT || 3000;
+
+    engine.app.listen(PORT, async () => {
+      console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
+      const state = await stateManager.getState();
+      if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
+        engine.start();
+      }
+    });
   } catch (error) {
-    console.error(chalk.red.bold("Failed to index project during startup."), error);
+    await coreBackup.restoreLatest();
     process.exit(1);
   }
-
-  await mcpServer.connect(new StdioServerTransport());
-  console.log(chalk.bold("[MCP Server] Running in STDIO mode."));
-
-  const PORT = process.env.PORT || 3000;
-
-  engine.app.listen(PORT, async () => {
-    console.log(chalk.bold(`[Server] Status API listening on http://localhost:${PORT}`));
-    const state = await stateManager.getState();
-    if (["GRAND_BLUEPRINT_PHASE", "EXECUTION_IN_PROGRESS"].includes(state.project_status)) {
-      engine.start();
-    }
-  });
 }
 
 // Only run main when this file is executed directly

@@ -25,7 +25,8 @@
     "state:monitor": "node scripts/monitor-state.js",
     "health:check": "node scripts/check-health.js",
     "test:autonomy": "jest tests/integration/autonomous-flow.test.js",
-    "test:neo4j-e2e": "jest tests/e2e/neo4j-setup.test.js"
+    "test:neo4j-e2e": "jest tests/e2e/neo4j-setup.test.js",
+    "recover-brain": "node cli/index.js restore"
   },
   "files": [
     "cli/",
@@ -108,7 +109,8 @@
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.2",
     "supertest": "^7.0.0",
-    "vscode": "^1.1.37"
+    "vscode": "^1.1.37",
+    "babel-plugin-transform-import-meta": "^2.3.3"
   },
   "lint-staged": {
     "**/*.{md,js,json,yml,yaml}": [
