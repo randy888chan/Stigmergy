@@ -1,8 +1,8 @@
 export default {
+  // CRITICAL: Load protection FIRST
+  setupFilesAfterEnv: ["<rootDir>/tests/setup.js"],
   testEnvironment: "node",
   testTimeout: 30000,
-  globalSetup: "./tests/globalSetup.js",
-  globalTeardown: "./tests/globalTeardown.js",
   transform: {
     "^.+\\.js$": "babel-jest",
   },

@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "meta"
-  alias: "metis"
+  alias: "@metis"
   name: "Metis"
   archetype: "Learner"
   title: "Swarm Intelligence Coordinator"
@@ -19,6 +19,8 @@ core_protocols:
 tools:
   - "read"
   - "edit"
+  - "command"
   - "mcp"
+  - "execution"
 source: "project"
 ```

@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "design-architect"
-  alias: "winston"
+  alias: "@winston"
   name: "Winston"
   archetype: "Planner"
   title: "Design Architect"
@@ -19,7 +19,8 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "browser"
+  - "command"
   - "mcp"
+  - "execution"
 source: "project"
 ```

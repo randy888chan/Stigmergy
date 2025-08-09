@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "whitepaper_writer"
-  alias: "whitney"
+  alias: "@whitney"
   name: "Whitney"
   archetype: "Planner"
   title: "Whitepaper Writer"
@@ -19,6 +19,8 @@ core_protocols:
 tools:
   - "read"
   - "edit"
+  - "command"
   - "mcp"
-source: project"
+  - "execution"
+source: "project"
 ```

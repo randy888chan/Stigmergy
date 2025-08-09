@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "ux-expert"
-  alias: "sally"
+  alias: "@sally"
   name: "Sally"
   archetype: "Planner"
   title: "UX Expert"
@@ -19,7 +19,8 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "browser"
+  - "command"
   - "mcp"
+  - "execution"
 source: "project"
 ```
