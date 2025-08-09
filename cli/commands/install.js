@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 import coreBackup from "../../services/core_backup.js";
+import { validateAgents } from "./validate.js";
 
 export async function configureIde(
   coreSourceDir,
@@ -149,6 +150,14 @@ async function install() {
 
     if (fs.existsSync(coreDir)) {
       console.log("✅ .stigmergy-core already exists - preserving your brain");
+
+      const agentsValid = await validateAgents();
+      if (!agentsValid.success) {
+        console.error("❌ Agent validation failed. Fix these issues before proceeding:");
+        console.error(agentsValid.error);
+        return false;
+      }
+
       await configureIde(coreDir);
       console.log(`✅ Install complete. .roomodes file updated.`);
       return true;

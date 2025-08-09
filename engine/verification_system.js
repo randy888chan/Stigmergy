@@ -6,7 +6,6 @@
 // Add to existing imports
 import businessMetrics from "./business_metrics.js";
 import codeIntelligenceService from "../services/code_intelligence_service.js";
-import fallbackVerifier from "./fallback_verifier.js";
 import { SemanticValidator } from "../src/verification/semanticValidator.js";
 import { glob } from "glob";
 
@@ -49,8 +48,8 @@ export async function verifyCodeHealth(projectPath) {
   if (neo4jStatus.success) {
     baseVerification = await _verifyWithNeo4j(projectPath);
   } else {
-    console.log("[Verification] Neo4j unavailable, using fallback verification");
-    baseVerification = await fallbackVerifier.verifyCodeStandards(projectPath);
+    console.log("[Verification] Neo4j unavailable, cannot verify code health.");
+    return { success: false, message: "Neo4j unavailable" };
   }
 
   return {
@@ -68,8 +67,8 @@ export async function verifyProjectRequirements(projectPath) {
     return _verifyWithNeo4jRequirements(projectPath);
   } else {
     // Use fallback verification when Neo4j has issues
-    console.log("[Verification] Using fallback PRD verification");
-    return fallbackVerifier.verifyPrdCompleteness(projectPath);
+    console.log("[Verification] Neo4j unavailable, cannot verify project requirements.");
+    return { success: false, message: "Neo4j unavailable" };
   }
 }
 
