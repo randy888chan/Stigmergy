@@ -14,6 +14,9 @@ lerna-debug.log*
 # Stigmergy/BMAD operational files
 .ai/
 *.bak
+.stigmergy-backups/
+safe-core/
+test-project/
 
 # IDE & OS files
 .vscode/

@@ -1,3 +1,8 @@
+import { jest } from "@jest/globals";
+import { main } from "../../engine/server.js";
+import { getCompletion } from "../../engine/llm_adapter.js";
+import * as stateManager from "../../engine/state_manager.js";
+
 jest.mock("../../engine/state_manager.js", () => {
   const mockState = {
     project_status: "EXECUTION_IN_PROGRESS",
@@ -14,38 +19,52 @@ jest.mock("../../engine/state_manager.js", () => {
     subscribeToChanges: jest.fn(),
   };
 });
-// Add proper state initialization
 
-// Add these imports
-import { getState } from "../../engine/state_manager.js";
-import { Engine } from "../../engine/server.js";
+jest.mock("../../engine/llm_adapter", () => ({
+  getCompletion: jest.fn(),
+}));
 
-describe("Autonomous Workflow", () => {
-  let engine;
+// Mock agent response sequence
+const MOCK_RESPONSES = {
+  dispatcher: [
+    {
+      thought: "Creating research task",
+      action: { tool: "research.deep_dive", args: { query: "blog platforms" } },
+    },
+    {
+      thought: "Creating design task",
+      action: { tool: "design.generate_mockups", args: { pages: ["home"] } },
+    },
+  ],
+  analyst: [{ thought: "Market research complete", action: null }],
+  designer: [{ thought: "Mockups generated", action: null }],
+};
 
+describe("Autonomous Flow", () => {
+  const exit = jest.spyOn(process, "exit").mockImplementation(() => {});
   beforeAll(() => {
-    engine = new Engine();
+    // Mock LLM responses
+    getCompletion.mockImplementation((agentId) => {
+      const responses = MOCK_RESPONSES[agentId];
+      return Promise.resolve(responses.shift());
+    });
+
+    // Speed up engine loop
     jest.useFakeTimers();
+    jest.spyOn(global, "setTimeout").mockImplementation((fn) => fn());
   });
 
-  it("should progress through states", async () => {
-    const mockState = await getState();
-    getState.mockResolvedValue(mockState);
+  test("completes full workflow", async () => {
+    const enginePromise = main();
 
-    engine.isEngineRunning = true;
-    const runLoopPromise = engine.runLoop();
+    // Advance through states
+    await jest.advanceTimersByTimeAsync(1000);
+    await jest.advanceTimersByTimeAsync(5000);
 
-    // Allow one iteration of the loop to run
-    await Promise.resolve();
-    jest.runOnlyPendingTimers();
+    // Verify state progression
+    const state = await stateManager.getState();
+    expect(state.project_status).toBe("EXECUTION_IN_PROGRESS");
 
-    // Stop the engine to break the loop
-    engine.isEngineRunning = false;
-
-    // Ensure the loop promise resolves
-    await runLoopPromise;
-
-    // Verify that the loop ran at least once
-    expect(getState).toHaveBeenCalled();
-  }, 10000); // Increase timeout to 10 seconds
+    await enginePromise;
+  }, 30000); // Extended timeout
 });

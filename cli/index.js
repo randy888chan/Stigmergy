@@ -63,6 +63,14 @@ program
     await install();
   });
 
+program
+  .command("restore")
+  .description("Restore .stigmergy-core from last backup")
+  .action(async () => {
+    const { default: restore } = await import("./commands/restore.js");
+    await restore();
+  });
+
 async function main() {
   try {
     // Set the default command to 'bootstrap' if no other command is provided

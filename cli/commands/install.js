@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
+import coreBackup from "../../services/core_backup.js";
 
 export async function configureIde(
   coreSourceDir,
@@ -12,8 +13,8 @@ export async function configureIde(
 
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   if (!fs.existsSync(manifestPath)) {
-      console.warn("Agent Manifest not found. Skipping IDE configuration.")
-      return;
+    console.warn("Agent Manifest not found. Skipping IDE configuration.");
+    return;
   }
   const manifestContent = await fs.readFile(manifestPath, "utf8");
 
@@ -25,27 +26,27 @@ export async function configureIde(
 
   const customModes = [];
   const existingAliases = new Set();
-  const agentsDir = path.join(coreSourceDir, 'agents');
+  const agentsDir = path.join(coreSourceDir, "agents");
 
   for (const agent of manifest.agents) {
     const agentId = agent.id;
-    const agentExtensions = ['.md', '.yml', '.yaml'];
+    const agentExtensions = [".md", ".yml", ".yaml"];
     let rawAgentDefinition = null;
     let agentFile = null;
 
     for (const ext of agentExtensions) {
-        const currentFile = `${agentId}${ext}`;
-        const agentPath = path.join(agentsDir, currentFile);
-        if (await fs.pathExists(agentPath)) {
-            rawAgentDefinition = await fs.readFile(agentPath, 'utf8');
-            agentFile = currentFile;
-            break;
-        }
+      const currentFile = `${agentId}${ext}`;
+      const agentPath = path.join(agentsDir, currentFile);
+      if (await fs.pathExists(agentPath)) {
+        rawAgentDefinition = await fs.readFile(agentPath, "utf8");
+        agentFile = currentFile;
+        break;
+      }
     }
 
     if (!rawAgentDefinition) {
-        console.warn(`Skipping agent ${agentId}: No definition file found.`);
-        continue;
+      console.warn(`Skipping agent ${agentId}: No definition file found.`);
+      continue;
     }
 
     try {
@@ -65,7 +66,7 @@ export async function configureIde(
         continue;
       }
 
-      let alias = agentData.agent?.alias || `@${agentId.split('_')[0]}`;
+      let alias = agentData.agent?.alias || `@${agentId.split("_")[0]}`;
       if (existingAliases.has(alias)) {
         console.warn(`Duplicate alias detected: ${alias}`);
         alias = `${alias}_${agentId}`; // Add unique suffix
@@ -85,7 +86,7 @@ export async function configureIde(
 
       const mode = {
         slug: alias,
-        name: `${agentData.agent.icon || '🤖'} ${agentData.agent.name}`,
+        name: `${agentData.agent.icon || "🤖"} ${agentData.agent.name}`,
         roleDefinition: rawAgentDefinition,
         groups: finalGroups,
         api: {
@@ -133,21 +134,33 @@ export async function configureIde(
 }
 
 async function install() {
-  console.log("Starting install...");
-  const targetDir = process.cwd();
+  try {
+    // Permanent backup before any operation
+    const backupPath = await coreBackup.autoBackup();
+    if (backupPath) {
+      console.log(`🛡️  Created permanent backup: ${path.basename(backupPath)}`);
+    }
 
-  // Respect the core_path from global config if it's set (for testing)
-  const coreDir = global.StigmergyConfig?.core_path || path.join(targetDir, ".stigmergy-core");
+    console.log("Starting install...");
+    const targetDir = process.cwd();
 
-  if (fs.existsSync(coreDir)) {
-    console.log("✅ .stigmergy-core already exists - preserving your brain");
-    await configureIde(coreDir);
-    console.log(`✅ Install complete. .roomodes file updated.`);
-    return true;
-  } else {
-    console.error("❌ CRITICAL: .stigmergy-core not found in the project root.");
-    console.error("Please ensure the .stigmergy-core directory is present to run the install.");
-    return false;
+    // Respect the core_path from global config if it's set (for testing)
+    const coreDir = global.StigmergyConfig?.core_path || path.join(targetDir, ".stigmergy-core");
+
+    if (fs.existsSync(coreDir)) {
+      console.log("✅ .stigmergy-core already exists - preserving your brain");
+      await configureIde(coreDir);
+      console.log(`✅ Install complete. .roomodes file updated.`);
+      return true;
+    } else {
+      console.error("❌ CRITICAL: .stigmergy-core not found in the project root.");
+      console.error("Please ensure the .stigmergy-core directory is present to run the install.");
+      return false;
+    }
+  } catch (error) {
+    console.error("Install failed. Restoring from backup...");
+    await coreBackup.restoreLatest();
+    throw error;
   }
 }
 

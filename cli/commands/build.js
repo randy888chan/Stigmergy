@@ -2,25 +2,27 @@ import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import yaml from "js-yaml";
+import coreBackup from "../services/core_backup.js";
 
 export default async function build() {
-  const projectRoot = process.cwd();
-
-  // Respect the core_path from global config if it's set (for testing)
-  const corePath = global.StigmergyConfig?.core_path || path.join(projectRoot, ".stigmergy-core");
-
-  if (!fs.existsSync(corePath)) {
-    throw new Error("CRITICAL: .stigmergy-core missing - aborting build");
-  }
-
   try {
+    await coreBackup.autoBackup();
+    const projectRoot = process.cwd();
+
+    // Respect the core_path from global config if it's set (for testing)
+    const corePath = global.StigmergyConfig?.core_path || path.join(projectRoot, ".stigmergy-core");
+
+    if (!fs.existsSync(corePath)) {
+      throw new Error("CRITICAL: .stigmergy-core missing - aborting build");
+    }
+
     const outputDir = path.join(projectRoot, "dist");
     await fs.ensureDir(outputDir);
 
     const teamsDir = path.join(corePath, "agent-teams");
     if (!fs.existsSync(teamsDir)) {
-        console.log("✅ Build complete. No agent teams found to bundle.");
-        return true;
+      console.log("✅ Build complete. No agent teams found to bundle.");
+      return true;
     }
     const teamFiles = await glob(path.join(teamsDir, "*.yml"));
 
@@ -33,61 +35,64 @@ export default async function build() {
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
       let bundle = `# Web Agent Bundle: ${teamData.bundle.name}\n\n`;
-      bundle += "You are now operating as a specialized AI agent from the Stigmergy framework. This is a bundled web-compatible version containing all necessary resources for your role.\n\n";
+      bundle +=
+        "You are now operating as a specialized AI agent from the Stigmergy framework. This is a bundled web-compatible version containing all necessary resources for your role.\n\n";
       bundle += "## Important Instructions\n";
-      bundle += "1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.\n";
-      bundle += "2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:\n";
+      bundle +=
+        "1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.\n";
+      bundle +=
+        "2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:\n";
       bundle += "- `==================== START: folder#filename ====================`\n";
       bundle += "- `==================== END: folder#filename ====================`\n\n";
 
       for (const agentId of teamData.agents) {
-        const agentExtensions = ['.md', '.yml', '.yaml'];
+        const agentExtensions = [".md", ".yml", ".yaml"];
         let agentFilePath = null;
         let agentFileName = null;
 
         for (const ext of agentExtensions) {
-            const currentFile = `${agentId}${ext}`;
-            const fullPath = path.join(agentsPath, currentFile);
-            if (await fs.pathExists(fullPath)) {
-                agentFilePath = fullPath;
-                agentFileName = currentFile;
-                break;
-            }
+          const currentFile = `${agentId}${ext}`;
+          const fullPath = path.join(agentsPath, currentFile);
+          if (await fs.pathExists(fullPath)) {
+            agentFilePath = fullPath;
+            agentFileName = currentFile;
+            break;
+          }
         }
 
         if (!agentFilePath) {
-            console.warn(`Skipping agent ${agentId}: file not found.`);
-            continue;
+          console.warn(`Skipping agent ${agentId}: file not found.`);
+          continue;
         }
 
-        const content = await fs.readFile(agentFilePath, 'utf8');
+        const content = await fs.readFile(agentFilePath, "utf8");
 
         const yamlMatch = content.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
         if (!yamlMatch) {
-            console.warn(`Skipping ${agentFileName}: No YAML content found`);
-            continue;
+          console.warn(`Skipping ${agentFileName}: No YAML content found`);
+          continue;
         }
 
         try {
-            const agentData = yaml.load(yamlMatch[1]);
+          const agentData = yaml.load(yamlMatch[1]);
 
-            bundle += `==================== START: agents#${agentId} ====================\n`;
-            bundle += `# ${agentData.agent.name} (${agentData.agent.alias})\n\n`;
-            bundle += `**Role**: ${agentData.persona.role}\n\n`;
-            bundle += `**Core Protocols**:\n`;
-            for (const protocol of agentData.core_protocols) {
+          bundle += `==================== START: agents#${agentId} ====================\n`;
+          bundle += `# ${agentData.agent.name} (${agentData.agent.alias})\n\n`;
+          bundle += `**Role**: ${agentData.persona.role}\n\n`;
+          bundle += `**Core Protocols**:\n`;
+          for (const protocol of agentData.core_protocols) {
             if (typeof protocol === "string") {
-                bundle += `- ${protocol}\n`;
+              bundle += `- ${protocol}\n`;
             } else if (typeof protocol === "object") {
-                for (const key in protocol) {
+              for (const key in protocol) {
                 bundle += `- ${key}: ${protocol[key]}\n`;
-                }
+              }
             }
-            }
-            bundle += "\n";
-            bundle += `==================== END: agents#${agentId} ====================\n\n`;
+          }
+          bundle += "\n";
+          bundle += `==================== END: agents#${agentId} ====================\n\n`;
         } catch (e) {
-            console.warn(`Skipping agent in bundle due to YAML parse error: ${agentId}`);
+          console.warn(`Skipping agent in bundle due to YAML parse error: ${agentId}`);
         }
       }
 
@@ -111,6 +116,7 @@ export default async function build() {
     return true;
   } catch (error) {
     console.error("❌ Build failed:", error);
-    return false;
+    await coreBackup.restoreLatest();
+    throw error;
   }
 }
