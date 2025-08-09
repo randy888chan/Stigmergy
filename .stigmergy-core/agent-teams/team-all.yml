@@ -1,7 +1,7 @@
 bundle:
-name: "Team All (Local Execution)"
-icon: "⚙️"
-description: "The complete agent swarm for full, end-to-end project execution within a local IDE environment. Includes planners and executors."
+  name: "Team All (Local Execution)"
+  icon: "⚙️"
+  description: "The complete agent swarm for full, end-to-end project execution within a local IDE environment. Includes planners and executors."
 agents:
   - "dispatcher"
   - "analyst"
