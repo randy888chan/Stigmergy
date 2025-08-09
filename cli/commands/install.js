@@ -151,7 +151,7 @@ async function install() {
     if (fs.existsSync(coreDir)) {
       console.log("✅ .stigmergy-core already exists - preserving your brain");
 
-      const agentsValid = await validateAgents();
+      const agentsValid = await validateAgents(coreDir);
       if (!agentsValid.success) {
         console.error("❌ Agent validation failed. Fix these issues before proceeding:");
         console.error(agentsValid.error);

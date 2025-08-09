@@ -10,6 +10,7 @@ jest.mock("../../tools/file_system.js", () => ({
   readFile: jest.fn(),
 }));
 
+
 jest.mock("../../engine/state_manager.js", () => ({
   __esModule: true,
   ...jest.requireActual("../../engine/state_manager.js"),
@@ -35,10 +36,10 @@ describe("Tool Executor", () => {
   let execute;
 
   beforeAll(async () => {
-    // Create a dummy manifest file for the test
+    // Create a dummy manifest file for the test in the TEST core directory
+    const corePath = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
     const manifestPath = path.join(
-      process.cwd(),
-      ".stigmergy-core",
+      corePath,
       "system_docs",
       "02_Agent_Manifest.md"
     );
