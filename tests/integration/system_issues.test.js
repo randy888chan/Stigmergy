@@ -3,7 +3,6 @@ import { vol } from "memfs";
 import fs from "fs-extra";
 import path from "path";
 
-
 describe("System Issues Test", () => {
   // Use TEST_CORE_PATH instead of real core
   const coreDir = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
@@ -14,27 +13,29 @@ describe("System Issues Test", () => {
     await fs.remove(distDir);
   });
 
-  test("handles build failures and cleans up dist", async () => {
-    // Intentionally remove .stigmergy-core to cause a build failure
-    await fs.remove(coreDir);
-
-    // Verify the directory is gone before proceeding
-    const exists = await fs.pathExists(coreDir);
-    expect(exists).toBe(false);
+  test("handles missing .stigmergy-core gracefully", async () => {
+    // Mock fs.pathExists to simulate .stigmergy-core not existing
+    const pathExistsSpy = jest.spyOn(fs, "pathExists").mockResolvedValue(false);
 
     const { default: build } = await import("../../cli/commands/build.js");
 
-    // Create the dist dir to simulate a partial build
-    await fs.ensureDir(distDir);
+    // The build should not throw an error
+    await expect(build()).resolves.toBe(true);
 
-    await expect(build()).rejects.toThrow("CRITICAL: .stigmergy-core missing - aborting build");
-    expect(fs.existsSync(distDir)).toBe(false);
+    // It should create a dist directory with a README but no agents.json
+    expect(fs.existsSync(distDir)).toBe(true);
+    expect(fs.existsSync(path.join(distDir, "README.md"))).toBe(true);
+    expect(fs.existsSync(path.join(distDir, "agents.json"))).toBe(false);
+
+    // Restore the original function
+    pathExistsSpy.mockRestore();
   });
 
-  test("successful build creates dist folder", async () => {
+  test("successful build creates agents.json", async () => {
     // The global setup creates a valid .stigmergy-core, so we can just build.
     const { default: build } = await import("../../cli/commands/build.js");
     await build();
-    expect(fs.existsSync(path.join(distDir, "team-all.txt"))).toBe(true);
+    expect(fs.existsSync(path.join(distDir, "agents.json"))).toBe(true);
+    expect(fs.existsSync(path.join(distDir, "system_docs", "02_Agent_Manifest.md"))).toBe(true);
   });
 });

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "stigmergy:start": "node engine/server.js",
-    "build": "node cli/index.js build --all",
+    "build": "node cli/index.js build",
     "test": "jest",
     "test:neo4j": "node .stigmergy-core/utils/neo4j_diagnostic.js",
     "neo4j:setup": "node scripts/neo4j-setup.js",

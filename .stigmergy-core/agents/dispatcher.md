@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "dispatcher"
-  alias: "saul"
+  alias: "@saul"
   name: "Saul"
   archetype: "Dispatcher"
   title: "AI System Orchestrator"
@@ -22,6 +22,8 @@ core_protocols:
 tools:
   - "read"
   - "edit"
+  - "command"
   - "mcp"
+  - "execution"
 source: "project"
 ```
