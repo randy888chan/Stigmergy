@@ -1,7 +1,7 @@
 bundle:
-name: "Team Business Crew (Web-Safe)"
-icon: "💰"
-description: "Specialized team for business planning, valuation, and strategic decision-making. Optimized for web UI environments."
+  name: "Team Business Crew (Web-Safe)"
+  icon: "💰"
+  description: "Specialized team for business planning, valuation, and strategic decision-making. Optimized for web UI environments."
 agents:
   - "dispatcher"
   - "analyst"

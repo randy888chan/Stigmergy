@@ -1,7 +1,7 @@
 bundle:
-name: "Team Web Planners"
-icon: "🌐"
-description: "Specialized team for web application planning, design, and architecture."
+  name: "Team Web Planners"
+  icon: "🌐"
+  description: "Specialized team for web application planning, design, and architecture."
 agents:
   - "dispatcher"
   - "analyst"

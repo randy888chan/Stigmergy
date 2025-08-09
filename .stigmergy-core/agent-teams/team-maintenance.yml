@@ -1,7 +1,7 @@
 bundle:
-name: "Team Maintenance"
-icon: "🔧"
-description: "Specialized team for code maintenance, debugging, and system health monitoring."
+  name: "Team Maintenance"
+  icon: "🔧"
+  description: "Specialized team for code maintenance, debugging, and system health monitoring."
 agents:
   - "dispatcher"
   - "debugger"
