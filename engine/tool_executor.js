@@ -17,24 +17,33 @@ import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../uti
 
 const retryableTools = ["research.deep_dive", "code_intelligence.getDefinition", "gemini.execute"];
 
-const MANIFEST_PATH = path.join(
-  process.cwd(),
-  ".stigmergy-core",
-  "system_docs",
-  "02_Agent_Manifest.md"
-);
+// Helper to get the core path, respecting test environments
+function getCorePath() {
+  if (global.StigmergyConfig && global.StigmergyConfig.core_path) {
+    return global.StigmergyConfig.core_path;
+  }
+  return path.join(process.cwd(), ".stigmergy-core");
+}
+
+function getManifestPath() {
+  return path.join(getCorePath(), "system_docs", "02_Agent_Manifest.md");
+}
+
 let agentManifest = null;
 
 async function getManifest() {
   if (agentManifest) {
     return agentManifest;
   }
-  const fileContent = await fs.readFile(MANIFEST_PATH, "utf8");
-  console.log("fileContent", fileContent);
+  const manifestPath = getManifestPath();
+  if (!fs.existsSync(manifestPath)) {
+    throw new OperationalError(`Manifest file not found at ${manifestPath}`, ERROR_TYPES.FILE_NOT_FOUND);
+  }
+  const fileContent = await fs.readFile(manifestPath, "utf8");
 
   const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
   if (!yamlMatch) {
-    throw new Error(`Could not parse YAML from manifest file: ${MANIFEST_PATH}`);
+    throw new Error(`Could not parse YAML from manifest file: ${manifestPath}`);
   }
   agentManifest = yaml.load(yamlMatch[1]);
   return agentManifest;

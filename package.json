@@ -111,8 +111,7 @@
     "lint-staged": "^15.2.7",
     "prettier": "^3.3.2",
     "supertest": "^7.0.0",
-    "vscode": "^1.1.37",
-    "babel-plugin-transform-import-meta": "^2.3.3"
+    "vscode": "^1.1.37"
   },
   "lint-staged": {
     "**/*.{md,js,json,yml,yaml}": [

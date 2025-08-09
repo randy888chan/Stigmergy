@@ -3,23 +3,25 @@ import { vol } from "memfs";
 import fs from "fs-extra";
 import path from "path";
 
-jest.mock("fs", () => {
-  const memfs = require("memfs");
-  return memfs.fs;
-});
 
 describe("System Issues Test", () => {
-  const coreDir = path.join(process.cwd(), ".stigmergy-core");
+  // Use TEST_CORE_PATH instead of real core
+  const coreDir = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
   const distDir = path.join(process.cwd(), "dist");
 
   beforeEach(async () => {
-    // The global setup handles core directory creation. We just need to ensure dist is clean.
+    // Only clean dist directory
     await fs.remove(distDir);
   });
 
   test("handles build failures and cleans up dist", async () => {
     // Intentionally remove .stigmergy-core to cause a build failure
     await fs.remove(coreDir);
+
+    // Verify the directory is gone before proceeding
+    const exists = await fs.pathExists(coreDir);
+    expect(exists).toBe(false);
+
     const { default: build } = await import("../../cli/commands/build.js");
 
     // Create the dist dir to simulate a partial build

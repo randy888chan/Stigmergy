@@ -2,8 +2,7 @@ export default {
   testEnvironment: "node",
   testTimeout: 30000,
   globalSetup: "./tests/globalSetup.js",
-  setupFilesAfterEnv: ["./tests/setupAfterEnv.js"],
-  modulePathIgnorePatterns: ["<rootDir>/.stigmergy-core"],
+  globalTeardown: "./tests/globalTeardown.js",
   transform: {
     "^.+\\.js$": "babel-jest",
   },

@@ -2,10 +2,19 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 
-export async function validateAgents() {
+// Helper to get the core path, respecting test environments
+function getCorePath(providedPath) {
+  if (providedPath) return providedPath;
+  if (global.StigmergyConfig && global.StigmergyConfig.core_path) {
+    return global.StigmergyConfig.core_path;
+  }
+  return path.join(process.cwd(), ".stigmergy-core");
+}
+
+export async function validateAgents(providedCorePath) {
   console.log("Validating agent definitions...");
 
-  const corePath = path.join(process.cwd(), ".stigmergy-core");
+  const corePath = getCorePath(providedCorePath);
   const agentsDir = path.join(corePath, "agents");
 
   if (!fs.existsSync(agentsDir)) {
