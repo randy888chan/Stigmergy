@@ -71,6 +71,22 @@ program
     await restore();
   });
 
+program
+  .command("validate")
+  .description("Run a comprehensive system health check.")
+  .action(async () => {
+    const validator = new SystemValidator();
+    await validator.comprehensiveCheck();
+  });
+
+program
+  .command("validate:agents")
+  .description("Validate all agent definitions.")
+  .action(async () => {
+    const { validateAgents } = await import("./commands/validate.js");
+    await validateAgents();
+  });
+
 async function main() {
   try {
     // Set the default command to 'bootstrap' if no other command is provided

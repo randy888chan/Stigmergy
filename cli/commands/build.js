@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import yaml from "js-yaml";
-import coreBackup from "../services/core_backup.js";
+import coreBackup from "../../services/core_backup.js";
 
 export default async function build() {
   try {
@@ -116,6 +116,11 @@ export default async function build() {
     return true;
   } catch (error) {
     console.error("❌ Build failed:", error);
+    // Clean up the dist directory on failure
+    const outputDir = path.join(process.cwd(), "dist");
+    if (fs.existsSync(outputDir)) {
+      await fs.remove(outputDir);
+    }
     await coreBackup.restoreLatest();
     throw error;
   }

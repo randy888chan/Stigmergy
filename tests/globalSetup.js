@@ -1,12 +1,13 @@
 import fs from "fs-extra";
 import path from "path";
-import coreBackup from "../services/core_backup.js";
 
 module.exports = async () => {
-  // Create test-specific core copy
-  const testCorePath = path.join(__dirname, "fixtures", "test-core");
-  await coreBackup.createBackup(); // Permanent backup first
-  await fs.copy(path.join(process.cwd(), ".stigmergy-core"), testCorePath);
+  const originalCorePath = path.join(__dirname, "fixtures", "test-core");
+  const testCorePath = path.join(process.cwd(), ".stigmergy-core");
+
+  // Ensure a clean slate for tests
+  await fs.remove(testCorePath);
+  await fs.copy(originalCorePath, testCorePath);
 
   process.env.TEST_CORE_PATH = testCorePath;
 };

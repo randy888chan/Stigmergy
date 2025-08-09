@@ -26,7 +26,9 @@
     "health:check": "node scripts/check-health.js",
     "test:autonomy": "jest tests/integration/autonomous-flow.test.js",
     "test:neo4j-e2e": "jest tests/e2e/neo4j-setup.test.js",
-    "recover-brain": "node cli/index.js restore"
+    "recover-brain": "node cli/index.js restore",
+    "validate": "node cli/index.js validate",
+    "validate:agents": "node cli/index.js validate:agents"
   },
   "files": [
     "cli/",
