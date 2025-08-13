@@ -40,6 +40,7 @@ export class CoreBackup {
   }
 
   async cleanupOldBackups() {
+    await fs.ensureDir(this.backupDir);
     const backups = (await fs.readdir(this.backupDir)).filter((f) => f.endsWith(".tar.gz"));
     if (backups.length <= MAX_BACKUPS) return;
 
@@ -52,6 +53,7 @@ export class CoreBackup {
   }
 
   async restoreLatest() {
+    await fs.ensureDir(this.backupDir);
     const backups = (await fs.readdir(this.backupDir)).filter((f) => f.endsWith(".tar.gz"));
     if (backups.length === 0) return false;
 
