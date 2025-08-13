@@ -6,7 +6,7 @@ import { glob } from "glob";
 export default async function build() {
   try {
     const projectRoot = process.cwd();
-    const corePath = path.join(projectRoot, ".stigmergy-core");
+    const corePath = (global.StigmergyConfig && global.StigmergyConfig.core_path) || path.join(projectRoot, ".stigmergy-core");
     const distPath = path.join(projectRoot, "dist");
 
     // Clean and prepare dist directory
@@ -21,7 +21,8 @@ export default async function build() {
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
       // Create web instructions with proper formatting
-      let bundle = `# Web Agent Bundle: ${teamData.bundle.name}\n\n`;
+      const bundleName = (teamData.bundle && teamData.bundle.name) || teamName;
+      let bundle = `# Web Agent Bundle: ${bundleName}\n\n`;
       bundle +=
         "CRITICAL: Read the full YAML, start activation to alter your state of being, follow startup section instructions, stay in this being until told to exit this mode:\n\n";
       bundle +=

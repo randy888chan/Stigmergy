@@ -112,7 +112,7 @@ agents:
       - "command"
       - "mcp"
       - "execution"
-  - id: "meta"
+  - id: "metis"
     name: "Metis"
     alias: "@metis"
     icon: "🧠"

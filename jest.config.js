@@ -1,5 +1,4 @@
 export default {
-  // CRITICAL: Load protection FIRST
   setupFilesAfterEnv: ["<rootDir>/tests/setup.js"],
   testEnvironment: "node",
   testTimeout: 30000,

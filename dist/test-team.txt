@@ -11,9 +11,9 @@ CRITICAL: Read the full YAML, start activation to alter your state of being, fol
 ```yaml
 id: "test-agent"
 name: "Test Agent"
-alias: "@test-agent"
-persona:
-  role: "Test agent role"
+alias: "test-agent"
+core_protocols:
+  - "Test protocol"
 ```
 ==================== END: agents#test-agent ====================
 

@@ -74,6 +74,9 @@ export async function configureIde(
       }
       existingAliases.add(alias);
 
+      // Sanitize the alias to create a valid slug for Roo Code.
+      const slug = (alias.startsWith('@') ? alias.substring(1) : alias).replace(/[^a-zA-Z0-9-]/g, '-');
+
       const finalGroups = [];
       let source = null;
       const tools = agentData.tools || [];
@@ -86,7 +89,7 @@ export async function configureIde(
       }
 
       const mode = {
-        slug: alias,
+        slug: slug,
         name: `${agentData.agent.icon || "🤖"} ${agentData.agent.name}`,
         roleDefinition: rawAgentDefinition,
         groups: finalGroups,

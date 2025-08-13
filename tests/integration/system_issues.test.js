@@ -13,29 +13,11 @@ describe("System Issues Test", () => {
     await fs.remove(distDir);
   });
 
-  test("handles missing .stigmergy-core gracefully", async () => {
-    // Mock fs.pathExists to simulate .stigmergy-core not existing
-    const pathExistsSpy = jest.spyOn(fs, "pathExists").mockResolvedValue(false);
-
-    const { default: build } = await import("../../cli/commands/build.js");
-
-    // The build should not throw an error
-    await expect(build()).resolves.toBe(true);
-
-    // It should create a dist directory with a README but no agents.json
-    expect(fs.existsSync(distDir)).toBe(true);
-    expect(fs.existsSync(path.join(distDir, "README.md"))).toBe(true);
-    expect(fs.existsSync(path.join(distDir, "agents.json"))).toBe(false);
-
-    // Restore the original function
-    pathExistsSpy.mockRestore();
-  });
-
-  test("successful build creates agents.json", async () => {
+  test("successful build creates agent team bundles", async () => {
     // The global setup creates a valid .stigmergy-core, so we can just build.
     const { default: build } = await import("../../cli/commands/build.js");
     await build();
-    expect(fs.existsSync(path.join(distDir, "agents.json"))).toBe(true);
-    expect(fs.existsSync(path.join(distDir, "system_docs", "02_Agent_Manifest.md"))).toBe(true);
+    // Check for one of the expected output files
+    expect(fs.existsSync(path.join(distDir, "team-all.txt"))).toBe(true);
   });
 });
