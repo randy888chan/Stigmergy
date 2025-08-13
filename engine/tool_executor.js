@@ -10,6 +10,8 @@ import * as git from "../tools/git_tool.js";
 import * as notifications from "../tools/notification_tool.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
+import * as coreTools from "../tools/core_tools.js";
+import createGuardianTools from "../tools/guardian_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
 import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
 
@@ -102,6 +104,8 @@ export function createExecutor(engine) {
     },
   };
 
+  const guardianTools = createGuardianTools(engine);
+
   const toolbelt = {
     file_system: fileSystem,
     shell: shell,
@@ -113,6 +117,8 @@ export function createExecutor(engine) {
     system: system,
     stigmergy: stigmergy,
     state_manager: stateManager,
+    core: coreTools,
+    guardian: guardianTools,
   };
 
   return async function execute(toolName, args, agentId) {
