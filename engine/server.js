@@ -18,7 +18,8 @@ import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMon
 import AgentPerformance from "./agent_performance.js";
 import swarmMemory from "./swarm_memory.js";
 import coreBackup from "../services/core_backup.js";
-import { StatefulGraph, END } from "@langchain/langgraph";
+import { StatefulGraph, END, Interrupt } from "@langchain/langgraph";
+import { researchGraph } from "./research_graph.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
@@ -54,6 +55,8 @@ export class Engine {
       last_result: { value: null },
       agent_history: { value: [], default: () => [] },
       recursion_level: { value: 0, default: () => 0 },
+      requires_human_approval: { value: false, default: () => false },
+      parallel_tasks: { value: [], default: () => [] },
     };
 
     const workflow = new StatefulGraph({
@@ -94,10 +97,10 @@ export class Engine {
       )}`;
 
       if (currentState.project_status === "EXECUTION_FAILED") {
-        const recommendations = await swarmMemory.getPatternRecommendations(currentState.failureReason, [
-          "database-connection",
-          "api-integration",
-        ]);
+        const recommendations = await swarmMemory.getPatternRecommendations(
+          currentState.failureReason,
+          ["database-connection", "api-integration"]
+        );
         if (recommendations.length > 0) {
           prompt += `\n\n[Swarm Memory] Recommendations for handling failure: ${JSON.stringify(
             recommendations
@@ -109,42 +112,115 @@ export class Engine {
 
       let next_agent = null;
       let next_prompt = null;
+      let requires_human_approval = false;
+      let parallel_tasks = [];
+
       try {
-          const parsedResult = JSON.parse(result.replace(/```json\n?/, "").replace(/```/, ""));
-          next_agent = parsedResult.next_agent;
-          next_prompt = parsedResult.prompt;
+        const parsedResult = JSON.parse(result.replace(/```json\n?/, "").replace(/```/, ""));
+        next_agent = parsedResult.next_agent;
+        next_prompt = parsedResult.prompt;
+        requires_human_approval = parsedResult.requires_human_approval || false;
+
+        // Support both single and parallel task definitions
+        if (parsedResult.parallel_tasks) {
+          parallel_tasks = parsedResult.parallel_tasks;
+        } else if (next_agent && next_prompt) {
+          parallel_tasks = [{ agent: next_agent, prompt: next_prompt }];
+        }
       } catch (e) {
-          console.log(chalk.yellow("[Dispatcher] Could not parse JSON from dispatcher output. Looping back."));
+        console.log(
+          chalk.yellow("[Dispatcher] Could not parse JSON from dispatcher output. Looping back.")
+        );
       }
 
-      return { last_result: result, next_agent: next_agent, prompt: next_prompt, agent_history: [...state.agent_history, "dispatcher"] };
+      return {
+        last_result: result,
+        next_agent: next_agent, // Still useful for routing to non-agent nodes
+        prompt: next_prompt,
+        requires_human_approval: requires_human_approval,
+        parallel_tasks: parallel_tasks,
+        agent_history: [...state.agent_history, "dispatcher"],
+      };
     };
 
-    // Generic agent execution node
-    const agentNode = async (state) => {
-      const { next_agent, prompt } = state;
-      if (!next_agent) {
-        console.log(chalk.yellow("[Agent Node] No next agent defined. Returning to dispatcher."));
-        return { next_agent: null, prompt: null };
-      }
-      console.log(chalk.green(`[Engine] Triggering @${next_agent}.`));
-      const result = await this.triggerAgent(next_agent, prompt);
-      return { last_result: result, next_agent: null, prompt: null, agent_history: [...state.agent_history, next_agent] };
+    // Sub-graph for executing a single agent. This is what we'll map over.
+    const agentExecutorBuilder = new StatefulGraph({
+      channels: {
+        // The input to the sub-graph
+        agent: { value: null },
+        prompt: { value: null },
+        // The output of the sub-graph
+        result: { value: null },
+      },
+    });
+    const runAgentNode = async (state) => {
+      const { agent, prompt } = state;
+      console.log(chalk.green(`[Agent Executor] Triggering @${agent}.`));
+      const result = await this.triggerAgent(agent, prompt);
+      return { result };
+    };
+    agentExecutorBuilder.addNode("run_agent", runAgentNode.bind(this));
+    agentExecutorBuilder.setEntryPoint("run_agent");
+    agentExecutorBuilder.addEdge("run_agent", END);
+    const agentExecutorGraph = agentExecutorBuilder.compile();
+    this.agentExecutorGraph = agentExecutorGraph; // Make it accessible
+
+    // Node to invoke the research sub-graph
+    const conductResearchNode = async (state) => {
+      const { prompt } = state;
+      console.log(chalk.magenta(`[Engine] Invoking research sub-graph for: "${prompt}"`));
+      const researchResult = await researchGraph.invoke({ topic: prompt });
+      console.log(chalk.magenta("[Engine] Research sub-graph finished."));
+      return {
+        last_result: researchResult.final_report,
+        agent_history: [...state.agent_history, "conduct_research"],
+      };
+    };
+
+    // Node that synthesizes parallel results
+    const synthesisNode = async (state) => {
+      const { last_result } = state;
+      console.log(chalk.cyan("[Engine] Synthesizing results from parallel execution."));
+      const combined_report =
+        "Unified plan from parallel agents:\n\n" +
+        last_result.map((r) => r.result).join("\n\n---\n\n");
+      return { last_result: combined_report, agent_history: [...state.agent_history, "synthesis"] };
+    };
+
+    // Node to wait for human input
+    const waitForHumanInput = async (state) => {
+      console.log(chalk.yellow("[Engine] Pausing for human input."));
+      return new Interrupt();
     };
 
     workflow.addNode("getState", getStateNode.bind(this));
     workflow.addNode("dispatcher", dispatcherNode.bind(this));
-    workflow.addNode("agent", agentNode.bind(this));
+    workflow.addNode("conduct_research", conductResearchNode.bind(this));
+    workflow.addNode("synthesis", synthesisNode.bind(this));
+    workflow.addNode("waitForHumanInput", waitForHumanInput.bind(this));
+
+    // The new agent execution node that maps over the sub-graph
+    workflow.addNode("agent", this.agentExecutorGraph.map());
 
     // Conditional edge logic
     const conditionalEdge = (state) => {
-      if (state.recursion_level > 10) { // Circuit breaker
+      if (state.recursion_level > 10) {
+        // Circuit breaker
         console.log(chalk.red("[Engine] Recursion limit reached. Stopping graph."));
         return END;
       }
-      if (state.next_agent) {
-          return "agent";
+      if (state.requires_human_approval) {
+        return "waitForHumanInput";
       }
+      // If dispatcher provided parallel tasks, run them.
+      if (state.parallel_tasks && state.parallel_tasks.length > 0) {
+        return "agent"; // This now points to the mapped sub-graph
+      }
+      // Route to special nodes if specified
+      if (state.next_agent === "conduct_research") {
+        return "conduct_research";
+      }
+      // If nothing else, loop back
       return "getState";
     };
 
@@ -153,14 +229,24 @@ export class Engine {
       if (state.state?.end_run) return END;
       return "dispatcher";
     });
-    workflow.addConditionalEdges("dispatcher", conditionalEdge, {
-        "agent": "agent",
-        "getState": "getState",
-        [END]: END
-    });
-    workflow.addEdge("agent", "getState"); // After an agent runs, always re-evaluate state.
 
-    return workflow.compile();
+    workflow.addConditionalEdges("dispatcher", conditionalEdge, {
+      agent: "agent",
+      conduct_research: "conduct_research",
+      getState: "getState",
+      waitForHumanInput: "waitForHumanInput",
+      [END]: END,
+    });
+
+    workflow.addEdge("agent", "synthesis");
+    workflow.addEdge("synthesis", "getState");
+    workflow.addEdge("conduct_research", "getState");
+    workflow.addEdge("waitForHumanInput", "getState");
+
+    return workflow.compile({
+      // Pass the input of the parent graph to the mapped sub-graph
+      mapper: (state) => state.parallel_tasks,
+    });
   }
 
   setupRoutes() {
@@ -225,6 +311,31 @@ export class Engine {
         res.status(500).json({ error: "Failed to resume engine." });
       }
     });
+
+    this.app.post("/api/control/provide_input", async (req, res) => {
+      try {
+        const { userInput } = req.body;
+        if (!userInput) {
+          return res.status(400).json({ error: "userInput is required." });
+        }
+        const currentState = await stateManager.getState();
+        if (currentState.project_status !== "PAUSED_AWAITING_INPUT") {
+          return res.status(409).json({ message: "Engine is not currently awaiting input." });
+        }
+
+        await stateManager.updateState({
+          human_input: userInput,
+          project_status: "HUMAN_INPUT_PROVIDED",
+        });
+
+        this.start(); // This will trigger the resume logic in start()
+
+        res.status(200).json({ message: "Engine resumed with provided input." });
+      } catch (error) {
+        console.error("Error providing input:", error);
+        res.status(500).json({ error: "Failed to provide input." });
+      }
+    });
   }
 
   async triggerAgent(agentId, prompt, taskId = null) {
@@ -259,18 +370,43 @@ export class Engine {
     this.isEngineRunning = true;
     console.log(chalk.bold.green("\n--- Stigmergy Engine Engaged (LangGraph Mode) ---\n"));
 
-    // This is an async generator, so we need to iterate over it.
+    const state = await stateManager.getState();
+    let inputs = null;
+    const thread_id = state.thread_id || "thread-" + Date.now();
+    let config = { configurable: { thread_id } };
+
+    if (state.project_status === "HUMAN_INPUT_PROVIDED") {
+      console.log(chalk.blue("[Engine] Resuming with human input."));
+      inputs = state.human_input;
+      config = state.checkpoint;
+    } else {
+      await stateManager.updateState({ thread_id });
+    }
+
     const run = async () => {
-      for await (const event of await this.graph.stream({ recursion_level: 0 })) {
+      for await (const event of this.graph.stream(inputs, config)) {
         if (!this.isEngineRunning) {
           console.log(chalk.yellow("[Engine] Stop signal received. Halting graph execution."));
           break;
         }
-        // console.log(event); // Uncomment for detailed graph logging
       }
-      if (this.isEngineRunning) {
-        console.log(chalk.bold.green("\n--- Stigmergy Graph Execution Finished ---\n"));
-        this.isEngineRunning = false;
+
+      const graphState = await this.graph.getState(config);
+      if (graphState.next.length > 0) {
+        // Interrupted
+        await stateManager.updateState({
+          checkpoint: graphState.config,
+          project_status: "PAUSED_AWAITING_INPUT",
+        });
+        console.log(chalk.yellow("[Engine] Graph interrupted and paused. Checkpoint saved."));
+        this.isEngineRunning = false; // Stop running, wait for resume
+      } else {
+        // Finished
+        await stateManager.updateState({ checkpoint: null });
+        if (this.isEngineRunning) {
+          console.log(chalk.bold.green("\n--- Stigmergy Graph Execution Finished ---\n"));
+          this.isEngineRunning = false;
+        }
       }
     };
 
