@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "health_monitor"
-  alias: "@health_monitor"
+  alias: "health_monitor"
   name: "Health Monitor"
   archetype: "Guardian"
   title: "System Health Monitor"
@@ -18,9 +18,6 @@ core_protocols:
   - "AUTOMATIC_RECOVERY_PROTOCOL: For known issues, I attempt automatic recovery procedures before escalating to human intervention."
 tools:
   - "read"
-  - "edit"
-  - "command"
   - "mcp"
-  - "execution"
 source: "project"
 ```

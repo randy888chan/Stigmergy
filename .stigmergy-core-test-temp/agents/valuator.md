@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "valuator"
-  alias: "@val"
+  alias: "val"
   name: "Val"
   archetype: "Planner"
   title: "Business Valuator"
@@ -19,8 +19,6 @@ core_protocols:
 tools:
   - "read"
   - "edit"
-  - "command"
   - "mcp"
-  - "execution"
 source: "project"
 ```

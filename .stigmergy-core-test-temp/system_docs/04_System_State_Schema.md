@@ -8,14 +8,6 @@
   "project_name": "string",
   "project_status": "string",
   "current_phase": "string",
-  "business_outcomes": {
-    "expected_roi": "string",
-    "kpis": ["string"]
-  },
-  "rollback_safety": {
-    "is_enabled": "boolean",
-    "last_stable_state": "object"
-  },
   "ledger": [
     {
       "timestamp": "number",
