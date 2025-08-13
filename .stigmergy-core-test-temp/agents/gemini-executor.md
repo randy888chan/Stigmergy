@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "gemini-executor"
-  alias: "@gemini-executor"
+  alias: "gemini-executor"
   name: "Gemini Executor"
   archetype: "Executor"
   title: "Gemini CLI Specialist"

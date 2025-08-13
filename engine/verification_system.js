@@ -4,7 +4,7 @@
  */
 
 // Add to existing imports
-import businessMetrics from "./business_metrics.js";
+// import businessMetrics from "./business_metrics.js";
 import codeIntelligenceService from "../services/code_intelligence_service.js";
 import { SemanticValidator } from "../src/verification/semanticValidator.js";
 import { glob } from "glob";
@@ -75,128 +75,128 @@ export async function verifyProjectRequirements(projectPath) {
 /**
  * Enhanced verification that includes business outcome validation
  */
-export async function verifyBusinessOutcomes(milestone) {
-  try {
-    // First verify technical implementation
-    const technicalVerification = await this.verifyCodeHealth(milestone.projectPath);
+// export async function verifyBusinessOutcomes(milestone) {
+//   try {
+//     // First verify technical implementation
+//     const technicalVerification = await this.verifyCodeHealth(milestone.projectPath);
 
-    // Then verify business outcomes
-    const businessVerification = await this._verifyBusinessImpact(
-      milestone.projectPath,
-      milestone.goal
-    );
+//     // Then verify business outcomes
+//     const businessVerification = await this._verifyBusinessImpact(
+//       milestone.projectPath,
+//       milestone.goal
+//     );
 
-    // Combine results
-    return {
-      success: technicalVerification.success && businessVerification.success,
-      technical: technicalVerification,
-      business: businessVerification,
-      overallConfidence: this._calculateOverallConfidence(
-        technicalVerification,
-        businessVerification
-      ),
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: `Business verification failed: ${error.message}`,
-    };
-  }
-}
+//     // Combine results
+//     return {
+//       success: technicalVerification.success && businessVerification.success,
+//       technical: technicalVerification,
+//       business: businessVerification,
+//       overallConfidence: this._calculateOverallConfidence(
+//         technicalVerification,
+//         businessVerification
+//       ),
+//     };
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: `Business verification failed: ${error.message}`,
+//     };
+//   }
+// }
 
-/**
- * Verify that implementation delivers intended business value
- */
-async function _verifyBusinessImpact(projectPath, goal) {
-  // Extract business objectives from goal
-  const businessObjectives = await businessMetrics.extractObjectives(goal);
+// /**
+//  * Verify that implementation delivers intended business value
+//  */
+// async function _verifyBusinessImpact(projectPath, goal) {
+//   // Extract business objectives from goal
+//   const businessObjectives = await businessMetrics.extractObjectives(goal);
 
-  // Check if objectives are measurable
-  const measurableObjectives = businessMetrics.filterMeasurable(businessObjectives);
+//   // Check if objectives are measurable
+//   const measurableObjectives = businessMetrics.filterMeasurable(businessObjectives);
 
-  // For each measurable objective, check if verification is possible
-  const verificationResults = await Promise.all(
-    measurableObjectives.map(async (objective) => {
-      const verification = await this._verifySingleObjective(projectPath, objective);
-      return verification;
-    })
-  );
+//   // For each measurable objective, check if verification is possible
+//   const verificationResults = await Promise.all(
+//     measurableObjectives.map(async (objective) => {
+//       const verification = await this._verifySingleObjective(projectPath, objective);
+//       return verification;
+//     })
+//   );
 
-  // Calculate overall business verification score
-  const successCount = verificationResults.filter((r) => r.success).length;
-  const successRate = successCount / verificationResults.length;
+//   // Calculate overall business verification score
+//   const successCount = verificationResults.filter((r) => r.success).length;
+//   const successRate = successCount / verificationResults.length;
 
-  return {
-    success: successRate >= 0.7, // 70% of objectives verified
-    objectivesVerified: successCount,
-    totalObjectives: verificationResults.length,
-    results: verificationResults,
-    confidenceScore: successRate,
-  };
-}
+//   return {
+//     success: successRate >= 0.7, // 70% of objectives verified
+//     objectivesVerified: successCount,
+//     totalObjectives: verificationResults.length,
+//     results: verificationResults,
+//     confidenceScore: successRate,
+//   };
+// }
 
 /**
  * Verify a single business objective
  */
-async function _verifySingleObjective(projectPath, objective) {
-  // Try different verification approaches based on objective type
-  switch (objective.type) {
-    case "user_engagement":
-      return this._verifyUserEngagement(projectPath, objective);
+// async function _verifySingleObjective(projectPath, objective) {
+//   // Try different verification approaches based on objective type
+//   switch (objective.type) {
+//     case "user_engagement":
+//       return this._verifyUserEngagement(projectPath, objective);
 
-    case "revenue":
-      return this._verifyRevenueImpact(projectPath, objective);
+//     case "revenue":
+//       return this._verifyRevenueImpact(projectPath, objective);
 
-    case "conversion":
-      return this._verifyConversionRate(projectPath, objective);
+//     case "conversion":
+//       return this._verifyConversionRate(projectPath, objective);
 
-    case "performance":
-      return this._verifyPerformanceMetric(projectPath, objective);
+//     case "performance":
+//       return this._verifyPerformanceMetric(projectPath, objective);
 
-    default:
-      return this._verifyGenericObjective(projectPath, objective);
-  }
-}
+//     default:
+//       return this._verifyGenericObjective(projectPath, objective);
+//   }
+// }
 
-/**
- * Verify user engagement metrics
- */
-async function _verifyUserEngagement(projectPath, objective) {
-  // Check if analytics tracking is implemented
-  const trackingImplemented = await businessMetrics.checkAnalyticsTracking(
-    projectPath,
-    objective.metric
-  );
+// /**
+//  * Verify user engagement metrics
+//  */
+// async function _verifyUserEngagement(projectPath, objective) {
+//   // Check if analytics tracking is implemented
+//   const trackingImplemented = await businessMetrics.checkAnalyticsTracking(
+//     projectPath,
+//     objective.metric
+//   );
 
-  // Check if expected user flows exist
-  const userFlowsExist = await businessMetrics.checkUserFlows(projectPath, objective.userFlows);
+//   // Check if expected user flows exist
+//   const userFlowsExist = await businessMetrics.checkUserFlows(project.path, objective.userFlows);
 
-  // Create simulation if possible
-  const simulationResult = objective.simulation
-    ? await businessMetrics.runUserSimulation(projectPath, objective.simulation)
-    : null;
+//   // Create simulation if possible
+//   const simulationResult = objective.simulation
+//     ? await businessMetrics.runUserSimulation(projectPath, objective.simulation)
+//     : null;
 
-  return {
-    success: trackingImplemented && userFlowsExist,
-    objective: objective.description,
-    verification: {
-      trackingImplemented,
-      userFlowsExist,
-      simulationResult,
-    },
-    confidence: trackingImplemented && userFlowsExist ? 0.9 : 0.3,
-  };
-}
+//   return {
+//     success: trackingImplemented && userFlowsExist,
+//     objective: objective.description,
+//     verification: {
+//       trackingImplemented,
+//       userFlowsExist,
+//       simulationResult,
+//     },
+//     confidence: trackingImplemented && userFlowsExist ? 0.9 : 0.3,
+//   };
+// }
 
-// Add other verification methods for different objective types...
+// // Add other verification methods for different objective types...
 
-/**
- * Calculate overall verification confidence
- */
-function _calculateOverallConfidence(technical, business) {
-  // Weight business verification higher as it's more important
-  return technical.confidenceScore * 0.3 + business.confidenceScore * 0.7;
-}
+// /**
+//  * Calculate overall verification confidence
+//  */
+// function _calculateOverallConfidence(technical, business) {
+//   // Weight business verification higher as it's more important
+//   return technical.confidenceScore * 0.3 + business.confidenceScore * 0.7;
+// }
 
 // Mock objects for shouldAutoApprove. In a real implementation, these would be imported.
 const config = {

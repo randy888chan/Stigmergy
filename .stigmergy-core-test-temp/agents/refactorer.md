@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "refactorer"
-  alias: "@rocco"
+  alias: "rocco"
   name: "Rocco"
   archetype: "Executor"
   title: "Code Janitor"
