@@ -3,7 +3,6 @@ import path from "path";
 import { enhance as enhanceContext } from "./context_enhancer.js";
 import { getModel } from "../ai/providers.js";
 import "dotenv/config.js";
-import nlpProcessor from "./nlp_processor.js";
 
 let llm;
 

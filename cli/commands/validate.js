@@ -26,6 +26,8 @@ export async function validateAgents(providedCorePath) {
 
   const agentFiles = await fs.readdir(agentsDir);
   let invalidAgents = 0;
+  const aliases = new Map();
+  let duplicateFound = false;
 
   for (const file of agentFiles) {
     if (!file.endsWith(".md")) continue;
@@ -67,6 +69,17 @@ export async function validateAgents(providedCorePath) {
       if (agentData.agent.alias && !agentData.agent.alias.startsWith("@")) {
         console.warn(`⚠️ ${file}: Agent alias should start with '@'`);
       }
+
+      // Check for duplicate aliases
+      if (agentData.agent?.alias) {
+        if (aliases.has(agentData.agent.alias)) {
+          console.error(`❌ ${file}: Duplicate alias '${agentData.agent.alias}' (also used in ${aliases.get(agentData.agent.alias)})`);
+          duplicateFound = true;
+          invalidAgents++;
+        } else {
+          aliases.set(agentData.agent.alias, file);
+        }
+      }
     } catch (e) {
       console.error(`❌ ${file}: Invalid YAML - ${e.message}`);
       invalidAgents++;
@@ -76,7 +89,7 @@ export async function validateAgents(providedCorePath) {
   if (invalidAgents > 0) {
     return {
       success: false,
-      error: `${invalidAgents} agent definition(s) failed validation`,
+      error: `${invalidAgents} agent definition(s) failed validation. Issues include duplicates or syntax errors.`,
     };
   }
 

@@ -1,4 +1,4 @@
 bundle:
-  name: Test Team
+  name: "Test Team"
 agents:
-  - test-agent
+  - "test-agent"
