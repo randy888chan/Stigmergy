@@ -11,6 +11,7 @@ import * as notifications from "../tools/notification_tool.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import * as coreTools from "../tools/core_tools.js";
+import * as archonTool from '../tools/archon_tool.js';
 import createGuardianTools from "../tools/guardian_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
 import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
@@ -119,6 +120,7 @@ export function createExecutor(engine) {
     state_manager: stateManager,
     core: coreTools,
     guardian: guardianTools,
+    archon_tool: archonTool,
   };
 
   return async function execute(toolName, args, agentId) {

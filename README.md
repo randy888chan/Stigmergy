@@ -193,3 +193,33 @@ Explore these real-world examples to see how Stigmergy can be applied to differe
 ## License
 
 This project is licensed under the MIT License.
+
+---
+
+## Lightweight vs. Power Mode
+
+Stigmergy is designed to be flexible and adapt to your needs. It can run in two modes:
+
+### Lightweight Mode (Default)
+
+By default, Stigmergy runs in a lightweight, JavaScript-only mode. It uses its built-in research and analysis tools, which are powerful for a wide range of tasks and require no additional setup.
+
+### Power Mode (with Archon)
+
+For significantly superior research, knowledge management, and long-term memory, you can enable **Power Mode** by connecting Stigmergy to an **Archon** knowledge engine instance. Archon provides a dedicated, persistent knowledge base with advanced RAG (Retrieval-Augmented Generation) capabilities.
+
+When Archon is running, Stigmergy will **automatically detect it** and route all research-intensive tasks through it, giving your agents a much deeper and more reliable source of information.
+
+**To enable Power Mode:**
+
+1.  **Install Docker:** Ensure Docker and Docker Compose are installed on your system.
+2.  **Clone the Archon Repository:**
+    ```bash
+    git clone https://github.com/coleam00/archon.git
+    ```
+3.  **Set up and Run Archon:** Follow the instructions in the Archon `README.md` to set up its `.env` file and launch the services.
+    ```bash
+    cd archon
+    docker-compose up -d
+    ```
+4.  **Start Stigmergy:** Start Stigmergy as you normally would. It will automatically detect and connect to the Archon server.
