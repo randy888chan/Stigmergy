@@ -2,19 +2,26 @@
 import { jest } from "@jest/globals";
 import { Engine } from "../../engine/server.js";
 import * as stateManager from "../../engine/state_manager.js";
+import { MemorySaver } from "@langchain/langgraph";
 
 jest.mock("../../engine/state_manager.js");
 
 describe("Human-in-the-Loop Workflow", () => {
   test("should interrupt graph when approval is required", async () => {
-    const engine = new Engine();
+    const memory = new MemorySaver();
+    const engine = new Engine(memory);
     engine.triggerAgent = jest.fn();
     stateManager.getState.mockResolvedValue({ project_status: "GRAND_BLUEPRINT_PHASE" });
-    engine.triggerAgent.mockResolvedValue(JSON.stringify({ requires_human_approval: true }));
+    engine.triggerAgent.mockResolvedValue(
+      JSON.stringify({ requires_human_approval: true, execution_plan: [] })
+    );
 
-    const config = { configurable: { thread_id: "test-thread" } };
-    const result = await engine.graph.invoke({ agent_history: [], recursion_level: 0 }, config);
+    const threadId = "test-thread-hil-123";
+    const result = await engine.graph.invoke(
+      { agent_history: [], recursion_level: 0 },
+      { configurable: { thread_id: threadId } }
+    );
 
-    expect(result).toBeInstanceOf(Interrupt);
+    expect(result).toHaveProperty("__interrupt__");
   });
 });
