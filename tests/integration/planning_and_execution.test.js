@@ -2,32 +2,51 @@
 import { jest } from "@jest/globals";
 import { Engine } from "../../engine/server.js";
 import * as stateManager from "../../engine/state_manager.js";
+import { MemorySaver } from "@langchain/langgraph";
 
 jest.mock("../../engine/state_manager.js");
 
 describe("Proactive Planning and Execution Flow", () => {
   test("should execute a multi-step plan", async () => {
-    const engine = new Engine();
-    engine.triggerAgent = jest.fn();
-    stateManager.getState.mockResolvedValue({ project_status: "GRAND_BLUEPRINT_PHASE" });
+    const memory = new MemorySaver();
+    const engine = new Engine(memory);
 
+    let dispatcherCallCount = 0;
     const mockPlan = {
       execution_plan: [
-        { agent: "analyst", prompt: "..." },
-        { agent: "dev", prompt: "..." },
+        { agent: "analyst", prompt: "Perform market research." },
+        { agent: "dev", prompt: "Implement the login feature." },
       ],
     };
-    engine.triggerAgent.mockImplementation(async (agentId) => {
-      if (agentId === "dispatcher") return JSON.stringify(mockPlan);
+    engine.triggerAgent = jest.fn().mockImplementation(async (agentId) => {
+      if (agentId === "dispatcher") {
+        dispatcherCallCount++;
+        if (dispatcherCallCount === 1) {
+          return JSON.stringify(mockPlan);
+        } else {
+          return JSON.stringify({ execution_plan: [] });
+        }
+      }
       return `Result from ${agentId}`;
     });
 
-    const config = { configurable: { thread_id: "test-thread" } };
-    await engine.graph.invoke({ agent_history: [], recursion_level: 0 }, config);
+    let getStateCallCount = 0;
+    stateManager.getState.mockImplementation(async () => {
+      getStateCallCount++;
+      if (getStateCallCount >= 3) {
+        return { project_status: "COMPLETED", end_run: true };
+      }
+      return { project_status: "GRAND_BLUEPRINT_PHASE" };
+    });
+
+    await engine.graph.invoke(
+      { agent_history: [], recursion_level: 0 },
+      { configurable: { thread_id: "test-thread-pe-123" } }
+    );
 
     expect(engine.triggerAgent).toHaveBeenCalledTimes(3);
     expect(engine.triggerAgent).toHaveBeenCalledWith("dispatcher", expect.any(String));
-    expect(engine.triggerAgent).toHaveBeenCalledWith("analyst", "...");
-    expect(engine.triggerAgent).toHaveBeenCalledWith("dev", "...");
+    expect(engine.triggerAgent).toHaveBeenCalledWith("analyst", "Perform market research.");
+    expect(engine.triggerAgent).toHaveBeenCalledWith("dev", "Implement the login feature.");
   });
 });
