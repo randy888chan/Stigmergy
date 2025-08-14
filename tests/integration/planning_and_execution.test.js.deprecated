@@ -1,3 +1,4 @@
+// DEPRECATED: This test is for the old linear agent executor. It has been replaced by human_in_loop.test.js and a new LangGraph integration test.
 // tests/integration/planning_and_execution.test.js
 import { jest } from "@jest/globals";
 import { Engine } from "../../engine/server.js";
