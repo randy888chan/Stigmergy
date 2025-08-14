@@ -1,6 +1,6 @@
 ```yml
 agent:
-  id: "metis"
+  id: "meta"
   alias: "metis"
   name: "Metis"
   archetype: "Learner"
@@ -20,6 +20,5 @@ tools:
   - "read"
   - "edit"
   - "mcp"
-  - "guardian.proposeChange"
 source: "project"
 ```
