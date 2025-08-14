@@ -2,12 +2,16 @@
 import { jest } from "@jest/globals";
 import { Engine } from "../../engine/server.js";
 import * as deepAgentTool from "../../tools/deep_agent_tool.js";
+import * as stateManager from "../../engine/state_manager.js";
 
 jest.mock("../../tools/deep_agent_tool.js");
+jest.mock("../../engine/state_manager.js");
 
 describe("Hierarchical Agent Flow", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    // Mock state manager to allow the graph to run
+    stateManager.getState.mockResolvedValue({ project_status: "EXECUTION_IN_PROGRESS" });
   });
 
   it("should allow a Mastermind agent to spawn and receive a result from a team", async () => {
@@ -41,15 +45,11 @@ describe("Hierarchical Agent Flow", () => {
     deepAgentTool.spawnTeam.mockResolvedValue("SaaS app built successfully.");
 
     await engine.graph.invoke(
-      { messages: [], last_result: null, project_goal: "Build a SaaS app." },
+      { agent_history: [], recursion_level: 0, project_goal: "Build a SaaS app." },
       { configurable: { thread_id: "hierarchical-test-thread" } }
     );
 
     // Verify that the hierarchical agent tool was called, which is the main point of this test.
     expect(deepAgentTool.spawnTeam).toHaveBeenCalled();
-
-    // The assertion on finalState has been removed because the graph's design with the
-    // getStateNode overwrites the agent's result before the graph terminates.
-    // The critical behavior (spawning a team) has been verified above.
   });
 });

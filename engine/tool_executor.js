@@ -11,7 +11,9 @@ import * as notifications from "../tools/notification_tool.js";
 import * as stateManager from "./state_manager.js";
 import * as codeIntelligence from "../tools/code_intelligence.js";
 import * as coreTools from "../tools/core_tools.js";
-import * as archonTool from '../tools/archon_tool.js';
+import * as archonTool from "../tools/archon_tool.js";
+import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
+import * as qaTools from "../tools/qa_tools.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
 import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
@@ -38,7 +40,10 @@ async function getManifest() {
   }
   const manifestPath = getManifestPath();
   if (!fs.existsSync(manifestPath)) {
-    throw new OperationalError(`Manifest file not found at ${manifestPath}`, ERROR_TYPES.FILE_NOT_FOUND);
+    throw new OperationalError(
+      `Manifest file not found at ${manifestPath}`,
+      ERROR_TYPES.FILE_NOT_FOUND
+    );
   }
   const fileContent = await fs.readFile(manifestPath, "utf8");
 
@@ -121,6 +126,8 @@ export function createExecutor(engine) {
     core: coreTools,
     guardian: guardianTools,
     archon_tool: archonTool,
+    swarm_intelligence: swarmIntelligence,
+    qa: qaTools,
   };
 
   return async function execute(toolName, args, agentId) {

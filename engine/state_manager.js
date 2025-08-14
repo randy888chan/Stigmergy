@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import stateManager from "../src/infrastructure/state/graphStateManager.js";
+import stateManager from "../src/infrastructure/state/GraphStateManager.js";
 
 export async function getState() {
   return stateManager.getState();
