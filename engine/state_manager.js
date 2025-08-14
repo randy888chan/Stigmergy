@@ -1,10 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
-import { FileStateManager } from "../src/infrastructure/state/fileStateManager.js";
-
-const fileStateManager = new FileStateManager();
+import stateManager from "../src/infrastructure/state/graphStateManager.js";
 
 export async function getState() {
-  return fileStateManager.getState();
+  return stateManager.getState();
 }
 
 function validateState(state) {
@@ -16,7 +14,7 @@ function validateState(state) {
 
 export async function updateState(event) {
   validateState(event); // Add this line
-  return fileStateManager.updateState(event);
+  return stateManager.updateState(event);
 }
 
 export async function initializeProject(goal) {
@@ -36,7 +34,7 @@ export async function initializeProject(goal) {
       },
     ],
   };
-  return fileStateManager.updateState(event);
+  return stateManager.updateState(event);
 }
 
 import { verifyMilestone } from "./verification_system.js";
@@ -85,7 +83,7 @@ export async function updateStatus({ newStatus, message, artifact_created = null
     };
   }
 
-  return fileStateManager.updateState(event);
+  return stateManager.updateState(event);
 }
 
 export async function pauseProject() {
@@ -95,7 +93,7 @@ export async function pauseProject() {
     status_before_pause: state.project_status,
     project_status: "PAUSED_BY_USER",
   };
-  return fileStateManager.updateState(event);
+  return stateManager.updateState(event);
 }
 
 export async function resumeProject() {
@@ -105,7 +103,7 @@ export async function resumeProject() {
     project_status: state.status_before_pause || "GRAND_BLUEPRINT_PHASE",
     status_before_pause: null,
   };
-  return fileStateManager.updateState(event);
+  return stateManager.updateState(event);
 }
 
 export async function updateTaskStatus({ taskId, newStatus }) {
@@ -118,6 +116,7 @@ export async function updateTaskStatus({ taskId, newStatus }) {
 
     const event = {
       type: "TASK_STATUS_UPDATED",
+      project_name: state.project_name,
       project_manifest: {
         ...state.project_manifest,
         tasks: newTasks,
@@ -133,10 +132,10 @@ export async function updateTaskStatus({ taskId, newStatus }) {
         },
       ],
     };
-    return fileStateManager.updateState(event);
+    return stateManager.updateState(event);
   }
 }
 
 export function subscribeToChanges(callback) {
-  fileStateManager.subscribeToChanges(callback);
+  stateManager.subscribeToChanges(callback);
 }
