@@ -33,10 +33,12 @@ describe("Proactive Planning and Execution Flow", () => {
     let getStateCallCount = 0;
     stateManager.getState.mockImplementation(async () => {
       getStateCallCount++;
-      if (getStateCallCount >= 3) {
+      // Allow for more execution cycles in the graph
+      if (getStateCallCount >= 5) {
+        // <-- Changed to 5
         return { project_status: "COMPLETED", end_run: true };
       }
-      return { project_status: "GRAND_BLUEPRINT_PHASE" };
+      return { project_status: "EXECUTION_IN_PROGRESS" }; // <-- Changed status
     });
 
     await engine.graph.invoke(

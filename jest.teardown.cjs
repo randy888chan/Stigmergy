@@ -17,4 +17,4 @@ async function teardown() {
     }
   } catch (err) { console.error('Teardown failed:', err); }
 }
-teardown();
+module.exports = teardown;
