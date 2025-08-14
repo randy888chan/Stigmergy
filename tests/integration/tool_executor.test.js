@@ -10,13 +10,7 @@ jest.mock("../../tools/file_system.js", () => ({
   readFile: jest.fn(),
 }));
 
-
-jest.mock("../../engine/state_manager.js", () => ({
-  __esModule: true,
-  ...jest.requireActual("../../engine/state_manager.js"),
-  getState: jest.fn().mockResolvedValue({}),
-  updateState: jest.fn().mockResolvedValue({}),
-}));
+// The state manager is now mocked globally in tests/setup.js
 
 // Mock the manifest
 const mockManifest = {
@@ -38,11 +32,7 @@ describe("Tool Executor", () => {
   beforeAll(async () => {
     // Create a dummy manifest file for the test in the TEST core directory
     const corePath = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
-    const manifestPath = path.join(
-      corePath,
-      "system_docs",
-      "02_Agent_Manifest.md"
-    );
+    const manifestPath = path.join(corePath, "system_docs", "02_Agent_Manifest.md");
     await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
     await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
