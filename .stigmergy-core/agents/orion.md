@@ -16,5 +16,4 @@ core_protocols:
   - "AMBIGUITY_RESOLUTION_PROTOCOL: If a goal is ambiguous, I will not guess. I will pause execution by including `requires_human_approval: true` in my output and ask for clarification, presenting 2-3 potential interpretations."
 tools:
   - "swarm_intelligence.*"
-  - "deep_agent_tool.*"
 ```
