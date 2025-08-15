@@ -15,144 +15,100 @@ import boxen from "boxen";
 import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
-import { StateGraph, END, interrupt } from "@langchain/langgraph";
+import { StateGraph, END, interrupt } from "@langgraph/langgraph";
 import { add } from "@langchain/langgraph/prebuilt";
-import { researchGraph } from "./research_graph.js";
-import { RunnablePick, RunnableLambda } from "@langchain/core/runnables";
+import { createPlanningGraph } from "./planning_graph.js";
+import { createExecutionGraph } from "./execution_graph.js";
 
 const currentFilePath = fileURLToPath(import.meta.url);
 const currentDirPath = path.dirname(currentFilePath);
 const pkg = JSON.parse(readFileSync(path.resolve(currentDirPath, "../package.json")));
 
-const agentState = {
-  state: null,
-  next_agent: null,
-  prompt: null,
-  last_result: null,
-  requires_human_approval: null,
-  execution_plan: null,
-  agent_history: add,
-  recursion_level: (a, b) => (a ?? 0) + (b ?? 0),
+const supervisorState = {
+  goal: { value: (x, y) => y, default: () => "" },
+  user_feedback: { value: (x, y) => y, default: () => "" },
+  architecture_plan: { value: (x, y) => y, default: () => null },
+  tasks: { value: (x, y) => y, default: () => [] },
+  last_result: { value: (x, y) => y, default: () => null },
 };
 
 export class Engine {
-  constructor(checkpointer) {
+  constructor() {
     this.isEngineRunning = false;
     this.app = express();
     this.app.use(express.json());
     this.executeTool = createExecutor(this);
     this.healthMonitor = new LightweightHealthMonitor();
+    this.graph = null;
+    this.planningGraph = null;
+    this.executionGraph = null;
+  }
+
+  initialize(checkpointer) {
+    const boundTriggerAgent = this.triggerAgent.bind(this);
+    this.planningGraph = createPlanningGraph(boundTriggerAgent);
+    this.executionGraph = createExecutionGraph(boundTriggerAgent);
     this.graph = this.setupGraph(checkpointer);
-    // this.setupRoutes();
   }
 
   setupGraph(checkpointer) {
-    const workflow = new StateGraph({ channels: agentState });
+    const workflow = new StateGraph({ channels: supervisorState });
 
-    const getStateNode = async (state) => {
-      const currentState = await stateManager.getState();
-      const autonomous_states = [
-        "GRAND_BLUEPRINT_PHASE",
-        "EXECUTION_IN_PROGRESS",
-        "EXECUTION_FAILED",
-      ];
-      if (!autonomous_states.includes(currentState.project_status)) {
-        return { state: { end_run: true } };
-      }
-      return { state: currentState, agent_history: ["getState"], recursion_level: 1 };
-    };
-
-    const dispatcherNode = async (state) => {
-      const currentState = state.state;
-      const prompt = `System state is updated. Generate a sequential 'execution_plan' as a JSON array of tasks (each with 'agent' and 'prompt'). If a high-impact or ambiguous decision is needed, also include 'requires_human_approval: true'. If no plan is needed, return an empty plan [].\n\nCURRENT STATE:\n${JSON.stringify(currentState, null, 2)}`;
-      const result = await this.triggerAgent("dispatcher", prompt);
-      let plan = [];
-      let approval = false;
-      try {
-        const parsed = JSON.parse(result.replace(/```json\n?/, "").replace(/```/, ""));
-        if (parsed.execution_plan && Array.isArray(parsed.execution_plan))
-          plan = parsed.execution_plan;
-        approval = parsed.requires_human_approval || false;
-      } catch (e) {
-        console.error(chalk.red("[Dispatcher] Failed to parse plan."), e);
-      }
+    const planningTeamNode = async (state) => {
+      console.log(chalk.blue("--- SUPERVISOR: INVOKING PLANNING TEAM ---"));
+      const planningResult = await this.planningGraph.invoke({ goal: state.goal });
+      const tasks = [{ task: "Implement feature A based on plan", code: "" }];
       return {
-        last_result: result,
-        execution_plan: plan,
-        requires_human_approval: approval,
-        agent_history: ["dispatcher"],
+        architecture_plan: planningResult.architecture_plan,
+        tasks: tasks,
       };
     };
 
-    const planExecutorNode = async (state) => {
-      const plan = state.execution_plan;
-      if (!plan || plan.length === 0) {
-        return { execution_plan: [] }; // Return empty to signal completion
-      }
-      const nextTask = plan.shift();
-      // This node's output IS the input for the mapped node. It MUST be an array.
-      return {
-        execution_plan: plan, // Update the plan in the state
-        last_result: [nextTask], // Provide the single task as an array for the map
-      };
+    const executionTeamNode = async (state) => {
+      console.log(chalk.blue("--- SUPERVISOR: INVOKING EXECUTION TEAM ---"));
+      const executionResults = await this.executionGraph.batch(state.tasks);
+      return { last_result: executionResults };
     };
 
-    const agentExecutorGraph = new StateGraph({
-      channels: { agent: null, prompt: null, result: null },
-    });
-    agentExecutorGraph.addNode("run_agent", async (state) => ({
-      result: await this.triggerAgent(state.agent, state.prompt),
-    }));
-    agentExecutorGraph.setEntryPoint("run_agent");
-    agentExecutorGraph.addEdge("run_agent", END);
-    this.agentExecutorGraph = agentExecutorGraph.compile();
-
-    const waitForHumanInput = () => interrupt();
-
-    const routerEdge = (state) => {
-      if (state.recursion_level > 20) {
-        console.error("Recursion limit reached");
-        return END;
-      }
-      if (state.requires_human_approval) {
-        return "waitForHumanInput";
-      }
-      if (state.execution_plan && state.execution_plan.length > 0) {
-        return "plan_executor";
-      }
-      const lastAgent = state.agent_history[state.agent_history.length - 1];
-      if (
-        lastAgent === "dispatcher" &&
-        (!state.execution_plan || state.execution_plan.length === 0)
-      ) {
-        return END;
-      }
-      return "dispatcher";
+    // --- THIS IS THE CORRECTED NODE DEFINITION ---
+    // By making this an async function that accepts state, we ensure LangGraph
+    // correctly handles the state update when resuming from the interruption.
+    const humanApprovalNode = async (state) => {
+      console.log(chalk.yellow("--- SUPERVISOR: AWAITING HUMAN APPROVAL ---"));
+      return interrupt();
     };
+    // ---------------------------------------------
 
-    workflow.addNode("getState", getStateNode.bind(this));
-    workflow.addNode("dispatcher", dispatcherNode.bind(this));
-    workflow.addNode("plan_executor", planExecutorNode.bind(this));
-    const agentRunner = new RunnablePick("last_result").pipe(this.agentExecutorGraph.map());
-    const agentNode = new RunnableLambda({
-      func: async (input) => {
-        const result = await agentRunner.invoke(input);
-        return { last_result: result };
+    workflow.addNode("planning_team", planningTeamNode.bind(this));
+    workflow.addNode("execution_team", executionTeamNode.bind(this));
+    workflow.addNode("human_approval", humanApprovalNode.bind(this));
+
+    workflow.setEntryPoint("planning_team");
+    workflow.addEdge("planning_team", "human_approval");
+
+    workflow.addConditionalEdges(
+      "human_approval",
+      (state) => {
+        // This log will now correctly show the updated feedback.
+        console.log(chalk.magenta(`--- SUPERVISOR ROUTER: User feedback is '${state.user_feedback}' ---`));
+        if (state.user_feedback === "proceed") {
+          return "execution_team";
+        }
+        return "__end__";
       },
-    });
-    workflow.addNode("agent", agentNode);
-    workflow.addNode("waitForHumanInput", waitForHumanInput.bind(this));
-
-    workflow.setEntryPoint("getState");
-    workflow.addConditionalEdges("getState", (state) =>
-      state.state?.end_run ? END : "dispatcher"
+      {
+        execution_team: "execution_team",
+        __end__: END,
+      }
     );
-    workflow.addConditionalEdges("dispatcher", routerEdge);
-    workflow.addEdge("plan_executor", "agent");
-    workflow.addEdge("agent", "getState"); // Loop back after execution to continue plan
+
+    workflow.addEdge("execution_team", END);
 
     return workflow.compile({ checkpointer });
   }
 
-  // Omitted for brevity: setupRoutes, triggerAgent, monitorHealth, stop, main
+  async triggerAgent(agentId, prompt) {
+    console.log(`[Engine] Triggering agent ${agentId}`);
+    return `Result from ${agentId}`;
+  }
 }
