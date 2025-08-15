@@ -1,4 +1,3 @@
-// engine/research_graph.js
 import { StateGraph, END } from "@langchain/langgraph";
 import { add } from "@langchain/langgraph/prebuilt";
 import { z } from "zod";
@@ -9,12 +8,12 @@ import "dotenv/config.js";
 import chalk from "chalk";
 
 const researchState = {
-  topic: null,
-  final_report: null,
-  search_content: null,
-  learnings: add,
-  search_queries: add,
-  recursion_level: (a, b) => (a ?? 0) + (b ?? 0),
+  topic: { value: (x, y) => y, default: () => "" },
+  final_report: { value: (x, y) => y, default: () => null },
+  search_content: { value: (x, y) => y, default: () => null },
+  learnings: { value: add, default: () => [] },
+  search_queries: { value: add, default: () => [] },
+  is_done: { value: (x, y) => y, default: () => false },
 };
 
 let firecrawl;
@@ -29,23 +28,32 @@ function getFirecrawlClient() {
 }
 
 async function generateSearchQuery(state) {
-  const { topic, learnings } = state;
+  const { topic, learnings, search_queries } = state;
   const client = getModel();
-  const prompt = `You are a research analyst. Based on the primary research goal and existing learnings, generate a single, effective search query.\nGoal: ${topic}\nLearnings:\n${learnings.join("\n") || "None yet."}\nNext query:`;
+  
+  // If search_queries is empty, it's the first run.
+  if (search_queries.length === 0) {
+    const prompt = `You are a research analyst. Based on the primary research goal and existing learnings, generate a single, effective search query.\nGoal: ${topic}\nLearnings:\n${learnings.join("\n") || "None yet."}\nNext query:`;
+    const { object } = await generateObject({
+      model: client,
+      prompt,
+      schema: z.object({ query: z.string().describe("The single best search query to run next.") }),
+    });
+    console.log(chalk.cyan(`[Research Graph] Generated initial query: "${object.query}"`));
+    return { search_queries: [object.query] };
+  }
 
-  const { object } = await generateObject({
-    model: client,
-    prompt,
-    schema: z.object({ query: z.string().describe("The single best search query to run next.") }),
-  });
-  console.log(chalk.cyan(`[Research Graph] Generated query: "${object.query}"`));
-  return { search_queries: [object.query], recursion_level: 1 };
+  // On subsequent runs, the reflection node has provided queries.
+  // The executeSearch node will use the latest one.
+  console.log(chalk.cyan(`[Research Graph] Proceeding with reflective query.`));
+  return {};
 }
 
 async function executeSearch(state) {
   const { search_queries } = state;
   const client = getFirecrawlClient();
   const query = search_queries[search_queries.length - 1];
+  console.log(chalk.blue(`[Research Graph] Executing search for: "${query}"`));
   const searchResults = await client.search(query, { pageOptions: { fetchPageContent: true } });
   const allContent = searchResults.data
     .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
@@ -62,15 +70,40 @@ async function synthesizeResults(state) {
     prompt,
     schema: z.object({ newLearnings: z.array(z.string()).describe("Key insights and facts.") }),
   });
+  console.log(chalk.magenta("[Research Graph] Synthesized new learnings."));
   return { learnings: object.newLearnings };
 }
 
-function checkIfDone(state) {
-  return state.recursion_level >= 2 ? "generate_report" : "continue";
+async function reflection_node(state) {
+  const { topic, learnings } = state;
+  const client = getModel();
+  const prompt = `Given the initial goal ('${topic}') and the learnings so far, is the information sufficient to generate a comprehensive report? If yes, respond with just the word "true". If no, respond with a list of the 3 most critical, unanswered questions.`;
+
+  const { object } = await generateObject({
+      model: client,
+      prompt,
+      schema: z.object({
+          response: z.union([z.literal("true"), z.array(z.string())])
+              .describe("Either 'true' or a list of new questions."),
+      })
+  });
+
+  if (object.response === "true") {
+      console.log(chalk.green("[Research Graph] Reflection: Sufficient information gathered."));
+      return { is_done: true };
+  } else {
+      console.log(chalk.yellow("[Research Graph] Reflection: More research needed. New questions:"), object.response);
+      return { search_queries: object.response, is_done: false };
+  }
+}
+
+function shouldContinue(state) {
+  return state.is_done ? "generate_report" : "continue";
 }
 
 async function generateReport(state) {
   const { topic, learnings } = state;
+  console.log(chalk.green("[Research Graph] Generating final report."));
   return { final_report: `Research Report for: ${topic}\n\n${learnings.join("\n")}` };
 }
 
@@ -78,13 +111,18 @@ const researchGraphBuilder = new StateGraph({ channels: researchState });
 researchGraphBuilder.addNode("generate_search_query", generateSearchQuery);
 researchGraphBuilder.addNode("execute_search", executeSearch);
 researchGraphBuilder.addNode("synthesize_results", synthesizeResults);
+researchGraphBuilder.addNode("reflection_node", reflection_node);
 researchGraphBuilder.addNode("generate_report", generateReport);
+
 researchGraphBuilder.setEntryPoint("generate_search_query");
 researchGraphBuilder.addEdge("generate_search_query", "execute_search");
 researchGraphBuilder.addEdge("execute_search", "synthesize_results");
-researchGraphBuilder.addConditionalEdges("synthesize_results", checkIfDone, {
+researchGraphBuilder.addEdge("synthesize_results", "reflection_node");
+
+researchGraphBuilder.addConditionalEdges("reflection_node", shouldContinue, {
   continue: "generate_search_query",
   generate_report: "generate_report",
 });
+
 researchGraphBuilder.addEdge("generate_report", END);
 export const researchGraph = researchGraphBuilder.compile();
