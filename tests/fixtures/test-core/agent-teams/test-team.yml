@@ -1,4 +1,0 @@
-bundle:
-  name: "Test Team"
-agents:
-  - "test-agent"

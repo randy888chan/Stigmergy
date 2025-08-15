@@ -1,24 +1,27 @@
+process.env.AI_API_KEY = "test";
+process.env.AI_MODEL = "test";
+process.env.FIRECRAWL_KEY = "test";
 import { jest } from "@jest/globals";
 import { researchGraph } from "../../engine/research_graph.js";
 
 // Mock the AI model and Firecrawl client
 const mockGenerateObject = jest.fn();
 jest.mock("ai", () => ({
-    generateObject: (options) => mockGenerateObject(options),
+  generateObject: (options) => mockGenerateObject(options),
 }));
 
 const mockFirecrawlSearch = jest.fn();
 jest.mock("@mendable/firecrawl-js", () => {
-    return jest.fn().mockImplementation(() => {
-        return { search: mockFirecrawlSearch };
-    });
+  return jest.fn().mockImplementation(() => {
+    return { search: mockFirecrawlSearch };
+  });
 });
 
 describe("Research Graph with Reflection Node", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockFirecrawlSearch.mockResolvedValue({
-        data: [{ url: "mock.url", markdown: "mock markdown content" }],
+      data: [{ url: "mock.url", markdown: "mock markdown content" }],
     });
   });
 
@@ -43,7 +46,7 @@ describe("Research Graph with Reflection Node", () => {
     mockGenerateObject.mockResolvedValueOnce({ object: { query: "initial query" } });
     mockGenerateObject.mockResolvedValueOnce({ object: { newLearnings: ["initial learning"] } });
     mockGenerateObject.mockResolvedValueOnce({ object: { response: ["new question?"] } });
-    
+
     // Second loop
     mockGenerateObject.mockResolvedValueOnce({ object: { newLearnings: ["second learning"] } });
     mockGenerateObject.mockResolvedValueOnce({ object: { response: "true" } });
@@ -56,7 +59,7 @@ describe("Research Graph with Reflection Node", () => {
     expect(result.final_report).toContain("initial learning");
     expect(result.final_report).toContain("second learning");
     expect(result.is_done).toBe(true);
-    
+
     expect(mockFirecrawlSearch).toHaveBeenCalledTimes(2);
     expect(mockFirecrawlSearch).toHaveBeenCalledWith("initial query", expect.any(Object));
     expect(mockFirecrawlSearch).toHaveBeenCalledWith("new question?", expect.any(Object));
