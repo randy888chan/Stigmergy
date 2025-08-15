@@ -30,6 +30,7 @@ const supervisorState = {
   architecture_plan: { value: (x, y) => y, default: () => null },
   tasks: { value: (x, y) => y, default: () => [] },
   last_result: { value: (x, y) => y, default: () => null },
+  context_package: { value: (x, y) => y, default: () => "" },
 };
 
 export class Engine {
@@ -54,9 +55,21 @@ export class Engine {
   setupGraph(checkpointer) {
     const workflow = new StateGraph({ channels: supervisorState });
 
+    const contextPreparerNode = async (state) => {
+      console.log(chalk.cyan("--- SUPERVISOR: INVOKING CONTEXT PREPARER ---"));
+      const context_package = await this.triggerAgent(
+        "context_preparer",
+        `Prepare a detailed context package for the following goal: ${state.goal}`
+      );
+      return { context_package };
+    };
+
     const planningTeamNode = async (state) => {
       console.log(chalk.blue("--- SUPERVISOR: INVOKING PLANNING TEAM ---"));
-      const planningResult = await this.planningGraph.invoke({ goal: state.goal });
+      const planningResult = await this.planningGraph.invoke({
+        goal: state.goal,
+        context: state.context_package,
+      });
       const tasks = [{ task: "Implement feature A based on plan", code: "" }];
       return {
         architecture_plan: planningResult.architecture_plan,
@@ -79,11 +92,13 @@ export class Engine {
     };
     // ---------------------------------------------
 
+    workflow.addNode("context_preparer_node", contextPreparerNode.bind(this));
     workflow.addNode("planning_team", planningTeamNode.bind(this));
     workflow.addNode("execution_team", executionTeamNode.bind(this));
     workflow.addNode("human_approval", humanApprovalNode.bind(this));
 
-    workflow.setEntryPoint("planning_team");
+    workflow.setEntryPoint("context_preparer_node");
+    workflow.addEdge("context_preparer_node", "planning_team");
     workflow.addEdge("planning_team", "human_approval");
 
     workflow.addConditionalEdges(
