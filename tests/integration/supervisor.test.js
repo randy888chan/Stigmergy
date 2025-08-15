@@ -40,7 +40,7 @@ describe("Supervisor Graph Integration Test", () => {
   test("should run planning, interrupt, and correctly resume to execution", async () => {
     const config = { configurable: { thread_id: thread_id } };
 
-    // --- STAGE 1: Invoke the graph to run the planning phase ---
+    // Stage 1: Invoke the graph. It runs the planning team and interrupts for approval.
     const planningResult = await engine.graph.invoke({ goal: "Test goal" }, config);
 
     // Verify the interruption happened as expected.
@@ -48,22 +48,17 @@ describe("Supervisor Graph Integration Test", () => {
     expect(engine.planningGraph.invoke).toHaveBeenCalledTimes(1);
     expect(engine.executionGraph.batch).not.toHaveBeenCalled();
 
-    // --- STAGE 2: Manually update the state and resume the graph ---
-
-    // Get the state snapshot from the moment of interruption.
+    // --- THIS IS THE DEFINITIVE FIX ---
+    // Stage 2: Manually update the state in the checkpointer and resume with null.
     const currentState = await memory.get(config);
+    currentState.values.user_feedback = "proceed"; // Manually add the approval signal.
+    await memory.put(config, currentState); // Save the updated state.
     
-    // Manually add the user's approval to the state.
-    currentState.values.user_feedback = "proceed";
-
-    // Save the updated state back to the checkpointer.
-    await memory.put(config, currentState);
-
-    // Resume the graph by calling invoke with `null`.
-    // This tells LangGraph to continue from the saved state without re-running the last node.
+    // Resume by calling invoke with `null`. This proceeds from the saved state.
     const finalResult = await engine.graph.invoke(null, config);
+    // ------------------------------------
 
-    // --- STAGE 3: Verify the graph resumed and completed ---
+    // Stage 3: Verify the graph resumed and completed successfully.
     expect(finalResult).not.toHaveProperty("__interrupt__");
     expect(engine.executionGraph.batch).toHaveBeenCalledTimes(1);
     expect(finalResult.last_result).toEqual([{ code: "final code from mock" }]);
