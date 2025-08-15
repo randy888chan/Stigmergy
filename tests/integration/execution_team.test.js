@@ -11,7 +11,7 @@ describe("Execution Team Graph", () => {
     executionGraph = createExecutionGraph(triggerAgent);
   });
 
-  test("should follow the @dev path successfully", async () => {
+  test("should follow the @dev path successfully and include architecture plan in QA prompt", async () => {
     // Supervisor decides 'dev'
     triggerAgent.mockResolvedValueOnce("dev");
     // Dev agent produces code
@@ -19,13 +19,18 @@ describe("Execution Team Graph", () => {
     // QA agent passes the code
     triggerAgent.mockResolvedValueOnce("PASS");
 
+    const archPlan = "Use microservices architecture.";
+
     const finalState = await executionGraph.invoke({
       task: "Create a simple variable",
+      architecture_plan: archPlan,
     });
 
     expect(triggerAgent).toHaveBeenCalledWith("dispatcher", expect.any(String));
     expect(triggerAgent).toHaveBeenCalledWith("dev", "Create a simple variable");
+    // Assert that the QA prompt contains both the code and the architectural plan
     expect(triggerAgent).toHaveBeenCalledWith("qa", expect.stringContaining("const a = 1;"));
+    expect(triggerAgent).toHaveBeenCalledWith("qa", expect.stringContaining(archPlan));
     expect(finalState.code).toBe("const a = 1;");
     expect(finalState.qa_feedback).toBe("PASS");
   });

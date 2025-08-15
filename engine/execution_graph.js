@@ -5,6 +5,7 @@ import { add } from "@langchain/langgraph/prebuilt";
 export const executionState = {
   task: null, // The task description and context
   code: null, // The generated or modified code
+  architecture_plan: null, // The high-level architectural plan
   qa_feedback: null, // Feedback from the QA agent
   retries: (a, b) => (a ?? 0) + (b ?? 0),
   // Internal state
@@ -37,7 +38,11 @@ export function createExecutionGraph(triggerAgent) {
 
   const qaAgentNode = async (state) => {
     console.log("[Execution Team] QA Agent checking code...");
-    const prompt = `Please review the following code and determine if it meets the requirements. Respond with "PASS" or "FAIL" followed by your feedback.\n\nCODE:\n${state.code}\n\nTASK:\n${state.task}`;
+    const architecturePlanInfo = state.architecture_plan
+      ? `\n\nAlso, ensure the code complies with the following architectural plan:\n${state.architecture_plan}`
+      : "";
+
+    const prompt = `Please review the following code and determine if it meets the requirements. Respond with "PASS" or "FAIL" followed by your feedback.\n\nCODE:\n${state.code}\n\nTASK:\n${state.task}${architecturePlanInfo}`;
     const feedback = await triggerAgent("qa", prompt);
     const decision = feedback.toUpperCase().includes("PASS") ? "end" : "debugger";
     return { qa_feedback: feedback, qa_decision: decision };
