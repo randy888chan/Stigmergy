@@ -83,14 +83,12 @@ export class Engine {
       return { last_result: executionResults };
     };
 
-    // --- THIS IS THE CORRECTED NODE DEFINITION ---
-    // By making this an async function that accepts state, we ensure LangGraph
-    // correctly handles the state update when resuming from the interruption.
-    const humanApprovalNode = async (state) => {
+    const humanApprovalNode = (state) => {
       console.log(chalk.yellow("--- SUPERVISOR: AWAITING HUMAN APPROVAL ---"));
-      return interrupt();
+      if (state.user_feedback !== "proceed") {
+        return interrupt();
+      }
     };
-    // ---------------------------------------------
 
     workflow.addNode("context_preparer_node", contextPreparerNode.bind(this));
     workflow.addNode("planning_team", planningTeamNode.bind(this));
