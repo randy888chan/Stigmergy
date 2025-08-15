@@ -3,12 +3,24 @@ import { generateObject } from "ai";
 import { getModel } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
-import chalk from "chalk"; // <-- ADD THIS IMPORT
+import chalk from "chalk";
 import fs from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
+import axios from 'axios';
+
+const ARCHON_API_URL = 'http://localhost:8181/api';
 
 let firecrawl;
+
+async function healthCheck() {
+  try {
+    const response = await axios.get(`${ARCHON_API_URL}/health`, { timeout: 1000 });
+    return response.status === 200 && response.data.status === 'healthy';
+  } catch (error) {
+    return false;
+  }
+}
 
 async function getResearchPrompt() {
   const systemAgentPath = path.join(process.cwd(), ".stigmergy-core", "agents", "system.md");
@@ -35,7 +47,50 @@ function getFirecrawlClient() {
 }
 
 export async function deep_dive({ query, learnings = [] }) {
-  // --- RECOMMENDED IMPROVEMENT: Add try...catch for resilience ---
+  const isArchonRunning = await healthCheck();
+
+  if (isArchonRunning) {
+    console.log(chalk.green("🚀 Archon server detected. Using advanced RAG for research."));
+    try {
+      const response = await axios.post(`${ARCHON_API_URL}/rag/query`, { query, match_count: 10 });
+      
+      const allContent = response.data.results
+        .map((item) => `Source: ${item.url}\n\n${item.markdown || item.content}`)
+        .join("\n\n---\n\n");
+
+      const synthesis = await generateObject({
+        model: getModel(),
+        system: await getResearchPrompt(),
+        prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
+    ---
+    CONTENT:
+    ${allContent}`,
+        schema: z.object({
+          newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
+          next_research_queries: z
+            .array(z.string())
+            .describe("A list of new, more focused search queries to continue the research."),
+        }),
+      });
+
+      const visitedUrls = response.data.results.map((item) => item.url);
+
+      return {
+        new_learnings: synthesis.object.newLearnings,
+        next_research_queries: synthesis.object.next_research_queries,
+        sources: visitedUrls,
+      };
+    } catch (error) {
+      console.error(
+        chalk.yellow(`[Research Tool] Archon query failed, falling back to Firecrawl:`),
+        error.message
+      );
+      // Fall through to Firecrawl logic
+    }
+  }
+
+  // --- Fallback to Firecrawl ---
+  console.log(chalk.blue("🔧 Archon server not detected or failed. Using native Firecrawl research tool."));
   try {
     const client = getFirecrawlClient();
     const serpGen = await generateObject({
@@ -99,5 +154,4 @@ export async function deep_dive({ query, learnings = [] }) {
       sources: [],
     };
   }
-  // --------------------------------------------------------------------
 }
