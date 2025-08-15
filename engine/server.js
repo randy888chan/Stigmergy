@@ -15,7 +15,7 @@ import boxen from "boxen";
 import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
-import { StateGraph, END, interrupt } from "@langgraph/langgraph";
+import { StateGraph, END, interrupt } from "@langchain/langgraph";
 import { add } from "@langchain/langgraph/prebuilt";
 import { createPlanningGraph } from "./planning_graph.js";
 import { createExecutionGraph } from "./execution_graph.js";
@@ -105,7 +105,9 @@ export class Engine {
       "human_approval",
       (state) => {
         // This log will now correctly show the updated feedback.
-        console.log(chalk.magenta(`--- SUPERVISOR ROUTER: User feedback is '${state.user_feedback}' ---`));
+        console.log(
+          chalk.magenta(`--- SUPERVISOR ROUTER: User feedback is '${state.user_feedback}' ---`)
+        );
         if (state.user_feedback === "proceed") {
           return "execution_team";
         }

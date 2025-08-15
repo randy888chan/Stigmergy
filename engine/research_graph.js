@@ -11,7 +11,7 @@ const researchState = {
   topic: { value: (x, y) => y, default: () => "" },
   final_report: { value: (x, y) => y, default: () => null },
   search_content: { value: (x, y) => y, default: () => null },
-  learnings: { value: add, default: () => [] },
+  learnings: { value: (x, y) => y, default: () => [] }, // Use a simple replacement reducer
   search_queries: { value: add, default: () => [] },
   is_done: { value: (x, y) => y, default: () => false },
 };
@@ -28,9 +28,9 @@ function getFirecrawlClient() {
 }
 
 async function generateSearchQuery(state) {
-  const { topic, learnings, search_queries } = state;
+  const { topic, learnings = [], search_queries = [] } = state;
   const client = getModel();
-  
+
   // If search_queries is empty, it's the first run.
   if (search_queries.length === 0) {
     const prompt = `You are a research analyst. Based on the primary research goal and existing learnings, generate a single, effective search query.\nGoal: ${topic}\nLearnings:\n${learnings.join("\n") || "None yet."}\nNext query:`;
@@ -62,7 +62,7 @@ async function executeSearch(state) {
 }
 
 async function synthesizeResults(state) {
-  const { topic, search_content } = state;
+  const { topic, search_content, learnings } = state; // Get existing learnings
   const client = getModel();
   const prompt = `Synthesize key learnings from the following content regarding "${topic}".\nContent:\n${search_content}`;
   const { object } = await generateObject({
@@ -71,7 +71,8 @@ async function synthesizeResults(state) {
     schema: z.object({ newLearnings: z.array(z.string()).describe("Key insights and facts.") }),
   });
   console.log(chalk.magenta("[Research Graph] Synthesized new learnings."));
-  return { learnings: object.newLearnings };
+  // Manually add to the existing learnings and return the full list
+  return { learnings: learnings.concat(object.newLearnings) };
 }
 
 async function reflection_node(state) {
@@ -80,20 +81,24 @@ async function reflection_node(state) {
   const prompt = `Given the initial goal ('${topic}') and the learnings so far, is the information sufficient to generate a comprehensive report? If yes, respond with just the word "true". If no, respond with a list of the 3 most critical, unanswered questions.`;
 
   const { object } = await generateObject({
-      model: client,
-      prompt,
-      schema: z.object({
-          response: z.union([z.literal("true"), z.array(z.string())])
-              .describe("Either 'true' or a list of new questions."),
-      })
+    model: client,
+    prompt,
+    schema: z.object({
+      response: z
+        .union([z.literal("true"), z.array(z.string())])
+        .describe("Either 'true' or a list of new questions."),
+    }),
   });
 
   if (object.response === "true") {
-      console.log(chalk.green("[Research Graph] Reflection: Sufficient information gathered."));
-      return { is_done: true };
+    console.log(chalk.green("[Research Graph] Reflection: Sufficient information gathered."));
+    return { is_done: true };
   } else {
-      console.log(chalk.yellow("[Research Graph] Reflection: More research needed. New questions:"), object.response);
-      return { search_queries: object.response, is_done: false };
+    console.log(
+      chalk.yellow("[Research Graph] Reflection: More research needed. New questions:"),
+      object.response
+    );
+    return { search_queries: object.response, is_done: false };
   }
 }
 

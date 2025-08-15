@@ -10,7 +10,11 @@ jest.mock("../../tools/file_system.js", () => ({
   readFile: jest.fn(),
 }));
 
-// The state manager is now mocked globally in tests/setup.js
+// Mock the state manager to prevent Neo4j connection attempts
+jest.mock("../../engine/state_manager.js", () => ({
+  initializeProject: jest.fn(),
+  getState: jest.fn(),
+}));
 
 // Mock the manifest
 const mockManifest = {
@@ -30,12 +34,20 @@ describe("Tool Executor", () => {
   let execute;
 
   beforeAll(async () => {
-    // Create a dummy manifest file for the test in the TEST core directory
-    const corePath = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
+    // Create a dummy manifest file for the test in a temporary directory
+    const corePath = path.join(process.cwd(), ".stigmergy-core-test-temp");
+    global.StigmergyConfig = { core_path: corePath }; // Point the executor to our test core
     const manifestPath = path.join(corePath, "system_docs", "02_Agent_Manifest.md");
     await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
     await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
+  });
+
+  afterAll(async () => {
+    // Clean up the temporary directory
+    const corePath = path.join(process.cwd(), ".stigmergy-core-test-temp");
+    await fs.remove(corePath);
+    delete global.StigmergyConfig;
   });
 
   beforeEach(() => {

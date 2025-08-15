@@ -14,6 +14,6 @@ agents:
   - "debugger"
   - "refactorer"
   - "valuator"
-  - "meta"
+  - "metis"
   - "whitepaper_writer"
   - "health_monitor"

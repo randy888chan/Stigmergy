@@ -1,23 +1,38 @@
 import { jest } from "@jest/globals";
-import { vol } from "memfs";
 import fs from "fs-extra";
 import path from "path";
+import build from "../../cli/commands/build.js";
+
+// Mock console to prevent logs from cluttering test output
+global.console = {
+  log: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+};
 
 describe("System Issues Test", () => {
-  // Use TEST_CORE_PATH instead of real core
-  const coreDir = process.env.TEST_CORE_PATH || path.join(process.cwd(), ".stigmergy-core-test");
   const distDir = path.join(process.cwd(), "dist");
+  const testCoreDir = path.join(process.cwd(), "tests", "fixtures", "test-core");
+
+  beforeAll(() => {
+    // Point the build script to the test-specific core directory created by `pretest`
+    global.StigmergyConfig = { core_path: testCoreDir };
+  });
+
+  afterAll(async () => {
+    await fs.emptyDir(distDir);
+    // Clean up the global config
+    delete global.StigmergyConfig;
+  });
 
   beforeEach(async () => {
-    // Only clean dist directory
-    await fs.remove(distDir);
+    await fs.emptyDir(distDir);
   });
 
   test("successful build creates agent team bundles", async () => {
-    // The global setup creates a valid .stigmergy-core, so we can just build.
-    const { default: build } = await import("../../cli/commands/build.js");
     await build();
     // Check for one of the expected output files
-    expect(fs.existsSync(path.join(distDir, "team-all.txt"))).toBe(true);
+    const expectedFile = path.join(distDir, "team-all.txt");
+    expect(fs.existsSync(expectedFile)).toBe(true);
   });
 });
