@@ -7,8 +7,17 @@ import { getLlm } from "../engine/llm_adapter.js";
  * @returns {Promise<{review_passed: boolean, feedback: string}>} An object containing the review result and feedback.
  * @description This tool uses an LLM to perform a semantic review of code to ensure it meets the given requirements.
  */
-export async function semantic_review({ requirements, code }) {
+export async function semantic_review({ requirements, code, architecture_plan }) {
   const llm = getLlm();
+
+  const architecturalComplianceSection = architecture_plan
+    ? `
+        4.  **Architectural Compliance:** Does the code adhere to the principles, technologies, and patterns defined in the architectural plan below?
+            ARCHITECTURAL PLAN:
+            ${architecture_plan}
+    `
+    : "";
+
   const prompt = `
         As an expert QA engineer, your task is to perform a semantic review of the provided code against the given requirements.
 
@@ -24,6 +33,7 @@ export async function semantic_review({ requirements, code }) {
         1. Does the code semantically fulfill the requirements?
         2. Are there any obvious bugs or edge cases that were missed?
         3. Is the code of high quality (e.g., readable, maintainable)?
+        ${architecturalComplianceSection}
 
         **Output Format:**
         Provide your response as a JSON object with two keys:
