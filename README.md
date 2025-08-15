@@ -18,32 +18,31 @@ Stigmergy now includes a suite of agents focused on business planning and strate
 
 The refactored system is a powerful, modular ecosystem that separates concerns for maximum performance and extensibility.
 
-```mermaid
 graph TD
-    subgraph "User's IDE (VS Code / Roo Code)"
-        A[User provides goal: "Build a minimalist blog"] --> B{IDE Extension (e.g., Roo Code)};
-        B -- MCP Tool Call --> C{Stigmergy Engine (MCP Server)};
-        F[SuperDesign Canvas] -- Renders Files --> G[File System: .superdesign/];
+    A[User Goal] --> B{Supervisor Engine};
+    
+    subgraph "Supervisor Workflow"
+        B --> C[1. Context Preparer Agent];
+        C -- Rich Context Package --> D[2. Planning Team (Sub-Graph)];
+        D -- Plan & Mockups --> E{3. Human Approval Gate};
+        E -- "Proceed" --> F[4. Execution Team (Sub-Graph)];
     end
 
-    subgraph "Stigmergy Engine (The Brain)"
-        C --> D[Agent Orchestrator & State Machine];
-        D <--> E[Code Intelligence Service (Neo4j Graph)];
+    subgraph "Planning Team"
+        D --> G[Research Graph];
+        G --> H[Architect Agent];
+        H --> I[UX Designer Agent];
     end
 
-    subgraph "Specialized Tools (The Senses & Hands)"
-        D -- Executes Tools --> H[Research Tool (Firecrawl)];
-        D -- Executes Tools --> I[Code Generation (Gemini CLI)];
-        D -- Executes Tools --> J[File System Tools];
-        D -- Executes Tools --> K[Business Tools (Financial Modeling)];
-        J -- Writes Files --> G;
+    subgraph "Execution Team"
+        F -- Task --> J{Executor Supervisor};
+        J --> K[Dev OR Gemini Agent];
+        K --> L[QA Agent];
+        L -- Fails --> M[Debugger Agent];
+        M -- Loops --> J;
     end
-
-    style C fill:#82589F,stroke:#6D214F,color:white
-    style E fill:#3B3B98,stroke:#1B1464,color:white
-    style F fill:#FD7272,stroke:#D63031,color:white
-    style K fill:#2ecc71,stroke:#27ae60,color:white
-```
+    
+    F --> N[✅ Project Complete];
 
 ### Core Pillars
 
