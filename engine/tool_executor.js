@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 import { sanitizeToolCall } from "../utils/sanitization.js";
-import * as fileSystem from "../tools/file_system.js";
+import { readFile, writeFile, listFiles, appendFile } from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
 import * as cicd from "../tools/cicd_tool.js";
@@ -113,7 +113,7 @@ export function createExecutor(engine) {
   const guardianTools = createGuardianTools(engine);
 
   const toolbelt = {
-    file_system: fileSystem,
+    file_system: { readFile, writeFile, listFiles, appendFile },
     shell: shell,
     research: research,
     code_intelligence: codeIntelligence,
