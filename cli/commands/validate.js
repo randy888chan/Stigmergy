@@ -12,24 +12,25 @@ function getCorePath(providedPath) {
   return path.join(process.cwd(), ".stigmergy-core");
 }
 
-const agentSchema = z.object({
-  agent: z
-    .object({
-      id: z.string().regex(/^[a-z0-9_-]+$/, {
-        message:
-          "Agent ID must be lowercase and contain only letters, numbers, hyphens, or underscores.",
-      }),
-      name: z.string(),
-      alias: z.string().startsWith("@", { message: "Alias must start with @" }).optional(),
-      persona: z
-        .object({
-          role: z.string(),
-        })
-        .passthrough(),
-      tools: z.array(z.string()).optional(),
-    })
-    .passthrough(),
-});
+const agentSchema = z
+  .object({
+    agent: z
+      .object({
+        id: z
+          .string()
+          .regex(/^[a-z0-9_-]+$/, "Agent ID must be lowercase with hyphens/underscores only."),
+        name: z.string(),
+        alias: z.string().startsWith("@", "Alias must start with '@'").optional(),
+        persona: z
+          .object({
+            role: z.string(),
+          })
+          .passthrough(),
+        tools: z.array(z.string()).optional(),
+      })
+      .passthrough(),
+  })
+  .passthrough();
 
 export async function validateAgents(providedCorePath) {
   console.log("Validating agent definitions...");
@@ -74,32 +75,25 @@ export async function validateAgents(providedCorePath) {
 
     try {
       const agentData = yaml.load(yamlMatch[1]);
-      const result = agentSchema.safeParse(agentData);
-
-      if (!result.success) {
-        console.error(`❌ ${file}: Validation failed:`);
-        result.error.errors.forEach((err) => {
-          console.error(`  - Path: ${err.path.join(".")}, Message: ${err.message}`);
-        });
-        invalidAgents++;
-        continue;
-      }
+      agentSchema.parse(agentData); // This is the new validation step
 
       // Check for duplicate aliases
-      if (result.data.agent.alias) {
-        if (aliases.has(result.data.agent.alias)) {
+      if (agentData.agent?.alias) {
+        if (aliases.has(agentData.agent.alias)) {
           console.error(
-            `❌ ${file}: Duplicate alias '${
-              result.data.agent.alias
-            }' (also used in ${aliases.get(result.data.agent.alias)})`
+            `❌ ${file}: Duplicate alias '${agentData.agent.alias}' (also used in ${aliases.get(agentData.agent.alias)})`
           );
           invalidAgents++;
         } else {
-          aliases.set(result.data.agent.alias, file);
+          aliases.set(agentData.agent.alias, file);
         }
       }
     } catch (e) {
-      console.error(`❌ ${file}: Invalid YAML - ${e.message}`);
+      if (e instanceof z.ZodError) {
+        console.error(`❌ ${file}: Zod validation failed:`, e.flatten().fieldErrors);
+      } else {
+        console.error(`❌ ${file}: Invalid YAML - ${e.message}`);
+      }
       invalidAgents++;
     }
   }
