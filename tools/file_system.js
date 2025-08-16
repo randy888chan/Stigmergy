@@ -67,3 +67,11 @@ export async function listFiles({ directory }) {
   const safePath = resolvePath(directory);
   return glob("**/*", { cwd: safePath, nodir: true });
 }
+
+export async function appendFile({ path: filePath, content }) {
+  const safePath = resolvePath(filePath);
+  await fs.ensureDir(path.dirname(safePath));
+  // The 'a' flag stands for "append"
+  await fs.appendFile(safePath, content + '\\n');
+  return `Content successfully appended to ${filePath}`;
+}
