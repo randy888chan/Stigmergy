@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "system"
-  alias: "system"
+  alias: "@system"
   name: "System Controller"
   icon: "⚙️"
   persona:

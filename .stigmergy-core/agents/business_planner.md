@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "business_planner"
-  alias: "brian"
+  alias: "@brian"
   name: "Brian"
   archetype: "Planner"
   title: "Business Planner"

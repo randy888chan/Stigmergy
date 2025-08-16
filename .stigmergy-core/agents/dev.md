@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "dev"
-  alias: "james"
+  alias: "@james"
   name: "James"
   archetype: "Executor"
   title: "Task Package Executor"

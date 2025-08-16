@@ -3,7 +3,6 @@
 import { Command } from "commander";
 import { createRequire } from "module";
 import { SystemValidator } from "../src/bootstrap/system_validator.js";
-import { main as startEngine } from "../engine/server.js";
 import open from "open";
 import inquirer from "inquirer";
 import fs from "fs-extra";
@@ -23,7 +22,13 @@ program
   .command("start")
   .description("Starts the Stigmergy engine server (MCP).")
   .action(async () => {
-    await startEngine();
+    // TODO: Implement engine start logic using the new Engine class.
+    console.log("Starting engine... (implementation pending)");
+    // Example:
+    // const { Engine } = await import("../engine/server.js");
+    // const engine = new Engine();
+    // engine.initialize();
+    // engine.start(); // Assuming a start method exists
   });
 
 program
