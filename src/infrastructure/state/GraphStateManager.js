@@ -46,6 +46,7 @@ class GraphStateManager extends EventEmitter {
         "CREATE CONSTRAINT IF NOT EXISTS FOR (p:Project) REQUIRE p.project_name IS UNIQUE",
         "CREATE CONSTRAINT IF NOT EXISTS FOR (t:Task) REQUIRE t.id IS UNIQUE",
         "CREATE CONSTRAINT IF NOT EXISTS FOR (e:Event) REQUIRE e.id IS UNIQUE",
+        "CREATE CONSTRAINT IF NOT EXISTS FOR (c:Context) REQUIRE c.id IS UNIQUE",
       ];
       for (const query of queries) {
         await this._runQuery(query);
@@ -84,7 +85,8 @@ class GraphStateManager extends EventEmitter {
       MATCH (p:Project {project_name: $projectName})
       OPTIONAL MATCH (p)-[:HAS_TASK]->(t:Task)
       OPTIONAL MATCH (p)-[:HAS_EVENT]->(e:Event)
-      RETURN p, collect(DISTINCT t) as tasks, collect(DISTINCT e) as events
+      OPTIONAL MATCH (p)-[:HAS_CONTEXT]->(c:Context)
+      RETURN p, c, collect(DISTINCT t) as tasks, collect(DISTINCT e) as events
     `;
     const result = await this._runQuery(query, { projectName });
 
@@ -109,8 +111,13 @@ class GraphStateManager extends EventEmitter {
 
     events.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
+    const contextNode = record.c
+      ? record.c.properties
+      : { id: `${projectNode.project_name}-context`, entities: {} };
+
     const state = {
       ...projectNode,
+      context_graph: contextNode, // Add this line
       project_manifest: { tasks: tasks },
       history: events,
     };
@@ -181,6 +188,20 @@ class GraphStateManager extends EventEmitter {
                  SET e = event_data
                  MERGE (p)-[:HAS_EVENT]->(e)`,
           { history: history, projectName }
+        );
+      }
+
+      if (newState.context_graph) {
+        await tx.run(
+          `MATCH (p:Project {project_name: $projectName})
+           MERGE (c:Context {id: $contextId})
+           SET c = $contextProps
+           MERGE (p)-[:HAS_CONTEXT]->(c)`,
+          {
+            projectName,
+            contextId: newState.context_graph.id,
+            contextProps: newState.context_graph,
+          }
         );
       }
 
