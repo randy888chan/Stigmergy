@@ -13,7 +13,7 @@ import * as codeIntelligence from "../tools/code_intelligence.js";
 import * as coreTools from "../tools/core_tools.js";
 import * as archonTool from "../tools/archon_tool.js";
 import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
-import * as qaTools from "../tools/qa_tools.js";
+// import * as qaTools from "../tools/qa_tools.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
 import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
@@ -127,7 +127,7 @@ export function createExecutor(engine) {
     guardian: guardianTools,
     archon_tool: archonTool,
     swarm_intelligence: swarmIntelligence,
-    qa: qaTools,
+    // qa: qaTools,
   };
 
   return async function execute(toolName, args, agentId) {

@@ -16,7 +16,6 @@ import { readFileSync } from "fs";
 import config from "../stigmergy.config.js";
 import { LightweightHealthMonitor } from "../src/monitoring/lightweightHealthMonitor.js";
 import { StateGraph, END, interrupt } from "@langchain/langgraph";
-import { add } from "@langchain/langgraph/prebuilt";
 import { createPlanningGraph } from "./planning_graph.js";
 import { createExecutionGraph } from "./execution_graph.js";
 
