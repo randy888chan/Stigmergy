@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "health_monitor"
-  alias: "health_monitor"
+  alias: "@health_monitor"
   name: "Health Monitor"
   archetype: "Guardian"
   title: "System Health Monitor"

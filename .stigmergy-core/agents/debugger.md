@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "debugger"
-  alias: "dexter"
+  alias: "@dexter"
   name: "Dexter"
   archetype: "Executor"
   title: "Error Handler"

@@ -1,7 +1,7 @@
 ```yml
 agent:
   id: "qa"
-  alias: "quinn"
+  alias: "@quinn"
   name: "Quinn"
   archetype: "Executor"
   title: "Quality Assurance"
