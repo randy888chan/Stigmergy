@@ -1,5 +1,7 @@
 import AgentPerformance from "../engine/agent_performance.js";
 import SwarmMemory from "../engine/swarm_memory.js";
+import fs from "fs/promises";
+import path from "path";
 
 /**
  * A tool to query the swarm's collective intelligence.
@@ -39,5 +41,44 @@ export async function getLessonsForContext({ context, tags }) {
   } catch (error) {
     console.error(`Error in getLessonsForContext: ${error.message}`);
     return `Error retrieving lessons: ${error.message}`;
+  }
+}
+
+export async function get_failure_patterns() {
+  const filePath = path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
+  try {
+    const data = await fs.readFile(filePath, 'utf8');
+    const lines = data.trim().split('\\n');
+    const failures = lines.map(line => JSON.parse(line));
+
+    if (failures.length === 0) {
+      return "No failures found.";
+    }
+
+    const patternCounts = failures.reduce((acc, failure) => {
+      // Example pattern: combination of tags and root_cause
+      const pattern = `${(failure.tags || []).join(':')}:${failure.root_cause || 'unknown'}`;
+      acc[pattern] = (acc[pattern] || 0) + 1;
+      return acc;
+    }, {});
+
+    if (Object.keys(patternCounts).length === 0) {
+      return `Found ${failures.length} failures, but could not determine a common pattern.`;
+    }
+
+    const mostCommonPattern = Object.entries(patternCounts).reduce((a, b) => a[1] > b[1] ? a : b);
+    const [pattern, count] = mostCommonPattern;
+    const patternParts = pattern.split(':');
+    const rootCause = patternParts.pop();
+    const tags = patternParts.join(':');
+
+
+    return `Found ${failures.length} failures. The most common pattern (${count} times) is '${tags}' related to '${rootCause}' root causes.`;
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      return "No failure reports found.";
+    }
+    console.error(`Error in get_failure_patterns: ${error.message}`);
+    return `Error analyzing failure patterns: ${error.message}`;
   }
 }
