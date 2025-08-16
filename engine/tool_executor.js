@@ -108,6 +108,15 @@ export function createExecutor(engine) {
       await fs.writeFile(filePath, proposal);
       return `Improvement blueprint created at ${filePath}`;
     },
+    // ADD THIS NEW FUNCTION
+    task: async ({ subagent_type, description }) => {
+      if (!subagent_type || !description) {
+        throw new Error("The 'subagent_type' and 'description' are required for the task tool.");
+      }
+      // This leverages the existing engine method but exposes it as a formal tool
+      const result = await engine.triggerAgent(subagent_type, description);
+      return `Task delegated to @${subagent_type}. Result: ${result}`;
+    },
   };
 
   const guardianTools = createGuardianTools(engine);
