@@ -1,69 +1,43 @@
-import { getLlm } from "../engine/llm_adapter.js";
+import { getCompletion } from '../engine/llm_adapter.js';
 
 /**
- * Performs a semantic review of code against requirements using an LLM.
- * @param {string} requirements - The requirements for the code.
- * @param {string} code - The code to be reviewed.
- * @returns {Promise<{review_passed: boolean, feedback: string}>} An object containing the review result and feedback.
- * @description This tool uses an LLM to perform a semantic review of code to ensure it meets the given requirements.
+ * Performs a semantic review of code against requirements and architecture.
+ * @param {object} args - The arguments for the review.
+ * @param {string} args.requirements - The requirements for the code.
+ * @param {string} args.code - The code to be reviewed.
+ * @param {string} args.architecture_plan - The architectural plan.
+ * @returns {Promise<object>} - A promise that resolves to the review result.
  */
 export async function semantic_review({ requirements, code, architecture_plan }) {
-  const llm = getLlm();
+  const persona_prompt = `
+You are a meticulous QA engineer. Your task is to review a piece of code based on a set of requirements and an architecture plan.
 
-  const architecturalComplianceSection = architecture_plan
-    ? `
-        4.  **Architectural Compliance:** Does the code adhere to the principles, technologies, and patterns defined in the architectural plan below?
-            ARCHITECTURAL PLAN:
-            ${architecture_plan}
-    `
-    : "";
+You must determine if the code meets the requirements and adheres to the architecture.
 
-  const prompt = `
-        As an expert QA engineer, your task is to perform a semantic review of the provided code against the given requirements.
+Your response must be in a specific JSON format. Do not include any other text, just the JSON object.
 
-        **Requirements:**
-        ${requirements}
+The JSON format is:
+{
+  "review_passed": boolean,
+  "feedback": "string"
+}
 
-        **Code:**
-        \`\`\`
-        ${code}
-        \`\`\`
+If the review fails, the "feedback" string must contain a detailed, constructive critique of the code, explaining why it failed and how it can be improved.
 
-        **Your analysis should answer the following questions:**
-        1. Does the code semantically fulfill the requirements?
-        2. Are there any obvious bugs or edge cases that were missed?
-        3. Is the code of high quality (e.g., readable, maintainable)?
-        ${architecturalComplianceSection}
+Here is the information for your review:
 
-        **Output Format:**
-        Provide your response as a JSON object with two keys:
-        - "review_passed": a boolean (true if the code passes, false otherwise).
-        - "feedback": a string containing your detailed feedback and reasoning. If the review fails, provide specific, actionable feedback for the developer.
+**Requirements:**
+${requirements}
 
-        **Example of a passing review:**
-        {
-            "review_passed": true,
-            "feedback": "The code correctly implements the requirements. It is well-structured and handles edge cases appropriately."
-        }
+**Architecture Plan:**
+${architecture_plan}
 
-        **Example of a failing review:**
-        {
-            "review_passed": false,
-            "feedback": "The code does not fully meet the requirements. The requirement for user authentication is missing. Additionally, the error handling for invalid input is not robust."
-        }
+**Code to Review:**
+\`\`\`
+${code}
+\`\`\`
+`;
 
-        Now, provide your review of the given code and requirements.
-    `;
-
-  try {
-    const response = await llm.completion({ prompt, format: "json" });
-    const review = JSON.parse(response);
-    return review;
-  } catch (error) {
-    console.error(`Error in semantic_review: ${error.message}`);
-    return {
-      review_passed: false,
-      feedback: `An error occurred during the semantic review: ${error.message}`,
-    };
-  }
+  const result = await getCompletion('qa', persona_prompt);
+  return result;
 }
