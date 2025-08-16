@@ -1,5 +1,4 @@
 import { StateGraph, END } from "@langchain/langgraph";
-import { add } from "@langchain/langgraph/prebuilt";
 import { z } from "zod";
 import { generateObject } from "ai";
 import FirecrawlApp from "@mendable/firecrawl-js";
@@ -12,7 +11,7 @@ const researchState = {
   final_report: { value: (x, y) => y, default: () => null },
   search_content: { value: (x, y) => y, default: () => null },
   learnings: { value: (x, y) => y, default: () => [] }, // Use a simple replacement reducer
-  search_queries: { value: add, default: () => [] },
+  search_queries: { value: (x, y) => x.concat(y), default: () => [] },
   is_done: { value: (x, y) => y, default: () => false },
 };
 
