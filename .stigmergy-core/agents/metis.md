@@ -1,7 +1,7 @@
 ```yml
 agent:
-  id: "meta"
-  alias: "metis"
+  id: "metis"
+  alias: "@metis"
   name: "Metis"
   archetype: "Learner"
   title: "Swarm Intelligence Coordinator"
