@@ -1,4 +1,4 @@
-```yml
+```yaml
 agent:
   id: "metis"
   alias: "@metis"

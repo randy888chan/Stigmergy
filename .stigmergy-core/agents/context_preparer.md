@@ -1,4 +1,4 @@
-```yml
+```yaml
 agent:
   id: "context_preparer"
   alias: "@context"
@@ -13,4 +13,5 @@ agent:
     - "code_intelligence.*"
     - "archon_tool.*"
     - "research.*"
+  source: "project"
 ```

@@ -3,6 +3,7 @@ import path from "path";
 import yaml from "js-yaml";
 import coreBackup from "../../services/core_backup.js";
 import { validateAgents } from "./validate.js";
+import { fileURLToPath } from "url";
 
 export async function configureIde(
   coreSourceDir,
@@ -12,104 +13,77 @@ export async function configureIde(
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
 
-  const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
-  if (!fs.existsSync(manifestPath)) {
-    console.warn("Agent Manifest not found. Skipping IDE configuration.");
-    return;
-  }
-  const manifestContent = await fs.readFile(manifestPath, "utf8");
+  // *** THE DEFINITIVE FIX IS HERE ***
+  // Roo Code has a strict, predefined list of allowed groups.
+  // We will only allow these specific strings in the final .roomodes file.
+  const ALLOWED_ROO_GROUPS = new Set(["read", "edit", "command", "browser"]);
 
+  const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
+  const manifestContent = await fs.readFile(manifestPath, "utf8");
   const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  if (!manifestYamlMatch || !manifestYamlMatch[1]) {
-    throw new Error(`Invalid manifest format in ${manifestPath}`);
-  }
   const manifest = yaml.load(manifestYamlMatch[1]);
 
   const customModes = [];
-  const existingAliases = new Set();
   const agentsDir = path.join(coreSourceDir, "agents");
 
   for (const agent of manifest.agents) {
     const agentId = agent.id;
-    const agentExtensions = [".md", ".yml", ".yaml"];
-    let rawAgentDefinition = null;
-    let agentFile = null;
-
-    for (const ext of agentExtensions) {
-      const currentFile = `${agentId}${ext}`;
-      const agentPath = path.join(agentsDir, currentFile);
-      if (await fs.pathExists(agentPath)) {
-        rawAgentDefinition = await fs.readFile(agentPath, "utf8");
-        agentFile = currentFile;
-        break;
-      }
-    }
-
-    if (!rawAgentDefinition) {
+    const agentPath = path.join(agentsDir, `${agentId}.md`);
+    if (!(await fs.pathExists(agentPath))) {
       console.warn(`Skipping agent ${agentId}: No definition file found.`);
       continue;
     }
 
+    const rawAgentDefinition = await fs.readFile(agentPath, "utf8");
+    const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+    if (!yamlMatch || !yamlMatch[1]) {
+      console.warn(`Skipping agent ${agentId}: No YAML block found.`);
+      continue;
+    }
+
     try {
-      let agentData = {};
-      try {
-        const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-        if (yamlMatch) {
-          agentData = yaml.load(yamlMatch[1]);
-        }
-      } catch (e) {
-        console.warn(`Using minimal definition for ${agentId}: ${e.message}`);
-        agentData = { agent: { id: agentId, name: agentId } };
+      const agentData = yaml.load(yamlMatch[1]);
+      const agentConfig = agentData.agent;
+
+      const slug = (
+        agentConfig.alias.startsWith("@") ? agentConfig.alias.substring(1) : agentConfig.alias
+      ).replace(/[^a-zA-Z0-9-]/g, "-");
+
+      let roleDefString = agentConfig.persona.role || `Agent: ${agentConfig.name}`;
+      if (agentConfig.persona.identity) {
+        roleDefString += `\n\nIdentity: ${agentConfig.persona.identity}`;
       }
 
-      if (!agentData.agent) {
-        console.warn(`Agent data for ${agentId} is missing 'agent' property. Skipping.`);
-        continue;
-      }
+      const tools = agentConfig.tools || [];
+      // Filter the tools to only include those allowed by Roo Code.
+      const finalGroups = tools.filter((tool) => ALLOWED_ROO_GROUPS.has(tool));
 
-      let alias = agentData.agent?.alias || `@${agentId.split("_")[0]}`;
-      if (existingAliases.has(alias)) {
-        console.warn(`Duplicate alias detected: ${alias}`);
-        alias = `${alias}_${agentId}`; // Add unique suffix
-      }
-      existingAliases.add(alias);
+      const hasMcpTool = tools.includes("mcp");
+      const source = hasMcpTool ? agentConfig.source || "project" : null;
 
-      // Sanitize the alias to create a valid slug for Roo Code.
-      const slug = (alias.startsWith('@') ? alias.substring(1) : alias).replace(/[^a-zA-Z0-9-]/g, '-');
-
-      const finalGroups = [];
-      let source = null;
-      const tools = agentData.tools || [];
-      for (const tool of tools) {
-        if (tool.startsWith("mcp:")) {
-          source = tool.split(":")[1].trim();
-        } else {
-          finalGroups.push(tool);
-        }
-      }
+      // Ensure the 'execution' source is corrected to 'project' for compatibility.
+      const finalSource = source === "execution" ? "project" : source;
 
       const mode = {
         slug: slug,
-        name: `${agentData.agent.icon || "🤖"} ${agentData.agent.name}`,
-        roleDefinition: rawAgentDefinition,
-        groups: finalGroups,
+        name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
+        roleDefinition: roleDefString,
+        groups: finalGroups, // Use the filtered list
         api: {
           url: `${ENGINE_URL}/api/chat`,
           method: "POST",
           include: ["history"],
-          static_payload: {
-            agentId: agentData.agent.id,
-          },
+          static_payload: { agentId: agentConfig.id },
         },
       };
 
-      if (source) {
-        mode.source = source;
+      if (finalSource) {
+        mode.source = finalSource;
       }
 
       customModes.push(mode);
     } catch (error) {
-      console.error(`Skipping agent ${agentFile}: ${error.message}`);
+      console.error(`Error processing agent ${agentId}: ${error.message}`);
     }
   }
 
@@ -139,40 +113,41 @@ export async function configureIde(
 
 async function install() {
   try {
-    // Permanent backup before any operation
-    const backupPath = await coreBackup.autoBackup();
-    if (backupPath) {
-      console.log(`🛡️  Created permanent backup: ${path.basename(backupPath)}`);
-    }
-
-    console.log("Starting install...");
     const targetDir = process.cwd();
+    const targetCoreDir = path.join(targetDir, ".stigmergy-core");
 
-    // Respect the core_path from global config if it's set (for testing)
-    const coreDir = global.StigmergyConfig?.core_path || path.join(targetDir, ".stigmergy-core");
+    const __dirname = path.dirname(fileURLToPath(import.meta.url));
+    const sourceCoreDir = path.resolve(__dirname, "../../.stigmergy-core");
 
-    if (fs.existsSync(coreDir)) {
-      console.log("✅ .stigmergy-core already exists - preserving your brain");
-
-      const agentsValid = await validateAgents(coreDir);
-      if (!agentsValid.success) {
-        console.error("❌ Agent validation failed. Fix these issues before proceeding:");
-        console.error(agentsValid.error);
-        return false;
-      }
-
-      await configureIde(coreDir);
-      console.log(`✅ Install complete. .roomodes file updated.`);
-      return true;
-    } else {
-      console.error("❌ CRITICAL: .stigmergy-core not found in the project root.");
-      console.error("Please ensure the .stigmergy-core directory is present to run the install.");
+    if (!fs.existsSync(sourceCoreDir)) {
+      console.error("❌ CRITICAL: Source .stigmergy-core not found in the Stigmergy package.");
       return false;
     }
+
+    if (fs.existsSync(targetCoreDir)) {
+      console.log(
+        "✅ .stigmergy-core already exists in your project. Preserving your existing configuration."
+      );
+    } else {
+      console.log("Installing .stigmergy-core into your project...");
+      await fs.copy(sourceCoreDir, targetCoreDir);
+      console.log("✅ .stigmergy-core installed successfully.");
+    }
+
+    const agentsValid = await validateAgents(targetCoreDir);
+    if (!agentsValid.success) {
+      console.error(
+        "❌ Agent validation failed. Please check the definitions in your new .stigmergy-core folder."
+      );
+      return false;
+    }
+
+    await configureIde(targetCoreDir);
+    console.log(`✅ Setup complete. Your project is now configured to use Stigmergy.`);
+    return true;
   } catch (error) {
-    console.error("Install failed. Restoring from backup...");
-    await coreBackup.restoreLatest();
-    throw error;
+    console.error("❌ An unexpected error occurred during installation:", error);
+    return false;
   }
 }
 
