@@ -34,7 +34,6 @@
   "files": [
     "cli/",
     "engine/",
-    "installer/",
     "tools/",
     "services/",
     "ai/",
