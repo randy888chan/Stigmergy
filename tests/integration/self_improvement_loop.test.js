@@ -9,9 +9,9 @@ describe("Self-Improvement Loop Tools", () => {
   beforeAll(async () => {
     await fs.ensureDir(memoryDir);
     const report1 = JSON.stringify({ root_cause: "null-pointer", tags: ["database"] });
-    const report2 = JSON.stringify({ root_cause: "api-timeout" });
+    const report2 = JSON.stringify({ root_cause: "api-timeout", tags: ["api"] });
     const report3 = JSON.stringify({ root_cause: "null-pointer", tags: ["database"] });
-    await fs.writeFile(reportsPath, [report1, report2, report3].join("\\n"));
+    await fs.writeFile(reportsPath, [report1, report2, report3].join("\n"));
   });
 
   afterAll(async () => {
@@ -20,9 +20,6 @@ describe("Self-Improvement Loop Tools", () => {
 
   test("get_failure_patterns should analyze reports and find the most common pattern", async () => {
     const summary = await get_failure_patterns();
-    expect(summary).toContain("Found 3 failures");
-    expect(summary).toContain(
-      "most common pattern (2 times) is 'database' related to 'null-pointer'"
-    );
+    expect(summary).toBe("Analyzed 3 failures. The most common failure pattern (2 times) is related to the tag: 'database'. Recommendation: Investigate issues related to database.");
   });
 });

@@ -48,37 +48,39 @@ export async function get_failure_patterns() {
   const filePath = path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
   try {
     const data = await fs.readFile(filePath, 'utf8');
-    const lines = data.trim().split('\\n');
-    const failures = lines.map(line => JSON.parse(line));
+    const lines = data.trim().split('\n');
+    const failures = lines.map(line => {
+        try { return JSON.parse(line); }
+        catch { return null; }
+    }).filter(Boolean); // Filter out any nulls from parsing errors
 
     if (failures.length === 0) {
-      return "No failures found.";
+      return "No valid failure reports found to analyze.";
     }
 
-    const patternCounts = failures.reduce((acc, failure) => {
-      // Example pattern: combination of tags and root_cause
-      const pattern = `${(failure.tags || []).join(':')}:${failure.root_cause || 'unknown'}`;
-      acc[pattern] = (acc[pattern] || 0) + 1;
+    // Pattern analysis based on tags
+    const tagCounts = failures.reduce((acc, failure) => {
+      if (failure.tags && Array.isArray(failure.tags)) {
+        failure.tags.forEach(tag => {
+          acc[tag] = (acc[tag] || 0) + 1;
+        });
+      }
       return acc;
     }, {});
 
-    if (Object.keys(patternCounts).length === 0) {
-      return `Found ${failures.length} failures, but could not determine a common pattern.`;
+    if (Object.keys(tagCounts).length === 0) {
+      return `Analyzed ${failures.length} failures, but no common tags were found to identify a pattern.`;
     }
 
-    const mostCommonPattern = Object.entries(patternCounts).reduce((a, b) => a[1] > b[1] ? a : b);
-    const [pattern, count] = mostCommonPattern;
-    const patternParts = pattern.split(':');
-    const rootCause = patternParts.pop();
-    const tags = patternParts.join(':');
+    const mostCommonPattern = Object.entries(tagCounts).reduce((a, b) => a[1] > b[1] ? a : b);
+    const [tag, count] = mostCommonPattern;
 
-
-    return `Found ${failures.length} failures. The most common pattern (${count} times) is '${tags}' related to '${rootCause}' root causes.`;
+    return `Analyzed ${failures.length} failures. The most common failure pattern (${count} times) is related to the tag: '${tag}'. Recommendation: Investigate issues related to ${tag}.`;
   } catch (error) {
     if (error.code === 'ENOENT') {
-      return "No failure reports found.";
+      return "No failure reports have been logged yet.";
     }
-    console.error(`Error in get_failure_patterns: ${error.message}`);
+    console.error(`[Swarm Intelligence] Error in get_failure_patterns: ${error.message}`);
     return `Error analyzing failure patterns: ${error.message}`;
   }
 }

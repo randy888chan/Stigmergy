@@ -1,203 +1,67 @@
+// engine/error_handling.js
+
+import { localizeError } from '../utils/localization.js'; // Assuming you might use this later
+import chalk from 'chalk';
+
+export const ERROR_TYPES = {
+  DB_CONNECTION: "DatabaseConnectionError",
+  TOOL_EXECUTION: "ToolExecutionError",
+  AGENT_FAILURE: "AgentFailure",
+  PERMISSION_DENIED: "PermissionDenied",
+  SECURITY: "SecurityError",
+  CONFIGURATION: "ConfigurationError",
+  TRANSIENT: "TransientError"
+};
+
 /**
- * Centralized error handling system for Stigmergy
- * Provides consistent error classification, recovery, and reporting
+ * A custom error class for operational errors within Stigmergy.
  */
-
-class ErrorHandler {
-  constructor() {
-    this.errorPatterns = new Map();
-    this.recoveryStrategies = {
-      TRANSIENT: this._handleTransientError.bind(this),
-      CONFIGURATION: this._handleConfigurationError.bind(this),
-      DESIGN: this._handleDesignError.bind(this),
-      CRITICAL: this._handleCriticalError.bind(this),
-    };
-  }
-
-  /**
-   * Process an error report from any agent
-   */
-  async processError(errorReport) {
-    // Classify the error
-    const classification = this.classifyError(errorReport);
-
-    // Record the pattern
-    this._recordPattern(classification, errorReport);
-
-    // Attempt recovery
-    const recoveryResult = await this.attemptRecovery(classification, errorReport);
-
-    // Return complete handling result
-    return {
-      classification,
-      recoveryResult,
-      escalationNeeded: recoveryResult.escalationNeeded,
-    };
-  }
-
-  /**
-   * Classify error based on patterns and context
-   */
-  classifyError(errorReport) {
-    // Check for known patterns first
-    for (const [pattern, classification] of this.errorPatterns) {
-      if (errorReport.message.includes(pattern)) {
-        return classification;
-      }
-    }
-
-    // Apply heuristic classification
-    if (errorReport.message.includes("timeout") || errorReport.message.includes("ECONNREFUSED")) {
-      return "TRANSIENT";
-    }
-
-    if (errorReport.message.includes("config") || errorReport.message.includes("ENV")) {
-      return "CONFIGURATION";
-    }
-
-    if (errorReport.message.includes("architecture") || errorReport.message.includes("design")) {
-      return "DESIGN";
-    }
-
-    return "CRITICAL";
-  }
-
-  /**
-   * Attempt recovery based on error classification
-   */
-  async attemptRecovery(classification, errorReport) {
-    const strategy = this.recoveryStrategies[classification];
-    if (!strategy) return { success: false, message: "No recovery strategy available" };
-
-    return strategy(errorReport);
-  }
-
-  /**
-   * Handle transient errors (network issues, temporary failures)
-   */
-  async _handleTransientError(errorReport) {
-    // Implement exponential backoff
-    const maxRetries = 3;
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        // Allow the agent to retry its operation
-        if (errorReport.retryCallback) {
-          await errorReport.retryCallback();
-          return {
-            success: true,
-            message: `Recovered after ${i + 1} attempts`,
-            recoveryType: "AUTOMATIC_RETRY",
-          };
-        }
-      } catch (retryError) {
-        // Wait longer with each attempt
-        const delay = 500 * Math.pow(2, i);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
-    }
-
-    // If all retries failed, try fallback implementation
-    if (errorReport.fallbackCallback) {
-      try {
-        await errorReport.fallbackCallback();
-        return {
-          success: true,
-          message: "Recovered using fallback implementation",
-          recoveryType: "FALLBACK_IMPLEMENTATION",
-        };
-      } catch (fallbackError) {
-        // Continue to escalation
-      }
-    }
-
-    return {
-      success: false,
-      message: "Failed to recover from transient error",
-      escalationNeeded: true,
-    };
-  }
-
-  /**
-   * Handle configuration errors
-   */
-  _handleConfigurationError(errorReport) {
-    // Suggest specific configuration fixes
-    const suggestions = [];
-
-    if (errorReport.message.includes("NEO4J_URI")) {
-      suggestions.push('Check NEO4J_URI in .env file - should be format "bolt://localhost:7687"');
-    }
-
-    if (errorReport.message.includes("API_KEY")) {
-      suggestions.push("Verify API key is correctly set in .env file");
-    }
-
-    return {
-      success: false,
-      message: "Configuration error detected",
-      suggestions,
-      recoveryType: "CONFIGURATION",
-      escalationNeeded: false,
-    };
-  }
-
-  /**
-   * Handle design/architecture errors
-   */
-  _handleDesignError(errorReport) {
-    return {
-      success: false,
-      message: "Architecture/design issue detected",
-      suggestions: [
-        "Review system architecture document (docs/architecture.md)",
-        "Consider alternative implementation approach",
-        "Consult with design architect agent",
-      ],
-      recoveryType: "DESIGN",
-      escalationNeeded: true,
-    };
-  }
-
-  /**
-   * Handle critical errors requiring human intervention
-   */
-  _handleCriticalError(errorReport) {
-    return {
-      success: false,
-      message: "Critical error requiring human intervention",
-      suggestions: [
-        "Review error details and context",
-        "Consider temporary workaround",
-        "Update system to address root cause",
-      ],
-      recoveryType: "CRITICAL",
-      escalationNeeded: true,
-    };
-  }
-
-  /**
-   * Record error patterns for future learning
-   */
-  _recordPattern(classification, errorReport) {
-    const key = `${classification}:${errorReport.agentId}:${errorReport.operation}`;
-    let count = this.errorPatterns.get(key) || 0;
-    this.errorPatterns.set(key, count + 1);
-
-    // Store in persistent storage for cross-project learning
-    if (count % 5 === 0) {
-      // Only log every 5 occurrences
-      this._persistPattern(key, count + 1, errorReport);
-    }
-  }
-
-  /**
-   * Persist error patterns for long-term learning
-   */
-  _persistPattern(key, count, errorReport) {
-    // Implementation would store in Neo4j or fallback storage
-    console.log(`[ErrorHandler] Pattern logged: ${key} (count: ${count})`);
+export class OperationalError extends Error {
+  constructor(message, type, remediationSteps = []) {
+    super(message);
+    this.name = "OperationalError";
+    this.type = type;
+    this.remediationSteps = remediationSteps;
+    this.isOperational = true;
   }
 }
 
-// Export singleton instance
-module.exports = new ErrorHandler();
+/**
+ * Centralized error handling and classification for Stigmergy.
+ */
+class ErrorHandler {
+  /**
+   * Processes an error, classifies it, and provides a structured response.
+   * @param {Error} error - The error object.
+   * @param {object} context - Additional context (e.g., { agentId, toolName }).
+   * @returns {OperationalError} - A structured operational error.
+   */
+  process(error, context = {}) {
+    if (error instanceof OperationalError) {
+      return error; // The error is already processed.
+    }
+
+    // Classify the error based on its properties and context
+    let type = ERROR_TYPES.AGENT_FAILURE;
+    let message = error.message;
+    let remediation = [];
+
+    if (message.includes("Neo.ClientError") || message.includes("ECONNREFUSED")) {
+      type = ERROR_TYPES.DB_CONNECTION;
+      remediation = ["Check if Neo4j Desktop is running.", "Verify .env credentials (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).", "Run 'npm run test:neo4j' to diagnose."];
+    } else if (context.toolName) {
+      type = ERROR_TYPES.TOOL_EXECUTION;
+      remediation = [`Review the parameters passed to the '${context.toolName}' tool.`, "Check for required API keys in the .env file."];
+    } else if (message.includes("permission denied")) {
+        type = ERROR_TYPES.PERMISSION_DENIED;
+        remediation = [`Check the 'tools' list for agent '${context.agentId}' in its definition file.`];
+    }
+
+    console.error(chalk.red(`[ErrorHandler] Processed Error [${type}] for Agent [${context.agentId || 'unknown'}]`));
+    console.error(chalk.red(`  -> Original Message: ${message}`));
+
+    return new OperationalError(message, type, remediation);
+  }
+}
+
+export default new ErrorHandler();
