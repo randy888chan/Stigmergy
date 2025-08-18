@@ -17,6 +17,8 @@ lerna-debug.log*
 .stigmergy-backups/
 safe-core/
 test-project/
+.roomodes
+stigmergy.env.example
 
 # IDE & OS files
 .vscode/

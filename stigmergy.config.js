@@ -77,6 +77,11 @@ const config = {
   },
 
   fallbacks: {
+    // Defines behavior when primary services are down.
+    // Options: 'superdesign' | 'markdown'
+    design: "markdown",
+    // Options: 'gemini-cli' | 'llm-api'
+    execution: "llm-api",
     neo4j: "sqlite",
     llm: "openrouter",
   },

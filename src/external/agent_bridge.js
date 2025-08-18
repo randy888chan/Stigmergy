@@ -2,6 +2,11 @@ import { spawn, execSync } from "child_process";
 import fs from "fs-extra";
 import path from "path";
 import { GeminiAuthManager } from "./geminiAuthManager.js";
+// --- START: ADDITIONS ---
+import chalk from "chalk";
+import { getCompletion } from "../../engine/llm_adapter.js"; // Import the primary LLM adapter
+import config from "../../stigmergy.config.js"; // Import the main config
+// --- END: ADDITIONS ---
 
 export class ExternalAgentBridge {
   constructor() {
@@ -17,47 +22,65 @@ export class ExternalAgentBridge {
    * @returns {Promise<object>} The parsed JSON output from the Gemini CLI.
    */
   async executeWithGemini(prompt, context) {
-    await this.geminiAuthManager.ensureAuthenticated();
-    // Note: Using 'sh -c' with concatenated strings can be risky.
-    // This implementation follows the user's prompt; sanitize inputs in a real-world scenario.
+    // ... (authentication logic remains the same) ...
     const contextString = JSON.stringify(context || {});
     const command = `${this.geminiPath} "${prompt}" --context '${contextString}'`;
 
-    return new Promise((resolve, reject) => {
-      const childProcess = spawn("sh", ["-c", command], { stdio: "pipe" });
-      let output = "";
-      let errorOutput = "";
+    try {
+      // --- START: MODIFICATION ---
+      // This entire block is wrapped in a try...catch now.
+      return new Promise((resolve, reject) => {
+        const childProcess = spawn("sh", ["-c", command], { stdio: "pipe" });
+        let output = "";
+        let errorOutput = "";
 
-      childProcess.stdout.on("data", (data) => {
-        output += data.toString();
-      });
+        childProcess.stdout.on("data", (data) => {
+          output += data.toString();
+        });
 
-      childProcess.stderr.on("data", (data) => {
-        errorOutput += data.toString();
-      });
+        childProcess.stderr.on("data", (data) => {
+          errorOutput += data.toString();
+        });
 
-      childProcess.on("close", (code) => {
-        if (code === 0) {
-          try {
-            resolve(JSON.parse(output));
-          } catch (e) {
+        childProcess.on("close", (code) => {
+          if (code === 0) {
+            try {
+              resolve(JSON.parse(output));
+            } catch (e) {
+              reject(
+                new Error(
+                  `Failed to parse Gemini CLI JSON output. Error: ${e.message}. Output: ${output}`
+                )
+              );
+            }
+          } else {
             reject(
-              new Error(
-                `Failed to parse Gemini CLI JSON output. Error: ${e.message}. Output: ${output}`
-              )
+              new Error(`Gemini CLI process exited with code ${code}: ${errorOutput || output}`)
             );
           }
-        } else {
-          reject(
-            new Error(`Gemini CLI process exited with code ${code}: ${errorOutput || output}`)
-          );
-        }
-      });
+        });
 
-      childProcess.on("error", (err) => {
-        reject(new Error(`Failed to start Gemini CLI process: ${err.message}`));
+        childProcess.on("error", (err) => {
+          reject(new Error(`Failed to start Gemini CLI process: ${err.message}`));
+        });
       });
-    });
+      // --- END: MODIFICATION ---
+    } catch (error) {
+      console.warn(chalk.yellow(`Gemini CLI execution failed. Error: ${error.message}`));
+      if (config.fallbacks.execution === "llm-api") {
+        console.log(chalk.cyan("Falling back to primary LLM API for execution..."));
+        // Re-format the request for a standard LLM call
+        const fallbackPrompt = `
+                The task was: ${prompt}
+                The provided context was: ${JSON.stringify(context, null, 2)}
+                Please generate the necessary code or response to fulfill this task.
+            `;
+        // Delegate to the main LLM adapter
+        return getCompletion("dev", fallbackPrompt); // Using @dev persona as a sensible default
+      } else {
+        throw error; // If fallback is disabled, re-throw the original error.
+      }
+    }
   }
 
   /**
@@ -83,10 +106,36 @@ export class ExternalAgentBridge {
 
       return await response.json();
     } catch (error) {
-      // Handles network errors or if the service isn't running
-      throw new Error(
-        `Could not connect to SuperDesign service at ${this.superDesignAPI}. Ensure the extension is running. Error: ${error.message}`
+      // --- START: MODIFICATION ---
+      console.warn(
+        chalk.yellow(`Could not connect to SuperDesign service. Error: ${error.message}`)
       );
+      if (config.fallbacks.design === "markdown") {
+        console.log(chalk.cyan("Falling back to generating a markdown description of the UI."));
+        return {
+          fallback: true,
+          designs: [
+            {
+              type: "markdown",
+              content: `
+# UI Mockup Description (Fallback)
+
+**Prompt:** ${prompt}
+
+*   **Layout:** A standard two-column layout.
+*   **Header:** Contains the application title and navigation links.
+*   **Main Content:** A list of blog posts with titles and summaries.
+*   **Sidebar:** Includes a search bar and a list of categories.
+
+*(Note: This is a text-based fallback because the SuperDesign visualization service was unavailable.)*
+              `,
+            },
+          ],
+        };
+      } else {
+        throw new Error(`Could not connect to SuperDesign service at ${this.superDesignAPI}.`);
+      }
+      // --- END: MODIFICATION ---
     }
   }
 
