@@ -1,255 +1,128 @@
-/**
- * Business outcome verification system
- * Ensures features deliver actual business value, not just technical correctness
- */
-
-// Add to existing imports
-// import businessMetrics from "./business_metrics.js";
-import codeIntelligenceService from "../services/code_intelligence_service.js";
-import { SemanticValidator } from "../src/verification/semanticValidator.js";
+import fs from "fs-extra";
+import path from "path";
 import { glob } from "glob";
+import { getModel } from "../ai/providers.js";
+import { generateObject } from "ai";
+import { z } from "zod";
 
-async function _verifyWithNeo4j(projectPath) {
-  // Placeholder for Neo4j-based verification
-  console.log("[Verification] Using Neo4j-based verification for code health.");
-  return { success: true, message: "Code health verified with Neo4j." };
-}
-
-async function _verifyWithNeo4jRequirements(projectPath) {
-  // Placeholder for Neo4j-based verification
-  console.log("[Verification] Using Neo4j-based verification for project requirements.");
-  return { success: true, message: "Project requirements verified with Neo4j." };
-}
-
-export async function verifyCodeHealth(projectPath) {
-  const semanticValidator = new SemanticValidator();
-  const sourceFiles = await glob("**/*.{js,jsx,ts,tsx}", {
-    cwd: projectPath,
-    ignore: ["node_modules/**", "dist/**", "build/**", ".*/**"],
-    absolute: true,
+/**
+ * Extracts key technical terms and components from an architecture document.
+ * @param {string} architectureContent - The content of the architecture.md file.
+ * @returns {Promise<string[]>} A list of key terms.
+ */
+async function extractArchitectureTerms(architectureContent) {
+  const { object } = await generateObject({
+    model: getModel(),
+    prompt: `Extract the most critical and specific technical keywords, component names, function names, and library names from the following architecture document. Focus on concrete nouns.
+        ---
+        DOCUMENT:
+        ${architectureContent}`,
+    schema: z.object({
+      terms: z.array(z.string()).describe("A list of 5-10 essential technical terms."),
+    }),
   });
+  return object.terms;
+}
 
-  let allIssues = [];
-  for (const file of sourceFiles) {
-    const { issues } = await semanticValidator.validateCodeQuality(file);
-    allIssues = [...allIssues, ...issues];
-  }
+/**
+ * Extracts key functional requirements from a PRD.
+ * @param {string} prdContent - The content of the prd.md file.
+ * @returns {Promise<string[]>} A list of key requirements.
+ */
+async function extractPrdGoals(prdContent) {
+  const { object } = await generateObject({
+    model: getModel(),
+    prompt: `From the following Product Requirements Document (PRD), extract the primary functional goals. Each goal should be a short phrase describing a user-facing capability.
+        ---
+        DOCUMENT:
+        ${prdContent}`,
+    schema: z.object({
+      goals: z.array(z.string()).describe("A list of 3-5 primary functional goals."),
+    }),
+  });
+  return object.goals;
+}
 
-  const semanticResult = {
-    valid: allIssues.length === 0,
-    issues: allIssues,
-  };
+/**
+ * Scans the codebase to verify the presence of specified terms.
+ * @param {string[]} terms - A list of terms to search for.
+ * @returns {Promise<{verified: boolean, report: object}>} The verification result.
+ */
+async function verifyCodebaseContains(terms) {
+  const files = await glob("src/**/*.{js,ts,jsx,tsx}", { ignore: "node_modules/**" });
+  const report = {};
+  let foundCount = 0;
 
-  console.log(`[Verification] Semantic validation result: ${semanticResult.valid}`);
-
-  const neo4jStatus = await codeIntelligenceService.testConnection();
-  let baseVerification;
-
-  if (neo4jStatus.success) {
-    baseVerification = await _verifyWithNeo4j(projectPath);
-  } else {
-    console.log("[Verification] Neo4j unavailable, cannot verify code health.");
-    return { success: false, message: "Neo4j unavailable" };
+  for (const term of terms) {
+    let found = false;
+    for (const file of files) {
+      const content = await fs.readFile(file, "utf-8");
+      // Use a case-insensitive regex to find the term as a whole word
+      if (new RegExp(`\\b${term}\\b`, "i").test(content)) {
+        report[term] = { found: true, file: file };
+        found = true;
+        foundCount++;
+        break; // Move to the next term once found
+      }
+    }
+    if (!found) {
+      report[term] = { found: false, file: null };
+    }
   }
 
   return {
-    success: baseVerification.success && semanticResult.valid,
-    message: baseVerification.message,
-    semanticIssues: semanticResult.issues,
+    verified: foundCount === terms.length,
+    report: report,
   };
 }
 
-export async function verifyProjectRequirements(projectPath) {
-  const neo4jStatus = await codeIntelligenceService.testConnection();
-
-  if (neo4jStatus.success && neo4jStatus.limitations && !neo4jStatus.limitations.warning) {
-    // Use full verification when Neo4j is healthy
-    return _verifyWithNeo4jRequirements(projectPath);
-  } else {
-    // Use fallback verification when Neo4j has issues
-    console.log("[Verification] Neo4j unavailable, cannot verify project requirements.");
-    return { success: false, message: "Neo4j unavailable" };
-  }
-}
-
 /**
- * Enhanced verification that includes business outcome validation
+ * Verifies a project milestone against its planning documents.
+ * @param {string} milestoneDescription - A description of the milestone being verified.
+ * @returns {Promise<{success: boolean, details: object}>}
  */
-// export async function verifyBusinessOutcomes(milestone) {
-//   try {
-//     // First verify technical implementation
-//     const technicalVerification = await this.verifyCodeHealth(milestone.projectPath);
+export async function verifyMilestone(milestoneDescription) {
+  try {
+    console.log(`[Verification] Verifying milestone: ${milestoneDescription}`);
+    const prdPath = path.join(process.cwd(), "docs", "prd.md");
+    const archPath = path.join(process.cwd(), "docs", "architecture.md");
 
-//     // Then verify business outcomes
-//     const businessVerification = await this._verifyBusinessImpact(
-//       milestone.projectPath,
-//       milestone.goal
-//     );
-
-//     // Combine results
-//     return {
-//       success: technicalVerification.success && businessVerification.success,
-//       technical: technicalVerification,
-//       business: businessVerification,
-//       overallConfidence: this._calculateOverallConfidence(
-//         technicalVerification,
-//         businessVerification
-//       ),
-//     };
-//   } catch (error) {
-//     return {
-//       success: false,
-//       error: `Business verification failed: ${error.message}`,
-//     };
-//   }
-// }
-
-// /**
-//  * Verify that implementation delivers intended business value
-//  */
-// async function _verifyBusinessImpact(projectPath, goal) {
-//   // Extract business objectives from goal
-//   const businessObjectives = await businessMetrics.extractObjectives(goal);
-
-//   // Check if objectives are measurable
-//   const measurableObjectives = businessMetrics.filterMeasurable(businessObjectives);
-
-//   // For each measurable objective, check if verification is possible
-//   const verificationResults = await Promise.all(
-//     measurableObjectives.map(async (objective) => {
-//       const verification = await this._verifySingleObjective(projectPath, objective);
-//       return verification;
-//     })
-//   );
-
-//   // Calculate overall business verification score
-//   const successCount = verificationResults.filter((r) => r.success).length;
-//   const successRate = successCount / verificationResults.length;
-
-//   return {
-//     success: successRate >= 0.7, // 70% of objectives verified
-//     objectivesVerified: successCount,
-//     totalObjectives: verificationResults.length,
-//     results: verificationResults,
-//     confidenceScore: successRate,
-//   };
-// }
-
-/**
- * Verify a single business objective
- */
-// async function _verifySingleObjective(projectPath, objective) {
-//   // Try different verification approaches based on objective type
-//   switch (objective.type) {
-//     case "user_engagement":
-//       return this._verifyUserEngagement(projectPath, objective);
-
-//     case "revenue":
-//       return this._verifyRevenueImpact(projectPath, objective);
-
-//     case "conversion":
-//       return this._verifyConversionRate(projectPath, objective);
-
-//     case "performance":
-//       return this._verifyPerformanceMetric(projectPath, objective);
-
-//     default:
-//       return this._verifyGenericObjective(projectPath, objective);
-//   }
-// }
-
-// /**
-//  * Verify user engagement metrics
-//  */
-// async function _verifyUserEngagement(projectPath, objective) {
-//   // Check if analytics tracking is implemented
-//   const trackingImplemented = await businessMetrics.checkAnalyticsTracking(
-//     projectPath,
-//     objective.metric
-//   );
-
-//   // Check if expected user flows exist
-//   const userFlowsExist = await businessMetrics.checkUserFlows(project.path, objective.userFlows);
-
-//   // Create simulation if possible
-//   const simulationResult = objective.simulation
-//     ? await businessMetrics.runUserSimulation(projectPath, objective.simulation)
-//     : null;
-
-//   return {
-//     success: trackingImplemented && userFlowsExist,
-//     objective: objective.description,
-//     verification: {
-//       trackingImplemented,
-//       userFlowsExist,
-//       simulationResult,
-//     },
-//     confidence: trackingImplemented && userFlowsExist ? 0.9 : 0.3,
-//   };
-// }
-
-// // Add other verification methods for different objective types...
-
-// /**
-//  * Calculate overall verification confidence
-//  */
-// function _calculateOverallConfidence(technical, business) {
-//   // Weight business verification higher as it's more important
-//   return technical.confidenceScore * 0.3 + business.confidenceScore * 0.7;
-// }
-
-// Mock objects for shouldAutoApprove. In a real implementation, these would be imported.
-const config = {
-  autoApproveThreshold: 0.9,
-  maxAutoApproveComplexity: 5,
-};
-
-const riskEvaluator = {
-  assess: (task) => {
-    // Mock risk assessment based on task properties.
-    let confidence = 0.95;
-    if (task.description && task.description.toLowerCase().includes("critical")) {
-      confidence = 0.7;
+    if (!(await fs.pathExists(prdPath)) || !(await fs.pathExists(archPath))) {
+      return {
+        success: false,
+        details: { error: "Planning documents (prd.md or architecture.md) not found." },
+      };
     }
-    return { confidence };
-  },
-};
 
-/**
- * Determines if a task should be auto-approved based on risk and complexity.
- * @param {object} task The task to evaluate.
- * @returns {boolean} True if the task should be auto-approved, false otherwise.
- */
-export function shouldAutoApprove(task) {
-  // This is a placeholder for AI-driven verification of acceptance criteria.
-  // The current implementation uses a mock risk evaluator.
-  const riskAssessment = riskEvaluator.assess(task);
-  return (
-    riskAssessment.confidence > config.autoApproveThreshold &&
-    task.complexity < config.maxAutoApproveComplexity
-  );
-}
+    const prdContent = await fs.readFile(prdPath, "utf-8");
+    const archContent = await fs.readFile(archPath, "utf-8");
 
-export async function verifyMilestone(milestone) {
-  const results = await Promise.all([
-    verifyTechnicalImplementation(milestone),
-    verifyBusinessOutcomes(milestone),
-    verifyArchitecturalCompliance(milestone),
-  ]);
+    // Step 1: Verify architectural compliance
+    const archTerms = await extractArchitectureTerms(archContent);
+    console.log("[Verification] Checking for architecture terms:", archTerms);
+    const archVerification = await verifyCodebaseContains(archTerms);
 
-  return results.every((r) => r.success);
-}
+    // Step 2: Verify functional compliance (simplified check)
+    const prdGoals = await extractPrdGoals(prdContent);
+    console.log("[Verification] Checking for PRD goals:", prdGoals);
+    const prdVerification = await verifyCodebaseContains(prdGoals);
 
-async function verifyTechnicalImplementation(milestone) {
-  // This is a placeholder.
-  // The user did not provide the implementation for this function.
-  console.log(`Verifying technical implementation for milestone ${JSON.stringify(milestone)}`);
-  return { success: true };
-}
+    const success = archVerification.verified && prdVerification.verified;
 
-async function verifyArchitecturalCompliance(milestone) {
-  // This is a placeholder.
-  // The user did not provide the implementation for this function.
-  console.log(`Verifying architectural compliance for milestone ${JSON.stringify(milestone)}`);
-  return { success: true };
+    console.log(`[Verification] Result: ${success ? "PASSED" : "FAILED"}`);
+
+    return {
+      success: success,
+      details: {
+        milestone: milestoneDescription,
+        architectural_compliance: archVerification,
+        functional_compliance: prdVerification,
+      },
+    };
+  } catch (error) {
+    console.error(
+      `[Verification] An unexpected error occurred during verification: ${error.message}`
+    );
+    return { success: false, details: { error: error.message } };
+  }
 }
