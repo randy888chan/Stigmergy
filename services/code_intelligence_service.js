@@ -1,6 +1,7 @@
 import neo4j from "neo4j-driver";
 import { vol } from "memfs";
 import { setTimeout } from "timers/promises";
+import chalk from "chalk";
 import "dotenv/config.js";
 import fs from "fs-extra";
 import path from "path";
@@ -43,6 +44,7 @@ const createInMemoryDriver = () => {
 class CodeIntelligenceService {
   constructor() {
     this.driver = null;
+    this.isMemoryMode = false; // --- ADDITION ---
     this.isMemory = false;
     this.watcher = null;
     this.ig = ignore().add(["node_modules/**", "dist/**", ".*"]);
@@ -117,6 +119,14 @@ class CodeIntelligenceService {
   initializeDriver() {
     const neo4jFeature = config.features?.neo4j;
 
+    // --- START: NEW LOGIC ---
+    if (neo4jFeature === 'memory') {
+        console.log(chalk.yellow("[CodeIntelligence] Configured for 'memory' mode. Neo4j will not be used."));
+        this.isMemoryMode = true;
+        return;
+    }
+    // --- END: NEW LOGIC ---
+
     // Handle memory mode first
     if (neo4jFeature === "memory") {
       console.log("[CodeIntelligence] Using in-memory Neo4j driver (mocked).");
@@ -187,6 +197,11 @@ class CodeIntelligenceService {
   }
 
   async testConnection(retries = 3, baseDelay = 1000) {
+    // --- START: ADDITION ---
+    if (this.isMemoryMode) {
+      return { success: true, type: 'memory', warning: 'Running in memory mode. Code intelligence is disabled.' };
+    }
+    // --- END: ADDITION ---
     // Return cached status if recently checked
     if (this.lastConnectionCheck && Date.now() - this.lastConnectionCheck < 5000) {
       return this.lastConnectionStatus;
@@ -267,6 +282,15 @@ class CodeIntelligenceService {
       const errorType = this._categorizeConnectionError(error);
       const errorMsg = this._formatConnectionError(error, errorType);
 
+      // --- START: ADDITION for 'auto' mode fallback ---
+      if (config.features.neo4j === 'auto') {
+          console.warn(chalk.yellow(`[CodeIntelligence] Neo4j connection failed: ${errorMsg}`));
+          console.warn(chalk.yellow("  -> Falling back to 'memory' mode for this session."));
+          this.isMemoryMode = true;
+          return { success: true, type: 'memory', warning: 'Fell back to memory mode due to connection failure.' };
+      }
+      // --- END: ADDITION ---
+
       this.lastConnectionStatus = {
         success: false,
         error: errorMsg,
@@ -279,6 +303,7 @@ class CodeIntelligenceService {
   }
 
   async _runQuery(query, params) {
+    if (this.isMemoryMode) return []; // --- ADDITION: Return empty for memory mode ---
     if (!this.driver) this.initializeDriver();
     if (!this.driver) {
       if (config.features?.neo4j === "required") {
@@ -532,6 +557,7 @@ class CodeIntelligenceService {
   }
 
   async findUsages({ symbolName }) {
+    if (this.isMemoryMode) return [];
     const cacheKey = `findUsages:${symbolName}`;
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) return cachedResult;
@@ -553,6 +579,7 @@ class CodeIntelligenceService {
   }
 
   async getDefinition({ symbolName }) {
+    if (this.isMemoryMode) return null;
     const cacheKey = `getDefinition:${symbolName}`;
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) return cachedResult;
@@ -569,6 +596,7 @@ class CodeIntelligenceService {
   }
 
   async getModuleDependencies({ filePath }) {
+    if (this.isMemoryMode) return [];
     const cacheKey = `getModuleDependencies:${filePath}`;
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) return cachedResult;
@@ -584,6 +612,7 @@ class CodeIntelligenceService {
   }
 
   async calculateCKMetrics({ className }) {
+    if (this.isMemoryMode) return {};
     const cacheKey = `calculateCKMetrics:${className}`;
     const cachedResult = this.cache.get(cacheKey);
     if (cachedResult) return cachedResult;
@@ -638,4 +667,6 @@ class CodeIntelligenceService {
   }
 }
 
-export default new CodeIntelligenceService();
+const codeIntelligenceService = new CodeIntelligenceService();
+export { CodeIntelligenceService };
+export default codeIntelligenceService;

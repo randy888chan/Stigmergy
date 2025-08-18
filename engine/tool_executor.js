@@ -17,7 +17,9 @@ import * as qaTools from "../tools/qa_tools.js";
 import { verify_business_alignment } from "../tools/business_verification.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
-import { OperationalError, ERROR_TYPES, remediationMap, withRetry } from "../utils/errorHandler.js";
+import { withRetry } from '../utils/errorHandler.js';
+import ErrorHandler, { OperationalError, ERROR_TYPES } from './error_handling.js';
+import { trackToolUsage } from '../services/model_monitoring.js';
 
 const retryableTools = ["research.deep_dive", "code_intelligence.getDefinition", "gemini.execute"];
 
@@ -142,7 +144,9 @@ export function createExecutor(engine) {
   };
 
   return async function execute(toolName, args, agentId) {
+    const startTime = Date.now();
     try {
+      // ... (existing permission checks and sanitization)
       const manifest = await getManifest();
       const agentConfig = manifest.agents.find((a) => a.id === agentId);
       if (!agentConfig) {
@@ -176,27 +180,35 @@ export function createExecutor(engine) {
       const shouldRetry = retryableTools.includes(toolName);
       const executor = shouldRetry ? withRetry(toolFn) : toolFn;
 
+
       const result = await executor({ ...safeArgs, agentConfig });
 
+      // --- START: MODIFICATION ---
+      await trackToolUsage({
+          toolName,
+          success: true,
+          agentId,
+          executionTime: Date.now() - startTime
+      });
+      // --- END: MODIFICATION ---
+
+      // ... (existing file cache logic)
       if (toolName.startsWith("file_system.write")) {
         clearFileCache();
       }
       return JSON.stringify(result, null, 2);
     } catch (error) {
-      let errorType = ERROR_TYPES.TOOL_EXECUTION;
-
-      if (error.name.includes("Neo4j")) errorType = ERROR_TYPES.DB_CONNECTION;
-      if (error.name === "PermissionDeniedError") errorType = ERROR_TYPES.PERMISSION_DENIED;
-
-      if (error instanceof OperationalError) {
-        throw error;
-      }
-
-      throw new OperationalError(
-        error.message, // Keep original message for non-operational errors
-        errorType,
-        remediationMap[errorType]
-      );
+      // --- START: MODIFICATION ---
+      const processedError = ErrorHandler.process(error, { agentId, toolName });
+      await trackToolUsage({
+          toolName,
+          success: false,
+          agentId,
+          executionTime: Date.now() - startTime,
+          error: processedError.message
+      });
+      throw processedError; // Re-throw the structured operational error
+      // --- END: MODIFICATION ---
     }
   };
 }

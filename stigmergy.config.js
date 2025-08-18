@@ -29,13 +29,8 @@ const config = {
   },
 
   features: {
-    neo4j: "auto", // Options: 'required', 'auto', 'memory', false
-    businessTools: true, // Enable business planning agents
-    advancedResearch: true, // Enable deep research capabilities
-    nlpEnhancements: true, // Enable advanced NLP features
-    verificationCompleteness: true, // Enable business outcome verification
-    modularAgents: true, // Enable modular agent loading
-    // Add more feature flags as needed
+    neo4j: "auto", // Options: 'required', 'auto', 'memory'
+    // ... (other feature flags)
   },
 
   performance: {
