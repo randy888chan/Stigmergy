@@ -12,7 +12,7 @@ agents:
   - id: guardian
   - id: health_monitor
   - id: metis
-  - id: orion  # Add Orion here
+  - id: orion # Add Orion here
   - id: qa
   - id: refactorer
   - id: system

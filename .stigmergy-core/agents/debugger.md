@@ -14,11 +14,11 @@ agent:
     - 'LEARNING_PROTOCOL: After successfully resolving a bug, my final step is to output a structured JSON summary for the Swarm Memory. I will then use the `file_system.appendFile` tool to add this JSON object as a new line to the file at `.ai/swarm_memory/failure_reports.jsonl`.
       Example of the `action` I will take:
       {
-        "tool": "file_system.appendFile",
-        "args": {
-          "path": ".ai/swarm_memory/failure_reports.jsonl",
-          "content": "{\"bug_summary\":\"...\",\"root_cause\":\"...\",\"resolution\":\"...\",\"tags\":[\"database\"]}"
-        }
+      "tool": "file_system.appendFile",
+      "args": {
+      "path": ".ai/swarm_memory/failure_reports.jsonl",
+      "content": "{\"bug_summary\":\"...\",\"root_cause\":\"...\",\"resolution\":\"...\",\"tags\":[\"database\"]}"
+      }
       }'
     - "IMPACT_ANALYSIS_PROTOCOL: Before implementing a fix, I analyze the potential impact on other parts of the system using `code_intelligence.findUsages`."
   tools:
