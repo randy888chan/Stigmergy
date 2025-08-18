@@ -2,11 +2,45 @@
 
 import { Command } from "commander";
 import { createRequire } from "module";
+// --- START: ADDITIONS ---
+import { CoreBackup } from "../services/core_backup.js";
+import fs from "fs-extra";
+import path from "path";
+import chalk from "chalk";
 import { SystemValidator } from "../src/bootstrap/system_validator.js";
 import open from "open";
 import inquirer from "inquirer";
-import fs from "fs-extra";
-import path from "path";
+
+const coreBackup = new CoreBackup();
+
+/**
+ * Checks if .stigmergy-core exists. If not, it attempts to restore it from the latest backup.
+ * This function acts as a gatekeeper for all CLI commands except 'install'.
+ * @returns {Promise<boolean>} - True if the system can proceed, false otherwise.
+ */
+async function runGuardianCheck() {
+  const corePath = path.join(process.cwd(), ".stigmergy-core");
+  if (await fs.pathExists(corePath)) {
+    return true; // The core is present, proceed.
+  }
+
+  console.warn(
+    chalk.yellow("⚠️ .stigmergy-core not found. Attempting to restore from latest backup...")
+  );
+  const success = await coreBackup.restoreLatest();
+
+  if (success) {
+    console.log(chalk.green("✅ Successfully restored .stigmergy-core from backup."));
+    return true;
+  } else {
+    console.error(chalk.red("❌ Restore failed. No backups found."));
+    console.log(
+      chalk.cyan('--> Please run "npx stigmergy install" to perform a fresh installation.')
+    );
+    return false; // Halt execution.
+  }
+}
+// --- END: ADDITIONS ---
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
@@ -94,10 +128,16 @@ program
 
 async function main() {
   try {
-    // Set the default command to 'bootstrap' if no other command is provided
-    if (process.argv.length <= 2) {
-      process.argv.push("bootstrap");
+    // --- START: MODIFICATION ---
+    // Run the check before parsing any commands, except for 'install' itself.
+    const command = process.argv[2];
+    if (command && command !== "install") {
+      const canProceed = await runGuardianCheck();
+      if (!canProceed) {
+        process.exit(1);
+      }
     }
+    // --- END: MODIFICATION ---
     await program.parseAsync(process.argv);
   } catch (err) {
     console.error("❌ Unhandled exception in main:", err);

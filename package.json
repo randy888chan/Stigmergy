@@ -117,6 +117,9 @@
   "lint-staged": {
     "**/*.{md,js,json,yml,yaml}": [
       "prettier --write"
+    ],
+    ".stigmergy-core/agents/*.{md,yml,yaml}": [
+      "node cli/index.js validate:agents"
     ]
   }
 }

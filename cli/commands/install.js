@@ -166,6 +166,12 @@ async function install() {
     }
 
     await configureIde(targetCoreDir);
+
+    // --- START: ADDITION ---
+    console.log("Creating initial backup of the new .stigmergy-core...");
+    await coreBackup.autoBackup();
+    // --- END: ADDITION ---
+
     console.log(`✅ Setup complete. Your project is now configured to use Stigmergy.`);
     return true;
   } catch (error) {
