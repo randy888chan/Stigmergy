@@ -7,16 +7,16 @@ import chalk from "chalk";
 import fs from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
-import axios from 'axios';
+import axios from "axios";
 
-const ARCHON_API_URL = 'http://localhost:8181/api';
+const ARCHON_API_URL = "http://localhost:8181/api";
 
 let firecrawl;
 
 async function healthCheck() {
   try {
     const response = await axios.get(`${ARCHON_API_URL}/health`, { timeout: 1000 });
-    return response.status === 200 && response.data.status === 'healthy';
+    return response.status === 200 && response.data.status === "healthy";
   } catch (error) {
     return false;
   }
@@ -53,7 +53,7 @@ export async function deep_dive({ query, learnings = [] }) {
     console.log(chalk.green("🚀 Archon server detected. Using advanced RAG for research."));
     try {
       const response = await axios.post(`${ARCHON_API_URL}/rag/query`, { query, match_count: 10 });
-      
+
       const allContent = response.data.results
         .map((item) => `Source: ${item.url}\n\n${item.markdown || item.content}`)
         .join("\n\n---\n\n");
@@ -66,7 +66,9 @@ export async function deep_dive({ query, learnings = [] }) {
     CONTENT:
     ${allContent}`,
         schema: z.object({
-          newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
+          newLearnings: z
+            .array(z.string())
+            .describe("A list of key insights and facts discovered."),
           next_research_queries: z
             .array(z.string())
             .describe("A list of new, more focused search queries to continue the research."),
@@ -90,7 +92,9 @@ export async function deep_dive({ query, learnings = [] }) {
   }
 
   // --- Fallback to Firecrawl ---
-  console.log(chalk.blue("🔧 Archon server not detected or failed. Using native Firecrawl research tool."));
+  console.log(
+    chalk.blue("🔧 Archon server not detected or failed. Using native Firecrawl research tool.")
+  );
   try {
     const client = getFirecrawlClient();
     const serpGen = await generateObject({
@@ -154,4 +158,38 @@ export async function deep_dive({ query, learnings = [] }) {
       sources: [],
     };
   }
+}
+
+/**
+ * NEW TOOL: Analyzes a block of text to identify user personas and pain points.
+ * @param {object} args
+ * @param {string} args.research_data - Text content from market research, user interviews, etc.
+ * @returns {Promise<{personas: object[], pain_points: string[]}>}
+ */
+export async function analyze_user_feedback({ research_data }) {
+  console.log("[Research] Analyzing user feedback to extract personas and pain points...");
+  const { object } = await generateObject({
+    model: getModel(),
+    prompt: `You are a UX researcher. From the following research data, identify the primary user personas and their key pain points.
+        ---
+        RESEARCH DATA:
+        ${research_data}`,
+    schema: z.object({
+      personas: z
+        .array(
+          z.object({
+            name: z
+              .string()
+              .describe("A descriptive name for the persona, e.g., 'The Busy Professional'"),
+            description: z.string().describe("A brief description of this user type."),
+            goals: z.array(z.string()).describe("What this persona wants to achieve."),
+          })
+        )
+        .describe("A list of identified user personas."),
+      pain_points: z
+        .array(z.string())
+        .describe("A list of the most significant problems or frustrations mentioned in the data."),
+    }),
+  });
+  return object;
 }
