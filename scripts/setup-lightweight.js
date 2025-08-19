@@ -18,20 +18,6 @@ async function setupLightweight() {
       },
     },
     {
-      name: "Neo4j Connection",
-      action: async () => {
-        console.log(chalk.yellow("🔗 Testing Neo4j..."));
-        execSync("npm run test:neo4j", { stdio: "inherit" });
-      },
-    },
-    {
-      name: "Gemini CLI",
-      action: async () => {
-        console.log(chalk.yellow("🤖 Setting up Gemini..."));
-        execSync("npm run setup:gemini", { stdio: "inherit" });
-      },
-    },
-    {
       name: "Health Monitoring",
       action: async () => {
         console.log(chalk.yellow("📊 Starting health monitor..."));

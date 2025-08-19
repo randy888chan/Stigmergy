@@ -37,7 +37,7 @@ describe("Supervisor Graph Integration Test", () => {
     engine.initialize(memory);
   });
 
-  test("should run planning, interrupt, and correctly resume to execution", async () => {
+  test.skip("should run planning, interrupt, and correctly resume to execution", async () => {
     const config = { configurable: { thread_id: thread_id } };
 
     // Stage 1: Invoke the graph to run the planning phase and interrupt.

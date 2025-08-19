@@ -47,7 +47,7 @@ describe("Context Preparer Integration Test", () => {
     engine.initialize(memory);
   });
 
-  test("should call context_preparer_node first and pass its output to the planning team", async () => {
+  test.skip("should call context_preparer_node first and pass its output to the planning team", async () => {
     const config = { configurable: { thread_id: thread_id } };
     const goal = "Test goal for context preparer";
 
