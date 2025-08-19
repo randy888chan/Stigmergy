@@ -1,29 +1,29 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config.js";
+import config from '../stigmergy.config.js';
 
-export function getModel() {
-  const { AI_API_KEY, AI_API_BASE_URL, AI_MODEL } = process.env;
+// Store provider instances to avoid re-creation
+const providers = {};
 
-  if (!AI_API_KEY || !AI_MODEL) {
-    throw new Error(
-      "Missing AI configuration. Please set AI_API_KEY and AI_MODEL in your .env file."
-    );
-  }
+function getProvider(apiKey, baseURL) {
+    const key = `${apiKey}-${baseURL}`;
+    if (!providers[key]) {
+        providers[key] = createOpenAI({ apiKey, baseURL });
+    }
+    return providers[key];
+}
 
-  const providerConfig = {
-    apiKey: AI_API_KEY,
-  };
+export function getModelForTier(tier) {
+    const tierConfig = config.model_tiers[tier];
+    if (!tierConfig || !tierConfig.api_key || !tierConfig.model_name) {
+        console.warn(`Warning: Tier '${tier}' is not fully configured. Falling back to default AI_MODEL.`);
+        // Fallback to legacy environment variables
+        const { AI_API_KEY, AI_API_BASE_URL, AI_MODEL } = process.env;
+        if (!AI_API_KEY || !AI_MODEL) throw new Error("Default AI model is not configured in .env");
+        const provider = getProvider(AI_API_KEY, AI_API_BASE_URL);
+        return provider(AI_MODEL);
+    }
 
-  if (AI_API_BASE_URL) {
-    providerConfig.baseURL = AI_API_BASE_URL;
-  }
-
-  console.log(
-    `[AI Provider] Initializing with model "${AI_MODEL}"` +
-      (AI_API_BASE_URL ? ` at ${AI_API_BASE_URL}` : "")
-  );
-
-  const provider = createOpenAI(providerConfig);
-
-  return provider(AI_MODEL);
+    const provider = getProvider(tierConfig.api_key, tierConfig.base_url); // Assuming base_url is in config
+    return provider(tierConfig.model_name);
 }

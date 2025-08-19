@@ -34,33 +34,38 @@ export class Engine {
     if (!this.isEngineRunning) return;
     console.log(chalk.red(`🛑 Stigmergy Engine stopping. Reason: ${reason}`));
     this.isEngineRunning = false;
+    if (this.timerId) {
+      clearTimeout(this.timerId);
+    }
   }
 
   async runMainLoop() {
-    while (this.isEngineRunning) {
-      try {
-        const state = await stateManager.getState();
-        console.log(chalk.blue(`[Engine Loop] Status: ${state.project_status}`));
+    if (!this.isEngineRunning) return;
 
-        if (this.taskCounter >= SELF_IMPROVEMENT_CYCLE) {
-          console.log(chalk.magentaBright("[Engine Loop] Self-improvement cycle triggered."));
-          await stateManager.updateStatus({ newStatus: "NEEDS_IMPROVEMENT" });
-          this.taskCounter = 0;
-          continue;
-        }
+    try {
+      const state = await stateManager.getState();
+      console.log(chalk.blue(`[Engine Loop] Status: ${state.project_status}`));
 
+      if (this.taskCounter >= SELF_IMPROVEMENT_CYCLE) {
+        console.log(chalk.magentaBright("[Engine Loop] Self-improvement cycle triggered."));
+        await stateManager.updateStatus({ newStatus: "NEEDS_IMPROVEMENT" });
+        this.taskCounter = 0;
+      } else {
         const decision = await this.triggerAgent("dispatcher", state);
 
         if (decision?.action?.tool) {
           await this.executeTool(decision.action.tool, decision.action.args, "dispatcher");
           this.taskCounter++;
         } else {
-          console.log(chalk.yellow("[Engine Loop] Idle. Pausing for 10s."));
-          await new Promise((resolve) => setTimeout(resolve, 10000));
+          console.log(chalk.yellow("[Engine Loop] Idle. No action taken."));
         }
-      } catch (error) {
-        console.error(chalk.redBright("[Engine Loop] Critical error:"), error);
-        this.stop("Critical error.");
+      }
+    } catch (error) {
+      console.error(chalk.redBright("[Engine Loop] Critical error:"), error);
+      this.stop("Critical error.");
+    } finally {
+      if (this.isEngineRunning) {
+        this.timerId = setTimeout(() => this.runMainLoop(), 100); // Loop every 100ms
       }
     }
   }

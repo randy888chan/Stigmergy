@@ -1,8 +1,9 @@
 import fs from "fs-extra";
 import path from "path";
 import { enhance as enhanceContext } from "./context_enhancer.js";
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import "dotenv/config.js";
+import yaml from 'js-yaml';
 
 let llm;
 
@@ -51,9 +52,12 @@ async function getSharedContext() {
 }
 
 export async function getCompletion(agentId, prompt) {
-  if (!llm) {
-    llm = getModel();
-  }
+  const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+  const agentDef = await fs.readFile(agentPath, 'utf-8');
+  const agentConfig = yaml.load(agentDef.match(/```yaml\n([\s\S]*?)\n```/)[1]).agent;
+
+  const modelTier = agentConfig.model_tier || 'b_tier'; // Default to cheapest tier
+  const llm = getModelForTier(modelTier);
 
   const systemPrompt = `You are ${agentId}. Respond in JSON format: {thought, action}`;
 
