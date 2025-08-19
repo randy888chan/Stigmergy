@@ -42,12 +42,13 @@ describe('Engine Main Loop Integration Test', () => {
     });
 
     engine.start();
-    await jest.advanceTimersByTimeAsync(100); // Run the 10th task
+    // The first loop runs instantly. We need to advance the timer just enough
+    // to trigger the second loop, where the self-improvement check happens.
+    await jest.advanceTimersByTimeAsync(100);
 
-    expect(engine.taskCounter).toBe(10);
-
-    await jest.advanceTimersByTimeAsync(100); // Run the next loop
-
+    // The primary outcome is that the status is updated
     expect(stateManager.updateStatus).toHaveBeenCalledWith({ newStatus: 'NEEDS_IMPROVEMENT' });
+    // After the cycle, the counter should be reset
+    expect(engine.taskCounter).toBe(0);
   });
 });
