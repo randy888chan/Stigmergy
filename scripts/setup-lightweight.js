@@ -3,11 +3,24 @@ import chalk from "chalk";
 import fs from "fs-extra";
 import path from "path";
 import { execSync } from "child_process";
+import coreBackup from "../services/core_backup.js";
 
 async function setupLightweight() {
   console.log(chalk.blue("🚀 Setting up Stigmergy 3.0 (Lightweight)..."));
 
   const steps = [
+    {
+      name: "Core Backup",
+      action: async () => {
+        console.log(chalk.yellow("📦 Backing up .stigmergy-core..."));
+        const backupPath = await coreBackup.autoBackup();
+        if (backupPath) {
+          console.log(chalk.green(`✅ Core backed up to ${backupPath}`));
+        } else {
+          console.log(chalk.yellow("⚠️ .stigmergy-core not found, skipping backup."));
+        }
+      },
+    },
     {
       name: "File Structure",
       action: async () => {
