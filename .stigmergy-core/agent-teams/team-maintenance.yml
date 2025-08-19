@@ -1,10 +1,10 @@
 bundle:
-name: "Team Maintenance"
-icon: "🔧"
-description: "Specialized team for code maintenance, debugging, and system health monitoring."
-agents:
-  - "dispatcher"
-  - "debugger"
-  - "refactorer"
-  - "health_monitor"
-  - "qa"
+  name: "Team Maintenance"
+  icon: "🔧"
+  description: "Specialized team for code maintenance, debugging, and system health monitoring."
+  agents:
+    - "dispatcher"
+    - "debugger"
+    - "refactorer"
+    - "health_monitor"
+    - "qa"
