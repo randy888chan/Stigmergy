@@ -4,178 +4,96 @@ import yaml from "js-yaml";
 import coreBackup from "../../services/core_backup.js";
 import { validateAgents } from "./validate.js";
 import { fileURLToPath } from "url";
-import chalk from "chalk";
 
-export async function configureIde(
-  coreSourceDir,
-  outputPath = path.join(process.cwd(), ".roomodes")
-) {
+async function configureIde(coreSourceDir, outputPath = path.join(process.cwd(), ".roomodes")) {
   console.log("Configuring IDE for Stigmergy...");
   const PORT = process.env.PORT || 3000;
   const ENGINE_URL = `http://localhost:${PORT}`;
-  const ALLOWED_ROO_GROUPS = new Set(["read", "edit", "command", "browser"]);
-
+  
   const manifestPath = path.join(coreSourceDir, "system_docs", "02_Agent_Manifest.md");
   const manifestContent = await fs.readFile(manifestPath, "utf8");
-  const manifestYamlMatch = manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-  const manifest = yaml.load(manifestYamlMatch[1]);
+  const manifest = yaml.load(manifestContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/)[1]);
 
   const customModes = [];
   const agentsDir = path.join(coreSourceDir, "agents");
 
   for (const agent of manifest.agents) {
-    const agentId = agent.id;
-    const agentPath = path.join(agentsDir, `${agentId}.md`);
-    if (!(await fs.pathExists(agentPath))) continue;
-
+    const agentPath = path.join(agentsDir, `${agent.id}.md`);
+    if (!await fs.pathExists(agentPath)) continue;
+    
     const rawAgentDefinition = await fs.readFile(agentPath, "utf8");
-    const yamlMatch = rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
-    if (!yamlMatch || !yamlMatch[1]) continue;
+    const agentConfig = yaml.load(rawAgentDefinition.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/)[1]).agent;
 
-    try {
-      const agentData = yaml.load(yamlMatch[1]);
-      const agentConfig = agentData.agent;
-
-      // --- DUAL MANIFEST LOGIC ---
-      if (!agentConfig.is_interface) {
-        continue; // Skip background agents
-      }
-
-      // --- Start of merged logic from original file ---
-      const slug = (
-        agentConfig.alias.startsWith("@") ? agentConfig.alias.substring(1) : agentConfig.alias
-      ).replace(/[^a-zA-Z0-9-]/g, "-");
-
-      let roleDefString = agentConfig.persona.role || `Agent: ${agentConfig.name}`;
-      if (agentConfig.persona.style) {
-        roleDefString += `\nStyle: ${agentConfig.persona.style}`;
-      }
+    if (agentConfig.is_interface) {
+      // --- START OF CRITICAL FIX ---
+      // Build a comprehensive roleDefinition
+      let roleDefString = `You are ${agentConfig.name} (${agentConfig.alias}).\n\n`;
+      roleDefString += `**Role:** ${agentConfig.persona.role}\n`;
       if (agentConfig.persona.identity) {
-        roleDefString += `\n\nIdentity: ${agentConfig.persona.identity}`;
+        roleDefString += `**Identity:** ${agentConfig.persona.identity}\n`;
       }
+      
       if (agentConfig.core_protocols && agentConfig.core_protocols.length > 0) {
-        roleDefString +=
-          `\n\nCore Protocols:\n` + agentConfig.core_protocols.map((p) => `- ${p}`).join("\n");
+        roleDefString += `\n**CORE PROTOCOLS (You MUST follow these rules):**\n`;
+        agentConfig.core_protocols.forEach(protocol => {
+          // Clean up the protocol string for better display
+          const cleanedProtocol = protocol.replace(/\s+/g, ' ').trim();
+          roleDefString += `- ${cleanedProtocol}\n`;
+        });
       }
-
-      const hasMcpTool = (agentConfig.ide_tools || []).includes("mcp");
-      const source = hasMcpTool ? agentConfig.source || "project" : null;
-      const finalSource = source === "execution" ? "project" : source;
+      // --- END OF CRITICAL FIX ---
 
       const mode = {
-        slug: slug,
+        slug: (agentConfig.alias.startsWith("@") ? agentConfig.alias.substring(1) : agentConfig.alias),
         name: `${agentConfig.icon || "🤖"} ${agentConfig.name}`,
         roleDefinition: roleDefString,
-        groups: agentConfig.ide_tools || [], // Use ide_tools specifically
+        groups: agentConfig.ide_tools || [],
         api: {
           url: `${ENGINE_URL}/api/chat`,
           method: "POST",
           include: ["history"],
-          static_payload: {
-            agentId: agentConfig.id,
-            model: agentConfig.preferred_model || undefined,
-          },
+          static_payload: { agentId: agentConfig.id },
         },
       };
 
-      if (finalSource) {
-        mode.source = finalSource;
+      const hasMcpTool = (agentConfig.ide_tools || []).includes("mcp");
+      if (hasMcpTool) {
+        mode.source = agentConfig.source || "project";
       }
 
       customModes.push(mode);
-      // --- End of merged logic ---
-    } catch (error) {
-      console.error(`Error processing agent ${agentId} for .roomodes: ${error.message}`);
     }
   }
-
-  // --- Start of merged logic from original file ---
-  customModes.unshift(
-    {
-      slug: "system-resume",
-      name: "▶️ Resume Engine",
-      roleDefinition: "Resume the autonomous engine.",
-      api: { url: `${ENGINE_URL}/api/control/resume`, method: "POST" },
-      groups: ["command"],
-    },
-    {
-      slug: "system-pause",
-      name: "⏸️ Pause Engine",
-      roleDefinition: "Pause the autonomous engine.",
-      api: { url: `${ENGINE_URL}/api/control/pause`, method: "POST" },
-      groups: ["command"],
-    }
-  );
 
   customModes.sort((a, b) => a.name.localeCompare(b.name));
 
-  const yamlOutput = yaml.dump({ customModes: customModes }, { lineWidth: -1 });
+  const yamlOutput = yaml.dump({ customModes: customModes }, { noArrayIndent: true });
   const fileContent = `# This file is auto-generated by 'stigmergy install'.\n\n${yamlOutput}`;
   await fs.writeFile(outputPath, fileContent, "utf8");
-  // --- End of merged logic ---
 }
 
-async function install() {
-  try {
-    // --- Start of merged logic from original file ---
-    const targetDir = process.cwd();
-    const targetCoreDir = path.join(targetDir, ".stigmergy-core");
-    const targetEnvFile = path.join(targetDir, "stigmergy.env.example");
-
-    const __dirname = path.dirname(fileURLToPath(import.meta.url));
-    const sourceCoreDir = path.resolve(__dirname, "../../.stigmergy-core");
-    const sourceEnvFile = path.resolve(__dirname, "../../.env.example");
-
-    if (!fs.existsSync(sourceCoreDir) || !fs.existsSync(sourceEnvFile)) {
-      console.error(
-        "❌ CRITICAL: Source files (.stigmergy-core or .env.example) not found in the Stigmergy package."
-      );
-      return false;
-    }
-
-    if (fs.existsSync(targetCoreDir)) {
-      console.log(
-        "✅ .stigmergy-core already exists in your project. Preserving your existing configuration."
-      );
-    } else {
-      console.log("Installing .stigmergy-core into your project...");
+export async function install() {
+  const targetDir = process.cwd();
+  const targetCoreDir = path.join(targetDir, ".stigmergy-core");
+  const sourceCoreDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../.stigmergy-core");
+  
+  if (await fs.pathExists(targetCoreDir)) {
+      console.log("Preserving existing .stigmergy-core configuration.");
+  } else {
       await fs.copy(sourceCoreDir, targetCoreDir);
-      console.log("✅ .stigmergy-core installed successfully.");
-    }
+      console.log(".stigmergy-core installed.");
+  }
 
-    if (fs.existsSync(targetEnvFile)) {
-      console.log("✅ Stigmergy configuration file (stigmergy.env.example) already exists.");
-    } else {
-      console.log("Creating Stigmergy configuration template...");
-      await fs.copy(sourceEnvFile, targetEnvFile);
-      console.log("✅ Created 'stigmergy.env.example'.");
-      console.log(
-        chalk.yellow(
-          "--> ACTION REQUIRED: Please copy the variables from 'stigmergy.env.example' into your main '.env' file when you are ready."
-        )
-      );
-    }
-
-    const agentsValid = await validateAgents(targetCoreDir);
-    if (!agentsValid.success) {
-      console.error(
-        "❌ Agent validation failed. Please check the definitions in your new .stigmergy-core folder."
-      );
-      return false;
-    }
-    // --- End of merged logic ---
-
-    await configureIde(targetCoreDir);
-
-    console.log("Creating initial backup of the new .stigmergy-core...");
-    await coreBackup.autoBackup();
-
-    console.log(`✅ Setup complete. Your project is now configured to use Stigmergy.`);
-    return true;
-  } catch (error) {
-    console.error("❌ An unexpected error occurred during installation:", error);
+  const agentsValid = await validateAgents(targetCoreDir);
+  if (!agentsValid.success) {
+    console.error("Agent validation failed. Please check your agent definitions.");
     return false;
   }
-}
+  
+  await configureIde(targetCoreDir);
+  
+  await coreBackup.autoBackup();
 
-export { install };
+  console.log("✅ Setup complete. Your IDE is now configured.");
+  return true;
+}
