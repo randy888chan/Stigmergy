@@ -2,14 +2,13 @@ import { StateGraph, END } from "@langchain/langgraph";
 
 // Define the state for the execution graph
 export const executionState = {
-  task: null, // The task description and context
-  code: null, // The generated or modified code
-  architecture_plan: null, // The high-level architectural plan
-  qa_feedback: null, // Feedback from the QA agent
-  retries: (a, b) => (a ?? 0) + (b ?? 0),
-  // Internal state
-  supervisor_decision: null,
-  qa_decision: null,
+  task: {},
+  code: {},
+  architecture_plan: {},
+  qa_feedback: {},
+  retries: { value: (a, b) => (a ?? 0) + (b ?? 0) },
+  supervisor_decision: {},
+  qa_decision: {},
 };
 
 export function createExecutionGraph(triggerAgent) {

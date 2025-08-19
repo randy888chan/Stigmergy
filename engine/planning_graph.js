@@ -3,11 +3,12 @@ import { researchGraph } from "./research_graph.js";
 
 // Define the state for the planning graph
 export const planningState = {
-  goal: null, // The high-level user goal
-  research_report: null, // Output from the research team
-  architecture_plan: null, // Output from the architect
-  ui_mockups: null, // Output from the UX expert
+  goal: {},
+  research_report: {},
+  architecture_plan: {},
+  ui_mockups: {},
 };
+
 
 export function createPlanningGraph(triggerAgent) {
   const planningGraphBuilder = new StateGraph({ channels: planningState });

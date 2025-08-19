@@ -1,4 +1,5 @@
-import codeIntelligenceService from "../services/code_intelligence_service.js";
+import { CodeIntelligenceService } from "../services/code_intelligence_service.js";
+const codeIntelligenceService = new CodeIntelligenceService();
 import { cachedQuery } from "../utils/queryCache.js";
 import { getModel } from "../ai/providers.js";
 import { generateObject } from "ai";

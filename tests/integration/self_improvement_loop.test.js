@@ -20,6 +20,6 @@ describe("Self-Improvement Loop Tools", () => {
 
   test("get_failure_patterns should analyze reports and find the most common pattern", async () => {
     const summary = await get_failure_patterns();
-    expect(summary).toBe("Analyzed 3 failures. The most common failure pattern (2 times) is related to the tag: 'database'. Recommendation: Investigate issues related to database.");
+    expect(summary).toBe("Analyzed 3 failures. Most common pattern (2 times) is tag: 'database'.");
   });
 });

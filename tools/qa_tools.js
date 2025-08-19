@@ -1,4 +1,4 @@
-import { getModel } from "../engine/llm_adapter.js";
+import { getModel } from "../ai/providers.js";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { exec } from "child_process";
@@ -24,10 +24,7 @@ export async function verify_architecture({ architecture_blueprint, code }) {
   return object;
 }
 
-export async function run_tests_and_check_coverage({
-  test_command = "npm test -- --coverage",
-  required_coverage = 80,
-}) {
+export async function run_tests_and_check_coverage({ test_command = "npm test -- --coverage", required_coverage = 80 }) {
   try {
     const { stdout } = await execPromise(test_command);
     const coverageRegex = /All files\s*\|\s*([\d.]+)/;
@@ -36,10 +33,7 @@ export async function run_tests_and_check_coverage({
     if (coverage >= required_coverage) {
       return { passed: true, feedback: `Tests passed with ${coverage}% coverage.` };
     }
-    return {
-      passed: false,
-      feedback: `Coverage of ${coverage}% is below the required ${required_coverage}%.`,
-    };
+    return { passed: false, feedback: `Coverage of ${coverage}% is below the required ${required_coverage}%.` };
   } catch (error) {
     return { passed: false, feedback: `Test execution failed: ${error.message}` };
   }

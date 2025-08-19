@@ -109,7 +109,7 @@ agent:
     // because the new Zod-based sanitizer will reject the input.
     await expect(
       execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted")
-    ).rejects.toThrow("input_sanitization_failed");
+    ).rejects.toThrow("Invalid arguments for tool 'file_system.readFile'");
 
     // Ensure the underlying tool was NOT called
     expect(fileSystem.readFile).not.toHaveBeenCalled();

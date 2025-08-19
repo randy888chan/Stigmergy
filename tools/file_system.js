@@ -72,6 +72,6 @@ export async function appendFile({ path: filePath, content }) {
   const safePath = resolvePath(filePath);
   await fs.ensureDir(path.dirname(safePath));
   // The 'a' flag stands for "append"
-  await fs.appendFile(safePath, content + '\\n');
+  await fs.appendFile(safePath, content + '\n');
   return `Content successfully appended to ${filePath}`;
 }
