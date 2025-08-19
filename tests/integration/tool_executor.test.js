@@ -41,6 +41,32 @@ describe("Tool Executor", () => {
     await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
     await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
+
+    // Create dummy agent files
+    const agentsPath = path.join(corePath, "agents");
+    await fs.ensureDir(agentsPath);
+
+    const permittedAgentContent = `
+agent:
+  id: test-agent-permitted
+  engine_tools:
+    - "file_system.readFile"
+`;
+    await fs.writeFile(
+      path.join(agentsPath, "test-agent-permitted.md"),
+      "```yaml\n" + permittedAgentContent + "\n```"
+    );
+
+    const deniedAgentContent = `
+agent:
+  id: test-agent-denied
+  engine_tools:
+    - "some_other_tool"
+`;
+    await fs.writeFile(
+      path.join(agentsPath, "test-agent-denied.md"),
+      "```yaml\n" + deniedAgentContent + "\n```"
+    );
   });
 
   afterAll(async () => {

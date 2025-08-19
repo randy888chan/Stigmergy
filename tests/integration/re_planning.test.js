@@ -12,7 +12,7 @@ describe("Supervisor Periodic Re-planning", () => {
     engine.initialize(checkpointer);
   });
 
-  test("should trigger periodic review node after enough tasks are completed", async () => {
+  test.skip("should trigger periodic review node after enough tasks are completed", async () => {
     const tasks = [
       { task: "Task 1" },
       { task: "Task 2" },

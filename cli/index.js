@@ -2,14 +2,13 @@
 
 import { Command } from "commander";
 import { createRequire } from "module";
-// --- START: ADDITIONS ---
-import { CoreBackup } from "../services/core_backup.js";
-import fs from "fs-extra";
-import path from "path";
-import chalk from "chalk";
 import { SystemValidator } from "../src/bootstrap/system_validator.js";
 import open from "open";
 import inquirer from "inquirer";
+import fs from "fs-extra";
+import path from "path";
+import chalk from "chalk";
+import { CoreBackup } from "../services/core_backup.js";
 
 const coreBackup = new CoreBackup();
 
@@ -40,7 +39,6 @@ async function runGuardianCheck() {
     return false; // Halt execution.
   }
 }
-// --- END: ADDITIONS ---
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
@@ -128,8 +126,6 @@ program
 
 async function main() {
   try {
-    // --- START: MODIFICATION ---
-    // Run the check before parsing any commands, except for 'install' itself.
     const command = process.argv[2];
     if (command && command !== "install") {
       const canProceed = await runGuardianCheck();
@@ -137,7 +133,6 @@ async function main() {
         process.exit(1);
       }
     }
-    // --- END: MODIFICATION ---
     await program.parseAsync(process.argv);
   } catch (err) {
     console.error("❌ Unhandled exception in main:", err);

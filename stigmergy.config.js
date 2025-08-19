@@ -1,4 +1,5 @@
 import path from "path";
+import "dotenv/config";
 
 const config = {
   // --- Core Paths ---
@@ -30,12 +31,37 @@ const config = {
 
   features: {
     neo4j: "auto", // Options: 'required', 'auto', 'memory'
-    // ... (other feature flags)
+    businessTools: true,
+    advancedResearch: true,
+    nlpEnhancements: true,
+    verificationCompleteness: true,
+    modularAgents: true,
+  },
+
+  model_tiers: {
+    s_tier: {
+      // Strategic/Reasoning Tier
+      provider: "openrouter",
+      model_name: "anthropic/claude-3-opus",
+      api_key: process.env.OPENROUTER_API_KEY,
+    },
+    a_tier: {
+      // Advanced/Execution Tier
+      provider: "openai",
+      model_name: "gpt-4o",
+      api_key: process.env.OPENAI_API_KEY,
+    },
+    b_tier: {
+      // Basic/Utility Tier
+      provider: "groq",
+      model_name: "llama3-8b-8192",
+      api_key: process.env.GROQ_API_KEY,
+    },
   },
 
   performance: {
     maxMemoryMB: 768,
-    llmCacheTTL: 300, // 5 minutes
+    llmCacheTTL: 300,
   },
 
   // --- Core Project Planning Documents ---
@@ -72,13 +98,8 @@ const config = {
   },
 
   fallbacks: {
-    // Defines behavior when primary services are down.
-    // Options: 'superdesign' | 'markdown'
     design: "markdown",
-    // Options: 'gemini-cli' | 'llm-api'
     execution: "llm-api",
-    neo4j: "sqlite",
-    llm: "openrouter",
   },
 };
 
