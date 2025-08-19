@@ -40,22 +40,12 @@ export function _resetManifestCache() {
 export function createExecutor(engine) {
   const toolbelt = {
     file_system: fileSystem,
-    shell,
-    research,
-    code_intelligence: codeIntelligence,
-    core: coreTools,
-    swarm_intelligence: swarmIntelligence,
-    qa: qaTools,
-    business_verification: businessVerification,
+    shell, research, code_intelligence: codeIntelligence, core: coreTools,
+    swarm_intelligence: swarmIntelligence, qa: qaTools, business_verification: businessVerification,
     guardian: createGuardianTools(engine),
-    // Define the 'stigmergy' namespace for engine-specific tools
     stigmergy: {
       task: async ({ subagent_type, description }) => {
-        if (!subagent_type || !description) {
-          throw new Error("The 'subagent_type' and 'description' are required for stigmergy.task");
-        }
-        const result = await engine.triggerAgent(subagent_type, description);
-        return `Task delegated to @${subagent_type}. Result: ${result}`;
+        return await engine.triggerAgent(subagent_type, description);
       },
     },
   };
@@ -74,7 +64,7 @@ export function createExecutor(engine) {
       const isPermitted = permittedTools.some((p) => toolName.startsWith(p.replace(".*", "")));
       if (!isPermitted) {
         throw new OperationalError(
-          `Agent '${agentId}' not permitted for engine tool '${toolName}'.`,
+          `Agent '${agentId}' not permitted for tool '${toolName}'.`,
           "PermissionDenied"
         );
       }

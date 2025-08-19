@@ -18,11 +18,16 @@ export async function validate() {
 export async function applyPatch({ filePath, content }) {
   const corePath = path.join(process.cwd(), ".stigmergy-core");
   const safePath = path.join(corePath, filePath);
-
   if (!safePath.startsWith(corePath)) {
-    throw new Error(`Security violation: Path traversal attempt.`);
+    throw new Error(`Security violation: Path traversal.`);
   }
-
   await fs.writeFile(safePath, content);
   return `Patch applied successfully to ${filePath}.`;
+}
+
+export async function restore() {
+    if (await coreBackup.restoreLatest()) {
+        return "Core restored successfully from latest backup.";
+    }
+    throw new Error("Core restore failed.");
 }

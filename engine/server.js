@@ -4,6 +4,7 @@ import chalk from "chalk";
 import * as stateManager from "./state_manager.js";
 import { createExecutor } from "./tool_executor.js";
 import "dotenv/config.js";
+import { fileURLToPath } from "url";
 
 const SELF_IMPROVEMENT_CYCLE = 10;
 
@@ -87,4 +88,11 @@ export class Engine {
     }
     return `Result from @${agentId}`;
   }
+}
+
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    const engine = new Engine();
+    engine.initialize().then(success => {
+        if (success) engine.start();
+    });
 }

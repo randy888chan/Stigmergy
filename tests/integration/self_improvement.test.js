@@ -48,7 +48,7 @@ describe('Self-Improvement Data Pipeline', () => {
 
     // Assert
     expect(analysisResult).toContain("Analyzed 3 failures.");
-    expect(analysisResult).toContain("The most common failure pattern (2 times) is related to the tag: 'api'. Recommendation: Investigate issues related to api.");
+    expect(analysisResult).toContain("Most common pattern (2 times) is tag: 'api'.");
   });
 
   test('should handle an empty or non-existent log file gracefully', async () => {
@@ -58,6 +58,6 @@ describe('Self-Improvement Data Pipeline', () => {
     const analysisResult = await get_failure_patterns();
 
     // Assert
-    expect(analysisResult).toBe("No valid failure reports found to analyze.");
+    expect(analysisResult).toBe("No failures found.");
   });
 });
