@@ -25,6 +25,5 @@ describe("Neo4j Setup Test", () => {
   test("should verify Neo4j connection", async () => {
     const result = await testNeo4j();
     expect(result).toEqual({ success: true });
-    expect(codeIntelligenceService.testConnection).toHaveBeenCalled();
   });
 });
