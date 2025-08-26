@@ -1,11 +1,12 @@
+process.env.OPENROUTER_API_KEY = "test_key";
 import { verifyMilestone } from "../engine/verification_system.js";
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";
 import fs from "fs-extra";
 import { glob } from "glob";
 
 jest.mock("ai", () => ({ generateObject: jest.fn() }));
-jest.mock("../ai/providers.js", () => ({ getModel: jest.fn() }));
+jest.mock("../ai/providers.js", () => ({ getModelForTier: jest.fn() }));
 jest.mock("fs-extra");
 jest.mock("glob");
 

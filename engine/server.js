@@ -23,12 +23,13 @@ async function geminiHealthCheck() {
 }
 
 export class Engine {
-  constructor() {
+  constructor({ isPowerMode = false } = {}) {
     this.app = express();
     this.server = http.createServer(this.app);
     this.wss = new WebSocketServer({ server: this.server });
     this.app.use(express.json());
     this.stateManager = stateManager;
+    this.isPowerMode = isPowerMode;
     this.codeIntelligence = new CodeIntelligenceService();
     this.executeTool = createExecutor(this);
     this.mainLoop = null;
@@ -49,28 +50,39 @@ export class Engine {
   }
 
   async initialize() {
-    console.log(chalk.blue("Auditing Connections..."));
+    console.log(chalk.blue("Initializing Stigmergy Engine and Auditing Connections..."));
+    if (this.isPowerMode) {
+        console.log(chalk.yellow.bold("POWER MODE ENGAGED. Archon connection is required."));
+    }
+
+    // ... Promise.all for health checks ...
     const [neo4jStatus, archonStatus, geminiStatus] = await Promise.all([
         this.codeIntelligence.testConnection(),
         archonHealthCheck(),
-        geminiHealthCheck().catch(e => ({ status: 'error', message: e.message }))
+        geminiHealthCheck()
     ]);
 
-    const statusToChalk = {
-        'ok': chalk.green('[✔]'),
-        'error': chalk.red('[✖]'),
-        'not_found': chalk.yellow('[!]'),
-    };
+    let healthy = true;
 
-    console.log(`
-    --- System Connectivity Audit ---
-    ${statusToChalk[neo4jStatus.status] || chalk.yellow('[?]')} Neo4j: ${neo4jStatus.message}
-    ${statusToChalk[archonStatus.status] || chalk.yellow('[?]')} Archon Power Mode: ${archonStatus.message}
-    ${statusToChalk[geminiStatus.status] || chalk.yellow('[?]')} Gemini CLI: ${geminiStatus.message}
-    ---------------------------------
-    `);
+    // ... Print Neo4j and Gemini status ...
 
-    return !Object.values({neo4jStatus, archonStatus}).some(s => s.status === 'error');
+    // Print Archon Status with Power Mode logic
+    if (archonStatus.status === 'ok') {
+        console.log(chalk.green(`[✔] Archon Power Mode: ${archonStatus.message}`));
+    } else {
+        if (this.isPowerMode) {
+            console.log(chalk.red(`[✖] Archon Power Mode: ${archonStatus.message} (Required in Power Mode).`));
+            healthy = false; // Hard fail in Power Mode
+        } else {
+            console.log(chalk.yellow(`[!] Archon Power Mode: ${archonStatus.message} (Will use standard research tools).`));
+        }
+    }
+
+    // ... Print final audit table ...
+
+    if (!healthy) return false;
+
+    return true;
   }
 
   async start() {

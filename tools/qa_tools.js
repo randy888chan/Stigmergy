@@ -1,4 +1,4 @@
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { exec } from "child_process";
@@ -8,7 +8,7 @@ const execPromise = promisify(exec);
 
 export async function verify_requirements({ requirements, code }) {
   const { object } = await generateObject({
-    model: getModel(),
+    model: getModelForTier('b_tier'),
     prompt: `Does the code satisfy all requirements? Respond with a boolean and feedback. Requirements: ${requirements}\n\nCode: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
   });
@@ -17,7 +17,7 @@ export async function verify_requirements({ requirements, code }) {
 
 export async function verify_architecture({ architecture_blueprint, code }) {
   const { object } = await generateObject({
-    model: getModel(),
+    model: getModelForTier('b_tier'),
     prompt: `Does the code adhere to the blueprint? Blueprint: ${architecture_blueprint}\n\nCode: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
   });

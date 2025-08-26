@@ -1,7 +1,7 @@
 import { CodeIntelligenceService } from "../services/code_intelligence_service.js";
 const codeIntelligenceService = new CodeIntelligenceService();
 import { cachedQuery } from "../utils/queryCache.js";
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";
 import { z } from "zod";
 
@@ -70,7 +70,7 @@ export async function get_full_codebase_context() {
 export async function validate_tech_stack({ technology, project_goal }) {
   console.log(`[Code Intelligence] Validating tech: ${technology} for goal: ${project_goal}`);
   const { object } = await generateObject({
-    model: getModel(),
+    model: getModelForTier('b_tier'),
     prompt: `As a senior solutions architect, analyze the suitability of using "${technology}" for a project with the goal: "${project_goal}".
         Provide a concise analysis focusing on pros and cons. Conclude with a clear recommendation.`,
     schema: z.object({
