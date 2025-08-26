@@ -15,8 +15,8 @@ describe('Fallback Manager Resilience', () => {
     const codeIntelligenceService = new CodeIntelligenceService();
     const result = await codeIntelligenceService.testConnection();
 
-    expect(result.success).toBe(true);
-    expect(result.type).toBe('memory');
+    expect(result.status).toBe('ok');
+    expect(result.mode).toBe('memory');
     expect(codeIntelligenceService.isMemoryMode).toBe(true);
 
     const usages = await codeIntelligenceService.findUsages({ symbolName: 'test' });

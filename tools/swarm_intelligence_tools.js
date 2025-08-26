@@ -5,9 +5,9 @@ export async function get_failure_patterns() {
   const filePath = path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
   try {
     const data = await fs.readFile(filePath, 'utf8');
-    if (!data.trim()) return "No failures found.";
+    if (!data.trim()) return "No failure reports logged yet.";
     const failures = data.trim().split('\n').map(line => JSON.parse(line));
-    if (failures.length === 0) return "No failures found.";
+    if (failures.length === 0) return "No failure reports logged yet.";
     const tagCounts = failures.reduce((acc, f) => {
       (f.tags || []).forEach(tag => { acc[tag] = (acc[tag] || 0) + 1; });
       return acc;
