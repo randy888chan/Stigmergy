@@ -52,53 +52,28 @@ program
 
 program
   .command("start")
-  .description("Starts the Stigmergy engine server (MCP).")
+  .description("Starts the Stigmergy engine server.")
   .action(async () => {
-    // TODO: Implement engine start logic using the new Engine class.
-    console.log("Starting engine... (implementation pending)");
-    // Example:
-    // const { Engine } = await import("../engine/server.js");
-    // const engine = new Engine();
-    // engine.initialize();
-    // engine.start(); // Assuming a start method exists
-  });
-
-program
-  .command("dashboard")
-  .description("Open the Stigmergy dashboard.")
-  .action(() => {
-    // This needs to be updated to point to the correct dashboard implementation
-    console.log("Opening dashboard (placeholder)...");
-    // import('../dashboard/server.js');
-    // open('http://localhost:8080');
-  });
-
-// The config wizard can be kept as a utility
-program
-  .command("config-wizard")
-  .description("Run an interactive wizard to configure Stigmergy for your project.")
-  .action(async () => {
-    // This wizard can be updated later to reflect the new .env format
-    console.log("Welcome to the Stigmergy Configuration Wizard!");
-    // (Existing wizard code can be kept and adapted later)
-  });
-
-program
-  .command("build")
-  .description("Builds agent definitions into a bundle.")
-  .option("--all", "Build all agents", true)
-  .action(async () => {
-    const { default: build } = await import("./commands/build.js");
-    await build();
+    console.log(chalk.blue("Booting Stigmergy Engine..."));
+    const { Engine } = await import("../engine/server.js");
+    const engine = new Engine();
+    if (await engine.initialize()) {
+      await engine.start();
+    } else {
+        console.error(chalk.red("Engine initialization failed. Aborting startup."));
+        process.exit(1);
+    }
   });
 
 program
   .command("install")
-  .description("Installs the .stigmergy-core directory and creates a .roomodes file.")
+  .description("Installs the .stigmergy-core.")
   .action(async () => {
     const { install } = await import("./commands/install.js");
     await install();
   });
+
+// ... other commands (restore, validate, etc.)
 
 program
   .command("restore")
@@ -124,18 +99,17 @@ program
     await validateAgents();
   });
 
+// ... other commands (restore, validate, etc.)
+
 async function main() {
   try {
     const command = process.argv[2];
     if (command && command !== "install") {
-      const canProceed = await runGuardianCheck();
-      if (!canProceed) {
-        process.exit(1);
-      }
+      if (!await runGuardianCheck()) process.exit(1);
     }
     await program.parseAsync(process.argv);
   } catch (err) {
-    console.error("❌ Unhandled exception in main:", err);
+    console.error("❌ Unhandled CLI exception:", err);
     process.exit(1);
   }
 }

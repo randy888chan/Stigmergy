@@ -12,12 +12,23 @@ async function setupLightweight() {
     {
       name: "Core Backup",
       action: async () => {
+        const corePath = path.join(process.cwd(), ".stigmergy-core");
+        if (!await fs.pathExists(corePath)) {
+            console.log(chalk.yellow("⚠️ .stigmergy-core not found. Attempting to restore from latest backup..."));
+            const success = await coreBackup.restoreLatest();
+            if (success) {
+                console.log(chalk.green("✅ Successfully restored .stigmergy-core from backup."));
+            } else {
+                console.warn(chalk.yellow("⚠️ No backup found to restore. If this is a fresh checkout, this is normal."));
+            }
+        }
+
         console.log(chalk.yellow("📦 Backing up .stigmergy-core..."));
         const backupPath = await coreBackup.autoBackup();
         if (backupPath) {
           console.log(chalk.green(`✅ Core backed up to ${backupPath}`));
         } else {
-          console.log(chalk.yellow("⚠️ .stigmergy-core not found, skipping backup."));
+          console.log(chalk.yellow("⚠️ .stigmergy-core not found, skipping backup. This is okay if it was just restored."));
         }
       },
     },

@@ -1,10 +1,9 @@
-// engine/server.js
 import express from "express";
 import chalk from "chalk";
 import * as stateManager from "./state_manager.js";
 import { createExecutor } from "./tool_executor.js";
 import "dotenv/config.js";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from 'url';
 
 const SELF_IMPROVEMENT_CYCLE = 10;
 
@@ -13,8 +12,25 @@ export class Engine {
     this.isEngineRunning = false;
     this.app = express();
     this.app.use(express.json());
+    this.stateManager = stateManager;
     this.executeTool = createExecutor(this);
     this.taskCounter = 0;
+    this.setupRoutes();
+  }
+
+  setupRoutes() {
+    this.app.post('/api/chat', async (req, res) => {
+        try {
+            const { agentId, prompt } = req.body;
+            console.log(chalk.green(`[API] Received request for @${agentId}`));
+            // In a real system, you would have a more complex interaction model.
+            // For now, we'll just trigger the agent and return a simple response.
+            const result = await this.triggerAgent(agentId, prompt);
+            res.json({ response: result });
+        } catch (error) {
+            res.status(500).json({ error: error.message });
+        }
+    });
   }
 
   async initialize() {
@@ -24,19 +40,19 @@ export class Engine {
   }
 
   async start() {
-    if (this.isEngineRunning) return;
-    console.log(chalk.green("🚀 Stigmergy Engine starting..."));
-    this.isEngineRunning = true;
-    this.runMainLoop();
+    const PORT = process.env.PORT || 3000;
+    this.app.listen(PORT, () => {
+        console.log(chalk.green(`🚀 Stigmergy Engine server is running on http://localhost:${PORT}`));
+        if (!this.isEngineRunning) {
+            this.isEngineRunning = true;
+            this.runMainLoop();
+        }
+    });
   }
 
   async stop(reason = "Stopped by command.") {
-    if (!this.isEngineRunning) return;
-    console.log(chalk.red(`🛑 Stigmergy Engine stopping. Reason: ${reason}`));
     this.isEngineRunning = false;
-    if (this.timerId) {
-      clearTimeout(this.timerId);
-    }
+    console.log(chalk.red(`🛑 Stigmergy Engine stopped. Reason: ${reason}`));
   }
 
   async runMainLoop() {

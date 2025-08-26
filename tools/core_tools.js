@@ -66,37 +66,23 @@ export async function restore() {
     throw new Error("Core restore failed.");
 }
 
-
-// ======================================================================
-// == System Control Tools (@system) - Engine Lifecycle & State Access ==
-// ======================================================================
-
-/**
- * This is a factory function. The main engine will call this and pass itself in,
- * which gives these tools a secure handle to control the engine's lifecycle.
- * @param {import('../engine/server.js').Engine} engine - The main engine instance.
- * @returns {Object} An object containing the system control tools.
- */
+// System Control Tools (Factory)
 export function createSystemControlTools(engine) {
   return {
     start_project: async ({ goal }) => {
-      if (!engine || !engine.stateManager) throw new Error("Engine not available to start project.");
       await engine.stateManager.initializeProject(goal);
-      engine.start();
-      return `Project initialized with goal: "${goal}". Engine started.`;
+      engine.start(); // This won't re-run the server, just the loop
+      return `Project initialized with goal: "${goal}". Engine loop is active.`;
     },
     pause_engine: async () => {
-      if (!engine) throw new Error("Engine not available to pause.");
-      await engine.stop("Paused by user command via @system agent.");
-      return "Stigmergy engine has been paused.";
+      await engine.stop("Paused by user command.");
+      return "Stigmergy engine loop has been paused.";
     },
     resume_engine: async () => {
-      if (!engine) throw new Error("Engine not available to resume.");
-      engine.start(); // start() is idempotent and will resume if not running
-      return "Stigmergy engine is resuming operation.";
+      engine.start();
+      return "Stigmergy engine loop is resuming.";
     },
     get_status: async () => {
-      if (!engine || !engine.stateManager) throw new Error("Engine not available to get status.");
       const state = await engine.stateManager.getState();
       return `Current project status: ${state.project_status}`;
     },

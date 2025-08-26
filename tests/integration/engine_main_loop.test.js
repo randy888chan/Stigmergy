@@ -10,6 +10,8 @@ describe('Engine Main Loop Integration Test', () => {
 
   beforeEach(() => {
     engine = new Engine();
+    // Prevent the real server from starting for these loop-logic tests
+    engine.app.listen = jest.fn((port, cb) => cb());
     engine.triggerAgent = jest.fn();
     engine.executeTool = jest.fn();
     jest.useFakeTimers();

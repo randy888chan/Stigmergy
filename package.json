@@ -37,6 +37,7 @@
   "devDependencies": {
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
+    "axios": "^1.7.2",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "husky": "^9.0.11",
