@@ -2,30 +2,51 @@ import { createOpenAI } from "@ai-sdk/openai";
 import "dotenv/config.js";
 import config from '../stigmergy.config.js';
 
-const providers = {};
+// A cache for provider instances to avoid re-creating them on every call
+let providerInstances = {};
 
-function getProvider(apiKey, baseURL) {
-    const key = `${apiKey}-${baseURL || 'default'}`;
-    if (!providers[key]) {
-        providers[key] = createOpenAI({ apiKey, baseURL });
-    }
-    return providers[key];
+// Exported for testing purposes to reset the cache between tests
+export function _resetProviderInstances() {
+    providerInstances = {};
 }
 
 export function getModelForTier(tier = 'b_tier') {
     const tierConfig = config.model_tiers[tier];
-    if (!tierConfig || !tierConfig.provider_env_key || !tierConfig.model_name) {
-        throw new Error(`Model tier '${tier}' is not fully configured in stigmergy.config.js`);
+    if (!tierConfig) {
+        throw new Error(`Model tier '${tier}' is not defined in stigmergy.config.js.`);
     }
 
-    const apiKey = process.env[tierConfig.provider_env_key];
-    const baseURL = process.env.AI_API_BASE_URL; // Use a single base URL for simplicity with OpenRouter
+    const { api_key_env, base_url_env, model_name } = tierConfig;
+
+    if (!api_key_env || !model_name) {
+        throw new Error(`Tier '${tier}' is missing 'api_key_env' or 'model_name' in config.`);
+    }
+
+    const apiKey = process.env[api_key_env];
+    const baseURL = process.env[base_url_env]; // Fetch the specific base URL for the provider
 
     if (!apiKey) {
-        throw new Error(`API key specified by '${tierConfig.provider_env_key}' for tier '${tier}' is not set in your .env file.`);
+        throw new Error(`API key environment variable '${api_key_env}' for tier '${tier}' is not set in your .env file.`);
     }
 
-    console.log(`[AI Provider] Using Model: ${tierConfig.model_name} (Tier: ${tier})`);
-    const provider = getProvider(apiKey, baseURL);
-    return provider(tierConfig.model_name);
+    // Use a unique key for the cache based on the API key and base URL
+    const cacheKey = `${apiKey.slice(-4)}-${baseURL}`;
+
+    if (!providerInstances[cacheKey]) {
+        console.log(`[AI Provider] Initializing provider for tier '${tier}' at URL: ${baseURL}`);
+
+        const providerOptions = { apiKey };
+        if (baseURL) {
+            providerOptions.baseURL = baseURL;
+        }
+
+        // This assumes all providers use an OpenAI-compatible API structure, which is common.
+        // For providers with unique SDKs (like Google), you would add conditional logic here.
+        providerInstances[cacheKey] = createOpenAI(providerOptions);
+    }
+
+    const providerInstance = providerInstances[cacheKey];
+
+    console.log(`[AI Provider] Using Model: ${model_name} (Tier: ${tier})`);
+    return providerInstance(model_name);
 }
