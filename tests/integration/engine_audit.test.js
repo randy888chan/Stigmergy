@@ -58,7 +58,7 @@ describe('Engine Startup Connectivity Audit', () => {
       message: 'Connected to Neo4j.',
     });
     archon.healthCheck.mockResolvedValue({
-      status: 'error',
+      status: 'not_found',
       message: 'Archon server not found.',
     });
     exec.mockImplementation((command, callback) => {

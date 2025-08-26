@@ -1,7 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { execSync } from "child_process";
 import { Neo4jValidator } from "../../engine/neo4j_validator.js";
 import * as coreBackup from "../../services/core_backup.js";
 

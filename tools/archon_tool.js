@@ -15,7 +15,7 @@ export async function healthCheck() {
     }
     return { status: 'error', message: 'Archon server is unhealthy.' };
   } catch (error) {
-    return { status: 'error', message: 'Archon server not found at localhost:8181.' };
+    return { status: 'not_found', message: 'Archon server not found at localhost:8181.' };
   }
 }
 

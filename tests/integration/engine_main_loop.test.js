@@ -11,7 +11,10 @@ describe('Engine Main Loop Integration Test', () => {
   beforeEach(() => {
     engine = new Engine();
     // Prevent the real server from starting for these loop-logic tests
-    engine.app.listen = jest.fn((port, cb) => cb());
+    engine.server.listen = jest.fn((port, cb) => {
+        if(cb) cb();
+        return engine.server;
+    });
     engine.triggerAgent = jest.fn();
     engine.executeTool = jest.fn();
     jest.useFakeTimers();
@@ -23,30 +26,28 @@ describe('Engine Main Loop Integration Test', () => {
   });
 
   test('should execute a pending task when in EXECUTION_IN_PROGRESS state', async () => {
-    stateManager.getState.mockResolvedValue({ project_status: 'EXECUTION_IN_PROGRESS' });
-    engine.triggerAgent.mockResolvedValue({
-      action: { tool: 'file_system.writeFile', args: { path: 'test.txt', content: 'hello' } }
+    stateManager.getState.mockResolvedValue({
+      status: 'EXECUTION_IN_PROGRESS',
+      pending_tasks: [{ tool_name: 'file_system.writeFile', tool_args: { path: 'test.txt', content: 'hello' } }]
     });
 
     engine.start();
-    await jest.advanceTimersByTimeAsync(100); // Allow one loop to run
+    await jest.advanceTimersByTimeAsync(50); // Allow one loop to run
 
     expect(stateManager.getState).toHaveBeenCalled();
-    expect(engine.triggerAgent).toHaveBeenCalledWith('dispatcher', expect.any(Object));
+    expect(engine.triggerAgent).toHaveBeenCalledWith('dispatcher', { tool_name: 'file_system.writeFile', tool_args: { path: 'test.txt', content: 'hello' } });
     expect(engine.executeTool).toHaveBeenCalledWith('file_system.writeFile', { path: 'test.txt', content: 'hello' }, 'dispatcher');
   });
 
   test('should trigger self-improvement cycle after reaching the task threshold', async () => {
     engine.taskCounter = 9; // Set counter to be one less than the cycle
-    stateManager.getState.mockResolvedValue({ project_status: 'EXECUTION_IN_PROGRESS' });
-    engine.triggerAgent.mockResolvedValue({
-      action: { tool: 'some_tool', args: {} }
+    stateManager.getState.mockResolvedValue({
+      status: 'EXECUTION_IN_PROGRESS',
+      pending_tasks: [{ tool_name: 'some_tool', tool_args: {} }]
     });
 
     engine.start();
-    // The first loop runs instantly. We need to advance the timer just enough
-    // to trigger the second loop, where the self-improvement check happens.
-    await jest.advanceTimersByTimeAsync(100);
+    await jest.advanceTimersByTimeAsync(50);
 
     // The primary outcome is that the status is updated
     expect(stateManager.updateStatus).toHaveBeenCalledWith({ newStatus: 'NEEDS_IMPROVEMENT' });
