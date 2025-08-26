@@ -6,16 +6,12 @@ export async function testNeo4j() {
   try {
     const result = await codeIntelligenceService.testConnection();
 
-    if (result.success && result.type === "connected") {
-      console.log("✅ Neo4j connection verified");
+    if (result.status === 'ok') {
+      console.log(`✅ Neo4j status OK: ${result.message}`);
       return { success: true };
-    } else if (result.success && result.type === "memory") {
-      console.log("✅ Neo4j running in memory mode.");
-      return { success: true };
-    }
-    else {
-      console.error("❌ Neo4j connection failed:", result.error);
-      return { success: false, error: result.error };
+    } else {
+      console.error(`❌ Neo4j connection failed: ${result.message}`);
+      return { success: false, error: result.message };
     }
   } catch (error) {
     console.error("Test failed completely:", error);

@@ -58,6 +58,6 @@ describe('Self-Improvement Data Pipeline', () => {
     const analysisResult = await get_failure_patterns();
 
     // Assert
-    expect(analysisResult).toBe("No failures found.");
+    expect(analysisResult).toBe("No failure reports logged yet.");
   });
 });

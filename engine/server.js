@@ -5,7 +5,24 @@ import { createExecutor } from "./tool_executor.js";
 import "dotenv/config.js";
 import { fileURLToPath } from 'url';
 
+// Import the services/tools needed for the audit
+import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
+import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+import config from "../stigmergy.config.js";
+
+const execPromise = promisify(exec);
 const SELF_IMPROVEMENT_CYCLE = 10;
+
+async function geminiHealthCheck() {
+    try {
+        await execPromise('gemini --version');
+        return { status: 'ok', message: 'Gemini CLI is installed and accessible.' };
+    } catch (error) {
+        return { status: 'error', message: 'Gemini CLI not found. The @gemini-executor agent will fail.' };
+    }
+}
 
 export class Engine {
   constructor() {
@@ -13,6 +30,7 @@ export class Engine {
     this.app = express();
     this.app.use(express.json());
     this.stateManager = stateManager;
+    this.codeIntelligence = new CodeIntelligenceService();
     this.executeTool = createExecutor(this);
     this.taskCounter = 0;
     this.setupRoutes();
@@ -34,8 +52,48 @@ export class Engine {
   }
 
   async initialize() {
-    console.log("[Engine] Initializing services...");
-    // Future async initializations (like DB connection tests) go here.
+    console.log(chalk.blue("Initializing Stigmergy Engine and Auditing Connections..."));
+
+    const results = await Promise.all([
+        this.codeIntelligence.testConnection(),
+        archonHealthCheck(),
+        geminiHealthCheck()
+    ]);
+
+    const [neo4jStatus, archonStatus, geminiStatus] = results;
+
+    let healthy = true;
+
+    console.log(chalk.bold("\n--- System Connectivity Audit ---"));
+
+    // Print Neo4j Status
+    if (neo4jStatus.status === 'ok') {
+        console.log(chalk.green(`[✔] Neo4j: ${neo4jStatus.message}`));
+    } else {
+        console.log(chalk.red(`[✖] Neo4j: ${neo4jStatus.message}`));
+        healthy = false;
+    }
+
+    // Print Archon Status
+    if (archonStatus.status === 'ok') {
+        console.log(chalk.green(`[✔] Archon Power Mode: ${archonStatus.message}`));
+    } else {
+        console.log(chalk.yellow(`[!] Archon Power Mode: ${archonStatus.message} (Will use standard research tools).`));
+    }
+
+    // Print Gemini CLI Status
+    if (geminiStatus.status === 'ok') {
+        console.log(chalk.green(`[✔] Gemini CLI: ${geminiStatus.message}`));
+    } else {
+        console.log(chalk.yellow(`[!] Gemini CLI: ${geminiStatus.message}`));
+    }
+
+    console.log(chalk.bold("---------------------------------\n"));
+
+    if (!healthy && config.features.neo4j === 'required') {
+        return false; // Abort startup if a required service is down
+    }
+
     return true;
   }
 

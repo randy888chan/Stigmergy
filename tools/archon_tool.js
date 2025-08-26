@@ -1,4 +1,3 @@
-// In tools/archon_tool.js
 import axios from 'axios';
 import * as nativeResearch from './research.js';
 
@@ -6,36 +5,28 @@ const ARCHON_API_URL = 'http://localhost:8181/api';
 
 /**
  * Checks if the Archon server is running and healthy.
- * @returns {Promise<boolean>}
+ * @returns {Promise<{status: 'ok' | 'error', message: string}>}
  */
-async function healthCheck() {
+export async function healthCheck() {
   try {
-    const response = await axios.get(`${ARCHON_API_URL}/health`, { timeout: 1000 });
-    return response.status === 200 && response.data.status === 'healthy';
+    const response = await axios.get(`${ARCHON_API_URL}/health`, { timeout: 1500 });
+    if (response.status === 200 && response.data.status === 'healthy') {
+        return { status: 'ok', message: 'Connected to Archon server.' };
+    }
+    return { status: 'error', message: 'Archon server is unhealthy.' };
   } catch (error) {
-    return false;
+    return { status: 'error', message: 'Archon server not found at localhost:8181.' };
   }
 }
 
-/**
- * Performs a query using Archon's RAG system if available,
- * otherwise falls back to the native research tool.
- * @param {object} args - The arguments for the tool.
- * @param {string} args.query - The research query.
- * @returns {Promise<any>} The research results.
- */
 export async function query({ query }) {
-  const isArchonRunning = await healthCheck();
+  const health = await healthCheck();
 
-  if (isArchonRunning) {
+  if (health.status === 'ok') {
     console.log("🚀 Archon server detected. Using advanced RAG for research.");
     try {
-      const response = await axios.post(`${ARCHON_API_URL}/rag/query`, { query, match_count: 10 });
-      // Format the response to be similar to what nativeResearch returns
-      return {
-        new_learnings: response.data.results.map(r => r.content),
-        sources: response.data.results.map(r => r.url),
-      };
+      const response = await axios.post(`${ARCHON_API_URL}/rag/query`, { query });
+      return response.data;
     } catch (error) {
       console.error("Archon tool failed, falling back to native research:", error.message);
       return nativeResearch.deep_dive({ query });
