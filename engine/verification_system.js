@@ -1,13 +1,13 @@
 import fs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";
 import { z } from "zod";
 
 async function extractKeyTerms(content, prompt) {
   const { object } = await generateObject({
-    model: getModel(),
+    model: getModelForTier('b_tier'),
     prompt: `${prompt}\n---\nDOCUMENT:\n${content}`,
     schema: z.object({
       terms: z.array(z.string()).describe("A list of 5-10 essential keywords or phrases."),

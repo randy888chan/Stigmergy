@@ -1,6 +1,6 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
 import { generateObject } from "ai";
-import { getModel } from "../ai/providers.js";
+import { getModelForTier } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
 import chalk from "chalk";
@@ -59,7 +59,7 @@ export async function deep_dive({ query, learnings = [] }) {
         .join("\n\n---\n\n");
 
       const synthesis = await generateObject({
-        model: getModel(),
+        model: getModelForTier('b_tier'),
         system: await getResearchPrompt(),
         prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
@@ -98,7 +98,7 @@ export async function deep_dive({ query, learnings = [] }) {
   try {
     const client = getFirecrawlClient();
     const serpGen = await generateObject({
-      model: getModel(),
+      model: getModelForTier('b_tier'),
       system: await getResearchPrompt(),
       prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
     ---
@@ -125,7 +125,7 @@ export async function deep_dive({ query, learnings = [] }) {
       .join("\n\n---\n\n");
 
     const synthesis = await generateObject({
-      model: getModel(),
+      model: getModelForTier('b_tier'),
       system: await getResearchPrompt(),
       prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
@@ -169,7 +169,7 @@ export async function deep_dive({ query, learnings = [] }) {
 export async function analyze_user_feedback({ research_data }) {
   console.log("[Research] Analyzing user feedback to extract personas and pain points...");
   const { object } = await generateObject({
-    model: getModel(),
+    model: getModelForTier('b_tier'),
     prompt: `You are a UX researcher. From the following research data, identify the primary user personas and their key pain points.
         ---
         RESEARCH DATA:

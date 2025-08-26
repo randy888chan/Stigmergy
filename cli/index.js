@@ -53,15 +53,20 @@ program
 program
   .command("start")
   .description("Starts the Stigmergy engine server.")
-  .action(async () => {
+  .option('--power', 'Run in Power Mode, requiring a connection to the Archon server.')
+  .action(async (options) => {
     console.log(chalk.blue("Booting Stigmergy Engine..."));
     const { Engine } = await import("../engine/server.js");
-    const engine = new Engine();
+    const engine = new Engine({ isPowerMode: options.power }); // Pass the flag to the engine
     if (await engine.initialize()) {
-      await engine.start();
+      // In test mode, we don't want to start the long-running server,
+      // we just want to check the initialization output.
+      if (process.env.NODE_ENV !== 'test') {
+        await engine.start();
+      }
     } else {
-        console.error(chalk.red("Engine initialization failed. Aborting startup."));
-        process.exit(1);
+      console.error(chalk.red("Engine initialization failed. Aborting startup."));
+      process.exit(1);
     }
   });
 

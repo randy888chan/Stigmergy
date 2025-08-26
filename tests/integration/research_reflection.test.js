@@ -1,3 +1,4 @@
+process.env.OPENROUTER_API_KEY = "test_key";
 process.env.AI_API_KEY = "test";
 process.env.AI_MODEL = "test";
 process.env.FIRECRAWL_KEY = "test";
