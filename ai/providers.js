@@ -15,8 +15,8 @@ function getProvider(apiKey, baseURL) {
 
 export function getModelForTier(tier) {
     const tierConfig = config.model_tiers[tier];
-    if (!tierConfig || !tierConfig.api_key || !tierConfig.model_name) {
-        console.warn(`Warning: Tier '${tier}' is not fully configured. Falling back to default AI_MODEL.`);
+    if (!tier || !tierConfig || !tierConfig.api_key || !tierConfig.model_name) {
+        console.warn(`Warning: Tier '${tier}' is not fully configured or specified. Falling back to default AI_MODEL.`);
         // Fallback to legacy environment variables
         const { AI_API_KEY, AI_API_BASE_URL, AI_MODEL } = process.env;
         if (!AI_API_KEY || !AI_MODEL) throw new Error("Default AI model is not configured in .env");
@@ -26,4 +26,8 @@ export function getModelForTier(tier) {
 
     const provider = getProvider(tierConfig.api_key, tierConfig.base_url); // Assuming base_url is in config
     return provider(tierConfig.model_name);
+}
+
+export function getModel() {
+    return getModelForTier(null);
 }

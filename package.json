@@ -8,6 +8,7 @@
     "stigmergy": "cli/index.js"
   },
   "scripts": {
+    "start": "node engine/server.js",
     "stigmergy:start": "node engine/server.js",
     "build": "node cli/index.js build",
     "pretest": "node scripts/setup-lightweight.js",
@@ -15,29 +16,30 @@
     "posttest": "node cli/index.js restore"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^2.0.16",
+    "@ai-sdk/openai": "^0.0.8",
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",
     "@langchain/langgraph": "^0.0.11",
     "@mendable/firecrawl-js": "^0.0.28",
     "ai": "^3.0.12",
+    "axios": "^1.7.2",
     "chalk": "^5.3.0",
     "commander": "^12.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "fs-extra": "^11.2.0",
     "glob": "^10.3.10",
-    "inquirer": "^12.9.3",
+    "inquirer": "^12.9.4",
     "js-yaml": "^4.1.0",
     "neo4j-driver": "^5.19.0",
     "node-cache": "^5.1.2",
     "open": "^10.2.0",
+    "ws": "^8.18.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@babel/core": "^7.24.5",
     "@babel/preset-env": "^7.24.5",
-    "axios": "^1.7.2",
     "babel-jest": "^29.7.0",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "husky": "^9.0.11",

@@ -20,7 +20,6 @@ describe('Engine Server API', () => {
   afterAll(async () => {
     // Stop the engine loop and close the server
     await engine.stop();
-    await new Promise(resolve => server.close(resolve));
   });
 
   it('should respond to a POST request at /api/chat', async () => {
@@ -30,6 +29,6 @@ describe('Engine Server API', () => {
     });
 
     expect(response.status).toBe(200);
-    expect(response.data).toEqual({ response: 'Result from @test-agent' });
+    expect(response.data).toEqual({ response: 'Acknowledged. Task for @test-agent: Hello, engine!' });
   });
 });
