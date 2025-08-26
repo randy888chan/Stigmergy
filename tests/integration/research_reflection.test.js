@@ -1,6 +1,11 @@
+process.env.DEEPSEEK_API_KEY = "test_key";
+process.env.DEEPSEEK_BASE_URL = "https://api.deepseek.com/v1";
 process.env.OPENROUTER_API_KEY = "test_key";
-process.env.AI_API_KEY = "test";
-process.env.AI_MODEL = "test";
+process.env.OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1";
+process.env.MISTRAL_API_KEY = "test_key";
+process.env.MISTRAL_BASE_URL = "https://api.mistral.ai/v1";
+process.env.KIMI_API_KEY = "test_key";
+process.env.KIMI_BASE_URL = "https://api.moonshot.cn/v1";
 process.env.FIRECRAWL_KEY = "test";
 import { jest } from "@jest/globals";
 import { researchGraph } from "../../engine/research_graph.js";

@@ -17,7 +17,7 @@ describe('Metis to Guardian Self-Improvement Workflow', () => {
   test('should allow @metis to propose a change and correctly trigger the @guardian agent', async () => {
     // Arrange: Simulate the proposal that @metis would create
     const proposal = {
-      file_path: ".stigmergy-core/agents/debugger.md",
+      file_path: `${global.StigmergyConfig.core_path}/agents/debugger.md`,
       new_content: "agent: id: debugger\n...",
       reason: "Analysis of failure patterns indicates the debugger needs an updated protocol for database errors.",
     };
@@ -50,7 +50,7 @@ describe('Metis to Guardian Self-Improvement Workflow', () => {
   test('should throw an error if propose_change is called with missing arguments', async () => {
     // Arrange: An incomplete proposal from @metis
     const incompleteProposal = {
-      file_path: ".stigmergy-core/agents/debugger.md",
+      file_path: `${global.StigmergyConfig.core_path}/agents/debugger.md`,
       // new_content is missing
       reason: "A reason without content.",
     };
