@@ -38,6 +38,10 @@ async function getManifest() {
   return agentManifest;
 }
 
+export function _resetManifestCache() {
+  agentManifest = null;
+}
+
 export function createExecutor(engine) {
   const toolbelt = {
     file_system: fileSystem,

@@ -99,7 +99,7 @@ agent:
   test("should throw a PermissionDeniedError when an agent tries to use a disallowed tool", async () => {
     await expect(
       execute("file_system.readFile", { path: "test.txt" }, "test-agent-denied")
-    ).rejects.toThrow("Agent 'test-agent-denied' not permitted for tool 'file_system.readFile'.");
+    ).rejects.toThrow("Agent 'test-agent-denied' not permitted for engine tool 'file_system.readFile'.");
   });
 
   test("should throw an error for invalid arguments based on Zod schema", async () => {
