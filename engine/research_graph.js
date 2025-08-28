@@ -28,7 +28,7 @@ function getFirecrawlClient() {
 
 async function generateSearchQuery(state) {
   const { topic, learnings = [], search_queries = [] } = state;
-  const client = getModelForTier('b_tier');
+  const client = getModelForTier('a_tier');
 
   // If search_queries is empty, it's the first run.
   if (search_queries.length === 0) {
@@ -62,7 +62,7 @@ async function executeSearch(state) {
 
 async function synthesizeResults(state) {
   const { topic, search_content, learnings } = state; // Get existing learnings
-  const client = getModelForTier('b_tier');
+  const client = getModelForTier('a_tier');
   const prompt = `Synthesize key learnings from the following content regarding "${topic}".\nContent:\n${search_content}`;
   const { object } = await generateObject({
     model: client,
@@ -76,7 +76,7 @@ async function synthesizeResults(state) {
 
 async function reflection_node(state) {
   const { topic, learnings } = state;
-  const client = getModelForTier('b_tier');
+  const client = getModelForTier('a_tier');
   const prompt = `Given the initial goal ('${topic}') and the learnings so far, is the information sufficient to generate a comprehensive report? If yes, respond with just the word "true". If no, respond with a list of the 3 most critical, unanswered questions.`;
 
   const { object } = await generateObject({
