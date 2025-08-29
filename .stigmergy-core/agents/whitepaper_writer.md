@@ -6,6 +6,8 @@ agent:
   archetype: "Planner"
   title: "Whitepaper Writer"
   icon: "📜"
+  is_interface: false
+  model_tier: "a_tier"
   persona:
     role: "Technical documentation and whitepaper specialist."
     style: "Clear, precise, and technically accurate."

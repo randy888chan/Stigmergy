@@ -16,7 +16,7 @@
     "posttest": "node cli/index.js restore"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^0.0.8",
+    "@ai-sdk/openai": "^2.0.23",
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",
     "@langchain/langgraph": "^0.0.11",
