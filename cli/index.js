@@ -1,116 +1,95 @@
 #!/usr/bin/env node
-
 import { Command } from "commander";
 import { createRequire } from "module";
 import { SystemValidator } from "../src/bootstrap/system_validator.js";
-import open from "open";
-import inquirer from "inquirer";
 import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import { CoreBackup } from "../services/core_backup.js";
+import { fileURLToPath } from 'url';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const coreBackup = new CoreBackup();
 
-/**
- * Checks if .stigmergy-core exists. If not, it attempts to restore it from the latest backup.
- * This function acts as a gatekeeper for all CLI commands except 'install'.
- * @returns {Promise<boolean>} - True if the system can proceed, false otherwise.
- */
 async function runGuardianCheck() {
   const corePath = path.join(process.cwd(), ".stigmergy-core");
-  if (await fs.pathExists(corePath)) {
-    return true; // The core is present, proceed.
-  }
-
-  console.warn(
-    chalk.yellow("⚠️ .stigmergy-core not found. Attempting to restore from latest backup...")
-  );
-  const success = await coreBackup.restoreLatest();
-
-  if (success) {
+  if (await fs.pathExists(corePath)) return true;
+  console.warn(chalk.yellow("⚠️ .stigmergy-core not found. Attempting to restore from latest backup..."));
+  if (await coreBackup.restoreLatest()) {
     console.log(chalk.green("✅ Successfully restored .stigmergy-core from backup."));
     return true;
-  } else {
-    console.error(chalk.red("❌ Restore failed. No backups found."));
-    console.log(
-      chalk.cyan('--> Please run "npx stigmergy install" to perform a fresh installation.')
-    );
-    return false; // Halt execution.
   }
+  console.error(chalk.red("❌ Restore failed. Please run 'npx stigmergy install'."));
+  return false;
 }
 
 const require = createRequire(import.meta.url);
 const pkg = require("../package.json");
 
 const program = new Command();
-
-program
-  .name("stigmergy")
-  .description("Stigmergy 3.0: A Hybrid Autonomous System for development.")
-  .version(pkg.version);
+program.name("stigmergy").version(pkg.version);
 
 program
   .command("start")
-  .description("Starts the Stigmergy engine server.")
+  .description("Starts the Stigmergy engine server in the current directory.")
   .option('--power', 'Run in Power Mode, requiring a connection to the Archon server.')
   .action(async (options) => {
     console.log(chalk.blue("Booting Stigmergy Engine..."));
-    const { Engine } = await import("../engine/server.js");
-    const engine = new Engine({ isPowerMode: options.power }); // Pass the flag to the engine
-    if (await engine.initialize()) {
-      // In test mode, we don't want to start the long-running server,
-      // we just want to check the initialization output.
-      if (process.env.NODE_ENV !== 'test') {
-        await engine.start();
-      }
-    } else {
-      console.error(chalk.red("Engine initialization failed. Aborting startup."));
-      process.exit(1);
+    
+    // CRITICAL FIX: Use an absolute path to the engine server based on this script's location
+    const enginePath = path.resolve(__dirname, '../engine/server.js');
+    
+    try {
+        const { Engine } = await import(enginePath);
+        const engine = new Engine({ isPowerMode: options.power });
+        if (await engine.initialize()) {
+          await engine.start();
+        } else {
+          console.error(chalk.red("Engine initialization failed critical checks. Aborting startup."));
+          process.exit(1);
+        }
+    } catch (e) {
+        console.error(chalk.red("Failed to load the Stigmergy engine."), e);
+        process.exit(1);
     }
   });
 
 program
   .command("install")
-  .description("Installs the .stigmergy-core.")
+  .description("Installs the Stigmergy core files into the current directory.")
   .action(async () => {
-    const { install } = await import("./commands/install.js");
+    const installPath = path.resolve(__dirname, './commands/install.js');
+    const { install } = await import(installPath);
     await install();
   });
 
-// ... other commands (restore, validate, etc.)
-
 program
   .command("restore")
-  .description("Restore .stigmergy-core from last backup")
+  .description("Restores the .stigmergy-core from the latest backup.")
   .action(async () => {
-    const { default: restore } = await import("./commands/restore.js");
+    const restorePath = path.resolve(__dirname, './commands/restore.js');
+    const { default: restore } = await import(restorePath);
     await restore();
   });
 
 program
   .command("validate")
-  .description("Run a comprehensive system health check.")
+  .description("Runs a system health check on the local installation.")
   .action(async () => {
     const validator = new SystemValidator();
     await validator.comprehensiveCheck();
   });
 
-program
-  .command("validate:agents")
-  .description("Validate all agent definitions.")
-  .action(async () => {
-    const { validateAgents } = await import("./commands/validate.js");
-    await validateAgents();
-  });
-
-// ... other commands (restore, validate, etc.)
-
 async function main() {
   try {
     const command = process.argv[2];
+    // The guardian check should only run if a stigmergy command that REQUIRES a core is run.
+    // 'install' does not require one to exist beforehand.
     if (command && command !== "install") {
-      if (!await runGuardianCheck()) process.exit(1);
+      if (!await runGuardianCheck()) {
+        process.exit(1);
+      }
     }
     await program.parseAsync(process.argv);
   } catch (err) {
