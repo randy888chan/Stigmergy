@@ -13,6 +13,7 @@ import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import config from "../stigmergy.config.js";
+import dashboardRouter from "./dashboard.js";
 
 const execPromise = promisify(exec);
 
@@ -42,9 +43,17 @@ export class Engine {
 
   setupMiddleware() {
     this.app.use(express.json());
+    this.app.use((req, res, next) => {
+      res.setHeader(
+        'Content-Security-Policy',
+        "default-src 'self'; img-src 'self' data:; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; connect-src 'self' ws:;"
+      );
+      next();
+    });
   }
 
   setupRoutes() {
+    this.app.use('/', dashboardRouter);
     this.app.post('/api/chat', async (req, res) => {
         try {
             const { agentId, prompt } = req.body;
@@ -76,6 +85,15 @@ export class Engine {
   async triggerAgent(agentId, prompt) {
     console.log(`[Engine] Triggering agent: @${agentId}`);
     return `Task for @${agentId} acknowledged.`;
+  }
+
+  stop() {
+    return new Promise((resolve) => {
+      this.server.close(() => {
+        console.log('Stigmergy Engine server stopped.');
+        resolve();
+      });
+    });
   }
 }
 
