@@ -8,7 +8,7 @@ export async function testNeo4j() {
 
     if (result.status === 'ok') {
       console.log(`✅ Neo4j status OK: ${result.message}`);
-      return { success: true };
+      return { success: true, message: result.message };
     } else {
       console.error(`❌ Neo4j connection failed: ${result.message}`);
       return { success: false, error: result.message };
