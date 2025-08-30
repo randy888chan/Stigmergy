@@ -26,6 +26,8 @@ async function geminiHealthCheck() {
     }
 }
 
+const SELF_IMPROVEMENT_CYCLE = 10;
+
 export class Engine {
   constructor({ isPowerMode = false } = {}) {
     this.app = express();
@@ -36,6 +38,9 @@ export class Engine {
     this.stateManager = stateManager;
     this.codeIntelligence = new CodeIntelligenceService();
     this.executeTool = createExecutor(this);
+
+    this.mainLoopInterval = null;
+    this.taskCounter = 0;
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -69,8 +74,50 @@ export class Engine {
 
   async initialize() {
     console.log(chalk.blue("Initializing Stigmergy Engine and Auditing Connections..."));
-    // ... Connectivity audit logic remains the same ...
+
+    const archon = await archonHealthCheck();
+    if (archon.status === 'ok') {
+        console.log(chalk.green(`[✔] Archon Power Mode: ${archon.message}`));
+    } else {
+        console.log(chalk.yellow(`[!] Archon Power Mode: ${archon.message} (Will use standard research tools).`));
+    }
+
+    const neo4j = await this.codeIntelligence.testConnection();
+    if (neo4j.status === 'ok') {
+        console.log(chalk.green(`[✔] Neo4j: ${neo4j.message}`));
+    } else {
+        console.log(chalk.red(`[✖] Neo4j: ${neo4j.message}`));
+        if (config.features.neo4j === 'required') {
+            return false; // Hard fail
+        }
+    }
+
+    const gemini = await geminiHealthCheck();
+    if (gemini.status === 'ok') {
+        console.log(chalk.green(`[✔] Gemini CLI: ${gemini.message}`));
+    } else {
+        console.log(chalk.yellow(`[!] Gemini CLI: ${gemini.message}`));
+    }
+
     return true;
+  }
+
+  async runMainLoop() {
+    const state = await this.stateManager.getState();
+
+    if (state.status === 'EXECUTION_IN_PROGRESS' && state.pending_tasks && state.pending_tasks.length > 0) {
+        const task = state.pending_tasks[0];
+        // This is a simplified execution model for the test.
+        // A real implementation would involve more complex dispatching.
+        await this.triggerAgent('dispatcher', task);
+        await this.executeTool(task.tool_name, task.tool_args, 'dispatcher');
+
+        this.taskCounter++;
+        if (this.taskCounter >= SELF_IMPROVEMENT_CYCLE) {
+            await this.stateManager.updateStatus({ newStatus: 'NEEDS_IMPROVEMENT' });
+            this.taskCounter = 0;
+        }
+    }
   }
 
   async start() {
@@ -80,6 +127,7 @@ export class Engine {
         console.log(chalk.blue(`   Watching project at: ${process.cwd()}`));
         console.log(chalk.yellow("   This is a headless engine. Interact with it via your IDE."));
     });
+    this.mainLoopInterval = setInterval(() => this.runMainLoop(), 50);
   }
 
   async triggerAgent(agentId, prompt) {
@@ -89,6 +137,9 @@ export class Engine {
 
   stop() {
     return new Promise((resolve) => {
+      if (this.mainLoopInterval) {
+        clearInterval(this.mainLoopInterval);
+      }
       this.server.close(() => {
         console.log('Stigmergy Engine server stopped.');
         resolve();

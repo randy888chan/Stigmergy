@@ -1,11 +1,18 @@
-import coreBackup from "../../services/core_backup.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+import chalk from "chalk";
+
+const execPromise = promisify(exec);
 
 export default async function restore() {
-  console.log("Restoring latest backup...");
-  const success = await coreBackup.restoreLatest();
-  if (success) {
-    console.log("✅ Core restored successfully");
-  } else {
-    console.log("❌ No backups available");
+  console.log(chalk.yellow("♻️ Restoring .stigmergy-core to its original state from git..."));
+  try {
+    await execPromise("git checkout HEAD -- .stigmergy-core");
+    console.log(chalk.green("✅ Core restored successfully."));
+    return true;
+  } catch (error) {
+    console.error(chalk.red("❌ Failed to restore .stigmergy-core using git."), error);
+    console.log(chalk.yellow("This can happen if the directory is not committed to git. Please ensure it is part of your repository."));
+    return false;
   }
 }

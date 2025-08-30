@@ -1,31 +1,35 @@
-import { jest } from "@jest/globals";
 import { testNeo4j } from "../../scripts/test-neo4j.js";
-import codeIntelligenceService from "../../services/code_intelligence_service.js";
-
-// Mock the entire Neo4j service
-jest.mock("../../services/code_intelligence_service", () => {
-  const actual = jest.requireActual("../../services/code_intelligence_service");
-  return {
-    ...actual,
-    testConnection: jest.fn().mockImplementation(() => ({
-      success: true,
-      type: "connected",
-      limitations: {},
-    })),
-  };
-});
+import config from "../../stigmergy.config.js";
 
 describe("Neo4j Setup Test", () => {
-  beforeAll(() => {
-    process.env.NEO4J_URI = "bolt://localhost:7687";
-    process.env.NEO4J_USER = "test-user";
-    process.env.NEO4J_PASSWORD = "test-pass";
+  // Store the original config to restore it after the test
+  const originalNeo4jFeature = config.features.neo4j;
+
+  beforeEach(() => {
+    // Unset credentials to simulate a CI environment
+    delete process.env.NEO4J_URI;
+    delete process.env.NEO4J_USER;
+    delete process.env.NEO4J_PASSWORD;
   });
 
-  test("should gracefully fallback to memory mode without credentials", async () => {
-    // In a CI environment, we don't expect credentials to be set.
-    // This test verifies that the connection succeeds by falling back to memory mode.
+  afterEach(() => {
+    // Restore the original config
+    config.features.neo4j = originalNeo4jFeature;
+  });
+
+  test("should fail when neo4j is required but no credentials are provided", async () => {
+    // Ensure the config is 'required' for this test
+    config.features.neo4j = 'required';
+    const result = await testNeo4j();
+    expect(result.success).toBe(false);
+    expect(result.error).toContain("credentials are not set");
+  });
+
+  test("should gracefully fallback to memory mode when set to 'auto'", async () => {
+    // Set config to 'auto' to test the fallback
+    config.features.neo4j = 'auto';
     const result = await testNeo4j();
     expect(result.success).toBe(true);
+    expect(result.message).toContain("falling back to Memory Mode");
   });
 });
