@@ -1,9 +1,9 @@
 import { createExecutor, _resetManifestCache } from "../../engine/tool_executor.js";
-import { PermissionDeniedError } from "../../engine/tool_executor.js";
 import * as fileSystem from "../../tools/file_system.js";
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
+import * as modelMonitoring from "../../services/model_monitoring.js";
 
 // Mock the file system tool
 jest.mock("../../tools/file_system.js", () => ({
@@ -16,12 +16,16 @@ jest.mock("../../engine/state_manager.js", () => ({
   getState: jest.fn(),
 }));
 
+jest.mock("../../services/model_monitoring.js", () => ({
+    trackToolUsage: jest.fn(),
+}));
+
 // Mock the manifest
 const mockManifest = {
   agents: [
     {
       id: "test-agent-permitted",
-      tools: ["file_system.readFile"],
+      tools: ["file_system.readFile", "stigmergy.task"],
     },
     {
       id: "test-agent-denied",
@@ -32,6 +36,7 @@ const mockManifest = {
 
 describe("Tool Executor", () => {
   let execute;
+  let mockEngine;
   const TEST_DIR = path.join(__dirname, "tool_executor_test_temp_core");
 
   beforeAll(async () => {
@@ -52,6 +57,7 @@ agent:
   id: test-agent-permitted
   engine_tools:
     - "file_system.readFile"
+    - "stigmergy.task"
 `;
     await fs.writeFile(
       path.join(agentsPath, "test-agent-permitted.md"),
@@ -77,8 +83,12 @@ agent:
 
   beforeEach(() => {
     _resetManifestCache();
-    execute = createExecutor({}); // engine object is not needed for these tests
+    mockEngine = {
+        triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
+    };
+    execute = createExecutor(mockEngine);
     fileSystem.readFile.mockClear();
+    modelMonitoring.trackToolUsage.mockClear();
   });
 
   test("should successfully execute a tool that is explicitly permitted", async () => {
@@ -93,24 +103,43 @@ agent:
       agentConfig: expect.any(Object),
     });
     expect(result).toBe(JSON.stringify("file content", null, 2));
+    expect(modelMonitoring.trackToolUsage).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
 
-  test("should throw a PermissionDeniedError when an agent tries to use a disallowed tool", async () => {
+  test("should throw an error when an agent tries to use a disallowed tool", async () => {
     await expect(
       execute("file_system.readFile", { path: "test.txt" }, "test-agent-denied")
     ).rejects.toThrow("Agent 'test-agent-denied' not permitted for engine tool 'file_system.readFile'.");
+    expect(modelMonitoring.trackToolUsage).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
   });
 
   test("should throw an error for invalid arguments based on Zod schema", async () => {
     const dangerousPath = "; rm -rf /"; // This is not a valid path according to most file systems.
 
-    // We expect the executor to throw an 'input_sanitization_failed' error
-    // because the new Zod-based sanitizer will reject the input.
     await expect(
       execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted")
     ).rejects.toThrow("Invalid arguments for tool 'file_system.readFile'");
 
-    // Ensure the underlying tool was NOT called
     expect(fileSystem.readFile).not.toHaveBeenCalled();
+    expect(modelMonitoring.trackToolUsage).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
+  });
+
+  test("should execute stigmergy.task tool", async () => {
+    const args = { subagent_type: 'test-type', description: 'test description' };
+    const result = await execute("stigmergy.task", args, "test-agent-permitted");
+    expect(mockEngine.triggerAgent).toHaveBeenCalledWith('test-type', 'test description');
+    expect(result).toBe(JSON.stringify("Task triggered", null, 2));
+  });
+
+  test("should throw an error for a non-existent tool", async () => {
+    await expect(execute("non_existent.tool", {}, "test-agent-permitted")).rejects.toThrow(
+      "Tool 'non_existent.tool' not found or is not a function in the engine toolbelt."
+    );
+  });
+
+  test("should throw an error if agent definition file is not found", async () => {
+    await expect(execute("file_system.readFile", {}, "non-existent-agent")).rejects.toThrow(
+      "ENOENT: no such file or directory"
+    );
   });
 });
