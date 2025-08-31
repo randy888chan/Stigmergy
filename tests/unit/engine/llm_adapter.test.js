@@ -1,6 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
-import { getCompletion, getSystemPrompt, clearFileCache, decomposeGoal } from "../../../engine/llm_adapter.js";
+import { getCompletion, getSystemPrompt, clearFileCache, decomposeGoal, getSharedContext, getCachedFile } from "../../../engine/llm_adapter.js";
 import { getModelForTier } from "../../../ai/providers.js";
 import yaml from 'js-yaml';
 
@@ -25,6 +25,7 @@ describe("LLM Adapter", () => {
   beforeEach(() => {
     // Reset mocks before each test
     jest.clearAllMocks();
+    clearFileCache();
 
     // Setup a mock LLM that can be returned by the provider
     mockLlm = {
@@ -39,8 +40,46 @@ describe("LLM Adapter", () => {
             const yamlString = yaml.dump(mockAgentContent);
             return Promise.resolve("```yaml\n" + yamlString + "\n```");
         }
+        // For getSharedContext
+        if (filePath.includes('00_System_Goal.md')) {
+            return Promise.resolve("System Goal Content");
+        }
+        if (filePath.includes('01_System_Architecture.md')) {
+            return Promise.resolve("System Architecture Content");
+        }
         return Promise.reject(new Error("File not found"));
     });
+
+    fs.pathExists.mockImplementation((filePath) => {
+        return Promise.resolve(
+            filePath.includes('test-agent.md') ||
+            filePath.includes('00_System_Goal.md') ||
+            filePath.includes('01_System_Architecture.md')
+        );
+    });
+  });
+
+  describe("getSharedContext", () => {
+    test("should read and concatenate the content of the documentation files", async () => {
+      const context = await getSharedContext();
+      expect(context).toContain("--- START .stigmergy-core/system_docs/00_System_Goal.md ---");
+      expect(context).toContain("System Goal Content");
+      expect(context).toContain("--- START .stigmergy-core/system_docs/01_System_Architecture.md ---");
+      expect(context).toContain("System Architecture Content");
+    });
+
+    test("should use the cache to avoid reading the same file multiple times", async () => {
+        await getSharedContext();
+        await getSharedContext();
+        // fs.readFile should be called once for each existing file
+        expect(fs.readFile).toHaveBeenCalledTimes(2);
+      });
+  
+      test("should handle missing files gracefully", async () => {
+        // The mock for pathExists will return false for other files
+        const context = await getSharedContext();
+        expect(context).not.toContain("brief.md");
+      });
   });
 
   describe("getCompletion", () => {
@@ -113,10 +152,12 @@ describe("LLM Adapter", () => {
   });
 
   describe("clearFileCache", () => {
-    // This is harder to test without exporting the cache.
-    // For now, we just test that it doesn't throw an error.
-    test("should run without errors", () => {
-      expect(() => clearFileCache()).not.toThrow();
+    test("should clear the cache", async () => {
+        const filePath = path.join(process.cwd(), '.stigmergy-core', 'system_docs', '00_System_Goal.md');
+        await getCachedFile(filePath);
+        clearFileCache();
+        await getCachedFile(filePath);
+        expect(fs.readFile).toHaveBeenCalledTimes(2);
     });
   });
 
