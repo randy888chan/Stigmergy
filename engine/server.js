@@ -12,6 +12,9 @@ import { CodeIntelligenceService } from '../services/code_intelligence_service.j
 import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import fs from 'fs';
+import { generateText } from 'ai';
+import { getModelForTier } from '../ai/providers.js';
 import config from "../stigmergy.config.js";
 import dashboardRouter from "./dashboard.js";
 
@@ -22,7 +25,10 @@ async function geminiHealthCheck() {
         await execPromise('gemini --version');
         return { status: 'ok', message: 'Gemini CLI is installed and accessible.' };
     } catch (error) {
-        return { status: 'error', message: 'Gemini CLI not found. The @gemini-executor agent will fail.' };
+        return {
+            status: 'error',
+            message: 'Gemini CLI not found. The @gemini-executor agent will fail. Please ensure `gemini` is installed (`npm install -g @google/gemini-cli`) and that your system PATH includes the global npm binaries directory.'
+        };
     }
 }
 
@@ -104,19 +110,44 @@ export class Engine {
 
   async runMainLoop() {
     const state = await this.stateManager.getState();
+    const dispatcher = this.getAgent('dispatcher');
 
-    if (state.status === 'EXECUTION_IN_PROGRESS' && state.pending_tasks && state.pending_tasks.length > 0) {
-        const task = state.pending_tasks[0];
-        // This is a simplified execution model for the test.
-        // A real implementation would involve more complex dispatching.
-        await this.triggerAgent('dispatcher', task);
-        await this.executeTool(task.tool_name, task.tool_args, 'dispatcher');
+    // Do nothing if there's no defined status or if execution is paused/complete
+    if (!state.project_status || ['PAUSED', 'EXECUTION_COMPLETE', 'HUMAN_INPUT_NEEDED'].includes(state.project_status)) {
+      return;
+    }
 
-        this.taskCounter++;
-        if (this.taskCounter >= SELF_IMPROVEMENT_CYCLE) {
-            await this.stateManager.updateStatus({ newStatus: 'NEEDS_IMPROVEMENT' });
-            this.taskCounter = 0;
+    // Construct the prompt for the dispatcher agent
+    const prompt = `
+      System State:
+      - Project Status: ${state.project_status}
+      - Pending Tasks: ${state.pending_tasks ? state.pending_tasks.length : 0}
+      - Task History: ${state.task_history ? state.task_history.length : 0}
+
+      Instructions:
+      Based on the current system state and your core protocols, determine the single next action to take.
+      Your response must be a single, executable tool call in JSON format.
+      Example: {"tool": "stigmergy.task", "args": {"agentId": "analyst", "prompt": "Analyze the market"}}
+    `;
+
+    try {
+      const response = await this.triggerAgent(dispatcher, prompt);
+
+      // Basic response parsing (a more robust solution would use ai-sdk tools)
+      const toolCallMatch = response.text.match(/\{[\s\S]*\}/);
+      if (toolCallMatch) {
+        const toolCall = JSON.parse(toolCallMatch[0]);
+        if (toolCall.tool && toolCall.args) {
+          console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool}`));
+          await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
+        } else {
+            console.error(chalk.red("[Dispatcher] Invalid tool call format in response."), response.text);
         }
+      } else {
+        console.error(chalk.red("[Dispatcher] Did not return a tool call."), response.text);
+      }
+    } catch (error) {
+      console.error(chalk.red("[Engine] Error during main loop dispatcher cycle:"), error);
     }
   }
 
@@ -127,12 +158,45 @@ export class Engine {
         console.log(chalk.blue(`   Watching project at: ${process.cwd()}`));
         console.log(chalk.yellow("   This is a headless engine. Interact with it via your IDE."));
     });
-    this.mainLoopInterval = setInterval(() => this.runMainLoop(), 50);
+    // Increase interval to a more realistic value to avoid spamming the LLM
+    this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
   }
 
-  async triggerAgent(agentId, prompt) {
-    console.log(`[Engine] Triggering agent: @${agentId}`);
-    return `Task for @${agentId} acknowledged.`;
+  getAgent(agentId) {
+    // In a real system, this would involve a more complex loading mechanism.
+    // For now, we'll just load the markdown file and parse it.
+    const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    if (fs.existsSync(agentPath)) {
+        const content = fs.readFileSync(agentPath, 'utf8');
+        // A simple parser for the system prompt. A robust solution would parse the full YAML.
+        const personaMatch = content.match(/identity: "(.*)"/);
+        const systemPrompt = personaMatch ? personaMatch[1] : 'You are a helpful assistant.';
+        const modelTierMatch = content.match(/model_tier: "(.*)"/);
+        const modelTier = modelTierMatch ? modelTierMatch[1] : 'b_tier';
+        return { id: agentId, systemPrompt, modelTier };
+    }
+    throw new Error(`Agent definition file not found for: ${agentId}`);
+  }
+
+  async triggerAgent(agent, userPrompt) {
+    console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
+    try {
+        const model = getModelForTier(agent.modelTier);
+        const { text } = await generateText({
+            model,
+            system: agent.systemPrompt,
+            prompt: userPrompt,
+        });
+        return { text };
+    } catch (error) {
+        if (error.message.includes("API key environment variable")) {
+            console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
+            // Return a "do nothing" tool call to prevent the engine from crashing.
+            return { text: '{"tool": "log", "args": {"message": "Agent trigger failed due to missing API key."}}' };
+        }
+        console.error(chalk.red(`[AI Provider] Error during generation for @${agent.id}:`), error);
+        return { error: error.message };
+    }
   }
 
   stop() {
