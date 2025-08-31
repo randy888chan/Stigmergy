@@ -193,3 +193,7 @@ export async function analyze_user_feedback({ research_data }) {
   });
   return object;
 }
+
+export function _resetCache() {
+    firecrawl = undefined;
+}

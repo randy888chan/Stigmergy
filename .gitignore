@@ -20,6 +20,10 @@ test-project/
 .roomodes
 stigmergy.env.example
 
+# Test artifacts
+.stigmergy-core-test-temp-*
+tool_executor_test_temp_core/
+
 # IDE & OS files
 .vscode/
 .idea/

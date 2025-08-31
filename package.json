@@ -12,7 +12,7 @@
     "stigmergy:start": "node engine/server.js",
     "build": "node cli/index.js build",
     "pretest": "node scripts/setup-lightweight.js",
-    "test": "jest",
+    "test": "jest --coverage",
     "posttest": "node cli/index.js restore"
   },
   "dependencies": {
