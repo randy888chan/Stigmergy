@@ -1,8 +1,8 @@
+import "dotenv/config";
 import express from "express";
 import http from "http";
 import { WebSocketServer } from "ws";
 import chalk from "chalk";
-import "dotenv/config.js";
 import { fileURLToPath } from 'url';
 import path from 'path';
 
