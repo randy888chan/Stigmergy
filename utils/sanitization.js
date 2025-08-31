@@ -16,31 +16,13 @@ const toolSchemas = {
   // Example schema for a 'shell.run' tool
   'shell.run': {
     command: z.string().min(1),
+  },
+  'stigmergy.task': {
+    subagent_type: z.string().min(1),
+    description: z.string().min(1),
   }
 };
 
-/**
- * Sanitizes and validates arguments for a tool call against its predefined Zod schema.
- * @param {string} toolName - The name of the tool being called (e.g., 'file_system.writeFile').
- * @param {object} args - The arguments object to validate.
- * @returns {object} The validated and sanitized arguments.
- * @throws {Error} If the tool name is invalid or the arguments fail validation.
- */
-export function sanitizeToolCall(toolName, args) {
-  const toolSchema = toolSchemas[toolName];
-  if (!toolSchema) {
-    // If no schema is defined, assume no validation is needed and return args as is.
-    return args;
-  }
-
-  const schema = z.object(toolSchema);
-  try {
-    return schema.parse(args);
-  } catch (error) {
-    // Re-throw with a more informative error message
-    throw new Error(`Invalid arguments for tool '${toolName}': ${error.message}`);
-  }
-}
 /**
  * Sanitizes and validates arguments for a tool call against its predefined Zod schema.
  * @param {string} toolName - The name of the tool being called (e.g., 'file_system.writeFile').
