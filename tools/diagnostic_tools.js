@@ -14,7 +14,7 @@ export function diagnoseStartupIssues() {
       "1. Check Neo4j is running: 'sudo service neo4j status'",
       "2. Validate .env credentials by checking for the presence of required keys.",
       "3. Run 'npm run test:neo4j' to verify the connection.",
-      "4. Check port availability for the engine (e.g., 3000) and Neo4j (e.g., 7687) using 'lsof -i :<port>'",
+      "4. Check port availability for the engine (e.g., 3010) and Neo4j (e.g., 7687) using 'lsof -i :<port>'",
     ],
     automatedFix:
       "try { await restartNeo4j() } catch (e) { useSQLiteFallback() }",
