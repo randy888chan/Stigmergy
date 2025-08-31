@@ -21,6 +21,7 @@ test-project/
 stigmergy.env.example
 
 # Test artifacts
+coverage/
 .stigmergy-core-test-temp-*
 tool_executor_test_temp_core/
 
