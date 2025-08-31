@@ -37,14 +37,18 @@ export function resolvePath(filePath) {
 
   // Check file size limit
   if (config.security?.maxFileSizeMB) {
+    let stats;
     try {
-      const stats = fs.statSync(resolved);
+      stats = fs.statSync(resolved);
+    } catch (e) {
+      // File doesn't exist yet, skip size check
+    }
+
+    if (stats) {
       const maxBytes = config.security.maxFileSizeMB * 1024 * 1024;
       if (stats.size > maxBytes) {
         throw new Error(`File exceeds size limit of ${config.security.maxFileSizeMB}MB`);
       }
-    } catch (e) {
-      // File doesn't exist yet, skip size check
     }
   }
 
