@@ -72,6 +72,12 @@ export function createExecutor(engine) {
       const yamlMatch = agentFileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
       const agentConfig = yaml.load(yamlMatch[1]).agent;
 
+      const [namespace, funcName] = toolName.split(".");
+
+      if (!toolbelt[namespace] || typeof toolbelt[namespace][funcName] !== 'function') {
+        throw new Error(`Tool '${toolName}' not found or is not a function in the engine toolbelt.`);
+      }
+
       const permittedTools = agentConfig.engine_tools || [];
       const isPermitted = permittedTools.some(p => toolName.startsWith(p.replace(".*", "")));
       if (!isPermitted) {
@@ -82,11 +88,6 @@ export function createExecutor(engine) {
       }
 
       const safeArgs = sanitizeToolCall(toolName, args);
-      const [namespace, funcName] = toolName.split(".");
-
-      if (!toolbelt[namespace] || typeof toolbelt[namespace][funcName] !== 'function') {
-        throw new Error(`Tool '${toolName}' not found or is not a function in the engine toolbelt.`);
-      }
 
       const result = await toolbelt[namespace][funcName]({ ...safeArgs, agentConfig });
 
