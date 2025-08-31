@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import { Neo4jValidator } from "../../engine/neo4j_validator.js";
-import * as coreBackup from "../../services/core_backup.js";
+import coreBackup from "../../services/core_backup.js";
 
 /**
  * Validates the health of the entire Stigmergy system.
