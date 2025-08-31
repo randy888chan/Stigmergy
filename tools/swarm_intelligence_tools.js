@@ -6,7 +6,15 @@ export async function get_failure_patterns() {
   try {
     const data = await fs.readFile(filePath, 'utf8');
     if (!data.trim()) return "No failure reports logged yet.";
-    const failures = data.trim().split('\n').map(line => JSON.parse(line));
+    const failures = data.trim().split('\n').map(line => {
+        try {
+            return JSON.parse(line);
+        } catch (e) {
+            // This will be filtered out later
+            return null;
+        }
+    }).filter(Boolean);
+
     if (failures.length === 0) return "No failure reports logged yet.";
     const tagCounts = failures.reduce((acc, f) => {
       (f.tags || []).forEach(tag => { acc[tag] = (acc[tag] || 0) + 1; });
