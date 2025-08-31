@@ -1,8 +1,11 @@
 import express from "express";
 import * as stateManager from "./state_manager.js";
 import path from "path";
+import { fileURLToPath } from 'url';
 import AgentPerformance from './agent_performance.js';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const router = express.Router();
 
 router.get("/state", async (req, res) => {
@@ -15,6 +18,8 @@ router.get("/state", async (req, res) => {
   }
 });
 
-router.use(express.static(path.join(process.cwd(), "dashboard/public")));
+// Use an absolute path to the 'public' directory
+const publicPath = path.join(__dirname, '..', 'dashboard', 'public');
+router.use(express.static(publicPath));
 
 export default router;
