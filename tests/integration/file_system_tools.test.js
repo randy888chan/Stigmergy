@@ -12,14 +12,14 @@ describe("File System Tools", () => {
   });
 
   test("appendFile should create a file and add content", async () => {
-    await appendFile({ path: testFilePath, content: "line 1" });
+    await appendFile({ path: testFilePath, content: "line 1\n" });
     const content = await readFile({ path: testFilePath });
     expect(content).toBe("line 1\n");
   });
 
   test("appendFile should append to an existing file", async () => {
-    await appendFile({ path: testFilePath, content: "line 1" });
-    await appendFile({ path: testFilePath, content: "line 2" });
+    await appendFile({ path: testFilePath, content: "line 1\n" });
+    await appendFile({ path: testFilePath, content: "line 2\n" });
     const content = await readFile({ path: testFilePath });
     expect(content).toBe("line 1\nline 2\n");
   });

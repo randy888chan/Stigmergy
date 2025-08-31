@@ -1,16 +1,18 @@
 import * as codeIntelligence from "../tools/code_intelligence.js";
 
+const COMMON_WORDS_TO_IGNORE = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'be', 'being', 'been', 'and', 'or', 'but', 'if', 'of', 'at', 'by', 'for', 'with', 'about', 'to', 'from', 'in', 'out', 'on', 'off', 'please', 'also', 'check']);
+
 function extractSymbolsFromTask(taskContent) {
-  const symbolRegex = /`([A-Za-z0-9_.]+)`|\b([A-Z][a-zA-Z0-9_]+)\b|\b([a-z][a-zA-Z0-9_]+)\b/g;
-  const symbols = new Set();
-  let match;
-  while ((match = symbolRegex.exec(taskContent)) !== null) {
-    const symbol = match[1] || match[2] || match[3];
-    if (symbol) {
-      symbols.add(symbol);
+    const symbolRegex = /`([A-Za-z0-9_.]+)`|\b([A-Z][a-z]+[a-zA-Z0-9_]*)\b|\b([a-z]+[A-Z][a-zA-Z0-9_]*)\b|\b([a-zA-Z0-9_]+\.[a-zA-Z0-9_]+)\b/g;
+    const symbols = new Set();
+    let match;
+    while ((match = symbolRegex.exec(taskContent)) !== null) {
+        const symbol = match[1] || match[2] || match[3] || match[4];
+        if (symbol && !COMMON_WORDS_TO_IGNORE.has(symbol.toLowerCase())) {
+            symbols.add(symbol);
+        }
     }
-  }
-  return Array.from(symbols);
+    return Array.from(symbols);
 }
 
 async function getContextForSymbols(symbols) {
@@ -63,3 +65,9 @@ ${dynamicContext}
   }
   return "";
 }
+
+// Export for testing
+export const _private = {
+    extractSymbolsFromTask,
+    getContextForSymbols
+};

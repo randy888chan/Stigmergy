@@ -32,18 +32,19 @@ const mockManifest = {
 
 describe("Tool Executor", () => {
   let execute;
+  const TEST_DIR = path.join(__dirname, "tool_executor_test_temp_core");
 
   beforeAll(async () => {
-    // Create a dummy manifest file for the test in a temporary directory
-    const corePath = path.join(process.cwd(), ".stigmergy-core-test-temp");
-    global.StigmergyConfig = { core_path: corePath }; // Point the executor to our test core
-    const manifestPath = path.join(corePath, "system_docs", "02_Agent_Manifest.md");
+    // Create a completely isolated directory for this test suite
+    await fs.ensureDir(TEST_DIR);
+    global.StigmergyConfig = { core_path: TEST_DIR };
+
+    const manifestPath = path.join(TEST_DIR, "system_docs", "02_Agent_Manifest.md");
     await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
     await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
 
-    // Create dummy agent files
-    const agentsPath = path.join(corePath, "agents");
+    const agentsPath = path.join(TEST_DIR, "agents");
     await fs.ensureDir(agentsPath);
 
     const permittedAgentContent = `
@@ -70,9 +71,7 @@ agent:
   });
 
   afterAll(async () => {
-    // Clean up the temporary directory
-    const corePath = path.join(process.cwd(), ".stigmergy-core-test-temp");
-    await fs.remove(corePath);
+    await fs.remove(TEST_DIR);
     delete global.StigmergyConfig;
   });
 
