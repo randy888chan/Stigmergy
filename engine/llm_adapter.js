@@ -16,7 +16,7 @@ const META_PROMPT_PATH = path.join(
 
 const fileCache = new Map();
 
-async function getCachedFile(filePath) {
+export async function getCachedFile(filePath) {
   if (fileCache.has(filePath)) {
     return fileCache.get(filePath);
   }
@@ -28,7 +28,7 @@ async function getCachedFile(filePath) {
   return null;
 }
 
-async function getSharedContext() {
+export async function getSharedContext() {
   const docs = [
     ".stigmergy-core/system_docs/00_System_Goal.md",
     ".stigmergy-core/system_docs/01_System_Architecture.md",
