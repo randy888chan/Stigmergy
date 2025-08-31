@@ -4,7 +4,7 @@ import "dotenv/config";
 const config = {
   corePath: ".stigmergy-core",
   features: {
-    neo4j: "required", // Options: 'required', 'auto', 'memory'
+    neo4j: "auto", // Options: 'required', 'auto', 'memory'
   },
   model_tiers: {
     s_tier: { // Strategic/Reasoning -> Using Deepseek
