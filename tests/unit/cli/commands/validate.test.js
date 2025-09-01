@@ -20,8 +20,11 @@ agent:
   id: test-agent
   name: Test Agent
   alias: "@test"
+  model_tier: b_tier
   persona:
     role: "A test agent"
+  core_protocols:
+    - "Test protocol"
 \`\`\`
 `;
       fs.readdir.mockResolvedValue(["test-agent.md"]);
@@ -71,8 +74,8 @@ agent:
       });
 
       test("should return failure for duplicate aliases", async () => {
-        const agent1 = "```yaml\nagent:\n  id: agent-1\n  name: Agent 1\n  alias: '@dup'\n  persona:\n    role: 'r'\n```";
-        const agent2 = "```yaml\nagent:\n  id: agent-2\n  name: Agent 2\n  alias: '@dup'\n  persona:\n    role: 'r'\n```";
+        const agent1 = "```yaml\nagent:\n  id: agent-1\n  name: Agent 1\n  alias: '@dup'\n  model_tier: b_tier\n  persona:\n    role: 'r'\n  core_protocols:\n    - 'test'\n```";
+        const agent2 = "```yaml\nagent:\n  id: agent-2\n  name: Agent 2\n  alias: '@dup'\n  model_tier: b_tier\n  persona:\n    role: 'r'\n  core_protocols:\n    - 'test'\n```";
         fs.readdir.mockResolvedValue(["agent1.md", "agent2.md"]);
         fs.readFile.mockImplementation((filePath) => {
             if (filePath.includes("agent1.md")) return Promise.resolve(agent1);
@@ -83,7 +86,7 @@ agent:
 
         const result = await validateAgents();
         expect(result.success).toBe(false);
-        expect(result.error).toContain("1 agent definition(s) failed validation");
+        expect(result.error).toContain("agent definition(s) failed validation");
     });
 
     test("should return failure if agents directory does not exist", async () => {

@@ -90,6 +90,16 @@ export class Engine {
   async initialize() {
     console.log(chalk.blue("Initializing Stigmergy Engine and Auditing Connections..."));
 
+    // Check environment variables first
+    const requiredEnvVars = this.getRequiredEnvVars();
+    const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+        console.error(chalk.red(`[✖] Missing required environment variables: ${missingVars.join(', ')}`));
+        console.error(chalk.yellow("Please copy .env.example to .env and configure your API keys."));
+        return false;
+    }
+
     const archon = await archonHealthCheck();
     if (archon.status === 'ok') {
         console.log(chalk.green(`[✔] Archon Power Mode: ${archon.message}`));
@@ -100,11 +110,22 @@ export class Engine {
     const neo4j = await this.codeIntelligence.testConnection();
     if (neo4j.status === 'ok') {
         console.log(chalk.green(`[✔] Neo4j: ${neo4j.message}`));
+        if (neo4j.version) {
+            console.log(chalk.blue(`    Version: ${neo4j.version}`));
+        }
     } else {
         console.log(chalk.red(`[✖] Neo4j: ${neo4j.message}`));
         if (config.features.neo4j === 'required') {
-            return false; // Hard fail
+            console.error(chalk.red("Neo4j is required but not available. Please check your configuration."));
+            if (neo4j.recovery_suggestions) {
+                console.log(chalk.yellow("Recovery suggestions:"));
+                neo4j.recovery_suggestions.forEach(suggestion => {
+                    console.log(chalk.yellow(`  • ${suggestion}`));
+                });
+            }
+            return false;
         }
+        console.log(chalk.yellow("Continuing with in-memory state management."));
     }
 
     const gemini = await geminiHealthCheck();
@@ -115,6 +136,21 @@ export class Engine {
     }
 
     return true;
+  }
+
+  getRequiredEnvVars() {
+    const requiredVars = [];
+    
+    Object.values(config.model_tiers).forEach(tier => {
+        if (tier.api_key_env) requiredVars.push(tier.api_key_env);
+    });
+    
+    // Add Neo4j if required
+    if (config.features.neo4j === 'required') {
+        requiredVars.push('NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD');
+    }
+    
+    return [...new Set(requiredVars)]; // Remove duplicates
   }
 
   async runMainLoop() {

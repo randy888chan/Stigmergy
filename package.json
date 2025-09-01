@@ -11,9 +11,15 @@
     "start": "node engine/server.js",
     "stigmergy:start": "node engine/server.js",
     "build": "node cli/index.js build",
+    "health-check": "node scripts/health-check.js",
+    "validate": "node cli/index.js validate",
+    "install-core": "node cli/index.js install",
     "pretest": "node scripts/setup-lightweight.js",
     "test": "jest --coverage",
-    "posttest": "node cli/index.js restore"
+    "posttest": "node cli/index.js restore",
+    "test:watch": "jest --watch",
+    "test:integration": "jest tests/integration --verbose",
+    "test:unit": "jest tests/unit --verbose"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.23",

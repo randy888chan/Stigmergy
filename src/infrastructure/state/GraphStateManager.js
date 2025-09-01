@@ -39,11 +39,23 @@ class GraphStateManager extends EventEmitter {
         project_status: "NEEDS_INITIALIZATION",
         project_manifest: { tasks: [] },
         history: [],
+        fallback_mode: false,
     };
 
     if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
-        console.warn("GraphStateManager: Neo4j driver not available. Returning default state.");
-        return defaultState;
+        console.warn("GraphStateManager: Operating in fallback mode - state will not persist between sessions.");
+        // Store state in memory for this session
+        if (!this.memoryState) {
+            this.memoryState = { 
+              ...defaultState, 
+              fallback_mode: true,
+              fallback_reason: this.connectionStatus === 'REQUIRED_MISSING' 
+                ? 'Neo4j credentials required but not configured' 
+                : 'Neo4j connection unavailable',
+              persistence_warning: 'State will not persist between sessions'
+            };
+        }
+        return this.memoryState;
     }
 
     const session = this.driver.session();
@@ -78,7 +90,24 @@ class GraphStateManager extends EventEmitter {
 
   async updateState(event) {
     if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
-        console.warn(`GraphStateManager: Neo4j driver not available. State update for event '${event.type}' will be lost.`);
+        console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type}' will be stored in memory only.`);
+        
+        // Update memory state if in fallback mode
+        if (this.memoryState) {
+          const projectName = event.project_name || 'default';
+          
+          // Apply the event to memory state
+          Object.assign(this.memoryState, {
+            ...event,
+            project_name: projectName,
+            last_updated: new Date().toISOString(),
+            fallback_mode: true
+          });
+          
+          this.emit("stateChanged", this.memoryState);
+          return this.memoryState;
+        }
+        
         return this.getState(event.project_name);
     }
 

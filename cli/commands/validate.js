@@ -19,16 +19,32 @@ const agentSchema = z
         id: z
           .string()
           .regex(/^[a-z0-9_-]+$/, "Agent ID must be lowercase with hyphens/underscores only."),
-        name: z.string(),
+        name: z.string().min(1, "Agent name is required"),
         alias: z.string().startsWith("@", "Alias must start with '@'").optional(),
+        archetype: z.string().optional(),
+        title: z.string().optional(),
+        icon: z.string().optional(),
+        is_interface: z.boolean().optional(),
+        model_tier: z.enum(["s_tier", "a_tier", "b_tier", "c_tier", "default"], {
+          errorMap: () => ({ message: "Model tier must be one of: s_tier, a_tier, b_tier, c_tier, default" })
+        }),
         persona: z
           .object({
-            role: z.string(),
+            role: z.string().min(1, "Persona role is required"),
+            style: z.string().optional(),
+            identity: z.string().optional(),
           })
-          .passthrough(),
-        tools: z.array(z.string()).optional(),
+          .optional(),
+        core_protocols: z
+          .array(z.string())
+          .min(1, "At least one core protocol is required")
+          .optional(),
+        ide_tools: z.array(z.string()).optional(),
+        engine_tools: z.array(z.string()).optional(),
+        tools: z.array(z.string()).optional(), // Legacy support
+        source: z.string().optional(), // Legacy support
       })
-      .passthrough(),
+      .passthrough(), // Allow additional fields for flexibility
   })
   .passthrough();
 
@@ -75,19 +91,65 @@ export async function validateAgents(providedCorePath) {
 
     try {
       const agentData = yaml.load(yamlMatch[1]);
-      agentSchema.parse(agentData); // This is the new validation step
-
+      
+      // Enhanced validation with backward compatibility
+      agentSchema.parse(agentData);
+      
+      // Additional validation checks
+      const agent = agentData.agent;
+      
+      // Warn about legacy fields
+      if (agent.tools && !agent.engine_tools) {
+        console.warn(`⚠️ ${file}: Using deprecated 'tools' field. Consider migrating to 'engine_tools'`);
+      }
+      
+      if (!agent.core_protocols && !agent.tools) {
+        console.warn(`⚠️ ${file}: Missing 'core_protocols' field. This may affect agent behavior.`);
+      }
+      
       // Check for duplicate aliases
-      if (agentData.agent?.alias) {
-        if (aliases.has(agentData.agent.alias)) {
+      if (agent?.alias) {
+        if (aliases.has(agent.alias)) {
           console.error(
-            `❌ ${file}: Duplicate alias '${agentData.agent.alias}' (also used in ${aliases.get(agentData.agent.alias)})`
+            `❌ ${file}: Duplicate alias '${agent.alias}' (also used in ${aliases.get(agent.alias)})`
           );
           invalidAgents++;
+          continue;
         } else {
-          aliases.set(agentData.agent.alias, file);
+          aliases.set(agent.alias, file);
         }
       }
+      
+      // Validate engine tools format
+      if (agent.engine_tools) {
+        const validToolPatterns = [
+          'file_system.*', 'shell.*', 'research.*', 'code_intelligence.*',
+          'swarm_intelligence.*', 'qa.*', 'business_verification.*',
+          'guardian.*', 'core.*', 'system.*', 'stigmergy.*'
+        ];
+        
+        for (const tool of agent.engine_tools) {
+          const isValidPattern = validToolPatterns.some(pattern => {
+            if (pattern.endsWith('.*')) {
+              return tool.startsWith(pattern.slice(0, -2));
+            }
+            return tool === pattern;
+          });
+          
+          if (!isValidPattern) {
+            console.warn(`⚠️ ${file}: Unknown engine tool pattern '${tool}'`);
+          }
+        }
+      }
+      
+      // Validate file naming convention
+      const expectedFileName = `${agent.id}.md`;
+      if (file !== expectedFileName) {
+        console.warn(`⚠️ ${file}: Filename should match agent ID: expected '${expectedFileName}'`);
+      }
+      
+      console.log(`✅ ${file}: Valid agent definition`);
+      
     } catch (e) {
       if (e instanceof z.ZodError) {
         console.error(`❌ ${file}: Zod validation failed:`, e.flatten().fieldErrors);

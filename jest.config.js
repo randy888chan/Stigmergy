@@ -1,6 +1,7 @@
 export default {
   setupFiles: ["dotenv/config"],
   setupFilesAfterEnv: ["<rootDir>/tests/setup.js"],
+  globalTeardown: "<rootDir>/tests/teardown.js",
   testEnvironment: "node",
   testTimeout: 30000,
   transform: {

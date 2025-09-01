@@ -6,6 +6,9 @@ const workerId = process.env.JEST_WORKER_ID || '1';
 const TEST_CORE = path.join(process.cwd(), `.stigmergy-core-test-temp-${workerId}`);
 const FIXTURE_CORE = path.join(process.cwd(), "tests", "fixtures", "test-core");
 
+// Store the original configuration before overriding
+const ORIGINAL_CORE_PATH = path.join(process.cwd(), ".stigmergy-core");
+
 // Clean up any previous test runs for this specific worker
 if (fs.existsSync(TEST_CORE)) {
   fs.removeSync(TEST_CORE);
@@ -19,6 +22,24 @@ try {
   process.exit(1);
 }
 
-// Set the global config that the application will use to find the core files.
-// Each worker now points to its own isolated core directory.
+// Store original config and set test config
+global.StigmergyConfig_Original = global.StigmergyConfig || { core_path: ORIGINAL_CORE_PATH };
 global.StigmergyConfig = { core_path: TEST_CORE };
+
+// Cleanup function for after tests
+global.restoreStigmergyConfig = () => {
+  if (global.StigmergyConfig_Original) {
+    global.StigmergyConfig = global.StigmergyConfig_Original;
+  } else {
+    delete global.StigmergyConfig;
+  }
+  
+  // Clean up test directory
+  if (fs.existsSync(TEST_CORE)) {
+    try {
+      fs.removeSync(TEST_CORE);
+    } catch (error) {
+      console.warn(`Failed to clean up test directory ${TEST_CORE}:`, error.message);
+    }
+  }
+};
