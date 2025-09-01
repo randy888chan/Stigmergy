@@ -9,6 +9,7 @@ describe('Engine Server', () => {
 
   beforeAll(async () => {
     engine = new Engine();
+    engine.triggerAgent = jest.fn(); // Mock the method before initialization
     await engine.initialize();
     await new Promise(resolve => {
       engine.server.listen(port, () => {
@@ -24,13 +25,17 @@ describe('Engine Server', () => {
 
   describe('API Endpoints', () => {
     it('should respond to a POST request at /api/chat', async () => {
+    // Mock the agent trigger to return a predictable response
+    const mockToolCall = { tool: 'log', args: { message: 'Hello back!' } };
+    engine.triggerAgent.mockResolvedValue({ toolCall: mockToolCall });
+
       const response = await axios.post(`${baseURL}/api/chat`, {
         agentId: 'test-agent',
         prompt: 'Hello, engine!'
       });
 
       expect(response.status).toBe(200);
-      expect(response.data).toEqual({ response: 'Task for @test-agent acknowledged.' });
+    expect(response.data).toEqual({ response: { toolCall: mockToolCall } });
     });
   });
 
