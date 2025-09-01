@@ -30,13 +30,16 @@ export async function install() {
   
   const targetCoreDir = path.join(targetDir, ".stigmergy-core");
 
-  if (await fs.pathExists(targetCoreDir)) {
-      console.log("⚠️ .stigmergy-core already exists. Overwriting for a clean installation.");
-      await fs.remove(targetCoreDir);
+  if (sourceCoreDir === targetCoreDir) {
+    console.log("Running install in the project root. Skipping core file copy.");
+  } else {
+    if (await fs.pathExists(targetCoreDir)) {
+        console.log("⚠️ .stigmergy-core already exists. Overwriting for a clean installation.");
+        await fs.remove(targetCoreDir);
+    }
+    await fs.copy(sourceCoreDir, targetCoreDir);
+    console.log("✅ .stigmergy-core installed successfully.");
   }
-
-  await fs.copy(sourceCoreDir, targetCoreDir);
-  console.log("✅ .stigmergy-core installed successfully.");
 
   await configureIde(targetDir);
   
