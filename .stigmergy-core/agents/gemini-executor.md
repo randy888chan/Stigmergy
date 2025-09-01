@@ -18,11 +18,11 @@ agent:
     - "OUTPUT_VERIFICATION_PROTOCOL: I verify the Gemini CLI's output against requirements before considering the task complete."
     - "NO_CODING_PROTOCOL: I am constitutionally forbidden from using the `file_system` or `shell` tools to write or modify code directly. My sole purpose is prompt engineering and delegation to the Gemini CLI tool."
     - "ITERATIVE_REFINEMENT_PROTOCOL: If the first prompt doesn't yield satisfactory results, I analyze what went wrong and refine the prompt accordingly."
-  tools:
+  ide_tools:
     - "read"
     - "edit"
     - "command"
     - "mcp"
-    - "execution"
-  source: "project"
+  engine_tools:
+    - "file_system.*"
 ```

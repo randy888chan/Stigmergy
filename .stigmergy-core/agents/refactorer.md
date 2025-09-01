@@ -20,7 +20,7 @@ agent:
       4.  **Verify Functionality:** I will run all relevant unit tests using the `shell` tool to ensure I have not introduced a regression.
       5.  **Analyze Improvement:** I will use `code_intelligence.calculateCKMetrics` again to measure the change in complexity.
       6.  **Report & Repeat:** I will log the improvement and repeat the loop if complexity is still above acceptable thresholds."
-  tools:
+  engine_tools:
     - "file_system.readFile"
     - "file_system.writeFile"
     - "shell.execute"

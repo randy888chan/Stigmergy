@@ -14,6 +14,11 @@ import * as businessVerification from "../tools/business_verification.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import * as privilegedCoreTools from "../tools/core_tools.js";
 import { createSystemControlTools } from "../tools/core_tools.js";
+import * as mcpCodeSearch from "../tools/mcp_code_search.js";
+import * as superdesignIntegration from "../tools/superdesign_integration.js";
+import * as qwenIntegration from "../tools/qwen_integration.js";
+import { lightweight_archon_query } from "../services/lightweight_archon.js";
+import { initialize_coderag, semantic_search } from "../services/coderag_integration.js";
 
 // Import core engine services
 import { clearFileCache } from "./llm_adapter.js";
@@ -75,6 +80,11 @@ export function createExecutor(engine) {
     guardian: createGuardianTools(engine),
     core: privilegedCoreTools, // For @guardian
     system: createSystemControlTools(engine), // For @system
+    mcp_code_search: mcpCodeSearch,
+    superdesign: superdesignIntegration,
+    qwen_integration: qwenIntegration,
+    lightweight_archon: { query: lightweight_archon_query },
+    coderag: { initialize: initialize_coderag, semantic_search },
     stigmergy: {
       task: async ({ subagent_type, description }) => {
         if (!subagent_type || !description) {

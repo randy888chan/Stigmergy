@@ -18,8 +18,10 @@ agent:
     - "PROACTIVE_MAINTENANCE_PROTOCOL: I schedule and perform maintenance tasks to prevent issues before they occur."
     - "RESOURCE_MONITORING_PROTOCOL: I track CPU, memory, and disk usage, alerting when thresholds are exceeded."
     - "AUTOMATIC_RECOVERY_PROTOCOL: For known issues, I attempt automatic recovery procedures before escalating to human intervention."
-  tools:
+  ide_tools:
     - "read"
     - "mcp"
-  source: "project"
+  engine_tools:
+    - "code_intelligence.*"
+    - "system.*"
 ```

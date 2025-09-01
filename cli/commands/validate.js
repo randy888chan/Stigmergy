@@ -125,7 +125,9 @@ export async function validateAgents(providedCorePath) {
         const validToolPatterns = [
           'file_system.*', 'shell.*', 'research.*', 'code_intelligence.*',
           'swarm_intelligence.*', 'qa.*', 'business_verification.*',
-          'guardian.*', 'core.*', 'system.*', 'stigmergy.*'
+          'guardian.*', 'core.*', 'system.*', 'stigmergy.*',
+          'mcp_code_search.*', 'superdesign.*', 'qwen_integration.*',
+          'lightweight_archon.*', 'coderag.*'
         ];
         
         for (const tool of agent.engine_tools) {

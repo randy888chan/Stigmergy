@@ -4,8 +4,18 @@ import { enhance as enhanceContext } from "./context_enhancer.js";
 import { getModelForTier } from "../ai/providers.js";
 import "dotenv/config.js";
 import yaml from 'js-yaml';
+import config from "../stigmergy.config.js";
 
 let llm;
+
+// Provider Context Management
+const PROVIDER_CONTEXTS = {
+  STIGMERGY: 'stigmergy_internal',
+  ROO_CODE: 'roo_code_external',
+  EXTERNAL_IDE: 'external_ide'
+};
+
+let currentProviderContext = PROVIDER_CONTEXTS.STIGMERGY;
 
 const META_PROMPT_PATH = path.join(
   process.cwd(),
@@ -51,7 +61,32 @@ export async function getSharedContext() {
   return context;
 }
 
-export async function getCompletion(agentId, prompt) {
+export function setProviderContext(context) {
+  if (Object.values(PROVIDER_CONTEXTS).includes(context)) {
+    currentProviderContext = context;
+    console.log(`[LLM Adapter] Provider context set to: ${context}`);
+  }
+}
+
+export function getProviderContext() {
+  return currentProviderContext;
+}
+
+export async function getCompletion(agentId, prompt, options = {}) {
+  // Check if we're in external IDE context and should defer
+  if (currentProviderContext === PROVIDER_CONTEXTS.ROO_CODE && !options.forceInternal) {
+    console.log(`[LLM Adapter] Deferring to Roo Code for agent ${agentId}`);
+    return {
+      thought: `Routing request through Roo Code IDE for ${agentId}`,
+      action: "external_ide_routing",
+      provider_context: currentProviderContext
+    };
+  }
+
+  // Check provider isolation feature flag
+  if (config.features?.provider_isolation && currentProviderContext !== PROVIDER_CONTEXTS.STIGMERGY) {
+    console.log(`[LLM Adapter] Provider isolation enabled, context: ${currentProviderContext}`);
+  }
   const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
   const agentDef = await fs.readFile(agentPath, 'utf-8');
   const agentConfig = yaml.load(agentDef.match(/```yaml\n([\s\S]*?)\n```/)[1]).agent;
@@ -59,7 +94,13 @@ export async function getCompletion(agentId, prompt) {
   const modelTier = agentConfig.model_tier || 'b_tier'; // Default to cheapest tier
   const llm = getModelForTier(modelTier);
 
-  const systemPrompt = `You are ${agentId}. Respond in JSON format: {thought, action}`;
+  // Enhanced system prompt with context awareness
+  const systemPrompt = `You are ${agentId}. 
+Provider Context: ${currentProviderContext}
+${currentProviderContext === PROVIDER_CONTEXTS.EXTERNAL_IDE ? 
+  'You are operating through an external IDE. Be concise and focused.' : 
+  'You are operating in autonomous mode.'}
+Respond in JSON format: {thought, action}`;
 
   try {
     const response = await llm.generate({

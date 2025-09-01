@@ -6,6 +6,7 @@ import { SystemValidator } from '../src/bootstrap/system_validator.js';
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
 import config from '../stigmergy.config.js';
 import { validateAgents } from '../cli/commands/validate.js';
+import { qwen_health_check } from '../tools/qwen_integration.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -225,9 +226,26 @@ class ComprehensiveHealthCheck {
             console.log(chalk.yellow('   ⚠️  Gemini CLI not found (optional)'));
         }
 
+        // Check Qwen Code integration
+        let qwenIntegration = false;
+        try {
+            const qwenResult = await qwen_health_check();
+            if (qwenResult.status === 'ok') {
+                console.log(chalk.green('   ✅ Qwen Code integration working'));
+                qwenIntegration = true;
+            } else {
+                this.warnings.push(`Qwen Code integration issue: ${qwenResult.message}`);
+                console.log(chalk.yellow(`   ⚠️  Qwen Code: ${qwenResult.message}`));
+            }
+        } catch (error) {
+            this.warnings.push('Qwen Code integration not available (advanced coding features limited)');
+            console.log(chalk.yellow('   ⚠️  Qwen Code integration failed (optional)'));
+        }
+
         this.results.externalIntegrations = {
             firecrawl: !!firecrawlKey,
-            geminiCli
+            geminiCli,
+            qwenIntegration
         };
         console.log('');
     }

@@ -4,18 +4,22 @@
 agents:
   - id: analyst
   - id: business_planner
+  - id: context_preparer
   - id: debugger
   - id: design-architect
   - id: dev
   - id: dispatcher
+  - id: enhanced-dev
   - id: gemini-executor
   - id: guardian
   - id: health_monitor
   - id: metis
-  - id: orion # Add Orion here
+  - id: orion
   - id: qa
+  - id: qwen-executor
   - id: refactorer
   - id: system
+  - id: test-agent
   - id: ux-expert
   - id: valuator
   - id: whitepaper_writer

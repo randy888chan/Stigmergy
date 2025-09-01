@@ -9,7 +9,8 @@
   },
   "scripts": {
     "start": "node engine/server.js",
-    "stigmergy:start": "node engine/server.js",
+    "stigmergy:start": "node scripts/production-start.js",
+    "stigmergy:dev": "node engine/server.js",
     "build": "node cli/index.js build",
     "health-check": "node scripts/health-check.js",
     "validate": "node cli/index.js validate",
@@ -19,7 +20,11 @@
     "posttest": "node cli/index.js restore",
     "test:watch": "jest --watch",
     "test:integration": "jest tests/integration --verbose",
-    "test:unit": "jest tests/unit --verbose"
+    "test:unit": "jest tests/unit --verbose",
+    "test:integrations": "node scripts/integration-test.js",
+    "setup:qwen": "node scripts/setup-qwen.js",
+    "mcp:start": "node mcp-server.js",
+    "coderag:init": "node -e \"import('./services/coderag_integration.js').then(m => m.initialize_coderag({}))\""
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.23",
@@ -27,6 +32,7 @@
     "@babel/traverse": "^7.24.5",
     "@langchain/langgraph": "^0.0.11",
     "@mendable/firecrawl-js": "^0.0.28",
+    "@supabase/supabase-js": "^2.38.0",
     "ai": "^3.0.12",
     "axios": "^1.7.2",
     "chalk": "^5.3.0",
