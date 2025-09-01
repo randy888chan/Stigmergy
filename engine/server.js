@@ -17,6 +17,7 @@ import { generateText } from 'ai';
 import { getModelForTier } from '../ai/providers.js';
 import config from "../stigmergy.config.js";
 import dashboardRouter from "./dashboard.js";
+import yaml from 'js-yaml';
 
 const execPromise = promisify(exec);
 
@@ -69,7 +70,8 @@ export class Engine {
         try {
             const { agentId, prompt } = req.body;
             console.log(chalk.green(`[API] Received request for @${agentId}: "${prompt}"`));
-            const result = await this.triggerAgent(agentId, prompt);
+            const agent = this.getAgent(agentId);
+            const result = await this.triggerAgent(agent, prompt);
             res.json({ response: result });
         } catch (error) {
             console.error(chalk.red(`[API Error] ${error.message}`));
@@ -163,19 +165,43 @@ export class Engine {
   }
 
   getAgent(agentId) {
-    // In a real system, this would involve a more complex loading mechanism.
-    // For now, we'll just load the markdown file and parse it.
     const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
-    if (fs.existsSync(agentPath)) {
-        const content = fs.readFileSync(agentPath, 'utf8');
-        // A simple parser for the system prompt. A robust solution would parse the full YAML.
-        const personaMatch = content.match(/identity: "(.*)"/);
-        const systemPrompt = personaMatch ? personaMatch[1] : 'You are a helpful assistant.';
-        const modelTierMatch = content.match(/model_tier: "(.*)"/);
-        const modelTier = modelTierMatch ? modelTierMatch[1] : 'b_tier';
-        return { id: agentId, systemPrompt, modelTier };
+    if (!fs.existsSync(agentPath)) {
+      throw new Error(`Agent definition file not found for: ${agentId}`);
     }
-    throw new Error(`Agent definition file not found for: ${agentId}`);
+
+    const content = fs.readFileSync(agentPath, 'utf8');
+    const yamlMatch = content.match(/```yaml\s*([\s\S]*?)```/);
+    if (!yamlMatch) {
+      throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
+    }
+
+    try {
+      const agentData = yaml.load(yamlMatch[1]);
+      const persona = agentData.agent?.persona;
+      const protocols = agentData.agent?.core_protocols;
+
+      if (!persona || !protocols) {
+        throw new Error(`Agent ${agentId} is missing persona or core_protocols.`);
+      }
+
+      // Construct a comprehensive system prompt
+      const systemPrompt = `
+        **Identity:** ${persona.identity}
+        **Role:** ${persona.role}
+        **Style:** ${persona.style}
+
+        **Core Protocols (MUST be followed at all times):**
+        ${protocols.join('\n\n')}
+      `.trim();
+
+      const modelTier = agentData.agent?.model_tier || 'b_tier';
+
+      return { id: agentId, systemPrompt, modelTier };
+    } catch (e) {
+      console.error(chalk.red(`Error parsing YAML for agent ${agentId}: ${e.message}`));
+      throw new Error(`Failed to parse agent definition for: ${agentId}`);
+    }
   }
 
   async triggerAgent(agent, userPrompt) {
