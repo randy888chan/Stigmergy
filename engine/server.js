@@ -13,13 +13,20 @@ import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import fs from 'fs';
-import { generateText } from 'ai';
+import { generateText, generateObject } from 'ai';
+import { z } from 'zod';
 import { getModelForTier } from '../ai/providers.js';
 import config from "../stigmergy.config.js";
 import dashboardRouter from "./dashboard.js";
 import yaml from 'js-yaml';
 
 const execPromise = promisify(exec);
+
+const stigmergyToolCallSchema = z.object({
+  tool: z.string().describe("The name of the tool to call, e.g., 'stigmergy.task'"),
+  args: z.record(z.any()).describe("The arguments for the tool, as an object."),
+});
+
 
 async function geminiHealthCheck() {
     try {
@@ -114,42 +121,39 @@ export class Engine {
     const state = await this.stateManager.getState();
     const dispatcher = this.getAgent('dispatcher');
 
-    // Do nothing if there's no defined status or if execution is paused/complete
-    if (!state.project_status || ['PAUSED', 'EXECUTION_COMPLETE', 'HUMAN_INPUT_NEEDED'].includes(state.project_status)) {
+    if (!state.project_status || ['PAUSED', 'EXECUTION_COMPLETE', 'HUMAN_INPUT_NEEDED', 'NEEDS_INITIALIZATION'].includes(state.project_status)) {
       return;
     }
 
-    // Construct the prompt for the dispatcher agent
+    const allTasks = state.project_manifest?.tasks || [];
+    const pendingTasks = allTasks.filter(t => t.status === 'PENDING');
+    const completedTasks = allTasks.filter(t => t.status === 'COMPLETED');
+
     const prompt = `
       System State:
       - Project Status: ${state.project_status}
-      - Pending Tasks: ${state.pending_tasks ? state.pending_tasks.length : 0}
-      - Task History: ${state.task_history ? state.task_history.length : 0}
+      - All Tasks: ${allTasks.length}
+      - Pending Tasks (${pendingTasks.length}): ${pendingTasks.map(t => t.description).join('; ') || 'None'}
+      - Completed Tasks (${completedTasks.length}): ${completedTasks.map(t => t.description).join('; ') || 'None'}
 
       Instructions:
-      Based on the current system state and your core protocols, determine the single next action to take.
-      Your response must be a single, executable tool call in JSON format.
-      Example: {"tool": "stigmergy.task", "args": {"agentId": "analyst", "prompt": "Analyze the market"}}
+      Based on the current system state and your core protocols, determine the single next action to take by calling the appropriate tool.
     `;
 
     try {
-      const response = await this.triggerAgent(dispatcher, prompt);
+      const { toolCall } = await this.triggerAgent(dispatcher, prompt);
 
-      // Basic response parsing (a more robust solution would use ai-sdk tools)
-      const toolCallMatch = response.text.match(/\{[\s\S]*\}/);
-      if (toolCallMatch) {
-        const toolCall = JSON.parse(toolCallMatch[0]);
-        if (toolCall.tool && toolCall.args) {
-          console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool}`));
-          await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
-        } else {
-            console.error(chalk.red("[Dispatcher] Invalid tool call format in response."), response.text);
-        }
+      if (toolCall && toolCall.tool && toolCall.args) {
+        console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool} with args:`, toolCall.args));
+        await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
       } else {
-        console.error(chalk.red("[Dispatcher] Did not return a tool call."), response.text);
+        console.error(chalk.red("[Dispatcher] Did not return a valid tool call."), toolCall);
+        // Add a state update to prevent getting stuck in a loop on failure
+        await this.stateManager.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: "Dispatcher failed to produce a valid tool call." });
       }
     } catch (error) {
       console.error(chalk.red("[Engine] Error during main loop dispatcher cycle:"), error);
+       await this.stateManager.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: `Dispatcher cycle failed: ${error.message}` });
     }
   }
 
@@ -207,21 +211,26 @@ export class Engine {
   async triggerAgent(agent, userPrompt) {
     console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
     try {
-        const model = getModelForTier(agent.modelTier);
-        const { text } = await generateText({
-            model,
-            system: agent.systemPrompt,
-            prompt: userPrompt,
-        });
-        return { text };
+      const model = getModelForTier(agent.modelTier);
+
+      // Use generateObject for structured, predictable output
+      const { object } = await generateObject({
+        model,
+        schema: stigmergyToolCallSchema,
+        system: agent.systemPrompt,
+        prompt: userPrompt,
+      });
+
+      return { toolCall: object };
     } catch (error) {
-        if (error.message.includes("API key environment variable")) {
-            console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
-            // Return a "do nothing" tool call to prevent the engine from crashing.
-            return { text: '{"tool": "log", "args": {"message": "Agent trigger failed due to missing API key."}}' };
-        }
-        console.error(chalk.red(`[AI Provider] Error during generation for @${agent.id}:`), error);
-        return { error: error.message };
+      if (error.message.includes("API key environment variable")) {
+        console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
+        // Return a "do nothing" tool call to prevent the engine from crashing.
+        return { toolCall: { tool: 'log', args: { message: `Agent @${agent.id} trigger failed due to missing API key for tier ${agent.modelTier}.` } } };
+      }
+      console.error(chalk.red(`[AI Provider] Error during generation for @${agent.id}:`), error);
+      // Return a structured error to be handled by the main loop
+      return { error: error.message, toolCall: null };
     }
   }
 
