@@ -7,7 +7,7 @@ agent:
   title: "Error Handler"
   icon: "🐞"
   is_interface: false
-  model_tier: "a_tier"
+  model_tier: "execution_tier"
   persona:
     role: "Fixes what is broken. Writes failing tests, fixes code, ensures tests pass."
     style: "Methodical, analytical, and persistent."

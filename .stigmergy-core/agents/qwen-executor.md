@@ -7,7 +7,7 @@ agent:
   title: "Qwen Code Specialist"
   icon: "🔥"
   is_interface: false
-  model_tier: "a_tier"
+  model_tier: "execution_tier"
   persona:
     role: "Translates development tasks into prompts for the Qwen Code AI system."
     style: "Precise, technical, and efficient with advanced code generation capabilities."

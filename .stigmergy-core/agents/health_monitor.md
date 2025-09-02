@@ -7,7 +7,7 @@ agent:
   title: "System Health Monitor"
   icon: "🩺"
   is_interface: false
-  model_tier: "a_tier"
+  model_tier: "utility_tier"
   persona:
     role: "Monitors system health and performance."
     style: "Proactive, vigilant, and detail-oriented."

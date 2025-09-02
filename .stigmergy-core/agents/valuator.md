@@ -7,7 +7,7 @@ agent:
   title: "Business Valuator"
   icon: "💰"
   is_interface: false
-  model_tier: "a_tier"
+  model_tier: "execution_tier"
   persona:
     role: "Business value and impact assessor."
     style: "Analytical, data-driven, and business-focused."

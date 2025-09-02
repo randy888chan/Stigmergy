@@ -7,7 +7,7 @@ agent:
   title: "Code Intelligence Developer"
   icon: "🔍💻"
   is_interface: true
-  model_tier: "a_tier"
+  model_tier: "execution_tier"
   persona:
     role: "Advanced Code Implementation Specialist with Deep Code Intelligence."
     style: "Precise, context-aware, and leverages existing codebase patterns."

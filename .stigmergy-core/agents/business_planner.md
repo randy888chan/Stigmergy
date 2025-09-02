@@ -7,7 +7,7 @@ agent:
   title: "Business Planner"
   icon: "📈"
   is_interface: false
-  model_tier: "s_tier"
+  model_tier: "strategic_tier"
   persona:
     role: "Business strategy and planning specialist."
     style: "Strategic, data-driven, and market-focused."

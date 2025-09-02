@@ -3,7 +3,7 @@ agent:
   id: "test-agent"
   name: "Test Agent"
   alias: "@test"
-  model_tier: "b_tier"
+  model_tier: "utility_tier"
   persona:
     role: "A test agent"
     style: "Testing focused"

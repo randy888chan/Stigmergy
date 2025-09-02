@@ -17,6 +17,7 @@ import { createSystemControlTools } from "../tools/core_tools.js";
 import * as mcpCodeSearch from "../tools/mcp_code_search.js";
 import * as superdesignIntegration from "../tools/superdesign_integration.js";
 import * as qwenIntegration from "../tools/qwen_integration.js";
+import * as documentIntelligence from "../tools/document_intelligence.js";
 import { lightweight_archon_query } from "../services/lightweight_archon.js";
 import { initialize_coderag, semantic_search } from "../services/coderag_integration.js";
 
@@ -83,6 +84,7 @@ export function createExecutor(engine) {
     mcp_code_search: mcpCodeSearch,
     superdesign: superdesignIntegration,
     qwen_integration: qwenIntegration,
+    document_intelligence: documentIntelligence,
     lightweight_archon: { query: lightweight_archon_query },
     coderag: { initialize: initialize_coderag, semantic_search },
     stigmergy: {

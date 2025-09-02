@@ -27,6 +27,7 @@
     "coderag:init": "node -e \"import('./services/coderag_integration.js').then(m => m.initialize_coderag({}))\""
   },
   "dependencies": {
+    "@ai-sdk/google": "^1.0.2",
     "@ai-sdk/openai": "^2.0.23",
     "@babel/parser": "^7.24.5",
     "@babel/traverse": "^7.24.5",

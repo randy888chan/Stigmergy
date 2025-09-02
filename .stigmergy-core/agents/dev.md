@@ -7,7 +7,7 @@ agent:
   title: "Task Package Executor"
   icon: "💻"
   is_interface: true
-  model_tier: "a_tier"
+  model_tier: "execution_tier"
   persona:
     role: "Micro-Task Implementation Specialist."
     style: "Focused, precise, and test-driven."

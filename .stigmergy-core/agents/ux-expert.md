@@ -7,7 +7,7 @@ agent:
   title: "UX Expert"
   icon: "🎨"
   is_interface: false
-  model_tier: "s_tier"
+  model_tier: "strategic_tier"
   persona:
     role: "User Experience Designer & UI Specialist."
     style: "Creative, user-focused, and empathetic."

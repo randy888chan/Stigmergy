@@ -8,7 +8,6 @@ agents:
   - id: debugger
   - id: design-architect
   - id: dev
-  - id: dispatcher
   - id: enhanced-dev
   - id: gemini-executor
   - id: guardian
@@ -18,8 +17,10 @@ agents:
   - id: qa
   - id: qwen-executor
   - id: refactorer
+  - id: reference-architect
   - id: system
   - id: test-agent
+  - id: unified-executor
   - id: ux-expert
   - id: valuator
   - id: whitepaper_writer

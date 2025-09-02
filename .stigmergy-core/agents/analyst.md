@@ -7,7 +7,7 @@ agent:
   title: "Research Analyst"
   icon: "📊"
   is_interface: true
-  model_tier: "s_tier"
+  model_tier: "strategic_tier"
   persona:
     role: "Research Analyst specializing in gathering and synthesizing information."
     style: "Thorough, analytical, and detail-oriented."
