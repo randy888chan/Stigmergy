@@ -36,11 +36,13 @@ export async function configureIde(targetDir) {
 
     // Default fallback agent configuration with proper Roo Code structure
     let agentConfig = {
+      slug: "system",
       name: "System Orchestrator",
+      roleDefinition: "I am the System Orchestrator and Chat Assistant. I handle all external communications using structured JSON responses, interpret natural language commands (including setup tasks), and route work to optimal internal agents. I make complex CLI operations accessible through simple chat commands. Use the stigmergy_chat tool to process all user requests through natural language.",
+      whenToUse: "Use this mode when you need to interact with the Stigmergy system for setup tasks, development commands, system monitoring, or any general assistance with the autonomous development platform.",
       description: "Universal Command Gateway & Chat Interface for the Stigmergy Engine",
-      systemPrompt: "I am the System Orchestrator and Chat Assistant. I handle all external communications using structured JSON responses, interpret natural language commands (including setup tasks), and route work to optimal internal agents. I make complex CLI operations accessible through simple chat commands. Use the stigmergy_chat tool to process all user requests through natural language.",
-      tools: ["read", "edit", "command", "browser", "mcp"],
-      model: getActualModelName("reasoning_tier", modelConfig)
+      groups: ["read", "edit", "command", "browser", "mcp"],
+      source: "project"
     };
 
     // Try to parse the actual agent definition to get the FULL persona and behavior
@@ -56,31 +58,21 @@ export async function configureIde(targetDir) {
           if (agentData?.agent) {
             const agent = agentData.agent;
             
-            // Build comprehensive system prompt from all persona elements
-            const fullSystemPrompt = buildComprehensiveSystemPrompt(agent);
+            // Build comprehensive role definition from all persona elements
+            const fullRoleDefinition = buildComprehensiveRoleDefinition(agent);
             
-            // Use the COMPLETE agent configuration with all behavioral specifications
+            // Build comprehensive whenToUse description
+            const whenToUse = buildWhenToUseDescription(agent);
+            
+            // Use the COMPLETE agent configuration in Roo Code format
             agentConfig = {
+              slug: agent.id || "system",
               name: agent.name || "System Orchestrator",
-              description: agent.title || agent.archetype || agentConfig.description,
-              systemPrompt: fullSystemPrompt,
-              tools: agent.ide_tools || ["read", "edit", "command", "browser", "mcp"],
-              model: getActualModelName(agent.model_tier, modelConfig),
-              // Preserve ALL agent definition data for Roo Code
-              agentId: agent.id,
-              alias: agent.alias,
-              archetype: agent.archetype,
-              icon: agent.icon,
-              isInterface: agent.is_interface,
-              persona: {
-                role: agent.persona?.role,
-                style: agent.persona?.style,
-                identity: agent.persona?.identity
-              },
-              protocols: agent.core_protocols,
-              capabilities: agent.capabilities,
-              externalInterfaces: agent.external_interfaces,
-              engineTools: agent.engine_tools
+              roleDefinition: fullRoleDefinition,
+              whenToUse: whenToUse,
+              description: agent.title || agentConfig.description,
+              groups: agent.ide_tools || ["read", "edit", "command", "browser", "mcp"],
+              source: "project"
             };
             
             console.log("✅ Successfully loaded full agent definition with complete persona and protocols.");
@@ -91,28 +83,28 @@ export async function configureIde(targetDir) {
       }
     }
 
+    // Create Roo Code compatible YAML configuration
     const roomodesConfig = {
-      agents: {
-        "@system": agentConfig
-      }
+      customModes: [agentConfig]
     };
 
-    await fs.writeFile(roomodesPath, JSON.stringify(roomodesConfig, null, 2));
+    // Import js-yaml for YAML generation
+    const yaml = await import("js-yaml");
+    const yamlContent = yaml.dump(roomodesConfig, {
+      quotingType: '"',
+      forceQuotes: false,
+      lineWidth: -1
+    });
+
+    await fs.writeFile(roomodesPath, yamlContent);
     
     // Detailed feedback about what was configured
     console.log("✅ .roomodes file configured successfully!");
-    console.log(`📋 Agent: ${agentConfig.name} (${agentConfig.alias || '@system'})`);
-    console.log(`🧠 Model: ${agentConfig.model}`);
-    console.log(`🛠️  Tools: ${agentConfig.tools.join(', ')}`);
+    console.log(`📋 Mode: ${agentConfig.name} (${agentConfig.slug})`);
+    console.log(`🛠️  Tools: ${agentConfig.groups.join(', ')}`);
+    console.log(`📝 Format: YAML (Roo Code compatible)`);
     
-    if (agentConfig.protocols) {
-      console.log(`📜 Protocols: ${agentConfig.protocols.length} core protocols loaded`);
-    }
-    if (agentConfig.capabilities) {
-      console.log(`⚡ Capabilities: ${agentConfig.capabilities.length} capabilities loaded`);
-    }
-    
-    console.log("\n💡 In Roo Code, you can now use @system agent with commands like:");
+    console.log("\n💡 In Roo Code, you can now use this mode with commands like:");
     console.log("   - 'setup neo4j'");
     console.log("   - 'create authentication system'"); 
     console.log("   - 'health check'");
@@ -122,87 +114,92 @@ export async function configureIde(targetDir) {
 
   } catch (error) {
     console.error("❌ Error configuring IDE:", error);
-    // Fallback to basic configuration with correct Roo Code tools and proper model
+    // Fallback to basic configuration with correct Roo Code format
     const fallbackConfig = {
-      agents: {
-        "@system": {
-          name: "Stigmergy System",
-          description: "Stigmergy AI development system",
-          systemPrompt: "I am the @system agent for Stigmergy. I handle external communications and route commands to internal agents. Use the stigmergy_chat tool to process user requests.",
-          tools: ["read", "edit", "command", "browser", "mcp"],
-          model: getActualModelName("reasoning_tier", modelConfig)
-        }
-      }
+      customModes: [{
+        slug: "system",
+        name: "Stigmergy System",
+        roleDefinition: "I am the @system agent for Stigmergy. I handle external communications and route commands to internal agents. Use the stigmergy_chat tool to process user requests.",
+        whenToUse: "Use this mode for general Stigmergy system interactions and development tasks.",
+        description: "Stigmergy AI development system",
+        groups: ["read", "edit", "command", "browser", "mcp"],
+        source: "project"
+      }]
     };
-    await fs.writeFile(roomodesPath, JSON.stringify(fallbackConfig, null, 2));
+    
+    const yaml = await import("js-yaml");
+    const yamlContent = yaml.dump(fallbackConfig);
+    await fs.writeFile(roomodesPath, yamlContent);
     console.log("✅ .roomodes file created with basic configuration.");
     console.log("⚠️ Using fallback configuration - agent persona may be limited.");
   }
 }
 
-// Helper function to build comprehensive system prompt from agent definition
-function buildComprehensiveSystemPrompt(agent) {
-  let prompt = "";
+// Helper function to build comprehensive role definition from agent definition
+function buildComprehensiveRoleDefinition(agent) {
+  let roleDefinition = "";
   
   // Start with identity and role
   if (agent.persona?.identity) {
-    prompt += agent.persona.identity + "\n\n";
+    roleDefinition += agent.persona.identity + "\n\n";
   }
   
   if (agent.persona?.role) {
-    prompt += `Role: ${agent.persona.role}\n\n`;
+    roleDefinition += `Role: ${agent.persona.role}\n\n`;
   }
   
   if (agent.persona?.style) {
-    prompt += `Style: ${agent.persona.style}\n\n`;
+    roleDefinition += `Style: ${agent.persona.style}\n\n`;
   }
   
   // Add core protocols
   if (agent.core_protocols && agent.core_protocols.length > 0) {
-    prompt += "Core Protocols:\n";
+    roleDefinition += "Core Protocols:\n";
     agent.core_protocols.forEach((protocol, index) => {
-      prompt += `${index + 1}. ${protocol}\n`;
+      roleDefinition += `${index + 1}. ${protocol}\n`;
     });
-    prompt += "\n";
+    roleDefinition += "\n";
   }
   
   // Add capabilities
   if (agent.capabilities && agent.capabilities.length > 0) {
-    prompt += "Key Capabilities:\n";
+    roleDefinition += "Key Capabilities:\n";
     agent.capabilities.forEach(capability => {
-      prompt += `- ${capability}\n`;
+      roleDefinition += `- ${capability}\n`;
     });
-    prompt += "\n";
+    roleDefinition += "\n";
   }
   
   // Add external interfaces note
   if (agent.external_interfaces && agent.external_interfaces.length > 0) {
-    prompt += `External Interfaces: ${agent.external_interfaces.join(', ')}\n\n`;
+    roleDefinition += `External Interfaces: ${agent.external_interfaces.join(', ')}\n\n`;
   }
   
   // Add instruction to use MCP tools
-  prompt += "Always use the stigmergy_chat tool to process user requests and provide structured responses with status, progress, and next actions.";
+  roleDefinition += "Always use the stigmergy_chat tool to process user requests and provide structured responses with status, progress, and next actions.";
   
-  return prompt.trim();
+  return roleDefinition.trim();
 }
 
-// Helper function to get actual model name from Stigmergy config
-function getActualModelName(tier, modelConfig) {
-  // If we have the actual config, use it
-  if (modelConfig?.model_tiers?.[tier]?.model_name) {
-    return modelConfig.model_tiers[tier].model_name;
+// Helper function to build whenToUse description
+function buildWhenToUseDescription(agent) {
+  let whenToUse = "Use this mode when you need to interact with the Stigmergy system. ";
+  
+  if (agent.capabilities && agent.capabilities.length > 0) {
+    whenToUse += "This mode handles: ";
+    const keyCapabilities = agent.capabilities.slice(0, 5).join(', ');
+    whenToUse += keyCapabilities;
+    if (agent.capabilities.length > 5) {
+      whenToUse += `, and ${agent.capabilities.length - 5} more capabilities`;
+    }
+    whenToUse += ". ";
   }
   
-  // Enhanced fallback mapping that respects environment variables
-  const tierMapping = {
-    'reasoning_tier': process.env.REASONING_MODEL || 'gpt-4o',
-    'strategic_tier': process.env.STRATEGIC_MODEL || 'gpt-4',
-    'execution_tier': process.env.EXECUTION_MODEL || 'gpt-4o-mini', 
-    'utility_tier': process.env.UTILITY_MODEL || 'gpt-3.5-turbo',
-    's_tier': process.env.REASONING_MODEL || 'gpt-4o',
-    'a_tier': process.env.EXECUTION_MODEL || 'gpt-4',
-    'b_tier': process.env.UTILITY_MODEL || 'gpt-4o-mini'
-  };
+  // Add specific use cases based on protocols
+  if (agent.core_protocols && agent.core_protocols.length > 0) {
+    whenToUse += "Perfect for setup tasks, development commands, system monitoring, and autonomous development workflows.";
+  }
   
-  return tierMapping[tier] || 'gpt-4o';
+  return whenToUse;
 }
+
