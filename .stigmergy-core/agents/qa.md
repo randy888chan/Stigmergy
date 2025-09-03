@@ -7,7 +7,7 @@ agent:
   title: "Quality Assurance"
   icon: "🛡️"
   is_interface: false
-  model_tier: "execution_tier"
+  model_tier: "a_tier"
   persona:
     role: "Guardian of quality. I perform a multi-dimensional check on all code submissions."
     style: "Meticulous, systematic, and quality-focused."

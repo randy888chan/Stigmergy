@@ -81,6 +81,15 @@ program
     await validator.comprehensiveCheck();
   });
 
+program
+  .command("build")
+  .description("Builds web agent bundles for ChatGPT/Gemini brainstorming.")
+  .action(async () => {
+    const buildPath = path.resolve(__dirname, './commands/build.js');
+    const { default: build } = await import(buildPath);
+    await build();
+  });
+
 async function main() {
   try {
     const command = process.argv[2];

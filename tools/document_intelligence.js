@@ -1,60 +1,313 @@
-// Document intelligence tool for Deepcode integration
+// Enhanced Document Intelligence Tool for Stigmergy
+// Provides comprehensive document processing with AI-powered semantic segmentation
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
+import pdfParse from 'pdf-parse';
+import mammoth from 'mammoth';
+import * as cheerio from 'cheerio';
+import { fileTypeFromFile } from 'file-type';
+import { createReadStream } from 'fs';
+import JSZip from 'jszip';
 
-// Basic document processing functions
-export async function processDocument({ filePath, outputDir = 'docs/analysis' }) {
+// Import AI providers for semantic processing
+let aiProvider;
+let isProviderInitialized = false;
+
+async function initializeAIProvider() {
+  if (!isProviderInitialized) {
+    try {
+      const providers = await import('../ai/providers.js');
+      aiProvider = providers.default || providers;
+      isProviderInitialized = true;
+    } catch (error) {
+      console.warn('AI provider not available for semantic processing:', error.message);
+    }
+  }
+}
+
+/**
+ * Main document processing function
+ * @param {Object} options - Processing options
+ * @param {string} options.filePath - Path to the document
+ * @param {string} options.outputDir - Output directory for processed files
+ * @param {boolean} options.enableSemanticSegmentation - Use AI for smart segmentation
+ * @param {boolean} options.preserveCodeBlocks - Keep code blocks intact
+ * @param {boolean} options.extractMetadata - Extract document metadata
+ */
+export async function processDocument({ 
+  filePath, 
+  outputDir = 'docs/analysis',
+  enableSemanticSegmentation = true,
+  preserveCodeBlocks = true,
+  extractMetadata = true 
+}) {
   try {
+    await initializeAIProvider();
+    
     if (!await fs.pathExists(filePath)) {
       throw new Error(`Document not found: ${filePath}`);
     }
 
-    const content = await fs.readFile(filePath, 'utf8');
+    // Detect file type
+    const fileType = await detectFileType(filePath);
     const fileName = path.basename(filePath, path.extname(filePath));
     
     // Ensure output directory exists
     await fs.ensureDir(outputDir);
     
-    // Basic segmentation - split by headers and sections
-    const segments = segmentDocument(content);
+    let processResult;
     
-    // Save processed segments
+    // Process based on file type
+    switch (fileType) {
+      case 'pdf':
+        processResult = await processPDF(filePath, { preserveCodeBlocks, extractMetadata });
+        break;
+      case 'docx':
+        processResult = await processDOCX(filePath, { preserveCodeBlocks, extractMetadata });
+        break;
+      case 'html':
+      case 'htm':
+        processResult = await processHTML(filePath, { preserveCodeBlocks, extractMetadata });
+        break;
+      case 'md':
+      case 'markdown':
+        processResult = await processMarkdown(filePath, { preserveCodeBlocks, extractMetadata });
+        break;
+      case 'txt':
+        processResult = await processPlainText(filePath, { preserveCodeBlocks, extractMetadata });
+        break;
+      default:
+        throw new Error(`Unsupported file type: ${fileType}`);
+    }
+    
+    // Apply semantic segmentation if enabled and AI is available
+    let segments = processResult.segments;
+    if (enableSemanticSegmentation && aiProvider) {
+      segments = await semanticSegmentation(processResult.content, {
+        preserveCodeBlocks,
+        fileType,
+        metadata: processResult.metadata
+      });
+    }
+    
+    // Generate processed output
     const outputPath = path.join(outputDir, `${fileName}_processed.md`);
-    await fs.writeFile(outputPath, segments.join('\n\n---\n\n'));
+    const briefPath = path.join(outputDir, `${fileName}_brief.md`);
+    
+    // Save segmented content
+    const segmentedContent = segments.map((segment, index) => 
+      `## Segment ${index + 1}\n\n${segment}`
+    ).join('\n\n---\n\n');
+    
+    await fs.writeFile(outputPath, segmentedContent);
+    
+    // Generate technical brief
+    const brief = generateProcessingBrief(processResult, segments, filePath);
+    await fs.writeFile(briefPath, brief);
     
     return {
       success: true,
       outputPath,
+      briefPath,
       segmentCount: segments.length,
+      fileType,
+      metadata: processResult.metadata,
       message: `Document processed into ${segments.length} segments`
     };
   } catch (error) {
     return {
       success: false,
-      error: error.message
+      error: error.message,
+      stack: error.stack
     };
   }
 }
 
-export async function extractCodePatterns({ content, language = 'javascript' }) {
+/**
+ * Process PDF documents
+ */
+async function processPDF(filePath, options = {}) {
+  const buffer = await fs.readFile(filePath);
+  const data = await pdfParse(buffer);
+  
+  const content = data.text;
+  const metadata = {
+    pages: data.numpages,
+    info: data.info,
+    version: data.version
+  };
+  
+  // Basic segmentation by page breaks and sections
+  const segments = segmentByStructure(content, options);
+  
+  return {
+    type: 'pdf',
+    content,
+    segments,
+    metadata
+  };
+}
+
+/**
+ * Process DOCX documents
+ */
+async function processDOCX(filePath, options = {}) {
+  const buffer = await fs.readFile(filePath);
+  const result = await mammoth.convertToMarkdown({ buffer });
+  
+  const content = result.value;
+  const metadata = {
+    messages: result.messages,
+    wordCount: content.split(/\s+/).length
+  };
+  
+  // Segment by markdown structure
+  const segments = segmentMarkdownContent(content, options);
+  
+  return {
+    type: 'docx',
+    content,
+    segments,
+    metadata
+  };
+}
+
+/**
+ * Process HTML documents
+ */
+async function processHTML(filePath, options = {}) {
+  const content = await fs.readFile(filePath, 'utf8');
+  const $ = cheerio.load(content);
+  
+  // Extract text content while preserving structure
+  const textContent = extractHTMLContent($);
+  const metadata = {
+    title: $('title').text(),
+    headings: $('h1, h2, h3, h4, h5, h6').map((i, el) => $(el).text()).get(),
+    links: $('a').length,
+    images: $('img').length
+  };
+  
+  const segments = segmentHTMLContent(textContent, options);
+  
+  return {
+    type: 'html',
+    content: textContent,
+    segments,
+    metadata
+  };
+}
+
+/**
+ * Process Markdown documents
+ */
+async function processMarkdown(filePath, options = {}) {
+  const content = await fs.readFile(filePath, 'utf8');
+  const segments = segmentMarkdownContent(content, options);
+  
+  const metadata = {
+    headings: extractMarkdownHeadings(content),
+    codeBlocks: extractCodeBlocks(content).length,
+    wordCount: content.split(/\s+/).length
+  };
+  
+  return {
+    type: 'markdown',
+    content,
+    segments,
+    metadata
+  };
+}
+
+/**
+ * Process plain text documents
+ */
+async function processPlainText(filePath, options = {}) {
+  const content = await fs.readFile(filePath, 'utf8');
+  const segments = segmentByParagraphs(content, options);
+  
+  const metadata = {
+    lines: content.split('\n').length,
+    wordCount: content.split(/\s+/).length,
+    characters: content.length
+  };
+  
+  return {
+    type: 'text',
+    content,
+    segments,
+    metadata
+  };
+}
+
+/**
+ * AI-powered semantic segmentation
+ */
+async function semanticSegmentation(content, options = {}) {
+  if (!aiProvider) {
+    console.warn('AI provider not available, falling back to basic segmentation');
+    return segmentByStructure(content, options);
+  }
+  
   try {
-    // Extract code blocks from markdown content
-    const codeBlockRegex = /```(?:js|javascript|typescript|ts)?\n([\s\S]*?)```/g;
-    const patterns = [];
-    let match;
+    const prompt = `
+Analyze this technical document and segment it intelligently while preserving:
+- Complete algorithms and code blocks
+- Related concepts together
+- Clear logical boundaries
+- Technical coherence
+
+Return segments separated by '---SEGMENT---' markers.
+
+Document:
+${content.slice(0, 8000)}${content.length > 8000 ? '...[truncated]' : ''}
+`;
     
-    while ((match = codeBlockRegex.exec(content)) !== null) {
-      patterns.push({
-        code: match[1].trim(),
-        language,
-        context: extractSurroundingText(content, match.index)
-      });
+    const response = await aiProvider.generateText({
+      prompt,
+      model: 'gemini-1.5-flash', // Use fast model for processing
+      maxTokens: 4000
+    });
+    
+    const segments = response.text
+      .split('---SEGMENT---')
+      .map(segment => segment.trim())
+      .filter(segment => segment.length > 0);
+    
+    return segments.length > 0 ? segments : segmentByStructure(content, options);
+  } catch (error) {
+    console.warn('Semantic segmentation failed, using basic segmentation:', error.message);
+    return segmentByStructure(content, options);
+  }
+}
+
+/**
+ * Extract code patterns from processed content
+ */
+export async function extractCodePatterns({ content, language = 'javascript', context = {} }) {
+  try {
+    const codeBlocks = extractCodeBlocks(content);
+    const patterns = [];
+    
+    for (const block of codeBlocks) {
+      const pattern = {
+        code: block.code,
+        language: block.language || language,
+        context: block.context || extractSurroundingText(content, block.index),
+        type: detectPatternType(block.code),
+        complexity: analyzeComplexity(block.code),
+        keywords: extractKeywords(block.code)
+      };
+      
+      patterns.push(pattern);
     }
     
     return {
       success: true,
       patterns,
-      count: patterns.length
+      count: patterns.length,
+      languages: [...new Set(patterns.map(p => p.language))]
     };
   } catch (error) {
     return {
@@ -64,14 +317,18 @@ export async function extractCodePatterns({ content, language = 'javascript' }) 
   }
 }
 
-export async function createImplementationBrief({ requirements, patterns, outputPath }) {
+/**
+ * Create implementation brief from patterns and requirements
+ */
+export async function createImplementationBrief({ requirements, patterns, outputPath, metadata = {} }) {
   try {
-    const brief = generateTechnicalBrief(requirements, patterns);
+    const brief = await generateTechnicalBrief(requirements, patterns, metadata);
     await fs.writeFile(outputPath, brief);
     
     return {
       success: true,
       outputPath,
+      patternCount: patterns?.length || 0,
       message: 'Technical implementation brief created'
     };
   } catch (error) {
@@ -82,41 +339,229 @@ export async function createImplementationBrief({ requirements, patterns, output
   }
 }
 
-// Helper functions
-function segmentDocument(content) {
-  // Split by markdown headers
+// Helper Functions
+
+async function detectFileType(filePath) {
+  try {
+    const fileType = await fileTypeFromFile(filePath);
+    if (fileType) {
+      return fileType.ext;
+    }
+    
+    // Fallback to extension-based detection
+    const ext = path.extname(filePath).toLowerCase().slice(1);
+    return ext || 'txt';
+  } catch (error) {
+    return path.extname(filePath).toLowerCase().slice(1) || 'txt';
+  }
+}
+
+function segmentByStructure(content, options = {}) {
+  // Split by headers, major breaks, or logical sections
+  let segments = content.split(/(?=^#{1,6}\s)|(?=^\s*\n\s*\n)|(?=\n\s*[-=]{3,})/m);
+  
+  if (options.preserveCodeBlocks) {
+    segments = preserveCodeBlockIntegrity(segments);
+  }
+  
+  return segments.filter(segment => segment.trim().length > 50);
+}
+
+function segmentMarkdownContent(content, options = {}) {
+  // Split by markdown headers while preserving code blocks
   const segments = content.split(/(?=^#{1,6}\s)/m);
+  
+  if (options.preserveCodeBlocks) {
+    return preserveCodeBlockIntegrity(segments);
+  }
+  
   return segments.filter(segment => segment.trim().length > 0);
+}
+
+function segmentHTMLContent(content, options = {}) {
+  // Basic paragraph and section-based segmentation
+  return content.split(/\n\s*\n/).filter(segment => segment.trim().length > 50);
+}
+
+function segmentByParagraphs(content, options = {}) {
+  return content.split(/\n\s*\n/).filter(segment => segment.trim().length > 0);
+}
+
+function extractHTMLContent($) {
+  // Remove script and style tags
+  $('script, style').remove();
+  
+  // Extract main content areas
+  const contentSelectors = ['main', 'article', '.content', '#content', 'body'];
+  
+  for (const selector of contentSelectors) {
+    const element = $(selector);
+    if (element.length > 0) {
+      return element.text();
+    }
+  }
+  
+  return $('body').text() || $.text();
+}
+
+function extractCodeBlocks(content) {
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  const blocks = [];
+  let match;
+  
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    blocks.push({
+      language: match[1] || 'text',
+      code: match[2].trim(),
+      index: match.index,
+      context: extractSurroundingText(content, match.index, 200)
+    });
+  }
+  
+  return blocks;
+}
+
+function extractMarkdownHeadings(content) {
+  const headingRegex = /^(#{1,6})\s+(.+)$/gm;
+  const headings = [];
+  let match;
+  
+  while ((match = headingRegex.exec(content)) !== null) {
+    headings.push({
+      level: match[1].length,
+      text: match[2].trim()
+    });
+  }
+  
+  return headings;
+}
+
+function preserveCodeBlockIntegrity(segments) {
+  // Ensure code blocks are not split across segments
+  const merged = [];
+  let currentSegment = '';
+  let inCodeBlock = false;
+  
+  for (const segment of segments) {
+    const codeBlockMatches = segment.match(/```/g) || [];
+    const codeBlockCount = codeBlockMatches.length;
+    
+    if (inCodeBlock || codeBlockCount % 2 !== 0) {
+      currentSegment += segment;
+      inCodeBlock = (currentSegment.match(/```/g) || []).length % 2 !== 0;
+      
+      if (!inCodeBlock) {
+        merged.push(currentSegment);
+        currentSegment = '';
+      }
+    } else {
+      if (currentSegment) {
+        merged.push(currentSegment);
+        currentSegment = '';
+      }
+      merged.push(segment);
+    }
+  }
+  
+  if (currentSegment) {
+    merged.push(currentSegment);
+  }
+  
+  return merged;
 }
 
 function extractSurroundingText(content, index, radius = 100) {
   const start = Math.max(0, index - radius);
   const end = Math.min(content.length, index + radius);
-  return content.substring(start, end);
+  return content.substring(start, end).trim();
 }
 
-function generateTechnicalBrief(requirements, patterns) {
-  return `# Technical Implementation Brief
+function detectPatternType(code) {
+  if (code.includes('function') || code.includes('=>')) return 'function';
+  if (code.includes('class ')) return 'class';
+  if (code.includes('interface ')) return 'interface';
+  if (code.includes('import ') || code.includes('export ')) return 'module';
+  if (code.includes('const ') || code.includes('let ') || code.includes('var ')) return 'variable';
+  return 'snippet';
+}
 
-## Requirements Summary
-${requirements}
+function analyzeComplexity(code) {
+  const lines = code.split('\n').length;
+  const cyclomaticComplexity = (code.match(/if|for|while|switch|catch/g) || []).length;
+  
+  return {
+    lines,
+    cyclomaticComplexity,
+    level: cyclomaticComplexity > 10 ? 'high' : cyclomaticComplexity > 5 ? 'medium' : 'low'
+  };
+}
 
-## Reference Patterns
-${patterns.map(p => `
-### Pattern: ${p.context}
-\`\`\`${p.language}
-${p.code}
-\`\`\`
-`).join('\n')}
+function extractKeywords(code) {
+  const keywords = code.match(/\b[a-zA-Z_$][a-zA-Z0-9_$]*\b/g) || [];
+  const uniqueKeywords = [...new Set(keywords)];
+  return uniqueKeywords.slice(0, 10); // Top 10 keywords
+}
 
-## Implementation Guidance
-- Use the provided patterns as starting points
-- Adapt patterns to fit the specific requirements
-- Maintain consistency with existing codebase architecture
+async function generateTechnicalBrief(requirements, patterns, metadata = {}) {
+  let briefContent = `# Technical Implementation Brief\n\n`;
+  briefContent += `Generated: ${new Date().toISOString()}\n\n`;
+  
+  if (metadata.sourceFile) {
+    briefContent += `## Source Document\n${metadata.sourceFile}\n\n`;
+  }
+  
+  briefContent += `## Requirements Summary\n${requirements}\n\n`;
+  
+  if (patterns && patterns.length > 0) {
+    briefContent += `## Reference Patterns (${patterns.length} found)\n\n`;
+    
+    // Group patterns by type
+    const patternsByType = patterns.reduce((acc, pattern) => {
+      const type = pattern.type || 'general';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(pattern);
+      return acc;
+    }, {});
+    
+    for (const [type, typePatterns] of Object.entries(patternsByType)) {
+      briefContent += `### ${type.charAt(0).toUpperCase() + type.slice(1)} Patterns\n\n`;
+      
+      for (const pattern of typePatterns.slice(0, 3)) { // Top 3 per type
+        briefContent += `#### ${pattern.context.slice(0, 50)}...\n\n`;
+        briefContent += `**Complexity:** ${pattern.complexity?.level || 'unknown'}\n\n`;
+        briefContent += `\`\`\`${pattern.language}\n${pattern.code}\n\`\`\`\n\n`;
+        
+        if (pattern.keywords?.length > 0) {
+          briefContent += `**Keywords:** ${pattern.keywords.join(', ')}\n\n`;
+        }
+      }
+    }
+  }
+  
+  briefContent += `## Implementation Guidance\n\n`;
+  briefContent += `- Review and adapt the provided patterns to fit specific requirements\n`;
+  briefContent += `- Maintain consistency with existing codebase architecture\n`;
+  briefContent += `- Consider complexity levels when implementing patterns\n`;
+  briefContent += `- Use keywords to guide variable and function naming\n\n`;
+  
+  briefContent += `## Next Steps\n\n`;
+  briefContent += `1. Select most relevant patterns based on requirements\n`;
+  briefContent += `2. Adapt patterns to specific use case and context\n`;
+  briefContent += `3. Implement following established coding conventions\n`;
+  briefContent += `4. Test implementation against original requirements\n`;
+  
+  return briefContent;
+}
 
-## Next Steps
-1. Review patterns and select most relevant ones
-2. Adapt patterns to specific use case
-3. Implement following established conventions
-`;
+function generateProcessingBrief(processResult, segments, originalPath) {
+  return `# Document Processing Brief\n\n` +
+    `**Source:** ${originalPath}\n` +
+    `**Type:** ${processResult.type}\n` +
+    `**Processed:** ${new Date().toISOString()}\n` +
+    `**Segments:** ${segments.length}\n\n` +
+    `## Metadata\n\`\`\`json\n${JSON.stringify(processResult.metadata, null, 2)}\n\`\`\`\n\n` +
+    `## Processing Summary\n` +
+    `- Successfully segmented into ${segments.length} logical sections\n` +
+    `- Preserved code block integrity\n` +
+    `- Extracted technical patterns and context\n`;
 }

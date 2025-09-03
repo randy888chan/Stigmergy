@@ -88,3 +88,100 @@ export function createSystemControlTools(engine) {
     },
   };
 }
+
+// Enhanced System Control Tools with Structured Communication
+
+/**
+ * Generate structured status response
+ */
+export function createStructuredResponse({ 
+  status, 
+  message, 
+  progress = 0, 
+  files_modified = [], 
+  files_created = [],
+  next_action = '',
+  requires_approval = false,
+  execution_method = 'internal',
+  brief_available = false,
+  error_details = null 
+}) {
+  const response = {
+    status,
+    message,
+    progress: Math.min(100, Math.max(0, progress)),
+    files_modified: Array.isArray(files_modified) ? files_modified : [],
+    files_created: Array.isArray(files_created) ? files_created : [],
+    next_action,
+    requires_approval,
+    execution_method,
+    brief_available,
+    timestamp: new Date().toISOString()
+  };
+  
+  if (error_details) {
+    response.error_details = error_details;
+  }
+  
+  return response;
+}
+
+/**
+ * Analyze task and determine execution strategy
+ */
+export async function analyzeTaskExecutionStrategy({ task, context = '', available_briefs = [] }) {
+  console.log('[System] Analyzing task execution strategy');
+  
+  try {
+    // Check for existing Technical Implementation Brief
+    const briefsDir = path.join(process.cwd(), 'docs', 'briefs');
+    let briefsFound = [];
+    
+    if (await fs.pathExists(briefsDir)) {
+      const briefFiles = await fs.readdir(briefsDir);
+      briefsFound = briefFiles.filter(f => f.endsWith('.md'));
+    }
+    
+    // Analyze task complexity
+    const taskLower = task.toLowerCase();
+    const isComplex = taskLower.includes('algorithm') || taskLower.includes('optimization') || 
+                     taskLower.includes('mathematical') || taskLower.includes('performance');
+    const isStandard = taskLower.includes('crud') || taskLower.includes('form') || 
+                      taskLower.includes('button') || taskLower.includes('component');
+    const hasIntegration = taskLower.includes('integrate') || taskLower.includes('connect') || 
+                          taskLower.includes('api') || context.includes('existing');
+    
+    // Determine optimal execution method
+    let recommendedMethod = 'internal';
+    let reasoning = '';
+    
+    if (briefsFound.length > 0 && hasIntegration) {
+      recommendedMethod = 'internal';
+      reasoning = 'Complex integration with available reference patterns - using enhanced internal dev';
+    } else if (isComplex) {
+      recommendedMethod = 'qwen-cli';
+      reasoning = 'Complex algorithmic task detected - routing to Qwen CLI for optimization';
+    } else if (isStandard) {
+      recommendedMethod = 'gemini-cli';
+      reasoning = 'Standard implementation - using Gemini CLI for fast delivery';
+    } else {
+      recommendedMethod = 'internal';
+      reasoning = 'Default to internal dev for custom business logic';
+    }
+    
+    return createStructuredResponse({
+      status: 'thinking',
+      message: 'Task analysis complete - preparing execution plan',
+      progress: 20,
+      execution_method: recommendedMethod,
+      brief_available: briefsFound.length > 0,
+      next_action: `Will use ${recommendedMethod} execution method. ${reasoning}`
+    });
+  } catch (error) {
+    return createStructuredResponse({
+      status: 'error',
+      message: 'Task analysis failed',
+      error_details: error.message
+    });
+  }
+}

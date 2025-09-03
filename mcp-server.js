@@ -2,6 +2,7 @@
 import { MCPCodeSearch } from './tools/mcp_code_search.js';
 import { CodeRAGIntegration } from './services/coderag_integration.js';
 import { LightweightArchon } from './services/lightweight_archon.js';
+import { process_chat_command, get_command_suggestions } from './tools/chat_interface.js';
 
 const codeSearch = new MCPCodeSearch();
 const coderag = new CodeRAGIntegration();
@@ -13,6 +14,30 @@ const server = {
   
   async listTools() {
     return [
+      {
+        name: "stigmergy_chat",
+        description: "Process natural language commands through Stigmergy chat interface",
+        inputSchema: {
+          type: "object",
+          properties: {
+            command: { type: "string", description: "Natural language command" },
+            context: { type: "string", description: "Additional context" },
+            user_preferences: { type: "object", description: "User preferences" }
+          },
+          required: ["command"]
+        }
+      },
+      {
+        name: "stigmergy_suggestions",
+        description: "Get contextual command suggestions from Stigmergy",
+        inputSchema: {
+          type: "object",
+          properties: {
+            current_context: { type: "string", description: "Current context" },
+            user_history: { type: "array", description: "User command history" }
+          }
+        }
+      },
       {
         name: "mcp_code_search",
         description: "Search code using semantic and symbol search",
@@ -64,6 +89,21 @@ const server = {
   async callTool(name, args) {
     try {
       switch (name) {
+        case "stigmergy_chat":
+          return await process_chat_command({
+            command: args.command,
+            context: args.context || '',
+            user_preferences: args.user_preferences || {},
+            source: 'roo_code'
+          });
+        
+        case "stigmergy_suggestions":
+          return await get_command_suggestions({
+            current_context: args.current_context || '',
+            user_history: args.user_history || [],
+            source: 'roo_code'
+          });
+        
         case "mcp_code_search":
           return await codeSearch.handleCodeSearch(args.query, args.context);
         
