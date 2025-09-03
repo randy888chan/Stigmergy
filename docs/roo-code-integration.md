@@ -26,11 +26,11 @@ Add this to your `.roomodes` file in your project root:
     }
   },
   "agents": {
-    "@stigmergy": {
-      "name": "Stigmergy Assistant",
-      "description": "AI-powered development system with chat interface",
-      "systemPrompt": "You are Stigmergy, an autonomous AI development system. Use the chat interface to help users with setup, development, and system management through natural language commands.",
-      "tools": ["chat_interface.*", "mcp_code_search", "mcp_symbol_lookup"],
+    "@system": {
+      "name": "Stigmergy System Gateway",
+      "description": "Universal command gateway for Stigmergy autonomous development system with chat interface",
+      "systemPrompt": "You are the @system agent, the Universal Command Gateway for Stigmergy. You handle all external communications and route commands to the appropriate internal agents. Use the stigmergy_chat tool to process all user requests through natural language. Provide clear, structured responses about system status, command execution, and available options.",
+      "tools": ["stigmergy_chat", "mcp_code_search", "mcp_symbol_lookup"],
       "model": "gpt-4"
     }
   }
@@ -86,12 +86,42 @@ In Roo Code, try these commands:
 
 ## 🎯 Features You Get
 
-✅ **Natural Language Interface**: Chat naturally instead of learning CLI commands
+✅ **Natural Language Interface**: Chat naturally with @system agent instead of learning CLI commands
+✅ **Universal Gateway**: The @system agent routes all requests to appropriate internal agents
 ✅ **Real-time Progress**: See progress updates and file changes in real-time
-✅ **Intelligent Suggestions**: Get contextual command suggestions
-✅ **Reference-First Development**: Leverage proven patterns from GitHub
-✅ **Quality Assurance**: Built-in TDD enforcement and static analysis
-✅ **Multi-Agent Routing**: Automatic task routing to optimal execution agents
+✅ **Intelligent Suggestions**: Get contextual command suggestions based on system state
+✅ **Reference-First Development**: Leverage proven patterns from GitHub repositories
+✅ **Quality Assurance**: Built-in TDD enforcement with 80% coverage requirements
+✅ **Static Analysis**: Automatic ESLint checking with comprehensive rule sets
+✅ **Multi-Agent Routing**: Automatic task routing to optimal execution agents (@dev, @qa, etc.)
+✅ **Flexible LLM Configuration**: Choose between Google AI, OpenRouter, or local providers
+✅ **Self-Improvement Loop**: @metis agent continuously optimizes system performance
+
+### 🧠 Agent Architecture
+
+Stigmergy uses a sophisticated multi-agent system:
+
+- **@system**: Universal gateway for all IDE interactions
+- **@dispatcher**: Orchestrates system-wide workflows 
+- **@analyst**: Performs research and market analysis
+- **@dev**: Executes development tasks with TDD enforcement
+- **@qa**: Quality assurance with comprehensive testing
+- **@metis**: Continuous system improvement and optimization
+- **@reference-architect**: Manages code patterns and architecture decisions
+
+### 🔧 Provider Flexibility
+
+Configure your preferred AI providers in `.env`:
+
+```bash
+# Choose providers for different tiers
+REASONING_PROVIDER=google     # or 'openrouter'
+EXECUTION_PROVIDER=google     # or 'openrouter'
+
+# Provider API keys
+GOOGLE_API_KEY=your_key_here
+OPENROUTER_API_KEY=your_key_here
+```
 
 ## 🔍 Troubleshooting
 

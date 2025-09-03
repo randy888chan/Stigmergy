@@ -1,0 +1,25 @@
+{
+  "reporter": [
+    "text",
+    "text-summary", 
+    "json-summary",
+    "lcov",
+    "html"
+  ],
+  "check-coverage": true,
+  "lines": 80,
+  "functions": 80,
+  "branches": 75,
+  "statements": 80,
+  "exclude": [
+    "coverage/**/*",
+    "tests/**/*",
+    "**/*.test.js",
+    "**/*.spec.js",
+    "node_modules/**/*",
+    "dist/**/*",
+    ".stigmergy-core/**/*"
+  ],
+  "temp-directory": "./coverage/.tmp",
+  "report-dir": "./coverage"
+}

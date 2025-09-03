@@ -176,12 +176,105 @@ export async function analyzeTaskExecutionStrategy({ task, context = '', availab
       execution_method: recommendedMethod,
       brief_available: briefsFound.length > 0,
       next_action: `Will use ${recommendedMethod} execution method. ${reasoning}`
-    });
-  } catch (error) {
-    return createStructuredResponse({
-      status: 'error',
-      message: 'Task analysis failed',
-      error_details: error.message
-    });
+/**
+ * Request user choice when multiple high-quality options are available
+ * Particularly useful for @reference-architect when multiple patterns match
+ */
+export async function request_user_choice({ 
+  title, 
+  description, 
+  options, 
+  context = '', 
+  default_option = null, 
+  timeout_seconds = 300 
+}) {
+  console.log(`[Core Tools] Requesting user choice: ${title}`);
+  
+  // Validate options format
+  if (!Array.isArray(options) || options.length === 0) {
+    throw new Error('Options must be a non-empty array');
   }
+  
+  // Ensure each option has required fields
+  const validatedOptions = options.map((option, index) => {
+    if (typeof option === 'string') {
+      return {
+        id: `option_${index}`,
+        label: option,
+        description: option,
+        value: option
+      };
+    }
+    
+    return {
+      id: option.id || `option_${index}`,
+      label: option.label || option.name || `Option ${index + 1}`,
+      description: option.description || option.label || `Option ${index + 1}`,
+      value: option.value || option,
+      metadata: option.metadata || {},
+      recommendation: option.recommendation || null
+    };
+  });
+  
+  // Create structured choice request
+  const choiceRequest = {
+    type: 'user_choice_request',
+    title,
+    description,
+    options: validatedOptions,
+    context,
+    default_option: default_option || validatedOptions[0]?.id,
+    timestamp: new Date().toISOString(),
+    timeout_seconds,
+    
+    // UI hints for different interfaces
+    ui_hints: {
+      roo_code: {
+        show_as_dialog: true,
+        highlight_recommended: !!validatedOptions.find(o => o.recommendation),
+        allow_preview: true
+      },
+      cli: {
+        show_as_menu: true,
+        numbered_options: true
+      },
+      web: {
+        show_as_cards: true,
+        enable_comparison: true
+      }
+    }
+  };
+  
+  // For now, return the choice request structure
+  // In production, this would integrate with the actual UI system
+  return {
+    status: 'awaiting_user_choice',
+    choice_request: choiceRequest,
+    message: `Please choose from ${validatedOptions.length} available options`,
+    requires_user_interaction: true,
+    
+    // Helper method to simulate choice for testing
+    simulate_choice: (choiceId) => {
+      const selectedOption = validatedOptions.find(opt => opt.id === choiceId);
+      if (!selectedOption) {
+        throw new Error(`Invalid choice ID: ${choiceId}`);
+      }
+      
+      return {
+        status: 'choice_selected',
+        selected_option: selectedOption,
+        message: `Selected: ${selectedOption.label}`,
+        timestamp: new Date().toISOString()
+      };
+    }
+  };
 }
+
+/**
+ * Export all functions as system tools namespace
+ */
+export const system = {
+  request_user_choice,
+  analyzeTaskExecutionStrategy,
+  createStructuredResponse
+};

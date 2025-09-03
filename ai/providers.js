@@ -12,12 +12,16 @@ export function _resetProviderInstances() {
 }
 
 // Enhanced model selection with reasoning vs non-reasoning intelligence
-export function getModelForTier(tier = 'b_tier', useCase = null) {
+export function getModelForTier(tier = 'utility_tier', useCase = null) {
     const tierConfig = config.model_tiers[tier];
     if (!tierConfig) {
+        const availableTiers = Object.keys(config.model_tiers);
+        const semanticTiers = availableTiers.filter(t => !t.endsWith('_tier') || t.match(/^(reasoning|strategic|execution|utility)_tier$/));
         throw new Error(
-            `Model tier '${tier}' is not defined in stigmergy.config.js. ` +
-            `Available tiers: ${Object.keys(config.model_tiers).join(', ')}`
+            `Model tier '${tier}' is not defined in stigmergy.config.js.\n` +
+            `Available semantic tiers: ${semanticTiers.join(', ')}\n` +
+            `Available legacy tiers: ${availableTiers.filter(t => t.match(/^[abc]_tier$/)).join(', ')}\n` +
+            `All available tiers: ${availableTiers.join(', ')}`
         );
     }
 
@@ -30,7 +34,18 @@ export function getModelForTier(tier = 'b_tier', useCase = null) {
         }
     }
 
-    const { provider, api_key_env, base_url_env, model_name } = tierConfig;
+    // Extract configuration, handling both static values and function results
+    const { provider, model_name } = tierConfig;
+    
+    // Handle api_key_env - can be a string or function result
+    const api_key_env = typeof tierConfig.api_key_env === 'function' 
+        ? tierConfig.api_key_env() 
+        : tierConfig.api_key_env;
+    
+    // Handle base_url_env - can be a string, null, or function result
+    const base_url_env = typeof tierConfig.base_url_env === 'function' 
+        ? tierConfig.base_url_env() 
+        : tierConfig.base_url_env;
 
     if (!api_key_env || !model_name) {
         throw new Error(
@@ -40,8 +55,9 @@ export function getModelForTier(tier = 'b_tier', useCase = null) {
         );
     }
 
+    // Get API key and base URL from environment
     const apiKey = process.env[api_key_env];
-    const baseURL = process.env[base_url_env];
+    const baseURL = base_url_env ? process.env[base_url_env] : null;
 
     if (!apiKey) {
         const suggestion = getSuggestionForProvider(provider);
@@ -143,4 +159,88 @@ function getSuggestionForProvider(provider) {
     };
     
     return suggestions[provider] || 'Please check your provider documentation for API key setup.';
+}
+
+// Validate provider configuration
+export function validateProviderConfig() {
+    const errors = [];
+    const warnings = [];
+    
+    // Check if at least one provider is properly configured
+    const hasGoogle = !!process.env.GOOGLE_API_KEY;
+    const hasOpenRouter = !!(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_BASE_URL);
+    
+    if (!hasGoogle && !hasOpenRouter) {
+        errors.push('No AI providers are configured. Set up either Google AI (GOOGLE_API_KEY) or OpenRouter (OPENROUTER_API_KEY + OPENROUTER_BASE_URL)');
+    }
+    
+    // Check each tier configuration
+    for (const [tierName, tierConfig] of Object.entries(config.model_tiers)) {
+        try {
+            const { provider, model_name } = tierConfig;
+            
+            // Extract environment variable names (handle functions)
+            const api_key_env = typeof tierConfig.api_key_env === 'function' 
+                ? tierConfig.api_key_env() 
+                : tierConfig.api_key_env;
+            const base_url_env = typeof tierConfig.base_url_env === 'function' 
+                ? tierConfig.base_url_env() 
+                : tierConfig.base_url_env;
+            
+            if (!provider || !api_key_env || !model_name) {
+                errors.push(`Tier '${tierName}' is missing required fields: provider, api_key_env, model_name`);
+                continue;
+            }
+            
+            // Check if required environment variables are set
+            if (!process.env[api_key_env]) {
+                warnings.push(`API key '${api_key_env}' for tier '${tierName}' is not set`);
+            }
+            
+            if (base_url_env && !process.env[base_url_env]) {
+                warnings.push(`Base URL '${base_url_env}' for tier '${tierName}' is not set`);
+            }
+            
+        } catch (error) {
+            errors.push(`Error validating tier '${tierName}': ${error.message}`);
+        }
+    }
+    
+    return {
+        isValid: errors.length === 0,
+        errors,
+        warnings,
+        summary: {
+            totalTiers: Object.keys(config.model_tiers).length,
+            googleConfigured: hasGoogle,
+            openRouterConfigured: hasOpenRouter
+        }
+    };
+}
+
+// Get configuration summary for debugging
+export function getProviderSummary() {
+    const validation = validateProviderConfig();
+    const tiers = Object.keys(config.model_tiers);
+    const semantic = tiers.filter(t => t.match(/^(reasoning|strategic|execution|utility)_tier$/));
+    const legacy = tiers.filter(t => t.match(/^[abcs]_tier$/));
+    
+    return {
+        validation,
+        tiers: {
+            total: tiers.length,
+            semantic: semantic.length,
+            legacy: legacy.length,
+            list: {
+                semantic,
+                legacy,
+                other: tiers.filter(t => !semantic.includes(t) && !legacy.includes(t))
+            }
+        },
+        providers: {
+            configured: validation.summary.googleConfigured || validation.summary.openRouterConfigured,
+            google: validation.summary.googleConfigured,
+            openRouter: validation.summary.openRouterConfigured
+        }
+    };
 }

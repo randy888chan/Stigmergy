@@ -9,30 +9,58 @@ const execPromise = promisify(exec);
 
 /**
  * Main chat command processor with enhanced Roo Code integration
+ * Returns structured JSON responses optimized for IDE consumption
  */
 export async function process_chat_command({ command, context = '', user_preferences = {}, source = 'unknown' }) {
   console.log(`[Chat Interface] Processing command from ${source}: ${command}`);
   
+  const startTime = Date.now();
   const normalizedCommand = command.toLowerCase().trim();
   
-  // Enhanced command routing with context awareness
-  if (isHelpCommand(normalizedCommand)) {
-    return await handleHelpCommand(normalizedCommand, context, source);
-  } else if (isSetupCommand(normalizedCommand)) {
-    return await handleSetupCommand(normalizedCommand, context, user_preferences);
-  } else if (isIndexingCommand(normalizedCommand)) {
-    return await handleIndexingCommand(normalizedCommand, context);
-  } else if (isHealthCommand(normalizedCommand)) {
-    return await handleHealthCommand(normalizedCommand);
-  } else if (isValidationCommand(normalizedCommand)) {
-    return await handleValidationCommand(normalizedCommand);
-  } else if (isDevelopmentCommand(normalizedCommand)) {
-    return await handleDevelopmentCommand(normalizedCommand, context, user_preferences);
-  } else if (isSystemCommand(normalizedCommand)) {
-    return await handleSystemCommand(normalizedCommand, context);
-  } else {
-    // Default: treat as development task with intelligent routing
-    return await handleDevelopmentTask(command, context, user_preferences);
+  try {
+    let result;
+    
+    // Enhanced command routing with context awareness
+    if (isHelpCommand(normalizedCommand)) {
+      result = await handleHelpCommand(normalizedCommand, context, source);
+    } else if (isSetupCommand(normalizedCommand)) {
+      result = await handleSetupCommand(normalizedCommand, context, user_preferences);
+    } else if (isIndexingCommand(normalizedCommand)) {
+      result = await handleIndexingCommand(normalizedCommand, context);
+    } else if (isHealthCommand(normalizedCommand)) {
+      result = await handleHealthCommand(normalizedCommand);
+    } else if (isValidationCommand(normalizedCommand)) {
+      result = await handleValidationCommand(normalizedCommand);
+    } else if (isDevelopmentCommand(normalizedCommand)) {
+      result = await handleDevelopmentCommand(normalizedCommand, context, user_preferences);
+    } else if (isSystemCommand(normalizedCommand)) {
+      result = await handleSystemCommand(normalizedCommand, context);
+    } else {
+      // Default: treat as development task with intelligent routing
+      result = await handleDevelopmentTask(command, context, user_preferences);
+    }
+    
+    // Ensure consistent response format for Roo Code
+    return enhanceResponseForRooCode(result, {
+      command,
+      source,
+      execution_time: Date.now() - startTime
+    });
+    
+  } catch (error) {
+    console.error('[Chat Interface] Error processing command:', error);
+    
+    return enhanceResponseForRooCode({
+      status: 'error',
+      message: 'Command processing failed',
+      error_details: error.message,
+      progress: 0
+    }, {
+      command,
+      source,
+      execution_time: Date.now() - startTime,
+      error: true
+    });
   }
 }
 
@@ -581,6 +609,73 @@ function getRooCodeTips(status) {
   tips.push('📊 All responses include progress tracking and file changes');
   
   return tips;
+}
+
+/**
+ * Enhance response format specifically for Roo Code IDE integration
+ * Ensures consistent JSON structure with all required fields
+ */
+function enhanceResponseForRooCode(baseResponse, metadata) {
+  const { command, source, execution_time, error = false } = metadata;
+  
+  return {
+    // Core response fields
+    status: baseResponse.status || 'complete',
+    message: baseResponse.message || 'Command completed',
+    progress: baseResponse.progress || 100,
+    
+    // Execution metadata for Roo Code
+    execution_metadata: {
+      command_processed: command,
+      source_interface: source,
+      execution_time_ms: execution_time,
+      timestamp: new Date().toISOString(),
+      stigmergy_version: '2.2.0'
+    },
+    
+    // Action guidance for IDE
+    next_action: baseResponse.next_action || (error ? 'Please check the error and try again' : 'Command completed successfully'),
+    
+    // Files and changes (for IDE to refresh/highlight)
+    files_modified: baseResponse.files_modified || [],
+    files_created: baseResponse.files_created || [],
+    
+    // User interaction requirements
+    requires_approval: baseResponse.requires_approval || false,
+    awaiting_input: baseResponse.status === 'awaiting_input',
+    
+    // System information
+    system_status: baseResponse.system_status || null,
+    configuration: baseResponse.configuration || null,
+    
+    // Suggestions and help
+    suggestions: baseResponse.suggestions || [],
+    available_commands: baseResponse.available_commands || [],
+    
+    // Roo Code specific enhancements
+    roo_code_integration: {
+      status: source === 'roo_code' ? 'active' : 'compatible',
+      tips: baseResponse.roo_code_tips || [],
+      ui_hints: {
+        show_progress: baseResponse.status === 'executing' || baseResponse.status === 'thinking',
+        highlight_files: (baseResponse.files_modified || []).length > 0,
+        show_approval_dialog: baseResponse.requires_approval || false,
+        show_suggestions: (baseResponse.suggestions || []).length > 0
+      }
+    },
+    
+    // Error handling
+    error_details: baseResponse.error_details || null,
+    
+    // Additional context from base response
+    ...Object.fromEntries(
+      Object.entries(baseResponse).filter(([key]) => 
+        !['status', 'message', 'progress', 'next_action', 'files_modified', 
+          'files_created', 'requires_approval', 'system_status', 'configuration',
+          'suggestions', 'available_commands', 'error_details'].includes(key)
+      )
+    )
+  };
 }
 
 export default {

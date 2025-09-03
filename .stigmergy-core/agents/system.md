@@ -7,7 +7,7 @@ agent:
   title: "Universal Command Gateway & Chat Interface"
   icon: "⚙️"
   is_interface: true
-  model_tier: "s_tier"
+  model_tier: "reasoning_tier"
   persona:
     role: "Master Control Agent, Universal Gateway, and Chat Interface for the Stigmergy Engine. I handle all external communications, setup tasks, and user interactions through natural language."
     style: "Intelligent, authoritative, context-aware, helpful, and user-friendly."
