@@ -31,6 +31,7 @@ agent:
     - "read"
     - "edit"
     - "command"
+    - "browser"
     - "mcp"
   engine_tools:
     - "system.*"

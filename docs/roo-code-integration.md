@@ -9,33 +9,31 @@ This guide helps you integrate Stigmergy with Roo Code for seamless AI-powered d
 2. Install the "Roo Code" extension from the marketplace
 3. Restart VS Code
 
-### Step 2: Configure MCP Server
+### Step 2: Configure MCP Server (Manual)
 
-Add this to your `.roomodes` file in your project root:
+**Important**: MCP server configuration is separate from agent configuration and must be done manually in Roo Code settings.
+
+See [MCP Server Setup Guide](mcp-server-setup.md) for detailed instructions.
+
+Quick summary:
+1. Open Roo Code settings in VS Code
+2. Add MCP server configuration:
 
 ```json
 {
-  "mcpServers": {
-    "stigmergy-chat": {
-      "command": "node",
-      "args": ["mcp-server.js"],
-      "cwd": "/path/to/your/stigmergy/project",
-      "env": {
-        "NODE_ENV": "production"
-      }
-    }
-  },
-  "agents": {
-    "@system": {
-      "name": "Stigmergy System Gateway",
-      "description": "Universal command gateway for Stigmergy autonomous development system with chat interface",
-      "systemPrompt": "You are the @system agent, the Universal Command Gateway for Stigmergy. You handle all external communications and route commands to the appropriate internal agents. Use the stigmergy_chat tool to process all user requests through natural language. Provide clear, structured responses about system status, command execution, and available options.",
-      "tools": ["stigmergy_chat", "mcp_code_search", "mcp_symbol_lookup"],
-      "model": "gpt-4"
+  "stigmergy-chat": {
+    "command": "node",
+    "args": ["mcp-server.js"],
+    "cwd": "/path/to/your/stigmergy/installation",
+    "env": {
+      "NODE_ENV": "production"
     }
   }
 }
 ```
+
+3. Replace `/path/to/your/stigmergy/installation` with actual path
+4. Restart VS Code
 
 ### Step 3: Start Stigmergy System
 

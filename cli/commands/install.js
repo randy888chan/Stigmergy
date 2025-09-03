@@ -66,8 +66,15 @@ export async function install() {
   console.log("✅ Initial backup of new core created.");
   
   console.log("\n🚀 Stigmergy installation complete.");
-  console.log("Next steps:");
+  console.log("\n📋 What was installed:");
+  console.log("   ✅ .stigmergy-core/ - Agent definitions and templates");
+  console.log("   ✅ .roomodes - Roo Code agent configuration (@system agent)");
+  console.log("   ✅ .env example - Configuration template");
+  console.log("\n🎯 Next steps:");
   console.log("1. Copy the appropriate .env example file to .env and add your API keys.");
-  console.log("2. Run `stigmergy start` to launch the engine.");
+  console.log("2. Start Stigmergy: 'npm run stigmergy:start' (in Stigmergy directory)");
+  console.log("3. 🔧 MANUAL: Configure MCP server in Roo Code settings (see docs/mcp-server-setup.md)");
+  console.log("4. In Roo Code: '@system what can I do?' to get started");
+  console.log("\n💡 Note: .roomodes contains agent config only. MCP server setup is separate and manual.");
   return true;
 }
