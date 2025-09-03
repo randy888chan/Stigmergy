@@ -1,5 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
+import { fileURLToPath } from "url";
 import coreBackup from "../../services/core_backup.js";
 import { configureIde } from "./install_helpers.js";
 import config from "../../stigmergy.config.js";
@@ -21,7 +22,8 @@ export async function install() {
   console.log(`Installing Stigmergy core into: ${targetDir}`);
 
   // Allow test suites to override the source core path
-  const sourceCoreDir = global.StigmergyConfig?.core_path || path.resolve(await findProjectRoot(path.dirname(import.meta.url)), ".stigmergy-core");
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const sourceCoreDir = global.StigmergyConfig?.core_path || path.resolve(await findProjectRoot(__dirname), ".stigmergy-core");
 
   if (!sourceCoreDir || !(await fs.pathExists(sourceCoreDir))) {
       console.error(`Source .stigmergy-core not found at ${sourceCoreDir}. Cannot proceed.`);
@@ -43,12 +45,19 @@ export async function install() {
 
   await configureIde(targetDir);
   
-  const projectRoot = await findProjectRoot(path.dirname(import.meta.url));
+  const projectRoot = await findProjectRoot(__dirname);
   if (projectRoot) {
       const sourceEnv = path.resolve(projectRoot, ".env.example");
-      const targetEnv = path.join(targetDir, ".env.example");
-      if (sourceEnv !== targetEnv) {
+      const targetEnv = path.join(targetDir, ".env.stigmergy.example");
+      const fallbackTargetEnv = path.join(targetDir, ".env.example");
+      
+      // Check if target already has .env.example, if so use .env.stigmergy.example
+      if (await fs.pathExists(fallbackTargetEnv)) {
         await fs.copy(sourceEnv, targetEnv, { overwrite: false });
+        console.log("✅ .env.stigmergy.example created (preserving existing .env.example).");
+        console.log("💡 Copy .env.stigmergy.example to .env and configure your API keys.");
+      } else {
+        await fs.copy(sourceEnv, fallbackTargetEnv, { overwrite: false });
         console.log("✅ .env.example created.");
       }
   }
@@ -58,7 +67,7 @@ export async function install() {
   
   console.log("\n🚀 Stigmergy installation complete.");
   console.log("Next steps:");
-  console.log("1. Rename `.env.example` to `.env` and add your API keys.");
+  console.log("1. Copy the appropriate .env example file to .env and add your API keys.");
   console.log("2. Run `stigmergy start` to launch the engine.");
   return true;
 }

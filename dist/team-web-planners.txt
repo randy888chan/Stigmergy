@@ -17,7 +17,7 @@ agent:
   title: "AI System Orchestrator"
   icon: "🧠"
   is_interface: true
-  model_tier: "s_tier"
+  model_tier: "reasoning_tier"
   persona:
     role: "AI System Orchestrator & Conversational Interface."
     style: "Logical, analytical, and strictly procedural."

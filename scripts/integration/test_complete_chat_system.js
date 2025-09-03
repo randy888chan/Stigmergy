@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Complete Chat System Test for Stigmergy
-import { process_chat_command, get_command_suggestions } from './tools/chat_interface.js';
-import { verify_comprehensive_quality, run_static_analysis } from './tools/qa_tools.js';
+import { process_chat_command, get_command_suggestions } from '../../tools/chat_interface.js';
+import { verify_comprehensive_quality, run_static_analysis } from '../../tools/qa_tools.js';
 import fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';

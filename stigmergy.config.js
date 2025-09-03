@@ -92,6 +92,61 @@ const config = {
       use_cases: ["fallback_execution", "specialized_tasks"]
     },
     
+    // ADDITIONAL PROVIDER TIERS (easy to configure popular providers)
+    deepseek_reasoning: {
+      provider: "deepseek",
+      api_key_env: "DEEPSEEK_API_KEY",
+      base_url_env: "DEEPSEEK_BASE_URL",
+      model_name: process.env.DEEPSEEK_REASONING_MODEL || "deepseek-reasoner",
+      capabilities: ["reasoning", "cost_effective"],
+      use_cases: ["complex_planning", "cost_optimization"]
+    },
+    
+    deepseek_execution: {
+      provider: "deepseek",
+      api_key_env: "DEEPSEEK_API_KEY",
+      base_url_env: "DEEPSEEK_BASE_URL", 
+      model_name: process.env.DEEPSEEK_EXECUTION_MODEL || "deepseek-chat",
+      capabilities: ["execution", "cost_effective"],
+      use_cases: ["code_implementation", "cost_optimization"]
+    },
+    
+    kimi_reasoning: {
+      provider: "kimi",
+      api_key_env: "KIMI_API_KEY", 
+      base_url_env: "KIMI_BASE_URL",
+      model_name: process.env.KIMI_REASONING_MODEL || "moonshot-v1-32k",
+      capabilities: ["reasoning", "long_context"],
+      use_cases: ["complex_planning", "document_analysis"]
+    },
+    
+    mistral_reasoning: {
+      provider: "mistral",
+      api_key_env: "MISTRAL_API_KEY",
+      base_url_env: "MISTRAL_BASE_URL",
+      model_name: process.env.MISTRAL_REASONING_MODEL || "mistral-large-latest", 
+      capabilities: ["reasoning", "multilingual"],
+      use_cases: ["complex_planning", "multilingual_tasks"]
+    },
+    
+    anthropic_reasoning: {
+      provider: "anthropic",
+      api_key_env: "ANTHROPIC_API_KEY",
+      base_url_env: "ANTHROPIC_BASE_URL",
+      model_name: process.env.ANTHROPIC_REASONING_MODEL || "claude-3-5-sonnet-20241022",
+      capabilities: ["reasoning", "safety_focused"],
+      use_cases: ["complex_planning", "safety_critical_tasks"]
+    },
+    
+    openai_reasoning: {
+      provider: "openai",
+      api_key_env: "OPENAI_API_KEY", 
+      base_url_env: null, // Uses default OpenAI endpoint
+      model_name: process.env.OPENAI_REASONING_MODEL || "o1-preview",
+      capabilities: ["reasoning", "latest_models"],
+      use_cases: ["complex_planning", "cutting_edge_tasks"]
+    },
+    
     // LEGACY TIERS (for backward compatibility - will be deprecated)
     s_tier: { 
       provider: process.env.REASONING_PROVIDER || "google",
@@ -187,9 +242,16 @@ export function validateConfig() {
   // Check that at least one provider is configured
   const hasGoogle = !!process.env.GOOGLE_API_KEY;
   const hasOpenRouter = !!(process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_BASE_URL);
+  const hasDeepSeek = !!process.env.DEEPSEEK_API_KEY;
+  const hasKimi = !!process.env.KIMI_API_KEY;
+  const hasMistral = !!process.env.MISTRAL_API_KEY;
+  const hasAnthropic = !!process.env.ANTHROPIC_API_KEY;
+  const hasOpenAI = !!process.env.OPENAI_API_KEY;
   
-  if (!hasGoogle && !hasOpenRouter) {
-    errors.push("At least one AI provider must be configured (GOOGLE_API_KEY or OPENROUTER_API_KEY + OPENROUTER_BASE_URL)");
+  const hasAnyProvider = hasGoogle || hasOpenRouter || hasDeepSeek || hasKimi || hasMistral || hasAnthropic || hasOpenAI;
+  
+  if (!hasAnyProvider) {
+    errors.push("At least one AI provider must be configured. Available options: GOOGLE_API_KEY, OPENROUTER_API_KEY, DEEPSEEK_API_KEY, KIMI_API_KEY, MISTRAL_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY");
   }
   
   // Validate that selected providers have required credentials
@@ -215,7 +277,16 @@ export function validateConfig() {
   return {
     isValid: errors.length === 0,
     errors,
-    warnings: []
+    warnings: [],
+    providers_configured: {
+      google: hasGoogle,
+      openrouter: hasOpenRouter,
+      deepseek: hasDeepSeek,
+      kimi: hasKimi,
+      mistral: hasMistral,
+      anthropic: hasAnthropic,
+      openai: hasOpenAI
+    }
   };
 }
 

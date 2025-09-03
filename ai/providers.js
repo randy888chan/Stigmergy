@@ -85,7 +85,7 @@ export function getModelForTier(tier = 'utility_tier', useCase = null) {
             if (provider === 'google') {
                 providerInstances[cacheKey] = createGoogleGenerativeAI(providerOptions);
             } else {
-                // Default to OpenAI-compatible (OpenRouter, etc.)
+                // Default to OpenAI-compatible (includes OpenRouter, DeepSeek, Kimi, Mistral, etc.)
                 providerInstances[cacheKey] = createOpenAI(providerOptions);
             }
         } catch (error) {
@@ -153,9 +153,14 @@ export function selectExecutionMethod(taskComplexity = 'medium', userPreference 
 function getSuggestionForProvider(provider) {
     const suggestions = {
         'openrouter': 'Get your API key at https://openrouter.ai/keys',
-        'deepseek': 'Get your API key at https://platform.deepseek.com/api_keys', 
+        'deepseek': 'Get your API key at https://platform.deepseek.com/api_keys',
         'kimi': 'Get your API key at https://platform.moonshot.cn/console/api-keys',
-        'google': 'Get your API key at https://aistudio.google.com/app/apikey'
+        'mistral': 'Get your API key at https://console.mistral.ai/api-keys/',
+        'anthropic': 'Get your API key at https://console.anthropic.com/account/keys',
+        'together': 'Get your API key at https://api.together.ai/settings/api-keys',
+        'groq': 'Get your API key at https://console.groq.com/keys',
+        'google': 'Get your API key at https://aistudio.google.com/app/apikey',
+        'openai': 'Get your API key at https://platform.openai.com/api-keys'
     };
     
     return suggestions[provider] || 'Please check your provider documentation for API key setup.';

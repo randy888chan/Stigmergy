@@ -176,6 +176,21 @@ export async function analyzeTaskExecutionStrategy({ task, context = '', availab
       execution_method: recommendedMethod,
       brief_available: briefsFound.length > 0,
       next_action: `Will use ${recommendedMethod} execution method. ${reasoning}`
+    });
+  } catch (error) {
+    console.error('[System] Error analyzing task execution strategy:', error);
+    return createStructuredResponse({
+      status: 'error',
+      message: 'Failed to analyze task execution strategy',
+      progress: 0,
+      execution_method: 'internal',
+      brief_available: false,
+      next_action: 'Will fallback to internal dev execution method',
+      error_details: error.message
+    });
+  }
+}
+
 /**
  * Request user choice when multiple high-quality options are available
  * Particularly useful for @reference-architect when multiple patterns match
