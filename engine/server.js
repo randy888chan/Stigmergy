@@ -139,18 +139,28 @@ export class Engine {
   }
 
   getRequiredEnvVars() {
-    const requiredVars = [];
+    // Only require variables for the core functional tiers
+    const coreProviders = new Set();
     
-    Object.values(config.model_tiers).forEach(tier => {
-        if (tier.api_key_env) requiredVars.push(tier.api_key_env);
+    // Check which providers are actually used by core tiers
+    const coreTiers = ['reasoning_tier', 'strategic_tier', 'execution_tier', 'utility_tier', 's_tier', 'a_tier', 'b_tier'];
+    
+    coreTiers.forEach(tierName => {
+        const tier = config.model_tiers[tierName];
+        if (tier && tier.api_key_env) {
+            const apiKey = typeof tier.api_key_env === 'function' ? tier.api_key_env() : tier.api_key_env;
+            coreProviders.add(apiKey);
+        }
     });
+    
+    const requiredVars = Array.from(coreProviders);
     
     // Add Neo4j if required
     if (config.features.neo4j === 'required') {
         requiredVars.push('NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD');
     }
     
-    return [...new Set(requiredVars)]; // Remove duplicates
+    return requiredVars;
   }
 
   async runMainLoop() {

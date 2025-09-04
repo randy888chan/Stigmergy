@@ -25,8 +25,17 @@ const agentSchema = z
         title: z.string().optional(),
         icon: z.string().optional(),
         is_interface: z.boolean().optional(),
-        model_tier: z.enum(["s_tier", "a_tier", "b_tier", "c_tier", "default"], {
-          errorMap: () => ({ message: "Model tier must be one of: s_tier, a_tier, b_tier, c_tier, default" })
+        model_tier: z.enum([
+          // New semantic tier names
+          "reasoning_tier", "strategic_tier", "execution_tier", "utility_tier",
+          // Alternative provider tiers
+          "openrouter_reasoning", "openrouter_execution", 
+          "deepseek_reasoning", "deepseek_execution",
+          "kimi_reasoning", "mistral_reasoning", "anthropic_reasoning", "openai_reasoning",
+          // Legacy tiers (backward compatibility)
+          "s_tier", "a_tier", "b_tier", "c_tier", "default"
+        ], {
+          errorMap: () => ({ message: "Model tier must be one of the available configured tiers. See stigmergy.config.js for valid options." })
         }),
         persona: z
           .object({
@@ -127,7 +136,8 @@ export async function validateAgents(providedCorePath) {
           'swarm_intelligence.*', 'qa.*', 'business_verification.*',
           'guardian.*', 'core.*', 'system.*', 'stigmergy.*',
           'mcp_code_search.*', 'superdesign.*', 'qwen_integration.*',
-          'lightweight_archon.*', 'coderag.*'
+          'lightweight_archon.*', 'coderag.*', 'document_intelligence.*',
+          'chat_interface.*'
         ];
         
         for (const tool of agent.engine_tools) {

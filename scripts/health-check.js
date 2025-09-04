@@ -149,30 +149,55 @@ class ComprehensiveHealthCheck {
         console.log(chalk.yellow('🤖 AI Provider Configuration'));
         
         const tiers = Object.keys(config.model_tiers);
-        let workingProviders = 0;
+        const coreTiers = ['reasoning_tier', 'strategic_tier', 'execution_tier', 'utility_tier', 's_tier', 'a_tier', 'b_tier'];
+        const optionalTiers = tiers.filter(t => !coreTiers.includes(t));
         
-        for (const tier of tiers) {
+        let workingProviders = 0;
+        let coreWorkingProviders = 0;
+        
+        // Check core tiers first
+        for (const tier of coreTiers) {
+            if (!config.model_tiers[tier]) continue;
+            
             const tierConfig = config.model_tiers[tier];
-            const apiKey = process.env[tierConfig.api_key_env];
+            const apiKeyEnv = typeof tierConfig.api_key_env === 'function' ? tierConfig.api_key_env() : tierConfig.api_key_env;
+            const apiKey = process.env[apiKeyEnv];
+            
+            if (apiKey) {
+                console.log(chalk.green(`   ✅ ${tier}: ${tierConfig.provider} (${tierConfig.model_name})`));
+                workingProviders++;
+                coreWorkingProviders++;
+            } else {
+                console.log(chalk.red(`   ❌ ${tier}: Missing ${apiKeyEnv}`));
+            }
+        }
+        
+        // Check optional tiers
+        for (const tier of optionalTiers) {
+            const tierConfig = config.model_tiers[tier];
+            const apiKeyEnv = typeof tierConfig.api_key_env === 'function' ? tierConfig.api_key_env() : tierConfig.api_key_env;
+            const apiKey = process.env[apiKeyEnv];
             
             if (apiKey) {
                 console.log(chalk.green(`   ✅ ${tier}: ${tierConfig.provider} (${tierConfig.model_name})`));
                 workingProviders++;
             } else {
-                console.log(chalk.red(`   ❌ ${tier}: Missing ${tierConfig.api_key_env}`));
+                console.log(chalk.red(`   ❌ ${tier}: Missing ${apiKeyEnv}`));
             }
         }
         
-        if (workingProviders === 0) {
-            this.errors.push('No AI providers configured');
-        } else if (workingProviders < tiers.length) {
+        // Only error if no core providers are working
+        if (coreWorkingProviders === 0) {
+            this.errors.push('No core AI providers configured. At least one of Google, OpenRouter, or other core providers must be configured.');
+        } else if (workingProviders < Math.floor(tiers.length / 2)) {
             this.warnings.push(`Only ${workingProviders}/${tiers.length} AI providers configured`);
         }
 
         this.results.aiProviders = { 
-            success: workingProviders > 0, 
+            success: coreWorkingProviders > 0, 
             workingProviders, 
-            totalProviders: tiers.length 
+            totalProviders: tiers.length,
+            coreWorkingProviders
         };
         console.log('');
     }
@@ -251,21 +276,28 @@ class ComprehensiveHealthCheck {
     }
 
     getRequiredEnvVars() {
-        const requiredVars = new Set();
+        // Only require variables for the core functional tiers
+        const coreProviders = new Set();
         
-        Object.values(config.model_tiers).forEach(tier => {
-            if (tier.api_key_env) {
-                requiredVars.add(tier.api_key_env);
+        // Check which providers are actually used by core tiers
+        const coreTiers = ['reasoning_tier', 'strategic_tier', 'execution_tier', 'utility_tier', 's_tier', 'a_tier', 'b_tier'];
+        
+        coreTiers.forEach(tierName => {
+            const tier = config.model_tiers[tierName];
+            if (tier && tier.api_key_env) {
+                const apiKey = typeof tier.api_key_env === 'function' ? tier.api_key_env() : tier.api_key_env;
+                coreProviders.add(apiKey);
             }
         });
         
+        const requiredVars = Array.from(coreProviders);
+        
+        // Add Neo4j if required
         if (config.features.neo4j === 'required') {
-            requiredVars.add('NEO4J_URI');
-            requiredVars.add('NEO4J_USER');
-            requiredVars.add('NEO4J_PASSWORD');
+            requiredVars.push('NEO4J_URI', 'NEO4J_USER', 'NEO4J_PASSWORD');
         }
         
-        return Array.from(requiredVars);
+        return requiredVars;
     }
 
     printSummary() {
