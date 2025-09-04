@@ -29,3 +29,4 @@ tool_executor_test_temp_core/
 .vscode/
 .idea/
 .DS_Store
+.env

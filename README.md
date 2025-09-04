@@ -31,7 +31,31 @@ Stigmergy transforms high-level product goals into production-ready code through
 
 ## 🚀 Quick Start (2 minutes)
 
-### Option 1: Complete Setup via Chat (Recommended)
+### Option 1: Universal Installation (Recommended)
+```bash
+# Install Stigmergy with MCP integration for any project
+npx @randy888chan/stigmergy install
+
+# Or install in specific project
+cd /path/to/your/project
+npx @randy888chan/stigmergy install
+
+# Start Stigmergy
+npm run stigmergy:start
+
+# Configure your IDE (Roo Code) to use: ./mcp-server.js
+```
+
+### Option 2: MCP Server Only
+```bash
+# If you already have Stigmergy core, just add MCP integration
+npx @randy888chan/stigmergy mcp
+
+# Or for specific project
+npx @randy888chan/stigmergy mcp --project /path/to/project
+```
+
+### Option 3: Complete Setup via Chat
 ```bash
 # 1. Install and start
 npm install -g @randy888chan/stigmergy
@@ -43,7 +67,7 @@ npm run stigmergy:start
 "index github repos for patterns"
 ```
 
-### Option 2: Manual Setup
+### Option 4: Manual Setup (Advanced)
 ```bash
 # 1. Install
 git clone https://github.com/randy888chan/stigmergy.git
@@ -99,6 +123,51 @@ Replace all complex CLI operations with natural language:
 "what can I do?"           # Get suggestions
 ```
 
+## 🔧 CLI Commands
+
+Stigmergy provides powerful CLI commands for easy setup and management:
+
+### Installation Commands
+```bash
+# Complete installation with MCP integration (default)
+npx @randy888chan/stigmergy install
+
+# Install with explicit MCP setup
+npx @randy888chan/stigmergy install --with-mcp
+
+# Install only MCP server (no core files)
+npx @randy888chan/stigmergy install --mcp-only
+
+# Setup MCP server for specific project
+npx @randy888chan/stigmergy mcp --project /path/to/project
+
+# Setup MCP server in current directory
+npx @randy888chan/stigmergy mcp
+```
+
+### Management Commands
+```bash
+# Start Stigmergy engine
+npx @randy888chan/stigmergy start
+
+# System validation and health check
+npx @randy888chan/stigmergy validate
+
+# Restore core files from backup
+npx @randy888chan/stigmergy restore
+
+# Build web bundles
+npx @randy888chan/stigmergy build
+```
+
+### Project Scripts (Added Automatically)
+```bash
+# These are added to your package.json by the install command
+npm run stigmergy:start     # Start Stigmergy for this project
+npm run stigmergy:stop      # Stop Stigmergy processes
+npm run mcp:test           # Test MCP server functionality
+```
+
 ## 🏗️ Reference-First Development Workflow
 
 ### 1. **Document Analysis** 📄
@@ -152,10 +221,13 @@ Replace all complex CLI operations with natural language:
 - **Coverage Analysis**: Minimum 80% test coverage requirement
 
 ### 🔗 **IDE Integration**
-- **Roo Code**: Native VS Code extension support
-- **MCP Protocol**: Model-Context Protocol for seamless communication
-- **Structured Responses**: JSON-formatted status updates
+- **Universal MCP Server**: Works in any project directory without manual configuration
+- **Roo Code**: Native integration with automatic setup via `npx stigmergy install`
+- **Auto-detection**: Intelligent project context detection and port management
+- **MCP Protocol**: Model-Context Protocol for seamless IDE communication
+- **Structured Responses**: JSON-formatted status updates and coordination
 - **File Tracking**: Real-time monitoring of modified and created files
+- **Natural Language**: Use simple commands through your IDE for project coordination
 
 ### 🧠 **Code Intelligence**
 - **Neo4j Knowledge Graph**: Deep codebase understanding
@@ -263,6 +335,7 @@ npm run setup:complete            # Complete setup verification
 ## 📚 Documentation
 
 - **[System Architecture](docs/architecture.md)** - Deep dive into system design
+- **[MCP Integration Guide](docs/MCP_INTEGRATION.md)** - Universal IDE integration setup
 - **[Agent Development](docs/agents.md)** - Creating custom agents
 - **[Tool Integration](docs/tools.md)** - Adding new tools
 - **[Reference Patterns](docs/patterns.md)** - Pattern indexing and discovery
@@ -313,5 +386,6 @@ Stigmergy embodies the principle that great software development should focus on
 
 <div align="center">
   <strong>Ready to revolutionize your development workflow?</strong><br>
-  <code>npm run stigmergy:start</code> and say <code>"help me get started"</code>
+  <code>npx @randy888chan/stigmergy install</code> then <code>npm run stigmergy:start</code><br>
+  Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!
 </div>

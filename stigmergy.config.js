@@ -1,5 +1,5 @@
 import path from "path";
-import "dotenv/config";
+import "./utils/env_loader.js";  // Load environment with inheritance
 
 const config = {
   corePath: ".stigmergy-core",

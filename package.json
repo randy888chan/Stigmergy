@@ -1,7 +1,7 @@
 {
   "name": "@randy888chan/stigmergy",
   "version": "2.2.0",
-  "description": "Stigmergy: The Autonomous AI Development System.",
+  "description": "Stigmergy: The Autonomous AI Development System with Universal MCP Integration for seamless IDE coordination.",
   "type": "module",
   "main": "engine/server.js",
   "bin": {
@@ -41,7 +41,10 @@
     "chat:test": "node -e \"import('./tools/chat_interface.js').then(m => m.get_command_suggestions({})).then(console.log)\"",
     "setup:complete": "npm install && npm run install-core && npm run health-check",
     "setup:verify": "node setup_complete_system.js",
-    "test:chat-system": "node test_complete_chat_system.js"
+    "test:chat-system": "node test_complete_chat_system.js",
+    "mcp:setup": "node scripts/setup-mcp.js",
+    "mcp:setup-project": "node scripts/setup-mcp.js",
+    "validate:comprehensive": "node scripts/comprehensive-validation.js"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",

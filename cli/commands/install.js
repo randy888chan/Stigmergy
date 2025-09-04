@@ -4,6 +4,8 @@ import { fileURLToPath } from "url";
 import coreBackup from "../../services/core_backup.js";
 import { configureIde } from "./install_helpers.js";
 import config from "../../stigmergy.config.js";
+import { setupMCPServer } from "../../scripts/setup-mcp.js";
+import chalk from "chalk";
 
 async function findProjectRoot(startDir) {
     let currentDir = startDir;
@@ -17,8 +19,26 @@ async function findProjectRoot(startDir) {
     return null;
 }
 
-export async function install() {
+export async function install(options = {}) {
   const targetDir = process.cwd();
+  
+  // Handle MCP-only installation
+  if (options.mcpOnly) {
+    console.log(chalk.blue(`🔧 Installing Stigmergy MCP server only into: ${targetDir}`));
+    const result = await setupMCPServer(targetDir);
+    
+    if (result.success) {
+      console.log(chalk.green("\n✅ MCP server installation complete!"));
+      console.log(chalk.cyan("\n🎯 Next steps:"));
+      console.log("1. Start Stigmergy: 'npm run stigmergy:start'");
+      console.log("2. Configure your IDE MCP server to: ./mcp-server.js");
+      console.log("3. Use natural language commands through your IDE");
+    } else {
+      console.error(chalk.red("❌ MCP server installation failed:"), result.error);
+    }
+    return result.success;
+  }
+  
   console.log(`Installing Stigmergy core into: ${targetDir}`);
 
   // Allow test suites to override the source core path
@@ -65,16 +85,48 @@ export async function install() {
   await coreBackup.autoBackup();
   console.log("✅ Initial backup of new core created.");
   
+  // MCP Server Setup (if requested or by default)
+  let mcpSetupSuccess = false;
+  if (options.withMcp !== false) { // Default to true unless explicitly disabled
+    console.log(chalk.blue("\n🔗 Setting up MCP server integration..."));
+    try {
+      const mcpResult = await setupMCPServer(targetDir);
+      if (mcpResult.success) {
+        mcpSetupSuccess = true;
+        console.log(chalk.green("✅ MCP server integration installed"));
+      } else {
+        console.log(chalk.yellow("⚠️ MCP server setup skipped (non-critical)"));
+      }
+    } catch (error) {
+      console.log(chalk.yellow(`⚠️ MCP server setup failed: ${error.message}`));
+    }
+  }
+  
   console.log("\n🚀 Stigmergy installation complete.");
   console.log("\n📋 What was installed:");
   console.log("   ✅ .stigmergy-core/ - Agent definitions and templates");
   console.log("   ✅ .roomodes - Roo Code agent configuration (@system agent)");
   console.log("   ✅ .env example - Configuration template");
+  if (mcpSetupSuccess) {
+    console.log(chalk.green("   ✅ mcp-server.js - Universal MCP server for IDE integration"));
+    console.log(chalk.green("   ✅ npm scripts - Convenient Stigmergy commands"));
+  }
+  
   console.log("\n🎯 Next steps:");
   console.log("1. Copy the appropriate .env example file to .env and add your API keys.");
   console.log("2. Start Stigmergy: 'npm run stigmergy:start' (in Stigmergy directory)");
-  console.log("3. 🔧 MANUAL: Configure MCP server in Roo Code settings (see docs/mcp-server-setup.md)");
-  console.log("4. In Roo Code: '@system what can I do?' to get started");
-  console.log("\n💡 Note: .roomodes contains agent config only. MCP server setup is separate and manual.");
+  
+  if (mcpSetupSuccess) {
+    console.log(chalk.cyan("3. 🔗 Configure MCP server in your IDE:"));
+    console.log(chalk.gray("   • Roo Code: Point MCP server to ./mcp-server.js"));
+    console.log(chalk.gray("   • Use natural language commands for project coordination"));
+    console.log("4. In Roo Code: '@system what can I do?' to get started");
+  } else {
+    console.log("3. 🔧 MANUAL: Configure MCP server in Roo Code settings (see docs/mcp-server-setup.md)");
+    console.log("4. In Roo Code: '@system what can I do?' to get started");
+    console.log(chalk.yellow("\n💡 Tip: Run 'npx stigmergy mcp' to set up MCP integration later"));
+  }
+  
+  console.log("\n✨ Installation complete! Stigmergy is ready for universal project coordination.");
   return true;
 }

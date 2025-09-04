@@ -58,10 +58,12 @@ program
 program
   .command("install")
   .description("Installs the Stigmergy core files into the current directory.")
-  .action(async () => {
+  .option('--with-mcp', 'Also install MCP server for IDE integration')
+  .option('--mcp-only', 'Install only MCP server (no core files)')
+  .action(async (options) => {
     const installPath = path.resolve(__dirname, './commands/install.js');
     const { install } = await import(installPath);
-    await install();
+    await install(options);
   });
 
 program
@@ -88,6 +90,17 @@ program
     const buildPath = path.resolve(__dirname, './commands/build.js');
     const { default: build } = await import(buildPath);
     await build();
+  });
+
+program
+  .command("mcp")
+  .description("Setup MCP server for IDE integration (Roo Code, VS Code, etc.)")
+  .option('-p, --project <path>', 'Target project directory (default: current directory)')
+  .action(async (options) => {
+    const mcpPath = path.resolve(__dirname, './commands/mcp.js');
+    const { setupMCP } = await import(mcpPath);
+    const targetDir = options.project || process.cwd();
+    await setupMCP(targetDir);
   });
 
 async function main() {

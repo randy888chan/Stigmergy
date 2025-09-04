@@ -1,6 +1,6 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import "dotenv/config.js";
+import "../utils/env_loader.js";  // Load environment with inheritance
 import config from '../stigmergy.config.js';
 
 // A cache for provider instances to avoid re-creating them on every call
@@ -13,17 +13,26 @@ export function _resetProviderInstances() {
 
 // Enhanced model selection with reasoning vs non-reasoning intelligence
 export function getModelForTier(tier = 'utility_tier', useCase = null) {
+    console.log(`[AI Provider] Getting model for tier: ${tier}`);
+    
     const tierConfig = config.model_tiers[tier];
     if (!tierConfig) {
         const availableTiers = Object.keys(config.model_tiers);
         const semanticTiers = availableTiers.filter(t => !t.endsWith('_tier') || t.match(/^(reasoning|strategic|execution|utility)_tier$/));
-        throw new Error(
+        const errorMsg = (
             `Model tier '${tier}' is not defined in stigmergy.config.js.\n` +
             `Available semantic tiers: ${semanticTiers.join(', ')}\n` +
             `Available legacy tiers: ${availableTiers.filter(t => t.match(/^[abc]_tier$/)).join(', ')}\n` +
             `All available tiers: ${availableTiers.join(', ')}`
         );
+        console.error(`[AI Provider] ${errorMsg}`);
+        throw new Error(errorMsg);
     }
+
+    console.log(`[AI Provider] Tier config found:`, {
+        provider: tierConfig.provider,
+        model_name: tierConfig.model_name
+    });
 
     // If use case is provided, try to find a better matching tier
     if (useCase) {
@@ -47,24 +56,42 @@ export function getModelForTier(tier = 'utility_tier', useCase = null) {
         ? tierConfig.base_url_env() 
         : tierConfig.base_url_env;
 
+    console.log(`[AI Provider] Resolved config:`, {
+        provider,
+        model_name,
+        api_key_env,
+        base_url_env
+    });
+
     if (!api_key_env || !model_name) {
-        throw new Error(
+        const errorMsg = (
             `Tier '${tier}' configuration is incomplete. ` +
             `Missing: ${!api_key_env ? 'api_key_env' : ''} ${!model_name ? 'model_name' : ''}. ` +
             `Please check your stigmergy.config.js file.`
         );
+        console.error(`[AI Provider] ${errorMsg}`);
+        throw new Error(errorMsg);
     }
 
     // Get API key and base URL from environment
     const apiKey = process.env[api_key_env];
     const baseURL = base_url_env ? process.env[base_url_env] : null;
 
+    console.log(`[AI Provider] Environment check:`, {
+        api_key_env,
+        apiKey: apiKey ? `${apiKey.slice(0, 8)}...` : 'MISSING',
+        base_url_env,
+        baseURL: baseURL || 'none'
+    });
+
     if (!apiKey) {
         const suggestion = getSuggestionForProvider(provider);
-        throw new Error(
+        const errorMsg = (
             `API key environment variable '${api_key_env}' for tier '${tier}' is not set. ` +
             `${suggestion}`
         );
+        console.error(`[AI Provider] ${errorMsg}`);
+        throw new Error(errorMsg);
     }
 
     // Use a unique key for the cache based on the API key and base URL
@@ -86,19 +113,27 @@ export function getModelForTier(tier = 'utility_tier', useCase = null) {
                 providerInstances[cacheKey] = createGoogleGenerativeAI(providerOptions);
             } else {
                 // Default to OpenAI-compatible (includes OpenRouter, DeepSeek, Kimi, Mistral, etc.)
+                // For OpenRouter and similar providers, ensure compatibility settings
+                if (provider === 'openrouter' || baseURL?.includes('openrouter')) {
+                    providerOptions.compatibility = 'strict';
+                }
                 providerInstances[cacheKey] = createOpenAI(providerOptions);
             }
+            console.log(`[AI Provider] Successfully initialized ${provider} provider`);
         } catch (error) {
-            throw new Error(
-                `Failed to initialize ${provider} provider for tier '${tier}': ${error.message}`
-            );
+            const errorMsg = `Failed to initialize ${provider} provider for tier '${tier}': ${error.message}`;
+            console.error(`[AI Provider] ${errorMsg}`);
+            throw new Error(errorMsg);
         }
     }
 
     const providerInstance = providerInstances[cacheKey];
     console.log(`[AI Provider] Using Model: ${model_name} (Tier: ${tier}, Provider: ${provider})`);
     
-    return providerInstance(model_name);
+    const modelInstance = providerInstance(model_name);
+    console.log(`[AI Provider] Model instance created successfully`);
+    
+    return modelInstance;
 }
 
 // Find optimal tier based on use case

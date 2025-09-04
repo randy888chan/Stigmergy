@@ -1,4 +1,4 @@
-import "dotenv/config";
+import '../utils/env_loader.js';  // Load environment with inheritance
 import express from "express";
 import http from "http";
 import { WebSocketServer } from "ws";
@@ -24,7 +24,7 @@ const execPromise = promisify(exec);
 
 const stigmergyToolCallSchema = z.object({
   tool: z.string().describe("The name of the tool to call, e.g., 'stigmergy.task'"),
-  args: z.record(z.any()).describe("The arguments for the tool, as an object."),
+  args: z.record(z.string(), z.any()).describe("The arguments for the tool, as a key-value object with string keys."),
 });
 
 
@@ -204,12 +204,24 @@ export class Engine {
   }
 
   async start() {
-    const PORT = process.env.PORT || 3010;
+    // Standardized port management with intelligent defaults
+    let PORT = process.env.PORT || 3010;
+    
+    // If port 3010 is not available (e.g., already running from Stigmergy repo), use 3011
+    if (process.cwd() !== path.resolve(__dirname, '..') && !process.env.PORT) {
+      PORT = 3011;
+      console.log(chalk.blue(`[Engine] Using port ${PORT} for project directory instance`));
+    }
+    
     this.server.listen(PORT, () => {
         console.log(chalk.green(`🚀 Stigmergy Engine API server is running on http://localhost:${PORT}`));
         console.log(chalk.blue(`   Watching project at: ${process.cwd()}`));
         console.log(chalk.yellow("   This is a headless engine. Interact with it via your IDE."));
     });
+    
+    // Store the port for other components to use
+    process.env.STIGMERGY_PORT = PORT;
+    
     // Increase interval to a more realistic value to avoid spamming the LLM
     this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
   }
@@ -257,24 +269,71 @@ export class Engine {
   async triggerAgent(agent, userPrompt) {
     console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
     try {
+      console.log(chalk.blue(`[Engine] Agent model tier: ${agent.modelTier}`));
+      
       const model = getModelForTier(agent.modelTier);
+      console.log(chalk.blue(`[Engine] Model resolved successfully`));
 
-      // Use generateObject for structured, predictable output
-      const { object } = await generateObject({
-        model,
-        schema: stigmergyToolCallSchema,
-        system: agent.systemPrompt,
-        prompt: userPrompt,
-      });
-
-      return { toolCall: object };
+      // Try structured generation first
+      try {
+        const { object } = await generateObject({
+          model,
+          schema: stigmergyToolCallSchema,
+          system: agent.systemPrompt,
+          prompt: userPrompt,
+        });
+        console.log(chalk.green(`[Engine] Structured generation successful`));
+        return { toolCall: object };
+      } catch (structuredError) {
+        console.log(chalk.yellow(`[Engine] Structured generation failed for ${agent.modelTier}, falling back to text generation`));
+        console.log(chalk.blue(`[Engine] Structured error: ${structuredError.message}`));
+        
+        // Fallback to text generation with prompt engineering
+        const { text } = await generateText({
+          model,
+          system: agent.systemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
+          prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only.`,
+        });
+        
+        console.log(chalk.blue(`[Engine] Text generation result: ${text.substring(0, 200)}...`));
+        
+        // Try to parse the JSON response
+        try {
+          const jsonMatch = text.match(/\{.*\}/s);
+          if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+            if (parsed.tool && parsed.args) {
+              console.log(chalk.green(`[Engine] Successfully parsed fallback JSON`));
+              return { toolCall: parsed };
+            }
+          }
+          throw new Error('No valid JSON structure found');
+        } catch (parseError) {
+          console.log(chalk.yellow(`[Engine] Could not parse fallback response: ${parseError.message}`));
+          console.log(chalk.yellow(`[Engine] Raw response: ${text}`));
+        }
+        
+        // Ultimate fallback
+        return { 
+          toolCall: { 
+            tool: 'log', 
+            args: { 
+              message: `Agent @${agent.id} processed request: ${userPrompt.substring(0, 100)}...`,
+              response: text.substring(0, 200) + '...'
+            } 
+          } 
+        };
+      }
     } catch (error) {
+      console.error(chalk.red(`[Engine] Full error details for @${agent.id}:`));
+      console.error(chalk.red(`  Error message: ${error.message}`));
+      console.error(chalk.red(`  Agent model tier: ${agent.modelTier}`));
+      
       if (error.message.includes("API key environment variable")) {
         console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
-        // Return a "do nothing" tool call to prevent the engine from crashing.
         return { toolCall: { tool: 'log', args: { message: `Agent @${agent.id} trigger failed due to missing API key for tier ${agent.modelTier}.` } } };
       }
-      console.error(chalk.red(`[AI Provider] Error during generation for @${agent.id}:`), error);
+      
       // Return a structured error to be handled by the main loop
       return { error: error.message, toolCall: null };
     }
