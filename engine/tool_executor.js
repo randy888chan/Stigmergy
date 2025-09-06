@@ -94,7 +94,9 @@ export function createExecutor(engine) {
         if (!subagent_type || !description) {
           throw new Error("The 'subagent_type' and 'description' are required for stigmergy.task");
         }
-        return await engine.triggerAgent(subagent_type, description);
+        // Get the agent object from the engine
+        const agent = engine.getAgent(subagent_type);
+        return await engine.triggerAgent(agent, description);
       },
     },
   };
