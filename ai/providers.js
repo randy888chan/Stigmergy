@@ -3,6 +3,14 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import "../utils/env_loader.js";  // Load environment with inheritance
 import config from '../stigmergy.config.js';
 
+// Add retry configuration
+const RETRY_CONFIG = {
+  maxRetries: 3,
+  baseDelay: 1000, // 1 second
+  maxDelay: 10000, // 10 seconds
+  backoffFactor: 2
+};
+
 // A cache for provider instances to avoid re-creating them on every call
 let providerInstances = {};
 
@@ -130,6 +138,7 @@ export function getModelForTier(tier = 'utility_tier', useCase = null) {
     const providerInstance = providerInstances[cacheKey];
     console.log(`[AI Provider] Using Model: ${model_name} (Tier: ${tier}, Provider: ${provider})`);
     
+    // Get the model instance directly without wrapping
     const modelInstance = providerInstance(model_name);
     console.log(`[AI Provider] Model instance created successfully`);
     
@@ -199,6 +208,46 @@ function getSuggestionForProvider(provider) {
     };
     
     return suggestions[provider] || 'Please check your provider documentation for API key setup.';
+}
+
+// Retry utility for handling rate limits and transient errors in AI provider calls
+async function retryWithExponentialBackoff(fn, retries = RETRY_CONFIG.maxRetries, baseDelay = RETRY_CONFIG.baseDelay) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      // Check if error is retryable (rate limit, timeout, etc.)
+      const isRetryable = error.message.includes('rate limit') || 
+                         error.message.includes('429') || 
+                         error.message.includes('quota') ||
+                         error.message.includes('timeout') ||
+                         error.message.includes('ETIMEDOUT') ||
+                         error.message.includes('ECONNRESET') ||
+                         error.message.includes('network');
+      
+      // If it's not a retryable error or we've exhausted retries, throw the error
+      if (!isRetryable || attempt === retries) {
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        baseDelay * Math.pow(RETRY_CONFIG.backoffFactor, attempt - 1),
+        RETRY_CONFIG.maxDelay
+      );
+      
+      console.log(`[AI Provider] Retryable error detected: ${error.message}. Retrying in ${delay}ms... (Attempt ${attempt}/${retries})`);
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError;
 }
 
 // Validate provider configuration

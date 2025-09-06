@@ -3,6 +3,12 @@ import { MCPCodeSearch } from './tools/mcp_code_search.js';
 import { CodeRAGIntegration } from './services/coderag_integration.js';
 import { LightweightArchon } from './services/lightweight_archon.js';
 import { process_chat_command, get_command_suggestions } from './tools/chat_interface.js';
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+// Define __dirname for ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const codeSearch = new MCPCodeSearch();
 const coderag = new CodeRAGIntegration();
@@ -133,6 +139,22 @@ process.stdin.on('data', async (data) => {
     let response;
 
     switch (message.method) {
+      case 'initialize':
+        response = {
+          jsonrpc: "2.0",
+          id: message.id,
+          result: {
+            protocolVersion: "2024-11-05",
+            capabilities: { tools: {} },
+            serverInfo: { 
+              name: server.name, 
+              version: server.version,
+              description: "Stigmergy Code Search MCP Server"
+            }
+          }
+        };
+        break;
+
       case 'tools/list':
         response = {
           jsonrpc: "2.0",

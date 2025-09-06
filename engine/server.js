@@ -6,6 +6,10 @@ import chalk from "chalk";
 import { fileURLToPath } from 'url';
 import path from 'path';
 
+// Define __dirname for ESM compatibility
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 import * as stateManager from "./state_manager.js";
 import { createExecutor } from "./tool_executor.js";
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
@@ -27,6 +31,37 @@ const stigmergyToolCallSchema = z.object({
   args: z.record(z.string(), z.any()).describe("The arguments for the tool, as a key-value object with string keys."),
 });
 
+// Retry utility for handling rate limits and transient errors
+async function retryWithBackoff(fn, retries = 3, delay = 1000, backoffFactor = 2) {
+  let lastError;
+  
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      
+      // If it's a rate limit error, we should retry
+      const isRateLimitError = error.message.includes('rate limit') || 
+                              error.message.includes('429') || 
+                              error.message.includes('quota') ||
+                              error.message.includes('exceeded');
+      
+      // If it's not a rate limit error or we've exhausted retries, throw the error
+      if (!isRateLimitError || attempt === retries) {
+        throw error;
+      }
+      
+      const currentDelay = delay * Math.pow(backoffFactor, attempt - 1);
+      console.log(chalk.yellow(`[Engine] Rate limit or transient error detected. Retrying in ${currentDelay}ms... (Attempt ${attempt}/${retries})`));
+      
+      // Wait before retrying
+      await new Promise(resolve => setTimeout(resolve, currentDelay));
+    }
+  }
+  
+  throw lastError;
+}
 
 async function geminiHealthCheck() {
     try {
@@ -274,13 +309,15 @@ export class Engine {
       const model = getModelForTier(agent.modelTier);
       console.log(chalk.blue(`[Engine] Model resolved successfully`));
 
-      // Try structured generation first
+      // Try structured generation first with retry mechanism
       try {
-        const { object } = await generateObject({
-          model,
-          schema: stigmergyToolCallSchema,
-          system: agent.systemPrompt,
-          prompt: userPrompt,
+        const { object } = await retryWithBackoff(async () => {
+          return await generateObject({
+            model,
+            schema: stigmergyToolCallSchema,
+            system: agent.systemPrompt,
+            prompt: userPrompt,
+          });
         });
         console.log(chalk.green(`[Engine] Structured generation successful`));
         return { toolCall: object };
@@ -288,11 +325,13 @@ export class Engine {
         console.log(chalk.yellow(`[Engine] Structured generation failed for ${agent.modelTier}, falling back to text generation`));
         console.log(chalk.blue(`[Engine] Structured error: ${structuredError.message}`));
         
-        // Fallback to text generation with prompt engineering
-        const { text } = await generateText({
-          model,
-          system: agent.systemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
-          prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only.`,
+        // Fallback to text generation with prompt engineering and retry mechanism
+        const { text } = await retryWithBackoff(async () => {
+          return await generateText({
+            model,
+            system: agent.systemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
+            prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only.`,
+          });
         });
         
         console.log(chalk.blue(`[Engine] Text generation result: ${text.substring(0, 200)}...`));
