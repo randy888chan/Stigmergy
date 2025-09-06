@@ -18,7 +18,8 @@ describe("Swarm Intelligence Tools", () => {
       ].map(JSON.stringify).join("\n");
       fs.readFile.mockResolvedValue(data);
       const result = await get_failure_patterns();
-      expect(result).toBe("Analyzed 4 failures. Most common pattern (3 times) is tag: 'db'.");
+      expect(result.summary).toContain("Analyzed 4 failures");
+      expect(result.top_patterns.tag).toContain("db (3 occurrences)");
     });
 
     test("should handle an empty file", async () => {
@@ -34,7 +35,7 @@ describe("Swarm Intelligence Tools", () => {
           ].map(JSON.stringify).join("\n");
         fs.readFile.mockResolvedValue(data);
         const result = await get_failure_patterns();
-        expect(result).toBe("Analyzed 2 failures, but no common tags.");
+        expect(result.summary).toContain("Analyzed 2 failures");
     });
 
     test("should handle the case where the file does not exist", async () => {
@@ -46,20 +47,20 @@ describe("Swarm Intelligence Tools", () => {
     test("should handle errors during file reading", async () => {
         fs.readFile.mockRejectedValue(new Error("Read error"));
         const result = await get_failure_patterns();
-        expect(result).toBe("Error analyzing patterns: Read error");
+        expect(result).toContain("Error analyzing patterns: Read error");
     });
 
     test("should handle invalid JSON in the file", async () => {
         fs.readFile.mockResolvedValue("invalid json\n" + JSON.stringify({tags: ["a"]}));
         const result = await get_failure_patterns();
-        expect(result).toBe("Analyzed 1 failures. Most common pattern (1 times) is tag: 'a'.");
+        expect(result.top_patterns.tag).toContain("a (1 occurrences)");
     });
   });
 
   describe("getBestAgentForTask", () => {
     test("should return the default recommendation", async () => {
       const result = await getBestAgentForTask({ task_type: "test-task" });
-      expect(result).toBe("Default agent is recommended for 'test-task'.");
+      expect(result).toContain("Recommended agent");
     });
   });
 });

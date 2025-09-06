@@ -90,7 +90,7 @@ describe("LLM Adapter", () => {
 
       expect(getModelForTier).toHaveBeenCalledWith("a_tier");
       expect(mockLlm.generate).toHaveBeenCalledWith({
-        system: "You are test-agent. Respond in JSON format: {thought, action}",
+        system: "You are test-agent. \nProvider Context: stigmergy_internal\nYou are operating in autonomous mode.\nRespond in JSON format: {thought, action}",
         prompt: "What is the plan?",
       });
     });

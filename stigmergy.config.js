@@ -13,14 +13,14 @@ const config = {
   model_tiers: {
     // REASONING MODELS (for planning, analysis, complex tasks)
     reasoning_tier: { 
-      provider: process.env.REASONING_PROVIDER || "google", // 'google' or 'openrouter'
-      model_name: process.env.REASONING_MODEL || "gemini-2.0-flash-thinking-exp",
+      provider: process.env.REASONING_PROVIDER || "openrouter", // 'google' or 'openrouter'
+      model_name: process.env.REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",
       api_key_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "google";
+        const provider = process.env.REASONING_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "google";
+        const provider = process.env.REASONING_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
       capabilities: ["reasoning", "planning", "analysis"],
@@ -28,14 +28,14 @@ const config = {
     },
     
     strategic_tier: { 
-      provider: process.env.STRATEGIC_PROVIDER || "google",
-      model_name: process.env.STRATEGIC_MODEL || "gemini-1.5-pro",
+      provider: process.env.STRATEGIC_PROVIDER || "openrouter",
+      model_name: process.env.STRATEGIC_MODEL || "deepseek/deepseek-chat-v3.1:free",
       api_key_env: function() {
-        const provider = process.env.STRATEGIC_PROVIDER || "google";
+        const provider = process.env.STRATEGIC_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.STRATEGIC_PROVIDER || "google";
+        const provider = process.env.STRATEGIC_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
       capabilities: ["reasoning", "strategic_thinking"],
@@ -44,14 +44,14 @@ const config = {
     
     // NON-REASONING MODELS (for execution, generation, quick tasks)
     execution_tier: { 
-      provider: process.env.EXECUTION_PROVIDER || "google",
-      model_name: process.env.EXECUTION_MODEL || "gemini-1.5-flash",
+      provider: process.env.EXECUTION_PROVIDER || "openrouter",
+      model_name: process.env.EXECUTION_MODEL || "deepseek/deepseek-chat-v3.1:free",
       api_key_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "google";
+        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "google";
+        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
       capabilities: ["fast_execution", "code_generation"],
@@ -59,14 +59,14 @@ const config = {
     },
     
     utility_tier: { 
-      provider: process.env.UTILITY_PROVIDER || "google",
-      model_name: process.env.UTILITY_MODEL || "gemini-1.5-flash-8b",
+      provider: process.env.UTILITY_PROVIDER || "openrouter",
+      model_name: process.env.UTILITY_MODEL || "deepseek/deepseek-chat-v3.1:free",
       api_key_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "google";
+        const provider = process.env.UTILITY_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "google";
+        const provider = process.env.UTILITY_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
       capabilities: ["lightweight", "quick_tasks"],
@@ -78,7 +78,7 @@ const config = {
       provider: "openrouter",
       api_key_env: "OPENROUTER_API_KEY",
       base_url_env: "OPENROUTER_BASE_URL",
-      model_name: process.env.OPENROUTER_REASONING_MODEL || "deepseek/deepseek-chat",
+      model_name: process.env.OPENROUTER_REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",
       capabilities: ["reasoning", "alternative_provider"],
       use_cases: ["fallback_reasoning", "cost_optimization"]
     },
@@ -87,7 +87,7 @@ const config = {
       provider: "openrouter",
       api_key_env: "OPENROUTER_API_KEY",
       base_url_env: "OPENROUTER_BASE_URL", 
-      model_name: process.env.OPENROUTER_EXECUTION_MODEL || "anthropic/claude-3.5-sonnet",
+      model_name: process.env.OPENROUTER_EXECUTION_MODEL || "deepseek/deepseek-chat-v3.1:free",
       capabilities: ["execution", "alternative_provider"],
       use_cases: ["fallback_execution", "specialized_tasks"]
     },
@@ -149,42 +149,42 @@ const config = {
     
     // LEGACY TIERS (for backward compatibility - will be deprecated)
     s_tier: { 
-      provider: process.env.REASONING_PROVIDER || "google",
+      provider: process.env.REASONING_PROVIDER || "openrouter",
       api_key_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "google";
+        const provider = process.env.REASONING_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "google";
+        const provider = process.env.REASONING_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
-      model_name: process.env.REASONING_MODEL || "gemini-2.0-flash-thinking-exp",
+      model_name: process.env.REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",
     },
     
     a_tier: { 
-      provider: process.env.EXECUTION_PROVIDER || "google",
+      provider: process.env.EXECUTION_PROVIDER || "openrouter",
       api_key_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "google";
+        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "google";
+        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
-      model_name: process.env.EXECUTION_MODEL || "gemini-1.5-flash",
+      model_name: process.env.EXECUTION_MODEL || "deepseek/deepseek-chat-v3.1:free",
     },
     
     b_tier: { 
-      provider: process.env.UTILITY_PROVIDER || "google",
+      provider: process.env.UTILITY_PROVIDER || "openrouter",
       api_key_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "google";
+        const provider = process.env.UTILITY_PROVIDER || "openrouter";
         return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
       }(),
       base_url_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "google";
+        const provider = process.env.UTILITY_PROVIDER || "openrouter";
         return provider === "google" ? null : "OPENROUTER_BASE_URL";
       }(),
-      model_name: process.env.UTILITY_MODEL || "gemini-1.5-flash-8b",
+      model_name: process.env.UTILITY_MODEL || "deepseek/deepseek-chat-v3.1:free",
     }
   },
   
@@ -211,12 +211,12 @@ const config = {
   provider_config: {
     // Preferred provider order for each tier type
     reasoning_providers: [
-      process.env.REASONING_PROVIDER || "google",
-      "openrouter"
+      process.env.REASONING_PROVIDER || "openrouter",
+      "google"
     ],
     execution_providers: [
-      process.env.EXECUTION_PROVIDER || "google", 
-      "openrouter"
+      process.env.EXECUTION_PROVIDER || "openrouter", 
+      "google"
     ],
     
     // Cost optimization settings
@@ -255,8 +255,8 @@ export function validateConfig() {
   }
   
   // Validate that selected providers have required credentials
-  const reasoningProvider = process.env.REASONING_PROVIDER || "google";
-  const executionProvider = process.env.EXECUTION_PROVIDER || "google";
+  const reasoningProvider = process.env.REASONING_PROVIDER || "openrouter";
+  const executionProvider = process.env.EXECUTION_PROVIDER || "openrouter";
   
   if (reasoningProvider === "google" && !hasGoogle) {
     errors.push("REASONING_PROVIDER is set to 'google' but GOOGLE_API_KEY is missing");

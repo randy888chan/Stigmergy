@@ -1,0 +1,30 @@
+{
+  "mcpServers": [
+    {
+      "name": "Stigmergy",
+      "command": "node",
+      "args": ["${workspaceFolder}/mcp-server.js"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  ],
+  "continue": {
+    "models": [
+      {
+        "title": "Stigmergy System",
+        "provider": "openai",
+        "model": "gpt-4",
+        "apiBase": "http://localhost:3010/api"
+      }
+    ],
+    "customCommands": [
+      {
+        "name": "Stigmergy Chat",
+        "prompt": "Process this command through Stigmergy: {{command}}",
+        "description": "Send command to Stigmergy system"
+      }
+    ]
+  }
+}

@@ -4,7 +4,6 @@ import { fileURLToPath } from "url";
 import coreBackup from "../../services/core_backup.js";
 import { configureIde } from "./install_helpers.js";
 import config from "../../stigmergy.config.js";
-import { setupMCPServer } from "../../scripts/setup-mcp.js";
 import chalk from "chalk";
 
 async function findProjectRoot(startDir) {
@@ -25,6 +24,8 @@ export async function install(options = {}) {
   // Handle MCP-only installation
   if (options.mcpOnly) {
     console.log(chalk.blue(`🔧 Installing Stigmergy MCP server only into: ${targetDir}`));
+    // Dynamically import to avoid circular dependencies
+    const { setupMCPServer } = await import("../../scripts/setup-mcp.js");
     const result = await setupMCPServer(targetDir);
     
     if (result.success) {
@@ -90,6 +91,8 @@ export async function install(options = {}) {
   if (options.withMcp !== false) { // Default to true unless explicitly disabled
     console.log(chalk.blue("\n🔗 Setting up MCP server integration..."));
     try {
+      // Dynamically import to avoid circular dependencies
+      const { setupMCPServer } = await import("../../scripts/setup-mcp.js");
       const mcpResult = await setupMCPServer(targetDir);
       if (mcpResult.success) {
         mcpSetupSuccess = true;

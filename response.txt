@@ -1,0 +1,1 @@
+{"error":"Invalid JSON response","toolCall":{"tool":"log","args":{"message":"Error: Invalid JSON response"}}}

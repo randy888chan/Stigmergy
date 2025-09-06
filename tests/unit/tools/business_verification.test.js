@@ -1,15 +1,15 @@
+// Mock dependencies before importing the actual modules
+jest.mock("../../../ai/providers.js");
+jest.mock("ai", () => ({
+  generateObject: jest.fn(),
+}));
+
 import { getModelForTier } from "../../../ai/providers.js";
 import { generateObject } from "ai";
 import {
   generate_financial_projections,
   perform_business_valuation,
 } from "../../../tools/business_verification.js";
-
-// Mock dependencies
-jest.mock("../../../ai/providers.js");
-jest.mock("ai", () => ({
-  generateObject: jest.fn(),
-}));
 
 describe("Business Verification Tools", () => {
   beforeEach(() => {

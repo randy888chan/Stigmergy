@@ -3,8 +3,9 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Use a function to safely initialize __dirname to avoid circular reference issues
+const getDirName = (url) => path.dirname(fileURLToPath(url));
+const __dirname = getDirName(import.meta.url);
 
 /**
  * Load environment configuration with inheritance priority:
@@ -91,7 +92,7 @@ function validateCriticalVars() {
   const issues = [];
   
   // Check if we have at least one AI provider configured
-  const hasGoogle = process.env.GOOGLE_API_KEY;
+  const hasGoogle = process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY !== 'YOUR_GOOGLE_API_KEY_HERE';
   const hasOpenRouter = process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_BASE_URL;
   
   if (!hasGoogle && !hasOpenRouter) {
@@ -99,11 +100,11 @@ function validateCriticalVars() {
   }
   
   // Check if provider configurations match the selected providers
-  const reasoningProvider = process.env.REASONING_PROVIDER;
-  const executionProvider = process.env.EXECUTION_PROVIDER;
+  const reasoningProvider = process.env.REASONING_PROVIDER || 'google';
+  const executionProvider = process.env.EXECUTION_PROVIDER || 'google';
   
   if (reasoningProvider === 'google' && !hasGoogle) {
-    issues.push('REASONING_PROVIDER set to google but GOOGLE_API_KEY missing');
+    issues.push('REASONING_PROVIDER set to google but GOOGLE_API_KEY missing or invalid');
   }
   
   if (reasoningProvider === 'openrouter' && !hasOpenRouter) {
@@ -111,7 +112,7 @@ function validateCriticalVars() {
   }
   
   if (executionProvider === 'google' && !hasGoogle) {
-    issues.push('EXECUTION_PROVIDER set to google but GOOGLE_API_KEY missing');
+    issues.push('EXECUTION_PROVIDER set to google but GOOGLE_API_KEY missing or invalid');
   }
   
   if (executionProvider === 'openrouter' && !hasOpenRouter) {

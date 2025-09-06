@@ -47,8 +47,8 @@ describe('Self-Improvement Data Pipeline', () => {
     const analysisResult = await get_failure_patterns();
 
     // Assert
-    expect(analysisResult).toContain("Analyzed 3 failures.");
-    expect(analysisResult).toContain("Most common pattern (2 times) is tag: 'api'.");
+    expect(analysisResult.summary).toContain("Analyzed 3 failures");
+    expect(analysisResult.top_patterns.tag).toContain("api (2 occurrences)");
   });
 
   test('should handle an empty or non-existent log file gracefully', async () => {

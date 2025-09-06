@@ -1,13 +1,17 @@
-// Mock planning graph for testing purposes
-// This is a placeholder file to resolve test imports
+import { researchGraph } from "./research_graph.js";
 
 export function createPlanningGraph(triggerAgent) {
   return {
     async invoke({ goal }) {
-      console.log(`[Mock Planning Graph] Processing goal: ${goal}`);
+      console.log(`[Planning Graph] Processing goal: ${goal}`);
       
-      // Mock the planning sequence
-      const researchResult = { final_report: `Mock research for: ${goal}` };
+      // Call the research graph first
+      const researchResult = await researchGraph.invoke({ 
+        topic: goal,
+        learnings: []
+      });
+      
+      // Then proceed with the planning sequence
       const architectureResult = await triggerAgent('design-architect', `Research: ${researchResult.final_report}`);
       const uxResult = await triggerAgent('ux-expert', `Architecture: ${architectureResult}`);
       

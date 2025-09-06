@@ -43,7 +43,9 @@ npx @randy888chan/stigmergy install
 # Start Stigmergy
 npm run stigmergy:start
 
-# Configure your IDE (Roo Code) to use: ./mcp-server.js
+# Configure your IDE to use: ./mcp-server.js
+# For Roo Code: Point MCP server to ./mcp-server.js
+# For VS Code: See VSCODE_SETUP.md for detailed instructions
 ```
 
 ### Option 2: MCP Server Only
@@ -61,7 +63,7 @@ npx @randy888chan/stigmergy mcp --project /path/to/project
 npm install -g @randy888chan/stigmergy
 npm run stigmergy:start
 
-# 2. In Roo Code or any IDE, simply chat:
+# 2. In Roo Code, VS Code, or any IDE with MCP support, simply chat:
 "help me get started"
 "setup everything I need"
 "index github repos for patterns"
@@ -223,11 +225,14 @@ npm run mcp:test           # Test MCP server functionality
 ### 🔗 **IDE Integration**
 - **Universal MCP Server**: Works in any project directory without manual configuration
 - **Roo Code**: Native integration with automatic setup via `npx stigmergy install`
+- **VS Code**: Integration through Continue extension with MCP protocol
 - **Auto-detection**: Intelligent project context detection and port management
 - **MCP Protocol**: Model-Context Protocol for seamless IDE communication
 - **Structured Responses**: JSON-formatted status updates and coordination
 - **File Tracking**: Real-time monitoring of modified and created files
 - **Natural Language**: Use simple commands through your IDE for project coordination
+
+See [VSCODE_SETUP.md](VSCODE_SETUP.md) for detailed VS Code integration instructions.
 
 ### 🧠 **Code Intelligence**
 - **Neo4j Knowledge Graph**: Deep codebase understanding
@@ -387,5 +392,6 @@ Stigmergy embodies the principle that great software development should focus on
 <div align="center">
   <strong>Ready to revolutionize your development workflow?</strong><br>
   <code>npx @randy888chan/stigmergy install</code> then <code>npm run stigmergy:start</code><br>
-  Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!
+  Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!<br>
+  Works with Roo Code, VS Code, and any IDE supporting MCP.
 </div>

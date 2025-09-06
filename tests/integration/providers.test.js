@@ -78,6 +78,7 @@ describe('Multi-provider configuration', () => {
     expect(createOpenAI).toHaveBeenCalledWith({
       apiKey: 'openrouter-key-456',
       baseURL: 'https://openrouter.ai/api/v1',
+      compatibility: 'strict',
     });
   });
 
