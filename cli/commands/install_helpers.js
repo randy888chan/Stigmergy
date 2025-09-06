@@ -1,9 +1,12 @@
 import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
 
+// Use a function to safely initialize __dirname to avoid circular reference issues
+const getDirName = (url) => path.dirname(fileURLToPath(url));
+const __dirname = getDirName(import.meta.url);
+
+// Move the createRequire import inside the function where it's used to avoid circular dependencies
 async function findProjectRoot(startDir) {
     let currentDir = startDir;
     while (currentDir !== path.parse(currentDir).root) {
@@ -18,7 +21,11 @@ async function findProjectRoot(startDir) {
 
 export async function configureIde(targetDir) {
   const roomodesPath = path.join(targetDir, ".roomodes");
-  const systemAgentPath = path.join(targetDir, ".stigmergy-core", "agents", "system.md");
+  // Look for .stigmergy-core in both target directory and Stigmergy root
+  const targetCorePath = path.join(targetDir, ".stigmergy-core", "agents", "system.md");
+  const stigmergyRoot = path.resolve(__dirname, '..', '..');
+  const stigmergyCorePath = path.join(stigmergyRoot, ".stigmergy-core", "agents", "system.md");
+  const systemAgentPath = (await fs.pathExists(targetCorePath)) ? targetCorePath : stigmergyCorePath;
   const configPath = path.join(targetDir, "stigmergy.config.js");
 
   try {
@@ -38,7 +45,7 @@ export async function configureIde(targetDir) {
     let agentConfig = {
       slug: "system",
       name: "System Orchestrator",
-      roleDefinition: "I am the System Orchestrator and Chat Assistant. I handle all external communications using structured JSON responses, interpret natural language commands (including setup tasks), and route work to optimal internal agents. I make complex CLI operations accessible through simple chat commands. Use the stigmergy_chat tool to process all user requests through natural language.",
+      roleDefinition: "I am the System Orchestrator and Chat Assistant. I handle all external communications using structured JSON responses, interpret natural language commands (including setup tasks), and route work to optimal internal agents. I make complex CLI operations accessible through simple chat commands.",
       whenToUse: "Use this mode when you need to interact with the Stigmergy system for setup tasks, development commands, system monitoring, or any general assistance with the autonomous development platform.",
       description: "Universal Command Gateway & Chat Interface for the Stigmergy Engine",
       groups: ["read", "edit", "command", "browser", "mcp"],
@@ -52,7 +59,8 @@ export async function configureIde(targetDir) {
         const yamlMatch = agentContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
         
         if (yamlMatch) {
-          const yaml = await import("js-yaml");
+          // Import js-yaml dynamically to avoid circular dependencies
+          const { default: yaml } = await import("js-yaml");
           const agentData = yaml.load(yamlMatch[1]);
           
           if (agentData?.agent) {
@@ -89,7 +97,7 @@ export async function configureIde(targetDir) {
     };
 
     // Import js-yaml for YAML generation
-    const yaml = await import("js-yaml");
+    const { default: yaml } = await import("js-yaml");
     const yamlContent = yaml.dump(roomodesConfig, {
       quotingType: '"',
       forceQuotes: false,
@@ -109,8 +117,14 @@ export async function configureIde(targetDir) {
     console.log("   - 'create authentication system'"); 
     console.log("   - 'health check'");
     console.log("   - 'what can I do?'");
-    console.log("\n🔧 Note: MCP server needs to be configured separately in Roo Code settings.");
-    console.log("📖 See docs/mcp-server-setup.md for MCP configuration instructions.");
+    console.log("\n🔧 To complete Roo Code integration:");
+    console.log("   1. Make sure Stigmergy is running: npm run stigmergy:start");
+    console.log("   2. In Roo Code settings, configure the MCP server:");
+    console.log("      - Command: node");
+    console.log(`      - Arguments: ["${path.join(stigmergyRoot, "mcp-server.js")}"]`);
+    console.log(`      - Working Directory: ${stigmergyRoot}`);
+    console.log("   3. Restart Roo Code to load the new configuration");
+    console.log("\n📖 See ROO_CODE_SETUP.md for detailed MCP configuration instructions.");
 
   } catch (error) {
     console.error("❌ Error configuring IDE:", error);
@@ -127,11 +141,19 @@ export async function configureIde(targetDir) {
       }]
     };
     
-    const yaml = await import("js-yaml");
+    // Import js-yaml for YAML generation
+    const { default: yaml } = await import("js-yaml");
     const yamlContent = yaml.dump(fallbackConfig);
     await fs.writeFile(roomodesPath, yamlContent);
     console.log("✅ .roomodes file created with basic configuration.");
     console.log("⚠️ Using fallback configuration - agent persona may be limited.");
+    console.log("\n🔧 To complete Roo Code integration:");
+    console.log("   1. Make sure Stigmergy is running: npm run stigmergy:start");
+    console.log("   2. In Roo Code settings, configure the MCP server:");
+    console.log("      - Command: node");
+    console.log(`      - Arguments: ["${path.join(stigmergyRoot, "mcp-server.js")}"]`);
+    console.log(`      - Working Directory: ${stigmergyRoot}`);
+    console.log("   3. Restart Roo Code to load the new configuration");
   }
 }
 
@@ -202,4 +224,3 @@ function buildWhenToUseDescription(agent) {
   
   return whenToUse;
 }
-
