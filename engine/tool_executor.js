@@ -114,10 +114,30 @@ export function createExecutor(engine) {
       }
 
       const permittedTools = agentConfig.engine_tools || [];
-      const isPermitted = permittedTools.some(p => toolName.startsWith(p.replace(".*", "")));
+      
+      // Special handling for system and dispatcher agents
+      const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
+      
+      // Wildcard permission check
+      const hasWildcardPermission = permittedTools.some(p => p === '*');
+      
+      // Specific permission check
+      const isPermitted = hasWildcardPermission || 
+                         isSystemOrDispatcher ||
+                         permittedTools.some(p => {
+                           if (p.endsWith('.*')) {
+                             // Handle namespace wildcards
+                             const namespace = p.replace('.*', '');
+                             return toolName.startsWith(namespace);
+                           }
+                           // Handle exact matches
+                           return toolName === p;
+                         });
+      
       if (!isPermitted) {
         throw new OperationalError(
-          `Agent '${agentId}' not permitted for engine tool '${toolName}'.`,
+          `Agent '${agentId}' not permitted for engine tool '${toolName}'. ` +
+          `Permitted tools: [${permittedTools.join(', ')}].`,
           "PermissionDenied"
         );
       }

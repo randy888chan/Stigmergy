@@ -30,6 +30,7 @@ class GraphStateManager extends EventEmitter {
     } else {
         this.connectionStatus = "NOT_CONFIGURED";
         console.warn("GraphStateManager: Neo4j credentials not set. State will not be persisted.");
+        console.info("GraphStateManager: Running in memory-only mode. State changes will not persist between sessions.");
     }
   }
 
@@ -90,7 +91,7 @@ class GraphStateManager extends EventEmitter {
 
   async updateState(event) {
     if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
-        console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type}' will be stored in memory only.`);
+        console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type || 'unknown'}' will be stored in memory only.`);
         
         // Update memory state if in fallback mode
         if (this.memoryState) {
@@ -104,6 +105,7 @@ class GraphStateManager extends EventEmitter {
             fallback_mode: true
           });
           
+          console.debug(`GraphStateManager: Updated memory state for project ${projectName}`, this.memoryState);
           this.emit("stateChanged", this.memoryState);
           return this.memoryState;
         }

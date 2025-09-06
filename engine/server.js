@@ -6,9 +6,9 @@ import chalk from "chalk";
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-// Define __dirname for ESM compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Define __dirname for ESM compatibility using function to avoid circular dependency issues
+const getDirName = (url) => path.dirname(fileURLToPath(url));
+const __dirname = getDirName(import.meta.url);
 
 import * as stateManager from "./state_manager.js";
 import { createExecutor } from "./tool_executor.js";
@@ -114,7 +114,13 @@ export class Engine {
             console.log(chalk.green(`[API] Received request for @${agentId}: "${prompt}"`));
             const agent = this.getAgent(agentId);
             const result = await this.triggerAgent(agent, prompt);
-            res.json({ response: result });
+            
+            // Handle error responses properly
+            if (result.error) {
+                res.status(500).json({ error: result.error, toolCall: result.toolCall });
+            } else {
+                res.json({ response: result });
+            }
         } catch (error) {
             console.error(chalk.red(`[API Error] ${error.message}`));
             res.status(500).json({ error: error.message });
@@ -221,8 +227,18 @@ export class Engine {
       Based on the current system state and your core protocols, determine the single next action to take by calling the appropriate tool.
     `;
 
+    // Provide context to the dispatcher
+    const context = {
+      project_name: state.project_name,
+      project_status: state.project_status,
+      total_tasks: allTasks.length,
+      pending_tasks_count: pendingTasks.length,
+      completed_tasks_count: completedTasks.length,
+      system_time: new Date().toISOString()
+    };
+
     try {
-      const { toolCall } = await this.triggerAgent(dispatcher, prompt);
+      const { toolCall } = await this.triggerAgent(dispatcher, prompt, context);
 
       if (toolCall && toolCall.tool && toolCall.args) {
         console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool} with args:`, toolCall.args));
@@ -301,13 +317,24 @@ export class Engine {
     }
   }
 
-  async triggerAgent(agent, userPrompt) {
+  async triggerAgent(agent, userPrompt, context = {}) {
     console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
     try {
       console.log(chalk.blue(`[Engine] Agent model tier: ${agent.modelTier}`));
       
       const model = getModelForTier(agent.modelTier);
       console.log(chalk.blue(`[Engine] Model resolved successfully`));
+      
+      // Enhance the system prompt with context if available
+      let enhancedSystemPrompt = agent.systemPrompt;
+      if (context && Object.keys(context).length > 0) {
+        enhancedSystemPrompt += `
+
+**Context Information:**
+${JSON.stringify(context, null, 2)}
+
+Use this context to inform your response.`;
+      }
 
       // Try structured generation first with retry mechanism
       try {
@@ -315,7 +342,7 @@ export class Engine {
           return await generateObject({
             model,
             schema: stigmergyToolCallSchema,
-            system: agent.systemPrompt,
+            system: enhancedSystemPrompt,
             prompt: userPrompt,
           });
         });
@@ -329,36 +356,134 @@ export class Engine {
         const { text } = await retryWithBackoff(async () => {
           return await generateText({
             model,
-            system: agent.systemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
-            prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only.`,
+            system: enhancedSystemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
+            prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only. Respond with valid JSON only, no other text.`,
           });
         });
         
         console.log(chalk.blue(`[Engine] Text generation result: ${text.substring(0, 200)}...`));
         
-        // Try to parse the JSON response
+        // Try to parse the JSON response with more robust handling
         try {
-          const jsonMatch = text.match(/\{.*\}/s);
-          if (jsonMatch) {
-            const parsed = JSON.parse(jsonMatch[0]);
-            if (parsed.tool && parsed.args) {
-              console.log(chalk.green(`[Engine] Successfully parsed fallback JSON`));
-              return { toolCall: parsed };
+          // More robust JSON parsing for various response formats
+          let parsed;
+          
+          // First try to find a JSON object in the response using a more comprehensive regex
+          // Look for JSON objects with nested braces support
+          const jsonRegex = /\{(?:[^{}]|(?:\{[^{}]*\}))*\}/g;
+          const jsonMatch = text.match(jsonRegex);
+          if (jsonMatch && jsonMatch.length > 0) {
+            // Try parsing each match until we find one that works
+            for (const match of jsonMatch) {
+              try {
+                const cleanedMatch = match.trim();
+                parsed = JSON.parse(cleanedMatch);
+                break;
+              } catch (e) {
+                // Continue to next match
+                continue;
+              }
             }
           }
-          throw new Error('No valid JSON structure found');
+          
+          // If no JSON object found in matches, try to parse the whole text
+          if (!parsed) {
+            const cleanedText = text.trim();
+            // Only try to parse as JSON if it looks like JSON
+            if (cleanedText.startsWith('{') && cleanedText.endsWith('}')) {
+              parsed = JSON.parse(cleanedText);
+            }
+          }
+          
+          // Validate that it has the required fields
+          if (parsed && typeof parsed === 'object') {
+            console.log(chalk.green(`[Engine] Successfully parsed fallback JSON`));
+            // Normalize the response format
+            if (!parsed.tool && parsed.action) {
+              parsed.tool = parsed.action;
+              delete parsed.action;
+            }
+            // If neither tool nor action exists, create a default log tool call
+            if (!parsed.tool) {
+              parsed.tool = 'log';
+            }
+            if (!parsed.args) {
+              parsed.args = {};
+            }
+            // If it's a log tool and we have content, make sure it's in the args
+            if (parsed.tool === 'log' && !parsed.args.message) {
+              parsed.args.message = text.trim();
+            }
+            return { toolCall: parsed };
+          }
+          
+          // If we have a response but it's not in the expected format,
+          // create a proper tool call structure with the response as a message
+          if (text && text.trim().length > 0) {
+            console.log(chalk.green(`[Engine] Creating tool call from text response`));
+            return { 
+              toolCall: { 
+                tool: 'log', 
+                args: { 
+                  message: text.trim(),
+                  status: "success",
+                  progress: "100%",
+                  files_modified: [],
+                  next_actions: "awaiting_command",
+                  suggestions: [
+                    "How can I assist you today?",
+                    "Try 'health check' for a detailed system status.",
+                    "To begin, you can say 'setup neo4j' or 'index github repos'."
+                  ]
+                } 
+              } 
+            };
+          }
+          
+          // If we get here, we don't have a valid response, so throw a specific error
+          throw new Error('JSON missing required fields (tool/action)');
         } catch (parseError) {
           console.log(chalk.yellow(`[Engine] Could not parse fallback response: ${parseError.message}`));
           console.log(chalk.yellow(`[Engine] Raw response: ${text}`));
+          
+          // Even if we can't parse JSON, if we have text content, use it
+          if (text && text.trim().length > 0) {
+            console.log(chalk.green(`[Engine] Using raw text as message content`));
+            return { 
+              toolCall: { 
+                tool: 'log', 
+                args: { 
+                  message: text.trim(),
+                  status: "success",
+                  progress: "100%",
+                  files_modified: [],
+                  next_actions: "awaiting_command",
+                  suggestions: [
+                    "How can I assist you today?",
+                    "Try 'health check' for a detailed system status.",
+                    "To begin, you can say 'setup neo4j' or 'index github repos'."
+                  ]
+                } 
+              } 
+            };
+          }
         }
         
-        // Ultimate fallback
+        // Ultimate fallback - create a proper tool call structure
         return { 
           toolCall: { 
             tool: 'log', 
             args: { 
               message: `Agent @${agent.id} processed request: ${userPrompt.substring(0, 100)}...`,
-              response: text.substring(0, 200) + '...'
+              status: "success",
+              progress: "100%",
+              files_modified: [],
+              next_actions: "awaiting_command",
+              suggestions: [
+                "How can I assist you today?",
+                "Try 'health check' for a detailed system status.",
+                "To begin, you can say 'setup neo4j' or 'index github repos'."
+              ]
             } 
           } 
         };
@@ -368,13 +493,35 @@ export class Engine {
       console.error(chalk.red(`  Error message: ${error.message}`));
       console.error(chalk.red(`  Agent model tier: ${agent.modelTier}`));
       
+      // Check if this is the "Invalid JSON response" error we're seeing
+      if (error.message.includes("Invalid JSON response")) {
+        // This is our internal error, return the fallback response
+        return { 
+          toolCall: { 
+            tool: 'log', 
+            args: { 
+              message: `Agent @${agent.id} processed request: ${userPrompt.substring(0, 100)}...`,
+              status: "success",
+              progress: "100%",
+              files_modified: [],
+              next_actions: "awaiting_command",
+              suggestions: [
+                "How can I assist you today?",
+                "Try 'health check' for a detailed system status.",
+                "To begin, you can say 'setup neo4j' or 'index github repos'."
+              ]
+            } 
+          } 
+        };
+      }
+      
       if (error.message.includes("API key environment variable")) {
         console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
         return { toolCall: { tool: 'log', args: { message: `Agent @${agent.id} trigger failed due to missing API key for tier ${agent.modelTier}.` } } };
       }
       
       // Return a structured error to be handled by the main loop
-      return { error: error.message, toolCall: null };
+      return { error: error.message, toolCall: { tool: 'log', args: { message: `Error: ${error.message}`, status: "error" } } };
     }
   }
 

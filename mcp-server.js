@@ -140,12 +140,24 @@ process.stdin.on('data', async (data) => {
 
     switch (message.method) {
       case 'initialize':
+        const tools = await server.listTools();
         response = {
           jsonrpc: "2.0",
           id: message.id,
           result: {
             protocolVersion: "2024-11-05",
-            capabilities: { tools: {} },
+            capabilities: { 
+              tools: {
+                listChanged: true,
+                synchronization: {
+                  items: tools.map(tool => ({
+                    name: tool.name,
+                    description: tool.description
+                  }))
+                }
+              },
+              prompts: {}
+            },
             serverInfo: { 
               name: server.name, 
               version: server.version,
