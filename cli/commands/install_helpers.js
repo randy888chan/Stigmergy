@@ -205,22 +205,80 @@ function buildComprehensiveRoleDefinition(agent) {
 
 // Helper function to build whenToUse description
 function buildWhenToUseDescription(agent) {
-  let whenToUse = "Use this mode when you need to interact with the Stigmergy system. ";
+  let whenToUse = "Use this mode when you need to interact with the Stigmergy system through natural language commands. ";
   
+  // Add specific capabilities
   if (agent.capabilities && agent.capabilities.length > 0) {
-    whenToUse += "This mode handles: ";
-    const keyCapabilities = agent.capabilities.slice(0, 5).join(', ');
-    whenToUse += keyCapabilities;
-    if (agent.capabilities.length > 5) {
-      whenToUse += `, and ${agent.capabilities.length - 5} more capabilities`;
+    whenToUse += "This mode provides: ";
+    
+    // Group capabilities by category for better clarity
+    const setupCapabilities = agent.capabilities.filter(cap => 
+      cap.includes('setup') || cap.includes('configuration') || cap.includes('environment')
+    );
+    
+    const developmentCapabilities = agent.capabilities.filter(cap => 
+      cap.includes('development') || cap.includes('workflow') || cap.includes('task')
+    );
+    
+    const integrationCapabilities = agent.capabilities.filter(cap => 
+      cap.includes('integration') || cap.includes('interface') || cap.includes('communication')
+    );
+    
+    const monitoringCapabilities = agent.capabilities.filter(cap => 
+      cap.includes('monitoring') || cap.includes('system') || cap.includes('health')
+    );
+    
+    // Add categorized descriptions
+    if (setupCapabilities.length > 0) {
+      whenToUse += "Automated setup and configuration assistance (Neo4j database setup, environment variable configuration, dependency installation), ";
     }
-    whenToUse += ". ";
+    
+    if (developmentCapabilities.length > 0) {
+      whenToUse += "Development workflow orchestration (code generation, implementation planning, task routing), ";
+    }
+    
+    if (integrationCapabilities.length > 0) {
+      whenToUse += "IDE integration and communication (structured JSON responses for Roo Code, VS Code, and other IDEs), ";
+    }
+    
+    if (monitoringCapabilities.length > 0) {
+      whenToUse += "System monitoring and health checks (status tracking, progress reporting, error handling), ";
+    }
+    
+    // Add remaining capabilities
+    const otherCapabilities = agent.capabilities.filter(cap => 
+      !setupCapabilities.includes(cap) && 
+      !developmentCapabilities.includes(cap) && 
+      !integrationCapabilities.includes(cap) && 
+      !monitoringCapabilities.includes(cap)
+    );
+    
+    if (otherCapabilities.length > 0) {
+      whenToUse += `${otherCapabilities.length} additional capabilities including `;
+      whenToUse += otherCapabilities.slice(0, 3).join(', ');
+      if (otherCapabilities.length > 3) {
+        whenToUse += `, and ${otherCapabilities.length - 3} more`;
+      }
+      whenToUse += ". ";
+    }
   }
   
   // Add specific use cases based on protocols
   if (agent.core_protocols && agent.core_protocols.length > 0) {
-    whenToUse += "Perfect for setup tasks, development commands, system monitoring, and autonomous development workflows.";
+    const chatProtocol = agent.core_protocols.find(p => p.includes('CHAT_COMMAND_PROCESSING'));
+    const setupProtocol = agent.core_protocols.find(p => p.includes('SETUP_ASSISTANCE'));
+    
+    if (chatProtocol) {
+      whenToUse += "Send natural language commands like 'setup neo4j', 'create authentication system', 'health check', or 'what can you do?'. ";
+    }
+    
+    if (setupProtocol) {
+      whenToUse += "Get guided assistance through complex setup processes including database configuration, environment setup, and dependency installation. ";
+    }
   }
   
-  return whenToUse;
+  // Add general use cases
+  whenToUse += "Perfect for developers who want to interact with Stigmergy through conversational commands rather than complex CLI operations.";
+  
+  return whenToUse.trim();
 }

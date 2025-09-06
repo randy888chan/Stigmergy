@@ -256,10 +256,10 @@ export class Engine {
 
   async start() {
     // Standardized port management with intelligent defaults
-    let PORT = process.env.PORT || 3010;
+    let PORT = process.env.PORT || process.env.STIGMERGY_PORT || 3010;
     
     // If port 3010 is not available (e.g., already running from Stigmergy repo), use 3011
-    if (process.cwd() !== path.resolve(__dirname, '..') && !process.env.PORT) {
+    if (process.cwd() !== path.resolve(__dirname, '..') && !process.env.PORT && !process.env.STIGMERGY_PORT) {
       PORT = 3011;
       console.log(chalk.blue(`[Engine] Using port ${PORT} for project directory instance`));
     }
@@ -278,9 +278,22 @@ export class Engine {
   }
 
   getAgent(agentId) {
-    const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    // First try to find agent in current working directory (for project-specific agents)
+    let agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    
+    // If not found in current directory, try Stigmergy root directory (fallback for universal compatibility)
     if (!fs.existsSync(agentPath)) {
-      throw new Error(`Agent definition file not found for: ${agentId}`);
+      // Determine Stigmergy root directory
+      const stigmergyRoot = path.resolve(__dirname, '..');
+      const stigmergyAgentPath = path.join(stigmergyRoot, '.stigmergy-core', 'agents', `${agentId}.md`);
+      
+      // If agent exists in Stigmergy root, use that path
+      if (fs.existsSync(stigmergyAgentPath)) {
+        agentPath = stigmergyAgentPath;
+      } else {
+        // If agent doesn't exist in either location, throw error with both paths for debugging
+        throw new Error(`Agent definition file not found for: ${agentId}. Searched in: ${process.cwd()}/.stigmergy-core/agents/ and ${stigmergyRoot}/.stigmergy-core/agents/`);
+      }
     }
 
     const content = fs.readFileSync(agentPath, 'utf8');
