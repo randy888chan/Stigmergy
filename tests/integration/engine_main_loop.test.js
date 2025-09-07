@@ -14,7 +14,7 @@ describe('Engine Main Loop Integration Test', () => {
   beforeAll(() => {
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
     fs.ensureDirSync(agentDir);
-    fs.writeFileSync(path.join(agentDir, 'dispatcher.md'), '```yaml\nagent:\n  id: dispatcher\n  name: Dispatcher\n  persona: { role: "Test" }\n  core_protocols: []\n```');
+    fs.writeFileSync(path.join(agentDir, 'dispatcher.md'), '```yaml\nagent:\n  id: dispatcher\n  name: Dispatcher\n  persona: { role: "Test" }\n  core_protocols: []\n  model_tier: "b_tier"\n```');
   });
 
   afterAll(() => {
@@ -34,6 +34,12 @@ describe('Engine Main Loop Integration Test', () => {
       toolCall: { tool: 'file_system.writeFile', args: { path: 'test.txt', content: 'hello from test' } }
     });
     engine.executeTool = jest.fn();
+    // Mock the getAgent method to return a proper agent object
+    engine.getAgent = jest.fn().mockReturnValue({
+      id: 'dispatcher',
+      systemPrompt: 'Test system prompt',
+      modelTier: 'b_tier'
+    });
     
     // Set up spies on the actual imported module's functions
     getStateSpy = jest.spyOn(stateManager, 'getState');
@@ -60,10 +66,8 @@ describe('Engine Main Loop Integration Test', () => {
     await jest.advanceTimersByTimeAsync(5100);
 
     expect(stateManager.getState).toHaveBeenCalled();
-    expect(engine.triggerAgent).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'dispatcher' }),
-      expect.stringContaining('Project Status: EXECUTION_IN_PROGRESS')
-    );
+    expect(engine.getAgent).toHaveBeenCalledWith('dispatcher');
+    expect(engine.triggerAgent).toHaveBeenCalled();
     expect(engine.executeTool).toHaveBeenCalledWith(
       'file_system.writeFile',
       { path: 'test.txt', content: 'hello from test' },

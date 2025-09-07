@@ -365,12 +365,12 @@ Use this context to inform your response.`;
         console.log(chalk.yellow(`[Engine] Structured generation failed for ${agent.modelTier}, falling back to text generation`));
         console.log(chalk.blue(`[Engine] Structured error: ${structuredError.message}`));
         
-        // Fallback to text generation with prompt engineering and retry mechanism
+        // Fallback to text generation with strict prompt engineering and retry mechanism
         const { text } = await retryWithBackoff(async () => {
           return await generateText({
             model,
-            system: enhancedSystemPrompt + `\n\nIMPORTANT: You must respond with a valid JSON object containing 'tool' and 'args' fields. Example: {"tool": "log", "args": {"message": "Hello"}}`,
-            prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only. Respond with valid JSON only, no other text.`,
+            system: enhancedSystemPrompt + `\n\nIMPORTANT: You MUST respond with only a valid, minified JSON object that conforms to the required schema and nothing else. Do not include any conversational text, explanations, or markdown formatting. Example: {"tool":"log","args":{"message":"Hello"}}`,
+            prompt: userPrompt + `\n\nResponse format: JSON object with 'tool' and 'args' fields only. Respond with valid JSON only, no other text. You MUST respond with only a valid, minified JSON object that conforms to the required schema and nothing else.`,
           });
         });
         

@@ -220,6 +220,95 @@ export async function analyze_test_coverage({ sourceFile, testFile }) {
 }
 
 /**
+ * Run dependency vulnerability scan using npm audit
+ */
+export async function run_dependency_audit({ auditLevel = 'high' }) {
+  console.log('[QA] Running dependency vulnerability scan...');
+  
+  try {
+    const auditCommand = `npm audit --audit-level=${auditLevel} --json`;
+    
+    const result = await execPromise(auditCommand, {
+      cwd: process.cwd(),
+      timeout: 60000 // 60 second timeout
+    });
+    
+    // If we get here, the audit passed (no vulnerabilities found at specified level)
+    return {
+      success: true,
+      vulnerabilities: 0,
+      critical: 0,
+      high: 0,
+      moderate: 0,
+      low: 0,
+      message: `No vulnerabilities found at ${auditLevel} level or above`
+    };
+  } catch (error) {
+    // npm audit returns non-zero exit code when vulnerabilities are found
+    if (error.stdout) {
+      try {
+        const auditReport = JSON.parse(error.stdout);
+        
+        // Count vulnerabilities by severity
+        let critical = 0, high = 0, moderate = 0, low = 0;
+        
+        if (auditReport.metadata && auditReport.metadata.vulnerabilities) {
+          const vulns = auditReport.metadata.vulnerabilities;
+          critical = vulns.critical || 0;
+          high = vulns.high || 0;
+          moderate = vulns.moderate || 0;
+          low = vulns.low || 0;
+        }
+        
+        const totalVulns = critical + high + moderate + low;
+        
+        // Determine if this should be considered a failure based on audit level
+        let isFailure = false;
+        let failureMessage = '';
+        
+        if (auditLevel === 'critical' && critical > 0) {
+          isFailure = true;
+          failureMessage = `${critical} critical vulnerabilities found`;
+        } else if (auditLevel === 'high' && (critical > 0 || high > 0)) {
+          isFailure = true;
+          failureMessage = `${critical} critical and ${high} high vulnerabilities found`;
+        } else if (auditLevel === 'moderate' && (critical > 0 || high > 0 || moderate > 0)) {
+          isFailure = true;
+          failureMessage = `${critical} critical, ${high} high, and ${moderate} moderate vulnerabilities found`;
+        }
+        
+        return {
+          success: !isFailure,
+          vulnerabilities: totalVulns,
+          critical,
+          high,
+          moderate,
+          low,
+          message: isFailure ? 
+            `VULNERABILITY SCAN FAILED: ${failureMessage}` : 
+            `Found ${totalVulns} vulnerabilities (${critical} critical, ${high} high, ${moderate} moderate, ${low} low) - below ${auditLevel} threshold`,
+          details: auditReport
+        };
+      } catch (parseError) {
+        // If we can't parse the JSON, return the raw error
+        return {
+          success: false,
+          error: `Failed to parse npm audit output: ${parseError.message}`,
+          raw_output: error.stdout
+        };
+      }
+    }
+    
+    // Some other error occurred
+    return {
+      success: false,
+      error: error.message,
+      vulnerabilities: 0
+    };
+  }
+}
+
+/**
  * Comprehensive quality verification - main entry point for QA agent
  */
 export async function verify_comprehensive_quality({ sourceFile, testFile, briefFile, requirements = '' }) {
@@ -231,6 +320,7 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
     static_analysis: null,
     brief_compliance: null,
     coverage_analysis: null,
+    dependency_audit: null,
     recommendations: []
   };
   
@@ -246,17 +336,22 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
       results.coverage_analysis = await analyze_test_coverage({ sourceFile, testFile });
     }
     
+    // 4. Dependency Vulnerability Scan
+    results.dependency_audit = await run_dependency_audit({ auditLevel: 'high' });
+    
     // Determine overall pass/fail
     const tddPass = results.tdd_compliance?.success !== false;
     const staticPass = results.static_analysis?.errorCount === 0;
     const coveragePass = !testFile || (results.coverage_analysis?.percentage || 0) >= 80;
+    const auditPass = results.dependency_audit?.success !== false;
     
-    results.overall_pass = tddPass && staticPass && coveragePass;
+    results.overall_pass = tddPass && staticPass && coveragePass && auditPass;
     
     // Generate recommendations
     if (!tddPass) results.recommendations.push('Fix TDD workflow violations');
     if (!staticPass) results.recommendations.push('Fix static analysis errors');
     if (!coveragePass) results.recommendations.push('Increase test coverage to 80% minimum');
+    if (!auditPass) results.recommendations.push('Fix dependency vulnerabilities');
     
     return results;
   } catch (error) {

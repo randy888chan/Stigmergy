@@ -19,6 +19,7 @@ export class SystemValidator {
       core: await this.validateCoreIntegrity(),
       neo4j: await Neo4jValidator.validate(),
       backups: await this.validateBackups(),
+      governance: await this.validateGovernance(),
     };
     const hasFailures = Object.values(this.results).some((r) => !r.success);
     if (hasFailures) {
@@ -37,6 +38,20 @@ export class SystemValidator {
     return { success: true, message: "Core integrity verified" };
   }
 
+  async validateGovernance() {
+    const governancePath = path.join(process.cwd(), ".stigmergy-core", "governance");
+    if (!fs.existsSync(governancePath)) {
+      return { success: false, error: ".stigmergy-core/governance directory not found." };
+    }
+    
+    const constitutionPath = path.join(governancePath, "constitution.md");
+    if (!fs.existsSync(constitutionPath)) {
+      return { success: false, error: "Constitution file not found in governance directory." };
+    }
+    
+    return { success: true, message: "Governance structure verified" };
+  }
+
   async validateBackups() {
     try {
       const backupDir = path.join(os.homedir(), ".stigmergy-backups");
@@ -51,7 +66,7 @@ export class SystemValidator {
       const verification = await coreBackup.verifyBackup(latestBackup);
       return verification;
     } catch (error) {
-      return { success: false, error: `Backup validation failed: ${error.message}` };
+      return { success: false, error: "Backup validation failed: " + error.message };
     }
   }
 }

@@ -43,6 +43,12 @@ agent:
       2. **Quality Benchmarks:** Compare implementation quality against reference examples.
       3. **Documentation Alignment:** Ensure code matches the reference documentation and examples.
       4. **API Consistency:** Verify that APIs follow established patterns and conventions."
+    - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all quality assurance activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md):
+      1. **Test-First Imperative Verification:** I verify that all code submissions follow the strict Test-First Imperative.
+      2. **Simplicity and Anti-Abstraction Compliance:** I check that implementations avoid over-engineering and unnecessary layers.
+      3. **AI-Verifiable Outcomes Validation:** I ensure all outcomes are programmatically verifiable with proper logging and error handling.
+      4. **Security Requirements Enforcement:** I verify that all dependencies pass security audits and API keys are properly managed.
+      5. **Agent Communication Protocol Compliance:** I ensure all agent communications use validated schemas and robust error handling."
   engine_tools:
     - "file_system.*"
     - "qa.*"

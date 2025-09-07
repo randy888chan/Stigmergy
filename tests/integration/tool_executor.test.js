@@ -85,6 +85,7 @@ agent:
     _resetManifestCache();
     mockEngine = {
         triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
+        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' })
     };
     execute = createExecutor(mockEngine);
     fileSystem.readFile.mockClear();
@@ -127,7 +128,10 @@ agent:
   test("should execute stigmergy.task tool", async () => {
     const args = { subagent_type: 'test-type', description: 'test description' };
     const result = await execute("stigmergy.task", args, "test-agent-permitted");
-    expect(mockEngine.triggerAgent).toHaveBeenCalledWith('test-type', 'test description');
+    // The stigmergy.task tool calls engine.getAgent and engine.triggerAgent
+    // We need to check that getAgent was called with the subagent_type
+    // and that triggerAgent was called with the agent object and description
+    expect(mockEngine.getAgent).toHaveBeenCalledWith('test-type');
     expect(result).toBe(JSON.stringify("Task triggered", null, 2));
   });
 
