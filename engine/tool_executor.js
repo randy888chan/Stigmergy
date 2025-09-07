@@ -61,7 +61,11 @@ async function getManifest() {
   if (agentManifest) return agentManifest;
   const manifestPath = path.join(getCorePath(), "system_docs", "02_Agent_Manifest.md");
   const fileContent = await fs.readFile(manifestPath, "utf8");
-  const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+  // Updated regex to match the pattern used in server.js for consistency
+  const yamlMatch = fileContent.match(/```yaml\s*([\s\S]*?)```/);
+  if (!yamlMatch) {
+    throw new Error(`Could not find YAML block in manifest file: ${manifestPath}`);
+  }
   agentManifest = yaml.load(yamlMatch[1]);
   return agentManifest;
 }
@@ -106,7 +110,11 @@ export function createExecutor(engine) {
     try {
       const agentDefPath = path.join(getCorePath(), "agents", `${agentId}.md`);
       const agentFileContent = await fs.readFile(agentDefPath, "utf8");
-      const yamlMatch = agentFileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\s*```/);
+      // Updated regex to match the pattern used in server.js for consistency
+      const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
+      if (!yamlMatch) {
+        throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
+      }
       const agentConfig = yaml.load(yamlMatch[1]).agent;
 
       const [namespace, funcName] = toolName.split(".");
