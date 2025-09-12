@@ -19,7 +19,7 @@ export function t(key, lang = "en") {
 }
 
 // Integration point
-export function localizeError(error, lang) {
+export function localizeError(error, lang = "en") {
   return {
     ...error,
     message: t(error.message_key, lang),
