@@ -42,10 +42,10 @@ async function retryWithBackoff(fn, retries = 3, delay = 1000, backoffFactor = 2
       lastError = error;
       
       // If it's a rate limit error, we should retry
-      const isRateLimitError = error.message.includes('rate limit') || 
-                              error.message.includes('429') || 
-                              error.message.includes('quota') ||
-                              error.message.includes('exceeded');
+      const isRateLimitError = error.message.toLowerCase().includes('rate limit') ||
+                              error.message.includes('429') ||
+                              error.message.toLowerCase().includes('quota') ||
+                              error.message.toLowerCase().includes('exceeded');
       
       // If it's not a rate limit error or we've exhausted retries, throw the error
       if (!isRateLimitError || attempt === retries) {
