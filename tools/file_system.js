@@ -21,17 +21,23 @@ export function resolvePath(filePath) {
     throw new Error("Invalid file path provided");
   }
 
+  // Enhanced path traversal check
+  if (filePath.split(path.sep).includes("..")) {
+    throw new Error(`Security violation: Path traversal attempt (${filePath})`);
+  }
+
   const resolved = path.resolve(process.cwd(), filePath);
   const relative = path.relative(process.cwd(), resolved);
 
-  // Block path traversal
+  // Block path traversal after resolution (double check)
   if (relative.startsWith("..") || path.isAbsolute(relative)) {
     throw new Error(`Security violation: Path traversal attempt (${filePath})`);
   }
 
-  // Verify first directory is safe
-  const rootDir = relative.split(path.sep)[0] || relative;
-  if (!SAFE_DIRECTORIES.includes(rootDir)) {
+  // Verify the final resolved path is within a safe directory
+  const isSafe = SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
+  if (!isSafe) {
+    const rootDir = relative.split(path.sep)[0] || relative;
     throw new Error(`Access restricted to ${rootDir} directory`);
   }
 

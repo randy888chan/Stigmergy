@@ -41,6 +41,11 @@ describe('resolvePath', () => {
     expect(() => resolvePath(unsafePath)).toThrow('Access restricted to node_modules directory');
   });
 
+  it('should throw an error for a path traversal attempt that uses a safe directory', () => {
+    const unsafePath = 'src/../node_modules/some-package/index.js';
+    expect(() => resolvePath(unsafePath)).toThrow('Security violation: Path traversal attempt');
+  });
+
   it('should throw an error if the file path is invalid', () => {
     expect(() => resolvePath(null)).toThrow('Invalid file path provided');
     expect(() => resolvePath(undefined)).toThrow('Invalid file path provided');
