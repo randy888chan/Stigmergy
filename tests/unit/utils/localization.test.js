@@ -56,5 +56,23 @@ describe('Localization', () => {
           remediation: 'Verifica tus credenciales',
         });
       });
+
+      it('should use English by default if no language is specified in localizeError', () => {
+        const error = {
+          code: 'E001',
+          message_key: 'no_neo4j',
+          remediation_key: 'check_credentials',
+        };
+
+        const localizedError = localizeError(error);
+
+        expect(localizedError).toEqual({
+          code: 'E001',
+          message_key: 'no_neo4j',
+          remediation_key: 'check_credentials',
+          message: 'Neo4j database not running',
+          remediation: 'Check your credentials',
+        });
+      });
   });
 });
