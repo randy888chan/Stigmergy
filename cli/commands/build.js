@@ -29,10 +29,10 @@ export default async function build() {
     await fs.ensureDir(distPath);
 
     const teamsDir = path.join(corePath, "agent-teams");
-    const teamFiles = await glob(path.join(teamsDir, "*.yml"));
+    const teamFiles = await glob(path.join(teamsDir, "*.{yml,yaml}"));
 
     for (const teamFile of teamFiles) {
-      const teamName = path.basename(teamFile, ".yml");
+      const teamName = path.basename(teamFile).replace(/\.ya?ml$/, "");
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
       if (!teamData || !teamData.bundle) {
