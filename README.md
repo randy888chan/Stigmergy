@@ -21,7 +21,7 @@ Stigmergy transforms high-level product goals into production-ready code through
 - **Chat Commands**: Replace complex CLI operations with simple chat - "setup neo4j", "index github repos", "create auth system"
 - **Intelligent Setup**: Automated configuration of databases, APIs, and development environment
 - **Contextual Suggestions**: Smart command recommendations based on your project state
-- **IDE Integration**: Seamless integration with Roo Code and other IDEs
+- **IDE Integration**: Seamless integration with VS Code, Roo Code, and other IDEs supporting MCP
 
 ### 🤖 **Autonomous Agent Swarm**
 - **@reference-architect**: Analyzes documents and creates implementation briefs
@@ -63,7 +63,7 @@ npx @randy888chan/stigmergy mcp --project /path/to/project
 npm install -g @randy888chan/stigmergy
 npm run stigmergy:start
 
-# 2. In Roo Code, VS Code, or any IDE with MCP support, simply chat:
+# 2. In VS Code, Roo Code, or any IDE with MCP support, simply chat:
 "help me get started"
 "setup everything I need"
 "index github repos for patterns"
@@ -224,8 +224,8 @@ npm run mcp:test           # Test MCP server functionality
 
 ### 🔗 **IDE Integration**
 - **Universal MCP Server**: Works in any project directory without manual configuration
+- **VS Code**: Native integration through Continue extension with MCP protocol
 - **Roo Code**: Native integration with automatic setup via `npx stigmergy install`
-- **VS Code**: Integration through Continue extension with MCP protocol
 - **Auto-detection**: Intelligent project context detection and port management
 - **MCP Protocol**: Model-Context Protocol for seamless IDE communication
 - **Structured Responses**: JSON-formatted status updates and coordination
@@ -345,7 +345,7 @@ npm run setup:complete            # Complete setup verification
 - **[Tool Integration](docs/tools.md)** - Adding new tools
 - **[Reference Patterns](docs/patterns.md)** - Pattern indexing and discovery
 - **[Quality Assurance](docs/qa.md)** - TDD and quality standards
-- **[IDE Integration](docs/ide.md)** - Roo Code and MCP setup
+- **[IDE Integration](docs/ide.md)** - VS Code, Roo Code and MCP setup
 
 ## 🤝 Contributing
 
@@ -393,5 +393,5 @@ Stigmergy embodies the principle that great software development should focus on
   <strong>Ready to revolutionize your development workflow?</strong><br>
   <code>npx @randy888chan/stigmergy install</code> then <code>npm run stigmergy:start</code><br>
   Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!<br>
-  Works with Roo Code, VS Code, and any IDE supporting MCP.
+  Works with VS Code, Roo Code, and any IDE supporting MCP.
 </div>

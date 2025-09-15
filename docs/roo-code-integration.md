@@ -2,7 +2,7 @@
 
 ## 🚀 Quick Setup for Roo Code Integration
 
-This guide helps you integrate Stigmergy with Roo Code for seamless AI-powered development.
+This guide helps you integrate Stigmergy with Roo Code for seamless AI-powered development. Note that Stigmergy also supports VS Code and other IDEs through the same universal MCP integration.
 
 ### Step 1: Install Roo Code Extension
 1. Open VS Code
@@ -145,6 +145,15 @@ OPENROUTER_API_KEY=your_key_here
 3. **Check Status Often**: Use "what can I do?" to see available options
 4. **Build Reference Library**: Run "index github repos" for better code patterns
 5. **Monitor Progress**: All commands provide real-time progress updates
+
+## 🔄 Multi-IDE Support
+
+Stigmergy now supports multiple IDEs through universal MCP integration:
+- **Roo Code**: Native integration with automatic setup
+- **VS Code**: Integration through Continue extension - see [VSCODE_SETUP.md](../VSCODE_SETUP.md)
+- **Other IDEs**: Any IDE supporting MCP protocol
+
+The same installation and setup process works for all IDEs.
 
 ## 🆘 Getting Help
 

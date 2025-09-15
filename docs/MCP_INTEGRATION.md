@@ -1,6 +1,6 @@
 # 🤖 Stigmergy Universal MCP Integration
 
-This guide explains how to set up Stigmergy integration for **any project** without requiring manual configuration edits.
+This guide explains how to set up Stigmergy integration for **any project** without requiring manual configuration edits. Works with VS Code, Roo Code, and any IDE that supports the Model-Context Protocol.
 
 ## 🚀 Quick Setup
 
@@ -21,7 +21,9 @@ This guide explains how to set up Stigmergy integration for **any project** with
    npm run stigmergy:start
    ```
 
-3. **Configure Roo Code** MCP server to point to: `./mcp-server.js`
+3. **Configure your IDE** MCP server to point to: `./mcp-server.js`
+   - For Roo Code: Point MCP server to `./mcp-server.js`
+   - For VS Code: See [VSCODE_SETUP.md](../VSCODE_SETUP.md) for detailed instructions
 
 That's it! 🎉
 
@@ -93,10 +95,11 @@ The setup automatically creates:
 - **Smart routing**: Uses port 3011 for projects, 3010 for main Stigmergy
 - **Environment inheritance**: Inherits from global Stigmergy config with project overrides
 - **Zero config**: Works out-of-box without manual edits
+- **Multi-IDE Support**: Works with VS Code, Roo Code, and any MCP-compatible IDE
 
 ### Architecture
 ```
-Roo Code IDE
+IDE (VS Code, Roo Code, etc.)
     ↓ (MCP Protocol)
 Project MCP Server (./mcp-server.js)
     ↓ (HTTP API)
@@ -136,7 +139,7 @@ npm run validate:comprehensive
 
 ## 🎯 Usage Examples
 
-Once set up, use these commands in Roo Code through MCP:
+Once set up, use these commands in your IDE through MCP:
 
 - **"Analyze project structure"** - Get comprehensive project analysis
 - **"Enrich documentation"** - Improve project documentation
@@ -148,9 +151,10 @@ Once set up, use these commands in Roo Code through MCP:
 - ✅ **Universal**: Works in any project without manual config
 - ✅ **Zero maintenance**: Auto-updating, self-configuring
 - ✅ **Smart coordination**: Intelligent agent delegation
-- ✅ **IDE integration**: Seamless Roo Code workflow
+- ✅ **IDE integration**: Seamless integration with VS Code, Roo Code, and other IDEs
 - ✅ **Environment inheritance**: Global + project-specific settings
 - ✅ **Robust error handling**: Graceful fallbacks and debugging info
+- ✅ **Multi-IDE support**: Works with any IDE supporting MCP protocol
 
 ---
 
