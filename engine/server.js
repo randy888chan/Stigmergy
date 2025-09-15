@@ -10,7 +10,8 @@ import path from 'path';
 const getDirName = (url) => path.dirname(fileURLToPath(url));
 const __dirname = getDirName(import.meta.url);
 
-import * as stateManager from "./state_manager.js";
+import * as stateManagerModule from "./state_manager.js";
+import stateManager from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
 import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
@@ -85,6 +86,7 @@ export class Engine {
     
     this.isPowerMode = isPowerMode;
     this.stateManager = stateManager;
+    this.stateManagerModule = stateManagerModule;
     this.codeIntelligence = new CodeIntelligenceService();
     this.executeTool = createExecutor(this);
 
@@ -148,22 +150,14 @@ export class Engine {
         console.log(chalk.yellow(`[!] Archon Power Mode: ${archon.message} (Will use standard research tools).`));
     }
 
-    const neo4j = await this.codeIntelligence.testConnection();
+    // Test Neo4j connection
+    const neo4j = await this.stateManager.testConnection();
     if (neo4j.status === 'ok') {
         console.log(chalk.green(`[✔] Neo4j: ${neo4j.message}`));
-        if (neo4j.version) {
-            console.log(chalk.blue(`    Version: ${neo4j.version}`));
-        }
     } else {
         console.log(chalk.red(`[✖] Neo4j: ${neo4j.message}`));
         if (config.features.neo4j === 'required') {
             console.error(chalk.red("Neo4j is required but not available. Please check your configuration."));
-            if (neo4j.recovery_suggestions) {
-                console.log(chalk.yellow("Recovery suggestions:"));
-                neo4j.recovery_suggestions.forEach(suggestion => {
-                    console.log(chalk.yellow(`  • ${suggestion}`));
-                });
-            }
             return false;
         }
         console.log(chalk.yellow("Continuing with in-memory state management."));
@@ -205,52 +199,57 @@ export class Engine {
   }
 
   async runMainLoop() {
-    const state = await this.stateManager.getState();
-    const dispatcher = this.getAgent('dispatcher');
-
-    if (!state.project_status || ['PAUSED', 'EXECUTION_COMPLETE', 'HUMAN_INPUT_NEEDED', 'NEEDS_INITIALIZATION'].includes(state.project_status)) {
-      return;
-    }
-
-    const allTasks = state.project_manifest?.tasks || [];
-    const pendingTasks = allTasks.filter(t => t.status === 'PENDING');
-    const completedTasks = allTasks.filter(t => t.status === 'COMPLETED');
-
-    const prompt = `
-      System State:
-      - Project Status: ${state.project_status}
-      - All Tasks: ${allTasks.length}
-      - Pending Tasks (${pendingTasks.length}): ${pendingTasks.map(t => t.description).join('; ') || 'None'}
-      - Completed Tasks (${completedTasks.length}): ${completedTasks.map(t => t.description).join('; ') || 'None'}
-
-      Instructions:
-      Based on the current system state and your core protocols, determine the single next action to take by calling the appropriate tool.
-    `;
-
-    // Provide context to the dispatcher
-    const context = {
-      project_name: state.project_name,
-      project_status: state.project_status,
-      total_tasks: allTasks.length,
-      pending_tasks_count: pendingTasks.length,
-      completed_tasks_count: completedTasks.length,
-      system_time: new Date().toISOString()
-    };
-
     try {
-      const { toolCall } = await this.triggerAgent(dispatcher, prompt, context);
+      const state = await this.stateManager.getState();
+      const dispatcher = this.getAgent('dispatcher');
 
-      if (toolCall && toolCall.tool && toolCall.args) {
-        console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool} with args:`, toolCall.args));
-        await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
-      } else {
-        console.error(chalk.red("[Dispatcher] Did not return a valid tool call."), toolCall);
-        // Add a state update to prevent getting stuck in a loop on failure
-        await this.stateManager.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: "Dispatcher failed to produce a valid tool call." });
+      if (!state.project_status || ['PAUSED', 'EXECUTION_COMPLETE', 'HUMAN_INPUT_NEEDED', 'NEEDS_INITIALIZATION'].includes(state.project_status)) {
+        return;
+      }
+
+      const allTasks = state.project_manifest?.tasks || [];
+      const pendingTasks = allTasks.filter(t => t.status === 'PENDING');
+      const completedTasks = allTasks.filter(t => t.status === 'COMPLETED');
+
+      const prompt = `
+        System State:
+        - Project Status: ${state.project_status}
+        - All Tasks: ${allTasks.length}
+        - Pending Tasks (${pendingTasks.length}): ${pendingTasks.map(t => t.description).join('; ') || 'None'}
+        - Completed Tasks (${completedTasks.length}): ${completedTasks.map(t => t.description).join('; ') || 'None'}
+
+        Instructions:
+        Based on the current system state and your core protocols, determine the single next action to take by calling the appropriate tool.
+      `;
+
+      // Provide context to the dispatcher
+      const context = {
+        project_name: state.project_name,
+        project_status: state.project_status,
+        total_tasks: allTasks.length,
+        pending_tasks_count: pendingTasks.length,
+        completed_tasks_count: completedTasks.length,
+        system_time: new Date().toISOString()
+      };
+
+      try {
+        const { toolCall } = await this.triggerAgent(dispatcher, prompt, context);
+
+        if (toolCall && toolCall.tool && toolCall.args) {
+          console.log(chalk.magenta(`[Dispatcher] Decided to call tool: ${toolCall.tool} with args:`, toolCall.args));
+          await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
+        } else {
+          console.error(chalk.red("[Dispatcher] Did not return a valid tool call."), toolCall);
+          // Add a state update to prevent getting stuck in a loop on failure
+          await this.stateManagerModule.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: "Dispatcher failed to produce a valid tool call." });
+        }
+      } catch (error) {
+        console.error(chalk.red("[Engine] Error during main loop dispatcher cycle:"), error);
+         await this.stateManagerModule.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: `Dispatcher cycle failed: ${error.message}` });
       }
     } catch (error) {
-      console.error(chalk.red("[Engine] Error during main loop dispatcher cycle:"), error);
-       await this.stateManager.updateStatus({ newStatus: "HUMAN_INPUT_NEEDED", message: `Dispatcher cycle failed: ${error.message}` });
+      console.error(chalk.red("[Engine] Error getting state in main loop:"), error);
+      // Continue running even if there's an error getting the state
     }
   }
 
@@ -273,8 +272,52 @@ export class Engine {
     // Store the port for other components to use
     process.env.STIGMERGY_PORT = PORT;
     
+    // Set up WebSocket connection handler
+    this.wss.on('connection', (ws) => {
+      console.log(chalk.blue('[WebSocket] Client connected'));
+      
+      // Send initial state to the newly connected client
+      this.sendStateToClient(ws);
+      
+      ws.on('close', () => {
+        console.log(chalk.blue('[WebSocket] Client disconnected'));
+      });
+    });
+    
+    // Subscribe to state changes and broadcast to all connected clients
+    this.stateManager.on("stateChanged", (newState) => {
+      this.broadcastStateUpdate(newState);
+    });
+    
     // Increase interval to a more realistic value to avoid spamming the LLM
     this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
+  }
+
+  // Send current state to a specific WebSocket client
+  async sendStateToClient(ws) {
+    try {
+      const state = await this.stateManager.getState();
+      const performance = await AgentPerformance.getPerformanceInsights();
+      const stateWithPerformance = { ...state, performance };
+      
+      if (ws.readyState === ws.OPEN) {
+        ws.send(JSON.stringify(stateWithPerformance));
+      }
+    } catch (error) {
+      console.error(chalk.red('[WebSocket] Error sending state to client:', error));
+    }
+  }
+
+  // Broadcast state updates to all connected WebSocket clients
+  broadcastStateUpdate(newState) {
+    const performance = AgentPerformance.getPerformanceInsights();
+    const stateWithPerformance = { ...newState, performance };
+    
+    this.wss.clients.forEach((client) => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify(stateWithPerformance));
+      }
+    });
   }
 
   getAgent(agentId) {

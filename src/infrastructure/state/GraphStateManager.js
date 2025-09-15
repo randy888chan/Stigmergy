@@ -8,21 +8,34 @@ class GraphStateManager extends EventEmitter {
     super();
     this.driver = null;
     this.connectionStatus = "UNINITIALIZED";
+    this.connectionTested = false;
+    this.memoryState = null;
     this.initializeDriver();
   }
 
   initializeDriver() {
     if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
       try {
+        // For Aura connections, don't add additional encryption config as it's already in the URI
+        const isAura = process.env.NEO4J_URI.includes('neo4j+s://') || process.env.NEO4J_URI.includes('neo4j+ssc://');
+        
+        // Only add driver config for non-Aura connections
+        let driverConfig = {};
+        if (!isAura) {
+          // Add encryption configuration for non-Aura connections if needed
+          // This is just a placeholder - actual config would depend on the Neo4j setup
+        }
+        
         this.driver = neo4j.driver(
           process.env.NEO4J_URI,
-          neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD)
+          neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
+          driverConfig
         );
         this.connectionStatus = "INITIALIZED";
         console.log("GraphStateManager: Neo4j driver initialized.");
       } catch (e) {
         this.connectionStatus = "FAILED_INITIALIZATION";
-        console.error("GraphStateManager: Failed to initialize Neo4j driver.", e);
+        console.error("GraphStateManager: Failed to initialize Neo4j driver.", e.message);
       }
     } else if (config.features.neo4j === "required") {
       this.connectionStatus = "REQUIRED_MISSING";
@@ -31,6 +44,34 @@ class GraphStateManager extends EventEmitter {
         this.connectionStatus = "NOT_CONFIGURED";
         console.warn("GraphStateManager: Neo4j credentials not set. State will not be persisted.");
         console.info("GraphStateManager: Running in memory-only mode. State changes will not persist between sessions.");
+    }
+  }
+
+  async testConnection() {
+    // Only test connection once to avoid repeated failures
+    if (this.connectionTested) {
+      return this.connectionStatus === 'INITIALIZED' ? 
+        { status: 'ok', message: 'Neo4j connection successful' } : 
+        { status: 'error', message: 'Neo4j connection not available' };
+    }
+    
+    this.connectionTested = true;
+    
+    if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
+      return { status: 'error', message: 'Neo4j driver not initialized' };
+    }
+
+    const session = this.driver.session();
+    try {
+      await session.run('RETURN 1');
+      console.log("GraphStateManager: Neo4j connection test successful.");
+      return { status: 'ok', message: 'Neo4j connection successful' };
+    } catch (error) {
+      this.connectionStatus = "CONNECTION_FAILED";
+      console.error("GraphStateManager: Neo4j connection test failed:", error.message);
+      return { status: 'error', message: `Neo4j connection failed: ${error.message}` };
+    } finally {
+      await session.close();
     }
   }
 
@@ -43,7 +84,8 @@ class GraphStateManager extends EventEmitter {
         fallback_mode: false,
     };
 
-    if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
+    // If we've already determined that Neo4j is not available, use memory state
+    if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
         console.warn("GraphStateManager: Operating in fallback mode - state will not persist between sessions.");
         // Store state in memory for this session
         if (!this.memoryState) {
@@ -82,15 +124,27 @@ class GraphStateManager extends EventEmitter {
 
       return { ...defaultState, ...projectNode };
     } catch (error) {
-      console.error("GraphStateManager: Error getting state from Neo4j:", error);
-      return defaultState;
+      console.error("GraphStateManager: Error getting state from Neo4j:", error.message);
+      // Mark connection as failed to avoid repeated attempts
+      this.connectionStatus = "CONNECTION_FAILED";
+      // Fallback to memory state if Neo4j is not available
+      if (!this.memoryState) {
+        this.memoryState = { 
+          ...defaultState, 
+          fallback_mode: true,
+          fallback_reason: 'Neo4j query failed',
+          persistence_warning: 'State will not persist between sessions'
+        };
+      }
+      return this.memoryState;
     } finally {
       await session.close();
     }
   }
 
   async updateState(event) {
-    if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
+    // If we've already determined that Neo4j is not available, use memory state
+    if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
         console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type || 'unknown'}' will be stored in memory only.`);
         
         // Update memory state if in fallback mode
@@ -140,8 +194,27 @@ class GraphStateManager extends EventEmitter {
       this.emit("stateChanged", newState);
       return newState;
     } catch (error) {
-      console.error("GraphStateManager: Error updating state in Neo4j:", error);
-      return this.getState(projectName);
+      console.error("GraphStateManager: Error updating state in Neo4j:", error.message);
+      // Mark connection as failed to avoid repeated attempts
+      this.connectionStatus = "CONNECTION_FAILED";
+      // Fallback to memory state if Neo4j is not available
+      if (!this.memoryState) {
+        this.memoryState = { 
+          ...event, 
+          project_name: projectName,
+          fallback_mode: true,
+          fallback_reason: 'Neo4j update failed',
+          persistence_warning: 'State will not persist between sessions'
+        };
+      } else {
+        Object.assign(this.memoryState, event, { 
+          project_name: projectName,
+          fallback_mode: true,
+          last_updated: new Date().toISOString()
+        });
+      }
+      this.emit("stateChanged", this.memoryState);
+      return this.memoryState;
     } finally {
       await session.close();
     }

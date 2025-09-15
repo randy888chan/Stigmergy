@@ -3,6 +3,7 @@ import { MCPCodeSearch } from './tools/mcp_code_search.js';
 import { CodeRAGIntegration } from './services/coderag_integration.js';
 import { LightweightArchon } from './services/lightweight_archon.js';
 import { process_chat_command, get_command_suggestions } from './tools/chat_interface.js';
+import { DeepWikiMCP, query_deepwiki } from './services/deepwiki_mcp.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -88,6 +89,41 @@ const server = {
           },
           required: ["query"]
         }
+      },
+      {
+        name: "deepwiki_query",
+        description: "Query DeepWiki MCP for GitHub repository documentation and Q&A",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repository: { type: "string", description: "GitHub repository in format 'owner/repo'" },
+            question: { type: "string", description: "Question to ask about the repository" }
+          },
+          required: ["repository", "question"]
+        }
+      },
+      {
+        name: "deepwiki_structure",
+        description: "Get documentation structure for a GitHub repository from DeepWiki",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repository: { type: "string", description: "GitHub repository in format 'owner/repo'" }
+          },
+          required: ["repository"]
+        }
+      },
+      {
+        name: "deepwiki_contents",
+        description: "Get documentation contents for a specific path from DeepWiki",
+        inputSchema: {
+          type: "object",
+          properties: {
+            repository: { type: "string", description: "GitHub repository in format 'owner/repo'" },
+            path: { type: "string", description: "Path to documentation file" }
+          },
+          required: ["repository", "path"]
+        }
       }
     ];
   },
@@ -121,6 +157,17 @@ const server = {
         
         case "lightweight_archon_query":
           return await archon.query({ query: args.query, options: args.options || {} });
+        
+        case "deepwiki_query":
+          return await query_deepwiki({ repository: args.repository, question: args.question });
+        
+        case "deepwiki_structure":
+          const deepwiki1 = new DeepWikiMCP();
+          return await deepwiki1.readWikiStructure(args.repository);
+        
+        case "deepwiki_contents":
+          const deepwiki2 = new DeepWikiMCP();
+          return await deepwiki2.readWikiContents(args.repository, args.path);
         
         default:
           throw new Error(`Unknown tool: ${name}`);

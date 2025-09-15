@@ -17,8 +17,12 @@ router.get("/state", async (req, res) => {
   }
 });
 
-// Use an absolute path to the 'public' directory
-const publicPath = path.join(__dirname, '..', 'dashboard', 'public');
-router.use(express.static(publicPath));
+// Serve React app for all routes except /state
+router.use(express.static(path.join(__dirname, '..', 'dashboard', 'public')));
+
+// Serve the React app for the root route
+router.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'dashboard', 'public', 'index.html'));
+});
 
 export default router;

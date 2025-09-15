@@ -1,0 +1,89 @@
+.terminal-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: #2d2d2d;
+  border-bottom: 1px solid #3a3a3a;
+}
+
+.terminal-header h3 {
+  margin: 0;
+  color: #d4d4d4;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.connection-status {
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connection-status.connected {
+  background-color: #4caf50;
+  color: white;
+}
+
+.connection-status.disconnected {
+  background-color: #f44336;
+  color: white;
+}
+
+.terminal-wrapper {
+  flex: 1;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.terminal-toolbar {
+  display: flex;
+  padding: 8px 16px;
+  background-color: #2d2d2d;
+  border-top: 1px solid #3a3a3a;
+  gap: 8px;
+}
+
+.toolbar-button {
+  padding: 6px 12px;
+  background-color: #3c3c3c;
+  color: #d4d4d4;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toolbar-button:hover {
+  background-color: #4d4d4d;
+  border-color: #666;
+}
+
+/* XTerm.js specific styles */
+.xterm {
+  padding: 8px;
+  height: 100%;
+}
+
+.xterm-viewport {
+  background-color: #1e1e1e !important;
+}
+
+.xterm-screen {
+  height: 100%;
+}

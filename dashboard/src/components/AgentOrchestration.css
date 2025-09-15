@@ -1,0 +1,75 @@
+.agent-orchestration-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  grid-column: span 2;
+}
+
+.agent-orchestration-container h2 {
+  color: #1a253c;
+  border-bottom: 2px solid #eef2f5;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+.agent-visualization h3 {
+  color: #1a253c;
+  margin-top: 0;
+}
+
+.chart-container {
+  height: 300px;
+  margin-bottom: 20px;
+}
+
+.agent-details {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.agent-details h4 {
+  margin-top: 0;
+  color: #1a253c;
+}
+
+.agent-details ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.agent-details li {
+  padding: 5px 0;
+}
+
+.agent-controls h3 {
+  color: #1a253c;
+  margin-bottom: 10px;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.control-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.control-button:hover {
+  background-color: #2980b9;
+}
+
+.control-button:active {
+  background-color: #21618c;
+}

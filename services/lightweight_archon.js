@@ -1,5 +1,6 @@
 import { CodeRAGIntegration } from './coderag_integration.js';
 import * as research from '../tools/research.js';
+import { DeepWikiMCP } from './deepwiki_mcp.js';
 
 export class LightweightArchon {
   constructor(options = {}) {
@@ -87,10 +88,34 @@ export class LightweightArchon {
       } catch (error) {
         contextData.webResearch = { key_insights: [] };
       }
+      
+      // Add DeepWiki context for documentation/research queries
+      try {
+        const githubRepo = this.extractGithubRepo(query);
+        if (githubRepo) {
+          const deepwiki = new DeepWikiMCP();
+          contextData.deepWiki = await deepwiki.comprehensiveSearch(githubRepo, query);
+        }
+      } catch (error) {
+        console.warn('Failed to gather DeepWiki context:', error.message);
+        contextData.deepWiki = null;
+      }
     }
 
     contextData.userContext = userContext;
     return contextData;
+  }
+
+  /**
+   * Extract GitHub repository from query if mentioned
+   * @param {string} query - The query string
+   * @returns {string|null} GitHub repository in format "owner/repo" or null
+   */
+  extractGithubRepo(query) {
+    // Match patterns like "github.com/owner/repo" or "owner/repo"
+    const githubPattern = /(?:github\.com\/)?([a-zA-Z0-9_-]+\/[a-zA-Z0-9_-]+)/;
+    const match = query.match(githubPattern);
+    return match ? match[1] : null;
   }
 
   async generateResponse(query, intent, contextData) {
@@ -118,6 +143,11 @@ export class LightweightArchon {
         
       default:
         response.answer = `Analyzed query "${query}" across multiple sources.`;
+    }
+
+    // Add DeepWiki insights if available
+    if (contextData.deepWiki?.answer) {
+      response.deepwiki_insights = contextData.deepWiki.answer;
     }
 
     return response;

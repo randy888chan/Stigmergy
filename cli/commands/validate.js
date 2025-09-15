@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 import { z } from "zod";
+import { OutputFormatter } from "../utils/output_formatter.js";
 
 // Helper to get the core path, respecting test environments
 function getCorePath(providedPath) {
@@ -58,7 +59,8 @@ const agentSchema = z
   .passthrough();
 
 export async function validateAgents(providedCorePath) {
-  console.log("Validating agent definitions...");
+  OutputFormatter.section("Agent Definition Validation");
+  OutputFormatter.step("Scanning agent definitions...");
 
   const corePath = getCorePath(providedCorePath);
   const agentsDir = path.join(corePath, "agents");
@@ -67,7 +69,7 @@ export async function validateAgents(providedCorePath) {
     // In test environments, the core path might be different.
     const testCorePath = path.join(process.cwd(), "tests", "fixtures", "test-core");
     if (fs.existsSync(path.join(testCorePath, "agents"))) {
-      console.log("Falling back to test-core directory for validation.");
+      OutputFormatter.info("Falling back to test-core directory for validation.");
       return validateAgents(testCorePath);
     }
     return {
@@ -77,8 +79,11 @@ export async function validateAgents(providedCorePath) {
   }
 
   const agentFiles = await fs.readdir(agentsDir);
+  let validAgents = 0;
   let invalidAgents = 0;
+  let warnings = 0;
   const aliases = new Map();
+  const validationResults = [];
 
   for (const file of agentFiles) {
     if (!file.endsWith(".md") && !file.endsWith(".yml") && !file.endsWith(".yaml")) {
@@ -89,13 +94,16 @@ export async function validateAgents(providedCorePath) {
     const yamlMatch = content.match(/```(?:yaml|yml)\s*([\s\S]*?)```/);
 
     if (!yamlMatch) {
-      console.error(`❌ ${file}: Missing YAML code block`);
+      OutputFormatter.error(`${file}: Missing YAML code block`);
       invalidAgents++;
+      validationResults.push({ file, status: "error", message: "Missing YAML code block" });
       continue;
     }
 
     if (content.includes("```yml") && !content.includes("```yaml")) {
-      console.warn(`⚠️ ${file}: Prefer 'yaml' over 'yml' in code block`);
+      OutputFormatter.warning(`${file}: Prefer 'yaml' over 'yml' in code block`);
+      warnings++;
+      validationResults.push({ file, status: "warning", message: "Prefer 'yaml' over 'yml' in code block" });
     }
 
     try {
@@ -109,20 +117,23 @@ export async function validateAgents(providedCorePath) {
       
       // Warn about legacy fields
       if (agent.tools && !agent.engine_tools) {
-        console.warn(`⚠️ ${file}: Using deprecated 'tools' field. Consider migrating to 'engine_tools'`);
+        OutputFormatter.warning(`${file}: Using deprecated 'tools' field. Consider migrating to 'engine_tools'`);
+        warnings++;
+        validationResults.push({ file, status: "warning", message: "Using deprecated 'tools' field. Consider migrating to 'engine_tools'" });
       }
       
       if (!agent.core_protocols && !agent.tools) {
-        console.warn(`⚠️ ${file}: Missing 'core_protocols' field. This may affect agent behavior.`);
+        OutputFormatter.warning(`${file}: Missing 'core_protocols' field. This may affect agent behavior.`);
+        warnings++;
+        validationResults.push({ file, status: "warning", message: "Missing 'core_protocols' field. This may affect agent behavior." });
       }
       
       // Check for duplicate aliases
       if (agent?.alias) {
         if (aliases.has(agent.alias)) {
-          console.error(
-            `❌ ${file}: Duplicate alias '${agent.alias}' (also used in ${aliases.get(agent.alias)})`
-          );
+          OutputFormatter.error(`${file}: Duplicate alias '${agent.alias}' (also used in ${aliases.get(agent.alias)})`);
           invalidAgents++;
+          validationResults.push({ file, status: "error", message: `Duplicate alias '${agent.alias}' (also used in ${aliases.get(agent.alias)})` });
           continue;
         } else {
           aliases.set(agent.alias, file);
@@ -149,7 +160,9 @@ export async function validateAgents(providedCorePath) {
           });
           
           if (!isValidPattern) {
-            console.warn(`⚠️ ${file}: Unknown engine tool pattern '${tool}'`);
+            OutputFormatter.warning(`${file}: Unknown engine tool pattern '${tool}'`);
+            warnings++;
+            validationResults.push({ file, status: "warning", message: `Unknown engine tool pattern '${tool}'` });
           }
         }
       }
@@ -157,36 +170,56 @@ export async function validateAgents(providedCorePath) {
       // Validate file naming convention
       const expectedFileName = `${agent.id}.md`;
       if (file !== expectedFileName) {
-        console.warn(`⚠️ ${file}: Filename should match agent ID: expected '${expectedFileName}'`);
+        OutputFormatter.warning(`${file}: Filename should match agent ID: expected '${expectedFileName}'`);
+        warnings++;
+        validationResults.push({ file, status: "warning", message: `Filename should match agent ID: expected '${expectedFileName}'` });
       }
       
-      console.log(`✅ ${file}: Valid agent definition`);
+      OutputFormatter.success(`${file}: Valid agent definition`);
+      validAgents++;
+      validationResults.push({ file, status: "success", message: "Valid agent definition" });
       
     } catch (e) {
       if (e instanceof z.ZodError) {
-        console.error(`❌ ${file}: Zod validation failed:`, e.flatten().fieldErrors);
+        OutputFormatter.error(`${file}: Zod validation failed:`);
+        const fieldErrors = e.flatten().fieldErrors;
+        Object.entries(fieldErrors).forEach(([field, errors]) => {
+          console.log(chalk.red(`  → ${field}: ${errors.join(', ')}`));
+        });
+        invalidAgents++;
+        validationResults.push({ file, status: "error", message: `Zod validation failed: ${JSON.stringify(fieldErrors)}` });
       } else {
-        console.error(`❌ ${file}: Invalid YAML - ${e.message}`);
+        OutputFormatter.error(`${file}: Invalid YAML - ${e.message}`);
+        invalidAgents++;
+        validationResults.push({ file, status: "error", message: `Invalid YAML - ${e.message}` });
       }
-      invalidAgents++;
     }
   }
+
+  // Display summary
+  OutputFormatter.summary({
+    "Total Files Scanned": agentFiles.length,
+    "Valid Agents": validAgents,
+    "Invalid Agents": invalidAgents,
+    "Warnings": warnings
+  }, "Validation Summary");
 
   if (invalidAgents > 0) {
     return {
       success: false,
       error: `${invalidAgents} agent definition(s) failed validation.`,
+      results: validationResults
     };
   }
 
-  console.log(" -> All agent definitions validated successfully");
-  return { success: true };
+  OutputFormatter.success("All agent definitions validated successfully");
+  return { success: true, results: validationResults };
 }
 
 async function main() {
   const result = await validateAgents();
   if (!result.success) {
-    console.error(`Validation failed: ${result.error}`);
+    OutputFormatter.error(`Validation failed: ${result.error}`);
     process.exit(1);
   }
 }

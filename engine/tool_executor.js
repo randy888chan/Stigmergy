@@ -21,6 +21,7 @@ import * as documentIntelligence from "../tools/document_intelligence.js";
 import * as chatInterface from "../tools/chat_interface.js";
 import { lightweight_archon_query } from "../services/lightweight_archon.js";
 import { initialize_coderag, semantic_search } from "../services/coderag_integration.js";
+import { query_deepwiki } from "../services/deepwiki_mcp.js";
 
 // Import core engine services
 import { clearFileCache } from "./llm_adapter.js";
@@ -93,6 +94,7 @@ export function createExecutor(engine) {
     chat_interface: chatInterface,
     lightweight_archon: { query: lightweight_archon_query },
     coderag: { initialize: initialize_coderag, semantic_search },
+    deepwiki: { query: query_deepwiki },
     stigmergy: {
       task: async ({ subagent_type, description }) => {
         if (!subagent_type || !description) {

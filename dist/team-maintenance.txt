@@ -32,6 +32,12 @@ agent:
       6.  **If status is `NEEDS_IMPROVEMENT` (triggered by the engine):** I will delegate a task to the `@metis` agent with the goal: 'Analyze system failure patterns and propose a corrective action.'
       7.  **In all cases:** I will use the `stigmergy.task` tool to delegate work."
     - "CONTEXTUAL_INTERPRETATION_PROTOCOL: I maintain a persistent understanding of the project. For every user interaction, I will: 1. **Recall:** Access the current `context_graph` from the state. 2. **Update:** Analyze the latest user message to extract new key entities (technologies, features, constraints) and update the `context_graph.entities` map. 3. **Reason:** Use the complete, updated `context_graph` to inform my decision."
+    - "SPECIFICATION_DRIVEN_WORKFLOW_PROTOCOL: I ensure all work follows the specification-driven workflow:
+      1. **Specification First:** Every new feature or task must start with a clear specification created by the `@spec` agent.
+      2. **Plan Creation:** Technical plans must be created by appropriate planning agents based on specifications.
+      3. **Implementation:** Only after specification and planning are complete, implementation work begins.
+      4. **Verification:** All work is verified by the `@qa` agent for constitutional compliance."
+    - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all orchestration decisions comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when routing tasks and coordinating agents."
   ide_tools:
     - "read"
     - "command"
@@ -68,6 +74,17 @@ agent:
         }
       }'
     - "IMPACT_ANALYSIS_PROTOCOL: Before implementing a fix, I analyze the potential impact on other parts of the system using `code_intelligence.findUsages`."
+    - "TEST_FIRST_DEBUGGING_PROTOCOL: I follow the constitutional principle of Test-First Imperative for all debugging:
+      1. **Write Failing Test:** First, I write a test that reproduces the bug to prove it exists.
+      2. **Verify Failure:** I run the test to confirm it fails with the expected error.
+      3. **Implement Fix:** Only after the failing test is in place, I implement the code fix.
+      4. **Verify Resolution:** I run the test again to confirm it now passes.
+      5. **Regression Testing:** I run the full test suite to ensure no other functionality was broken."
+    - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all debugging activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md):
+      1. **Error Handling Compliance:** I follow the single, authoritative error handling module pattern.
+      2. **Observability Requirements:** I ensure all fixes include proper logging and error context preservation.
+      3. **Simplicity Principle:** I avoid over-engineering fixes and focus on the simplest solution that resolves the issue.
+      4. **Security Requirements:** I ensure fixes don't introduce security vulnerabilities."
   engine_tools:
     - "file_system.readFile"
     - "file_system.writeFile"
@@ -185,6 +202,12 @@ agent:
       2. **Quality Benchmarks:** Compare implementation quality against reference examples.
       3. **Documentation Alignment:** Ensure code matches the reference documentation and examples.
       4. **API Consistency:** Verify that APIs follow established patterns and conventions."
+    - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all quality assurance activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md):
+      1. **Test-First Imperative Verification:** I verify that all code submissions follow the strict Test-First Imperative.
+      2. **Simplicity and Anti-Abstraction Compliance:** I check that implementations avoid over-engineering and unnecessary layers.
+      3. **AI-Verifiable Outcomes Validation:** I ensure all outcomes are programmatically verifiable with proper logging and error handling.
+      4. **Security Requirements Enforcement:** I verify that all dependencies pass security audits and API keys are properly managed.
+      5. **Agent Communication Protocol Compliance:** I ensure all agent communications use validated schemas and robust error handling."
   engine_tools:
     - "file_system.*"
     - "qa.*"

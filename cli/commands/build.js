@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 import { glob } from "glob";
+import { OutputFormatter } from "../utils/output_formatter.js";
 
 const WEB_BUNDLE_HEADER = `CRITICAL: You are an AI agent operating in a limited, web-only environment.
 - You DO NOT have access to a file system, code execution, or custom tools beyond web search.
@@ -24,6 +25,9 @@ function findAgentFile(corePath, agentId) {
 
 export default async function build() {
   try {
+    OutputFormatter.section("Web Agent Bundle Build");
+    OutputFormatter.step("Initializing build process...");
+    
     const corePath = path.join(process.cwd(), ".stigmergy-core");
     const distPath = path.join(process.cwd(), "dist");
     await fs.ensureDir(distPath);
@@ -31,12 +35,19 @@ export default async function build() {
     const teamsDir = path.join(corePath, "agent-teams");
     const teamFiles = await glob(path.join(teamsDir, "*.{yml,yaml}"));
 
+    OutputFormatter.info(`Found ${teamFiles.length} agent team configuration(s)`);
+
+    const buildResults = [];
+    
     for (const teamFile of teamFiles) {
       const teamName = path.basename(teamFile).replace(/\.ya?ml$/, "");
+      OutputFormatter.step(`Processing team: ${teamName}`);
+      
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
       if (!teamData || !teamData.bundle) {
-        console.warn(`⚠️ Skipping ${teamFile} because it has no root 'bundle' property.`);
+        OutputFormatter.warning(`Skipping ${teamFile} because it has no root 'bundle' property.`);
+        buildResults.push({ team: teamName, status: "skipped", reason: "No bundle property" });
         continue;
       }
 
@@ -47,6 +58,7 @@ export default async function build() {
       bundle += `# Web Agent Bundle: ${bundleName}\n\n`;
       bundle += WEB_BUNDLE_HEADER;
 
+      let agentCount = 0;
       for (const agentId of bundleConfig.agents) {
         const agentPath = findAgentFile(corePath, agentId);
         if (agentPath) {
@@ -54,11 +66,13 @@ export default async function build() {
           bundle += `==================== START: agents#${agentId} ====================\n`;
           bundle += content.trim() + "\n";
           bundle += `==================== END: agents#${agentId} ====================\n\n`;
+          agentCount++;
         } else {
-          console.warn(`- Agent definition not found for '${agentId}' in team '${teamName}', skipping.`);
+          OutputFormatter.warning(`Agent definition not found for '${agentId}' in team '${teamName}', skipping.`);
         }
       }
       
+      let templateCount = 0;
       const templatesDir = path.join(corePath, "templates");
       const templateFiles = await glob(path.join(templatesDir, "*.md"));
       for (const templateFile of templateFiles) {
@@ -67,17 +81,42 @@ export default async function build() {
           bundle += `==================== START: templates#${templateName} ====================\n`;
           bundle += templateContent.trim() + "\n";
           bundle += `==================== END: templates#${templateName} ====================\n\n`;
+          templateCount++;
       }
 
       const outputPath = path.join(distPath, `${teamName}.txt`);
       await fs.writeFile(outputPath, bundle, "utf8");
-      console.log(`✅ Created web agent bundle: ${teamName}.txt`);
+      OutputFormatter.success(`Created web agent bundle: ${teamName}.txt`);
+      
+      buildResults.push({ 
+        team: teamName, 
+        status: "success", 
+        agents: agentCount,
+        templates: templateCount,
+        outputFile: `${teamName}.txt`
+      });
     }
 
-    console.log(`✅ Build complete. Created ${teamFiles.length} agent team bundles in dist/`);
+    // Display build summary
+    OutputFormatter.summary({
+      "Teams Processed": teamFiles.length,
+      "Bundles Created": buildResults.filter(r => r.status === "success").length,
+      "Teams Skipped": buildResults.filter(r => r.status === "skipped").length
+    }, "Build Summary");
+
+    // Display detailed results
+    if (buildResults.length > 0) {
+      OutputFormatter.table(
+        buildResults.filter(r => r.status === "success"),
+        ["team", "agents", "templates", "outputFile"],
+        { team: "Team", agents: "Agents", templates: "Templates", outputFile: "Output File" }
+      );
+    }
+
+    OutputFormatter.success("Build complete");
     return true;
   } catch (error) {
-    console.error("❌ Build failed with an unexpected error:", error);
+    OutputFormatter.error(`Build failed with an unexpected error: ${error.message}`);
     throw error;
   }
 }

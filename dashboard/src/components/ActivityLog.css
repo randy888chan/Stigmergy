@@ -1,0 +1,48 @@
+.activity-log-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 20px;
+  grid-column: span 2;
+}
+
+.activity-log-container h2 {
+  color: #1a253c;
+  border-bottom: 2px solid #eef2f5;
+  padding-bottom: 10px;
+  margin-top: 0;
+}
+
+#activity-log {
+  list-style-type: none;
+  padding: 0;
+  margin-top: 20px;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid #eef2f5;
+  border-radius: 4px;
+}
+
+#activity-log li {
+  padding: 12px;
+  border-bottom: 1px solid #eef2f5;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9em;
+}
+
+#activity-log li:last-child {
+  border-bottom: none;
+}
+
+#activity-log .log-msg {
+  font-family: monospace;
+  flex: 1;
+}
+
+#activity-log .log-meta {
+  color: #7f8c8d;
+  white-space: nowrap;
+  margin-left: 10px;
+}

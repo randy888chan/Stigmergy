@@ -7,17 +7,20 @@ export async function getState() {
 }
 
 export async function updateState(event) {
-  return stateManager.updateState(event);
+  const newState = await stateManager.updateState(event);
+  // Emit the state change event so subscribers can react
+  stateManager.emit("stateChanged", newState);
+  return newState;
 }
 
 export async function initializeProject(goal) {
   const event = { type: "PROJECT_INITIALIZED", goal, project_status: "ENRICHMENT_PHASE" };
-  return stateManager.updateState(event);
+  return updateState(event);
 }
 
 export async function updateStatus({ newStatus, message }) {
   const event = { type: "STATUS_UPDATED", project_status: newStatus, message };
-  return stateManager.updateState(event);
+  return updateState(event);
 }
 
 export async function transitionToState(newStatus, milestone) {
@@ -55,6 +58,6 @@ export async function updateTaskStatus({ taskId, newStatus }) {
         },
       ],
     };
-    return stateManager.updateState(event);
+    return updateState(event);
   }
 }
