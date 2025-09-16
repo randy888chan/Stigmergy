@@ -1,5 +1,5 @@
-const fs = require("fs-extra");
-const path = require("path");
+import fs from "fs-extra";
+import path from "path";
 
 // Create a unique test directory for each Jest worker to prevent conflicts
 const workerId = process.env.JEST_WORKER_ID || '1';

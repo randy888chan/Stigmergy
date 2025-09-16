@@ -46,7 +46,9 @@
     "test:chat-system": "node test_complete_chat_system.js",
     "mcp:setup": "node scripts/setup-mcp.js",
     "mcp:setup-project": "node scripts/setup-mcp.js",
-    "validate:comprehensive": "node scripts/comprehensive-validation.js"
+    "validate:comprehensive": "node scripts/comprehensive-validation.js",
+    "test:benchmark": "node evaluation/runners/benchmark_runner.js",
+    "postinstall": "npm run build:dashboard"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",

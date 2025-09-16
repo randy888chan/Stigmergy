@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FiSave, FiFile, FiFolder, FiChevronRight, FiChevronDown, FiPlus, FiTrash2, FiRefreshCw, FiCopy, FiEdit } from 'react-icons/fi';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import oneDark from 'react-syntax-highlighter/dist/cjs/styles/prism/one-dark.js';
 import './FileEditor.css';
 
 const FileEditor = ({ state }) => {

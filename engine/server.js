@@ -24,6 +24,7 @@ import { getModelForTier } from '../ai/providers.js';
 import config from "../stigmergy.config.js";
 import dashboardRouter from "./dashboard.js";
 import yaml from 'js-yaml';
+import trajectoryRecorder from "../services/trajectory_recorder.js";
 
 const execPromise = promisify(exec);
 
@@ -375,11 +376,29 @@ export class Engine {
 
   async triggerAgent(agent, userPrompt, context = {}) {
     console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
+    
+    // Start trajectory recording for this agent call
+    const recordingId = trajectoryRecorder.startRecording(`agent_${agent.id}`, {
+      agentId: agent.id,
+      userPrompt,
+      context
+    });
+    
     try {
       console.log(chalk.blue(`[Engine] Agent model tier: ${agent.modelTier}`));
       
       const model = getModelForTier(agent.modelTier);
       console.log(chalk.blue(`[Engine] Model resolved successfully`));
+      
+      // Record the LLM call details
+      const llmCallDetails = {
+        agentId: agent.id,
+        modelTier: agent.modelTier,
+        systemPrompt: agent.systemPrompt,
+        userPrompt
+      };
+      
+      trajectoryRecorder.logLLMInteraction(recordingId, llmCallDetails);
       
       // Enhance the system prompt with context if available
       let enhancedSystemPrompt = agent.systemPrompt;
@@ -403,10 +422,25 @@ Use this context to inform your response.`;
           });
         });
         console.log(chalk.green(`[Engine] Structured generation successful`));
+        
+        // Record the successful response
+        trajectoryRecorder.logEvent(recordingId, 'llm_response', { 
+          success: true, 
+          responseType: 'structured',
+          response: object
+        });
+        
         return { toolCall: object };
       } catch (structuredError) {
         console.log(chalk.yellow(`[Engine] Structured generation failed for ${agent.modelTier}, falling back to text generation`));
         console.log(chalk.blue(`[Engine] Structured error: ${structuredError.message}`));
+        
+        // Record the structured generation failure
+        trajectoryRecorder.logEvent(recordingId, 'llm_response', { 
+          success: false, 
+          responseType: 'structured',
+          error: structuredError.message
+        });
         
         // Fallback to text generation with strict prompt engineering and retry mechanism
         const { text } = await retryWithBackoff(async () => {
@@ -418,6 +452,13 @@ Use this context to inform your response.`;
         });
         
         console.log(chalk.blue(`[Engine] Text generation result: ${text.substring(0, 200)}...`));
+        
+        // Record the text generation response
+        trajectoryRecorder.logEvent(recordingId, 'llm_response', { 
+          success: true, 
+          responseType: 'text',
+          response: text.substring(0, 200)
+        });
         
         // Try to parse the JSON response with more robust handling
         try {
@@ -470,6 +511,13 @@ Use this context to inform your response.`;
             if (parsed.tool === 'log' && !parsed.args.message) {
               parsed.args.message = text.trim();
             }
+            
+            // Record the parsed response
+            trajectoryRecorder.logEvent(recordingId, 'response_parsed', { 
+              success: true,
+              parsedResponse: parsed
+            });
+            
             return { toolCall: parsed };
           }
           
@@ -477,7 +525,7 @@ Use this context to inform your response.`;
           // create a proper tool call structure with the response as a message
           if (text && text.trim().length > 0) {
             console.log(chalk.green(`[Engine] Creating tool call from text response`));
-            return { 
+            const toolCallResponse = { 
               toolCall: { 
                 tool: 'log', 
                 args: { 
@@ -494,6 +542,14 @@ Use this context to inform your response.`;
                 } 
               } 
             };
+            
+            // Record the tool call creation
+            trajectoryRecorder.logEvent(recordingId, 'tool_call_created', { 
+              success: true,
+              toolCall: toolCallResponse.toolCall
+            });
+            
+            return toolCallResponse;
           }
           
           // If we get here, we don't have a valid response, so throw a specific error
@@ -502,10 +558,17 @@ Use this context to inform your response.`;
           console.log(chalk.yellow(`[Engine] Could not parse fallback response: ${parseError.message}`));
           console.log(chalk.yellow(`[Engine] Raw response: ${text}`));
           
+          // Record the parsing error
+          trajectoryRecorder.logEvent(recordingId, 'response_parsed', { 
+            success: false,
+            error: parseError.message,
+            rawResponse: text
+          });
+          
           // Even if we can't parse JSON, if we have text content, use it
           if (text && text.trim().length > 0) {
             console.log(chalk.green(`[Engine] Using raw text as message content`));
-            return { 
+            const toolCallResponse = { 
               toolCall: { 
                 tool: 'log', 
                 args: { 
@@ -522,11 +585,19 @@ Use this context to inform your response.`;
                 } 
               } 
             };
+            
+            // Record the tool call creation
+            trajectoryRecorder.logEvent(recordingId, 'tool_call_created', { 
+              success: true,
+              toolCall: toolCallResponse.toolCall
+            });
+            
+            return toolCallResponse;
           }
         }
         
         // Ultimate fallback - create a proper tool call structure
-        return { 
+        const toolCallResponse = { 
           toolCall: { 
             tool: 'log', 
             args: { 
@@ -543,16 +614,30 @@ Use this context to inform your response.`;
             } 
           } 
         };
+        
+        // Record the tool call creation
+        trajectoryRecorder.logEvent(recordingId, 'tool_call_created', { 
+          success: true,
+          toolCall: toolCallResponse.toolCall
+        });
+        
+        return toolCallResponse;
       }
     } catch (error) {
       console.error(chalk.red(`[Engine] Full error details for @${agent.id}:`));
       console.error(chalk.red(`  Error message: ${error.message}`));
       console.error(chalk.red(`  Agent model tier: ${agent.modelTier}`));
       
+      // Record the error
+      trajectoryRecorder.logEvent(recordingId, 'agent_error', { 
+        error: error.message,
+        stack: error.stack
+      });
+      
       // Check if this is the "Invalid JSON response" error we're seeing
       if (error.message.includes("Invalid JSON response")) {
         // This is our internal error, return the fallback response
-        return { 
+        const toolCallResponse = { 
           toolCall: { 
             tool: 'log', 
             args: { 
@@ -569,15 +654,47 @@ Use this context to inform your response.`;
             } 
           } 
         };
+        
+        // Record the tool call creation
+        trajectoryRecorder.logEvent(recordingId, 'tool_call_created', { 
+          success: true,
+          toolCall: toolCallResponse.toolCall
+        });
+        
+        return toolCallResponse;
       }
       
       if (error.message.includes("API key environment variable")) {
         console.error(chalk.red(`[Engine] Missing API Key for tier ${agent.modelTier}. Please check your .env file.`));
-        return { toolCall: { tool: 'log', args: { message: `Agent @${agent.id} trigger failed due to missing API key for tier ${agent.modelTier}.` } } };
+        const toolCallResponse = { toolCall: { tool: 'log', args: { message: `Agent @${agent.id} trigger failed due to missing API key for tier ${agent.modelTier}.` } } };
+        
+        // Record the tool call creation
+        trajectoryRecorder.logEvent(recordingId, 'tool_call_created', { 
+          success: true,
+          toolCall: toolCallResponse.toolCall
+        });
+        
+        return toolCallResponse;
       }
       
       // Return a structured error to be handled by the main loop
-      return { error: error.message, toolCall: { tool: 'log', args: { message: `Error: ${error.message}`, status: "error" } } };
+      const errorResponse = { error: error.message, toolCall: { tool: 'log', args: { message: `Error: ${error.message}`, status: "error" } } };
+      
+      // Record the error response
+      trajectoryRecorder.logEvent(recordingId, 'error_response', { 
+        error: error.message,
+        toolCall: errorResponse.toolCall
+      });
+      
+      return errorResponse;
+    } finally {
+      // Finalize the recording
+      try {
+        const finalState = await this.stateManager.getState();
+        await trajectoryRecorder.finalizeRecording(recordingId, { finalState });
+      } catch (finalizeError) {
+        console.error(chalk.red(`[Engine] Error finalizing trajectory recording: ${finalizeError.message}`));
+      }
     }
   }
 

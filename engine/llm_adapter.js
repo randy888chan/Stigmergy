@@ -17,6 +17,11 @@ const PROVIDER_CONTEXTS = {
 
 let currentProviderContext = PROVIDER_CONTEXTS.STIGMERGY;
 
+// Cost tracking
+let totalCost = 0;
+let dailyCost = 0;
+let providerCosts = {};
+
 const META_PROMPT_PATH = path.join(
   process.cwd(),
   ".stigmergy-core",
@@ -25,6 +30,21 @@ const META_PROMPT_PATH = path.join(
 );
 
 const fileCache = new Map();
+
+// Pricing information for different models (per 1M tokens)
+const MODEL_PRICING = {
+  // OpenAI models
+  'gpt-4': { input: 30.00, output: 60.00 },
+  'gpt-4-turbo': { input: 10.00, output: 30.00 },
+  'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
+  
+  // Google models
+  'gemini-pro': { input: 0.50, output: 1.50 },
+  'gemini-1.5-pro': { input: 7.00, output: 21.00 },
+  
+  // Default pricing for unknown models
+  'default': { input: 1.00, output: 3.00 }
+};
 
 export async function getCachedFile(filePath) {
   if (fileCache.has(filePath)) {
@@ -55,7 +75,11 @@ export async function getSharedContext() {
     const fullPath = path.join(process.cwd(), docPath);
     const content = await getCachedFile(fullPath);
     if (content) {
-      context += `--- START ${docPath} ---\n${content}\n--- END ${docPath} ---\n\n`;
+      context += `--- START ${docPath} ---
+${content}
+--- END ${docPath} ---
+
+`;
     }
   }
   return context;
@@ -70,6 +94,35 @@ export function setProviderContext(context) {
 
 export function getProviderContext() {
   return currentProviderContext;
+}
+
+export function getCostTracking() {
+  return {
+    totalCost,
+    dailyCost,
+    providerCosts
+  };
+}
+
+export function calculateCost(modelName, inputTokens, outputTokens) {
+  const pricing = MODEL_PRICING[modelName] || MODEL_PRICING['default'];
+  const inputCost = (inputTokens / 1000000) * pricing.input;
+  const outputCost = (outputTokens / 1000000) * pricing.output;
+  return inputCost + outputCost;
+}
+
+export function trackCost(modelName, inputTokens, outputTokens) {
+  const cost = calculateCost(modelName, inputTokens, outputTokens);
+  totalCost += cost;
+  dailyCost += cost;
+  
+  if (!providerCosts[modelName]) {
+    providerCosts[modelName] = 0;
+  }
+  providerCosts[modelName] += cost;
+  
+  console.log(`[LLM Adapter] Tracked cost: $${cost.toFixed(6)} for ${modelName} (${inputTokens} input, ${outputTokens} output tokens)`);
+  return cost;
 }
 
 export async function getCompletion(agentId, prompt, options = {}) {
@@ -111,6 +164,14 @@ Respond in JSON format: {thought, action}`;
     let rawJSON = response.text;
     if (!rawJSON && response.choices && response.choices.length > 0) {
       rawJSON = response.choices[0].message.content;
+    }
+
+    // Track token usage and cost if available
+    if (response.usage) {
+      const modelName = response.model || 'unknown';
+      const inputTokens = response.usage.promptTokens || 0;
+      const outputTokens = response.usage.completionTokens || 0;
+      trackCost(modelName, inputTokens, outputTokens);
     }
 
     if (!rawJSON) {

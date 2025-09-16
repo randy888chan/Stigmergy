@@ -1,17 +1,18 @@
 import React, { useContext } from 'react';
-import { AuthContext } from '../context/AuthContext';
-import AgentOrchestration from '../components/AgentOrchestration';
-import StateManagement from '../components/StateManagement';
-import TaskManagement from '../components/TaskManagement';
-import CodeBrowser from '../components/CodeBrowser';
-import Terminal from '../components/Terminal';
-import ProcessManager from '../components/ProcessManager';
-import AgentVisualization from '../components/AgentVisualization';
-import FileEditor from '../components/FileEditor';
-import './Dashboard.css';
+import { useAuth } from '../contexts/AuthContext.js';
+import AgentOrchestration from '../components/AgentOrchestration.js';
+import StateManagement from '../components/StateManagement.js';
+import TaskManagement from '../components/TaskManagement.js';
+import CodeBrowser from '../components/CodeBrowser.js';
+import Terminal from '../components/Terminal.js';
+import ProcessManager from '../components/ProcessManager.js';
+import AgentVisualization from '../components/AgentVisualization.js';
+import FileEditor from '../components/FileEditor.js';
+import CostMonitor from '../components/CostMonitor.js';
+import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout } = useAuth();
 
   return (
     <div className="dashboard">
@@ -43,6 +44,11 @@ const Dashboard = () => {
           <div className="dashboard-card">
             <h2>Code Browser</h2>
             <CodeBrowser />
+          </div>
+          
+          <div className="dashboard-card">
+            <h2>Cost Monitoring</h2>
+            <CostMonitor />
           </div>
           
           <div className="dashboard-card terminal-card">

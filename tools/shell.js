@@ -1,19 +1,87 @@
-import { exec } from "child_process";
-import { promisify } from "util";
+import vm from "vm";
+import fs from "fs";
+import path from "path";
 
-const execPromise = promisify(exec);
 export async function execute({ command, agentConfig }) {
   if (!command) throw new Error("No command provided.");
+  
+  // Security check: only allow permitted commands
   const permitted = (agentConfig.permitted_shell_commands || []).some((p) =>
     new RegExp("^" + p.replace(/\*/g, ".*") + "$").test(command)
   );
+  
   if (!permitted)
     throw new Error(
       `Security policy violation: Command "${command}" not permitted for @${agentConfig.alias}.`
     );
+
   try {
-    const { stdout, stderr } = await execPromise(command, { cwd: process.cwd() });
-    return `STDOUT:\n${stdout}\n\nSTDERR:\n${stderr}`;
+    // Create a secure sandbox environment
+    const sandbox = {
+      // Allow access to common JavaScript globals
+      console: {
+        log: (...args) => {
+          // Capture console output
+          sandbox.__output__ += args.map(arg => 
+            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+          ).join(' ') + '\n';
+        }
+      },
+      Math,
+      Date,
+      String,
+      Number,
+      Boolean,
+      Array,
+      Object,
+      RegExp,
+      JSON,
+      Buffer,
+      // Add a limited file system access (read-only)
+      fs: {
+        readFileSync: (filePath, encoding = 'utf8') => {
+          // Only allow reading files within the current working directory
+          const resolvedPath = path.resolve(filePath);
+          const cwd = process.cwd();
+          
+          // Security check: ensure the file is within the current working directory
+          if (!resolvedPath.startsWith(cwd)) {
+            throw new Error(`Access denied: ${filePath} is outside the allowed directory`);
+          }
+          
+          return fs.readFileSync(filePath, encoding);
+        },
+        existsSync: (filePath) => {
+          const resolvedPath = path.resolve(filePath);
+          const cwd = process.cwd();
+          
+          // Security check: ensure the file is within the current working directory
+          if (!resolvedPath.startsWith(cwd)) {
+            return false;
+          }
+          
+          return fs.existsSync(filePath);
+        }
+      },
+      path,
+      __output__: ''
+    };
+
+    // Create a script from the command
+    const script = new vm.Script(command);
+    
+    // Create a context with the sandbox
+    const context = vm.createContext(sandbox);
+    
+    // Execute the script with a timeout
+    const result = script.runInContext(context, { timeout: 5000 });
+    
+    // Return the captured output and result
+    return `OUTPUT:
+${sandbox.__output__}
+
+RESULT:
+${result !== undefined ? JSON.stringify(result, null, 2) : 'undefined'}`;
   } catch (error) {
     return `EXECUTION FAILED: ${error.message}`;
   }

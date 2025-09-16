@@ -1,0 +1,82 @@
+{
+  "benchmark": {
+    "name": "Stigmergy System Performance Benchmark",
+    "version": "1.0.0",
+    "description": "Standardized benchmark to measure Stigmergy system performance inspired by SWE-bench",
+    "problems": [
+      {
+        "id": "problem-1",
+        "title": "Simple File Creation Task",
+        "description": "Create a simple JavaScript file that exports a function to calculate the factorial of a number",
+        "expected_files": ["factorial.js"],
+        "success_criteria": [
+          "The file factorial.js should exist",
+          "The file should export a function named 'factorial'",
+          "The function should correctly calculate factorial for numbers 0-10",
+          "The function should handle edge cases (negative numbers, non-integers)"
+        ],
+        "difficulty": "easy"
+      },
+      {
+        "id": "problem-2",
+        "title": "API Endpoint Implementation",
+        "description": "Implement a REST API endpoint using Express.js that returns a list of users from a mock database",
+        "expected_files": ["server.js", "routes/users.js"],
+        "success_criteria": [
+          "The server should start without errors",
+          "GET /api/users should return a JSON array of users",
+          "Each user should have id, name, and email properties",
+          "The endpoint should handle errors gracefully"
+        ],
+        "difficulty": "medium"
+      },
+      {
+        "id": "problem-3",
+        "title": "React Component Development",
+        "description": "Create a React component that displays a list of items with search functionality",
+        "expected_files": ["components/ItemList.js", "components/SearchBar.js"],
+        "success_criteria": [
+          "The component should render a list of items",
+          "The search bar should filter items based on user input",
+          "The component should handle empty states appropriately",
+          "The component should be properly styled"
+        ],
+        "difficulty": "medium"
+      },
+      {
+        "id": "problem-4",
+        "title": "Database Integration Task",
+        "description": "Implement a simple database integration using a library like mongoose or sequelize",
+        "expected_files": ["models/User.js", "controllers/userController.js", "config/database.js"],
+        "success_criteria": [
+          "The database connection should be established successfully",
+          "CRUD operations should work correctly",
+          "Proper error handling should be implemented",
+          "Data validation should be in place"
+        ],
+        "difficulty": "hard"
+      },
+      {
+        "id": "problem-5",
+        "title": "Testing Implementation",
+        "description": "Add unit tests for an existing JavaScript module using Jest",
+        "expected_files": ["__tests__/calculator.test.js", "calculator.js"],
+        "success_criteria": [
+          "Tests should cover all major functions",
+          "Tests should include edge cases",
+          "Test coverage should be above 80%",
+          "Tests should pass without errors"
+        ],
+        "difficulty": "medium"
+      }
+    ],
+    "execution": {
+      "timeout": 300000,
+      "max_retries": 3,
+      "environment": {
+        "node_version": ">=16.0.0",
+        "required_packages": ["express", "jest", "mongoose"]
+      }
+    }
+  }
+}

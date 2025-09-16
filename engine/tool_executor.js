@@ -27,6 +27,7 @@ import { query_deepwiki } from "../services/deepwiki_mcp.js";
 import { clearFileCache } from "./llm_adapter.js";
 import ErrorHandler, { OperationalError } from "../utils/errorHandler.js";
 import { trackToolUsage } from "../services/model_monitoring.js";
+import trajectoryRecorder from "../services/trajectory_recorder.js";
 
 function getCorePath() {
   // Priority order for core path resolution:
@@ -109,6 +110,14 @@ export function createExecutor(engine) {
 
   return async function execute(toolName, args, agentId) {
     const startTime = Date.now();
+    
+    // Start trajectory recording for this tool call
+    const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, {
+      toolName,
+      args,
+      agentId
+    });
+    
     try {
       const agentDefPath = path.join(getCorePath(), "agents", `${agentId}.md`);
       const agentFileContent = await fs.readFile(agentDefPath, "utf8");
@@ -155,6 +164,20 @@ export function createExecutor(engine) {
       }
 
       const safeArgs = sanitizeToolCall(toolName, args);
+      
+      // Record the tool call
+      trajectoryRecorder.logToolCall(recordingId, {
+        toolName,
+        namespace,
+        funcName,
+        args: safeArgs,
+        agentId,
+        agentConfig: {
+          id: agentConfig.id,
+          alias: agentConfig.alias,
+          model_tier: agentConfig.model_tier
+        }
+      });
 
       const result = await toolbelt[namespace][funcName]({ ...safeArgs, agentConfig });
 
@@ -165,11 +188,27 @@ export function createExecutor(engine) {
         executionTime: Date.now() - startTime,
       });
 
+      // Record the successful tool execution
+      trajectoryRecorder.logEvent(recordingId, 'tool_execution_success', {
+        toolName,
+        result: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
+        executionTime: Date.now() - startTime
+      });
+
       if (toolName.startsWith("file_system.write")) clearFileCache();
       return JSON.stringify(result, null, 2);
 
     } catch (error) {
       const processedError = ErrorHandler.process(error, { agentId, toolName });
+      
+      // Record the tool execution error
+      trajectoryRecorder.logEvent(recordingId, 'tool_execution_error', {
+        toolName,
+        error: processedError.message,
+        stack: processedError.stack,
+        executionTime: Date.now() - startTime
+      });
+      
       await trackToolUsage({
         toolName,
         success: false,
@@ -178,6 +217,13 @@ export function createExecutor(engine) {
         error: processedError.message,
       });
       throw processedError;
+    } finally {
+      // Finalize the recording
+      try {
+        await trajectoryRecorder.finalizeRecording(recordingId);
+      } catch (finalizeError) {
+        console.error(`[ToolExecutor] Error finalizing trajectory recording: ${finalizeError.message}`);
+      }
     }
   };
 }
