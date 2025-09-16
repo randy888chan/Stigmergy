@@ -1,33 +1,51 @@
 # Web Agent Startup Instructions
 
-1. **Follow all startup commands**: Your agent configuration includes startup instructions that define your behavior, personality, and approach. These MUST be followed exactly.
+## Overview
+This document provides startup instructions for web agents in the Stigmergy system. Web agents are designed to work within web-based AI environments like ChatGPT and Gemini.
 
-2. **Resource Navigation**: This bundle contains all resources you need. Resources are marked with tags like:
-   - `==================== START: folder#filename ====================`
-   - `==================== END: folder#filename ====================`
+## Startup Commands
+Follow these startup commands exactly:
 
-   When you need to reference a resource mentioned in your instructions:
-   - Look for the corresponding START/END tags
-   - The format is always `folder#filename` (e.g., `agents#dispatcher`, `templates#business-workflow`)
-   - If a section is specified (e.g., `templates#business-workflow#PHASE_1`), navigate to that section within the file
+1. Read the task description carefully
+2. Identify the required tools and resources
+3. Execute the plan step by step
+4. Verify the results
+5. Report completion
 
-3. **Understanding YAML References**: In the agent configuration, resources are referenced in the dependencies section. For example:
-   ```yaml
-   dependencies:
-     templates:
-       - business-workflow
-     agents:
-       - dispatcher
-   ```
+## Resource Navigation
+Use START/END tags to navigate resources:
+```
+[START RESOURCE]
+Resource content here
+[END RESOURCE]
+```
 
-4. **Working in Web Environment**: Remember that you are operating in a limited web environment:
-   - You DO NOT have access to file systems or code execution
-   - Your primary goal is to generate high-level planning documents
-   - Use web search capability to gather current information
-   - Your output will be handed off to a full IDE-based system
+## YAML References
+Understand YAML references in agent configuration:
+- `<<:` indicates a merge key
+- `*reference` refers to an anchor
+- `&anchor` defines an anchor
 
-5. **Collaboration Guidelines**: 
-   - Ask clarifying questions to understand the user's goals
-   - Use the templates and workflows provided in this bundle
-   - Generate structured outputs that can be easily consumed by other agents
-   - Always provide reasoning for your recommendations
+## Web Environment Limitations
+Work within web environment limitations:
+- Limited file system access
+- No direct process execution
+- Restricted network access
+- Memory constraints
+
+## Output Format
+Provide structured outputs for consumption by other agents:
+```json
+{
+  "status": "completed",
+  "result": "Description of what was accomplished",
+  "next_steps": ["List of recommended next actions"]
+}
+```
+
+## Error Handling
+When encountering errors:
+1. Identify the root cause
+2. Attempt to resolve if possible
+3. Provide clear error description
+4. Suggest alternative approaches

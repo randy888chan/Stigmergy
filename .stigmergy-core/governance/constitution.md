@@ -1,92 +1,89 @@
-# Stigmergy Constitution
+# Stigmergy System Constitution
 
 ## Core Principles
 
-### I. Reference-First Development
-Every feature starts with finding proven patterns and solutions rather than generating from scratch. Solutions should be synthesized from existing, verified code patterns and architectural blueprints.
+### 1. Test-First Imperative
+All development work must follow Test-Driven Development (TDD) principles. Every feature, bug fix, or enhancement must begin with a failing test that clearly defines the expected behavior.
 
-### II. Test-First Imperative (NON-NEGOTIABLE)
-All implementation MUST follow strict Test-Driven Development.
-No implementation code shall be written before:
-1. Unit tests are written
-2. Tests are validated and approved by the system
-3. Tests are confirmed to FAIL (Red phase)
+### 2. Simplicity
+Prefer simple, clean solutions over complex ones. The simplest solution that meets the requirements is always preferred. Avoid premature optimization and over-engineering.
 
-### III. Simplicity and Anti-Abstraction
-Avoid over-engineering and unnecessary layers:
-- Maximum 3 core project components for initial implementation
-- Use framework features directly rather than wrapping them
-- Single data model representation (no DTOs unless serialization differs)
-- Avoid patterns like Repository/UnitOfWork without proven need
+### 3. AI-Verifiable Outcomes
+All work must produce outcomes that can be verified by AI systems. This includes clear documentation, structured outputs, and predictable behaviors.
 
-### IV. AI-Verifiable Outcomes
-All outcomes must be programmatically verifiable:
-- Every project milestone has verifiable outputs
-- All verification results stored with timestamps and agent signatures
-- Four-dimensional verification: Technical, Functional, Architectural, Business
+### 4. Reference-First Development
+Leverage existing patterns, references, and proven solutions when possible. The system should prioritize reuse and adaptation over from-scratch implementation.
 
-### V. Integration Testing
-Focus areas requiring integration tests:
-- New library contract tests
-- Contract changes
-- Inter-service communication
-- Shared schemas
-- Real dependencies used (actual DBs, not mocks)
+## Agent Protocols
 
-### VI. Observability
-Everything must be inspectable:
-- Structured logging required
-- Frontend logs → backend for unified stream
-- Error context must be sufficient for debugging
+### Constitutional Compliance Protocol
+All agents must reference and comply with these constitutional principles in their decision-making processes. Any deviation must be explicitly justified and documented.
 
-### VII. Versioning & Breaking Changes
-- MAJOR.MINOR.BUILD format
-- BUILD increments on every change
-- Breaking changes require parallel tests and migration plan
+### Quality Assurance Protocol
+All code generation and modification must pass through quality assurance checks including:
+- Unit test validation
+- Code style compliance
+- Security scanning
+- Performance benchmarking
 
-## Additional Constraints
+### Collaboration Protocol
+Agents must work collaboratively, sharing context and coordinating actions to ensure system-wide consistency and coherence.
 
-### Agent Communication Protocol
-- All communication between agents must use strictly validated schemas
-- LLM responses must be parsed with robust error handling
-- No fragile parsing mechanisms - responses must be structured JSON
+## Development Standards
 
-### Error Handling
-- Single, authoritative error handling module
-- All errors must be classified and have remediation steps
-- Error context must be preserved for debugging
+### Code Quality Standards
+- All code must follow established style guides
+- Functions should be small and focused
+- Variables and functions must have descriptive names
+- Comments should explain "why" not "what"
+- All public APIs must be documented
 
-### Security Requirements
-- All dependencies must pass security audit (no high/critical vulnerabilities)
-- API keys and secrets must be properly managed
-- Input validation required for all external inputs
+### Documentation Standards
+- All features must include usage documentation
+- Complex algorithms must include explanatory comments
+- API changes must be reflected in documentation
+- Examples should be provided for all major features
 
-## Development Workflow
+### Testing Standards
+- Minimum 80% code coverage for new features
+- Tests must be fast, isolated, and deterministic
+- Edge cases must be explicitly tested
+- Integration tests must verify end-to-end functionality
 
-### Specification Process
-1. Every new feature must start with a clear, unambiguous specification
-2. Technical plans must be created before implementation
-3. Plans become input for the Reference-First architecture
+## System Governance
 
-### Debugging Protocol
-1. First action when given a bug report MUST be to write a failing test
-2. Only after test is in place may code fixes be applied
-3. All fixes must be verified by the QA agent
+### Change Management
+All significant changes to the system must follow the established change management process including:
+1. Proposal submission
+2. Community review
+3. Impact assessment
+4. Implementation
+5. Validation
+6. Deployment
 
-### Quality Assurance
-1. QA agent must verify constitutional compliance
-2. Dependency vulnerability scanning required
-3. Static analysis must pass before code is accepted
+### Security Protocol
+- All external dependencies must be vetted
+- Security vulnerabilities must be addressed immediately
+- Access controls must be regularly reviewed
+- Data privacy must be maintained at all times
 
-## Governance
+### Performance Protocol
+- System performance must be continuously monitored
+- Bottlenecks must be identified and addressed
+- Resource usage must be optimized
+- Scalability must be considered in all designs
 
-This constitution supersedes all other practices. All PRs and reviews must verify compliance with these principles.
+## Enforcement
 
-Amendments to this constitution require:
-- Explicit documentation of the rationale for change
-- Review and approval by project maintainers
-- Backwards compatibility assessment
+### Compliance Monitoring
+The system includes built-in compliance monitoring to ensure adherence to constitutional principles.
 
-Complexity must be justified. Use this document for runtime development guidance.
+### Violation Handling
+Any constitutional violations will trigger appropriate corrective actions including:
+- Automated alerts
+- Process intervention
+- Capability suspension
+- Human review escalation
 
-**Version**: 1.0.0 | **Ratified**: 2025-09-07 | **Last Amended**: 2025-09-07
+### Continuous Improvement
+The constitution is a living document that evolves with the system. Regular reviews and updates ensure continued relevance and effectiveness.

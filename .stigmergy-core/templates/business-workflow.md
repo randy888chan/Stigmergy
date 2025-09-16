@@ -1,60 +1,70 @@
-## BUSINESS WORKFLOW PROCESS
+# Business Workflow
 
-Follow this structured process for all business-related projects:
+## Overview
+This document outlines the standard workflow for business analysis and validation within the Stigmergy system.
 
-### PHASE 1: BRAINSTORMING
+## Workflow Steps
 
-- Understand the user's high-level business goal
-- Ask clarifying questions about target market, revenue model, and competitive landscape
-- Identify key stakeholders and user personas
-- Document assumptions and constraints
-- **Output**: `brainstorming.md` with business vision
-- **Agents Involved**: Analyst, Business Planner
+### 1. Business Analysis
+- Understand business objectives and goals
+- Identify key stakeholders and their needs
+- Analyze market conditions and competition
+- Assess technical feasibility
 
-### PHASE 2: BUSINESS REQUIREMENTS
+### 2. Value Proposition
+- Define unique value proposition
+- Identify target audience
+- Analyze customer pain points
+- Determine business model
 
-- Convert brainstorming into business requirements
-- Define key metrics and success criteria
-- Identify revenue streams and cost structure
-- Document competitive analysis and market positioning
-- **Output**: `business_requirements.md` with complete business model
-- **Agents Involved**: Business Planner, Valuator
+### 3. Risk Assessment
+- Identify business risks
+- Assess financial implications
+- Evaluate regulatory requirements
+- Consider market risks
 
-### PHASE 3: BUSINESS PLAN DEVELOPMENT
+### 4. Business Validation
+- Validate assumptions with stakeholders
+- Conduct market research if needed
+- Assess ROI and financial viability
+- Get approval for proceeding
 
-- Create detailed business plan with financial projections
-- Outline marketing and sales strategy
-- Define operational requirements
-- Specify resource needs and timelines
-- **Output**: `business_plan.md` with comprehensive plan
-- **Agents Involved**: Business Planner
+### 5. Strategic Planning
+- Define strategic objectives
+- Create roadmap for implementation
+- Allocate resources
+- Set key performance indicators
 
-### PHASE 4: BUSINESS VALUATION
+## Business Metrics
 
-- Perform data-driven valuation of the business
-- Apply standard financial models (DCF, comparables)
-- Identify value drivers and risks
-- Document valuation methodology and assumptions
-- **Output**: `valuation_report.md` with valuation results
-- **Agents Involved**: Valuator
+### Financial Metrics
+- Revenue projections
+- Cost analysis
+- Profit margins
+- Return on investment
 
-### PHASE 5: EXECUTION PLANNING
+### Market Metrics
+- Market size and growth
+- Customer acquisition costs
+- Customer lifetime value
+- Market share targets
 
-- Translate business plan into actionable development tasks
-- Define verification criteria for business outcomes
-- Set up resource allocation for business activities
-- Create implementation roadmap
-- **Output**: `execution_plan.md` with business-focused roadmap
-- **Agents Involved**: Dispatcher, PM
+### Operational Metrics
+- Development velocity
+- Quality metrics
+- Customer satisfaction
+- Team productivity
 
-### BUSINESS-SPECIFIC PROTOCOLS
+## Decision Framework
 
-**Business Planner (Brian)**:
+### Go/No-Go Criteria
+- Clear business value demonstrated
+- Acceptable risk profile
+- Sufficient resources available
+- Alignment with strategic objectives
 
-- RESEARCH_FIRST_PROTOCOL: "When dispatched by the engine, my first step is always to analyze the project goal from the shared context. Then, I MUST use my `research.deep_dive` tool to conduct thorough market and competitor research. My query should be comprehensive (e.g., 'Conduct a market and competitor analysis for minimalist blog platforms. Identify key features, target audiences, and monetization strategies.')."
-- AUTONOMOUS_BUSINESS_PROTOCOL: "I will use market research to autonomously create the complete business documentation. Upon completion, I call `system.updateStatus` to transition the state without human approval."
-
-**Valuator (Val)**:
-
-- VALUATION_MATRIX_PROTOCOL: "I verify business value against: 1) Financial projections 2) Market size 3) Competitive advantage 4) Risk factors"
-- PROGRAMMATIC_VALUATION_PROTOCOL: "I use tools to calculate valuation metrics and document the process for auditability"
+### Prioritization Framework
+- Impact vs. Effort matrix
+- Strategic alignment
+- Resource availability
+- Time sensitivity

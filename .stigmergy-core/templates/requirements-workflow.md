@@ -1,42 +1,43 @@
-# Requirements Gathering Workflow
+# Requirements Workflow
 
-## 1. Initial Analysis
+## Overview
+This document outlines the standard workflow for gathering, analyzing, and documenting requirements.
 
-- Review project brief and brainstorming documents
-- Identify key user stories and business requirements
-- Document assumptions and constraints
-- **Output**: `requirements_analysis.md`
+## Workflow Steps
 
-## 2. User Story Creation
+### 1. Requirement Gathering
+- Interview stakeholders to understand needs
+- Identify functional and non-functional requirements
+- Document all requirements clearly
 
-- Convert requirements into user stories using the format: "As a [user type], I want [goal] so that [benefit]"
-- Define acceptance criteria for each story
-- Prioritize stories using MoSCoW method (Must have, Should have, Could have, Won't have)
-- **Output**: `user_stories.md`
+### 2. Requirement Analysis
+- Analyze requirements for clarity and completeness
+- Identify conflicts or inconsistencies
+- Prioritize requirements based on business value
 
-## 3. Technical Requirements
+### 3. Requirement Validation
+- Validate requirements with stakeholders
+- Ensure requirements are testable
+- Confirm requirements align with business objectives
 
-- Identify technical constraints and dependencies
-- Document API requirements and integration points
-- Specify data model and storage requirements
-- **Output**: `technical_requirements.md`
+### 4. Requirement Documentation
+- Create detailed requirement specifications
+- Include acceptance criteria for each requirement
+- Maintain version control of requirement documents
 
-## 4. Validation
+## Best Practices
 
-- Review requirements with stakeholders for alignment
-- Verify completeness and testability of requirements
-- Document any gaps or ambiguities
-- **Output**: `requirements_validation.md`
+### Clarity
+Requirements must be clear, unambiguous, and understandable.
 
-## 5. Finalization
+### Completeness
+All necessary information must be included in requirements.
 
-- Freeze requirements for the current iteration
-- Document version and approval
-- Hand off to architecture team
-- **Output**: `requirements_final.md`
+### Consistency
+Requirements must not conflict with each other.
 
-## Critical Protocols
+### Verifiability
+Each requirement must be testable and verifiable.
 
-- RESEARCH_FIRST_PROTOCOL: "Before finalizing requirements, I MUST use `research.deep_dive` to verify market needs and competitive landscape."
-- ASSUMPTION_DOCUMENTATION: "All assumptions must be explicitly documented and marked for verification."
-- USER-CENTRICITY_ABOVE_ALL: "Requirements must prioritize user needs and business value over technical convenience."
+### Traceability
+Requirements must be traceable to their source and to implementation.

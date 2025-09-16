@@ -1,4 +1,3 @@
-```yaml
 agent:
   id: "evaluator"
   alias: "@critic"
@@ -30,4 +29,3 @@ agent:
     - "read"
   engine_tools:
     - "stigmergy.task"
-```

@@ -96,6 +96,31 @@ class BenchmarkRunner {
       for (const criterion of problem.success_criteria) {
         // In a real implementation, we would have more sophisticated validation
         console.log(chalk.gray(`Checking criterion: ${criterion}`));
+        
+        // For specific criteria, we can implement more detailed checks
+        if (criterion.includes('function named')) {
+          // Extract function name from criterion
+          const match = criterion.match(/function named ['"](.+?)['"]/);
+          if (match) {
+            const functionName = match[1];
+            // Check if the function exists in the expected files
+            let functionFound = false;
+            for (const expectedFile of problem.expected_files) {
+              const filePath = path.join(solutionDir, expectedFile);
+              if (await fs.pathExists(filePath)) {
+                const content = await fs.readFile(filePath, 'utf8');
+                if (content.includes(functionName)) {
+                  functionFound = true;
+                  break;
+                }
+              }
+            }
+            if (!functionFound) {
+              console.error(chalk.red(`Function '${functionName}' not found in expected files`));
+              return false;
+            }
+          }
+        }
       }
       
       console.log(chalk.green(`Solution validation passed for: ${problem.title}`));

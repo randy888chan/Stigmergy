@@ -1,4 +1,3 @@
-```yaml
 # This is the master list of all agents available to the Stigmergy system.
 # The core engine uses this to discover and load agent definitions.
 agents:
@@ -8,7 +7,9 @@ agents:
   - id: debugger
   - id: design-architect
   - id: dev
+  - id: dispatcher
   - id: enhanced-dev
+  - id: evaluator
   - id: gemini-executor
   - id: guardian
   - id: health_monitor
@@ -16,12 +17,10 @@ agents:
   - id: orion
   - id: qa
   - id: qwen-executor
-  - id: refactorer
   - id: reference-architect
+  - id: refactorer
   - id: system
-  - id: test-agent
   - id: unified-executor
   - id: ux-expert
   - id: valuator
   - id: whitepaper_writer
-```

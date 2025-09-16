@@ -25,6 +25,7 @@ import config from "../stigmergy.config.js";
 import dashboardRouter from "./dashboard.js";
 import yaml from 'js-yaml';
 import trajectoryRecorder from "../services/trajectory_recorder.js";
+import { getCostTracking } from "./llm_adapter.js"; // Import cost tracking function
 
 const execPromise = promisify(exec);
 
@@ -111,6 +112,15 @@ export class Engine {
 
   setupRoutes() {
     this.app.use('/', dashboardRouter);
+    this.app.get('/api/cost', (req, res) => {
+      try {
+        const costData = getCostTracking();
+        res.json(costData);
+      } catch (error) {
+        console.error(chalk.red(`[API Error] ${error.message}`));
+        res.status(500).json({ error: error.message });
+      }
+    });
     this.app.post('/api/chat', async (req, res) => {
         try {
             const { agentId, prompt } = req.body;

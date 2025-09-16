@@ -21,6 +21,11 @@ let currentProviderContext = PROVIDER_CONTEXTS.STIGMERGY;
 let totalCost = 0;
 let dailyCost = 0;
 let providerCosts = {};
+let dailyCostHistory = []; // Store daily cost history for charting
+
+// Initialize daily cost history with today's date
+const today = new Date().toISOString().split('T')[0];
+dailyCostHistory.push({ date: today, cost: 0 });
 
 const META_PROMPT_PATH = path.join(
   process.cwd(),
@@ -37,10 +42,26 @@ const MODEL_PRICING = {
   'gpt-4': { input: 30.00, output: 60.00 },
   'gpt-4-turbo': { input: 10.00, output: 30.00 },
   'gpt-3.5-turbo': { input: 0.50, output: 1.50 },
+  'gpt-4o': { input: 5.00, output: 15.00 },
+  'gpt-4o-mini': { input: 0.15, output: 0.60 },
   
   // Google models
   'gemini-pro': { input: 0.50, output: 1.50 },
   'gemini-1.5-pro': { input: 7.00, output: 21.00 },
+  'gemini-1.5-flash': { input: 0.35, output: 1.05 },
+  
+  // Anthropic models
+  'claude-3-opus': { input: 15.00, output: 75.00 },
+  'claude-3-sonnet': { input: 3.00, output: 15.00 },
+  'claude-3-haiku': { input: 0.25, output: 1.25 },
+  
+  // Mistral models
+  'mistral-large': { input: 8.00, output: 24.00 },
+  'mistral-medium': { input: 2.70, output: 8.10 },
+  
+  // DeepSeek models
+  'deepseek-chat': { input: 0.14, output: 0.28 },
+  'deepseek-coder': { input: 0.14, output: 0.28 },
   
   // Default pricing for unknown models
   'default': { input: 1.00, output: 3.00 }
@@ -97,15 +118,43 @@ export function getProviderContext() {
 }
 
 export function getCostTracking() {
+  // Update daily cost history
+  const today = new Date().toISOString().split('T')[0];
+  const todayEntry = dailyCostHistory.find(entry => entry.date === today);
+  
+  if (!todayEntry) {
+    // Add new entry for today
+    dailyCostHistory.push({ date: today, cost: dailyCost });
+    
+    // Keep only the last 30 days
+    if (dailyCostHistory.length > 30) {
+      dailyCostHistory.shift();
+    }
+  } else {
+    // Update today's cost
+    todayEntry.cost = dailyCost;
+  }
+  
   return {
     totalCost,
     dailyCost,
-    providerCosts
+    providerCosts,
+    dailyCostHistory
   };
 }
 
 export function calculateCost(modelName, inputTokens, outputTokens) {
-  const pricing = MODEL_PRICING[modelName] || MODEL_PRICING['default'];
+  // Normalize model name to handle variations
+  const normalizedModelName = modelName.toLowerCase();
+  let pricing = MODEL_PRICING[normalizedModelName];
+  
+  // If exact match not found, try to find a partial match
+  if (!pricing) {
+    const modelKeys = Object.keys(MODEL_PRICING);
+    const matchedKey = modelKeys.find(key => normalizedModelName.includes(key));
+    pricing = MODEL_PRICING[matchedKey] || MODEL_PRICING['default'];
+  }
+  
   const inputCost = (inputTokens / 1000000) * pricing.input;
   const outputCost = (outputTokens / 1000000) * pricing.output;
   return inputCost + outputCost;

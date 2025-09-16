@@ -1,44 +1,100 @@
-# Architectural Design Workflow
+# Architecture Workflow
 
-## 1. Requirements Analysis
+## Overview
+This document outlines the standard workflow for system architecture design and validation within the Stigmergy system.
 
-- Review user stories and technical requirements
-- Identify key components and system boundaries
-- Document non-functional requirements (performance, security, scalability)
-- **Output**: `architecture_requirements.md`
+## Workflow Steps
 
-## 2. High-Level Design
+### 1. Requirements Analysis
+- Analyze functional and non-functional requirements
+- Identify quality attributes (performance, scalability, security, etc.)
+- Understand constraints and limitations
+- Define success criteria for architecture
 
-- Create component diagram showing major system parts
-- Define communication patterns and data flow
-- Specify technology choices with rationale
-- **Output**: `high_level_design.md`
+### 2. Architectural Design
+- Define system boundaries and components
+- Identify key architectural patterns
+- Design data flow and interfaces
+- Select appropriate technologies
 
-## 3. Detailed Design
+### 3. Design Validation
+- Validate design against requirements
+- Assess architectural risks
+- Review for scalability and performance
+- Ensure security considerations are addressed
 
-- Design individual components with interfaces
-- Define data models and storage schema
-- Document security considerations and implementation
-- **Output**: `detailed_design.md`
+### 4. Documentation
+- Create architectural diagrams
+- Document key design decisions
+- Specify component interfaces
+- Define deployment architecture
 
-## 4. Verification
+### 5. Review and Approval
+- Conduct architecture review with stakeholders
+- Address feedback and concerns
+- Get formal approval for architecture
+- Establish baseline for implementation
 
-- Check design against requirements and constraints
-- Validate against architectural principles
-- Identify potential risks and mitigation strategies
-- **Output**: `design_validation.md`
+## Architectural Principles
 
-## 5. Blueprint Creation
+### Modularity
+- Design for loose coupling and high cohesion
+- Define clear component boundaries
+- Minimize dependencies between modules
 
-- Create machine-readable execution plan
-- Define task decomposition strategy
-- Specify verification criteria for implementation
-- **Output**: `architecture_blueprint.json`
+### Scalability
+- Design for horizontal scaling when possible
+- Consider load distribution strategies
+- Plan for future growth
 
-## Critical Protocols
+### Maintainability
+- Design for easy updates and modifications
+- Follow established patterns and practices
+- Ensure clear documentation
 
-- BLUEPRINT_PROTOCOL: "I create detailed architectural blueprints that include component diagrams, data flow, and technology choices with justifications."
-- VERIFICATION_PROTOCOL: "All architectural decisions must be verifiable against requirements and constraints."
-- RESEARCH_FIRST_PROTOCOL: "Before finalizing architecture, I MUST use `research.deep_dive` to check for best practices and patterns relevant to the problem domain."
-- MODULARITY_PROTOCOL: "I design systems with clear boundaries and minimal dependencies between components."
-- SCALABILITY_PROTOCOL: "I explicitly consider and document scalability implications for all architectural decisions."
+### Security
+- Apply security by design principles
+- Implement defense in depth
+- Consider data protection requirements
+
+## Design Patterns
+
+### Microservices
+- Decompose system into independent services
+- Define clear service contracts
+- Implement service discovery and communication
+
+### Event-Driven Architecture
+- Use events for loose coupling
+- Implement event sourcing where appropriate
+- Design for eventual consistency
+
+### Layered Architecture
+- Separate concerns into distinct layers
+- Define clear interfaces between layers
+- Minimize cross-layer dependencies
+
+## Quality Attributes
+
+### Performance
+- Define performance benchmarks
+- Identify performance bottlenecks
+- Optimize critical paths
+
+### Availability
+- Design for fault tolerance
+- Implement redundancy where needed
+- Plan for disaster recovery
+
+### Security
+- Apply principle of least privilege
+- Implement authentication and authorization
+- Protect sensitive data
+
+## Architecture Decision Records
+
+Document all significant architecture decisions including:
+- Context and problem statement
+- Considered options
+- Decision rationale
+- Consequences and trade-offs

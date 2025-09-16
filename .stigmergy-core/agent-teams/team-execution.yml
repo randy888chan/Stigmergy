@@ -5,9 +5,7 @@ bundle:
   agents:
     - "dispatcher"
     - "dev"
-    - "enhanced-dev"
     - "gemini-executor"
-    - "qwen-executor"
     - "qa"
     - "debugger"
     - "refactorer"

@@ -12,32 +12,90 @@ const CostMonitor = () => {
     chartData: []
   });
 
-  // Mock data for demonstration
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    // In a real implementation, this would come from the WebSocket connection
-    const mockData = {
-      totalCost: 12.45,
-      todayCost: 2.30,
-      thisWeekCost: 8.75,
-      thisMonthCost: 12.45,
-      providers: [
-        { name: 'OpenAI', cost: 7.80, tokens: 125000 },
-        { name: 'Google', cost: 3.25, tokens: 89000 },
-        { name: 'OpenRouter', cost: 1.40, tokens: 45000 }
-      ],
-      chartData: [
-        { date: '2023-05-01', cost: 1.2 },
-        { date: '2023-05-02', cost: 2.5 },
-        { date: '2023-05-03', cost: 1.8 },
-        { date: '2023-05-04', cost: 3.1 },
-        { date: '2023-05-05', cost: 2.9 },
-        { date: '2023-05-06', cost: 1.7 },
-        { date: '2023-05-07', cost: 2.3 }
-      ]
+    const fetchCostData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/cost');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        
+        // Transform the data for the dashboard
+        const transformedData = {
+          totalCost: data.totalCost || 0,
+          todayCost: data.dailyCost || 0,
+          thisWeekCost: calculateWeeklyCost(data.dailyCostHistory),
+          thisMonthCost: calculateMonthlyCost(data.dailyCostHistory),
+          providers: Object.entries(data.providerCosts || {}).map(([name, cost]) => ({
+            name,
+            cost: cost || 0,
+            tokens: 0 // We don't have token data in the current implementation
+          })),
+          chartData: (data.dailyCostHistory || []).map(entry => ({
+            date: entry.date,
+            cost: entry.cost || 0
+          }))
+        };
+        
+        setCostData(transformedData);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching cost data:', err);
+        setError('Failed to load cost data');
+      } finally {
+        setLoading(false);
+      }
     };
+
+    // Fetch data immediately
+    fetchCostData();
     
-    setCostData(mockData);
+    // Set up polling to refresh data every 30 seconds
+    const intervalId = setInterval(fetchCostData, 30000);
+    
+    // Clean up interval on component unmount
+    return () => clearInterval(intervalId);
   }, []);
+
+  // Helper functions to calculate weekly and monthly costs
+  const calculateWeeklyCost = (dailyHistory) => {
+    if (!dailyHistory || dailyHistory.length === 0) return 0;
+    
+    // Get the last 7 days
+    const recentDays = dailyHistory.slice(-7);
+    return recentDays.reduce((sum, day) => sum + (day.cost || 0), 0);
+  };
+
+  const calculateMonthlyCost = (dailyHistory) => {
+    if (!dailyHistory || dailyHistory.length === 0) return 0;
+    
+    // Get the last 30 days
+    const recentDays = dailyHistory.slice(-30);
+    return recentDays.reduce((sum, day) => sum + (day.cost || 0), 0);
+  };
+
+  if (loading) {
+    return (
+      <div className="cost-monitor">
+        <h3>Cost Monitoring</h3>
+        <div className="loading">Loading cost data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="cost-monitor">
+        <h3>Cost Monitoring</h3>
+        <div className="error">{error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="cost-monitor">
@@ -83,13 +141,19 @@ const CostMonitor = () => {
       
       <div className="providers-list">
         <h4>Provider Breakdown</h4>
-        {costData.providers.map((provider, index) => (
-          <div key={index} className="provider-item">
-            <div className="provider-name">{provider.name}</div>
-            <div className="provider-cost">${provider.cost.toFixed(2)}</div>
-            <div className="provider-tokens">{provider.tokens.toLocaleString()} tokens</div>
-          </div>
-        ))}
+        {costData.providers.length > 0 ? (
+          costData.providers.map((provider, index) => (
+            <div key={index} className="provider-item">
+              <div className="provider-name">{provider.name}</div>
+              <div className="provider-cost">${provider.cost.toFixed(2)}</div>
+              {provider.tokens > 0 && (
+                <div className="provider-tokens">{provider.tokens.toLocaleString()} tokens</div>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="no-providers">No provider data available</div>
+        )}
       </div>
     </div>
   );

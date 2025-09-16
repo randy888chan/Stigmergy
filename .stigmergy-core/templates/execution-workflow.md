@@ -1,44 +1,63 @@
-# Execution Planning Workflow
+# Execution Workflow
 
-## 1. Task Assignment
+## Overview
+This document outlines the standard workflow for executing development tasks within the Stigmergy system.
 
-- Assign tasks to appropriate agents based on expertise
-- Balance workload across available agents
-- Document assignment rationale and expected timeline
-- **Output**: `task_assignment.md`
+## Workflow Steps
 
-## 2. Resource Setup
+### 1. Task Preparation
+- Review task requirements and acceptance criteria
+- Gather necessary resources and tools
+- Set up development environment
 
-- Configure required tools and environments
-- Prepare necessary data and test cases
-- Set up verification mechanisms
-- **Output**: `resource_setup.md`
+### 2. Implementation
+- Follow test-driven development approach
+- Write failing tests first
+- Implement functionality to pass tests
+- Refactor for clean code principles
 
-## 3. Implementation
+### 3. Testing
+- Run unit tests
+- Execute integration tests
+- Perform manual testing if required
+- Validate against acceptance criteria
 
-- Execute assigned tasks according to specifications
-- Document progress and challenges encountered
-- Request assistance when needed
-- **Output**: `implementation_log.md`
+### 4. Code Review
+- Self-review code for quality and standards
+- Ensure code follows established patterns
+- Document any deviations or special considerations
 
-## 4. Verification
+### 5. Deployment
+- Package changes for deployment
+- Deploy to appropriate environment
+- Verify deployment success
+- Monitor for any issues
 
-- Run verification procedures for completed tasks
-- Document verification results and metrics
-- Address any verification failures
-- **Output**: `verification_results.md`
+## Quality Gates
 
-## 5. Integration & Handoff
+### Code Quality
+- All code must pass linting checks
+- Code must meet established style guidelines
+- Complexity metrics must be within acceptable ranges
 
-- Integrate completed work with existing system
-- Prepare handoff documentation for next phase
-- Confirm completion with verification criteria
-- **Output**: `integration_report.md`
+### Test Coverage
+- Minimum 80% code coverage required
+- All new functionality must have tests
+- Edge cases must be adequately covered
 
-## Critical Protocols
+### Security
+- All security checks must pass
+- No known vulnerabilities in dependencies
+- Secure coding practices must be followed
 
-- VERIFICATION_MATRIX_PROTOCOL: "For each milestone, I verify against 4 dimensions: 1) TECHNICAL: Code passes all tests + metrics thresholds 2) FUNCTIONAL: Meets user story acceptance criteria 3) ARCHITECTURAL: Conforms to blueprint constraints 4) BUSINESS: Aligns with value metrics in business.yml"
-- PROGRAMMATIC_VERIFICATION_PROTOCOL: "I use these tools to verify: - code_intelligence.verifyArchitecture(blueprint_id) - business.calculateValueImpact(project_id) - qa.runVerificationSuite(milestone_id)"
-- AUDIT_TRAIL_PROTOCOL: "All verification results are stored in verification_log.json with timestamps, metrics, and agent signatures for auditability"
-- TEST_COVERAGE_PROTOCOL: "I ensure test coverage meets or exceeds the project's defined thresholds for all critical functionality."
-- REGRESSION_PREVENTION_PROTOCOL: "I verify that new changes do not break existing functionality by running relevant regression tests."
+## Best Practices
+
+### Continuous Integration
+- Integrate changes frequently
+- Automate build and test processes
+- Fix broken builds immediately
+
+### Collaboration
+- Communicate progress and blockers
+- Seek help when needed
+- Share knowledge and insights

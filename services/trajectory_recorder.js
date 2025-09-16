@@ -79,6 +79,24 @@ class TrajectoryRecorder {
   }
 
   /**
+   * Log an error event in the trajectory
+   * @param {string} recordingId - The recording identifier
+   * @param {object} errorData - Details of the error
+   */
+  logError(recordingId, errorData) {
+    this.logEvent(recordingId, 'error', errorData);
+  }
+
+  /**
+   * Log a decision event in the trajectory
+   * @param {string} recordingId - The recording identifier
+   * @param {object} decisionData - Details of the decision
+   */
+  logDecision(recordingId, decisionData) {
+    this.logEvent(recordingId, 'decision', decisionData);
+  }
+
+  /**
    * Finalize a recording and save it to disk
    * @param {string} recordingId - The recording identifier
    * @param {object} finalState - Final state of the task

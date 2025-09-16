@@ -1,4 +1,3 @@
-```yaml
 agent:
   id: "dispatcher"
   alias: "@saul"
@@ -39,4 +38,3 @@ agent:
   engine_tools:
     - "swarm_intelligence.*"
     - "stigmergy.task"
-```

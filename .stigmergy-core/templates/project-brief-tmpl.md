@@ -1,71 +1,47 @@
-# Project Brief: {{Project Name}}
+# Project Brief Template
 
-## 1. Core Vision
+## Project Overview
+**Project Name:** {{project_name}}
+**Project Description:** {{project_description}}
 
-### 1.1. Project Goal
+## Objectives
+- {{objective_1}}
+- {{objective_2}}
+- {{objective_3}}
 
-_A single, clear sentence describing the desired end state._
+## Scope
+**In Scope:**
+- {{in_scope_1}}
+- {{in_scope_2}}
 
-### 1.2. Target Audience
+**Out of Scope:**
+- {{out_of_scope_1}}
+- {{out_of_scope_2}}
 
-_Who will use this product? Be specific about demographics, needs, and pain points._
+## Stakeholders
+- {{stakeholder_1}}
+- {{stakeholder_2}}
 
-### 1.3. Value Proposition
+## Timeline
+**Start Date:** {{start_date}}
+**End Date:** {{end_date}}
+**Milestones:**
+- {{milestone_1}}: {{milestone_1_date}}
+- {{milestone_2}}: {{milestone_2_date}}
 
-_What specific value does this project deliver to the target audience? How does it solve their problems better than alternatives?_
+## Resources
+**Team Members:**
+- {{team_member_1}}: {{role_1}}
+- {{team_member_2}}: {{role_2}}
 
-## 2. Key Features
+**Tools and Technologies:**
+- {{tool_1}}
+- {{tool_2}}
 
-### 2.1. Must-Have Features
+## Success Criteria
+- {{success_criterion_1}}
+- {{success_criterion_2}}
 
-_List the essential features required for the minimum viable product (MVP)_
-
-### 2.2. Nice-to-Have Features
-
-_List features that would enhance the product but aren't critical for the MVP_
-
-### 2.3. Out of Scope
-
-_List features explicitly excluded from the current project scope_
-
-## 3. Success Metrics
-
-### 3.1. Business Metrics
-
-_Define measurable business outcomes (e.g., revenue, user acquisition, retention)_
-
-### 3.2. User Experience Metrics
-
-_Define metrics for user satisfaction and engagement_
-
-### 3.3. Technical Metrics
-
-_Define metrics for system performance, reliability, and maintainability_
-
-## 4. Constraints
-
-### 4.1. Timeline
-
-_Specific deadlines and milestones_
-
-### 4.2. Budget
-
-_Financial constraints and resource limitations_
-
-### 4.3. Technical Constraints
-
-_Technology stack limitations, integration requirements, etc._
-
-## 5. Stakeholders
-
-### 5.1. Primary Decision Makers
-
-_Who has final approval authority?_
-
-### 5.2. Key Contributors
-
-_Who will provide input and expertise?_
-
-### 5.3. End Users
-
-_Who will ultimately use the product?_
+## Risks
+- {{risk_1}}: {{mitigation_1}}
+- {{risk_2}}: {{mitigation_2}}
