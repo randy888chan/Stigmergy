@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "dev"
   alias: "@james"
@@ -36,3 +37,4 @@ agent:
     - "shell.*"
     - "code_intelligence.*"
     - "qa.*"
+```

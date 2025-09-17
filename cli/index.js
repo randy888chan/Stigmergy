@@ -20,6 +20,11 @@ const availableCommands = [
   'install',
   'install --with-mcp',
   'install --mcp-only',
+  'init',
+  'init --interactive',
+  'start-service',
+  'stop-service',
+  'service-status',
   'restore',
   'validate',
   'build',
@@ -120,10 +125,14 @@ program
 
 program
   .command("install")
-  .description("Installs the Stigmergy core files into the current directory.")
+  .description("Installs the Stigmergy core files into the current directory. (DEPRECATED - Use 'init' instead)")
   .option('--with-mcp', 'Also install MCP server for IDE integration')
   .option('--mcp-only', 'Install only MCP server (no core files)')
   .action(async (options) => {
+    console.log(chalk.yellow("⚠️  The 'install' command is deprecated and will be removed in a future version."));
+    console.log(chalk.yellow("⚠️  Please use 'stigmergy init' instead."));
+    console.log();
+    
     const installPath = path.resolve(__dirname, './commands/install.js');
     const { install } = await import(installPath);
     await install(options);
@@ -137,6 +146,31 @@ program
     console.log('');
     console.log('This command sets up the .stigmergy-core directory with');
     console.log('all necessary agent definitions and configuration files.');
+    console.log(chalk.yellow('⚠️  DEPRECATED: Use stigmergy init instead'));
+  });
+
+program
+  .command("init")
+  .description("Initialize Stigmergy in the current project directory.")
+  .option('--interactive', 'Interactive initialization with guided setup')
+  .action(async (options) => {
+    const initPath = path.resolve(__dirname, './commands/init.js');
+    const { init, interactiveInit } = await import(initPath);
+    if (options.interactive) {
+      await interactiveInit();
+    } else {
+      await init(options);
+    }
+  })
+  .on('--help', () => {
+    console.log('');
+    console.log('Examples:');
+    console.log('  $ stigmergy init');
+    console.log('  $ stigmergy init --interactive');
+    console.log('');
+    console.log('This command creates a .stigmergy directory in the current project');
+    console.log('with configuration files and directories for trajectories,');
+    console.log('evaluations, and state management.');
   });
 
 program
@@ -174,6 +208,55 @@ program
     console.log('  - Required dependencies');
     console.log('  - Core file integrity');
     console.log('  - Network connectivity');
+  });
+
+program
+  .command("start-service")
+  .description("Start the Stigmergy global service.")
+  .action(async () => {
+    const servicePath = path.resolve(__dirname, './commands/service.js');
+    const { startService } = await import(servicePath);
+    await startService();
+  })
+  .on('--help', () => {
+    console.log('');
+    console.log('Examples:');
+    console.log('  $ stigmergy start-service');
+    console.log('');
+    console.log('This command starts the Stigmergy service as a background process.');
+    console.log('The service will run on port 3010 and can be accessed by any project.');
+  });
+
+program
+  .command("stop-service")
+  .description("Stop the Stigmergy global service.")
+  .action(async () => {
+    const servicePath = path.resolve(__dirname, './commands/service.js');
+    const { stopService } = await import(servicePath);
+    await stopService();
+  })
+  .on('--help', () => {
+    console.log('');
+    console.log('Examples:');
+    console.log('  $ stigmergy stop-service');
+    console.log('');
+    console.log('This command stops the Stigmergy service.');
+  });
+
+program
+  .command("service-status")
+  .description("Check the status of the Stigmergy global service.")
+  .action(async () => {
+    const servicePath = path.resolve(__dirname, './commands/service.js');
+    const { serviceStatus } = await import(servicePath);
+    await serviceStatus();
+  })
+  .on('--help', () => {
+    console.log('');
+    console.log('Examples:');
+    console.log('  $ stigmergy service-status');
+    console.log('');
+    console.log('This command checks if the Stigmergy service is running.');
   });
 
 program
@@ -286,8 +369,9 @@ async function main() {
   try {
     const command = process.argv[2];
     // The guardian check should only run if a stigmergy command that REQUIRES a core is run.
-    // 'install' does not require one to exist beforehand.
-    if (command && command !== "install" && command !== "interactive") {
+    // 'install', 'init', 'start-service', 'stop-service', 'service-status' do not require one to exist beforehand.
+    const commandsWithoutGuardian = ["install", "init", "start-service", "stop-service", "service-status", "interactive"];
+    if (command && !commandsWithoutGuardian.includes(command)) {
       if (!await runGuardianCheck()) {
         process.exit(1);
       }

@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "test-agent"
   name: "Test Agent"
@@ -32,3 +33,4 @@ agent:
     - "file_system.*"
     - "shell.*"
     - "qa.*"
+```

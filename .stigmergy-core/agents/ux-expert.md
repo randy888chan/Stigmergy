@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "ux-expert"
   alias: "@sally"
@@ -33,3 +34,4 @@ agent:
     - "research.*"
     - "file_system.*"
     - "document_intelligence.*"
+```

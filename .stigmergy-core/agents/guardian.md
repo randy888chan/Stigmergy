@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "guardian"
   alias: "@guardian"
@@ -32,3 +33,4 @@ agent:
     - "core.validate"
     - "core.applyPatch"
     - "system.*"
+```

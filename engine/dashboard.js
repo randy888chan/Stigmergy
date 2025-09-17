@@ -3,6 +3,7 @@ import * as stateManager from "./state_manager.js";
 import path from "path";
 import { fileURLToPath } from 'url';
 import AgentPerformance from './agent_performance.js';
+import { getCostTracking } from './llm_adapter.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const router = express.Router();
@@ -12,6 +13,15 @@ router.get("/state", async (req, res) => {
     const state = await stateManager.getState();
     const performance = await AgentPerformance.getPerformanceInsights();
     res.json({ ...state, performance });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get("/cost", (req, res) => {
+  try {
+    const costData = getCostTracking();
+    res.json(costData);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

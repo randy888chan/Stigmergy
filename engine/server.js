@@ -333,20 +333,32 @@ export class Engine {
 
   getAgent(agentId) {
     // First try to find agent in current working directory (for project-specific agents)
-    let agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    // Look in the new .stigmergy directory structure first
+    let agentPath = path.join(process.cwd(), '.stigmergy', 'agents', `${agentId}.md`);
+    
+    // If not found, try the legacy .stigmergy-core directory
+    if (!fs.existsSync(agentPath)) {
+      agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    }
     
     // If not found in current directory, try Stigmergy root directory (fallback for universal compatibility)
     if (!fs.existsSync(agentPath)) {
       // Determine Stigmergy root directory
       const stigmergyRoot = path.resolve(__dirname, '..');
-      const stigmergyAgentPath = path.join(stigmergyRoot, '.stigmergy-core', 'agents', `${agentId}.md`);
+      // Try new .stigmergy directory structure
+      let stigmergyAgentPath = path.join(stigmergyRoot, '.stigmergy', 'agents', `${agentId}.md`);
+      
+      // If not found, try legacy .stigmergy-core directory
+      if (!fs.existsSync(stigmergyAgentPath)) {
+        stigmergyAgentPath = path.join(stigmergyRoot, '.stigmergy-core', 'agents', `${agentId}.md`);
+      }
       
       // If agent exists in Stigmergy root, use that path
       if (fs.existsSync(stigmergyAgentPath)) {
         agentPath = stigmergyAgentPath;
       } else {
-        // If agent doesn't exist in either location, throw error with both paths for debugging
-        throw new Error(`Agent definition file not found for: ${agentId}. Searched in: ${process.cwd()}/.stigmergy-core/agents/ and ${stigmergyRoot}/.stigmergy-core/agents/`);
+        // If agent doesn't exist in either location, throw error with all paths for debugging
+        throw new Error(`Agent definition file not found for: ${agentId}. Searched in: ${process.cwd()}/.stigmergy/agents/, ${process.cwd()}/.stigmergy-core/agents/, ${stigmergyRoot}/.stigmergy/agents/, and ${stigmergyRoot}/.stigmergy-core/agents/`);
       }
     }
 

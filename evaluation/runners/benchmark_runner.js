@@ -36,18 +36,47 @@ class BenchmarkRunner {
       const tempDir = path.join(problemDir, `temp_${problem.id}`);
       await fs.ensureDir(tempDir);
       
+      // Initialize Stigmergy in the temp directory
+      await execPromise(`npx stigmergy init`, { cwd: tempDir });
+      
       // Change to the temp directory
       const originalCwd = process.cwd();
       process.chdir(tempDir);
       
       try {
         // Run the Stigmergy system to solve the problem
-        const { stdout, stderr } = await execPromise(
-          `node ${path.join(originalCwd, 'engine/server.js')} --task "${problem.description}"`,
-          { timeout: this.benchmark.execution.timeout }
-        );
+        // For the new standalone architecture, we'll use the chat API
+        const chatRequest = {
+          agentId: 'system',
+          prompt: problem.description
+        };
         
-        output = stdout + stderr;
+        // Try to communicate with the Stigmergy service
+        try {
+          const response = await fetch('http://localhost:3010/api/chat', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(chatRequest),
+            timeout: this.benchmark.execution.timeout
+          });
+          
+          if (response.ok) {
+            const result = await response.json();
+            output = JSON.stringify(result, null, 2);
+          } else {
+            output = `HTTP Error: ${response.status} ${response.statusText}`;
+          }
+        } catch (fetchError) {
+          // If we can't connect to the service, try running the engine directly
+          console.log(chalk.yellow('Could not connect to Stigmergy service, running engine directly...'));
+          const { stdout, stderr } = await execPromise(
+            `node ${path.join(originalCwd, 'engine/server.js')} --task "${problem.description}"`,
+            { timeout: this.benchmark.execution.timeout }
+          );
+          output = stdout + stderr;
+        }
         
         // Check success criteria
         success = await this.validateSolution(problem, tempDir);

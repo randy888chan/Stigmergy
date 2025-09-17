@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "orion"
   alias: "@orion"
@@ -27,3 +28,4 @@ agent:
   engine_tools:
     - "swarm_intelligence.*"
     - "stigmergy.task"
+```

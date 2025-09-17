@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "qa"
   alias: "@quinn"
@@ -32,3 +33,4 @@ agent:
     - "file_system.*"
     - "qa.*"
     - "stigmergy.task"
+```

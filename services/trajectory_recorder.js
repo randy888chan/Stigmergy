@@ -117,7 +117,14 @@ class TrajectoryRecorder {
 
     // Save to disk
     try {
-      const trajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
+      // Try to save in the new .stigmergy directory structure first
+      let trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
+      
+      // If .stigmergy directory doesn't exist, try the legacy .stigmergy-core directory
+      if (!await fs.pathExists(path.join(process.cwd(), '.stigmergy'))) {
+        trajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
+      }
+      
       await fs.ensureDir(trajectoryDir);
       
       const filename = `trajectory_${recordingId}.json`;

@@ -2,6 +2,8 @@ import neo4j from "neo4j-driver";
 import "dotenv/config.js";
 import { EventEmitter } from "events";
 import config from "../../../stigmergy.config.js";
+import path from "path";
+import fs from "fs-extra";
 
 class GraphStateManager extends EventEmitter {
   constructor() {
@@ -10,14 +12,23 @@ class GraphStateManager extends EventEmitter {
     this.connectionStatus = "UNINITIALIZED";
     this.connectionTested = false;
     this.memoryState = null;
+    this.projectConfig = null;
     this.initializeDriver();
   }
 
   initializeDriver() {
-    if (process.env.NEO4J_URI && process.env.NEO4J_USER && process.env.NEO4J_PASSWORD) {
+    // Check for project-specific configuration first
+    this.projectConfig = this.getProjectConfig();
+    
+    // Use project-specific Neo4j configuration if available
+    const neo4jUri = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.uri) || process.env.NEO4J_URI;
+    const neo4jUser = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.user) || process.env.NEO4J_USER;
+    const neo4jPassword = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.password) || process.env.NEO4J_PASSWORD;
+    
+    if (neo4jUri && neo4jUser && neo4jPassword) {
       try {
         // For Aura connections, don't add additional encryption config as it's already in the URI
-        const isAura = process.env.NEO4J_URI.includes('neo4j+s://') || process.env.NEO4J_URI.includes('neo4j+ssc://');
+        const isAura = neo4jUri.includes('neo4j+s://') || neo4jUri.includes('neo4j+ssc://');
         
         // Only add driver config for non-Aura connections
         let driverConfig = {};
@@ -27,8 +38,8 @@ class GraphStateManager extends EventEmitter {
         }
         
         this.driver = neo4j.driver(
-          process.env.NEO4J_URI,
-          neo4j.auth.basic(process.env.NEO4J_USER, process.env.NEO4J_PASSWORD),
+          neo4jUri,
+          neo4j.auth.basic(neo4jUser, neo4jPassword),
           driverConfig
         );
         this.connectionStatus = "INITIALIZED";
@@ -37,9 +48,9 @@ class GraphStateManager extends EventEmitter {
         this.connectionStatus = "FAILED_INITIALIZATION";
         console.error("GraphStateManager: Failed to initialize Neo4j driver.", e.message);
       }
-    } else if (config.features.neo4j === "required") {
+    } else if ((this.projectConfig && this.projectConfig.features && this.projectConfig.features.neo4j === "required") || config.features.neo4j === "required") {
       this.connectionStatus = "REQUIRED_MISSING";
-      console.error("GraphStateManager: Neo4j is required, but credentials are not set in .env.");
+      console.error("GraphStateManager: Neo4j is required, but credentials are not set in .env or project config.");
     } else {
         this.connectionStatus = "NOT_CONFIGURED";
         console.warn("GraphStateManager: Neo4j credentials not set. State will not be persisted.");
@@ -76,12 +87,16 @@ class GraphStateManager extends EventEmitter {
   }
 
   async getState(projectName = "default") {
+    // Check for project-specific configuration
+    const projectConfig = this.getProjectConfig();
+    
     const defaultState = {
         project_name: projectName,
         project_status: "NEEDS_INITIALIZATION",
         project_manifest: { tasks: [] },
         history: [],
         fallback_mode: false,
+        project_config: projectConfig
     };
 
     // If we've already determined that Neo4j is not available, use memory state
@@ -218,6 +233,57 @@ class GraphStateManager extends EventEmitter {
     } finally {
       await session.close();
     }
+  }
+
+  getProjectConfig() {
+    // If we've already loaded the project config, return it
+    if (this.projectConfig) {
+      return this.projectConfig;
+    }
+    
+    // Try to load project-specific configuration
+    try {
+      // First check for .stigmergy/config.js (new structure)
+      let configPath = path.join(process.cwd(), '.stigmergy', 'config.js');
+      
+      // If not found, check for .stigmergy-core/config.js (legacy structure)
+      if (!fs.existsSync(configPath)) {
+        configPath = path.join(process.cwd(), '.stigmergy-core', 'config.js');
+      }
+      
+      // If still not found, check for .stigmergy/config.json
+      if (!fs.existsSync(configPath)) {
+        configPath = path.join(process.cwd(), '.stigmergy', 'config.json');
+      }
+      
+      // If still not found, check for .stigmergy-core/config.json
+      if (!fs.existsSync(configPath)) {
+        configPath = path.join(process.cwd(), '.stigmergy-core', 'config.json');
+      }
+      
+      // If we found a config file, load it
+      if (fs.existsSync(configPath)) {
+        // For .js files, we need to import them
+        if (configPath.endsWith('.js')) {
+          // Use synchronous import approach to avoid async issues
+          delete require.cache[require.resolve(configPath)];
+          const projectConfig = require(configPath);
+          this.projectConfig = projectConfig.default || projectConfig;
+          return this.projectConfig;
+        }
+        // For .json files, we can read them directly
+        else if (configPath.endsWith('.json')) {
+          const projectConfig = fs.readJsonSync(configPath);
+          this.projectConfig = projectConfig;
+          return this.projectConfig;
+        }
+      }
+    } catch (error) {
+      console.warn("GraphStateManager: Failed to load project-specific configuration:", error.message);
+    }
+    
+    // Return null if no project-specific configuration found
+    return null;
   }
 
   subscribeToChanges(callback) {

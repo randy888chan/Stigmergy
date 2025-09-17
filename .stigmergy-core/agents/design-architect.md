@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "design-architect"
   alias: "@winston"
@@ -31,3 +32,4 @@ agent:
   engine_tools:
     - "file_system.*"
     - "code_intelligence.*"
+```

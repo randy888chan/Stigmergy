@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "whitepaper_writer"
   alias: "@whitney"
@@ -32,3 +33,4 @@ agent:
     - "file_system.*"
     - "document_intelligence.*"
     - "research.*"
+```

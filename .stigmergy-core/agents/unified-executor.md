@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "unified-executor"
   alias: "@unified"
@@ -39,3 +40,4 @@ agent:
     - "stigmergy.task"
     - "file_system.*"
     - "shell.*"
+```

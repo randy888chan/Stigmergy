@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "context_preparer"
   alias: "@context"
@@ -32,3 +33,4 @@ agent:
     - "code_intelligence.*"
     - "document_intelligence.*"
     - "research.*"
+```

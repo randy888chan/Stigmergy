@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "metis"
   alias: "@metis"
@@ -30,3 +31,4 @@ agent:
     - "swarm_intelligence.*"
     - "file_system.*"
     - "guardian.propose_change"
+```

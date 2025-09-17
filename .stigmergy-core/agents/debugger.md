@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "debugger"
   alias: "@dexter"
@@ -29,3 +30,4 @@ agent:
     - "file_system.*"
     - "shell.*"
     - "code_intelligence.*"
+```

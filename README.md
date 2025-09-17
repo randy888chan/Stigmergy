@@ -2,6 +2,8 @@
 
 > **The world's first truly autonomous development system with reference-first architecture and natural language chat interface**
 
+**Note: Stigmergy now supports a new standalone service architecture that enables global installation and cross-language project support. See [Standalone Service Architecture](#standalone-service-architecture) for details.**
+
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![Neo4j](https://img.shields.io/badge/Neo4j-5.x-blue.svg)](https://neo4j.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -29,23 +31,91 @@ Stigmergy transforms high-level product goals into production-ready code through
 - **@system**: Universal gateway handling all external communications
 - **Enhanced QA**: Test-driven development enforcement with comprehensive quality checks
 
+## 🏗️ Standalone Service Architecture
+
+Stigmergy now supports a new standalone service architecture that enables:
+
+- **Global Installation**: Install once, use everywhere
+- **Cross-Language Support**: Works with Python, Java, Go, and any language
+- **No Project Duplication**: Core system files remain in global installation
+- **Backward Compatibility**: Existing projects continue to work
+
+### How It Works
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      Development Environment                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
+│  │   Python    │    │    Java     │    │     Go      │             │
+│  │   Project   │    │   Project   │    │   Project   │             │
+│  │             │    │             │    │             │             │
+│  │  ┌────────┐ │    │  ┌────────┐ │    │  ┌────────┐ │             │
+│  │  │.stigmer│ │    │  │.stigmer│ │    │  │.stigmer│ │             │
+│  │  │  gy/   │ │    │  │  gy/   │ │    │  │  gy/   │ │             │
+│  │  └────────┘ │    │  └────────┘ │    │  └────────┘ │             │
+│  └─────────────┘    └─────────────┘    └─────────────┘             │
+└─────────┬─────────────────┬───────────────────┬─────────────────────┘
+          │                 │                   │
+          └─────────────────┼───────────────────┘
+                            │
+          ┌─────────────────▼───────────────────┐
+          │     Stigmergy Standalone Service    │
+          │                                     │
+          │  ┌────────────────────────────────┐ │
+          │  │        CLI Interface           │ │
+          │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │      Engine (WebSocket)        │ │
+          │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │     Trajectory Recorder        │ │
+          │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │       Cost Monitor             │ │
+          │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │       Evaluator Agent          │ │
+          │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │     Benchmark Runner           │ │
+          │  └────────────────────────────────┘ │
+          └─────────────────┬───────────────────┘
+                            │
+          ┌─────────────────▼───────────────────┐
+          │         IDE Integration             │
+          │  (VS Code, Roo Code, Cursor, etc.)  │
+          └─────────────────────────────────────┘
+```
+
+### Key Benefits
+
+1. **Install Once, Use Everywhere**: Global installation eliminates the need to install Stigmergy in every project
+2. **Cross-Language Support**: Works with any programming language - Python, Java, Go, etc.
+3. **No Duplication**: Lightweight project initialization prevents duplicating the full system in each repository
+4. **Backward Compatibility**: Existing projects with `.stigmergy-core` continue to work without changes
+
+### Migration Path
+
+- **New Projects**: Use `stigmergy init` for lightweight initialization
+- **Existing Projects**: Continue using `stigmergy install` or gradually migrate to the new structure
+
 ## 🚀 Quick Start (2 minutes)
 
-### Option 1: Universal Installation (Recommended)
+### Option 1: Global Installation (Recommended)
 ```bash
-# Install Stigmergy with MCP integration for any project
-npx @randy888chan/stigmergy install
+# Install Stigmergy globally (one-time setup)
+npm install -g @randy888chan/stigmergy
 
-# Or install in specific project
+# Initialize Stigmergy in any project directory
 cd /path/to/your/project
-npx @randy888chan/stigmergy install
+stigmergy init
 
-# Start Stigmergy
-npm run stigmergy:start
+# Start the global Stigmergy service
+stigmergy start-service
 
-# Configure your IDE to use: ./mcp-server.js
-# For Roo Code: Point MCP server to ./mcp-server.js
-# For VS Code: See VSCODE_SETUP.md for detailed instructions
+# Configure your IDE to connect to: http://localhost:3010
+# For Roo Code: Point MCP server to http://localhost:3010
 ```
 
 ### Option 2: MCP Server Only
@@ -131,7 +201,16 @@ Stigmergy provides powerful CLI commands for easy setup and management:
 
 ### Installation Commands
 ```bash
-# Complete installation with MCP integration (default)
+# Global installation (one-time setup)
+npm install -g @randy888chan/stigmergy
+
+# Initialize Stigmergy in a project directory (lightweight)
+stigmergy init
+
+# Interactive initialization with guided setup
+stigmergy init --interactive
+
+# Legacy installation command (deprecated)
 npx @randy888chan/stigmergy install
 
 # Install with explicit MCP setup
@@ -149,8 +228,17 @@ npx @randy888chan/stigmergy mcp
 
 ### Management Commands
 ```bash
-# Start Stigmergy engine
+# Start Stigmergy engine in current directory
 npx @randy888chan/stigmergy start
+
+# Start global Stigmergy service
+stigmergy start-service
+
+# Stop global Stigmergy service
+stigmergy stop-service
+
+# Check global Stigmergy service status
+stigmergy service-status
 
 # System validation and health check
 npx @randy888chan/stigmergy validate
@@ -168,6 +256,15 @@ npx @randy888chan/stigmergy build
 npm run stigmergy:start     # Start Stigmergy for this project
 npm run stigmergy:stop      # Stop Stigmergy processes
 npm run mcp:test           # Test MCP server functionality
+```
+
+### Global Service Commands
+```bash
+# These are available globally after installing Stigmergy
+stigmergy start-service     # Start global Stigmergy service
+stigmergy stop-service      # Stop global Stigmergy service
+stigmergy service-status    # Check service status
+stigmergy init             # Initialize Stigmergy in current project
 ```
 
 ## 🏗️ Reference-First Development Workflow
@@ -232,7 +329,6 @@ npm run mcp:test           # Test MCP server functionality
 - **File Tracking**: Real-time monitoring of modified and created files
 - **Natural Language**: Use simple commands through your IDE for project coordination
 
-See [VSCODE_SETUP.md](VSCODE_SETUP.md) for detailed VS Code integration instructions.
 
 ### 🧠 **Code Intelligence**
 - **Neo4j Knowledge Graph**: Deep codebase understanding

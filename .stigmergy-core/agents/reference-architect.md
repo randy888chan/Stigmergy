@@ -1,6 +1,7 @@
+```yaml
 agent:
   id: "reference-architect"
-  alias: "@mary"
+  alias: "@reference-mary"
   name: "Mary"
   archetype: "Planner"
   title: "Document Intelligence & Pattern Discovery Specialist"
@@ -38,3 +39,4 @@ agent:
     - "document_intelligence.*"
     - "research.*"
     - "code_intelligence.*"
+```

@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "health_monitor"
   alias: "@health_monitor"
@@ -31,3 +32,4 @@ agent:
     - "file_system.*"
     - "shell.*"
     - "system.*"
+```

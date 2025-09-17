@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "valuator"
   alias: "@val"
@@ -37,3 +38,4 @@ agent:
     - "file_system.*"
     - "business_verification.*"
     - "document_intelligence.*"
+```

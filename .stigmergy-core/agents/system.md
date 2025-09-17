@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "system"
   alias: "@system"
@@ -35,3 +36,4 @@ agent:
     - "system.resume_engine"
     - "system.get_status"
     - "core.*"
+```

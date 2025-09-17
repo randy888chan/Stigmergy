@@ -1,6 +1,7 @@
+```yaml
 agent:
   id: "enhanced-dev"
-  alias: "@james"
+  alias: "@enhanced-james"
   name: "James"
   archetype: "Executor"
   title: "Enhanced Task Package Executor"
@@ -44,3 +45,4 @@ agent:
     - "shell.*"
     - "code_intelligence.*"
     - "qa.*"
+```

@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "gemini-executor"
   alias: "@gemini-executor"
@@ -32,3 +33,4 @@ agent:
   engine_tools:
     - "shell.*"
     - "file_system.*"
+```

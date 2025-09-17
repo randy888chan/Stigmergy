@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "qwen-executor"
   alias: "@qwen"
@@ -38,3 +39,4 @@ agent:
     - "qwen_integration.*"
     - "research.*"
     - "document_intelligence.*"
+```

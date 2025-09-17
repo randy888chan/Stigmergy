@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "refactorer"
   alias: "@rocco"
@@ -33,3 +34,4 @@ agent:
     - "file_system.*"
     - "shell.*"
     - "code_intelligence.*"
+```

@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "business_planner"
   alias: "@brian"
@@ -31,3 +32,4 @@ agent:
     - "file_system.*"
     - "business_verification.*"
     - "system.*"
+```
