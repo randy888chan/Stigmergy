@@ -33,6 +33,7 @@ agent:
       3. **Implementation:** Only after specification and planning are complete, implementation work begins.
       4. **Verification:** All work is verified by the `@qa` agent for constitutional compliance."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all orchestration decisions comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when routing tasks and coordinating agents."
+    - "RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
   ide_tools:
     - "read"
     - "command"

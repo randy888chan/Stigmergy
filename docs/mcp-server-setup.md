@@ -6,14 +6,20 @@ The MCP (Model Context Protocol) server provides the bridge between Roo Code and
 
 ## Manual MCP Server Configuration
 
-### Step 1: Locate Roo Code Settings
+### Step 1: Install Stigmergy Globally
+
+```bash
+npm install -g @randy888chan/stigmergy
+```
+
+### Step 2: Locate Roo Code Settings
 
 1. Open VS Code with Roo Code extension installed
 2. Go to Settings (Cmd/Ctrl + ,)
 3. Search for "MCP" or find Roo Code settings
 4. Look for "MCP Servers" configuration
 
-### Step 2: Add Stigmergy MCP Server
+### Step 3: Add Stigmergy MCP Server
 
 Add this configuration to your Roo Code MCP servers:
 
@@ -22,7 +28,7 @@ Add this configuration to your Roo Code MCP servers:
   "stigmergy-chat": {
     "command": "node",
     "args": ["mcp-server.js"],
-    "cwd": "/path/to/your/stigmergy/installation",
+    "cwd": "/usr/local/lib/node_modules/@randy888chan/stigmergy",
     "env": {
       "NODE_ENV": "production"
     }
@@ -30,22 +36,7 @@ Add this configuration to your Roo Code MCP servers:
 }
 ```
 
-**Important**: Replace `/path/to/your/stigmergy/installation` with the actual path where you installed Stigmergy.
-
-### Step 3: Find Your Stigmergy Installation Path
-
-If you're not sure where Stigmergy is installed, run:
-
-```bash
-# If installed globally
-npm list -g @randy888chan/stigmergy
-
-# If using npm link
-which stigmergy
-
-# Or find the path manually
-find /usr/local -name "stigmergy" 2>/dev/null
-```
+**Note**: The `mcp-server.js` is now part of the global Stigmergy installation, not a file to be copied into each project.
 
 ### Step 4: Restart Roo Code
 
@@ -63,7 +54,7 @@ For reference, here's what your complete MCP server configuration might look lik
   "stigmergy-chat": {
     "command": "node",
     "args": ["mcp-server.js"],
-    "cwd": "/Users/username/Documents/GitHub/Stigmergy",
+    "cwd": "/usr/local/lib/node_modules/@randy888chan/stigmergy",
     "env": {
       "NODE_ENV": "production"
     }

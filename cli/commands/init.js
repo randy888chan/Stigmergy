@@ -65,14 +65,64 @@ export default {
   await fs.ensureDir(path.join(stigmergyDir, "evaluations"));
   await fs.ensureDir(path.join(stigmergyDir, "state"));
   
+  // Ask user if they want to configure API keys now
+  const { configureKeys } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'configureKeys',
+      message: 'Would you like to configure your API keys now?',
+      default: true
+    }
+  ]);
+  
+  if (configureKeys) {
+    // Read the .env.stigmergy.example file
+    if (await fs.pathExists(envExamplePath)) {
+      const envExampleContent = await fs.readFile(envExamplePath, 'utf8');
+      const keyLines = envExampleContent.split('\n').filter(line => line.includes('_KEY='));
+      
+      // Create .env file
+      const envPath = path.join(stigmergyDir, ".env");
+      let envContent = '';
+      
+      // Process each key
+      for (const line of keyLines) {
+        const keyName = line.split('=')[0];
+        let link = 'provider website';
+        
+        // Provide specific links for known providers
+        if (keyName === 'GOOGLE_API_KEY') {
+          link = 'https://ai.google.dev/';
+        } else if (keyName === 'GITHUB_TOKEN') {
+          link = 'https://github.com/settings/tokens';
+        } else if (keyName === 'OPENROUTER_API_KEY') {
+          link = 'https://openrouter.ai/';
+        }
+        
+        const { keyValue } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'keyValue',
+            message: `Please enter your ${keyName} (you can get one at ${link}):`
+          }
+        ]);
+        
+        envContent += `${keyName}=${keyValue}\n`;
+      }
+      
+      // Write the .env file
+      await fs.writeFile(envPath, envContent);
+      OutputFormatter.success("API keys configured successfully");
+    }
+  }
+  
   OutputFormatter.success("Stigmergy project initialization complete");
   
   OutputFormatter.section("Next steps");
   OutputFormatter.list([
-    "1. Copy .stigmergy/.env.stigmergy.example to .stigmergy/.env and add your API keys",
-    "2. Start the Stigmergy service: 'stigmergy start-service'",
-    "3. Connect your IDE to the Stigmergy service (port 3010 by default)",
-    "4. Use natural language commands through your IDE"
+    "1. Start the Stigmergy service: 'stigmergy start-service'",
+    "2. Connect your IDE to the Stigmergy service (port 3010 by default)",
+    "3. Use natural language commands through your IDE"
   ]);
   
   return true;
@@ -148,14 +198,64 @@ export default {
   await fs.ensureDir(path.join(stigmergyDir, "evaluations"));
   await fs.ensureDir(path.join(stigmergyDir, "state"));
   
+  // Ask user if they want to configure API keys now
+  const { configureKeys } = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'configureKeys',
+      message: 'Would you like to configure your API keys now?',
+      default: true
+    }
+  ]);
+  
+  if (configureKeys) {
+    // Read the .env.stigmergy.example file
+    if (await fs.pathExists(envExamplePath)) {
+      const envExampleContent = await fs.readFile(envExamplePath, 'utf8');
+      const keyLines = envExampleContent.split('\n').filter(line => line.includes('_KEY='));
+      
+      // Create .env file
+      const envPath = path.join(stigmergyDir, ".env");
+      let envContent = '';
+      
+      // Process each key
+      for (const line of keyLines) {
+        const keyName = line.split('=')[0];
+        let link = 'provider website';
+        
+        // Provide specific links for known providers
+        if (keyName === 'GOOGLE_API_KEY') {
+          link = 'https://ai.google.dev/';
+        } else if (keyName === 'GITHUB_TOKEN') {
+          link = 'https://github.com/settings/tokens';
+        } else if (keyName === 'OPENROUTER_API_KEY') {
+          link = 'https://openrouter.ai/';
+        }
+        
+        const { keyValue } = await inquirer.prompt([
+          {
+            type: 'input',
+            name: 'keyValue',
+            message: `Please enter your ${keyName} (you can get one at ${link}):`
+          }
+        ]);
+        
+        envContent += `${keyName}=${keyValue}\n`;
+      }
+      
+      // Write the .env file
+      await fs.writeFile(envPath, envContent);
+      OutputFormatter.success("API keys configured successfully");
+    }
+  }
+  
   OutputFormatter.success("Stigmergy project initialization complete");
   
   OutputFormatter.section("Next steps");
   OutputFormatter.list([
-    "1. Copy .stigmergy/.env.stigmergy.example to .stigmergy/.env and add your API keys",
-    "2. Start the Stigmergy service: 'stigmergy start-service'",
-    "3. Connect your IDE to the Stigmergy service (port 3010 by default)",
-    "4. Use natural language commands through your IDE"
+    "1. Start the Stigmergy service: 'stigmergy start-service'",
+    "2. Connect your IDE to the Stigmergy service (port 3010 by default)",
+    "3. Use natural language commands through your IDE"
   ]);
   
   return true;

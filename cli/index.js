@@ -124,32 +124,6 @@ program
   });
 
 program
-  .command("install")
-  .description("Installs the Stigmergy core files into the current directory. (DEPRECATED - Use 'init' instead)")
-  .option('--with-mcp', 'Also install MCP server for IDE integration')
-  .option('--mcp-only', 'Install only MCP server (no core files)')
-  .action(async (options) => {
-    console.log(chalk.yellow("⚠️  The 'install' command is deprecated and will be removed in a future version."));
-    console.log(chalk.yellow("⚠️  Please use 'stigmergy init' instead."));
-    console.log();
-    
-    const installPath = path.resolve(__dirname, './commands/install.js');
-    const { install } = await import(installPath);
-    await install(options);
-  })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy install');
-    console.log('  $ stigmergy install --with-mcp');
-    console.log('  $ stigmergy install --mcp-only');
-    console.log('');
-    console.log('This command sets up the .stigmergy-core directory with');
-    console.log('all necessary agent definitions and configuration files.');
-    console.log(chalk.yellow('⚠️  DEPRECATED: Use stigmergy init instead'));
-  });
-
-program
   .command("init")
   .description("Initialize Stigmergy in the current project directory.")
   .option('--interactive', 'Interactive initialization with guided setup')

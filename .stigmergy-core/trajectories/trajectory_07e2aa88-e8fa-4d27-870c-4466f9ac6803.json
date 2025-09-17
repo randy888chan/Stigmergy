@@ -1,0 +1,47 @@
+{
+  "id": "07e2aa88-e8fa-4d27-870c-4466f9ac6803",
+  "taskId": "tool_non_existent.tool",
+  "startTime": "2025-09-17T15:59:46.607Z",
+  "events": [
+    {
+      "id": "f4549802-3341-4398-b062-c280a996bc43",
+      "timestamp": "2025-09-17T15:59:46.607Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "tool_non_existent.tool",
+        "initialContext": {
+          "toolName": "non_existent.tool",
+          "args": {},
+          "agentId": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "4131b224-8a2f-4c3e-9cb2-885f39507118",
+      "timestamp": "2025-09-17T15:59:46.609Z",
+      "type": "tool_execution_error",
+      "data": {
+        "toolName": "non_existent.tool",
+        "error": "Tool 'non_existent.tool' not found or is not a function in the engine toolbelt.",
+        "stack": "OperationalError: Tool 'non_existent.tool' not found or is not a function in the engine toolbelt.\n    at ErrorHandler.process (/Users/user/Documents/GitHub/Stigmergy/utils/errorHandler.js:46:12)\n    at process (/Users/user/Documents/GitHub/Stigmergy/engine/tool_executor.js:202:43)\n    at Object.<anonymous> (/Users/user/Documents/GitHub/Stigmergy/tests/integration/tool_executor.test.js:139:5)",
+        "executionTime": 2
+      }
+    },
+    {
+      "id": "c212b171-fdf8-4af0-8f11-53055f0d0b63",
+      "timestamp": "2025-09-17T15:59:46.609Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {}
+      }
+    }
+  ],
+  "context": {
+    "toolName": "non_existent.tool",
+    "args": {},
+    "agentId": "test-agent-permitted"
+  },
+  "endTime": "2025-09-17T15:59:46.609Z",
+  "finalState": {},
+  "duration": 2
+}

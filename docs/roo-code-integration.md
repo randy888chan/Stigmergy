@@ -9,11 +9,21 @@ This guide helps you integrate Stigmergy with Roo Code for seamless AI-powered d
 2. Install the "Roo Code" extension from the marketplace
 3. Restart VS Code
 
-### Step 2: Configure MCP Server (Manual)
+### Step 2: Install Stigmergy Globally
+
+```bash
+npm install -g @randy888chan/stigmergy
+```
+
+### Step 3: Start the Global Stigmergy Service
+
+```bash
+stigmergy start-service
+```
+
+### Step 4: Configure MCP Server in Roo Code
 
 **Important**: MCP server configuration is separate from agent configuration and must be done manually in Roo Code settings.
-
-See [MCP Server Setup Guide](mcp-server-setup.md) for detailed instructions.
 
 Quick summary:
 1. Open Roo Code settings in VS Code
@@ -24,7 +34,7 @@ Quick summary:
   "stigmergy-chat": {
     "command": "node",
     "args": ["mcp-server.js"],
-    "cwd": "/path/to/your/stigmergy/installation",
+    "cwd": "/usr/local/lib/node_modules/@randy888chan/stigmergy",
     "env": {
       "NODE_ENV": "production"
     }
@@ -32,17 +42,17 @@ Quick summary:
 }
 ```
 
-3. Replace `/path/to/your/stigmergy/installation` with actual path
+3. Adjust the `cwd` path to match your global Stigmergy installation
 4. Restart VS Code
 
-### Step 3: Start Stigmergy System
+### Step 5: Initialize Stigmergy in Your Project
 
 ```bash
-cd /path/to/your/stigmergy/project
-npm run stigmergy:start
+cd /path/to/your/project
+stigmergy init
 ```
 
-### Step 4: Test the Integration
+### Step 6: Test the Integration
 
 In Roo Code, try these commands:
 - "help me get started"

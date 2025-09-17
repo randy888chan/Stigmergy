@@ -1,0 +1,51 @@
+{
+  "id": "d498fdf8-898f-4afb-9474-572f1a351b6f",
+  "taskId": "tool_file_system.readFile",
+  "startTime": "2025-09-17T15:59:46.588Z",
+  "events": [
+    {
+      "id": "3d5dbafe-5c85-40b7-b6dc-1884a6b2bc34",
+      "timestamp": "2025-09-17T15:59:46.588Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "tool_file_system.readFile",
+        "initialContext": {
+          "toolName": "file_system.readFile",
+          "args": {
+            "path": "; rm -rf /"
+          },
+          "agentId": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "f2c4257b-37f8-440b-8674-c44cbbc2cae1",
+      "timestamp": "2025-09-17T15:59:46.596Z",
+      "type": "tool_execution_error",
+      "data": {
+        "toolName": "file_system.readFile",
+        "error": "Invalid arguments for tool 'file_system.readFile': [\n  {\n    \"validation\": \"regex\",\n    \"code\": \"invalid_string\",\n    \"message\": \"Invalid characters in path\",\n    \"path\": [\n      \"path\"\n    ]\n  }\n]",
+        "stack": "OperationalError: Invalid arguments for tool 'file_system.readFile': [\n  {\n    \"validation\": \"regex\",\n    \"code\": \"invalid_string\",\n    \"message\": \"Invalid characters in path\",\n    \"path\": [\n      \"path\"\n    ]\n  }\n]\n    at ErrorHandler.process (/Users/user/Documents/GitHub/Stigmergy/utils/errorHandler.js:46:12)\n    at process (/Users/user/Documents/GitHub/Stigmergy/engine/tool_executor.js:202:43)\n    at Object.<anonymous> (/Users/user/Documents/GitHub/Stigmergy/tests/integration/tool_executor.test.js:120:5)",
+        "executionTime": 8
+      }
+    },
+    {
+      "id": "06756a72-760d-4c7e-a771-2b2156898d4d",
+      "timestamp": "2025-09-17T15:59:46.596Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {}
+      }
+    }
+  ],
+  "context": {
+    "toolName": "file_system.readFile",
+    "args": {
+      "path": "; rm -rf /"
+    },
+    "agentId": "test-agent-permitted"
+  },
+  "endTime": "2025-09-17T15:59:46.596Z",
+  "finalState": {},
+  "duration": 8
+}

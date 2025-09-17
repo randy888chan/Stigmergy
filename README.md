@@ -98,7 +98,7 @@ Stigmergy now supports a new standalone service architecture that enables:
 ### Migration Path
 
 - **New Projects**: Use `stigmergy init` for lightweight initialization
-- **Existing Projects**: Continue using `stigmergy install` or gradually migrate to the new structure
+- **Existing Projects**: Use `stigmergy init` to migrate to the new structure
 
 ## 🚀 Quick Start (2 minutes)
 
@@ -151,7 +151,7 @@ cp .env.example .env
 # Add your API keys: GOOGLE_API_KEY, GITHUB_TOKEN, NEO4J_PASSWORD
 
 # 3. Initialize
-npm run install-core
+stigmergy init
 npm run health-check
 
 # 4. Start the system
@@ -210,15 +210,6 @@ stigmergy init
 # Interactive initialization with guided setup
 stigmergy init --interactive
 
-# Legacy installation command (deprecated)
-npx @randy888chan/stigmergy install
-
-# Install with explicit MCP setup
-npx @randy888chan/stigmergy install --with-mcp
-
-# Install only MCP server (no core files)
-npx @randy888chan/stigmergy install --mcp-only
-
 # Setup MCP server for specific project
 npx @randy888chan/stigmergy mcp --project /path/to/project
 
@@ -266,6 +257,20 @@ stigmergy stop-service      # Stop global Stigmergy service
 stigmergy service-status    # Check service status
 stigmergy init             # Initialize Stigmergy in current project
 ```
+
+### Web Bundle Commands
+```bash
+# Build optimized agent bundles for web-based AI assistants
+stigmergy build
+```
+
+Web bundles are optimized collections of Stigmergy agents designed for use with web-based AI assistants like ChatGPT and Gemini. These bundles contain specialized agent personas that can be used to fulfill high-level goals through iterative, multi-step prompting.
+
+**Best Practices for Web Bundle Usage:**
+- Use smaller, specialized teams (`team-web-planners.yml`, `team-execution.yml`) for focused tasks
+- Adopt agent personas explicitly by announcing "Now acting as @agent-name..." before beginning a task
+- Switch personas as the conversation requires (e.g., planning as @business_planner, then technical details as @design-architect)
+- Approach complex tasks iteratively with multi-step prompting rather than trying to solve everything at once
 
 ## 🏗️ Reference-First Development Workflow
 
@@ -452,7 +457,7 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 git clone https://github.com/randy888chan/stigmergy.git
 cd stigmergy
 npm install
-npm run install-core
+stigmergy init
 npm run health-check
 ```
 
@@ -487,7 +492,7 @@ Stigmergy embodies the principle that great software development should focus on
 
 <div align="center">
   <strong>Ready to revolutionize your development workflow?</strong><br>
-  <code>npx @randy888chan/stigmergy install</code> then <code>npm run stigmergy:start</code><br>
+  <code>stigmergy init</code> then <code>npm run stigmergy:start</code><br>
   Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!<br>
   Works with VS Code, Roo Code, and any IDE supporting MCP.
 </div>
