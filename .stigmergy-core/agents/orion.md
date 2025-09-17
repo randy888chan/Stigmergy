@@ -22,6 +22,7 @@ agent:
       3. **Team Selection:** Select the optimal team of agents for the mission.
       4. **Coordination:** Coordinate team activities and monitor progress.
       5. **Adaptation:** Adapt strategies based on changing conditions and feedback."
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all strategic planning and team formation activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when making strategic decisions and forming teams."
   ide_tools:
     - "read"

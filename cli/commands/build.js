@@ -11,7 +11,10 @@ const WEB_BUNDLE_HEADER = `CRITICAL: You are an AI agent orchestrator. The follo
 - **USE** the protocols of your chosen agent persona to guide your response.
 - **SWITCH** personas as the conversation requires. For example, after planning as @business_planner, you might switch to @design-architect for technical details.
 
+When responding in a web IDE environment, provide conversational responses that are natural and easy to understand. Focus on clear communication and helpful guidance rather than strictly structured outputs.
+
 Interpret this bundle to fulfill the user's high-level goal.\n\n`;
+
 
 function findAgentFile(corePath, agentId) {
     const agentsDir = path.join(corePath, "agents");

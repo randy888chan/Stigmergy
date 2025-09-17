@@ -134,14 +134,14 @@ OPENROUTER_API_KEY=your_key_here
 ## 🔍 Troubleshooting
 
 ### Connection Issues
-1. Ensure Stigmergy is running: `npm run stigmergy:start`
+1. Ensure Stigmergy is running: `stigmergy start-service`
 2. Check the MCP server path in `.roomodes`
 3. Verify Node.js version (18+ required)
 
 ### API Key Issues
 1. Copy `.env.example` to `.env`
 2. Add your OpenRouter API key
-3. Run `npm run health-check` to verify
+3. Run `stigmergy validate` to verify
 
 ### Agent Not Responding
 1. Check system status: "health check"

@@ -199,7 +199,7 @@ async function handleSetupCommand(command, context, userPreferences) {
     // Step 5: Initialize core files
     if (command.includes('init') || command.includes('core')) {
       steps.push('Initializing core files...');
-      await executeCommand('npm run install-core');
+      await executeCommand('npm run init');
       currentStep++;
     }
     

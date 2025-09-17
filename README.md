@@ -243,7 +243,7 @@ npx @randy888chan/stigmergy build
 
 ### Project Scripts (Added Automatically)
 ```bash
-# These are added to your package.json by the install command
+# These are added to your package.json by the init command
 npm run stigmergy:start     # Start Stigmergy for this project
 npm run stigmergy:stop      # Stop Stigmergy processes
 npm run mcp:test           # Test MCP server functionality
@@ -327,7 +327,7 @@ Web bundles are optimized collections of Stigmergy agents designed for use with 
 ### 🔗 **IDE Integration**
 - **Universal MCP Server**: Works in any project directory without manual configuration
 - **VS Code**: Native integration through Continue extension with MCP protocol
-- **Roo Code**: Native integration with automatic setup via `npx stigmergy install`
+- **Roo Code**: Native integration with automatic setup via `stigmergy init`
 - **Auto-detection**: Intelligent project context detection and port management
 - **MCP Protocol**: Model-Context Protocol for seamless IDE communication
 - **Structured Responses**: JSON-formatted status updates and coordination

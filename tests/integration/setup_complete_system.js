@@ -58,9 +58,9 @@ async function setupCoreFiles() {
   
   try {
     if (!await fs.pathExists('.stigmergy-core')) {
-      console.log(chalk.blue('   Installing core files...'));
-      await execPromise('npm run install-core');
-      console.log(chalk.green('   ✅ Core files installed'));
+      console.log(chalk.blue('   Initializing core files...'));
+      await execPromise('npm run init');
+      console.log(chalk.green('   ✅ Core files initialized'));
     } else {
       console.log(chalk.green('   ✅ Core files already present'));
     }

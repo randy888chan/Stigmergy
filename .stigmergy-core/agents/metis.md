@@ -24,6 +24,7 @@ agent:
       3. **Analysis:** Analyze patterns to understand root causes.
       4. **Hypothesis Formation:** Form hypotheses for system improvements.
       5. **Proposal:** Propose changes to improve system performance."
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all learning and improvement activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when analyzing system performance and proposing improvements."
   ide_tools:
     - "read"

@@ -26,6 +26,7 @@ agent:
       3. **Testing Validation:** Validate that all tests pass and coverage is adequate.
       4. **Code Review:** Review code for quality and best practices.
       5. **Approval:** Approve code for deployment or further development."
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all quality assurance activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when verifying code quality and making approval decisions."
   ide_tools:
     - "read"

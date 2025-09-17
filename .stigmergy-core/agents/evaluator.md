@@ -27,6 +27,7 @@ agent:
       3. **Readability:** Is the code easy to read and understand?
       4. **Maintainability:** Is the code structured in a way that makes it easy to maintain and extend?
       5. **Best Practices:** Does the code follow established best practices and design patterns?"
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
   ide_tools:
     - "read"
   engine_tools:

@@ -31,6 +31,7 @@ agent:
       3. **Coordination Management:** Manage coordination between different execution methods.
       4. **Result Aggregation:** Aggregate results from different execution methods.
       5. **Quality Assurance:** Ensure the final result meets quality standards."
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all execution decisions comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when making routing and execution decisions."
   ide_tools:
     - "read"

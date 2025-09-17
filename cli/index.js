@@ -17,9 +17,6 @@ const coreBackup = new CoreBackup();
 const availableCommands = [
   'start',
   'start --power',
-  'install',
-  'install --with-mcp',
-  'install --mcp-only',
   'init',
   'init --interactive',
   'start-service',
@@ -343,8 +340,8 @@ async function main() {
   try {
     const command = process.argv[2];
     // The guardian check should only run if a stigmergy command that REQUIRES a core is run.
-    // 'install', 'init', 'start-service', 'stop-service', 'service-status' do not require one to exist beforehand.
-    const commandsWithoutGuardian = ["install", "init", "start-service", "stop-service", "service-status", "interactive"];
+    // 'init', 'start-service', 'stop-service', 'service-status' do not require one to exist beforehand.
+    const commandsWithoutGuardian = ["init", "start-service", "stop-service", "service-status", "interactive"];
     if (command && !commandsWithoutGuardian.includes(command)) {
       if (!await runGuardianCheck()) {
         process.exit(1);

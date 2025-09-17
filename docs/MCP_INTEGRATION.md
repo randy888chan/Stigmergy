@@ -4,40 +4,41 @@ This guide explains how to set up Stigmergy integration for **any project** with
 
 ## 🚀 Quick Setup
 
-### Option 1: Full Installation with MCP (Recommended)
+### Option 1: Global Installation (Recommended)
 
-1. **Install Stigmergy with MCP integration**:
+1. **Install Stigmergy globally**:
    ```bash
-   npx @randy888chan/stigmergy install --with-mcp
-   ```
-   
-   Or install everything by default:
-   ```bash
-   npx @randy888chan/stigmergy install
+   npm install -g @randy888chan/stigmergy
    ```
 
-2. **Start Stigmergy**:
+2. **Initialize Stigmergy in your project**:
    ```bash
-   npm run stigmergy:start
+   cd /path/to/your/project
+   stigmergy init
    ```
 
-3. **Configure your IDE** MCP server to point to: `./mcp-server.js`
-   - For Roo Code: Point MCP server to `./mcp-server.js`
+3. **Start the global Stigmergy service**:
+   ```bash
+   stigmergy start-service
+   ```
+
+4. **Configure your IDE** MCP server to point to the global Stigmergy installation
+   - For Roo Code: Point MCP server to the global Stigmergy installation
    - For VS Code: See [VSCODE_SETUP.md](../VSCODE_SETUP.md) for detailed instructions
 
 That's it! 🎉
 
-### Option 2: MCP Server Only
+### Option 2: Project Initialization Only
 
-If you already have Stigmergy core installed and just need MCP integration:
+If you already have Stigmergy installed globally and just need to initialize it in a project:
 
 ```bash
-npx @randy888chan/stigmergy mcp
+stigmergy init
 ```
 
 Or for a specific project:
 ```bash
-npx @randy888chan/stigmergy mcp --project /path/to/project
+stigmergy init --project /path/to/project
 ```
 
 ### Option 3: Manual Setup (Legacy)
@@ -48,20 +49,20 @@ For advanced users who prefer manual control:
 
 ### Installation Commands
 ```bash
-# Full installation with MCP (default)
-npx @randy888chan/stigmergy install
+# Global installation (one-time setup)
+npm install -g @randy888chan/stigmergy
 
-# Full installation with explicit MCP setup  
-npx @randy888chan/stigmergy install --with-mcp
+# Initialize Stigmergy in a project directory (lightweight)
+stigmergy init
 
-# Install only MCP server (if core already exists)
-npx @randy888chan/stigmergy install --mcp-only
+# Interactive initialization with guided setup
+stigmergy init --interactive
 
-# Install MCP server for specific project
-npx @randy888chan/stigmergy mcp --project /path/to/project
+# Setup MCP server for specific project
+stigmergy mcp --project /path/to/project
 
-# Install MCP server in current directory
-npx @randy888chan/stigmergy mcp
+# Setup MCP server in current directory
+stigmergy mcp
 ```
 
 ### Management Commands
@@ -125,8 +126,8 @@ npm run mcp:test
 ### Common Issues
 
 1. **Port conflicts**: Stigmergy uses intelligent port selection (3010/3011)
-2. **Missing environment**: Ensure global Stigmergy is configured with `stigmergy install`
-3. **Connection failed**: Verify Stigmergy is running with `npm run stigmergy:start`
+2. **Missing environment**: Ensure global Stigmergy is configured with `stigmergy init`
+3. **Connection failed**: Verify Stigmergy is running with `stigmergy start-service`
 
 ## 📊 Validation
 
