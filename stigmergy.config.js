@@ -8,6 +8,26 @@ const config = {
     automation_mode: "autonomous", // Options: 'autonomous', 'approval_required', 'hybrid'
     provider_isolation: true, // Enable provider context awareness
     deepcode_integration: true, // Enable reference-first architecture
+    
+    // Specification-Driven Development features
+    sdd: {
+      enabled: true,
+      templatesPath: '.stigmergy-core/templates',
+      specDirectory: 'specs'
+    },
+    
+    // Document Intelligence features
+    documentIntelligence: {
+      semanticSegmentation: true,
+      supportedFormats: ['pdf', 'docx', 'html', 'md', 'txt'],
+      pythonPath: '/usr/bin/python3'
+    },
+    
+    // Memory Management features
+    memoryManagement: {
+      conciseSummarization: true,
+      summaryThreshold: 10000
+    }
   },
   // Enhanced LLM tier system with environment-driven flexibility
   model_tiers: {

@@ -242,7 +242,7 @@ async function processPlainText(filePath, options = {}) {
 }
 
 /**
- * AI-powered semantic segmentation
+ * AI-powered semantic segmentation with enhanced technical content preservation
  */
 async function semanticSegmentation(content, options = {}) {
   if (!aiProvider) {
@@ -253,10 +253,18 @@ async function semanticSegmentation(content, options = {}) {
   try {
     const prompt = `
 Analyze this technical document and segment it intelligently while preserving:
-- Complete algorithms and code blocks
-- Related concepts together
-- Clear logical boundaries
-- Technical coherence
+- Complete algorithms, mathematical formulas, and code blocks together
+- Related technical concepts and explanations grouped coherently
+- Clear logical boundaries between distinct topics
+- Technical coherence within each segment
+- Preserve context around implementation details
+
+Enhanced segmentation strategy:
+1. Identify and keep algorithm blocks intact with their explanations
+2. Group related technical concepts and their implementations
+3. Separate distinct topics or modules into different segments
+4. Maintain formula integrity with surrounding context
+5. Keep implementation examples with their descriptions
 
 Return segments separated by '---SEGMENT---' markers.
 
@@ -275,7 +283,20 @@ ${content.slice(0, 8000)}${content.length > 8000 ? '...[truncated]' : ''}
       .map(segment => segment.trim())
       .filter(segment => segment.length > 0);
     
-    return segments.length > 0 ? segments : segmentByStructure(content, options);
+    // If we got no valid segments, fall back to structure-based segmentation
+    if (segments.length === 0) {
+      console.warn('Semantic segmentation returned no segments, using basic segmentation');
+      return segmentByStructure(content, options);
+    }
+    
+    // Validate that segments contain meaningful content
+    const validSegments = segments.filter(segment => {
+      // Remove segments that are just formatting or very short
+      const cleanSegment = segment.replace(/[#\-\*=\s\n\r]+/g, '').trim();
+      return cleanSegment.length > 50;
+    });
+    
+    return validSegments.length > 0 ? validSegments : segmentByStructure(content, options);
   } catch (error) {
     console.warn('Semantic segmentation failed, using basic segmentation:', error.message);
     return segmentByStructure(content, options);
@@ -283,7 +304,7 @@ ${content.slice(0, 8000)}${content.length > 8000 ? '...[truncated]' : ''}
 }
 
 /**
- * Extract code patterns from processed content
+ * Extract code patterns from processed content with enhanced pattern recognition
  */
 export async function extractCodePatterns({ content, language = 'javascript', context = {} }) {
   try {
@@ -297,11 +318,20 @@ export async function extractCodePatterns({ content, language = 'javascript', co
         context: block.context || extractSurroundingText(content, block.index),
         type: detectPatternType(block.code),
         complexity: analyzeComplexity(block.code),
-        keywords: extractKeywords(block.code)
+        keywords: extractKeywords(block.code),
+        // Enhanced metadata for better pattern matching
+        lineCount: block.code.split('\n').length,
+        hasComments: /\/\/|\/\*|\*\//.test(block.code),
+        hasClasses: /\bclass\b|\bfunction\b|\bdef\b/.test(block.code),
+        hasAlgorithms: /\b(for|while|if|switch|recursion)\b/.test(block.code)
       };
       
       patterns.push(pattern);
     }
+    
+    // Also extract algorithmic patterns from plain text (for research papers)
+    const algorithmicPatterns = extractAlgorithmicPatterns(content);
+    patterns.push(...algorithmicPatterns);
     
     return {
       success: true,
@@ -502,6 +532,53 @@ function extractKeywords(code) {
   return uniqueKeywords.slice(0, 10); // Top 10 keywords
 }
 
+/**
+ * Extract algorithmic patterns from plain text content
+ * This is especially useful for research papers and technical documents
+ */
+function extractAlgorithmicPatterns(content) {
+  const patterns = [];
+  
+  // Extract algorithm descriptions (common in research papers)
+  const algorithmRegex = /(Algorithm\s*\d*:|ALGORITHM\s*\d*:|Procedure\s*\w*:|PROCEDURE\s*\w*:)[\s\S]*?(?=\n\n|Algorithm|$)/gi;
+  let match;
+  
+  while ((match = algorithmRegex.exec(content)) !== null) {
+    patterns.push({
+      code: match[0].trim(),
+      language: 'pseudocode',
+      context: extractSurroundingText(content, match.index, 300),
+      type: 'algorithm',
+      complexity: analyzeComplexity(match[0]),
+      keywords: extractKeywords(match[0]),
+      lineCount: match[0].split('\n').length,
+      hasComments: /\/\/|\/\*|\*\//.test(match[0]),
+      hasClasses: false,
+      hasAlgorithms: true
+    });
+  }
+  
+  // Extract mathematical formulas (common in research papers)
+  const formulaRegex = /(\$\$[\s\S]*?\$\$)|(\$[^$\n]+\$)/g;
+  
+  while ((match = formulaRegex.exec(content)) !== null) {
+    patterns.push({
+      code: match[0].trim(),
+      language: 'latex',
+      context: extractSurroundingText(content, match.index, 200),
+      type: 'formula',
+      complexity: { lines: 1, cyclomaticComplexity: 0, level: 'low' },
+      keywords: extractKeywords(match[0]),
+      lineCount: 1,
+      hasComments: false,
+      hasClasses: false,
+      hasAlgorithms: false
+    });
+  }
+  
+  return patterns;
+}
+
 async function generateTechnicalBrief(requirements, patterns, metadata = {}) {
   let briefContent = `# Technical Implementation Brief\n\n`;
   briefContent += `Generated: ${new Date().toISOString()}\n\n`;
@@ -529,7 +606,11 @@ async function generateTechnicalBrief(requirements, patterns, metadata = {}) {
       for (const pattern of typePatterns.slice(0, 3)) { // Top 3 per type
         briefContent += `#### ${pattern.context.slice(0, 50)}...\n\n`;
         briefContent += `**Complexity:** ${pattern.complexity?.level || 'unknown'}\n\n`;
-        briefContent += `\`\`\`${pattern.language}\n${pattern.code}\n\`\`\`\n\n`;
+        briefContent += `\`\`\`${pattern.language}
+${pattern.code}
+\`\`\`
+
+`;
         
         if (pattern.keywords?.length > 0) {
           briefContent += `**Keywords:** ${pattern.keywords.join(', ')}\n\n`;
@@ -559,7 +640,12 @@ function generateProcessingBrief(processResult, segments, originalPath) {
     `**Type:** ${processResult.type}\n` +
     `**Processed:** ${new Date().toISOString()}\n` +
     `**Segments:** ${segments.length}\n\n` +
-    `## Metadata\n\`\`\`json\n${JSON.stringify(processResult.metadata, null, 2)}\n\`\`\`\n\n` +
+    `## Metadata
+\`\`\`json
+${JSON.stringify(processResult.metadata, null, 2)}
+\`\`\`
+
+` +
     `## Processing Summary\n` +
     `- Successfully segmented into ${segments.length} logical sections\n` +
     `- Preserved code block integrity\n` +

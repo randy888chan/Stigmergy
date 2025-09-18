@@ -3,7 +3,7 @@
 ## Core Principles
 
 ### 1. Test-First Imperative
-All development work must follow Test-Driven Development (TDD) principles. Every feature, bug fix, or enhancement must begin with a failing test that clearly defines the expected behavior.
+All development work must follow Test-Driven Development (TDD) principles. Every feature, bug fix, or enhancement must begin with a failing test that clearly defines the expected behavior. The @qa agent and qa.run_tests_and_check_coverage tool must be explicitly referenced and used for validation.
 
 ### 2. Simplicity
 Prefer simple, clean solutions over complex ones. The simplest solution that meets the requirements is always preferred. Avoid premature optimization and over-engineering.
@@ -13,6 +13,9 @@ All work must produce outcomes that can be verified by AI systems. This includes
 
 ### 4. Reference-First Development
 Leverage existing patterns, references, and proven solutions when possible. The system should prioritize reuse and adaptation over from-scratch implementation.
+
+### 5. Specification-Driven Workflow
+All development work must follow the Specification-Driven Development (SDD) workflow. Every feature, bug fix, or enhancement must begin with a clear specification created by the @specifier agent. Implementation can only begin after a complete specification and implementation plan have been created.
 
 ## Agent Protocols
 
@@ -28,6 +31,13 @@ All code generation and modification must pass through quality assurance checks 
 
 ### Collaboration Protocol
 Agents must work collaboratively, sharing context and coordinating actions to ensure system-wide consistency and coherence.
+
+### Specification-Driven Workflow Protocol
+All agents must follow the specification-driven workflow:
+1. **Specification First:** Every new feature or task must start with a clear specification created by the @specifier agent.
+2. **Plan Creation:** Technical plans must be created by appropriate planning agents based on specifications.
+3. **Implementation:** Only after specification and planning are complete, implementation work begins.
+4. **Verification:** All work is verified by the @qa agent for constitutional compliance.
 
 ## Development Standards
 

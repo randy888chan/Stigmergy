@@ -76,6 +76,57 @@ export function _resetManifestCache() {
   agentManifest = null;
 }
 
+/**
+ * Trigger context summarization after writeFile operations
+ * Implements the concise memory strategy to prevent context overflow
+ */
+async function triggerContextSummarization(toolName, args, agentId, engine) {
+  try {
+    // Only trigger summarization if the feature is enabled
+    const isMemoryManagementEnabled = process.env.MEMORY_CONCISE_SUMMARIZATION === 'true' || 
+                                     (global.StigmergyConfig && global.StigmergyConfig.features && global.StigmergyConfig.features.memoryManagement);
+    
+    if (!isMemoryManagementEnabled) {
+      return;
+    }
+    
+    // Get the file path that was written
+    const filePath = args.file_path || args.path;
+    if (!filePath) {
+      return;
+    }
+    
+    console.log(`[MemoryManagement] Triggering context summarization for file: ${filePath}`);
+    
+    // Get the @system agent to perform summarization
+    const systemAgent = engine.getAgent('system');
+    
+    // Create a summarization prompt
+    const summarizationPrompt = `Please create a concise summary of the work completed in the file: ${filePath}
+    
+    This summary will replace the detailed conversation history to prevent context overflow.
+    
+    Include:
+    1. What was implemented or modified
+    2. Key functionality added
+    3. Important design decisions
+    4. Any dependencies or related components
+    
+    Keep the summary focused and technical.`;
+    
+    // Trigger the system agent to create a summary
+    const summaryResult = await engine.triggerAgent(systemAgent, summarizationPrompt);
+    
+    // In a full implementation, we would store this summary and use it to replace
+    // conversation history in subsequent iterations
+    console.log(`[MemoryManagement] Context summary created for ${filePath}`);
+    
+  } catch (error) {
+    console.warn(`[MemoryManagement] Failed to trigger context summarization: ${error.message}`);
+    // Don't let summarization failures break the main workflow
+  }
+}
+
 export function createExecutor(engine) {
   const toolbelt = {
     file_system: fileSystem,
@@ -195,7 +246,11 @@ export function createExecutor(engine) {
         executionTime: Date.now() - startTime
       });
 
-      if (toolName.startsWith("file_system.write")) clearFileCache();
+      if (toolName.startsWith("file_system.write")) {
+        clearFileCache();
+        // Trigger context summarization after writeFile operations for memory management
+        await triggerContextSummarization(toolName, safeArgs, agentId, engine);
+      }
       return JSON.stringify(result, null, 2);
 
     } catch (error) {
