@@ -1,15 +1,34 @@
+// Mock the state_manager module before any imports
+jest.mock('../../engine/state_manager.js', () => ({
+  getState: jest.fn(),
+  updateStatus: jest.fn(),
+  updateState: jest.fn(),
+  initializeProject: jest.fn(),
+  transitionToState: jest.fn(),
+  updateTaskStatus: jest.fn()
+}));
+
+// Mock the GraphStateManager
+jest.mock('../../src/infrastructure/state/GraphStateManager.js', () => {
+  return {
+    __esModule: true,
+    default: {
+      getState: jest.fn(),
+      updateState: jest.fn(),
+      testConnection: jest.fn().mockResolvedValue({ status: 'ok', message: 'Neo4j connection successful' }),
+      on: jest.fn(),
+      emit: jest.fn()
+    }
+  };
+});
+
 import { Engine } from '../../engine/server.js';
 import * as stateManager from '../../engine/state_manager.js';
-import { jest } from '@jest/globals';
-
-jest.mock('../../engine/state_manager.js');
-
 import fs from 'fs-extra';
 import path from 'path';
 
 describe('Engine Main Loop Integration Test', () => {
   let engine;
-  let getStateSpy, updateStatusSpy;
 
   beforeAll(() => {
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
@@ -25,6 +44,9 @@ describe('Engine Main Loop Integration Test', () => {
   });
 
   beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+    
     engine = new Engine();
     engine.server.listen = jest.fn((port, cb) => {
         if(cb) cb();
@@ -41,31 +63,50 @@ describe('Engine Main Loop Integration Test', () => {
       modelTier: 'b_tier'
     });
     
-    // Set up spies on the actual imported module's functions
-    getStateSpy = jest.spyOn(stateManager, 'getState');
-    updateStatusSpy = jest.spyOn(stateManager, 'updateStatus');
-
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
-    engine.stop();
-    jest.clearAllMocks();
-  });
-
-  test('should execute a pending task when in EXECUTION_IN_PROGRESS state', async () => {
-    getStateSpy.mockResolvedValue({
+    // Set up mocks for the state manager functions
+    stateManager.getState.mockResolvedValue({
+      project_status: 'EXECUTION_IN_PROGRESS',
+      project_manifest: {
+        tasks: [{ description: 'Write to a file', status: 'PENDING' }]
+      }
+    });
+    stateManager.updateStatus.mockResolvedValue();
+    
+    // Mock the GraphStateManager
+    engine.stateManager.getState.mockResolvedValue({
       project_status: 'EXECUTION_IN_PROGRESS',
       project_manifest: {
         tasks: [{ description: 'Write to a file', status: 'PENDING' }]
       }
     });
 
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    if (engine) {
+      engine.stop();
+    }
+    jest.clearAllMocks();
+  });
+
+  test('should execute a pending task when in EXECUTION_IN_PROGRESS state', async () => {
+    // Set up the specific mock for this test
+    const state = {
+      project_status: 'EXECUTION_IN_PROGRESS',
+      project_manifest: {
+        tasks: [{ description: 'Write to a file', status: 'PENDING' }]
+      }
+    };
+    
+    stateManager.getState.mockResolvedValueOnce(state);
+    engine.stateManager.getState.mockResolvedValueOnce(state);
+
     engine.start();
     await jest.advanceTimersByTimeAsync(5100);
 
-    expect(stateManager.getState).toHaveBeenCalled();
+    expect(engine.stateManager.getState).toHaveBeenCalled();
     expect(engine.getAgent).toHaveBeenCalledWith('dispatcher');
     expect(engine.triggerAgent).toHaveBeenCalled();
     expect(engine.executeTool).toHaveBeenCalledWith(
@@ -76,29 +117,38 @@ describe('Engine Main Loop Integration Test', () => {
   });
 
   test('should do nothing if project status is PAUSED', async () => {
-    getStateSpy.mockResolvedValue({
+    // Set up the specific mock for this test
+    const state = {
       project_status: 'PAUSED',
       project_manifest: { tasks: [] }
-    });
+    };
+    
+    stateManager.getState.mockResolvedValueOnce(state);
+    engine.stateManager.getState.mockResolvedValueOnce(state);
 
     engine.start();
     await jest.advanceTimersByTimeAsync(5100);
 
-    expect(stateManager.getState).toHaveBeenCalled();
+    expect(engine.stateManager.getState).toHaveBeenCalled();
     expect(engine.triggerAgent).not.toHaveBeenCalled();
   });
   
   test('should set status to HUMAN_INPUT_NEEDED if dispatcher fails to return a tool call', async () => {
-    getStateSpy.mockResolvedValue({
-        project_status: 'EXECUTION_IN_PROGRESS',
-        project_manifest: { tasks: [{ description: 'A task', status: 'PENDING' }] }
-    });
-    engine.triggerAgent.mockResolvedValue({ toolCall: null });
+    // Set up the specific mocks for this test
+    const state = {
+      project_status: 'EXECUTION_IN_PROGRESS',
+      project_manifest: { tasks: [{ description: 'A task', status: 'PENDING' }] }
+    };
+    
+    stateManager.getState.mockResolvedValueOnce(state);
+    engine.stateManager.getState.mockResolvedValueOnce(state);
+    engine.triggerAgent.mockResolvedValueOnce({ toolCall: null });
 
     engine.start();
     await jest.advanceTimersByTimeAsync(5100);
 
-    expect(updateStatusSpy).toHaveBeenCalledWith({
+    expect(engine.stateManager.getState).toHaveBeenCalled();
+    expect(stateManager.updateStatus).toHaveBeenCalledWith({
         newStatus: 'HUMAN_INPUT_NEEDED',
         message: 'Dispatcher failed to produce a valid tool call.'
     });

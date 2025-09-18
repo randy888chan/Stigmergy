@@ -11,25 +11,26 @@ describe("Shell Tool", () => {
   });
 
   test("should execute a permitted command successfully", async () => {
-    const result = await execute({ command: "console.log('Hello World'); 2 + 2", agentConfig: mockAgentConfig });
-    expect(result).toContain("OUTPUT:\nHello World");
-    expect(result).toContain("RESULT:\n4");
+    // Use a simple shell command that should work on most systems
+    const result = await execute({ command: "echo 'Hello World'", agentConfig: mockAgentConfig });
+    expect(result).toContain("Hello World");
   });
 
   test("should handle execution failure of a permitted command", async () => {
-    const result = await execute({ command: "nonExistentFunction()", agentConfig: mockAgentConfig });
+    // Use a command that will fail
+    const result = await execute({ command: "nonexistentcommand", agentConfig: mockAgentConfig });
     expect(result).toContain("EXECUTION FAILED:");
   });
 
   test("should throw an error for a non-permitted command", async () => {
     const restrictiveAgentConfig = {
       alias: "test-agent",
-      permitted_shell_commands: ["console\\.log.*"], // Only allow console.log
+      permitted_shell_commands: ["echo.*"], // Only allow echo commands
     };
     
     await expect(
-      execute({ command: "process.exit()", agentConfig: restrictiveAgentConfig })
-    ).rejects.toThrow('Security policy violation: Command "process.exit()" not permitted');
+      execute({ command: "ls", agentConfig: restrictiveAgentConfig })
+    ).rejects.toThrow('Security policy violation: Command "ls" not permitted');
   });
 
   test("should throw an error if no command is provided", async () => {
@@ -41,10 +42,10 @@ describe("Shell Tool", () => {
   test("should allow specific commands if permitted", async () => {
     const restrictiveAgentConfig = {
       alias: "test-agent",
-      permitted_shell_commands: ["Math\\..*"], // Allow Math functions
+      permitted_shell_commands: ["echo.*"], // Allow echo commands
     };
     
-    const result = await execute({ command: "Math.max(5, 10)", agentConfig: restrictiveAgentConfig });
-    expect(result).toContain("RESULT:\n10");
+    const result = await execute({ command: "echo 'test'", agentConfig: restrictiveAgentConfig });
+    expect(result).toContain("test");
   });
 });

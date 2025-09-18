@@ -145,24 +145,6 @@ program
   });
 
 program
-  .command("restore")
-  .description("Restores the .stigmergy-core from the latest backup.")
-  .action(async () => {
-    const restorePath = path.resolve(__dirname, './commands/restore.js');
-    const { default: restore } = await import(restorePath);
-    await restore();
-  })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy restore');
-    console.log('');
-    console.log('This command looks for the most recent backup in the');
-    console.log('.stigmergy-backups directory and restores it to');
-    console.log('.stigmergy-core.');
-  });
-
-program
   .command("validate")
   .description("Runs a system health check on the local installation.")
   .action(async () => {

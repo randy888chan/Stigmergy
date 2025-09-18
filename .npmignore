@@ -29,5 +29,5 @@ jest.config.js
 .vscode/
 *.log
 
-# Source of the core that gets installed, not shipped
-.stigmergy-core/
+# Source of the core that gets installed and shipped as read-only asset
+# .stigmergy-core/

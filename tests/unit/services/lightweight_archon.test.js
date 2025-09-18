@@ -42,11 +42,8 @@ describe('LightweightArchon', () => {
         answer: { response: 'test answer' }
       };
 
-      DeepWikiMCP.mockImplementation(() => {
-        return {
-          comprehensiveSearch: jest.fn().mockResolvedValue(mockDeepWikiResponse)
-        };
-      });
+      // Correctly mock the DeepWikiMCP class
+      DeepWikiMCP.prototype.comprehensiveSearch = jest.fn().mockResolvedValue(mockDeepWikiResponse);
 
       const intent = { 
         primary: 'documentation', 
@@ -61,11 +58,8 @@ describe('LightweightArchon', () => {
     });
 
     it('should handle DeepWiki errors gracefully', async () => {
-      DeepWikiMCP.mockImplementation(() => {
-        return {
-          comprehensiveSearch: jest.fn().mockRejectedValue(new Error('DeepWiki error'))
-        };
-      });
+      // Correctly mock the DeepWikiMCP class to throw an error
+      DeepWikiMCP.prototype.comprehensiveSearch = jest.fn().mockRejectedValue(new Error('DeepWiki error'));
 
       const intent = { 
         primary: 'documentation', 
@@ -100,11 +94,8 @@ describe('LightweightArchon', () => {
 describe('lightweight_archon_query', () => {
   it('should create an archon instance and call query', async () => {
     const mockResult = { answer: 'test' };
-    LightweightArchon.mockImplementation(() => {
-      return {
-        query: jest.fn().mockResolvedValue(mockResult)
-      };
-    });
+    // Correctly mock the LightweightArchon class
+    LightweightArchon.prototype.query = jest.fn().mockResolvedValue(mockResult);
 
     const result = await lightweight_archon_query({ query: 'test' });
     

@@ -1,6 +1,10 @@
 import vm from "vm";
+import { exec } from "child_process";
 import fs from "fs";
 import path from "path";
+import { promisify } from "util";
+
+const execPromise = promisify(exec);
 
 export async function execute({ command, agentConfig }) {
   if (!command) throw new Error("No command provided.");
@@ -16,87 +20,23 @@ export async function execute({ command, agentConfig }) {
     );
 
   try {
-    // Create a more secure sandbox environment
-    const sandbox = {
-      // Allow access to common JavaScript globals
-      console: {
-        log: (...args) => {
-          // Capture console output
-          sandbox.__output__ += args.map(arg => 
-            typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
-          ).join(' ') + '\n';
-        }
-      },
-      Math,
-      Date,
-      String,
-      Number,
-      Boolean,
-      Array,
-      Object,
-      RegExp,
-      JSON,
-      // Add a limited file system access (read-only)
-      fs: {
-        readFileSync: (filePath, encoding = 'utf8') => {
-          // Only allow reading files within the current working directory
-          const resolvedPath = path.resolve(filePath);
-          const cwd = process.cwd();
-          
-          // Security check: ensure the file is within the current working directory
-          if (!resolvedPath.startsWith(cwd)) {
-            throw new Error(`Access denied: ${filePath} is outside the allowed directory`);
-          }
-          
-          return fs.readFileSync(filePath, encoding);
-        },
-        existsSync: (filePath) => {
-          const resolvedPath = path.resolve(filePath);
-          const cwd = process.cwd();
-          
-          // Security check: ensure the file is within the current working directory
-          if (!resolvedPath.startsWith(cwd)) {
-            return false;
-          }
-          
-          return fs.existsSync(filePath);
-        }
-      },
-      path,
-      __output__: ''
-    };
-
-    // Remove potentially dangerous globals
-    const forbiddenGlobals = [
-      'process', 'require', 'module', 'exports', 'global', '__dirname', '__filename',
-      'eval', 'Function', 'setTimeout', 'setInterval', 'setImmediate',
-      'clearTimeout', 'clearInterval', 'clearImmediate'
-    ];
+    // Execute the command with a timeout
+    const { stdout, stderr } = await execPromise(command, { timeout: 5000 });
     
-    // Create a script from the command
-    const script = new vm.Script(command);
-    
-    // Create a context with the sandbox
-    const context = vm.createContext(sandbox);
-    
-    // Remove forbidden globals from the context
-    for (const globalName of forbiddenGlobals) {
-      context[globalName] = undefined;
+    // Return the output
+    const output = stdout.trim();
+    if (stderr && stderr.trim()) {
+      return `${output}\nSTDERR: ${stderr.trim()}`;
     }
-    
-    // Execute the script with a timeout
-    const result = script.runInContext(context, { timeout: 5000 });
-    
-    // Return the captured output and result
-    return `OUTPUT:
-${sandbox.__output__}
-
-RESULT:
-${result !== undefined ? JSON.stringify(result, null, 2) : 'undefined'}`;
+    return output || "";
   } catch (error) {
     // Handle timeout errors specifically
-    if (error.message.includes('Script execution timed out')) {
+    if (error.message.includes('timed out')) {
       return `EXECUTION FAILED: Command execution timed out after 5 seconds`;
+    }
+    // Handle other execution errors
+    if (error.stderr) {
+      return `EXECUTION FAILED: ${error.stderr.trim()}`;
     }
     return `EXECUTION FAILED: ${error.message}`;
   }

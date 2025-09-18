@@ -22,7 +22,7 @@
     "init": "node cli/index.js init",
     "pretest": "node scripts/setup-lightweight.js",
     "test": "jest --coverage",
-    "posttest": "node cli/index.js restore",
+    "posttest": "echo 'Test cleanup completed'",
     "test:watch": "jest --watch",
     "test:integration": "jest tests/integration --verbose",
     "test:unit": "jest tests/unit --verbose",

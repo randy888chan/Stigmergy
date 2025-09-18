@@ -2,6 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
 import { z } from "zod";
+import chalk from "chalk";
 import { OutputFormatter } from "../utils/output_formatter.js";
 
 // Helper to get the core path, respecting test environments

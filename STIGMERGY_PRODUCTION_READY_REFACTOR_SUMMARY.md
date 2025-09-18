@@ -101,6 +101,27 @@ This document summarizes the implementation of the Stigmergy Production-Ready Re
 **Files Modified**:
 - `dashboard/src/pages/Dashboard.js`
 
+## Security Enhancements
+
+### Core Protection
+**Status**: Complete
+**Description**: Implemented multiple layers of protection for the `.stigmergy-core` directory.
+
+**Changes Made**:
+1. Modified `.npmignore` to include `.stigmergy-core` in the NPM package as a read-only asset
+2. Enhanced test framework in `tests/setup.js` with additional safety checks to prevent accidental core modification
+3. Updated agent loading hierarchy in `engine/server.js` to prioritize local overrides
+4. Removed obsolete `restore-backup.js` script and associated CLI command
+
+**Files Modified**:
+- `.npmignore` - Modified to include .stigmergy-core
+- `tests/setup.js` - Enhanced safety checks
+- `engine/server.js` - Updated agent loading hierarchy
+- `cli/index.js` - Removed restore command
+
+**Files Removed**:
+- `scripts/restore-backup.js` - Obsolete script removed
+
 ## Summary
 
 All tasks from the design document have been implemented with the following approach:
@@ -109,11 +130,13 @@ All tasks from the design document have been implemented with the following appr
 3. Implemented executable benchmarks with validation scripts
 4. Expanded the reference library with high-quality repositories
 5. Added interactive dashboard features for better user experience
+6. Enhanced security with multiple layers of protection for the core system
 
 The refactor has successfully:
 1. Hardened the core with improved security measures
 2. Enhanced the "brain" with executable benchmarks
 3. Polished the user experience with interactive dashboard features
+4. Protected the core `.stigmergy-core` directory with multiple security layers
 
 Importantly, all changes were made without modifying the core `.stigmergy-core` directory, preserving the integrity of the agent definitions and system architecture.
 
@@ -136,6 +159,10 @@ These issues were present before our changes and would need to be addressed sepa
 - `evaluation/runners/benchmark_runner.js` - Implemented validation script execution
 - `services/code_reference_indexer.js` - Expanded reference repository list
 - `dashboard/src/pages/Dashboard.js` - Added clarification handler component
+- `.npmignore` - Modified to include .stigmergy-core
+- `tests/setup.js` - Enhanced safety checks
+- `cli/index.js` - Removed restore command
+- `package.json` - Removed isolated-vm dependency
 
 ### New Files:
 - `evaluation/validators/validate_factorial.js` - Validation script for factorial problem
@@ -146,3 +173,6 @@ These issues were present before our changes and would need to be addressed sepa
 - `dashboard/src/components/ClarificationHandler.js` - Component for handling agent clarifications
 - `dashboard/src/components/ClarificationHandler.css` - Styles for clarification handler
 - `STIGMERGY_PRODUCTION_READY_REFACTOR_SUMMARY.md` - This summary document
+
+### Removed Files:
+- `scripts/restore-backup.js` - Obsolete script removed

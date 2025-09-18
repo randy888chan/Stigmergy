@@ -20,6 +20,10 @@ const toolSchemas = {
   'stigmergy.task': {
     subagent_type: z.string().min(1),
     description: z.string().min(1),
+  },
+  'deepwiki.query': {
+    repository: z.string().min(1),
+    question: z.string().min(1),
   }
 };
 

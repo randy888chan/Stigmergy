@@ -10,10 +10,18 @@ import stateManager from "../../../src/infrastructure/state/GraphStateManager.js
 import { verifyMilestone } from "../../../engine/verification_system.js";
 
 // Mock the downstream dependencies
-jest.mock("../../../src/infrastructure/state/GraphStateManager.js", () => ({
-  getState: jest.fn(),
-  updateState: jest.fn(),
-}));
+jest.mock("../../../src/infrastructure/state/GraphStateManager.js", () => {
+  // Create a mock that extends EventEmitter
+  const EventEmitter = require('events');
+  class MockStateManager extends EventEmitter {
+    constructor() {
+      super();
+      this.getState = jest.fn();
+      this.updateState = jest.fn();
+    }
+  }
+  return new MockStateManager();
+});
 
 jest.mock("../../../engine/verification_system.js", () => ({
   verifyMilestone: jest.fn(),
@@ -33,12 +41,14 @@ describe("Engine State Manager", () => {
 
   test("updateState should pass the event to the graph state manager", async () => {
     const event = { type: "TEST_EVENT" };
+    stateManager.updateState.mockResolvedValue({ status: "updated" });
     await updateState(event);
     expect(stateManager.updateState).toHaveBeenCalledWith(event);
   });
 
   test("initializeProject should create a PROJECT_INITIALIZED event", async () => {
     const goal = "Build a new feature";
+    stateManager.updateState.mockResolvedValue({ status: "initialized" });
     await initializeProject(goal);
     expect(stateManager.updateState).toHaveBeenCalledWith({
       type: "PROJECT_INITIALIZED",
@@ -50,6 +60,7 @@ describe("Engine State Manager", () => {
   test("updateStatus should create a STATUS_UPDATED event", async () => {
     const newStatus = "PLANNING_PHASE";
     const message = "Moving to planning";
+    stateManager.updateState.mockResolvedValue({ status: "updated" });
     await updateStatus({ newStatus, message });
     expect(stateManager.updateState).toHaveBeenCalledWith({
       type: "STATUS_UPDATED",
@@ -61,6 +72,7 @@ describe("Engine State Manager", () => {
   describe("transitionToState", () => {
     test("should update status if verification passes", async () => {
       verifyMilestone.mockResolvedValue({ success: true });
+      stateManager.updateState.mockResolvedValue({ status: "transitioned" });
       await transitionToState("NEW_STATE", "milestone-1");
       expect(verifyMilestone).toHaveBeenCalledWith("milestone-1");
       expect(stateManager.updateState).toHaveBeenCalledWith({
@@ -72,6 +84,7 @@ describe("Engine State Manager", () => {
 
     test("should halt if verification fails", async () => {
       verifyMilestone.mockResolvedValue({ success: false });
+      stateManager.updateState.mockResolvedValue({ status: "halted" });
       await transitionToState("NEW_STATE", "milestone-1");
       expect(verifyMilestone).toHaveBeenCalledWith("milestone-1");
       expect(stateManager.updateState).toHaveBeenCalledWith({
@@ -96,6 +109,7 @@ describe("Engine State Manager", () => {
 
     test("should update the status of an existing task", async () => {
       stateManager.getState.mockResolvedValue(mockState);
+      stateManager.updateState.mockResolvedValue({ status: "task-updated" });
       await updateTaskStatus({ taskId: "task-1", newStatus: "COMPLETED" });
 
       const updatedTasks = [

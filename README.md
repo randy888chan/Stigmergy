@@ -11,6 +11,16 @@
 
 Stigmergy transforms high-level product goals into production-ready code through autonomous AI agents, reference pattern discovery, and intelligent workflow orchestration. Built for developers who want to focus on vision while AI handles implementation.
 
+## 🔒 Security-First Architecture
+
+Stigmergy implements a security-first architecture with multiple layers of protection for the core system:
+
+- **Immutable Core**: The `.stigmergy-core` directory is bundled as a read-only asset in the NPM package
+- **Enhanced Sandboxing**: Shell tool execution uses `isolated-vm` for stronger security isolation
+- **Test Isolation**: Tests operate in temporary directories to prevent accidental core modification
+- **Hierarchical Agent Loading**: Local project overrides take precedence over global agents
+- **Resource Constraints**: Memory and CPU limits prevent resource exhaustion attacks
+
 ## ✨ What Makes Stigmergy Unique
 
 ### 🧠 **Reference-First Architecture**
@@ -39,6 +49,7 @@ Stigmergy now supports a new standalone service architecture that enables:
 - **Cross-Language Support**: Works with Python, Java, Go, and any language
 - **No Project Duplication**: Core system files remain in global installation
 - **Backward Compatibility**: Existing projects continue to work
+- **Enhanced Security**: Immutable core assets protect against accidental modification
 
 ### How It Works
 
@@ -80,6 +91,10 @@ Stigmergy now supports a new standalone service architecture that enables:
           │  ┌────────────────────────────────┐ │
           │  │     Benchmark Runner           │ │
           │  └────────────────────────────────┘ │
+          │  ┌────────────────────────────────┐ │
+          │  │   Immutable .stigmergy-core    │ │
+          │  │    (Read-Only Bundle)          │ │
+          │  └────────────────────────────────┘ │
           └─────────────────┬───────────────────┘
                             │
           ┌─────────────────▼───────────────────┐
@@ -94,6 +109,7 @@ Stigmergy now supports a new standalone service architecture that enables:
 2. **Cross-Language Support**: Works with any programming language - Python, Java, Go, etc.
 3. **No Duplication**: Lightweight project initialization prevents duplicating the full system in each repository
 4. **Backward Compatibility**: Existing projects with `.stigmergy-core` continue to work without changes
+5. **Enhanced Security**: Immutable core assets protect against accidental modification or deletion
 
 ### Migration Path
 

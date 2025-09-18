@@ -35,7 +35,6 @@ const stigmergyToolCallSchema = z.object({
 });
 
 // Add the structured communication schema validation
-import { z } from 'zod';
 
 // Define the structured communication schema
 const structuredCommunicationSchema = z.object({

@@ -118,7 +118,7 @@ export class LightweightArchon {
     return match ? match[1] : null;
   }
 
-  async generateResponse(query, intent, contextData) {
+  generateResponse(query, intent, contextData) {
     const response = {
       answer: '',
       insights: [],

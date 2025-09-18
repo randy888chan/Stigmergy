@@ -7,9 +7,13 @@ import { DeepWikiMCP, query_deepwiki } from './services/deepwiki_mcp.js';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
-// Define __dirname for ESM compatibility
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// Define __dirname for ESM compatibility using a function to avoid circular reference issues
+const getDirName = (url) => path.dirname(fileURLToPath(url));
+const getFileName = (url) => fileURLToPath(url);
+
+// Use a getter to lazily initialize __dirname and __filename
+const __dirname = getDirName(import.meta.url);
+const __filename = getFileName(import.meta.url);
 
 const codeSearch = new MCPCodeSearch();
 const coderag = new CodeRAGIntegration();
