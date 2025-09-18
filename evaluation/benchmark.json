@@ -15,6 +15,7 @@
           "The function should correctly calculate factorial for numbers 0-10",
           "The function should handle edge cases (negative numbers, non-integers)"
         ],
+        "validation_script": "validate_factorial.js",
         "difficulty": "easy"
       },
       {
@@ -28,6 +29,7 @@
           "Each user should have id, name, and email properties",
           "The endpoint should handle errors gracefully"
         ],
+        "validation_script": "validate_api.js",
         "difficulty": "medium"
       },
       {
@@ -41,6 +43,7 @@
           "The component should handle empty states appropriately",
           "The component should be properly styled"
         ],
+        "validation_script": "validate_react.js",
         "difficulty": "medium"
       },
       {
@@ -54,6 +57,7 @@
           "Proper error handling should be implemented",
           "Data validation should be in place"
         ],
+        "validation_script": "validate_database.js",
         "difficulty": "hard"
       },
       {
@@ -67,6 +71,7 @@
           "Test coverage should be above 80%",
           "Tests should pass without errors"
         ],
+        "validation_script": "validate_testing.js",
         "difficulty": "medium"
       }
     ],

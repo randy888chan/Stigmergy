@@ -9,10 +9,13 @@ import ProcessManager from '../components/ProcessManager.js';
 import AgentVisualization from '../components/AgentVisualization.js';
 import FileEditor from '../components/FileEditor.js';
 import CostMonitor from '../components/CostMonitor.js';
+import ClarificationHandler from '../components/ClarificationHandler.js';
+import useWebSocket from '../hooks/useWebSocket.js';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const ws = useWebSocket(`ws://localhost:${process.env.PORT || 3010}`);
 
   return (
     <div className="dashboard">
@@ -72,6 +75,8 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+      
+      <ClarificationHandler ws={ws} />
     </div>
   );
 };

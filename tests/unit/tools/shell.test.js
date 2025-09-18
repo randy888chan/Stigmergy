@@ -1,15 +1,9 @@
-import { exec } from "child_process";
 import { execute } from "../../../tools/shell.js";
-
-// Mock dependencies
-jest.mock("child_process", () => ({
-  exec: jest.fn(),
-}));
 
 describe("Shell Tool", () => {
   const mockAgentConfig = {
     alias: "test-agent",
-    permitted_shell_commands: ["ls -l", "echo *"],
+    permitted_shell_commands: [".*"], // Allow all commands for testing
   };
 
   beforeEach(() => {
@@ -17,26 +11,25 @@ describe("Shell Tool", () => {
   });
 
   test("should execute a permitted command successfully", async () => {
-    exec.mockImplementation((command, options, callback) =>
-      callback(null, { stdout: "files", stderr: "" })
-    );
-    const result = await execute({ command: "ls -l", agentConfig: mockAgentConfig });
-    expect(exec).toHaveBeenCalledWith("ls -l", expect.any(Object), expect.any(Function));
-    expect(result).toContain("STDOUT:\nfiles");
+    const result = await execute({ command: "console.log('Hello World'); 2 + 2", agentConfig: mockAgentConfig });
+    expect(result).toContain("OUTPUT:\nHello World");
+    expect(result).toContain("RESULT:\n4");
   });
 
   test("should handle execution failure of a permitted command", async () => {
-    exec.mockImplementation((command, options, callback) =>
-      callback(new Error("Command failed"), null)
-    );
-    const result = await execute({ command: "ls -l", agentConfig: mockAgentConfig });
-    expect(result).toContain("EXECUTION FAILED: Command failed");
+    const result = await execute({ command: "nonExistentFunction()", agentConfig: mockAgentConfig });
+    expect(result).toContain("EXECUTION FAILED:");
   });
 
   test("should throw an error for a non-permitted command", async () => {
+    const restrictiveAgentConfig = {
+      alias: "test-agent",
+      permitted_shell_commands: ["console\\.log.*"], // Only allow console.log
+    };
+    
     await expect(
-      execute({ command: "rm -rf /", agentConfig: mockAgentConfig })
-    ).rejects.toThrow('Security policy violation: Command "rm -rf /" not permitted');
+      execute({ command: "process.exit()", agentConfig: restrictiveAgentConfig })
+    ).rejects.toThrow('Security policy violation: Command "process.exit()" not permitted');
   });
 
   test("should throw an error if no command is provided", async () => {
@@ -45,12 +38,13 @@ describe("Shell Tool", () => {
     );
   });
 
-  test("should allow wildcard commands if permitted", async () => {
-    exec.mockImplementation((command, options, callback) =>
-      callback(null, { stdout: "hello", stderr: "" })
-    );
-    const result = await execute({ command: "echo 'hello'", agentConfig: mockAgentConfig });
-    expect(exec).toHaveBeenCalled();
-    expect(result).toContain("STDOUT:\nhello");
+  test("should allow specific commands if permitted", async () => {
+    const restrictiveAgentConfig = {
+      alias: "test-agent",
+      permitted_shell_commands: ["Math\\..*"], // Allow Math functions
+    };
+    
+    const result = await execute({ command: "Math.max(5, 10)", agentConfig: restrictiveAgentConfig });
+    expect(result).toContain("RESULT:\n10");
   });
 });

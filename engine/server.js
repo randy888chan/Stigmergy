@@ -34,6 +34,16 @@ const stigmergyToolCallSchema = z.object({
   args: z.record(z.string(), z.any()).describe("The arguments for the tool, as a key-value object with string keys."),
 });
 
+// Add the structured communication schema validation
+import { z } from 'zod';
+
+// Define the structured communication schema
+const structuredCommunicationSchema = z.object({
+  status: z.enum(["success", "failure", "in_progress", "request_clarification"]).optional(),
+  type: z.enum(["task_completion", "information_report", "error_report", "clarification_request"]).optional(),
+  payload: z.record(z.string(), z.any()).optional()
+}).optional();
+
 // Retry utility for handling rate limits and transient errors
 async function retryWithBackoff(fn, retries = 3, delay = 1000, backoffFactor = 2) {
   let lastError;

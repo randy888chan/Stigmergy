@@ -493,11 +493,16 @@ export class CodeReferenceIndexer {
  * Default repositories to index for common patterns
  */
 const DEFAULT_REPOS = [
-  { owner: 'facebook', repo: 'react' },
-  { owner: 'vercel', repo: 'next.js' },
-  { owner: 'microsoft', repo: 'vscode' },
+  { owner: 'expressjs', repo: 'express' },
+  { owner: 'lodash', repo: 'lodash' },
+  { owner: 'moment', repo: 'moment.js' },
+  { owner: 'chartjs', repo: 'Chart.js' },
+  { owner: 'axios', repo: 'axios' },
+  { owner: 'prettier', repo: 'prettier' },
+  { owner: 'reactjs', repo: 'react' },
+  { owner: 'vuejs', repo: 'vue' },
   { owner: 'nodejs', repo: 'node' },
-  { owner: 'expressjs', repo: 'express' }
+  { owner: 'microsoft', repo: 'typescript' }
 ];
 
 /**

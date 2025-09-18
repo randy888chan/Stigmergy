@@ -112,6 +112,62 @@ class BenchmarkRunner {
     console.log(chalk.yellow(`Validating solution for: ${problem.title}`));
     
     try {
+      // If problem has a validation script, execute it
+      if (problem.validation_script) {
+        console.log(chalk.blue(`Running validation script: ${problem.validation_script}`));
+        
+        const validationScriptPath = path.join(__dirname, '../validators', problem.validation_script);
+        const solutionScriptPath = path.join(solutionDir, problem.validation_script);
+        
+        // Copy validation script to solution directory
+        await fs.copy(validationScriptPath, solutionScriptPath);
+        
+        // Create temp_solution directory for validation
+        const tempSolutionDir = path.join(solutionDir, 'temp_solution');
+        await fs.ensureDir(tempSolutionDir);
+        
+        // Copy expected files to temp_solution directory
+        for (const expectedFile of problem.expected_files) {
+          const sourcePath = path.join(solutionDir, expectedFile);
+          const destPath = path.join(tempSolutionDir, expectedFile);
+          
+          // Ensure destination directory exists
+          await fs.ensureDir(path.dirname(destPath));
+          
+          if (await fs.pathExists(sourcePath)) {
+            await fs.copy(sourcePath, destPath);
+          } else {
+            console.error(chalk.red(`Missing expected file: ${expectedFile}`));
+            return false;
+          }
+        }
+        
+        // Execute validation script
+        try {
+          const { stdout, stderr } = await execPromise(`node ${solutionScriptPath}`, {
+            cwd: solutionDir,
+            timeout: 30000
+          });
+          
+          console.log(chalk.gray(`Validation output: ${stdout}`));
+          if (stderr) {
+            console.log(chalk.gray(`Validation stderr: ${stderr}`));
+          }
+          
+          // Success determined by exit code (0 = success)
+          return true;
+        } catch (execError) {
+          console.error(chalk.red(`Validation script failed: ${execError.message}`));
+          if (execError.stdout) {
+            console.log(chalk.gray(`Validation stdout: ${execError.stdout}`));
+          }
+          if (execError.stderr) {
+            console.log(chalk.gray(`Validation stderr: ${execError.stderr}`));
+          }
+          return false;
+        }
+      }
+      
       // Check if expected files exist
       for (const expectedFile of problem.expected_files) {
         const filePath = path.join(solutionDir, expectedFile);

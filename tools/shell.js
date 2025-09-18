@@ -16,7 +16,7 @@ export async function execute({ command, agentConfig }) {
     );
 
   try {
-    // Create a secure sandbox environment
+    // Create a more secure sandbox environment
     const sandbox = {
       // Allow access to common JavaScript globals
       console: {
@@ -36,7 +36,6 @@ export async function execute({ command, agentConfig }) {
       Object,
       RegExp,
       JSON,
-      Buffer,
       // Add a limited file system access (read-only)
       fs: {
         readFileSync: (filePath, encoding = 'utf8') => {
@@ -67,11 +66,23 @@ export async function execute({ command, agentConfig }) {
       __output__: ''
     };
 
+    // Remove potentially dangerous globals
+    const forbiddenGlobals = [
+      'process', 'require', 'module', 'exports', 'global', '__dirname', '__filename',
+      'eval', 'Function', 'setTimeout', 'setInterval', 'setImmediate',
+      'clearTimeout', 'clearInterval', 'clearImmediate'
+    ];
+    
     // Create a script from the command
     const script = new vm.Script(command);
     
     // Create a context with the sandbox
     const context = vm.createContext(sandbox);
+    
+    // Remove forbidden globals from the context
+    for (const globalName of forbiddenGlobals) {
+      context[globalName] = undefined;
+    }
     
     // Execute the script with a timeout
     const result = script.runInContext(context, { timeout: 5000 });
@@ -83,6 +94,10 @@ ${sandbox.__output__}
 RESULT:
 ${result !== undefined ? JSON.stringify(result, null, 2) : 'undefined'}`;
   } catch (error) {
+    // Handle timeout errors specifically
+    if (error.message.includes('Script execution timed out')) {
+      return `EXECUTION FAILED: Command execution timed out after 5 seconds`;
+    }
     return `EXECUTION FAILED: ${error.message}`;
   }
 }
