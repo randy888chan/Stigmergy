@@ -17,8 +17,9 @@ agents:
   - id: orion
   - id: qa
   - id: qwen-executor
-  - id: reference-architect
   - id: refactorer
+  - id: reference-architect
+  - id: specifier
   - id: system
   - id: unified-executor
   - id: ux-expert

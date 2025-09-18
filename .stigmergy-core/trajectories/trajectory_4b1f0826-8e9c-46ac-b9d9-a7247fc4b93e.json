@@ -1,0 +1,70 @@
+{
+  "id": "4b1f0826-8e9c-46ac-b9d9-a7247fc4b93e",
+  "taskId": "tool_stigmergy.task",
+  "startTime": "2025-09-18T10:08:26.263Z",
+  "events": [
+    {
+      "id": "7f3a9c19-1aa0-4223-abd3-a37c79a2f356",
+      "timestamp": "2025-09-18T10:08:26.263Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "tool_stigmergy.task",
+        "initialContext": {
+          "toolName": "stigmergy.task",
+          "args": {
+            "subagent_type": "test-type",
+            "description": "test description"
+          },
+          "agentId": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "d9b686f6-c1f8-4e44-aff3-fc9a107f6dfe",
+      "timestamp": "2025-09-18T10:08:26.264Z",
+      "type": "tool_call",
+      "data": {
+        "toolName": "stigmergy.task",
+        "namespace": "stigmergy",
+        "funcName": "task",
+        "args": {
+          "subagent_type": "test-type",
+          "description": "test description"
+        },
+        "agentId": "test-agent-permitted",
+        "agentConfig": {
+          "id": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "f3e36d69-f18b-4b22-9442-816f1954410a",
+      "timestamp": "2025-09-18T10:08:26.264Z",
+      "type": "tool_execution_success",
+      "data": {
+        "toolName": "stigmergy.task",
+        "result": "Task triggered",
+        "executionTime": 1
+      }
+    },
+    {
+      "id": "a0dcbee8-59bc-494f-b6e1-0911ca34f48c",
+      "timestamp": "2025-09-18T10:08:26.264Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {}
+      }
+    }
+  ],
+  "context": {
+    "toolName": "stigmergy.task",
+    "args": {
+      "subagent_type": "test-type",
+      "description": "test description"
+    },
+    "agentId": "test-agent-permitted"
+  },
+  "endTime": "2025-09-18T10:08:26.264Z",
+  "finalState": {},
+  "duration": 1
+}

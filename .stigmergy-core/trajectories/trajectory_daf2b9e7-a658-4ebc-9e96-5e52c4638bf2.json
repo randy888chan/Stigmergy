@@ -1,0 +1,51 @@
+{
+  "id": "daf2b9e7-a658-4ebc-9e96-5e52c4638bf2",
+  "taskId": "tool_file_system.readFile",
+  "startTime": "2025-09-18T10:08:26.242Z",
+  "events": [
+    {
+      "id": "edc52709-363f-4c84-b427-962688ba8545",
+      "timestamp": "2025-09-18T10:08:26.242Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "tool_file_system.readFile",
+        "initialContext": {
+          "toolName": "file_system.readFile",
+          "args": {
+            "path": "test.txt"
+          },
+          "agentId": "test-agent-denied"
+        }
+      }
+    },
+    {
+      "id": "edb2a36b-3f04-4df5-9372-afd47fc438a8",
+      "timestamp": "2025-09-18T10:08:26.243Z",
+      "type": "tool_execution_error",
+      "data": {
+        "toolName": "file_system.readFile",
+        "error": "Agent 'test-agent-denied' not permitted for engine tool 'file_system.readFile'. Permitted tools: [some_other_tool].",
+        "stack": "OperationalError: Agent 'test-agent-denied' not permitted for engine tool 'file_system.readFile'. Permitted tools: [some_other_tool].\n    at execute (/Users/user/Documents/GitHub/Stigmergy/engine/tool_executor.js:210:15)\n    at Object.<anonymous> (/Users/user/Documents/GitHub/Stigmergy/tests/integration/tool_executor.test.js:111:5)",
+        "executionTime": 1
+      }
+    },
+    {
+      "id": "208acde1-8bd1-443a-b79d-63c2575505bc",
+      "timestamp": "2025-09-18T10:08:26.243Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {}
+      }
+    }
+  ],
+  "context": {
+    "toolName": "file_system.readFile",
+    "args": {
+      "path": "test.txt"
+    },
+    "agentId": "test-agent-denied"
+  },
+  "endTime": "2025-09-18T10:08:26.243Z",
+  "finalState": {},
+  "duration": 1
+}

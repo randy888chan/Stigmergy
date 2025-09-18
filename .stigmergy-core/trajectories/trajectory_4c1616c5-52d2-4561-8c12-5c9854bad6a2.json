@@ -1,0 +1,67 @@
+{
+  "id": "4c1616c5-52d2-4561-8c12-5c9854bad6a2",
+  "taskId": "tool_file_system.readFile",
+  "startTime": "2025-09-18T10:08:26.227Z",
+  "events": [
+    {
+      "id": "c38e853b-1798-44b4-b378-a4726c5321e0",
+      "timestamp": "2025-09-18T10:08:26.227Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "tool_file_system.readFile",
+        "initialContext": {
+          "toolName": "file_system.readFile",
+          "args": {
+            "path": "test.txt"
+          },
+          "agentId": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "f8218d7e-946e-46d6-b5fc-b6d01b189f12",
+      "timestamp": "2025-09-18T10:08:26.234Z",
+      "type": "tool_call",
+      "data": {
+        "toolName": "file_system.readFile",
+        "namespace": "file_system",
+        "funcName": "readFile",
+        "args": {
+          "path": "test.txt"
+        },
+        "agentId": "test-agent-permitted",
+        "agentConfig": {
+          "id": "test-agent-permitted"
+        }
+      }
+    },
+    {
+      "id": "01eee4ae-90e1-4fff-aab6-9913e1f6c2cc",
+      "timestamp": "2025-09-18T10:08:26.234Z",
+      "type": "tool_execution_success",
+      "data": {
+        "toolName": "file_system.readFile",
+        "result": "file content",
+        "executionTime": 8
+      }
+    },
+    {
+      "id": "26b19909-01d9-4529-ba77-7ed0147919c0",
+      "timestamp": "2025-09-18T10:08:26.235Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {}
+      }
+    }
+  ],
+  "context": {
+    "toolName": "file_system.readFile",
+    "args": {
+      "path": "test.txt"
+    },
+    "agentId": "test-agent-permitted"
+  },
+  "endTime": "2025-09-18T10:08:26.235Z",
+  "finalState": {},
+  "duration": 8
+}
