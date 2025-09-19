@@ -1,57 +1,80 @@
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
+const { promisify } = require('util');
 
-// Test the React component implementation
-try {
-  // Check if required files exist
-  const requiredFiles = ['components/ItemList.js', 'components/SearchBar.js'];
-  for (const file of requiredFiles) {
-    if (!fs.existsSync(path.join(__dirname, '../temp_solution', file))) {
-      console.error(`FAIL: ${file} file not found`);
-      process.exit(1);
+const execPromise = promisify(exec);
+const solutionDir = path.join(__dirname, 'temp_solution');
+
+async function main() {
+  try {
+    // 1. Check if required files exist
+    const requiredFiles = ['components/ItemList.js', 'components/SearchBar.js'];
+    for (const file of requiredFiles) {
+      const filePath = path.join(solutionDir, file);
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`${file} not found in the solution directory.`);
+      }
     }
-  }
 
-  // Check ItemList component
-  const itemListContent = fs.readFileSync(path.join(__dirname, '../temp_solution/components/ItemList.js'), 'utf8');
-  
-  // Basic checks for ItemList component
-  if (!itemListContent.includes('import') || !itemListContent.includes('export')) {
-    console.error('FAIL: ItemList.js should be a valid React component module');
-    process.exit(1);
-  }
-  
-  if (!itemListContent.includes('props') && !itemListContent.includes('useState')) {
-    console.warn('WARNING: ItemList component might not handle props or state correctly');
-  }
-
-  // Check SearchBar component
-  const searchBarContent = fs.readFileSync(path.join(__dirname, '../temp_solution/components/SearchBar.js'), 'utf8');
-  
-  // Basic checks for SearchBar component
-  if (!searchBarContent.includes('import') || !searchBarContent.includes('export')) {
-    console.error('FAIL: SearchBar.js should be a valid React component module');
-    process.exit(1);
-  }
-  
-  if (!searchBarContent.includes('input') || !searchBarContent.includes('onChange')) {
-    console.warn('WARNING: SearchBar component might not have proper input handling');
-  }
-
-  // Check for basic React patterns
-  if (!itemListContent.includes('React') && !searchBarContent.includes('React')) {
-    // Check for functional component syntax
-    const hasFunctionalSyntax = (itemListContent.includes('=>') || itemListContent.includes('function')) &&
-                               (searchBarContent.includes('=>') || searchBarContent.includes('function'));
-    
-    if (!hasFunctionalSyntax) {
-      console.warn('WARNING: Components might not follow functional component patterns');
+    // 2. Install dependencies
+    console.log('Installing dependencies (react, react-dom, esbuild)...');
+    try {
+      const packageJsonPath = path.join(solutionDir, 'package.json');
+      if (!fs.existsSync(packageJsonPath)) {
+        await execPromise('npm init -y', { cwd: solutionDir });
+      }
+      await execPromise('npm install react react-dom esbuild', { cwd: solutionDir });
+      console.log('Dependencies installed successfully.');
+    } catch (error) {
+      console.error('Failed to install dependencies:', error.stderr);
+      throw new Error('npm install failed.');
     }
-  }
 
-  console.log('PASS: React component files exist and have basic structure');
-  process.exit(0);
-} catch (error) {
-  console.error(`FAIL: ${error.message}`);
-  process.exit(1);
+    // 3. Create a test entry point file
+    const entryPointContent = `
+import React from 'react';
+import ReactDOM from 'react-dom';
+import ItemList from './components/ItemList';
+import SearchBar from './components/SearchBar';
+
+function App() {
+  return (
+    <div>
+      <h1>Test App</h1>
+      <SearchBar />
+      <ItemList items={['item1', 'item2']} />
+    </div>
+  );
 }
+
+ReactDOM.render(<App />, document.getElementById('root'));
+    `;
+    const entryPointPath = path.join(solutionDir, 'index.js');
+    fs.writeFileSync(entryPointPath, entryPointContent);
+
+    // Create a dummy index.html
+    const htmlPath = path.join(solutionDir, 'index.html');
+    fs.writeFileSync(htmlPath, '<!DOCTYPE html><html><head></head><body><div id="root"></div></body></html>');
+
+    // 4. Attempt to build the project with esbuild
+    console.log('Attempting to build the React components with esbuild...');
+    try {
+      const esbuildPath = path.join(solutionDir, 'node_modules/.bin/esbuild');
+      await execPromise(`${esbuildPath} ${entryPointPath} --bundle --outfile=dist/bundle.js --loader:.js=jsx`, { cwd: solutionDir });
+      console.log('Build successful.');
+    } catch (error) {
+      console.error('Build failed:', error.stderr);
+      throw new Error('esbuild failed. The React components likely have syntax errors.');
+    }
+
+    console.log('PASS: React validation successful (files exist, dependencies install, and build succeeds).');
+    process.exit(0);
+
+  } catch (error) {
+    console.error(`FAIL: React validation failed. ${error.message}`);
+    process.exit(1);
+  }
+}
+
+main();

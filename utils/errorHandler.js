@@ -32,6 +32,9 @@ class ErrorHandler {
     if (message.includes("Neo.ClientError") || message.includes("ECONNREFUSED")) {
       type = ERROR_TYPES.DB_CONNECTION;
       remediation = ["Check if Neo4j Desktop is running.", "Verify .env credentials (NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD).", "Run 'npm run test:neo4j' to diagnose."];
+    } else if (message.toLowerCase().includes('api key')) {
+        type = ERROR_TYPES.CONFIGURATION;
+        remediation = ["Check that the required API key is set in your .env file.", "Ensure the correct environment variables are loaded (e.g., GOOGLE_API_KEY, OPENAI_API_KEY)."];
     } else if (context.toolName) {
       type = ERROR_TYPES.TOOL_EXECUTION;
       remediation = [`Review the parameters passed to the '${context.toolName}' tool.`, "Check for required API keys in the .env file."];

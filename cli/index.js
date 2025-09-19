@@ -25,8 +25,6 @@ const availableCommands = [
   'restore',
   'validate',
   'build',
-  'mcp',
-  'mcp -p <path>',
   'interactive',
   'help',
   'exit',
@@ -110,15 +108,14 @@ program
         process.exit(1);
     }
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy start');
-    console.log('  $ stigmergy start --power');
-    console.log('');
-    console.log('The server will start on port 3010 by default.');
-    console.log('Access the dashboard at http://localhost:3010');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy start
+  $ stigmergy start --power
+
+The server will start on port 3010 by default.
+Access the dashboard at http://localhost:3010
+  `);
 
 program
   .command("init")
@@ -133,16 +130,15 @@ program
       await init(options);
     }
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy init');
-    console.log('  $ stigmergy init --interactive');
-    console.log('');
-    console.log('This command creates a .stigmergy directory in the current project');
-    console.log('with configuration files and directories for trajectories,');
-    console.log('evaluations, and state management.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy init
+  $ stigmergy init --interactive
+
+This command creates a .stigmergy directory in the current project
+with configuration files and directories for trajectories,
+evaluations, and state management.
+  `);
 
 program
   .command("validate")
@@ -151,17 +147,16 @@ program
     const validator = new SystemValidator();
     await validator.comprehensiveCheck();
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy validate');
-    console.log('');
-    console.log('This command checks:');
-    console.log('  - Environment variables');
-    console.log('  - Required dependencies');
-    console.log('  - Core file integrity');
-    console.log('  - Network connectivity');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy validate
+
+This command checks:
+  - Environment variables
+  - Required dependencies
+  - Core file integrity
+  - Network connectivity
+  `);
 
 program
   .command("start-service")
@@ -171,14 +166,13 @@ program
     const { startService } = await import(servicePath);
     await startService();
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy start-service');
-    console.log('');
-    console.log('This command starts the Stigmergy service as a background process.');
-    console.log('The service will run on port 3010 and can be accessed by any project.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy start-service
+
+This command starts the Stigmergy service as a background process.
+The service will run on port 3010 and can be accessed by any project.
+  `);
 
 program
   .command("stop-service")
@@ -188,13 +182,12 @@ program
     const { stopService } = await import(servicePath);
     await stopService();
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy stop-service');
-    console.log('');
-    console.log('This command stops the Stigmergy service.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy stop-service
+
+This command stops the Stigmergy service.
+  `);
 
 program
   .command("service-status")
@@ -204,13 +197,12 @@ program
     const { serviceStatus } = await import(servicePath);
     await serviceStatus();
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy service-status');
-    console.log('');
-    console.log('This command checks if the Stigmergy service is running.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy service-status
+
+This command checks if the Stigmergy service is running.
+  `);
 
 program
   .command("build")
@@ -220,34 +212,14 @@ program
     const { default: build } = await import(buildPath);
     await build();
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy build');
-    console.log('');
-    console.log('This command creates optimized bundles of your agents');
-    console.log('for use with web-based AI assistants.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy build
 
-program
-  .command("mcp")
-  .description("Setup MCP server for IDE integration (Roo Code, VS Code, etc.)")
-  .option('-p, --project <path>', 'Target project directory (default: current directory)')
-  .action(async (options) => {
-    const mcpPath = path.resolve(__dirname, './commands/mcp.js');
-    const { setupMCP } = await import(mcpPath);
-    const targetDir = options.project || process.cwd();
-    await setupMCP(targetDir);
-  })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy mcp');
-    console.log('  $ stigmergy mcp -p ./my-project');
-    console.log('');
-    console.log('This command sets up the Model Context Protocol server');
-    console.log('that allows IDEs to communicate with Stigmergy agents.');
-  });
+This command creates optimized bundles of your agents
+for use with web-based AI assistants.
+  `);
+
 
 program
   .command("interactive")
@@ -295,28 +267,26 @@ program
       console.log(); // Add a blank line for readability
     }
   })
-  .on('--help', () => {
-    console.log('');
-    console.log('Examples:');
-    console.log('  $ stigmergy interactive');
-    console.log('');
-    console.log('This command starts an interactive shell where you can');
-    console.log('enter Stigmergy commands without the "stigmergy" prefix.');
-    console.log('Type "help" within the interactive mode to see available commands.');
-  });
+  .addHelpText('after', `
+Examples:
+  $ stigmergy interactive
+
+This command starts an interactive shell where you can
+enter Stigmergy commands without the "stigmergy" prefix.
+Type "help" within the interactive mode to see available commands.
+  `);
 
 // Override the default help command to add examples
-program.on('--help', () => {
-  console.log('');
-  console.log('Examples:');
-  console.log('  $ stigmergy --help');
-  console.log('  $ stigmergy start');
-  console.log('  $ stigmergy install');
-  console.log('  $ stigmergy interactive');
-  console.log('');
-  console.log('For detailed help on a specific command, use:');
-  console.log('  $ stigmergy <command> --help');
-});
+program.addHelpText('after', `
+Examples:
+  $ stigmergy --help
+  $ stigmergy start
+  $ stigmergy install
+  $ stigmergy interactive
+
+For detailed help on a specific command, use:
+  $ stigmergy <command> --help
+`);
 
 async function main() {
   try {

@@ -1,76 +1,57 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
+const { promisify } = require('util');
 
-// Test the testing implementation
-try {
-  // Check if required files exist
-  const requiredFiles = ['__tests__/calculator.test.js', 'calculator.js'];
-  for (const file of requiredFiles) {
-    if (!fs.existsSync(path.join(__dirname, '../temp_solution', file))) {
-      console.error(`FAIL: ${file} file not found`);
-      process.exit(1);
+const execPromise = promisify(exec);
+const solutionDir = path.join(__dirname, 'temp_solution');
+
+async function main() {
+  try {
+    // 1. Check if required files exist
+    const requiredFiles = ['__tests__/calculator.test.js', 'calculator.js'];
+    for (const file of requiredFiles) {
+        const filePath = path.join(solutionDir, file);
+        if (!fs.existsSync(filePath)) {
+            throw new Error(`${file} not found in the solution directory.`);
+        }
     }
-  }
 
-  // Check calculator.js for basic function exports
-  const calculatorContent = fs.readFileSync(path.join(__dirname, '../temp_solution/calculator.js'), 'utf8');
-  
-  // Check for basic math functions
-  const mathFunctions = ['add', 'subtract', 'multiply', 'divide'];
-  const hasMathFunctions = mathFunctions.some(func => calculatorContent.includes(func));
-  
-  if (!hasMathFunctions) {
-    console.warn('WARNING: calculator.js might not export standard math functions');
-  }
-
-  // Check test file for basic test structure
-  const testContent = fs.readFileSync(path.join(__dirname, '../temp_solution/__tests__/calculator.test.js'), 'utf8');
-  
-  // Check for Jest patterns
-  if (!testContent.includes('describe') || !testContent.includes('it') || !testContent.includes('expect')) {
-    console.warn('WARNING: Test file might not follow Jest testing patterns');
-  }
-
-  // Try to run the tests
-  const jest = spawn('npx', ['jest', '__tests__/calculator.test.js'], {
-    cwd: path.join(__dirname, '../temp_solution'),
-    stdio: 'pipe'
-  });
-
-  let testOutput = '';
-  jest.stdout.on('data', (data) => {
-    testOutput += data.toString();
-  });
-
-  jest.stderr.on('data', (data) => {
-    testOutput += data.toString();
-  });
-
-  jest.on('close', (code) => {
-    if (code !== 0) {
-      console.error(`FAIL: Tests failed with exit code ${code}`);
-      console.error(`Test output: ${testOutput}`);
-      process.exit(1);
+    // 2. Install dependencies
+    console.log('Installing dependencies (jest)...');
+    try {
+        const packageJsonPath = path.join(solutionDir, 'package.json');
+        if (!fs.existsSync(packageJsonPath)) {
+            await execPromise('npm init -y', { cwd: solutionDir });
+        }
+        await execPromise('npm install jest', { cwd: solutionDir });
+        console.log('Dependencies installed successfully.');
+    } catch (error) {
+        console.error('Failed to install dependencies:', error.stderr);
+        throw new Error('npm install failed.');
     }
-    
-    // Check for test coverage if mentioned
-    if (testOutput.includes('Coverage')) {
-      console.log('PASS: Tests ran successfully');
-      process.exit(0);
-    } else {
-      console.log('PASS: Test files exist and follow basic structure');
-      process.exit(0);
-    }
-  });
 
-  // Timeout after 10 seconds
-  setTimeout(() => {
-    console.error('FAIL: Tests did not complete in time');
-    jest.kill();
+    // 3. Run the tests with Jest
+    console.log('Running tests with Jest...');
+    try {
+        const jestPath = path.join(solutionDir, 'node_modules/.bin/jest');
+        const { stdout, stderr } = await execPromise(jestPath, { cwd: solutionDir });
+        console.log('Jest stdout:', stdout);
+        if (stderr) {
+            console.error('Jest stderr:', stderr);
+        }
+    } catch (error) {
+        console.error('Jest tests failed:', error.stdout);
+        throw new Error('Jest tests failed to run or failed assertions.');
+    }
+
+    console.log('PASS: Testing validation successful (files exist, dependencies install, and tests pass).');
+    process.exit(0);
+
+  } catch (error) {
+    console.error(`FAIL: Testing validation failed. ${error.message}`);
     process.exit(1);
-  }, 10000);
-} catch (error) {
-  console.error(`FAIL: ${error.message}`);
-  process.exit(1);
+  }
 }
+
+main();
