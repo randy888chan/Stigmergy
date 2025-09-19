@@ -6,11 +6,9 @@ if (process.env.STIGMERGY_TEST_CORE_PATH) {
     core_path: process.env.STIGMERGY_TEST_CORE_PATH,
   };
 } else {
-  // This provides a fallback for tests that might be run individually
-  // without the global setup script. It's not ideal for the main suite,
-  // but prevents crashes in isolated test runs.
-  console.warn('[Setup Globals] STIGMERGY_TEST_CORE_PATH not set. Some tests may fail.');
-  global.StigmergyConfig = {
-    core_path: './.stigmergy-core-fallback', // A default fallback path
-  };
+  throw new Error(
+    '[Setup Globals] CRITICAL: STIGMERGY_TEST_CORE_PATH is not set. ' +
+    'This indicates a failure in the global test setup (tests/setup.js). ' +
+    'Aborting to prevent tests from running in an unsafe, non-isolated environment.'
+  );
 }
