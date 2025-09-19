@@ -13,13 +13,12 @@ Stigmergy transforms high-level product goals into production-ready code through
 
 ## 🔒 Security-First Architecture
 
-Stigmergy implements a security-first architecture with multiple layers of protection for the core system:
+Stigmergy is built with a security-first architecture to ensure a safe and stable development environment. This is achieved through several key protections:
 
-- **Immutable Core**: The `.stigmergy-core` directory is bundled as a read-only asset in the NPM package
-- **Enhanced Sandboxing**: Shell tool execution uses secure `child_process.exec` with strict command validation for stronger security isolation
-- **Test Isolation**: Tests operate in temporary directories to prevent accidental core modification
-- **Hierarchical Agent Loading**: Local project overrides take precedence over global agents
-- **Resource Constraints**: Memory and CPU limits prevent resource exhaustion attacks
+- **Immutable Core**: The primary `.stigmergy-core` directory, containing all core agent definitions and system files, is bundled as a read-only asset within the globally installed NPM package. This prevents accidental or malicious modification of core system components.
+- **Isolated Test Environment**: The test framework is hardened to prevent any interaction with the real `.stigmergy-core` or user data. Each test worker creates a temporary, isolated copy of the core assets in a `.stigmergy-core-test-temp-${JEST_WORKER_ID}` directory, which is safely deleted after the test run.
+- **Resilient Shell Executor**: The shell tool has been rewritten to use the built-in `child_process.exec`. It no longer uses the insecure `vm` module. All shell command executions are sandboxed and wrapped in a `try...catch` block, ensuring that command failures (e.g., command not found, execution errors) are gracefully handled and returned as formatted error strings, rather than crashing the engine.
+- **Hierarchical Agent Loading**: The engine uses a safe, prioritized loading strategy. It first checks for a local agent override in the project's `.stigmergy/agents` directory. If no local version is found, it safely falls back to the immutable, globally installed agent definition. This allows for project-specific customization without risking the integrity of the core system.
 
 ## ✨ What Makes Stigmergy Unique
 
@@ -118,61 +117,27 @@ Stigmergy now supports a new standalone service architecture that enables:
 
 ## 🚀 Quick Start (2 minutes)
 
-### Option 1: Global Installation (Recommended)
+The recommended way to use Stigmergy is by installing it globally. This provides a standalone service that can work with any project on your system, regardless of the programming language.
+
 ```bash
-# Install Stigmergy globally (one-time setup)
+# 1. Install Stigmergy globally (one-time setup)
 npm install -g @randy888chan/stigmergy
 
-# Initialize Stigmergy in any project directory
+# 2. Start the global Stigmergy service
+stigmergy start-service
+
+# 3. Initialize Stigmergy in your project directory
 cd /path/to/your/project
 stigmergy init
 
-# Start the global Stigmergy service
-stigmergy start-service
-
-# Configure your IDE to connect to: http://localhost:3010
-# For Roo Code: Point MCP server to http://localhost:3010
+# 4. Connect your IDE
+# Configure your IDE's MCP (Model-Context-Protocol) client to connect to the Stigmergy service at:
+# http://localhost:3010
 ```
 
-### Option 2: MCP Server Only
-```bash
-# If you already have Stigmergy core, just add MCP integration
-npx @randy888chan/stigmergy mcp
+Once connected, you can start interacting with Stigmergy using natural language commands directly from your IDE's chat interface.
 
-# Or for specific project
-npx @randy888chan/stigmergy mcp --project /path/to/project
-```
-
-### Option 3: Complete Setup via Chat
-```bash
-# 1. Install and start
-npm install -g @randy888chan/stigmergy
-npm run stigmergy:start
-
-# 2. In VS Code, Roo Code, or any IDE with MCP support, simply chat:
-"help me get started"
-"setup everything I need"
-"index github repos for patterns"
-```
-
-### Option 4: Manual Setup (Advanced)
-```bash
-# 1. Install
-git clone https://github.com/randy888chan/stigmergy.git
-cd stigmergy
-npm install
-
-# 2. Environment Setup
-cp .env.example .env
-# Add your API keys: GOOGLE_API_KEY, GITHUB_TOKEN, NEO4J_PASSWORD
-
-# 3. Initialize
-stigmergy init
-npm run health-check
-
-# 4. Start the system
-npm run stigmergy:start
-```
+---
 
 ## 💬 Chat Interface Commands
 
@@ -215,63 +180,39 @@ Replace all complex CLI operations with natural language:
 
 Stigmergy provides powerful CLI commands for easy setup and management:
 
-### Installation Commands
+### Global Service Commands
+These commands are available anywhere in your terminal after the global installation.
+
 ```bash
-# Global installation (one-time setup)
+# Install Stigmergy globally (one-time setup)
 npm install -g @randy888chan/stigmergy
 
-# Initialize Stigmergy in a project directory (lightweight)
-stigmergy init
-
-# Interactive initialization with guided setup
-stigmergy init --interactive
-
-# Setup MCP server for specific project
-npx @randy888chan/stigmergy mcp --project /path/to/project
-
-# Setup MCP server in current directory
-npx @randy888chan/stigmergy mcp
-```
-
-### Management Commands
-```bash
-# Start Stigmergy engine in current directory
-npx @randy888chan/stigmergy start
-
-# Start global Stigmergy service
+# Start the global Stigmergy service in the background
 stigmergy start-service
 
-# Stop global Stigmergy service
+# Stop the global Stigmergy service
 stigmergy stop-service
 
-# Check global Stigmergy service status
+# Check the status of the global service
 stigmergy service-status
-
-# System validation and health check
-npx @randy888chan/stigmergy validate
-
-# Restore core files from backup
-npx @randy888chan/stigmergy restore
-
-# Build web bundles
-npx @randy888chan/stigmergy build
 ```
 
-### Project Scripts (Added Automatically)
-```bash
-# These are added to your package.json by the init command
-npm run stigmergy:start     # Start Stigmergy for this project
-npm run stigmergy:stop      # Stop Stigmergy processes
-npm run mcp:test           # Test MCP server functionality
-```
+### Project Commands
+These commands should be run inside your project's directory.
 
-### Global Service Commands
 ```bash
-# These are available globally after installing Stigmergy
-stigmergy start-service     # Start global Stigmergy service
-stigmergy stop-service      # Stop global Stigmergy service
-stigmergy service-status    # Check service status
-stigmergy init             # Initialize Stigmergy in current project
+# Initialize a new or existing project for use with Stigmergy
+# This creates a local .stigmergy/ directory for configuration and overrides.
+stigmergy init
+
+# Interactively initialize the project with guided setup
+stigmergy init --interactive
+
+# Validate agent definitions (checks local .stigmergy/agents/ first, then global)
+stigmergy validate
+
+# Build web bundles for the project
+stigmergy build
 ```
 
 ### Web Bundle Commands
@@ -508,7 +449,8 @@ Stigmergy embodies the principle that great software development should focus on
 
 <div align="center">
   <strong>Ready to revolutionize your development workflow?</strong><br>
-  <code>stigmergy init</code> then <code>npm run stigmergy:start</code><br>
-  Configure your IDE MCP server to <code>./mcp-server.js</code> and start coordinating!<br>
-  Works with VS Code, Roo Code, and any IDE supporting MCP.
+  <code>npm install -g @randy888chan/stigmergy</code><br>
+  <code>stigmergy start-service</code><br>
+  Then, in your project: <code>stigmergy init</code><br>
+  Configure your IDE to connect to the global service at <code>http://localhost:3010</code> and start coordinating!
 </div>
