@@ -17,7 +17,7 @@ import { CodeIntelligenceService } from '../services/code_intelligence_service.j
 import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs';
+import fs from 'fs-extra';
 import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
 import { getModelForTier } from '../ai/providers.js';
@@ -341,7 +341,7 @@ export class Engine {
   }
 
   getAgent(agentId) {
-    const localOverridePath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
+    const localOverridePath = path.join(process.cwd(), '.stigmergy', 'agents', `${agentId}.md`);
 
     let agentPath;
 
@@ -370,15 +370,17 @@ export class Engine {
 
     try {
       const agentData = yaml.load(yamlMatch[1]);
+      const name = agentData.agent?.name;
       const persona = agentData.agent?.persona;
       const protocols = agentData.agent?.core_protocols;
 
-      if (!persona || !protocols) {
-        throw new Error(`Agent ${agentId} is missing persona or core_protocols.`);
+      if (!name || !persona || !protocols) {
+        throw new Error(`Agent ${agentId} is missing name, persona, or core_protocols.`);
       }
 
       // Construct a comprehensive system prompt
       const systemPrompt = `
+        **Name:** ${name}
         **Identity:** ${persona.identity}
         **Role:** ${persona.role}
         **Style:** ${persona.style}
