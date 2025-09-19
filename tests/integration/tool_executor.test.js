@@ -37,13 +37,24 @@ const mockManifest = {
 describe("Tool Executor", () => {
   let execute;
   let mockEngine;
-  const TEST_DIR = path.join(__dirname, "tool_executor_test_temp_core");
+  // This test suite will use the globally provided temporary directory
+  // It will create its own files within that directory for each test
+  const TEST_DIR = global.StigmergyConfig.core_path;
 
-  beforeAll(async () => {
-    // Create a completely isolated directory for this test suite
-    await fs.ensureDir(TEST_DIR);
-    global.StigmergyConfig = { core_path: TEST_DIR };
+  beforeEach(async () => {
+    console.log("### tool_executor.test.js: beforeEach: creating files ###");
+    _resetManifestCache();
 
+    // Set up the mock engine and executor
+    mockEngine = {
+        triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
+        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' })
+    };
+    execute = createExecutor(mockEngine);
+    fileSystem.readFile.mockClear();
+    modelMonitoring.trackToolUsage.mockClear();
+
+    // Create necessary files for the test in the shared temp directory
     const manifestPath = path.join(TEST_DIR, "system_docs", "02_Agent_Manifest.md");
     await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
@@ -76,20 +87,13 @@ agent:
     );
   });
 
-  afterAll(async () => {
-    await fs.remove(TEST_DIR);
-    delete global.StigmergyConfig;
-  });
-
-  beforeEach(() => {
-    _resetManifestCache();
-    mockEngine = {
-        triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
-        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' })
-    };
-    execute = createExecutor(mockEngine);
-    fileSystem.readFile.mockClear();
-    modelMonitoring.trackToolUsage.mockClear();
+  afterEach(async () => {
+    // Clean up the files created in this test suite to not affect others
+    const manifestPath = path.join(TEST_DIR, "system_docs");
+    const agentsPath = path.join(TEST_DIR, "agents");
+    await fs.remove(manifestPath);
+    await fs.remove(agentsPath);
+    console.log("### tool_executor.test.js: afterEach: files removed ###");
   });
 
   test("should successfully execute a tool that is explicitly permitted", async () => {

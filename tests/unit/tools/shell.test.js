@@ -22,21 +22,19 @@ describe("Shell Tool", () => {
     expect(result).toContain("EXECUTION FAILED:");
   });
 
-  test("should throw an error for a non-permitted command", async () => {
+  test("should return an error string for a non-permitted command", async () => {
     const restrictiveAgentConfig = {
       alias: "test-agent",
       permitted_shell_commands: ["echo.*"], // Only allow echo commands
     };
     
-    await expect(
-      execute({ command: "ls", agentConfig: restrictiveAgentConfig })
-    ).rejects.toThrow('Security policy violation: Command "ls" not permitted');
+    const result = await execute({ command: "ls", agentConfig: restrictiveAgentConfig });
+    expect(result).toContain('EXECUTION FAILED: Security policy violation');
   });
 
-  test("should throw an error if no command is provided", async () => {
-    await expect(execute({ command: "", agentConfig: mockAgentConfig })).rejects.toThrow(
-      "No command provided."
-    );
+  test("should return an error string if no command is provided", async () => {
+    const result = await execute({ command: "", agentConfig: mockAgentConfig });
+    expect(result).toContain("EXECUTION FAILED: No command provided.");
   });
 
   test("should allow specific commands if permitted", async () => {
