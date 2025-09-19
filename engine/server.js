@@ -299,6 +299,21 @@ export class Engine {
       // Send initial state to the newly connected client
       this.sendStateToClient(ws);
       
+      ws.on('message', async (message) => {
+        try {
+          const data = JSON.parse(message);
+          if (data.type === 'user_create_task') {
+            console.log(chalk.blue('[WebSocket] Received new task from user:'), data.payload);
+            await this.stateManagerModule.addTask({
+              description: data.payload.description,
+              priority: data.payload.priority,
+            });
+          }
+        } catch (error) {
+          console.error(chalk.red('[WebSocket] Error processing message:'), error);
+        }
+      });
+
       ws.on('close', () => {
         console.log(chalk.blue('[WebSocket] Client disconnected'));
       });

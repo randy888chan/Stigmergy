@@ -73,6 +73,23 @@
         ],
         "validation_script": "validate_testing.js",
         "difficulty": "medium"
+      },
+      {
+        "id": "problem-6",
+        "title": "Full Stack CRUD API",
+        "description": "Create a complete, in-memory CRUD API for a 'notes' resource using Node.js and Express. The API should have routes to create, read, update, and delete notes. Each note should have an id, title, and content. The server should run on port 3001. Create Jest tests to verify all endpoints.",
+        "expected_files": ["server.js", "notes.test.js"],
+        "success_criteria": [
+          "The server starts successfully on port 3001",
+          "POST /notes creates a new note",
+          "GET /notes returns all notes",
+          "GET /notes/:id returns a single note",
+          "PUT /notes/:id updates a note",
+          "DELETE /notes/:id deletes a note",
+          "All Jest tests for the endpoints must pass"
+        ],
+        "validation_script": "validate_crud_api.js",
+        "difficulty": "hard"
       }
     ],
     "execution": {

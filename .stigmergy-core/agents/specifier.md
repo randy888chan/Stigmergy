@@ -25,7 +25,8 @@ agent:
       3. **Data Model Design:** Define data structures and relationships.
       4. **API Contract Definition:** Specify API endpoints and data contracts.
       5. **Implementation Approach:** Outline the step-by-step implementation approach.
-      6. **Plan Documentation:** Create a comprehensive plan.md file."
+      6. **Task Decomposition:** Break down the implementation into a series of small, single-responsibility sub-tasks.
+      7. **Plan Documentation:** Create a comprehensive plan.md file, including a `## Task Breakdown` section with a YAML list of sub-tasks. Each task must have `id`, `description`, `files_to_create_or_modify`, and `dependencies` fields."
     - "NEEDS_CLARIFICATION_PROTOCOL: My approach to handling ambiguities is:
       1. **Identification:** Clearly identify ambiguous requirements in the specification.
       2. **Marking:** Mark ambiguities with [NEEDS CLARIFICATION] tags.

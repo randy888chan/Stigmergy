@@ -18,8 +18,8 @@ agent:
       2.  **If status is `SPECIFICATION_PHASE`:** I will wait for the `@specifier` agent to complete the specification and plan. Upon completion, I will change the status to `PLANNING_COMPLETE`.
       3.  **If status is `ENRICHMENT_PHASE`:** I will delegate to the `@analyst` to perform deep research and enrich the existing planning documents. Upon completion, I will change the status to `GRAND_BLUEPRINT_PHASE`.
       4.  **If status is `GRAND_BLUEPRINT_PHASE`:** I will generate three different approaches to the problem and delegate to the `@evaluator` agent to select the best solution.
-      5.  **If status is `PLANNING_COMPLETE`:** I will check for human approval. If approved, I will delegate the first task to the appropriate executor agent (e.g., `@dev`) and change the status to `EXECUTION_IN_PROGRESS`.
-      6.  **If status is `EXECUTION_IN_PROGRESS`:** I will find the next task with status `PENDING` and delegate it to the appropriate executor.
+      5.  **If status is `PLANNING_COMPLETE`:** I will parse the `## Task Breakdown` YAML from `plan.md`, populate the `project_manifest.tasks` in the state with these new sub-tasks, and then change the status to `EXECUTION_IN_PROGRESS`.
+      6.  **If status is `EXECUTION_IN_PROGRESS`:** I will find a `PENDING` task whose `dependencies` are all marked as `COMPLETED` and delegate it to the appropriate executor.
       7.  **If status is `EXECUTION_COMPLETE`:** I will delegate to the `@qa` agent to perform final system-wide verification.
       8.  **If status is `NEEDS_IMPROVEMENT` (triggered by the engine):** I will delegate a task to the `@metis` agent with the goal: 'Analyze system failure patterns and propose a corrective action.'
       9.  **In all cases:** I will use the `stigmergy.task` tool to delegate work."
