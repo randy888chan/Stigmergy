@@ -58,7 +58,7 @@ export async function validateAgents(providedAgentsPath) {
 
   if (!agentsDir) {
     // 1. Check for local override
-    const localAgentsPath = path.join(process.cwd(), ".stigmergy-core", "agents");
+    const localAgentsPath = path.join(process.cwd(), ".stigmergy", "agents");
     if (fs.existsSync(localAgentsPath)) {
       agentsDir = localAgentsPath;
       console.log(chalk.blue(`[Validate] Using local override for agents from: ${agentsDir}`));
