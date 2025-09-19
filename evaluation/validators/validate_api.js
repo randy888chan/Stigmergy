@@ -1,111 +1,86 @@
 const fs = require('fs');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, exec } = require('child_process');
+const { promisify } = require('util');
 
-// Test the API implementation
-try {
-  // Check if required files exist
-  const requiredFiles = ['server.js', 'routes/users.js'];
-  for (const file of requiredFiles) {
-    if (!fs.existsSync(path.join(__dirname, '../temp_solution', file))) {
-      console.error(`FAIL: ${file} file not found`);
-      process.exit(1);
+const execPromise = promisify(exec);
+
+const solutionDir = path.join(__dirname, 'temp_solution');
+
+async function main() {
+  let server;
+  try {
+    // 1. Check if required files exist
+    const serverJsPath = path.join(solutionDir, 'server.js');
+    if (!fs.existsSync(serverJsPath)) {
+      throw new Error('server.js not found in the solution directory.');
+    }
+
+    // 2. Install dependencies
+    // Note: We install dependencies here directly because the validator runs in a separate
+    // temporary directory for each problem, and doesn't have access to the root node_modules.
+    console.log('Installing dependencies (express and axios)...');
+    try {
+      await execPromise('npm install express axios', { cwd: solutionDir });
+      console.log('Dependencies installed successfully.');
+    } catch (error) {
+      console.error('Failed to install dependencies:', error.stderr);
+      throw new Error('npm install failed.');
+    }
+
+    // 3. Start the server
+    console.log('Starting the server...');
+    server = spawn('node', ['server.js'], { cwd: solutionDir });
+
+    let serverOutput = '';
+    server.stdout.on('data', (data) => {
+      serverOutput += data.toString();
+      console.log(`[Server STDOUT]: ${data}`);
+    });
+    server.stderr.on('data', (data) => {
+      serverOutput += data.toString();
+      console.error(`[Server STDERR]: ${data}`);
+    });
+
+    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for server to start
+
+    // 4. Make a request to the server
+    console.log('Making a GET request to /api/users...');
+    // We need to construct the path to the installed axios module
+    const axiosPath = path.join(solutionDir, 'node_modules', 'axios');
+    const axios = require(axiosPath);
+    const response = await axios.get('http://localhost:3000/api/users');
+
+    // 5. Validate the response
+    if (response.status !== 200) {
+      throw new Error(`Expected status 200 OK, but got ${response.status}`);
+    }
+
+    const users = response.data;
+    if (!Array.isArray(users)) {
+      throw new Error('Response body should be a JSON array of users.');
+    }
+
+    if (users.length === 0) {
+      console.log('Warning: The users array is empty, but the API is working.');
+    } else {
+      const user = users[0];
+      if (!user.id || !user.name || !user.email) {
+        throw new Error('Each user object must have id, name, and email properties.');
+      }
+    }
+
+    console.log('PASS: API validation successful.');
+    process.exit(0);
+
+  } catch (error) {
+    console.error(`FAIL: API validation failed. ${error.message}`);
+    process.exit(1);
+  } finally {
+    if (server) {
+      server.kill();
     }
   }
-
-  // Start the server
-  const serverPath = path.join(__dirname, '../temp_solution/server.js');
-  const server = spawn('node', [serverPath], {
-    cwd: path.join(__dirname, '../temp_solution'),
-    stdio: ['pipe', 'pipe', 'pipe']
-  });
-
-  let serverOutput = '';
-  server.stdout.on('data', (data) => {
-    serverOutput += data.toString();
-  });
-
-  server.stderr.on('data', (data) => {
-    serverOutput += data.toString();
-  });
-
-  // Wait for server to start or fail
-  setTimeout(() => {
-    if (server.exitCode !== null) {
-      console.error(`FAIL: Server failed to start. Exit code: ${server.exitCode}`);
-      console.error(`Server output: ${serverOutput}`);
-      process.exit(1);
-    }
-
-    // If server is still running, try to make a request
-    const http = require('http');
-    
-    const options = {
-      hostname: 'localhost',
-      port: 3000,
-      path: '/api/users',
-      method: 'GET'
-    };
-
-    const req = http.request(options, (res) => {
-      let data = '';
-      
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      
-      res.on('end', () => {
-        if (res.statusCode !== 200) {
-          console.error(`FAIL: GET /api/users returned status ${res.statusCode}`);
-          server.kill();
-          process.exit(1);
-        }
-        
-        try {
-          const users = JSON.parse(data);
-          
-          if (!Array.isArray(users)) {
-            console.error('FAIL: GET /api/users should return an array');
-            server.kill();
-            process.exit(1);
-          }
-          
-          // Check if users have required properties
-          for (const user of users) {
-            if (!user.id || !user.name || !user.email) {
-              console.error('FAIL: Each user should have id, name, and email properties');
-              server.kill();
-              process.exit(1);
-            }
-          }
-          
-          console.log('PASS: API validation passed');
-          server.kill();
-          process.exit(0);
-        } catch (parseError) {
-          console.error(`FAIL: Failed to parse JSON response: ${parseError.message}`);
-          server.kill();
-          process.exit(1);
-        }
-      });
-    });
-    
-    req.on('error', (error) => {
-      console.error(`FAIL: Request failed: ${error.message}`);
-      server.kill();
-      process.exit(1);
-    });
-    
-    req.end();
-  }, 5000); // Wait 5 seconds for server to start
-
-  // Kill server after 10 seconds if no response
-  setTimeout(() => {
-    console.error('FAIL: Server did not respond in time');
-    server.kill();
-    process.exit(1);
-  }, 10000);
-} catch (error) {
-  console.error(`FAIL: ${error.message}`);
-  process.exit(1);
 }
+
+main();

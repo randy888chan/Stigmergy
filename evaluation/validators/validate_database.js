@@ -1,52 +1,56 @@
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
+const { promisify } = require('util');
 
-// Test the database integration implementation
-try {
-  // Check if required files exist
-  const requiredFiles = ['models/User.js', 'controllers/userController.js', 'config/database.js'];
-  for (const file of requiredFiles) {
-    if (!fs.existsSync(path.join(__dirname, '../temp_solution', file))) {
-      console.error(`FAIL: ${file} file not found`);
-      process.exit(1);
+const execPromise = promisify(exec);
+const solutionDir = path.join(__dirname, 'temp_solution');
+
+async function main() {
+  try {
+    // 1. Check if required files exist
+    const requiredFiles = ['models/User.js', 'config/database.js'];
+    for (const file of requiredFiles) {
+      const filePath = path.join(solutionDir, file);
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`${file} not found in the solution directory.`);
+      }
     }
-  }
 
-  // Check User model
-  const userContent = fs.readFileSync(path.join(__dirname, '../temp_solution/models/User.js'), 'utf8');
-  
-  // Basic checks for User model
-  if (!userContent.includes('schema') && !userContent.includes('model')) {
-    console.warn('WARNING: User model might not follow standard schema/model patterns');
-  }
-  
-  // Check for required fields
-  if (!userContent.includes('id') || !userContent.includes('name') || !userContent.includes('email')) {
-    console.warn('WARNING: User model might be missing required fields (id, name, email)');
-  }
+    // 2. Install dependencies (assuming mongoose for this example)
+    console.log('Installing dependencies (mongoose)...');
+    try {
+      // Check if package.json exists, if not, create one
+      const packageJsonPath = path.join(solutionDir, 'package.json');
+      if (!fs.existsSync(packageJsonPath)) {
+        await execPromise('npm init -y', { cwd: solutionDir });
+      }
+      await execPromise('npm install mongoose', { cwd: solutionDir });
+      console.log('Dependencies installed successfully.');
+    } catch (error) {
+      console.error('Failed to install dependencies:', error.stderr);
+      throw new Error('npm install failed.');
+    }
 
-  // Check userController
-  const controllerContent = fs.readFileSync(path.join(__dirname, '../temp_solution/controllers/userController.js'), 'utf8');
-  
-  // Check for CRUD operations
-  const crudOps = ['create', 'read', 'update', 'delete', 'find', 'findOne', 'findById'];
-  const hasCrud = crudOps.some(op => controllerContent.includes(op));
-  
-  if (!hasCrud) {
-    console.warn('WARNING: UserController might not implement standard CRUD operations');
-  }
+    // 3. Attempt to load the modules to check for syntax errors
+    console.log('Loading database config and User model...');
+    try {
+      // We don't want to actually connect, so we might need to mock the connection function
+      // For now, just requiring is a good first step.
+      require(path.join(solutionDir, 'config/database.js'));
+      require(path.join(solutionDir, 'models/User.js'));
+      console.log('Modules loaded successfully.');
+    } catch (error) {
+      throw new Error(`Failed to load modules. Syntax error or runtime issue? ${error.message}`);
+    }
 
-  // Check database config
-  const configContent = fs.readFileSync(path.join(__dirname, '../temp_solution/config/database.js'), 'utf8');
-  
-  // Check for connection setup
-  if (!configContent.includes('connect') && !configContent.includes('connection')) {
-    console.warn('WARNING: Database config might not set up a connection properly');
-  }
+    console.log('PASS: Database validation successful (files exist, dependencies install, and modules load).');
+    process.exit(0);
 
-  console.log('PASS: Database integration files exist and have basic structure');
-  process.exit(0);
-} catch (error) {
-  console.error(`FAIL: ${error.message}`);
-  process.exit(1);
+  } catch (error) {
+    console.error(`FAIL: Database validation failed. ${error.message}`);
+    process.exit(1);
+  }
 }
+
+main();

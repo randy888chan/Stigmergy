@@ -1,8 +1,13 @@
 import React from 'react';
+import useWebSocket from '../hooks/useWebSocket';
 import './ActivityLog.css';
 
-const ActivityLog = ({ state }) => {
-  const activityLog = state.history || [];
+const ActivityLog = () => {
+  const { data: state, loading, error } = useWebSocket();
+  const activityLog = state?.history || [];
+
+  if (loading) return <p>Connecting to WebSocket...</p>;
+  if (error) return <p>WebSocket Error: {error}</p>;
 
   return (
     <div className="activity-log-container">

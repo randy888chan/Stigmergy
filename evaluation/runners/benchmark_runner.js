@@ -1,10 +1,11 @@
 import fs from 'fs-extra';
 import path from 'path';
-import { exec } from 'child_process';
+import { exec, spawn } from 'child_process';
 import { promisify } from 'util';
 import chalk from 'chalk';
 
 const execPromise = promisify(exec);
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 class BenchmarkRunner {
   constructor(benchmarkFile) {
@@ -24,72 +25,101 @@ class BenchmarkRunner {
   }
 
   async runProblem(problem, problemDir) {
-    console.log(chalk.blue(`Running problem: ${problem.title}`));
+    console.log(chalk.blue(`[Benchmark] Running problem: ${problem.title}`));
     
     const startTime = Date.now();
     let success = false;
     let error = null;
     let output = '';
     
+    const tempDir = path.join(problemDir, `temp_${problem.id}`);
+    let engineProcess;
+
     try {
-      // Create a temporary directory for this problem
-      const tempDir = path.join(problemDir, `temp_${problem.id}`);
+      console.log(`[Benchmark] Creating temp directory: ${tempDir}`);
       await fs.ensureDir(tempDir);
-      
-      // Initialize Stigmergy in the temp directory
+
+      console.log('[Benchmark] Initializing Stigmergy...');
       await execPromise(`npx stigmergy init`, { cwd: tempDir });
+      console.log('[Benchmark] Stigmergy initialized.');
+
+      const enginePath = path.join(process.cwd(), 'engine', 'server.js');
+      console.log(`[Benchmark] Spawning engine process: ${enginePath}`);
+      engineProcess = spawn('node', [enginePath], { cwd: tempDir, detached: true });
+
+      engineProcess.stdout.on('data', (data) => console.log(chalk.gray(`[Engine STDOUT]: ${data}`)));
+      engineProcess.stderr.on('data', (data) => console.error(chalk.red(`[Engine STDERR]: ${data}`)));
       
-      // Change to the temp directory
-      const originalCwd = process.cwd();
-      process.chdir(tempDir);
-      
-      try {
-        // Run the Stigmergy system to solve the problem
-        // For the new standalone architecture, we'll use the chat API
-        const chatRequest = {
-          agentId: 'system',
-          prompt: problem.description
-        };
-        
-        // Try to communicate with the Stigmergy service
-        try {
-          const response = await fetch('http://localhost:3010/api/chat', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(chatRequest),
-            timeout: this.benchmark.execution.timeout
-          });
-          
-          if (response.ok) {
-            const result = await response.json();
-            output = JSON.stringify(result, null, 2);
-          } else {
-            output = `HTTP Error: ${response.status} ${response.statusText}`;
-          }
-        } catch (fetchError) {
-          // If we can't connect to the service, try running the engine directly
-          console.log(chalk.yellow('Could not connect to Stigmergy service, running engine directly...'));
-          const { stdout, stderr } = await execPromise(
-            `node ${path.join(originalCwd, 'engine/server.js')} --task "${problem.description}"`,
-            { timeout: this.benchmark.execution.timeout }
-          );
-          output = stdout + stderr;
-        }
-        
-        // Check success criteria
-        success = await this.validateSolution(problem, tempDir);
-      } finally {
-        // Change back to original directory
-        process.chdir(originalCwd);
-        
-        // Clean up temp directory
-        await fs.remove(tempDir);
+      console.log('[Benchmark] Waiting for engine to start...');
+      await sleep(10000); // Increased wait time for engine to start
+      console.log('[Benchmark] Engine should be started. Sending request.');
+
+      const chatRequest = {
+        agentId: 'system',
+        prompt: problem.description
+      };
+
+      const response = await fetch('http://localhost:3010/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(chatRequest),
+      });
+      console.log(`[Benchmark] Initial request sent. Status: ${response.status}`);
+
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
       }
+
+      output = JSON.stringify(await response.json(), null, 2);
+
+      // Monitor for completion
+      console.log('[Benchmark] Starting to monitor for completion...');
+      const stateFilePath = path.join(tempDir, '.stigmergy', 'state', 'current.json');
+      let taskCompleted = false;
+      const timeout = Date.now() + (this.benchmark.execution.timeout || 120000);
+
+      while (Date.now() < timeout) {
+        if (await fs.pathExists(stateFilePath)) {
+          const state = await fs.readJson(stateFilePath);
+          console.log(`[Benchmark] Polling... Current status: ${state.project_status}`);
+          if (state.project_status === 'EXECUTION_COMPLETE') {
+            console.log('[Benchmark] Execution complete.');
+            taskCompleted = true;
+            break;
+          }
+          if (['HUMAN_INPUT_NEEDED', 'ERROR'].includes(state.project_status)) {
+            throw new Error(`Task failed with status: ${state.project_status}`);
+          }
+        } else {
+          console.log('[Benchmark] Polling... State file not found yet.');
+        }
+        await sleep(5000); // Poll every 5 seconds
+      }
+
+      if (!taskCompleted) {
+        throw new Error('Benchmark timed out.');
+      }
+
+      console.log('[Benchmark] Validating solution...');
+      success = await this.validateSolution(problem, tempDir);
+      console.log(`[Benchmark] Validation result: ${success}`);
+
     } catch (err) {
       error = err.message;
-      console.error(chalk.red(`Error running problem ${problem.id}: ${error}`));
+      console.error(chalk.red(`[Benchmark] Error running problem ${problem.id}: ${error}`));
+    } finally {
+      if (engineProcess) {
+        console.log(`[Benchmark] Killing engine process ${engineProcess.pid}`);
+        try {
+            process.kill(-engineProcess.pid);
+        } catch (e) {
+            console.error(`[Benchmark] Failed to kill process: ${e.message}`);
+        }
+      }
+      if (await fs.pathExists(tempDir)) {
+        console.log(`[Benchmark] Cleaning up temp directory: ${tempDir}`);
+        await fs.remove(tempDir);
+      }
     }
     
     const endTime = Date.now();
