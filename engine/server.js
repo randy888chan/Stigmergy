@@ -227,6 +227,75 @@ export class Engine {
         return;
       }
 
+      // Special handling for EXECUTION_IN_PROGRESS to implement continuous implementation loop
+      if (state.project_status === 'EXECUTION_IN_PROGRESS') {
+        const allTasks = state.project_manifest?.tasks || [];
+        const pendingTasks = allTasks.filter(t => t.status === 'PENDING');
+        const completedTasks = allTasks.filter(t => t.status === 'COMPLETED');
+        
+        // If no pending tasks, move to EXECUTION_COMPLETE
+        if (pendingTasks.length === 0) {
+          await this.stateManagerModule.updateStatus({ 
+            newStatus: "EXECUTION_COMPLETE", 
+            message: "All tasks completed. Ready for final verification." 
+          });
+          return;
+        }
+        
+        // For EXECUTION_IN_PROGRESS, we'll implement a continuous loop
+        // Find next executable task (dependencies met)
+        const nextTask = this.findNextExecutableTask(allTasks);
+        
+        if (nextTask) {
+          // Read relevant files for the entire plan
+          const fileContents = await this.readRelevantFiles(allTasks);
+          
+          // Delegate to @executor agent with task and file contents
+          const executor = this.getAgent('executor');
+          const executorPrompt = `
+            Task: ${nextTask.description}
+            
+            File Contents:
+            ${JSON.stringify(fileContents, null, 2)}
+            
+            Please generate the raw code implementation for this task.
+            Return only the file contents as a JSON object with file paths as keys.
+          `;
+          
+          try {
+            const { toolCall: executorResult } = await this.triggerAgent(executor, executorPrompt);
+            
+            // Update files with executor output
+            if (executorResult && executorResult.files) {
+              for (const [filePath, content] of Object.entries(executorResult.files)) {
+                const fullPath = path.join(process.cwd(), filePath);
+                await fs.ensureDir(path.dirname(fullPath));
+                await fs.writeFile(fullPath, content, 'utf8');
+                console.log(`[ContinuousExecution] Updated file: ${filePath}`);
+              }
+            }
+            
+            // Mark task as completed
+            await this.stateManagerModule.updateTaskStatus(nextTask.id, 'COMPLETED');
+            
+            // Continue the loop in the next iteration
+            return;
+          } catch (error) {
+            console.error(chalk.red(`[ContinuousExecution] Error executing task ${nextTask.id}:`), error);
+            await this.stateManagerModule.updateTaskStatus(nextTask.id, 'FAILED');
+            return;
+          }
+        } else {
+          // No executable task found (possible circular dependency)
+          console.warn('[ContinuousExecution] No executable task found. Possible circular dependency.');
+          await this.stateManagerModule.updateStatus({ 
+            newStatus: "HUMAN_INPUT_NEEDED", 
+            message: "No executable task found. Possible circular dependency." 
+          });
+          return;
+        }
+      }
+
       const allTasks = state.project_manifest?.tasks || [];
       const pendingTasks = allTasks.filter(t => t.status === 'PENDING');
       const completedTasks = allTasks.filter(t => t.status === 'COMPLETED');
@@ -353,6 +422,64 @@ export class Engine {
         client.send(JSON.stringify(stateWithPerformance));
       }
     });
+  }
+
+  /**
+   * Find the next executable task
+   * @param {Array} tasks - All tasks in the project manifest
+   * @returns {Object|null} - The next task to execute or null if none found
+   */
+  findNextExecutableTask(tasks) {
+    const pendingTasks = tasks.filter(task => task.status === 'PENDING');
+    const completedTaskIds = new Set(
+      tasks.filter(task => task.status === 'COMPLETED').map(task => task.id)
+    );
+    
+    // Find a pending task whose dependencies are all completed
+    for (const task of pendingTasks) {
+      const dependencies = task.dependencies || [];
+      const allDependenciesMet = dependencies.every(depId => completedTaskIds.has(depId));
+      
+      if (allDependenciesMet) {
+        return task;
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Read relevant files for the entire plan
+   * @param {Array} tasks - All tasks in the project manifest
+   * @returns {Object} - Map of file paths to their contents
+   */
+  async readRelevantFiles(tasks) {
+    const filesToRead = new Set();
+    
+    // Collect all files from all tasks
+    for (const task of tasks) {
+      const files = task.files_to_create_or_modify || [];
+      files.forEach(file => filesToRead.add(file));
+    }
+    
+    const fileContents = {};
+    
+    // Read each file
+    for (const filePath of filesToRead) {
+      try {
+        const fullPath = path.join(process.cwd(), filePath);
+        if (await fs.pathExists(fullPath)) {
+          fileContents[filePath] = await fs.readFile(fullPath, 'utf8');
+        } else {
+          fileContents[filePath] = ''; // File doesn't exist yet
+        }
+      } catch (error) {
+        console.warn(`[ContinuousExecution] Could not read file ${filePath}:`, error.message);
+        fileContents[filePath] = ''; // Error reading file
+      }
+    }
+    
+    return fileContents;
   }
 
   getAgent(agentId) {
