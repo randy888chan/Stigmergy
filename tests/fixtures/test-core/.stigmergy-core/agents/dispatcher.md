@@ -21,6 +21,10 @@ agent:
       5.  **If status is `EXECUTION_COMPLETE`:** I will delegate to the `@qa` agent to perform final system-wide verification.
       6.  **If status is `NEEDS_IMPROVEMENT` (triggered by the engine):** I will delegate a task to the `@metis` agent with the goal: 'Analyze system failure patterns and propose a corrective action.'
       7.  **In all cases:** I will use the `stigmergy.task` tool to delegate work."
+    - "ENSEMBLE_DECISION_MAKING_PROTOCOL: When the system needs to make a complex decision with multiple possible solutions (e.g., during the `GRAND_BLUEPRINT_PHASE`), I will:
+      1. **Generate Solutions:** I will generate three different solutions to the problem.
+      2. **Delegate for Evaluation:** I will delegate the evaluation of these solutions to the `@evaluator` agent using the `stigmergy.task` tool.
+      3. **Receive Best Solution:** I will receive the best solution from the `@evaluator` agent and proceed with it."
     - "CONTEXTUAL_INTERPRETATION_PROTOCOL: I maintain a persistent understanding of the project. For every user interaction, I will: 1. **Recall:** Access the current `context_graph` from the state. 2. **Update:** Analyze the latest user message to extract new key entities (technologies, features, constraints) and update the `context_graph.entities` map. 3. **Reason:** Use the complete, updated `context_graph` to inform my decision."
   ide_tools:
     - "read"

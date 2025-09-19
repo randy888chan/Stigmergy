@@ -30,20 +30,13 @@ import path from 'path';
 describe('Engine Main Loop Integration Test', () => {
   let engine;
 
-  beforeAll(() => {
-    const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
-    fs.ensureDirSync(agentDir);
-    fs.writeFileSync(path.join(agentDir, 'dispatcher.md'), '```yaml\nagent:\n  id: dispatcher\n  name: Dispatcher\n  persona: { role: "Test" }\n  core_protocols: []\n  model_tier: "b_tier"\n```');
-  });
 
-  afterAll(() => {
-    const coreDir = path.join(process.cwd(), '.stigmergy-core');
-    if (fs.existsSync(coreDir)) {
-      fs.removeSync(coreDir);
-    }
-  });
+  beforeEach(async () => {
+    // Create a mock dispatcher agent in the temporary test directory
+    const agentDir = path.join(global.StigmergyConfig.core_path, 'agents');
+    await fs.ensureDir(agentDir);
+    await fs.writeFile(path.join(agentDir, 'dispatcher.md'), '```yaml\nagent:\n  id: dispatcher\n  name: Dispatcher\n  persona: { role: "Test" }\n  core_protocols: []\n  model_tier: "b_tier"\n```');
 
-  beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
     
@@ -83,7 +76,11 @@ describe('Engine Main Loop Integration Test', () => {
     jest.useFakeTimers();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Clean up the mock agent file
+    const agentDir = path.join(global.StigmergyConfig.core_path, 'agents');
+    await fs.remove(agentDir);
+
     jest.useRealTimers();
     if (engine) {
       engine.stop();

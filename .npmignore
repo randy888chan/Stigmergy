@@ -30,4 +30,3 @@ jest.config.js
 *.log
 
 # Source of the core that gets installed and shipped as read-only asset
-# .stigmergy-core/

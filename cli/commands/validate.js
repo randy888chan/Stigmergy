@@ -5,15 +5,6 @@ import { z } from "zod";
 import chalk from "chalk";
 import { OutputFormatter } from "../utils/output_formatter.js";
 
-// Helper to get the core path, respecting test environments
-function getCorePath(providedPath) {
-  if (providedPath) return providedPath;
-  if (global.StigmergyConfig && global.StigmergyConfig.core_path) {
-    return global.StigmergyConfig.core_path;
-  }
-  return path.join(process.cwd(), ".stigmergy-core");
-}
-
 const agentSchema = z
   .object({
     agent: z
@@ -59,24 +50,31 @@ const agentSchema = z
   })
   .passthrough();
 
-export async function validateAgents(providedCorePath) {
+export async function validateAgents(providedAgentsPath) {
   OutputFormatter.section("Agent Definition Validation");
   OutputFormatter.step("Scanning agent definitions...");
 
-  const corePath = getCorePath(providedCorePath);
-  const agentsDir = path.join(corePath, "agents");
+  let agentsDir = providedAgentsPath;
 
-  if (!fs.existsSync(agentsDir)) {
-    // In test environments, the core path might be different.
-    const testCorePath = path.join(process.cwd(), "tests", "fixtures", "test-core");
-    if (fs.existsSync(path.join(testCorePath, "agents"))) {
-      OutputFormatter.info("Falling back to test-core directory for validation.");
-      return validateAgents(testCorePath);
+  if (!agentsDir) {
+    // 1. Check for local override
+    const localAgentsPath = path.join(process.cwd(), ".stigmergy-core", "agents");
+    if (fs.existsSync(localAgentsPath)) {
+      agentsDir = localAgentsPath;
+      console.log(chalk.blue(`[Validate] Using local override for agents from: ${agentsDir}`));
+    } else {
+      // 2. Fallback to the globally installed (packaged) path
+      const globalAgentsPath = path.resolve(__dirname, '..', '..', '.stigmergy-core', 'agents');
+      if (fs.existsSync(globalAgentsPath)) {
+        agentsDir = globalAgentsPath;
+        console.log(chalk.blue(`[Validate] Using global package agents from: ${agentsDir}`));
+      } else {
+        return {
+          success: false,
+          error: `Agents directory not found in local override or global package.`,
+        };
+      }
     }
-    return {
-      success: false,
-      error: `Agents directory not found in ${corePath} or ${testCorePath}`,
-    };
   }
 
   const agentFiles = await fs.readdir(agentsDir);

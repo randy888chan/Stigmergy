@@ -12,12 +12,10 @@ describe('Secure Shell Execution Tool', () => {
     expect(result.trim()).toBe('Hello, world!');
   });
 
-  test('should throw a security policy violation for a non-permitted command', async () => {
+  test('should return an error string for a non-permitted command', async () => {
     const command = 'ls -l';
-    // We need to wrap the async call in a function for rejects.toThrow to catch the promise rejection.
-    await expect(async () => await execute({ command, agentConfig: mockAgentConfig })).rejects.toThrow(
-      `Security policy violation: Command "${command}" not permitted for @${mockAgentConfig.alias}.`
-    );
+    const result = await execute({ command, agentConfig: mockAgentConfig });
+    expect(result).toContain('EXECUTION FAILED: Security policy violation');
   });
 
   test('should return an error message for a command that fails during execution', async () => {

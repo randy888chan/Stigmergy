@@ -8,10 +8,9 @@ describe('Benchmark Runner Integration', () => {
   let testResultsFile;
   let testDir;
 
-  beforeAll(async () => {
-    // Create a temporary directory for testing
-    testDir = path.join(process.cwd(), 'temp-test-benchmark');
-    await fs.ensureDir(testDir);
+  beforeEach(async () => {
+    // Use the global temporary directory
+    testDir = global.StigmergyConfig.core_path;
     
     // Create a test benchmark file
     testBenchmarkFile = path.join(testDir, 'test_benchmark.json');
@@ -42,17 +41,14 @@ describe('Benchmark Runner Integration', () => {
     };
     
     await fs.writeJson(testBenchmarkFile, testBenchmark);
-  });
 
-  afterAll(async () => {
-    // Clean up test files
-    if (await fs.pathExists(testDir)) {
-      await fs.remove(testDir);
-    }
-  });
-
-  beforeEach(() => {
     runner = new BenchmarkRunner(testBenchmarkFile);
+  });
+
+  afterEach(async () => {
+    // Clean up the files created in this test suite
+    await fs.remove(testBenchmarkFile);
+    await fs.remove(testResultsFile);
   });
 
   test('should load benchmark file correctly', async () => {

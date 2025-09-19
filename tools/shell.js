@@ -1,12 +1,10 @@
 import { exec } from "child_process";
-import fs from "fs";
-import path from "path";
 import { promisify } from "util";
 
 const execPromise = promisify(exec);
 
 export async function execute({ command, agentConfig }) {
-  if (!command) throw new Error("No command provided.");
+  if (!command) return "EXECUTION FAILED: No command provided.";
   
   // Security check: only allow permitted commands
   const permitted = (agentConfig.permitted_shell_commands || []).some((p) =>
@@ -14,9 +12,7 @@ export async function execute({ command, agentConfig }) {
   );
   
   if (!permitted)
-    throw new Error(
-      `Security policy violation: Command "${command}" not permitted for @${agentConfig.alias}.`
-    );
+    return `EXECUTION FAILED: Security policy violation: Command "${command}" not permitted for @${agentConfig.alias}.`;
 
   try {
     // Execute the command with a timeout
