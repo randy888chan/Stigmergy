@@ -20,6 +20,14 @@ if (!TEST_CORE.includes('.stigmergy-core-test-temp')) {
   throw new Error(`Invalid test directory name: ${TEST_CORE} does not contain safety identifier`);
 }
 
+// Additional validation - ensure we're not targeting any critical system paths
+const forbiddenPaths = ['/usr', '/bin', '/sbin', '/etc', '/var', '/opt', '/Applications', '/System'];
+for (const forbiddenPath of forbiddenPaths) {
+  if (TEST_CORE.startsWith(forbiddenPath)) {
+    throw new Error(`Forbidden path detected: ${TEST_CORE} is in a protected system directory`);
+  }
+}
+
 // Clean up any previous test runs for this specific worker
 if (fs.existsSync(TEST_CORE)) {
   // Extra safety check - only remove if it's clearly a test directory
@@ -56,7 +64,13 @@ global.restoreStigmergyConfig = () => {
       // Ensure we're only deleting test directories
       if (TEST_CORE.includes('.stigmergy-core-test-temp') && 
           path.basename(TEST_CORE).startsWith('.stigmergy-core-test-temp')) {
-        fs.removeSync(TEST_CORE);
+        // Additional safety check - verify this is actually a test directory
+        const isTestDir = path.basename(TEST_CORE).includes('.stigmergy-core-test-temp-');
+        if (isTestDir) {
+          fs.removeSync(TEST_CORE);
+        } else {
+          console.warn(`Skipping deletion of non-test directory: ${TEST_CORE}`);
+        }
       } else {
         console.warn(`Skipping deletion of non-test directory: ${TEST_CORE}`);
       }

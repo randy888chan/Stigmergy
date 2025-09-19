@@ -16,7 +16,7 @@ Stigmergy transforms high-level product goals into production-ready code through
 Stigmergy implements a security-first architecture with multiple layers of protection for the core system:
 
 - **Immutable Core**: The `.stigmergy-core` directory is bundled as a read-only asset in the NPM package
-- **Enhanced Sandboxing**: Shell tool execution uses `isolated-vm` for stronger security isolation
+- **Enhanced Sandboxing**: Shell tool execution uses secure `child_process.exec` with strict command validation for stronger security isolation
 - **Test Isolation**: Tests operate in temporary directories to prevent accidental core modification
 - **Hierarchical Agent Loading**: Local project overrides take precedence over global agents
 - **Resource Constraints**: Memory and CPU limits prevent resource exhaustion attacks
