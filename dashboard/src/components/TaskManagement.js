@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { useWebSocket } from '../hooks/useWebSocket';
 import './TaskManagement.css';
 
-const TaskManagement = ({ state }) => {
+const TaskManagement = () => {
+  const { state, sendMessage } = useWebSocket();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTask, setNewTask] = useState({
     description: '',
     priority: 'medium',
-    assigned_agent: ''
   });
   const [filter, setFilter] = useState('all');
 
@@ -18,13 +19,19 @@ const TaskManagement = ({ state }) => {
   });
 
   const handleCreateTask = () => {
-    // In a real implementation, this would call an API to create a new task
-    console.log('Creating task:', newTask);
-    // Reset form
+    if (newTask.description.trim() === '') return;
+
+    sendMessage({
+      type: 'user_create_task',
+      payload: {
+        description: newTask.description,
+        priority: newTask.priority,
+      },
+    });
+
     setNewTask({
       description: '',
       priority: 'medium',
-      assigned_agent: ''
     });
     setShowCreateForm(false);
   };
