@@ -1,9 +1,16 @@
+// This file handles the global teardown for Jest tests.
 import fs from "fs-extra";
 import path from "path";
 
 export default async () => {
+  // Retrieve the path from the global variable set in setup.js
+  const TEST_CORE_PATH = globalThis.__TEARDOWN_TEMP_PATH__;
   const workerId = process.env.JEST_WORKER_ID || '1';
-  const TEST_CORE_PATH = path.join(process.cwd(), `.stigmergy-core-test-temp-${workerId}`);
+
+  if (!TEST_CORE_PATH) {
+    console.warn(`[Teardown Worker ${workerId}] No temporary path was set. Skipping cleanup.`);
+    return;
+  }
 
   // Safety check and cleanup
   if (fs.existsSync(TEST_CORE_PATH)) {

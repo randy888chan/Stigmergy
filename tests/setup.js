@@ -1,3 +1,4 @@
+// This file handles the global setup for Jest tests.
 import fs from "fs-extra";
 import path from "path";
 
@@ -25,4 +26,8 @@ export default async () => {
 
   // Set an environment variable for the test files to use
   process.env.STIGMERGY_TEST_CORE_PATH = TEST_CORE_PATH;
+
+  // Pass the path to the teardown script via a global variable.
+  // This is safe because globalSetup and globalTeardown share the same global context.
+  globalThis.__TEARDOWN_TEMP_PATH__ = TEST_CORE_PATH;
 };
