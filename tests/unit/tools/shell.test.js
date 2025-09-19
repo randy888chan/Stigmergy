@@ -1,4 +1,7 @@
 import { execute } from "../../../tools/shell.js";
+import { exec } from "child_process";
+
+jest.mock("child_process");
 
 describe("Shell Tool", () => {
   const mockAgentConfig = {
@@ -11,15 +14,29 @@ describe("Shell Tool", () => {
   });
 
   test("should execute a permitted command successfully", async () => {
-    // Use a simple shell command that should work on most systems
-    const result = await execute({ command: "echo 'Hello World'", agentConfig: mockAgentConfig });
-    expect(result).toContain("Hello World");
+    exec.mockImplementation((command, options, callback) => {
+      callback(null, { stdout: "mocked output", stderr: "" });
+    });
+
+    const result = await execute({
+      command: "echo 'Hello World'",
+      agentConfig: mockAgentConfig,
+    });
+    expect(result).toBe("mocked output");
   });
 
   test("should handle execution failure of a permitted command", async () => {
-    // Use a command that will fail
-    const result = await execute({ command: "nonexistentcommand", agentConfig: mockAgentConfig });
-    expect(result).toContain("EXECUTION FAILED:");
+    const error = new Error("Command failed");
+    error.stderr = "Error details";
+    exec.mockImplementation((command, options, callback) => {
+      callback(error, { stdout: "", stderr: "Error details" });
+    });
+
+    const result = await execute({
+      command: "failingcommand",
+      agentConfig: mockAgentConfig,
+    });
+    expect(result).toBe("EXECUTION FAILED: Error details");
   });
 
   test("should return an error string for a non-permitted command", async () => {
@@ -42,8 +59,13 @@ describe("Shell Tool", () => {
       alias: "test-agent",
       permitted_shell_commands: ["echo.*"], // Allow echo commands
     };
+
+    exec.mockImplementation((command, options, callback) => {
+      const output = command.replace("echo ", "").replace(/'/g, "");
+      callback(null, { stdout: output, stderr: "" });
+    });
     
     const result = await execute({ command: "echo 'test'", agentConfig: restrictiveAgentConfig });
-    expect(result).toContain("test");
+    expect(result).toBe("test");
   });
 });

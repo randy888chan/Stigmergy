@@ -3,19 +3,26 @@ import { appendFile } from '../../tools/file_system.js';
 import fs from 'fs-extra';
 import path from 'path';
 
-const FAILURE_REPORTS_PATH = path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
+const TEMP_REPORTS_DIR = path.join(process.cwd(), '.ai', 'test_temp_memory');
 
 describe('Self-Improvement Data Pipeline', () => {
+  let tempReportsPath;
 
   beforeEach(async () => {
-    // Ensure the directory exists and the file is clean before each test
-    await fs.ensureDir(path.dirname(FAILURE_REPORTS_PATH));
-    await fs.writeFile(FAILURE_REPORTS_PATH, '');
+    // Create a unique temp file for each test
+    tempReportsPath = path.join(TEMP_REPORTS_DIR, `failures-${Date.now()}.jsonl`);
+    await fs.ensureDir(TEMP_REPORTS_DIR);
+    await fs.writeFile(tempReportsPath, '');
+  });
+
+  afterEach(async () => {
+    // Clean up the unique file after each test
+    await fs.remove(tempReportsPath);
   });
 
   afterAll(async () => {
-    // Clean up the file after all tests are done
-    await fs.remove(FAILURE_REPORTS_PATH);
+    // Clean up the temp directory
+    await fs.remove(TEMP_REPORTS_DIR);
   });
 
   test('should correctly identify the most common failure pattern from the log file', async () => {
@@ -40,11 +47,11 @@ describe('Self-Improvement Data Pipeline', () => {
     };
 
     // Act
-    // Use the actual appendFile tool to write to the file
+    // Use the actual appendFile tool to write to the temp file
     const content = [bugReport1, bugReport2, bugReport3].map(r => JSON.stringify(r)).join('\n') + '\n';
-    await appendFile({ path: FAILURE_REPORTS_PATH, content });
+    await appendFile({ path: tempReportsPath, content });
 
-    const analysisResult = await get_failure_patterns();
+    const analysisResult = await get_failure_patterns({ reportsPath: tempReportsPath });
 
     // Assert
     expect(analysisResult.summary).toContain("Analyzed 3 failures");
@@ -55,7 +62,7 @@ describe('Self-Improvement Data Pipeline', () => {
     // Arrange: The file is already empty due to beforeEach
 
     // Act
-    const analysisResult = await get_failure_patterns();
+    const analysisResult = await get_failure_patterns({ reportsPath: tempReportsPath });
 
     // Assert
     expect(analysisResult).toBe("No failure reports logged yet.");

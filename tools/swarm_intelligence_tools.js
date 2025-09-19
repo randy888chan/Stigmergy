@@ -4,8 +4,8 @@ import path from "path";
 /**
  * Enhanced failure pattern analysis with root cause identification
  */
-export async function get_failure_patterns() {
-  const filePath = path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
+export async function get_failure_patterns({ reportsPath = null } = {}) {
+  const filePath = reportsPath || path.join(process.cwd(), '.ai', 'swarm_memory', 'failure_reports.jsonl');
   try {
     const data = await fs.readFile(filePath, 'utf8');
     if (!data.trim()) return "No failure reports logged yet.";
