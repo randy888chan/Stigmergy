@@ -19,11 +19,7 @@ export async function execute({ command, agentConfig }) {
     const { stdout, stderr } = await execPromise(command, { timeout: 5000 });
     
     // Return the output
-    const output = stdout.trim();
-    if (stderr && stderr.trim()) {
-      return `${output}\nSTDERR: ${stderr.trim()}`;
-    }
-    return output || "";
+    return stdout.trim();
   } catch (error) {
     // Handle timeout errors specifically
     if (error.message.includes('timed out')) {

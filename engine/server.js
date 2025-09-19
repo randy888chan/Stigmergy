@@ -341,7 +341,7 @@ export class Engine {
   }
 
   getAgent(agentId) {
-    const localOverridePath = path.join(process.cwd(), '.stigmergy', 'agents', `${agentId}.md`);
+    const localOverridePath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
 
     let agentPath;
 
@@ -356,7 +356,6 @@ export class Engine {
       
       if (fs.existsSync(globalPath)) {
         agentPath = globalPath;
-        console.log(chalk.blue(`[Engine] Using global package agent @${agentId} from: ${agentPath}`));
       } else {
         throw new Error(`Agent definition file not found for: @${agentId}. Searched for local override and in global package.`);
       }

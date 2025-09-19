@@ -54,42 +54,56 @@ export async function validateAgents(providedAgentsPath) {
   OutputFormatter.section("Agent Definition Validation");
   OutputFormatter.step("Scanning agent definitions...");
 
-  let agentsDir = providedAgentsPath;
+  const agentFilesToValidate = new Map();
+  let agentsDir; // For context in the loop
 
-  if (!agentsDir) {
-    // 1. Check for local override
-    const localAgentsPath = path.join(process.cwd(), ".stigmergy", "agents");
+  if (providedAgentsPath) {
+    agentsDir = providedAgentsPath;
+    const agentFiles = await fs.readdir(agentsDir);
+    for (const file of agentFiles) {
+        agentFilesToValidate.set(file, path.join(agentsDir, file));
+    }
+  } else {
+    // 1. Get global agents
+    const globalAgentsPath = path.resolve(__dirname, '..', '..', '.stigmergy-core', 'agents');
+    if (fs.existsSync(globalAgentsPath)) {
+        const globalAgentFiles = await fs.readdir(globalAgentsPath);
+        for (const file of globalAgentFiles) {
+            agentFilesToValidate.set(file, path.join(globalAgentsPath, file));
+        }
+        OutputFormatter.info(`Found ${globalAgentFiles.length} agents in the core package.`);
+    }
+
+    // 2. Get local override agents, which will overwrite global ones in the map
+    const localAgentsPath = path.join(process.cwd(), ".stigmergy-core", "agents");
     if (fs.existsSync(localAgentsPath)) {
-      agentsDir = localAgentsPath;
-      console.log(chalk.blue(`[Validate] Using local override for agents from: ${agentsDir}`));
-    } else {
-      // 2. Fallback to the globally installed (packaged) path
-      const globalAgentsPath = path.resolve(__dirname, '..', '..', '.stigmergy-core', 'agents');
-      if (fs.existsSync(globalAgentsPath)) {
-        agentsDir = globalAgentsPath;
-        console.log(chalk.blue(`[Validate] Using global package agents from: ${agentsDir}`));
-      } else {
-        return {
-          success: false,
-          error: `Agents directory not found in local override or global package.`,
-        };
-      }
+        const localAgentFiles = await fs.readdir(localAgentsPath);
+        for (const file of localAgentFiles) {
+            agentFilesToValidate.set(file, path.join(localAgentsPath, file));
+        }
+        OutputFormatter.info(`Found ${localAgentFiles.length} local agent overrides. These will take precedence.`);
     }
   }
 
-  const agentFiles = await fs.readdir(agentsDir);
+  if (agentFilesToValidate.size === 0) {
+    return {
+      success: false,
+      error: `No agent definitions found. Searched in local '.stigmergy-core/agents' and in the global package.`,
+    };
+  }
+
   let validAgents = 0;
   let invalidAgents = 0;
   let warnings = 0;
   const aliases = new Map();
   const validationResults = [];
 
-  for (const file of agentFiles) {
+  for (const [file, fullPath] of agentFilesToValidate.entries()) {
     if (!file.endsWith(".md") && !file.endsWith(".yml") && !file.endsWith(".yaml")) {
       continue;
     }
 
-    const content = await fs.readFile(path.join(agentsDir, file), "utf8");
+    const content = await fs.readFile(fullPath, "utf8");
     const yamlMatch = content.match(/```(?:yaml|yml)\s*([\s\S]*?)```/);
 
     if (!yamlMatch) {
@@ -197,7 +211,7 @@ export async function validateAgents(providedAgentsPath) {
 
   // Display summary
   OutputFormatter.summary({
-    "Total Files Scanned": agentFiles.length,
+    "Total Files Scanned": agentFilesToValidate.size,
     "Valid Agents": validAgents,
     "Invalid Agents": invalidAgents,
     "Warnings": warnings

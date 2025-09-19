@@ -62,7 +62,7 @@ describe("Engine Agent Loading", () => {
       __dirname,
       "../../../.stigmergy-core/agents/test-agent.md"
     );
-    const localAgentPath = path.join(process.cwd(), ".stigmergy/agents/test-agent.md");
+    const localAgentPath = path.join(process.cwd(), ".stigmergy-core/agents/test-agent.md");
 
     vol.fromJSON({
       [globalAgentPath]: createAgentContent("test-agent", "Global Test Agent"),
@@ -76,7 +76,7 @@ describe("Engine Agent Loading", () => {
   });
 
   it("should load an agent from the local path even if no global version exists", () => {
-    const localAgentPath = path.join(process.cwd(), ".stigmergy/agents/local-only-agent.md");
+    const localAgentPath = path.join(process.cwd(), ".stigmergy-core/agents/local-only-agent.md");
 
     vol.fromJSON({
       [localAgentPath]: createAgentContent("local-only-agent", "Local Only Agent"),

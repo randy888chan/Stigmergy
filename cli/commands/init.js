@@ -1,8 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
-import coreBackup from "../../services/core_backup.js";
-import { configureIde } from "./install_helpers.js";
 import config from "../../stigmergy.config.js";
 import chalk from "chalk";
 import ora from "ora";
@@ -60,10 +58,11 @@ export default {
     OutputFormatter.success("Created environment example file");
   }
 
-  // Create directories for trajectories, evaluations, and state
+  // Create directories for trajectories, state, logs, and traces
   await fs.ensureDir(path.join(stigmergyDir, "trajectories"));
-  await fs.ensureDir(path.join(stigmergyDir, "evaluations"));
   await fs.ensureDir(path.join(stigmergyDir, "state"));
+  await fs.ensureDir(path.join(stigmergyDir, "logs"));
+  await fs.ensureDir(path.join(stigmergyDir, "traces"));
   
   // Ask user if they want to configure API keys now
   const { configureKeys } = await inquirer.prompt([
@@ -193,10 +192,11 @@ export default {
     OutputFormatter.success("Created environment example file");
   }
   
-  // Create directories for trajectories, evaluations, and state
+  // Create directories for trajectories, state, logs, and traces
   await fs.ensureDir(path.join(stigmergyDir, "trajectories"));
-  await fs.ensureDir(path.join(stigmergyDir, "evaluations"));
   await fs.ensureDir(path.join(stigmergyDir, "state"));
+  await fs.ensureDir(path.join(stigmergyDir, "logs"));
+  await fs.ensureDir(path.join(stigmergyDir, "traces"));
   
   // Ask user if they want to configure API keys now
   const { configureKeys } = await inquirer.prompt([

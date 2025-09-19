@@ -93,7 +93,7 @@ agent:
         fs.existsSync.mockReturnValue(false);
         const result = await validateAgents();
         expect(result.success).toBe(false);
-        expect(result.error).toContain("Agents directory not found");
+        expect(result.error).toContain("No agent definitions found");
     });
   });
 });
