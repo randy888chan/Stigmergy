@@ -121,6 +121,7 @@ program
   .command("init")
   .description("Initialize Stigmergy in the current project directory.")
   .option('--interactive', 'Interactive initialization with guided setup')
+  .option('--no-interactive', 'Run in non-interactive mode, skipping all prompts')
   .action(async (options) => {
     const initPath = path.resolve(__dirname, './commands/init.js');
     const { init, interactiveInit } = await import(initPath);

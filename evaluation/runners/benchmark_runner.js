@@ -158,15 +158,11 @@ class BenchmarkRunner {
           });
         });
         
-        // Finally, use spawn with stdin input to handle the interactive prompt
-        const initProcess = spawn('npx', ['stigmergy', 'init'], { 
+        // Finally, use spawn with the non-interactive flag
+        const initProcess = spawn('npx', ['stigmergy', 'init', '--no-interactive'], { 
           cwd: tempDir,
           stdio: ['pipe', 'pipe', 'pipe']
         });
-        
-        // Provide "no" as input to the interactive prompt
-        initProcess.stdin.write('n\n');
-        initProcess.stdin.end();
         
         // Capture output
         let stdout = '';
