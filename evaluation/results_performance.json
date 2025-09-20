@@ -1,60 +1,60 @@
 {
   "benchmark": "Stigmergy System Performance Benchmark",
   "version": "1.0.0",
-  "timestamp": "2025-09-20T11:01:58.506Z",
+  "timestamp": "2025-09-20T11:58:51.411Z",
   "systemInfo": {
     "platform": "linux",
     "arch": "x64",
     "totalmem": 8345743360,
-    "freemem": 7875682304,
+    "freemem": 7859007488,
     "cpus": 4,
     "loadavg": [
-      0.01,
-      0.18,
-      0.12
+      0.4,
+      0.26,
+      0.2
     ]
   },
   "runInfo": {
-    "startTime": 1758365848594,
-    "endTime": 1758366118486,
-    "totalTime": 269892
+    "startTime": 1758369261849,
+    "endTime": 1758369531368,
+    "totalTime": 269519
   },
   "problemPerformance": [
     {
       "problemId": "problem-1",
       "title": "Simple File Creation Task",
-      "duration": 39491,
-      "memoryUsage": "2.88 MB"
+      "duration": 40458,
+      "memoryUsage": "3.49 MB"
     },
     {
       "problemId": "problem-2",
       "title": "API Endpoint Implementation",
-      "duration": 44791,
-      "memoryUsage": "0.38 MB"
+      "duration": 42744,
+      "memoryUsage": "0.39 MB"
     },
     {
       "problemId": "problem-3",
       "title": "React Component Development",
-      "duration": 41681,
+      "duration": 41580,
       "memoryUsage": "-0.04 MB"
     },
     {
       "problemId": "problem-4",
       "title": "Database Integration Task",
-      "duration": 41423,
-      "memoryUsage": "0.06 MB"
+      "duration": 43096,
+      "memoryUsage": "0.02 MB"
     },
     {
       "problemId": "problem-5",
       "title": "Testing Implementation",
-      "duration": 54026,
-      "memoryUsage": "-0.00 MB"
+      "duration": 52148,
+      "memoryUsage": "0.59 MB"
     },
     {
       "problemId": "problem-6",
       "title": "Full Stack CRUD API",
-      "duration": 48477,
-      "memoryUsage": "-0.40 MB"
+      "duration": 49490,
+      "memoryUsage": "1.14 MB"
     }
   ]
 }
