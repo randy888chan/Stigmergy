@@ -1,4 +1,4 @@
-```yml
+```yaml
 agent:
   id: "health_monitor"
   alias: "@health_monitor"
