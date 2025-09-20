@@ -8,7 +8,6 @@ const execPromise = promisify(exec);
 async function validate(directory) {
   // Use the provided directory parameter, fallback to a default if not provided
   const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
-  console.log(`[Validator] Starting validation in ${solutionDir}`);
 
   try {
     // 1. Check if required files exist
@@ -21,16 +20,13 @@ async function validate(directory) {
     }
 
     // 2. Install dependencies
-    console.log('Installing dependencies (react, react-dom, esbuild)...');
     try {
       const packageJsonPath = path.join(solutionDir, 'package.json');
       if (!fs.existsSync(packageJsonPath)) {
         await execPromise('npm init -y', { cwd: solutionDir });
       }
       await execPromise('npm install react react-dom esbuild', { cwd: solutionDir });
-      console.log('Dependencies installed successfully.');
     } catch (error) {
-      console.error('Failed to install dependencies:', error.stderr);
       throw new Error('npm install failed.');
     }
 
@@ -61,24 +57,19 @@ ReactDOM.render(<App />, document.getElementById('root'));
     fs.writeFileSync(htmlPath, '<!DOCTYPE html><html><head></head><body><div id="root"></div></body></html>');
 
     // 4. Attempt to build the project with esbuild
-    console.log('Attempting to build the React components with esbuild...');
     try {
       const esbuildPath = path.join(solutionDir, 'node_modules/.bin/esbuild');
       await execPromise(`${esbuildPath} ${entryPointPath} --bundle --outfile=dist/bundle.js --loader:.js=jsx`, { cwd: solutionDir });
-      console.log('Build successful.');
     } catch (error) {
-      console.error('Build failed:', error.stderr);
       throw new Error('esbuild failed. The React components likely have syntax errors.');
     }
 
-    console.log('PASS: React validation successful (files exist, dependencies install, and build succeeds).');
     return {
       success: true,
       message: 'React validation successful (files exist, dependencies install, and build succeeds).'
     };
 
   } catch (error) {
-    console.error(`FAIL: React validation failed. ${error.message}`);
     return {
       success: false,
       message: `React validation failed: ${error.message}`
@@ -90,10 +81,12 @@ ReactDOM.render(<App />, document.getElementById('root'));
 if (import.meta.url === `file://${process.argv[1]}`) {
   const directory = process.argv[2] || './temp_solution';
   validate(directory).then(result => {
-    console.log(JSON.stringify(result, null, 2));
+    // Only output the JSON result, nothing else
+    console.log(JSON.stringify(result));
     process.exit(result.success ? 0 : 1);
   }).catch(error => {
-    console.error(`[Validator] Unexpected error: ${error.message}`);
+    // Output error as JSON
+    console.log(JSON.stringify({ success: false, message: error.message }));
     process.exit(1);
   });
 }

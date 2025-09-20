@@ -5,7 +5,6 @@ import path from 'path';
 async function validate(directory) {
   // Use the provided directory parameter, fallback to a default if not provided
   const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
-  console.log(`[Validator] Starting validation in ${solutionDir}`);
   
   try {
     // Check if the file exists
@@ -42,27 +41,21 @@ async function validate(directory) {
     // Test edge cases
     try {
       factorial(-1);
-      console.warn('WARNING: factorial function should handle negative numbers');
     } catch (e) {
       // Expected behavior
-      console.log('PASS: factorial correctly handles negative numbers');
     }
 
     try {
       factorial(3.14);
-      console.warn('WARNING: factorial function should handle non-integers');
     } catch (e) {
       // Expected behavior
-      console.log('PASS: factorial correctly handles non-integers');
     }
 
-    console.log('PASS: All factorial tests passed');
     return {
       success: true,
       message: 'All factorial tests passed'
     };
   } catch (error) {
-    console.error(`FAIL: ${error.message}`);
     return {
       success: false,
       message: error.message
@@ -74,10 +67,12 @@ async function validate(directory) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const directory = process.argv[2] || './temp_solution';
   validate(directory).then(result => {
-    console.log(JSON.stringify(result, null, 2));
+    // Only output the JSON result, nothing else
+    console.log(JSON.stringify(result));
     process.exit(result.success ? 0 : 1);
   }).catch(error => {
-    console.error(`[Validator] Unexpected error: ${error.message}`);
+    // Output error as JSON
+    console.log(JSON.stringify({ success: false, message: error.message }));
     process.exit(1);
   });
 }
