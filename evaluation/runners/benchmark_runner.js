@@ -201,7 +201,7 @@ class BenchmarkRunner {
       }
       
       // Create a minimal .env file to allow the engine to start without real API keys
-      const envPath = path.join(tempDir, '.stigmergy', '.env');
+      const envPath = path.join(tempDir, '.env');
       const envContent = `OPENROUTER_API_KEY=dummy_key_for_benchmarking
 OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
 NEO4J_URI=bolt://localhost:7687

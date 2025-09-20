@@ -9,20 +9,30 @@ async function validate(directory) {
   // Use the provided directory parameter, fallback to a default if not provided
   const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
 
+  // Check if required files exist before proceeding
+  const serverJsPath = path.join(solutionDir, 'server.js');
+  if (!fs.existsSync(serverJsPath)) {
+    return {
+      success: false,
+      message: 'server.js not found in the solution directory.'
+    };
+  }
+
   let server;
   try {
-    // 1. Check if required files exist
-    const serverJsPath = path.join(solutionDir, 'server.js');
-    if (!fs.existsSync(serverJsPath)) {
-      throw new Error('server.js not found in the solution directory.');
-    }
-
-    // 2. Install dependencies
+    // 1. Install dependencies
     try {
       await execPromise('npm install express axios', { cwd: solutionDir });
     } catch (error) {
-      throw new Error('npm install failed.');
+      throw new Error('npm install failed: ' + error.message);
     }
+
+    // 2. Create a package.json file to specify CommonJS modules
+    const packageJsonPath = path.join(solutionDir, 'package.json');
+    const packageJson = {
+      "type": "commonjs"
+    };
+    fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2));
 
     // 3. Start the server
     server = spawn('node', ['server.js'], { cwd: solutionDir, detached: true });
@@ -51,14 +61,22 @@ async function validate(directory) {
     }
 
     if (!serverReady) {
-      throw new Error('Server failed to start within the expected time');
+      throw new Error('Server failed to start within the expected time. Server output: ' + serverOutput);
     }
 
     // 4. Make a request to the server
     // We need to construct the path to the installed axios module
-    const axiosPath = path.join(solutionDir, 'node_modules', 'axios');
+    const axiosPath = path.join(solutionDir, 'node_modules', 'axios', 'index.js');
     const { default: axios } = await import(axiosPath);
-    const response = await axios.get('http://localhost:3000/api/users');
+    
+    // Extract the port from the server output
+    let port = 3001; // Default port
+    const portMatch = serverOutput.match(/Server running on port (\d+)/);
+    if (portMatch) {
+      port = parseInt(portMatch[1]);
+    }
+    
+    const response = await axios.get(`http://localhost:${port}/api/users`);
 
     // 5. Validate the response
     if (response.status !== 200) {
