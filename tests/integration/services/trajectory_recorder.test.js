@@ -13,16 +13,22 @@ describe('Trajectory Recorder Integration', () => {
   });
 
   afterEach(() => {
-    // Clean up any created files
-    const trajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
-    if (fs.existsSync(trajectoryDir)) {
-      const files = fs.readdirSync(trajectoryDir);
-      files.forEach(file => {
-        if (file.startsWith('trajectory_')) {
-          fs.unlinkSync(path.join(trajectoryDir, file));
-        }
-      });
-    }
+    // Clean up any created files from both new and legacy directories
+    const directoriesToClean = [
+      path.join(process.cwd(), '.stigmergy', 'trajectories'),
+      path.join(process.cwd(), '.stigmergy-core', 'trajectories')
+    ];
+
+    directoriesToClean.forEach(trajectoryDir => {
+      if (fs.existsSync(trajectoryDir)) {
+        const files = fs.readdirSync(trajectoryDir);
+        files.forEach(file => {
+          if (file.startsWith('trajectory_')) {
+            fs.unlinkSync(path.join(trajectoryDir, file));
+          }
+        });
+      }
+    });
   });
 
   test('should start recording with correct initial structure', () => {
@@ -140,14 +146,19 @@ describe('Trajectory Recorder Integration', () => {
     const recording = trajectoryRecorder.getRecording(recordingId);
     expect(recording).toBeNull();
     
-    // Check that file was saved
-    const trajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
+    // Check that file was saved in either the new or legacy directory
+    const newTrajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
+    const legacyTrajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
     const filename = `trajectory_${recordingId}.json`;
-    const filepath = path.join(trajectoryDir, filename);
     
-    expect(fs.existsSync(filepath)).toBe(true);
+    const newFilepath = path.join(newTrajectoryDir, filename);
+    const legacyFilepath = path.join(legacyTrajectoryDir, filename);
+
+    const fileExists = fs.existsSync(newFilepath) || fs.existsSync(legacyFilepath);
+    expect(fileExists).toBe(true);
     
     // Check file content
+    const filepath = fs.existsSync(newFilepath) ? newFilepath : legacyFilepath;
     const savedRecording = fs.readJsonSync(filepath);
     expect(savedRecording.id).toBe(recordingId);
     expect(savedRecording.taskId).toBe(testTaskId);
