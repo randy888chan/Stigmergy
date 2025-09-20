@@ -103,6 +103,7 @@ export class Engine {
     this.executeTool = createExecutor(this);
 
     this.mainLoopInterval = null;
+    this.selfImprovementInterval = null;
     this.taskCounter = 0;
     
     this.setupMiddleware();
@@ -1384,6 +1385,19 @@ module.exports = { main };
     
     // Increase interval to a more realistic value to avoid spamming the LLM
     this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
+
+    if (this.selfImprovementInterval) {
+      clearInterval(this.selfImprovementInterval);
+    }
+    // Set the interval to run every 15 minutes (900,000 milliseconds)
+    this.selfImprovementInterval = setInterval(async () => {
+      console.log('[Engine] Triggering periodic self-improvement check...');
+      try {
+        await this.triggerAgent(this.getAgent('metis'), 'Analyze system performance and failure patterns to propose improvements.');
+      } catch (error) {
+        console.error('[Engine] Self-improvement cycle failed:', error);
+      }
+    }, 900000);
   }
 
   // Send current state to a specific WebSocket client
@@ -1857,6 +1871,7 @@ Use this context to inform your response.`;
       if (this.mainLoopInterval) {
         clearInterval(this.mainLoopInterval);
       }
+      clearInterval(this.selfImprovementInterval);
       this.server.close(() => {
         console.log('Stigmergy Engine server stopped.');
         resolve();
