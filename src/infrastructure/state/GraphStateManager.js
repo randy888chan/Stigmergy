@@ -14,11 +14,18 @@ class GraphStateManager extends EventEmitter {
     this.memoryState = null;
     this.projectConfig = null;
     this.initializeDriver();
+    
+    // Subscribe to our own state changes to write to file in fallback mode
+    console.log("GraphStateManager: Setting up stateChanged event listener");
+    this.on("stateChanged", (newState) => {
+      console.log("GraphStateManager: stateChanged event received");
+      this.writeStateToFile(newState);
+    });
   }
 
-  initializeDriver() {
+  async initializeDriver() {
     // Check for project-specific configuration first
-    this.projectConfig = this.getProjectConfig();
+    this.projectConfig = await this.getProjectConfig();
     
     // Use project-specific Neo4j configuration if available
     const neo4jUri = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.uri) || process.env.NEO4J_URI;
@@ -88,7 +95,7 @@ class GraphStateManager extends EventEmitter {
 
   async getState(projectName = "default") {
     // Check for project-specific configuration
-    const projectConfig = this.getProjectConfig();
+    const projectConfig = await this.getProjectConfig();
     
     const defaultState = {
         project_name: projectName,
@@ -112,6 +119,7 @@ class GraphStateManager extends EventEmitter {
                 : 'Neo4j connection unavailable',
               persistence_warning: 'State will not persist between sessions'
             };
+            console.log("GraphStateManager: Initialized memoryState:", JSON.stringify(this.memoryState, null, 2));
         }
         return this.memoryState;
     }
@@ -150,6 +158,7 @@ class GraphStateManager extends EventEmitter {
           fallback_reason: 'Neo4j query failed',
           persistence_warning: 'State will not persist between sessions'
         };
+        console.log("GraphStateManager: Initialized memoryState due to Neo4j error:", JSON.stringify(this.memoryState, null, 2));
       }
       return this.memoryState;
     } finally {
@@ -158,6 +167,8 @@ class GraphStateManager extends EventEmitter {
   }
 
   async updateState(event) {
+    console.log(`GraphStateManager: updateState called with event:`, JSON.stringify(event, null, 2));
+    console.log(`GraphStateManager: connectionStatus = ${this.connectionStatus}`);
     // If we've already determined that Neo4j is not available, use memory state
     if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
         console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type || 'unknown'}' will be stored in memory only.`);
@@ -175,6 +186,7 @@ class GraphStateManager extends EventEmitter {
           });
           
           console.debug(`GraphStateManager: Updated memory state for project ${projectName}`, this.memoryState);
+          console.log(`GraphStateManager: Emitting stateChanged event`);
           this.emit("stateChanged", this.memoryState);
           return this.memoryState;
         }
@@ -206,6 +218,7 @@ class GraphStateManager extends EventEmitter {
       );
       
       const newState = await this.getState(projectName);
+      console.log(`GraphStateManager: Emitting stateChanged event`);
       this.emit("stateChanged", newState);
       return newState;
     } catch (error) {
@@ -228,6 +241,7 @@ class GraphStateManager extends EventEmitter {
           last_updated: new Date().toISOString()
         });
       }
+      console.log(`GraphStateManager: Emitting stateChanged event`);
       this.emit("stateChanged", this.memoryState);
       return this.memoryState;
     } finally {
@@ -235,7 +249,35 @@ class GraphStateManager extends EventEmitter {
     }
   }
 
-  getProjectConfig() {
+  // Write state to file when in fallback mode
+  async writeStateToFile(state) {
+    console.log(`GraphStateManager: writeStateToFile called with state:`, JSON.stringify(state, null, 2));
+    // Only write to file if we're in fallback mode
+    if (state.fallback_mode) {
+      try {
+        // Determine the state file path based on the current working directory
+        const stateDir = path.join(process.cwd(), '.stigmergy', 'state');
+        const stateFile = path.join(stateDir, 'current.json');
+        
+        console.log(`GraphStateManager: Attempting to write state to file: ${stateFile}`);
+        console.log(`GraphStateManager: Current working directory: ${process.cwd()}`);
+        
+        // Ensure the directory exists
+        await fs.ensureDir(stateDir);
+        
+        // Write the state to the file
+        await fs.writeJson(stateFile, state, { spaces: 2 });
+        console.log(`GraphStateManager: State written to file: ${stateFile}`);
+      } catch (error) {
+        console.error("GraphStateManager: Error writing state to file:", error.message);
+        console.error("GraphStateManager: Error stack:", error.stack);
+      }
+    } else {
+      console.log("GraphStateManager: Not in fallback mode, not writing state to file");
+    }
+  }
+
+  async getProjectConfig() {
     // If we've already loaded the project config, return it
     if (this.projectConfig) {
       return this.projectConfig;
@@ -263,12 +305,12 @@ class GraphStateManager extends EventEmitter {
       
       // If we found a config file, load it
       if (fs.existsSync(configPath)) {
-        // For .js files, we need to import them
+        // For .js files, we need to import them dynamically
         if (configPath.endsWith('.js')) {
-          // Use synchronous import approach to avoid async issues
-          delete require.cache[require.resolve(configPath)];
-          const projectConfig = require(configPath);
-          this.projectConfig = projectConfig.default || projectConfig;
+          // Use dynamic import for ESM compatibility
+          const projectConfigModule = await import(`file://${configPath}`);
+          const projectConfig = projectConfigModule.default || projectConfigModule;
+          this.projectConfig = projectConfig;
           return this.projectConfig;
         }
         // For .json files, we can read them directly

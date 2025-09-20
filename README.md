@@ -300,7 +300,7 @@ Web bundles are optimized collections of Stigmergy agents designed for use with 
 
 ## 📊 System Architecture
 
-```mermaid
+```
 graph TB
     User[🧑 User] --> System[🎯 @system]
     System --> Chat[💬 Chat Interface]

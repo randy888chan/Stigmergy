@@ -1,0 +1,577 @@
+{
+  "benchmark": "Stigmergy System Performance Benchmark",
+  "version": "1.0.0",
+  "timestamp": "2025-09-19T17:00:37.091Z",
+  "systemInfo": {
+    "platform": "darwin",
+    "arch": "x64",
+    "totalmem": 8589934592,
+    "freemem": 64364544,
+    "cpus": 4,
+    "loadavg": [
+      3.3681640625,
+      3.72119140625,
+      4.44091796875
+    ]
+  },
+  "diagnostics": [
+    {
+      "problemId": "problem-1",
+      "title": "Simple File Creation Task",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758300997516,
+          "startMemory": {
+            "rss": 43155456,
+            "heapTotal": 10522624,
+            "heapUsed": 5975584,
+            "external": 1928213,
+            "arrayBuffers": 15037
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1550280,
+                "nice": 0,
+                "sys": 660080,
+                "idle": 1873000,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 509740,
+                "nice": 0,
+                "sys": 243350,
+                "idle": 3329690,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1547700,
+                "nice": 0,
+                "sys": 590740,
+                "idle": 1944340,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 502590,
+                "nice": 0,
+                "sys": 239890,
+                "idle": 3340310,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            3.3681640625,
+            3.72119140625,
+            4.44091796875
+          ],
+          "endTime": 1758301040099,
+          "endMemory": {
+            "rss": 36118528,
+            "heapTotal": 7639040,
+            "heapUsed": 5635224,
+            "external": 1923715,
+            "arrayBuffers": 10499
+          },
+          "endLoadAvg": [
+            4.18115234375,
+            3.880859375,
+            4.46435546875
+          ],
+          "duration": 42583,
+          "memoryDiff": {
+            "rss": -7036928,
+            "heapTotal": -2883584,
+            "heapUsed": -340360,
+            "external": -4498
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at Socket.<anonymous> (node:internal/child_process:456:11)\n    at Socket.emit (node:events:518:28)\n    at Pipe.<anonymous> (node:net:351:12)"
+      }
+    },
+    {
+      "problemId": "problem-2",
+      "title": "API Endpoint Implementation",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758301040109,
+          "startMemory": {
+            "rss": 36364288,
+            "heapTotal": 7639040,
+            "heapUsed": 5755936,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1578050,
+                "nice": 0,
+                "sys": 667390,
+                "idle": 1880510,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 518240,
+                "nice": 0,
+                "sys": 245610,
+                "idle": 3361520,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1575580,
+                "nice": 0,
+                "sys": 597760,
+                "idle": 1952040,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 510920,
+                "nice": 0,
+                "sys": 242170,
+                "idle": 3372290,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            4.18115234375,
+            3.880859375,
+            4.46435546875
+          ],
+          "endTime": 1758301080646,
+          "endMemory": {
+            "rss": 36483072,
+            "heapTotal": 7639040,
+            "heapUsed": 5889008,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "endLoadAvg": [
+            6.33203125,
+            4.39794921875,
+            4.62109375
+          ],
+          "duration": 40537,
+          "memoryDiff": {
+            "rss": 118784,
+            "heapTotal": 0,
+            "heapUsed": 133072,
+            "external": 0
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at Socket.<anonymous> (node:internal/child_process:456:11)\n    at Socket.emit (node:events:518:28)\n    at Pipe.<anonymous> (node:net:351:12)"
+      }
+    },
+    {
+      "problemId": "problem-3",
+      "title": "React Component Development",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758301080648,
+          "startMemory": {
+            "rss": 36503552,
+            "heapTotal": 7639040,
+            "heapUsed": 5910136,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1605900,
+                "nice": 0,
+                "sys": 673440,
+                "idle": 1887150,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 525500,
+                "nice": 0,
+                "sys": 247380,
+                "idle": 3393030,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1603760,
+                "nice": 0,
+                "sys": 603500,
+                "idle": 1958650,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 517860,
+                "nice": 0,
+                "sys": 243920,
+                "idle": 3404130,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            6.33203125,
+            4.39794921875,
+            4.62109375
+          ],
+          "endTime": 1758301119816,
+          "endMemory": {
+            "rss": 36528128,
+            "heapTotal": 7639040,
+            "heapUsed": 6017968,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "endLoadAvg": [
+            6.63818359375,
+            4.6953125,
+            4.7177734375
+          ],
+          "duration": 39168,
+          "memoryDiff": {
+            "rss": 24576,
+            "heapTotal": 0,
+            "heapUsed": 107832,
+            "external": 0
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at Socket.<anonymous> (node:internal/child_process:456:11)\n    at Socket.emit (node:events:518:28)\n    at Pipe.<anonymous> (node:net:351:12)"
+      }
+    },
+    {
+      "problemId": "problem-4",
+      "title": "Database Integration Task",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758301119820,
+          "startMemory": {
+            "rss": 36564992,
+            "heapTotal": 7639040,
+            "heapUsed": 6048968,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1632430,
+                "nice": 0,
+                "sys": 678880,
+                "idle": 1894340,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 532910,
+                "nice": 0,
+                "sys": 249070,
+                "idle": 3423100,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1630630,
+                "nice": 0,
+                "sys": 608640,
+                "idle": 1965820,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 524850,
+                "nice": 0,
+                "sys": 245550,
+                "idle": 3434680,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            6.63818359375,
+            4.6953125,
+            4.7177734375
+          ],
+          "endTime": 1758301157679,
+          "endMemory": {
+            "rss": 36638720,
+            "heapTotal": 7639040,
+            "heapUsed": 6117256,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "endLoadAvg": [
+            7.08984375,
+            4.9892578125,
+            4.82080078125
+          ],
+          "duration": 37859,
+          "memoryDiff": {
+            "rss": 73728,
+            "heapTotal": 0,
+            "heapUsed": 68288,
+            "external": 0
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at Socket.<anonymous> (node:internal/child_process:456:11)\n    at Socket.emit (node:events:518:28)\n    at Pipe.<anonymous> (node:net:351:12)"
+      }
+    },
+    {
+      "problemId": "problem-5",
+      "title": "Testing Implementation",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758301157681,
+          "startMemory": {
+            "rss": 36655104,
+            "heapTotal": 7639040,
+            "heapUsed": 6133384,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1658040,
+                "nice": 0,
+                "sys": 683990,
+                "idle": 1901490,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 539690,
+                "nice": 0,
+                "sys": 250690,
+                "idle": 3452570,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1656260,
+                "nice": 0,
+                "sys": 613420,
+                "idle": 1973270,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 531470,
+                "nice": 0,
+                "sys": 247150,
+                "idle": 3464330,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            7.08984375,
+            4.9892578125,
+            4.82080078125
+          ],
+          "endTime": 1758301196540,
+          "endMemory": {
+            "rss": 36798464,
+            "heapTotal": 7901184,
+            "heapUsed": 6258552,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "endLoadAvg": [
+            6.49658203125,
+            5.08642578125,
+            4.8623046875
+          ],
+          "duration": 38859,
+          "memoryDiff": {
+            "rss": 143360,
+            "heapTotal": 262144,
+            "heapUsed": 125168,
+            "external": 0
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at Socket.<anonymous> (node:internal/child_process:456:11)\n    at Socket.emit (node:events:518:28)\n    at Pipe.<anonymous> (node:net:351:12)"
+      }
+    },
+    {
+      "problemId": "problem-6",
+      "title": "Full Stack CRUD API",
+      "diagnostics": {
+        "engineLogs": [],
+        "stateTransitions": [],
+        "agentDecisions": [],
+        "toolExecutions": [],
+        "performanceMetrics": {
+          "startTime": 1758301196540,
+          "startMemory": {
+            "rss": 36814848,
+            "heapTotal": 7901184,
+            "heapUsed": 6274656,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "startCpu": [
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1684180,
+                "nice": 0,
+                "sys": 689140,
+                "idle": 1909050,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 546640,
+                "nice": 0,
+                "sys": 252260,
+                "idle": 3482910,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 1682900,
+                "nice": 0,
+                "sys": 618130,
+                "idle": 1980770,
+                "irq": 0
+              }
+            },
+            {
+              "model": "Intel(R) Core(TM) i5-5350U CPU @ 1.80GHz",
+              "speed": 1800,
+              "times": {
+                "user": 538260,
+                "nice": 0,
+                "sys": 248650,
+                "idle": 3494900,
+                "irq": 0
+              }
+            }
+          ],
+          "startLoadAvg": [
+            6.49658203125,
+            5.08642578125,
+            4.8623046875
+          ],
+          "endTime": 1758301237072,
+          "endMemory": {
+            "rss": 36855808,
+            "heapTotal": 7901184,
+            "heapUsed": 6338528,
+            "external": 1931236,
+            "arrayBuffers": 10540
+          },
+          "endLoadAvg": [
+            7.8896484375,
+            5.6845703125,
+            5.0947265625
+          ],
+          "duration": 40532,
+          "memoryDiff": {
+            "rss": 40960,
+            "heapTotal": 0,
+            "heapUsed": 63872,
+            "external": 0
+          }
+        },
+        "error": "Command failed: npx stigmergy init\n",
+        "stackTrace": "Error: Command failed: npx stigmergy init\n\n    at genericNodeError (node:internal/errors:983:15)\n    at wrappedFn (node:internal/errors:537:14)\n    at ChildProcess.exithandler (node:child_process:414:12)\n    at ChildProcess.emit (node:events:518:28)\n    at maybeClose (node:internal/child_process:1101:16)\n    at ChildProcess._handle.onexit (node:internal/child_process:304:5)"
+      }
+    }
+  ]
+}

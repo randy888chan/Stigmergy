@@ -1,0 +1,60 @@
+{
+  "benchmark": "Stigmergy System Performance Benchmark",
+  "version": "1.0.0",
+  "timestamp": "2025-09-20T06:43:44.728Z",
+  "systemInfo": {
+    "platform": "darwin",
+    "arch": "x64",
+    "totalmem": 8589934592,
+    "freemem": 846000128,
+    "cpus": 4,
+    "loadavg": [
+      103.00830078125,
+      48.69775390625,
+      27.13037109375
+    ]
+  },
+  "runInfo": {
+    "startTime": 1758350200681,
+    "endTime": 1758350624629,
+    "totalTime": 423948
+  },
+  "problemPerformance": [
+    {
+      "problemId": "problem-1",
+      "title": "Simple File Creation Task",
+      "duration": 81577,
+      "memoryUsage": "3.54 MB"
+    },
+    {
+      "problemId": "problem-2",
+      "title": "API Endpoint Implementation",
+      "duration": 53712,
+      "memoryUsage": "-0.03 MB"
+    },
+    {
+      "problemId": "problem-3",
+      "title": "React Component Development",
+      "duration": 63201,
+      "memoryUsage": "0.41 MB"
+    },
+    {
+      "problemId": "problem-4",
+      "title": "Database Integration Task",
+      "duration": 79587,
+      "memoryUsage": "0.42 MB"
+    },
+    {
+      "problemId": "problem-5",
+      "title": "Testing Implementation",
+      "duration": 74889,
+      "memoryUsage": "0.45 MB"
+    },
+    {
+      "problemId": "problem-6",
+      "title": "Full Stack CRUD API",
+      "duration": 70974,
+      "memoryUsage": "0.37 MB"
+    }
+  ]
+}

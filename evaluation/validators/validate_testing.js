@@ -1,12 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const { exec } = require('child_process');
-const { promisify } = require('util');
+import fs from 'fs';
+import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 
 const execPromise = promisify(exec);
-const solutionDir = path.join(__dirname, 'temp_solution');
 
-async function main() {
+async function validate(directory) {
+  // Use the provided directory parameter, fallback to a default if not provided
+  const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
+  console.log(`[Validator] Starting validation in ${solutionDir}`);
+
   try {
     // 1. Check if required files exist
     const requiredFiles = ['__tests__/calculator.test.js', 'calculator.js'];
@@ -35,7 +38,7 @@ async function main() {
     console.log('Running tests with Jest...');
     try {
         const jestPath = path.join(solutionDir, 'node_modules/.bin/jest');
-        const { stdout, stderr } = await execPromise(jestPath, { cwd: solutionDir });
+        const { stdout, stderr } = await execPromise(`${jestPath} --coverage`, { cwd: solutionDir });
         console.log('Jest stdout:', stdout);
         if (stderr) {
             console.error('Jest stderr:', stderr);
@@ -46,12 +49,30 @@ async function main() {
     }
 
     console.log('PASS: Testing validation successful (files exist, dependencies install, and tests pass).');
-    process.exit(0);
+    return {
+      success: true,
+      message: 'Testing validation successful (files exist, dependencies install, and tests pass).'
+    };
 
   } catch (error) {
     console.error(`FAIL: Testing validation failed. ${error.message}`);
-    process.exit(1);
+    return {
+      success: false,
+      message: `Testing validation failed: ${error.message}`
+    };
   }
 }
 
-main();
+// If called directly, run validation
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const directory = process.argv[2] || './temp_solution';
+  validate(directory).then(result => {
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.success ? 0 : 1);
+  }).catch(error => {
+    console.error(`[Validator] Unexpected error: ${error.message}`);
+    process.exit(1);
+  });
+}
+
+export default validate;

@@ -1,9 +1,18 @@
-const { exec, spawn } = require('child_process');
-const path = require('path');
-const fs = require('fs');
+// Add debugging at the top of the file
+console.log('[Validator] Starting CRUD API validation script');
+console.log('[Validator] process.argv:', process.argv);
+console.log('[Validator] import.meta.url:', import.meta.url);
+
+import { exec, spawn } from 'child_process';
+import path from 'path';
+import fs from 'fs';
+import { promisify } from 'util';
+
+const execPromise = promisify(exec);
 
 async function validate(directory) {
-  const solutionDir = path.resolve(directory);
+  // Use the provided directory parameter, fallback to a default if not provided
+  const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
   console.log(`[Validator] Starting validation in ${solutionDir}`);
 
   try {
@@ -34,7 +43,7 @@ async function validate(directory) {
     let serverReady = false;
     server.stdout.on('data', (data) => {
       console.log(`[Server STDOUT] ${data}`);
-      if (data.toString().includes('Server running on port 3001')) {
+      if (data.toString().includes('Server running on port 3001') || data.toString().includes('listening on port 3001')) {
         console.log('[Validator] Server is ready.');
         serverReady = true;
       }
@@ -45,10 +54,24 @@ async function validate(directory) {
 
     // Wait for server to be ready
     console.log('[Validator] Waiting for server to become ready...');
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Increased wait time
+    let waitTime = 0;
+    const maxWaitTime = 10000; // 10 seconds
+    const waitInterval = 500; // 500ms intervals
+    
+    while (!serverReady && waitTime < maxWaitTime) {
+      await new Promise((resolve) => setTimeout(resolve, waitInterval));
+      waitTime += waitInterval;
+    }
 
     if (!serverReady) {
       console.error('[Validator] Server did not become ready in time.');
+      // Try to kill the process if it didn't start properly
+      try {
+        process.kill(-server.pid);
+      } catch (e) {
+        console.error(`[Validator] Failed to kill server process: ${e.message}`);
+      }
+      throw new Error('Server failed to start within the expected time');
     }
 
     // 3. Run tests
@@ -59,7 +82,7 @@ async function validate(directory) {
     }
 
     const testResult = await new Promise((resolve, reject) => {
-      const test = exec('npx jest notes.test.js', { cwd: solutionDir });
+      const test = exec('npx jest notes.test.js --verbose', { cwd: solutionDir });
       let output = '';
       test.stdout.on('data', (data) => {
         console.log(`[Jest STDOUT] ${data}`);
@@ -84,7 +107,6 @@ async function validate(directory) {
       console.error(`[Validator] Failed to kill server process: ${e.message}`);
     }
 
-
     if (testResult.code !== 0) {
       throw new Error(`Jest tests failed with exit code ${testResult.code}:\n${testResult.output}`);
     }
@@ -103,4 +125,23 @@ async function validate(directory) {
   }
 }
 
-module.exports = validate;
+// If called directly, run validation
+console.log('[Validator] Checking if script is called directly');
+console.log('[Validator] import.meta.url:', import.meta.url);
+console.log('[Validator] process.argv[1]:', process.argv[1]);
+
+if (import.meta.url === `file://${process.argv[1]}`) {
+  console.log('[Validator] Script is called directly, running validation');
+  const directory = process.argv[2] || './temp_solution';
+  validate(directory).then(result => {
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.success ? 0 : 1);
+  }).catch(error => {
+    console.error(`[Validator] Unexpected error: ${error.message}`);
+    process.exit(1);
+  });
+} else {
+  console.log('[Validator] Script is imported as module');
+}
+
+export default validate;

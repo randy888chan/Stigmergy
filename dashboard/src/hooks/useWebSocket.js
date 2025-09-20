@@ -42,7 +42,7 @@ const useWebSocket = () => {
         ws.current.close();
       }
     };
-  }, [url]);
+  }, []);
 
   const sendMessage = (message) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {

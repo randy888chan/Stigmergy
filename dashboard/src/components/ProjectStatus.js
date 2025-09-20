@@ -1,5 +1,5 @@
 import React from 'react';
-import useWebSocket from '../hooks/useWebSocket';
+import useWebSocket from '../hooks/useWebSocket.js';
 import './ProjectStatus.css';
 
 const ProjectStatus = () => {

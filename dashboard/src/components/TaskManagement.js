@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useWebSocket } from '../hooks/useWebSocket';
+import useWebSocket from '../hooks/useWebSocket.js';
 import './TaskManagement.css';
 
 const TaskManagement = () => {

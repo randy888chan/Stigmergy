@@ -1,13 +1,15 @@
-const fs = require('fs');
-const path = require('path');
-const { spawn, exec } = require('child_process');
-const { promisify } = require('util');
+import fs from 'fs';
+import path from 'path';
+import { spawn, exec } from 'child_process';
+import { promisify } from 'util';
 
 const execPromise = promisify(exec);
 
-const solutionDir = path.join(__dirname, 'temp_solution');
+async function validate(directory) {
+  // Use the provided directory parameter, fallback to a default if not provided
+  const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
+  console.log(`[Validator] Starting validation in ${solutionDir}`);
 
-async function main() {
   let server;
   try {
     // 1. Check if required files exist
@@ -30,7 +32,7 @@ async function main() {
 
     // 3. Start the server
     console.log('Starting the server...');
-    server = spawn('node', ['server.js'], { cwd: solutionDir });
+    server = spawn('node', ['server.js'], { cwd: solutionDir, detached: true });
 
     let serverOutput = '';
     server.stdout.on('data', (data) => {
@@ -42,13 +44,31 @@ async function main() {
       console.error(`[Server STDERR]: ${data}`);
     });
 
-    await new Promise(resolve => setTimeout(resolve, 3000)); // Wait for server to start
+    // Wait for server to start with improved logic
+    let serverReady = false;
+    let waitTime = 0;
+    const maxWaitTime = 10000; // 10 seconds
+    const waitInterval = 500; // 500ms intervals
+    
+    while (!serverReady && waitTime < maxWaitTime) {
+      if (serverOutput.includes('Server running') || serverOutput.includes('listening')) {
+        serverReady = true;
+        console.log('[Validator] Server is ready.');
+        break;
+      }
+      await new Promise(resolve => setTimeout(resolve, waitInterval));
+      waitTime += waitInterval;
+    }
+
+    if (!serverReady) {
+      throw new Error('Server failed to start within the expected time');
+    }
 
     // 4. Make a request to the server
     console.log('Making a GET request to /api/users...');
     // We need to construct the path to the installed axios module
     const axiosPath = path.join(solutionDir, 'node_modules', 'axios');
-    const axios = require(axiosPath);
+    const { default: axios } = await import(axiosPath);
     const response = await axios.get('http://localhost:3000/api/users');
 
     // 5. Validate the response
@@ -71,16 +91,39 @@ async function main() {
     }
 
     console.log('PASS: API validation successful.');
-    process.exit(0);
+    return {
+      success: true,
+      message: 'API validation successful.'
+    };
 
   } catch (error) {
     console.error(`FAIL: API validation failed. ${error.message}`);
-    process.exit(1);
+    return {
+      success: false,
+      message: `API validation failed: ${error.message}`
+    };
   } finally {
     if (server) {
-      server.kill();
+      try {
+        process.kill(-server.pid);
+        console.log('[Validator] Server process killed.');
+      } catch (e) {
+        console.error(`[Validator] Failed to kill server process: ${e.message}`);
+      }
     }
   }
 }
 
-main();
+// If called directly, run validation
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const directory = process.argv[2] || './temp_solution';
+  validate(directory).then(result => {
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.success ? 0 : 1);
+  }).catch(error => {
+    console.error(`[Validator] Unexpected error: ${error.message}`);
+    process.exit(1);
+  });
+}
+
+export default validate;
