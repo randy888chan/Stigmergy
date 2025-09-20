@@ -10,6 +10,7 @@ agents:
   - id: dispatcher
   - id: enhanced-dev
   - id: evaluator
+  - id: executor
   - id: gemini-executor
   - id: guardian
   - id: health_monitor
