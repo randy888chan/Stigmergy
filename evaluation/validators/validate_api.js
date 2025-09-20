@@ -7,7 +7,13 @@ const execPromise = promisify(exec);
 
 async function validate(directory) {
   // Use the provided directory parameter, fallback to a default if not provided
-  const solutionDir = directory ? path.resolve(directory) : path.join(process.cwd(), 'temp_solution');
+  const solutionDir = directory ? path.resolve(directory) : null;
+  if (!solutionDir) {
+    // This validator MUST be called with a directory argument.
+    const errorResult = { success: false, message: 'Validation script must be called with a solution directory path.' };
+    console.log(JSON.stringify(errorResult));
+    process.exit(1);
+  }
 
   // Check if required files exist before proceeding
   const serverJsPath = path.join(solutionDir, 'server.js');
