@@ -103,6 +103,7 @@ export class Engine {
     this.executeTool = createExecutor(this);
 
     this.mainLoopInterval = null;
+    // Interval for the self-improvement loop
     this.selfImprovementInterval = null;
     this.taskCounter = 0;
     
@@ -1409,6 +1410,7 @@ module.exports = { main };
     // Increase interval to a more realistic value to avoid spamming the LLM
     this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
 
+    // Activate the self-improvement loop as per Quest 18
     if (this.selfImprovementInterval) {
       clearInterval(this.selfImprovementInterval);
     }
@@ -1416,6 +1418,7 @@ module.exports = { main };
     this.selfImprovementInterval = setInterval(async () => {
       console.log('[Engine] Triggering periodic self-improvement check...');
       try {
+        // We directly trigger the 'metis' agent with its high-level goal.
         await this.triggerAgent(this.getAgent('metis'), 'Analyze system performance and failure patterns to propose improvements.');
       } catch (error) {
         console.error('[Engine] Self-improvement cycle failed:', error);
@@ -1894,7 +1897,9 @@ Use this context to inform your response.`;
       if (this.mainLoopInterval) {
         clearInterval(this.mainLoopInterval);
       }
-      clearInterval(this.selfImprovementInterval);
+      if (this.selfImprovementInterval) {
+        clearInterval(this.selfImprovementInterval);
+      }
       this.server.close(() => {
         console.log('Stigmergy Engine server stopped.');
         resolve();
