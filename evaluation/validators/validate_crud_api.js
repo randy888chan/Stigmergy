@@ -71,16 +71,14 @@ async function validate(directory) {
       throw new Error('notes.test.js not found');
     }
 
-    const testResult = await new Promise((resolve, reject) => {
-      const test = exec('npx jest notes.test.js --verbose', { cwd: solutionDir });
+    // 3. Run tests using Jest with the --json flag to get structured output
+    const testResultOutput = await new Promise((resolve, reject) => {
+      const test = exec('npx jest notes.test.js --json', { cwd: solutionDir });
       let output = '';
-      test.stdout.on('data', (data) => {
-        output += data;
-      });
-      test.stderr.on('data', (data) => {
-        output += data;
-      });
+      test.stdout.on('data', (data) => { output += data; });
+      test.stderr.on('data', (data) => { output += data; });
       test.on('close', (code) => {
+        // We expect a non-zero exit code if tests fail, but we parse the output regardless
         resolve({ code, output });
       });
     });
@@ -92,13 +90,39 @@ async function validate(directory) {
       // Ignore errors when killing process
     }
 
-    if (testResult.code !== 0) {
-      throw new Error(`Jest tests failed with exit code ${testResult.code}:\n${testResult.output}`);
+    // 5. Analyze the structured test results from the JSON output
+    let testResults;
+    try {
+      const jsonStartIndex = testResultOutput.output.indexOf('{"numFailedTestSuites"');
+      if (jsonStartIndex === -1) {
+        throw new Error(`No JSON object found in Jest output. Raw output: ${testResultOutput.output}`);
+      }
+      const jsonOutput = testResultOutput.output.substring(jsonStartIndex);
+      testResults = JSON.parse(jsonOutput);
+    } catch (e) {
+      throw new Error(`Failed to parse Jest JSON output. Raw output: ${testResultOutput.output}`);
+    }
+
+    if (!testResults.success) {
+      const failureMessages = testResults.testResults.map(r => r.message).join('\\n');
+      throw new Error(`Jest tests failed: ${failureMessages}`);
+    }
+
+    if (testResults.numTotalTests < 4) {
+      throw new Error(`Validation failed: Not enough tests were run. Expected at least 4, but found ${testResults.numTotalTests}.`);
+    }
+
+    const testTitles = testResults.testResults.flatMap(suite => suite.assertionResults.map(assert => assert.title.toLowerCase()));
+    const requiredKeywords = ['create', 'get', 'update', 'delete'];
+    const missingKeywords = requiredKeywords.filter(keyword => !testTitles.some(title => title.includes(keyword)));
+
+    if (missingKeywords.length > 0) {
+      throw new Error(`Validation failed: Missing tests for core CRUD operations: ${missingKeywords.join(', ')}.`);
     }
 
     return {
       success: true,
-      message: 'All CRUD API tests passed.',
+      message: `All CRUD API tests passed with ${testResults.numTotalTests} total tests.`,
     };
   } catch (error) {
     return {
