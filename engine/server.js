@@ -289,6 +289,29 @@ export class Engine {
             await this.stateManagerModule.updateState(event);
           }
           return;
+        case 'EXECUTION_IN_PROGRESS':
+            console.log("[Engine] In execution in progress phase");
+            const nextTask = this.findNextExecutableTask(state.project_manifest.tasks);
+
+            if (nextTask) {
+                console.log(`[Engine] Executing task: ${nextTask.description}`);
+                const dispatcher = this.getAgent('dispatcher');
+                const { toolCall } = await this.triggerAgent(dispatcher, `Task: ${nextTask.description}`);
+
+                if (toolCall) {
+                    await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
+                    await this.stateManagerModule.updateTaskStatus(nextTask.id, 'COMPLETED');
+                } else {
+                    await this.stateManagerModule.updateStatus({
+                        newStatus: 'HUMAN_INPUT_NEEDED',
+                        message: 'Dispatcher failed to produce a valid tool call.'
+                    });
+                }
+            } else {
+                console.log("[Engine] No pending tasks to execute.");
+                await this.stateManagerModule.updateStatus({ newStatus: 'COMPLETED' });
+            }
+            return;
           
         case 'REQUIREMENTS_PHASE':
           console.log("[Engine] In requirements phase");
