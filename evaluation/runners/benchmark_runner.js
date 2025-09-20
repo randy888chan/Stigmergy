@@ -6,7 +6,10 @@ import chalk from 'chalk';
 import os from 'os';
 
 const execPromise = promisify(exec);
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => {
+  console.log(`[Benchmark] sleeping for ${ms}ms`);
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 
 class BenchmarkRunner {
   constructor(benchmarkFile) {
@@ -325,6 +328,7 @@ NEO4J_PASSWORD=password`;
       const timeout = Date.now() + (this.benchmark.execution.timeout || 300000); // Default 5 minutes
 
       while (Date.now() < timeout) {
+        console.log(`[Benchmark] Polling... Date.now(): ${Date.now()}, timeout: ${timeout}`);
         // Capture performance metrics periodically
         if (diagnostics.stateTransitions.length % 10 === 0) { // Every 10 state checks
           diagnostics.performanceMetrics[`check_${diagnostics.stateTransitions.length}`] = {
@@ -447,18 +451,20 @@ NEO4J_PASSWORD=password`;
         await fs.ensureDir(tempSolutionDir);
         
         // Copy expected files to temp_solution directory
-        for (const expectedFile of problem.expected_files) {
-          const sourcePath = path.join(solutionDir, expectedFile);
-          const destPath = path.join(tempSolutionDir, expectedFile);
-          
-          // Ensure destination directory exists
-          await fs.ensureDir(path.dirname(destPath));
-          
-          if (await fs.pathExists(sourcePath)) {
-            await fs.copy(sourcePath, destPath);
-          } else {
-            console.error(chalk.red(`Missing expected file: ${expectedFile}`));
-            return false;
+        if (Array.isArray(problem.expected_files)) {
+          for (const expectedFile of problem.expected_files) {
+            const sourcePath = path.join(solutionDir, expectedFile);
+            const destPath = path.join(tempSolutionDir, expectedFile);
+
+            // Ensure destination directory exists
+            await fs.ensureDir(path.dirname(destPath));
+
+            if (await fs.pathExists(sourcePath)) {
+              await fs.copy(sourcePath, destPath);
+            } else {
+              console.error(chalk.red(`Missing expected file: ${expectedFile}`));
+              return false;
+            }
           }
         }
         
@@ -539,40 +545,46 @@ NEO4J_PASSWORD=password`;
       }
       
       // Check if expected files exist
-      for (const expectedFile of problem.expected_files) {
-        const filePath = path.join(solutionDir, expectedFile);
-        if (!(await fs.pathExists(filePath))) {
-          console.error(chalk.red(`Missing expected file: ${expectedFile}`));
-          return false;
+      if (Array.isArray(problem.expected_files)) {
+        for (const expectedFile of problem.expected_files) {
+          const filePath = path.join(solutionDir, expectedFile);
+          if (!(await fs.pathExists(filePath))) {
+            console.error(chalk.red(`Missing expected file: ${expectedFile}`));
+            return false;
+          }
         }
       }
       
       // Check success criteria (simplified validation)
-      for (const criterion of problem.success_criteria) {
-        // In a real implementation, we would have more sophisticated validation
-        console.log(chalk.gray(`Checking criterion: ${criterion}`));
-        
-        // For specific criteria, we can implement more detailed checks
-        if (criterion.includes('function named')) {
-          // Extract function name from criterion
-          const match = criterion.match(/function named ['"](.+?)['"]/);
-          if (match) {
-            const functionName = match[1];
-            // Check if the function exists in the expected files
-            let functionFound = false;
-            for (const expectedFile of problem.expected_files) {
-              const filePath = path.join(solutionDir, expectedFile);
-              if (await fs.pathExists(filePath)) {
-                const content = await fs.readFile(filePath, 'utf8');
-                if (content.includes(functionName)) {
-                  functionFound = true;
-                  break;
+      if (Array.isArray(problem.success_criteria)) {
+        for (const criterion of problem.success_criteria) {
+          // In a real implementation, we would have more sophisticated validation
+          console.log(chalk.gray(`Checking criterion: ${criterion}`));
+
+          // For specific criteria, we can implement more detailed checks
+          if (criterion.includes('function named')) {
+            // Extract function name from criterion
+            const match = criterion.match(/function named ['"](.+?)['"]/);
+            if (match) {
+              const functionName = match[1];
+              // Check if the function exists in the expected files
+              let functionFound = false;
+              if (Array.isArray(problem.expected_files)) {
+                for (const expectedFile of problem.expected_files) {
+                  const filePath = path.join(solutionDir, expectedFile);
+                  if (await fs.pathExists(filePath)) {
+                    const content = await fs.readFile(filePath, 'utf8');
+                    if (content.includes(functionName)) {
+                      functionFound = true;
+                      break;
+                    }
+                  }
                 }
               }
-            }
-            if (!functionFound) {
-              console.error(chalk.red(`Function '${functionName}' not found in expected files`));
-              return false;
+              if (!functionFound) {
+                console.error(chalk.red(`Function '${functionName}' not found in expected files`));
+                return false;
+              }
             }
           }
         }

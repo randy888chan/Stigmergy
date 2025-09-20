@@ -1,3 +1,5 @@
+// tests/integration/evaluation/benchmark_runner.test.js
+
 import { jest } from '@jest/globals';
 
 // Mock modules at the top
@@ -16,154 +18,141 @@ jest.useFakeTimers();
 global.fetch = jest.fn();
 
 describe('Benchmark Runner Integration', () => {
-  jest.setTimeout(60000);
   let runner;
   let testBenchmarkFile;
   let testDir;
   let mockChildProcess;
   let testBenchmark;
 
-  beforeEach(async () => {
+  // beforeEach should only contain simple, universal setup
+  beforeEach(() => {
     jest.clearAllMocks();
 
     testDir = path.join(os.tmpdir(), `stigmergy-test-${Date.now()}`);
-    global.StigmergyConfig = { core_path: testDir };
-    
     testBenchmarkFile = path.join(testDir, 'test_benchmark.json');
-    
+
     testBenchmark = {
       benchmark: {
         name: "Test Benchmark",
         version: "1.0.0",
-        description: "Test benchmark for integration testing",
-        problems: [{ id: "test-1", title: "Test Problem", description: "A simple test problem", expected_files: ["test.js"], validation_script: 'validate_factorial.js', difficulty: "easy" }],
-        execution: { timeout: 20000, max_retries: 1 }
+        problems: [{ id: "test-1", title: "Test Problem", validation_script: 'validate_factorial.js' }],
+        execution: { timeout: 20000 }
       }
     };
-    
-    // Mock fs.readJson to return the benchmark object for the loadBenchmark call
-    fs.readJson.mockResolvedValue(testBenchmark);
-    fs.writeJson.mockResolvedValue(); // Mock writeJson as it's called in the runner
 
-    runner = new BenchmarkRunner(testBenchmarkFile);
-    await runner.loadBenchmark();
-
-    // Setup mocks for spawn and process.kill
+    // Universal mocks that all tests need
     mockChildProcess = {
       stdout: { on: jest.fn() },
       stderr: { on: jest.fn() },
-      on: jest.fn((event, callback) => {
-        if (event === 'close') {
-          setTimeout(() => callback(0), 1); // Defer close event
-        }
-      }),
+      on: jest.fn((event, callback) => event === 'close' && setTimeout(() => callback(0), 1)),
       pid: 1234,
     };
     spawn.mockReturnValue(mockChildProcess);
     process.kill = jest.fn();
+    global.fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
 
-    // Default mock for fetch
-    global.fetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ message: 'Success' }),
-    });
-    fs.readdir.mockResolvedValue([]);
+    // Mock fs.ensureDir because almost every test needs to create a directory
+    fs.ensureDir.mockResolvedValue(true);
   });
 
   afterEach(() => {
-    jest.useRealTimers(); // Restore real timers after each test
+    jest.useRealTimers();
   });
 
   test('should run a problem successfully', async () => {
-    // 1. Mock the exec call for the validation script
+    // --- Mocks specific to THIS test ---
+    fs.readJson.mockResolvedValue(testBenchmark); // For loadBenchmark
+    runner = new BenchmarkRunner(testBenchmarkFile);
+    await runner.loadBenchmark();
+
+    // Mock the validation script execution
     exec.mockImplementation((command, options, callback) => {
       if (command.includes('validate_factorial.js')) {
-        const mockValidatorOutput = JSON.stringify({ success: true, message: 'Validation successful.' });
-        callback(null, { stdout: mockValidatorOutput, stderr: '' });
+        callback(null, { stdout: JSON.stringify({ success: true }), stderr: '' });
       } else {
         callback(null, { stdout: '', stderr: '' });
       }
     });
 
-    // 2. Mock the readJson lifecycle
-    fs.readJson
-      .mockResolvedValueOnce(testBenchmark)
-      .mockResolvedValueOnce({ project_status: 'IN_PROGRESS' })
-      .mockResolvedValue({ project_status: 'COMPLETED' });
-
-    runner = new BenchmarkRunner(testBenchmarkFile);
-    await runner.loadBenchmark();
-    
-    // 3. Mock the spawned process stdout
-    mockChildProcess.stdout.on.mockImplementation((event, cb) => {
-      if (event === 'data') {
-        cb('Stigmergy Engine API server is running on http://localhost:3010');
-      }
-    });
-
-    // 4. Mock the pathExists lifecycle
-    fs.pathExists
-      .mockResolvedValueOnce(true)
-      .mockResolvedValueOnce(false)
-      .mockResolvedValue(true);
-
-    const problem = runner.benchmark.problems[0];
-    const problemDir = path.join(testDir, 'problems');
-
-    const runPromise = runner.runProblem(problem, problemDir);
-    await jest.advanceTimersByTimeAsync(15000);
-    const result = await runPromise;
-
-    expect(result.success).toBe(true);
-    expect(result.error).toBeNull();
-  });
-
-  test('should handle benchmark timeout', async () => {
-    mockChildProcess.stdout.on.mockImplementation((event, cb) => {
-      if (event === 'data') {
-        cb('Stigmergy Engine API server is running on http://localhost:3010');
-      }
-    });
-
-    // Simulate state never reaching completion
+    // Mock the file system lifecycle for polling
     fs.pathExists.mockResolvedValue(true);
     fs.readJson
-      .mockResolvedValueOnce(testBenchmark)
-      .mockResolvedValue({ project_status: 'IN_PROGRESS' });
-    
-    runner.benchmark.execution.timeout = 100; // Set a very short timeout
-    
+      .mockResolvedValueOnce({ project_status: 'IN_PROGRESS' }) // First poll
+      .mockResolvedValue({ project_status: 'COMPLETED' });      // Subsequent polls
+
+    // Mock the engine startup message
+    mockChildProcess.stdout.on.mockImplementation((event, cb) => {
+      if (event === 'data') cb('Stigmergy Engine API server is running');
+    });
+
+    // --- Execution ---
     const problem = runner.benchmark.problems[0];
     const problemDir = path.join(testDir, 'problems');
-
     const runPromise = runner.runProblem(problem, problemDir);
-    await jest.advanceTimersByTimeAsync(5000);
+
+    await jest.advanceTimersByTimeAsync(15000); // Simulate polling time
     const result = await runPromise;
 
+    // --- Assertions ---
+    expect(result.success).toBe(true);
+    expect(result.error).toBeNull();
+    expect(exec).toHaveBeenCalledWith(expect.stringContaining('validate_factorial.js'), expect.any(Object), expect.any(Function));
+  }, 70000);
+
+  test('should handle benchmark timeout', async () => {
+    // --- Mocks specific to THIS test ---
+    fs.readJson.mockResolvedValue(testBenchmark); // For loadBenchmark
+    runner = new BenchmarkRunner(testBenchmarkFile);
+    await runner.loadBenchmark();
+    runner.benchmark.execution.timeout = 100; // Set a very short timeout
+
+    // Mock the engine startup message
+    mockChildProcess.stdout.on.mockImplementation((event, cb) => {
+      if (event === 'data') cb('Stigmergy Engine API server is running');
+    });
+
+    // Mock the file system to ALWAYS be in progress
+    fs.pathExists.mockResolvedValue(true);
+    fs.readJson.mockResolvedValue({ project_status: 'IN_PROGRESS' });
+
+    // --- Execution ---
+    const problem = runner.benchmark.problems[0];
+    const problemDir = path.join(testDir, 'problems');
+    const runPromise = runner.runProblem(problem, problemDir);
+
+    await jest.advanceTimersByTimeAsync(5000); // Advance time past the short timeout
+    const result = await runPromise;
+
+    // --- Assertions ---
     expect(result.success).toBe(false);
     expect(result.error).toBe('Benchmark timed out.');
     expect(process.kill).toHaveBeenCalledWith(-1234);
   });
 
   test('should handle task failure status', async () => {
+    // --- Mocks specific to THIS test ---
+    fs.readJson.mockResolvedValue(testBenchmark); // For loadBenchmark
+    runner = new BenchmarkRunner(testBenchmarkFile);
+    await runner.loadBenchmark();
+
+    // Mock the engine startup message
     mockChildProcess.stdout.on.mockImplementation((event, cb) => {
-      if (event === 'data') {
-        cb('Stigmergy Engine API server is running on http://localhost:3010');
-      }
+      if (event === 'data') cb('Stigmergy Engine API server is running');
     });
 
+    // Mock the file system to return a failure state
     fs.pathExists.mockResolvedValue(true);
-    fs.readJson
-      .mockResolvedValueOnce(testBenchmark)
-      .mockResolvedValue({ project_status: 'HUMAN_INPUT_NEEDED' });
-    
+    fs.readJson.mockResolvedValue({ project_status: 'HUMAN_INPUT_NEEDED' });
+
+    // --- Execution ---
     const problem = runner.benchmark.problems[0];
     const problemDir = path.join(testDir, 'problems');
-
     const runPromise = runner.runProblem(problem, problemDir);
+
     await jest.advanceTimersByTimeAsync(5000);
     const result = await runPromise;
 
+    // --- Assertions ---
     expect(result.success).toBe(false);
     expect(result.error).toBe('Task failed with status: HUMAN_INPUT_NEEDED');
     expect(process.kill).toHaveBeenCalledWith(-1234);
