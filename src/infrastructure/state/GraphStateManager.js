@@ -173,25 +173,25 @@ class GraphStateManager extends EventEmitter {
     if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
         console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type || 'unknown'}' will be stored in memory only.`);
         
-        // Update memory state if in fallback mode
-        if (this.memoryState) {
-          const projectName = event.project_name || 'default';
-          
-          // Apply the event to memory state
-          Object.assign(this.memoryState, {
-            ...event,
-            project_name: projectName,
-            last_updated: new Date().toISOString(),
-            fallback_mode: true
-          });
-          
-          console.debug(`GraphStateManager: Updated memory state for project ${projectName}`, this.memoryState);
-          console.log(`GraphStateManager: Emitting stateChanged event`);
-          this.emit("stateChanged", this.memoryState);
-          return this.memoryState;
+        // Ensure memory state is initialized before applying the update.
+        if (!this.memoryState) {
+          // This will initialize memoryState with defaults
+          await this.getState(event.project_name || 'default');
         }
+
+        // Now that memoryState is guaranteed to exist, apply the event.
+        const projectName = event.project_name || this.memoryState.project_name || 'default';
+        Object.assign(this.memoryState, {
+          ...event,
+          project_name: projectName,
+          last_updated: new Date().toISOString(),
+          fallback_mode: true
+        });
         
-        return this.getState(event.project_name);
+        console.debug(`GraphStateManager: Updated memory state for project ${projectName}`, this.memoryState);
+        console.log(`GraphStateManager: Emitting stateChanged event`);
+        this.emit("stateChanged", this.memoryState);
+        return this.memoryState;
     }
 
     const session = this.driver.session();
@@ -247,6 +247,16 @@ class GraphStateManager extends EventEmitter {
     } finally {
       await session.close();
     }
+  }
+
+  async updateStatus({ newStatus, message = '' }) {
+    const event = {
+      type: 'STATUS_UPDATE',
+      project_status: newStatus,
+      message: message,
+      last_updated: new Date().toISOString()
+    };
+    return this.updateState(event);
   }
 
   // Write state to file when in fallback mode

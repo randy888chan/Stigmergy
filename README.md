@@ -52,8 +52,7 @@ Stigmergy now supports a new standalone service architecture that enables:
 
 ### How It Works
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
+```┌─────────────────────────────────────────────────────────────────────┐
 │                      Development Environment                        │
 ├─────────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
@@ -168,8 +167,7 @@ Replace all complex CLI operations with natural language:
 "create REST API for users"       # Full system components
 ```
 
-### 🔍 System Management
-```
+### 🔍 System Management```
 "validate system"           # Check configuration
 "show status"              # Current system state
 "restart services"         # System restart
@@ -243,8 +241,7 @@ npm install -g pm2
 ```
 
 **2. Create an `ecosystem.config.js`:**
-This file describes the configuration for your application. We provide a standard configuration file:
-```javascript
+This file describes the configuration for your application. We provide a standard configuration file:```javascript
 // ecosystem.config.js
 module.exports = {
   apps: [{
@@ -487,10 +484,11 @@ npm run setup:complete            # Complete setup verification
 ## 📚 Documentation
 
 - **[MCP Integration Guide](docs/MCP_INTEGRATION.md)** - Universal IDE integration setup
-- **[Tool Integration](docs/tools.md)** - Adding new tools
-- **[Reference Patterns](docs/patterns.md)** - Pattern indexing and discovery
-- **[Quality Assurance](docs/qa.md)** - TDD and quality standards
-- **[IDE Integration](docs/ide.md)** - VS Code, Roo Code and MCP setup
+- **[Agent Development Guide](docs/AGENT_DEVELOPMENT_GUIDE.md)** - Guide for creating new agents
+- **[Tool Development Guide](docs/TOOL_DEVELOPMENT_GUIDE.md)** - Guide for creating new tools
+- **[Benchmark Execution System](docs/BENCHMARK_EXECUTION_SYSTEM.md)** - Details on the performance benchmark suite
+- **[Observability Guide](docs/OBSERVABILITY.md)** - How to monitor the system
+- **[Provider Configuration](docs/provider-configuration.md)** - Configuring different LLM providers
 
 ## 🤝 Contributing
 
