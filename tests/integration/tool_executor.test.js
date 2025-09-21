@@ -48,7 +48,8 @@ describe("Tool Executor", () => {
     // Set up the mock engine and executor
     mockEngine = {
         triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
-        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' })
+        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' }),
+        broadcastEvent: jest.fn()
     };
     execute = createExecutor(mockEngine);
     fileSystem.readFile.mockClear();

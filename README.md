@@ -215,6 +215,95 @@ stigmergy validate
 stigmergy build
 ```
 
+---
+
+## 🚀 Production Deployment
+
+Stigmergy is designed for robust, production-ready deployments. We provide support for both traditional process management using PM2 and modern containerized deployments using Docker.
+
+### Environment Configuration
+
+For production environments, it is crucial to manage configurations securely and effectively. Stigmergy uses a `.env` file system to handle environment-specific variables.
+
+- **`.env.development`**: Used for local development. This file is loaded by default when `NODE_ENV` is not set to `production`.
+- **`.env.production`**: Used for production deployments. This file is loaded when `NODE_ENV` is set to `production`.
+
+**Setup:**
+1. Create `.env.development` and `.env.production` files in your project root.
+2. Populate them with the necessary environment variables, ensuring you use production-grade settings (e.g., different database credentials, more powerful AI models) in `.env.production`.
+3. The application will automatically load the correct file based on the `NODE_ENV` environment variable.
+
+### Option 1: Using PM2 for Process Management
+
+PM2 is a production process manager for Node.js applications with a built-in load balancer. It allows you to keep applications alive forever, to reload them without downtime, and to facilitate common system admin tasks.
+
+**1. Install PM2 Globally:**
+```bash
+npm install -g pm2
+```
+
+**2. Create an `ecosystem.config.js`:**
+This file describes the configuration for your application. We provide a standard configuration file:
+```javascript
+// ecosystem.config.js
+module.exports = {
+  apps: [{
+    name: 'stigmergy-service',
+    script: './engine/server.js',
+    instances: 1,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '1G',
+    env_production: {
+      NODE_ENV: 'production',
+      PORT: 3010
+    }
+  }]
+};
+```
+
+**3. Manage the Application with `npm` Scripts:**
+We have added convenient scripts to `package.json` for managing the production service:
+
+- **Start the service in production mode:**
+  ```bash
+  npm run prod:start
+  ```
+- **Stop the service:**
+  ```bash
+  npm run prod:stop
+  ```
+- **List all running processes managed by PM2:**
+  ```bash
+  npm run prod:list
+  ```
+- **View logs for the service:**
+  ```bash
+  npm run prod:logs
+  ```
+
+### Option 2: Using Docker for Containerization
+
+Containerization is the standard for modern, portable, and scalable deployment. We provide a `Dockerfile` and a `docker-compose.yml` file to get you started.
+
+**1. `Dockerfile`:**
+The `Dockerfile` defines the environment for your application. It installs dependencies, copies your code, and sets the command to run the application.
+
+**2. `docker-compose.yml`:**
+The `docker-compose.yml` file orchestrates the services required for your application, including the Stigmergy service and a Neo4j database.
+
+**3. Running with Docker Compose:**
+To build and run the services, use the following command:
+```bash
+docker-compose up --build
+```
+To run in detached mode:
+```bash
+docker-compose up --build -d
+```
+
+Your Stigmergy application will be available at `http://localhost:3010`, and the Neo4j browser at `http://localhost:7474`.
+
 ### Web Bundle Commands
 ```bash
 # Build optimized agent bundles for web-based AI assistants
