@@ -25,6 +25,10 @@ coverage/
 .stigmergy-core-test-temp-*
 tool_executor_test_temp_core/
 
+# Evaluation and Test Results
+evaluation/results*.json
+evaluation/test_results*.json
+
 # IDE & OS files
 .vscode/
 .idea/
