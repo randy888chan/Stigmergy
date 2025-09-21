@@ -13,7 +13,7 @@ import * as qaTools from "../tools/qa_tools.js";
 import * as businessVerification from "../tools/business_verification.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import * as privilegedCoreTools from "../tools/core_tools.js";
-import { createSystemControlTools } from "../tools/core_tools.js";
+import createSystemTools from "../tools/system_tools.js";
 import * as mcpCodeSearch from "../tools/mcp_code_search.js";
 import * as superdesignIntegration from "../tools/superdesign_integration.js";
 import * as qwenIntegration from "../tools/qwen_integration.js";
@@ -139,7 +139,7 @@ export function createExecutor(engine) {
     business_verification: businessVerification,
     guardian: createGuardianTools(engine),
     core: privilegedCoreTools, // For @guardian
-    system: createSystemControlTools(engine), // For @system
+    system: createSystemTools(engine), // Add this line
     mcp_code_search: mcpCodeSearch,
     superdesign: superdesignIntegration,
     qwen_integration: qwenIntegration,

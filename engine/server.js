@@ -106,6 +106,7 @@ export class Engine {
     // Interval for the self-improvement loop
     this.selfImprovementInterval = null;
     this.taskCounter = 0;
+    this.healthCheckInterval = null; // Add this
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -133,23 +134,16 @@ export class Engine {
         res.status(500).json({ error: error.message });
       }
     });
-    this.app.post('/api/chat', async (req, res) => {
-        try {
-            const { agentId, prompt } = req.body;
-            console.log(chalk.green(`[API] Received request for @${agentId}: "${prompt}"`));
-            const agent = this.getAgent(agentId);
-            const result = await this.triggerAgent(agent, prompt);
-            
-            // Handle error responses properly
-            if (result.error) {
-                res.status(500).json({ error: result.error, toolCall: result.toolCall });
-            } else {
-                res.json({ response: result });
-            }
-        } catch (error) {
-            console.error(chalk.red(`[API Error] ${error.message}`));
-            res.status(500).json({ error: error.message });
-        }
+    this.app.post('/api/chat', (req, res) => {
+      try {
+        const { prompt } = req.body;
+        res.json({ status: 'acknowledged', message: 'Goal received. Starting execution.' });
+        // DO NOT await this. This lets the execution run in the background.
+        this.executeGoal(prompt);
+      } catch (error) {
+        // This catch is for initial request handling errors, not for the loop itself.
+        console.error(chalk.red(`[API Error] ${error.message}`));
+      }
     });
   }
 
@@ -221,647 +215,56 @@ export class Engine {
     return requiredVars;
   }
 
-  async runMainLoop() {
+async executeGoal(initialPrompt) {
+  console.log(chalk.magenta(`[Engine] Starting high-speed execution for goal: "${initialPrompt}"`));
+  await this.stateManager.updateStatus({ newStatus: 'EXECUTION_IN_PROGRESS', message: `Starting goal: ${initialPrompt}` });
+
+  let currentTaskDescription = initialPrompt;
+  const MAX_STEPS = 25; // Safety break
+
+  for (let i = 0; i < MAX_STEPS; i++) {
+    const state = await this.stateManager.getState();
+    if (state.project_status !== 'EXECUTION_IN_PROGRESS') {
+      console.log(chalk.green(`[Engine] Execution halted or completed. Status: ${state.project_status}`));
+      break;
+    }
+
+    console.log(chalk.cyan(`[Engine] >>>> Step ${i + 1}: ${currentTaskDescription.substring(0, 80)}...`));
+
     try {
-      console.log("[Engine] Running main loop iteration");
-      const state = await this.stateManager.getState();
-      console.log("[Engine] Current state:", JSON.stringify(state, null, 2));
+      const dispatcher = this.getAgent('dispatcher');
+      const { tool, args } = await this.triggerAgent(dispatcher, currentTaskDescription);
 
-      // Handle different project statuses
-      switch (state.project_status) {
-        case 'NEEDS_INITIALIZATION':
-          console.log("[Engine] Project needs initialization");
-          // Initialize the project with the user's initial prompt
-          // Check if we have a specific goal from the environment or command line
-          let initialPrompt = process.argv[2] || process.env.PROJECT_GOAL || "Please help me create a software project.";
-          console.log(`[Engine] Initial prompt: ${initialPrompt}`);
-          await this.stateManagerModule.initializeProject(initialPrompt);
-          return;
-          
-        case 'ENRICHMENT_PHASE':
-          console.log("[Engine] In enrichment phase");
-          // Enrich the project with additional context
-          const enricher = this.getAgent('enricher');
-          const enrichPrompt = `
-            Project Goal: ${state.project_goal}
-            
-            Please provide additional context, requirements, and technical considerations for this project.
-            Focus on: target audience, key features, technical constraints, and potential challenges.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(enricher, enrichPrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the enricher doesn't return the expected format
-            let enrichmentData;
-            if (toolCall && toolCall.enrichment) {
-              enrichmentData = toolCall.enrichment;
-            } else {
-              // Mock enrichment data for benchmark purposes, but make it more generic
-              console.log("[Engine] Using mock enrichment data for benchmark");
-              enrichmentData = {
-                target_audience: "developers",
-                key_features: ["core functionality", "error handling", "documentation"],
-                technical_constraints: ["JavaScript only", "no external dependencies"],
-                potential_challenges: ["handling edge cases", "input validation"]
-              };
-            }
-            
-            const event = {
-              type: "PROJECT_ENRICHED",
-              project_enrichment: enrichmentData,
-              project_status: "REQUIREMENTS_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during enrichment phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock enrichment data due to error");
-            const event = {
-              type: "PROJECT_ENRICHED",
-              project_enrichment: {
-                target_audience: "developers",
-                key_features: ["core functionality", "error handling", "documentation"],
-                technical_constraints: ["JavaScript only", "no external dependencies"],
-                potential_challenges: ["handling edge cases", "input validation"]
-              },
-              project_status: "REQUIREMENTS_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-        case 'EXECUTION_IN_PROGRESS':
-            console.log("[Engine] In execution in progress phase");
-            const nextTask = this.findNextExecutableTask(state.project_manifest.tasks);
-
-            if (nextTask) {
-                console.log(`[Engine] Executing task: ${nextTask.description}`);
-                const dispatcher = this.getAgent('dispatcher');
-                const { toolCall } = await this.triggerAgent(dispatcher, `Task: ${nextTask.description}`);
-
-                if (toolCall) {
-                    await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
-                    await this.stateManagerModule.updateTaskStatus(nextTask.id, 'COMPLETED');
-                } else {
-                    await this.stateManagerModule.updateStatus({
-                        newStatus: 'HUMAN_INPUT_NEEDED',
-                        message: 'Dispatcher failed to produce a valid tool call.'
-                    });
-                }
-            } else {
-                console.log("[Engine] No pending tasks to execute.");
-                await this.stateManagerModule.updateStatus({ newStatus: 'COMPLETED' });
-            }
-            return;
-          
-        case 'REQUIREMENTS_PHASE':
-          console.log("[Engine] In requirements phase");
-          // Generate detailed requirements
-          const requirementsAgent = this.getAgent('requirements');
-          const requirementsPrompt = `
-            Project Goal: ${state.project_goal}
-            Enrichment Data: ${JSON.stringify(state.project_enrichment, null, 2)}
-            
-            Please generate detailed user stories and technical requirements for this project.
-            Include acceptance criteria for each user story.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(requirementsAgent, requirementsPrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the requirements agent doesn't return the expected format
-            let requirementsData;
-            if (toolCall && toolCall.requirements) {
-              requirementsData = toolCall.requirements;
-            } else {
-              // Mock requirements data for benchmark purposes, but make it more generic
-              console.log("[Engine] Using mock requirements data for benchmark");
-              requirementsData = {
-                user_stories: [
-                  {
-                    id: "US-1",
-                    title: "Implement Core Functionality",
-                    description: "As a developer, I want to implement the core functionality for this project.",
-                    acceptance_criteria: [
-                      "The implementation should meet the project requirements",
-                      "The code should handle edge cases appropriately",
-                      "The implementation should be properly documented"
-                    ]
-                  }
-                ],
-                technical_requirements: [
-                  "Implement core functionality as specified",
-                  "Handle edge cases appropriately",
-                  "Export functions for use in other modules",
-                  "Include proper documentation"
-                ]
-              };
-            }
-            
-            const event = {
-              type: "REQUIREMENTS_GENERATED",
-              project_requirements: requirementsData,
-              project_status: "ARCHITECTURE_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during requirements phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock requirements data due to error");
-            const event = {
-              type: "REQUIREMENTS_GENERATED",
-              project_requirements: {
-                user_stories: [
-                  {
-                    id: "US-1",
-                    title: "Implement Core Functionality",
-                    description: "As a developer, I want to implement the core functionality for this project.",
-                    acceptance_criteria: [
-                      "The implementation should meet the project requirements",
-                      "The code should handle edge cases appropriately",
-                      "The implementation should be properly documented"
-                    ]
-                  }
-                ],
-                technical_requirements: [
-                  "Implement core functionality as specified",
-                  "Handle edge cases appropriately",
-                  "Export functions for use in other modules",
-                  "Include proper documentation"
-                ]
-              },
-              project_status: "ARCHITECTURE_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'ARCHITECTURE_PHASE':
-          console.log("[Engine] In architecture phase");
-          // Design the system architecture
-          const architect = this.getAgent('architect');
-          const archPrompt = `
-            Project Goal: ${state.project_goal}
-            Requirements: ${JSON.stringify(state.project_requirements, null, 2)}
-            
-            Please design a system architecture for this project.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(architect, archPrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the architect doesn't return the expected format
-            let architectureData;
-            if (toolCall && toolCall.architecture) {
-              architectureData = toolCall.architecture;
-            } else {
-              // Mock architecture data for benchmark purposes, but make it more generic
-              console.log("[Engine] Using mock architecture data for benchmark");
-              architectureData = {
-                components: ["CoreModule"],
-                technology_stack: ["JavaScript", "Node.js"],
-                data_flow: "Input -> Processing -> Output",
-                design_decisions: [
-                  "Use modular design for clarity",
-                  "Include error handling"
-                ]
-              };
-            }
-            
-            const event = {
-              type: "ARCHITECTURE_DESIGNED",
-              project_architecture: architectureData,
-              project_status: "PLANNING_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during architecture phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock architecture data due to error");
-            const event = {
-              type: "ARCHITECTURE_DESIGNED",
-              project_architecture: {
-                components: ["CoreModule"],
-                technology_stack: ["JavaScript", "Node.js"],
-                data_flow: "Input -> Processing -> Output",
-                design_decisions: [
-                  "Use modular design for clarity",
-                  "Include error handling"
-                ]
-              },
-              project_status: "PLANNING_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'PLANNING_PHASE':
-          console.log("[Engine] In planning phase");
-          // Generate implementation tasks
-          const projectPlanner = this.getAgent('planner');
-          const planningPrompt = `
-            Project Goal: ${state.goal}
-            Architecture: ${JSON.stringify(state.project_architecture, null, 2)}
-            
-            Please generate implementation tasks for this project.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(projectPlanner, planningPrompt);
-            console.log(`[Engine] Planner toolCall: ${JSON.stringify(toolCall, null, 2)}`);
-            
-            // For benchmark purposes, we'll accept a mock response if the planner doesn't return the expected format
-            let tasksData;
-            console.log(`[Engine] Checking toolCall: ${JSON.stringify(toolCall)}`);
-            console.log(`[Engine] Checking toolCall && toolCall.tasks: ${toolCall && toolCall.tasks}`);
-            if (toolCall && toolCall.tasks) {
-              tasksData = toolCall.tasks;
-            } else {
-              // Mock tasks data for benchmark purposes, but make it more specific based on the project goal
-              console.log("[Engine] Using mock tasks data for benchmark");
-              const projectGoal = state.goal || "";
-              console.log(`[Engine] Project goal: ${projectGoal}`);
-              console.log(`[Engine] Project goal length: ${projectGoal.length}`);
-              console.log(`[Engine] Project goal lowercase: ${projectGoal.toLowerCase()}`);
-              console.log(`[Engine] Contains 'factorial': ${projectGoal.toLowerCase().includes('factorial')}`);
-              console.log(`[Engine] Contains 'crud' and 'api': ${projectGoal.toLowerCase().includes('crud') && projectGoal.toLowerCase().includes('api')}`);
-              console.log(`[Engine] Contains 'api' or 'server': ${projectGoal.toLowerCase().includes('api') || projectGoal.toLowerCase().includes('server')}`);
-              console.log(`[Engine] Contains 'react': ${projectGoal.toLowerCase().includes('react')}`);
-              console.log(`[Engine] Contains 'database': ${projectGoal.toLowerCase().includes('database')}`);
-              console.log(`[Engine] Contains 'testing' or 'jest': ${projectGoal.toLowerCase().includes('testing') || projectGoal.toLowerCase().includes('jest')}`);
-              
-              // Analyze the project goal to determine what tasks to create
-              if (projectGoal.toLowerCase().includes('crud') && projectGoal.toLowerCase().includes('api')) {
-                // CRUD API problem - create server.js and notes.test.js
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create CRUD API server",
-                    description: "Create a Node.js Express server with CRUD endpoints for notes",
-                    files_to_create_or_modify: ["server.js"],
-                    dependencies: []
-                  },
-                  {
-                    id: "task-2",
-                    title: "Create API tests",
-                    description: "Create Jest tests for the CRUD API endpoints",
-                    files_to_create_or_modify: ["notes.test.js"],
-                    dependencies: ["task-1"]
-                  }
-                ];
-              } else if (projectGoal.toLowerCase().includes('api') || projectGoal.toLowerCase().includes('server')) {
-                // General API problem - create server.js and routes
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create API server",
-                    description: "Create a Node.js Express server with API endpoints",
-                    files_to_create_or_modify: ["server.js"],
-                    dependencies: []
-                  },
-                  {
-                    id: "task-2",
-                    title: "Create API routes",
-                    description: "Create route files for the API endpoints",
-                    files_to_create_or_modify: ["routes/users.js"],
-                    dependencies: ["task-1"]
-                  }
-                ];
-              } else if (projectGoal.toLowerCase().includes('react')) {
-                // React component problem - create component files
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create ItemList component",
-                    description: "Create a React component to display a list of items",
-                    files_to_create_or_modify: ["components/ItemList.js"],
-                    dependencies: []
-                  },
-                  {
-                    id: "task-2",
-                    title: "Create SearchBar component",
-                    description: "Create a React component for searching items",
-                    files_to_create_or_modify: ["components/SearchBar.js"],
-                    dependencies: []
-                  }
-                ];
-              } else if (projectGoal.toLowerCase().includes('database')) {
-                // Database problem - create model and controller files
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create database configuration",
-                    description: "Create database configuration file",
-                    files_to_create_or_modify: ["config/database.js"],
-                    dependencies: []
-                  },
-                  {
-                    id: "task-2",
-                    title: "Create User model",
-                    description: "Create a User model for the database",
-                    files_to_create_or_modify: ["models/User.js"],
-                    dependencies: ["task-1"]
-                  },
-                  {
-                    id: "task-3",
-                    title: "Create user controller",
-                    description: "Create a controller for user operations",
-                    files_to_create_or_modify: ["controllers/userController.js"],
-                    dependencies: ["task-2"]
-                  }
-                ];
-              } else if (projectGoal.toLowerCase().includes('testing') || projectGoal.toLowerCase().includes('jest')) {
-                // Testing problem - create test files
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create calculator implementation",
-                    description: "Create a calculator.js file with calculation functions",
-                    files_to_create_or_modify: ["calculator.js"],
-                    dependencies: []
-                  },
-                  {
-                    id: "task-2",
-                    title: "Create calculator tests",
-                    description: "Create Jest tests for the calculator functions",
-                    files_to_create_or_modify: ["__tests__/calculator.test.js"],
-                    dependencies: ["task-1"]
-                  }
-                ];
-              } else if (projectGoal.toLowerCase().includes('factorial')) {
-                // Factorial problem - create factorial.js
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create factorial.js file",
-                    description: "Create a JavaScript file that exports a factorial function",
-                    files_to_create_or_modify: ["factorial.js"],
-                    dependencies: []
-                  }
-                ];
-              } else {
-                // Default to creating a main.js file
-                tasksData = [
-                  {
-                    id: "task-1",
-                    title: "Create core implementation file",
-                    description: "Create the main implementation file for the project",
-                    files_to_create_or_modify: ["main.js"],
-                    dependencies: []
-                  }
-                ];
-              }
-            }
-            
-            const event = {
-              type: "TASKS_GENERATED",
-              project_manifest: {
-                tasks: tasksData
-              },
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during planning phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock tasks data due to error");
-            const event = {
-              type: "TASKS_GENERATED",
-              project_manifest: {
-                tasks: [
-                  {
-                    id: "task-1",
-                    title: "Create core implementation file",
-                    description: "Create the main implementation file for the project",
-                    files_to_create_or_modify: ["main.js"],
-                    dependencies: [],
-                    status: "PENDING"
-                  }
-                ]
-              },
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'TASK_BREAKDOWN_PHASE':
-          console.log("[Engine] In task breakdown phase");
-          // Break down the project into executable tasks
-          const planner = this.getAgent('planner');
-          const planPrompt = `
-            Project Goal: ${state.project_goal}
-            Requirements: ${JSON.stringify(state.project_requirements, null, 2)}
-            Architecture: ${JSON.stringify(state.project_architecture, null, 2)}
-            
-            Please break down this project into a sequence of executable tasks.
-            Each task should be small, focused, and executable by the system.
-            Include dependencies between tasks where appropriate.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(planner, planPrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the planner doesn't return the expected format
-            let tasksData;
-            if (toolCall && toolCall.tasks) {
-              tasksData = toolCall.tasks;
-            } else {
-              // Mock tasks data for benchmark purposes
-              console.log("[Engine] Using mock tasks data for benchmark");
-              tasksData = [
-                {
-                  id: "task-1",
-                  title: "Create factorial.js file",
-                  description: "Create a JavaScript file that exports a factorial function",
-                  files_to_create_or_modify: ["factorial.js"],
-                  dependencies: []
-                }
-              ];
-            }
-            
-            const event = {
-              type: "TASKS_GENERATED",
-              project_manifest: {
-                tasks: tasksData.map((task, index) => ({
-                  id: `task-${index + 1}`,
-                  ...task,
-                  status: 'PENDING'
-                }))
-              },
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during task breakdown phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock tasks data due to error");
-            const event = {
-              type: "TASKS_GENERATED",
-              project_manifest: {
-                tasks: [
-                  {
-                    id: "task-1",
-                    title: "Create factorial.js file",
-                    description: "Create a JavaScript file that exports a factorial function",
-                    files_to_create_or_modify: ["factorial.js"],
-                    dependencies: [],
-                    status: 'PENDING'
-                  }
-                ]
-              },
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'EXECUTION_PHASE':
-          console.log("[Engine] In execution phase");
-          // Execute the planned tasks
-          try {
-            await this.executeProjectTasks(state);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during execution phase:"), error);
-            // Even if there's an error, continue to validation phase for benchmark purposes
-            const event = {
-              type: "TASK_COMPLETED",
-              project_status: "VALIDATION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'VALIDATION_PHASE':
-          console.log("[Engine] In validation phase");
-          // Validate the completed project
-          const validator = this.getAgent('validator');
-          const validatePrompt = `
-            Project Goal: ${state.project_goal}
-            Completed Files: ${JSON.stringify(await this.readRelevantFiles(state.project_manifest?.tasks || []), null, 2)}
-            
-            Please validate that the completed project meets the original requirements.
-            Focus on: functionality, code quality, and adherence to requirements.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(validator, validatePrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the validator doesn't return the expected format
-            let validationData;
-            if (toolCall && toolCall.validation) {
-              validationData = toolCall.validation;
-            } else {
-              // Mock validation data for benchmark purposes
-              console.log("[Engine] Using mock validation data for benchmark");
-              validationData = {
-                passed: true,
-                message: "All requirements met",
-                issues: []
-              };
-            }
-            
-            const event = {
-              type: "PROJECT_VALIDATED",
-              project_validation: validationData,
-              project_status: validationData.passed ? "COMPLETED" : "REVISION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during validation phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock validation data due to error");
-            const event = {
-              type: "PROJECT_VALIDATED",
-              project_validation: {
-                passed: true,
-                message: "All requirements met",
-                issues: []
-              },
-              project_status: "COMPLETED"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'REVISION_PHASE':
-          console.log("[Engine] In revision phase");
-          // Handle project revisions
-          const reviser = this.getAgent('reviser');
-          const revisePrompt = `
-            Project Goal: ${state.project_goal}
-            Validation Feedback: ${JSON.stringify(state.project_validation, null, 2)}
-            
-            Please revise the project based on the validation feedback.
-            Focus on addressing the specific issues identified.
-          `;
-          
-          try {
-            const { toolCall } = await this.triggerAgent(reviser, revisePrompt);
-            
-            // For benchmark purposes, we'll accept a mock response if the reviser doesn't return the expected format
-            let revisionsData;
-            if (toolCall && toolCall.revisions) {
-              revisionsData = toolCall.revisions;
-            } else {
-              // Mock revisions data for benchmark purposes
-              console.log("[Engine] Using mock revisions data for benchmark");
-              revisionsData = {
-                changes: ["No revisions needed"],
-                status: "COMPLETED"
-              };
-            }
-            
-            const event = {
-              type: "PROJECT_REVISED",
-              project_revisions: revisionsData,
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          } catch (error) {
-            console.error(chalk.red("[Engine] Error during revision phase:"), error);
-            // Even if there's an error, continue with mock data for benchmark purposes
-            console.log("[Engine] Using mock revisions data due to error");
-            const event = {
-              type: "PROJECT_REVISED",
-              project_revisions: {
-                changes: ["No revisions needed"],
-                status: "COMPLETED"
-              },
-              project_status: "EXECUTION_PHASE"
-            };
-            await this.stateManagerModule.updateState(event);
-          }
-          return;
-          
-        case 'HUMAN_INPUT_NEEDED':
-          console.log("[Engine] Human input needed, pausing execution");
-          // Pause execution and wait for human input
-          return;
-          
-        case 'PAUSED':
-          console.log("[Engine] Execution paused");
-          // Execution is paused, do nothing
-          return;
-          
-        case 'COMPLETED':
-          console.log("[Engine] Project completed");
-          // Project is completed, do nothing
-          return;
-          
-        default:
-          console.log(`[Engine] Unknown project status: ${state.project_status}`);
-          // Unknown status, request human input
-          await this.stateManagerModule.updateStatus({ 
-            newStatus: "HUMAN_INPUT_NEEDED", 
-            message: `Unknown project status: ${state.project_status}` 
-          });
-          return;
+      if (tool) {
+        console.log(chalk.yellow(`[Engine] Dispatcher decided to call tool: ${tool}`));
+        const result = await this.executeTool(tool, args, 'dispatcher');
+        currentTaskDescription = `Previous action: ${tool}. Result: ${result}. Based on the project's goal and current state, what is the next logical step?`;
+      } else {
+        console.log(chalk.green("[Engine] Dispatcher returned no tool call. Assuming completion."));
+        await this.stateManager.updateStatus({ newStatus: 'EXECUTION_COMPLETE', message: 'Goal reached.' });
+        break;
       }
     } catch (error) {
-      console.error(chalk.red("[Engine] Error getting state in main loop:"), error);
-      // Continue running even if there's an error getting the state
+      console.error(chalk.red("[Engine] Error during high-speed loop:"), error);
+      await this.stateManager.updateStatus({ newStatus: "EXECUTION_FAILED", message: `Execution failed: ${error.message}` });
+      break;
     }
+  }
+}
+
+async runHealthCheck() {
+  console.log(chalk.blue("[Engine] Performing proactive health check..."));
+  try {
+    const healthMonitorAgent = this.getAgent('health_monitor');
+    await this.triggerAgent(healthMonitorAgent, "Perform a routine system health and performance analysis.");
+  } catch (error) {
+    console.error(chalk.red("[Engine] Error during proactive health check:"), error);
+  }
+}
+  async runMainLoop() {
+    // This loop is now for passive background tasks only.
+    // Active execution is triggered by API calls.
+    // Proactive monitoring is handled by runHealthCheck.
   }
 
   /**
@@ -1410,6 +813,10 @@ module.exports = { main };
     // Increase interval to a more realistic value to avoid spamming the LLM
     this.mainLoopInterval = setInterval(() => this.runMainLoop(), 5000);
 
+    if (!this.healthCheckInterval) {
+        this.healthCheckInterval = setInterval(() => this.runHealthCheck(), 60000); // Every 60 seconds
+    }
+
     // Activate the self-improvement loop as per Quest 18
     if (this.selfImprovementInterval) {
       clearInterval(this.selfImprovementInterval);
@@ -1896,6 +1303,10 @@ Use this context to inform your response.`;
     return new Promise((resolve) => {
       if (this.mainLoopInterval) {
         clearInterval(this.mainLoopInterval);
+      }
+      if (this.healthCheckInterval) {
+          clearInterval(this.healthCheckInterval);
+          this.healthCheckInterval = null;
       }
       if (this.selfImprovementInterval) {
         clearInterval(this.selfImprovementInterval);
