@@ -107,9 +107,40 @@ export class Engine {
     this.selfImprovementInterval = null;
     this.taskCounter = 0;
     this.healthCheckInterval = null; // Add this
+    this.isPaused = false;
+    this.approvalRequired = false;
+    this.userApproval = null;
     
     this.setupMiddleware();
     this.setupRoutes();
+  }
+
+  pause() {
+    console.log(chalk.yellow('[Engine] Pausing execution.'));
+    this.isPaused = true;
+    this.broadcastEvent('status', { message: 'Engine Paused' });
+  }
+
+  resume() {
+    console.log(chalk.green('[Engine] Resuming execution.'));
+    this.isPaused = false;
+    if (this.userApproval) {
+      this.userApproval.resolve();
+      this.userApproval = null;
+    }
+    this.broadcastEvent('status', { message: 'Engine Resumed' });
+  }
+
+  requestApproval() {
+    console.log(chalk.blue('[Engine] Requesting user approval to continue.'));
+    this.pause();
+    this.approvalRequired = true;
+    this.broadcastEvent('approval_request', { message: 'User approval required to continue.' });
+
+    // Return a promise that resolves when the user approves
+    return new Promise((resolve, reject) => {
+      this.userApproval = { resolve, reject };
+    });
   }
 
   setupMiddleware() {
@@ -216,36 +247,53 @@ export class Engine {
   }
 
 async executeGoal(initialPrompt) {
-  console.log(chalk.magenta(`[Engine] Starting high-speed execution for goal: "${initialPrompt}"`));
+  const startMessage = `[Engine] Starting high-speed execution for goal: "${initialPrompt}"`;
+  console.log(chalk.magenta(startMessage));
+  this.broadcastEvent('log', { message: startMessage });
   await this.stateManager.updateStatus({ newStatus: 'EXECUTION_IN_PROGRESS', message: `Starting goal: ${initialPrompt}` });
 
   let currentTaskDescription = initialPrompt;
   const MAX_STEPS = 25; // Safety break
 
   for (let i = 0; i < MAX_STEPS; i++) {
+    // Pause execution if the flag is set
+    while (this.isPaused) {
+      // Wait for a short period before checking again
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+
     const state = await this.stateManager.getState();
     if (state.project_status !== 'EXECUTION_IN_PROGRESS') {
-      console.log(chalk.green(`[Engine] Execution halted or completed. Status: ${state.project_status}`));
+      const haltMessage = `[Engine] Execution halted or completed. Status: ${state.project_status}`;
+      console.log(chalk.green(haltMessage));
+      this.broadcastEvent('log', { message: haltMessage });
       break;
     }
 
     console.log(chalk.cyan(`[Engine] >>>> Step ${i + 1}: ${currentTaskDescription.substring(0, 80)}...`));
+    this.broadcastEvent('executeGoal_step', { step: i + 1, task: currentTaskDescription });
 
     try {
       const dispatcher = this.getAgent('dispatcher');
       const { tool, args } = await this.triggerAgent(dispatcher, currentTaskDescription);
 
       if (tool) {
-        console.log(chalk.yellow(`[Engine] Dispatcher decided to call tool: ${tool}`));
+        const dispatchMessage = `[Engine] Dispatcher decided to call tool: ${tool}`;
+        console.log(chalk.yellow(dispatchMessage));
+        this.broadcastEvent('log', { message: dispatchMessage });
         const result = await this.executeTool(tool, args, 'dispatcher');
         currentTaskDescription = `Previous action: ${tool}. Result: ${result}. Based on the project's goal and current state, what is the next logical step?`;
       } else {
-        console.log(chalk.green("[Engine] Dispatcher returned no tool call. Assuming completion."));
+        const noToolMessage = "[Engine] Dispatcher returned no tool call. Assuming completion.";
+        console.log(chalk.green(noToolMessage));
+        this.broadcastEvent('log', { message: noToolMessage });
         await this.stateManager.updateStatus({ newStatus: 'EXECUTION_COMPLETE', message: 'Goal reached.' });
         break;
       }
     } catch (error) {
-      console.error(chalk.red("[Engine] Error during high-speed loop:"), error);
+      const errorMessage = `[Engine] Error during high-speed loop: ${error.message}`;
+      console.error(chalk.red(errorMessage), error);
+      this.broadcastEvent('log', { message: errorMessage, level: 'error' });
       await this.stateManager.updateStatus({ newStatus: "EXECUTION_FAILED", message: `Execution failed: ${error.message}` });
       break;
     }
@@ -788,12 +836,36 @@ module.exports = { main };
       ws.on('message', async (message) => {
         try {
           const data = JSON.parse(message);
-          if (data.type === 'user_create_task') {
-            console.log(chalk.blue('[WebSocket] Received new task from user:'), data.payload);
-            await this.stateManagerModule.addTask({
-              description: data.payload.description,
-              priority: data.payload.priority,
-            });
+
+          switch (data.type) {
+            case 'user_create_task':
+              console.log(chalk.blue('[WebSocket] Received new task from user:'), data.payload);
+              await this.stateManagerModule.addTask({
+                description: data.payload.description,
+                priority: data.payload.priority,
+              });
+              break;
+
+            case 'user_command':
+              console.log(chalk.blue(`[WebSocket] Received command: ${data.payload}`));
+              switch (data.payload) {
+                case 'pause':
+                  this.pause();
+                  break;
+                case 'resume':
+                  this.resume();
+                  break;
+                case 'approve':
+                  if (this.approvalRequired && this.userApproval) {
+                    this.approvalRequired = false;
+                    this.resume(); // This will also resolve the promise
+                  }
+                  break;
+              }
+              break;
+
+            default:
+              console.log(chalk.yellow(`[WebSocket] Unknown message type: ${data.type}`));
           }
         } catch (error) {
           console.error(chalk.red('[WebSocket] Error processing message:'), error);
@@ -807,7 +879,10 @@ module.exports = { main };
     
     // Subscribe to state changes and broadcast to all connected WebSocket clients
     this.stateManager.on("stateChanged", (newState) => {
-      this.broadcastStateUpdate(newState);
+      // Also include performance data with state updates
+      const performance = AgentPerformance.getPerformanceInsights();
+      const payload = { ...newState, performance };
+      this.broadcastEvent('state_update', payload);
     });
     
     // Increase interval to a more realistic value to avoid spamming the LLM
@@ -848,14 +923,12 @@ module.exports = { main };
     }
   }
 
-  // Broadcast state updates to all connected WebSocket clients
-  broadcastStateUpdate(newState) {
-    const performance = AgentPerformance.getPerformanceInsights();
-    const stateWithPerformance = { ...newState, performance };
-    
+  // Broadcast events to all connected WebSocket clients
+  broadcastEvent(type, payload) {
+    const message = JSON.stringify({ type, payload });
     this.wss.clients.forEach((client) => {
       if (client.readyState === client.OPEN) {
-        client.send(JSON.stringify(stateWithPerformance));
+        client.send(message);
       }
     });
   }
@@ -977,6 +1050,7 @@ module.exports = { main };
 
   async triggerAgent(agent, userPrompt, context = {}) {
     console.log(chalk.cyan(`[Engine] Triggering agent: @${agent.id}`));
+    this.broadcastEvent('agent_start', { agent: agent.id, prompt: userPrompt });
     
     // Start trajectory recording for this agent call
     const recordingId = trajectoryRecorder.startRecording(`agent_${agent.id}`, {

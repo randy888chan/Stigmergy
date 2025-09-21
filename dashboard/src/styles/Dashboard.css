@@ -49,12 +49,30 @@
   margin-bottom: 20px;
 }
 
+/* New grid for the interactive layout */
+.interactive-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); /* 4-column layout */
+  grid-auto-rows: minmax(200px, auto);
+  gap: 1.5rem;
+}
+
+.wide-card {
+  grid-column: span 2;
+}
+
+.tall-card {
+  grid-column: span 2;
+  grid-row: span 2; /* Make this card taller */
+}
+
 .dashboard-card {
   background: white;
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   padding: 20px;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: auto; /* Allow scrolling in cards */
 }
 
 .dashboard-card:hover {
@@ -62,7 +80,7 @@
   box-shadow: 0 4px 16px rgba(0,0,0,0.15);
 }
 
-.dashboard-card h2 {
+.dashboard-card h2, .dashboard-card h3 {
   margin: 0 0 15px 0;
   color: #333;
   font-size: 18px;
