@@ -28,13 +28,15 @@ agent:
     identity: "I am Saul, the AI brain of Stigmergy. I analyze the system's state to determine the next action and serve as the user's primary interface."
   core_protocols:
     - "STATE_DRIVEN_ORCHESTRATION_PROTOCOL: My primary function is to drive the system's state machine. Based on the `project_status` I receive, I will decide the next system-wide action. My workflow is:
-      1.  **If status is `ENRICHMENT_PHASE`:** I will delegate to the `@analyst` to perform deep research and enrich the existing planning documents. Upon completion, I will change the status to `GRAND_BLUEPRINT_PHASE`.
-      2.  **If status is `GRAND_BLUEPRINT_PHASE`:** I will generate three different approaches to the problem and delegate to the `@evaluator` agent to select the best solution.
-      3.  **If status is `PLANNING_COMPLETE`:** I will check for human approval. If approved, I will delegate the first task to the appropriate executor agent (e.g., `@dev`) and change the status to `EXECUTION_IN_PROGRESS`.
-      4.  **If status is `EXECUTION_IN_PROGRESS`:** I will find the next task with status `PENDING` and delegate it to the appropriate executor.
-      5.  **If status is `EXECUTION_COMPLETE`:** I will delegate to the `@qa` agent to perform final system-wide verification.
-      6.  **If status is `NEEDS_IMPROVEMENT` (triggered by the engine):** I will delegate a task to the `@metis` agent with the goal: 'Analyze system failure patterns and propose a corrective action.'
-      7.  **In all cases:** I will use the `stigmergy.task` tool to delegate work."
+      1.  **If status is `NEEDS_INITIALIZATION`:** For complex development goals, I will delegate to the `@specifier` agent to create a specification and implementation plan. I will change the status to `SPECIFICATION_PHASE`.
+      2.  **If status is `SPECIFICATION_PHASE`:** I will wait for the `@specifier` agent to complete the specification and plan. Upon completion, I will change the status to `PLANNING_COMPLETE`.
+      3.  **If status is `ENRICHMENT_PHASE`:** I will delegate to the `@analyst` to perform deep research and enrich the existing planning documents. Upon completion, I will change the status to `GRAND_BLUEPRINT_PHASE`.
+      4.  **If status is `GRAND_BLUEPRINT_PHASE`:** I will generate three different approaches to the problem and delegate to the `@evaluator` agent to select the best solution.
+      5.  **If status is `PLANNING_COMPLETE`:** I will parse the `## Task Breakdown` YAML from `plan.md`, populate the `project_manifest.tasks` in the state with these new sub-tasks, and then change the status to `EXECUTION_IN_PROGRESS`.
+      6.  **If status is `EXECUTION_IN_PROGRESS`:** I will manage a continuous implementation loop that continues as long as there are `PENDING` tasks. I will find the next task whose `dependencies` are all marked as `COMPLETED`, first use the `swarm_intelligence.getBestAgentForTask` tool to determine the most suitable executor for the given task type, read the current content of all files relevant to the *entire plan*, delegate to the agent selected by the tool (e.g., `@dev`, `@enhanced-dev`, or a future specialized executor) with the task description and file contents, use the raw code output from the selected agent to update files using `file_system.writeFile`, mark the current task as `COMPLETED`, and repeat until all tasks are `COMPLETED`. Then I will delegate to the `@qa` agent for final verification.
+      7.  **If status is `EXECUTION_COMPLETE`:** I will delegate to the `@qa` agent to perform final system-wide verification.
+      8.  **If status is `NEEDS_IMPROVEMENT` (triggered by the engine):** I will delegate a task to the `@metis` agent with the goal: 'Analyze system failure patterns and propose a corrective action.'
+      9.  **In all cases:** I will use the `stigmergy.task` tool to delegate work."
     - "ENSEMBLE_DECISION_MAKING_PROTOCOL: For critical planning decisions, I will generate three different solutions and delegate to the `@evaluator` agent to select the best one:
       1. **Generate Solutions:** Create three distinct approaches to the problem, each with different trade-offs. Clearly label each solution with a brief description of its approach and key characteristics.
       2. **Delegate Evaluation:** Use the `stigmergy.task` tool to delegate to `@evaluator` with all three solutions. Provide the evaluator with clear context about the problem, constraints, and evaluation criteria.
@@ -42,8 +44,8 @@ agent:
       4. **Document Decision:** Record the evaluation results and justification in the project documentation for future reference."
     - "CONTEXTUAL_INTERPRETATION_PROTOCOL: I maintain a persistent understanding of the project. For every user interaction, I will: 1. **Recall:** Access the current `context_graph` from the state. 2. **Update:** Analyze the latest user message to extract new key entities (technologies, features, constraints) and update the `context_graph.entities` map. 3. **Reason:** Use the complete, updated `context_graph` to inform my decision."
     - "SPECIFICATION_DRIVEN_WORKFLOW_PROTOCOL: I ensure all work follows the specification-driven workflow:
-      1. **Specification First:** Every new feature or task must start with a clear specification created by the `@spec` agent.
-      2. **Plan Creation:** Technical plans must be created by appropriate planning agents based on specifications.
+      1. **Specification First:** Every new feature or task must start with a clear specification created by the `@specifier` agent.
+      2. **Plan Creation:** Technical plans must be created by the `@specifier` agent based on specifications.
       3. **Implementation:** Only after specification and planning are complete, implementation work begins.
       4. **Verification:** All work is verified by the `@qa` agent for constitutional compliance."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all orchestration decisions comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when routing tasks and coordinating agents."
@@ -393,6 +395,85 @@ You are {{agent_name}}, a specialized AI agent within the Stigmergy autonomous d
 Based on your role, protocols, and the current context, determine the appropriate action to take. Always respond in valid JSON format with "thought" and "action" fields.
 ==================== END: templates#system-prompt-template.md ====================
 
+==================== START: templates#spec-template.md ====================
+# Feature Specification: [FEATURE NAME]
+
+**Input**: User description of desired functionality
+**Prerequisites**: None (this is the first step)
+
+## Execution Flow (main)
+```
+1. Parse user description for key concepts and requirements
+2. Extract functional and non-functional requirements
+3. Identify ambiguous or unclear requirements
+4. Mark ambiguities with [NEEDS CLARIFICATION]
+5. Define key entities if data is involved
+6. Create user stories based on requirements
+7. Generate review and acceptance checklist
+8. Validate specification completeness
+9. Return: SUCCESS (specification ready for planning)
+```
+
+## Format Requirements
+
+### Feature Name
+A concise, descriptive name for the feature (5-10 words)
+
+### User Description
+The original user description of what they want to build. This should be preserved exactly as provided.
+
+### Key Concepts
+List of key domain concepts, technologies, or terminology mentioned in the feature description.
+
+### Functional Requirements
+List of specific behaviors the system must exhibit, written as:
+- **FR-###**: [Concise description of required behavior]
+
+### Non-Functional Requirements
+List of quality attributes, constraints, and characteristics:
+- **NFR-###**: [Concise description of quality attribute or constraint]
+
+*Example of marking unclear requirements:*
+- **FR-006**: System MUST authenticate users via [NEEDS CLARIFICATION: auth method not specified - email/password, SSO, OAuth?]
+- **FR-007**: System MUST retain user data for [NEEDS CLARIFICATION: retention period not specified]
+
+### Key Entities *(include if feature involves data)*
+- **[Entity 1]**: [What it represents, key attributes without implementation]
+- **[Entity 2]**: [What it represents, relationships to other entities]
+
+### User Stories *(include if applicable)*
+- **US-###**: As a [user type], I want to [goal] so that [benefit]
+
+### Review & Acceptance Checklist
+*GATE: Automated checks run during main() execution*
+
+#### Content Quality
+- [ ] No implementation details (languages, frameworks, APIs)
+- [ ] Focused on user value and business needs
+- [ ] Written for non-technical stakeholders
+- [ ] All mandatory sections completed
+
+#### Requirement Completeness
+- [ ] No [NEEDS CLARIFICATION] markers remain
+- [ ] Requirements are testable and unambiguous  
+- [ ] Success criteria are measurable
+- [ ] Scope is clearly bounded
+- [ ] Dependencies and assumptions identified
+
+---
+
+## Execution Status
+*Updated by main() during processing*
+
+- [ ] User description parsed
+- [ ] Key concepts extracted
+- [ ] Ambiguities marked
+- [ ] User stories defined
+- [ ] Requirements generated
+- [ ] Entities identified
+- [ ] Review checklist passed
+==================== END: templates#spec-template.md ====================
+
 ==================== START: templates#requirements-workflow.md ====================
 # Requirements Workflow
 
@@ -488,6 +569,95 @@ Requirements must be traceable to their source and to implementation.
 - {{risk_1}}: {{mitigation_1}}
 - {{risk_2}}: {{mitigation_2}}
 ==================== END: templates#project-brief-tmpl.md ====================
+
+==================== START: templates#plan-template.md ====================
+# Implementation Plan: [FEATURE NAME]
+
+**Input**: Design documents from `/specs/[###-feature-name]/spec.md`
+**Prerequisites**: spec.md (required)
+
+## Execution Flow (main)
+```
+1. Load spec.md from feature directory
+   → If not found: ERROR "No specification found"
+   → Extract: requirements, entities, success criteria
+2. Analyze specification for implementation approach
+3. Select appropriate technology stack and frameworks
+4. Design data models based on key entities
+5. Define API contracts and endpoints
+6. Create implementation approach and methodology
+7. Generate review and acceptance checklist
+8. Validate plan completeness
+9. Return: SUCCESS (plan ready for implementation)
+```
+
+## Format Requirements
+
+### Feature Name
+The name of the feature being implemented (from spec.md)
+
+### Technology Stack
+List of technologies, frameworks, and tools to be used:
+- **Frontend**: [Technologies for user interface]
+- **Backend**: [Technologies for server-side logic]
+- **Database**: [Data storage technology]
+- **Infrastructure**: [Hosting, deployment, CI/CD tools]
+- **Testing**: [Testing frameworks and tools]
+
+### Data Model
+Description of data structures and relationships:
+- **[Entity 1]**: [Attributes and relationships]
+- **[Entity 2]**: [Attributes and relationships]
+
+### API Contracts
+Definition of API endpoints and data contracts:
+- **[METHOD] /endpoint/path**: [Purpose and parameters]
+  - Request: [Request format and required fields]
+  - Response: [Response format and possible status codes]
+
+### Implementation Approach
+Step-by-step approach to implementing the feature:
+1. **Setup**: [Project initialization and dependency installation]
+2. **Core Components**: [Main modules and components to build]
+3. **Integration**: [How components will work together]
+4. **Testing**: [Testing strategy and approach]
+5. **Deployment**: [Deployment process and considerations]
+
+### Success Criteria
+Measurable criteria for determining implementation success:
+- **Functional**: [Criteria for functional completeness]
+- **Performance**: [Performance benchmarks and requirements]
+- **Quality**: [Code quality and testing standards]
+
+### Review & Acceptance Checklist
+*GATE: Automated checks run during main() execution*
+
+#### Plan Completeness
+- [ ] Technology stack is clearly defined
+- [ ] Data models are specified with attributes
+- [ ] API contracts include request/response formats
+- [ ] Implementation approach is detailed and actionable
+- [ ] Success criteria are measurable
+
+#### Technical Feasibility
+- [ ] Selected technologies are appropriate for requirements
+- [ ] Data models support required functionality
+- [ ] API design follows RESTful principles (if applicable)
+- [ ] Implementation approach addresses all requirements
+
+---
+
+## Execution Status
+*Updated by main() during processing*
+
+- [ ] Specification loaded and analyzed
+- [ ] Technology stack selected
+- [ ] Data models designed
+- [ ] API contracts defined
+- [ ] Implementation approach created
+- [ ] Success criteria established
+- [ ] Review checklist passed
+==================== END: templates#plan-template.md ====================
 
 ==================== START: templates#execution-workflow.md ====================
 # Execution Workflow
