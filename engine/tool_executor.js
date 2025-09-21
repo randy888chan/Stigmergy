@@ -162,6 +162,7 @@ export function createExecutor(engine) {
   };
 
   return async function execute(toolName, args, agentId) {
+    engine.broadcastEvent('tool_start', { tool: toolName, args });
     const startTime = Date.now();
     
     // Start trajectory recording for this tool call
@@ -253,9 +254,11 @@ export function createExecutor(engine) {
         // Trigger context summarization after writeFile operations for memory management
         await triggerContextSummarization(toolName, safeArgs, agentId, engine);
       }
+      engine.broadcastEvent('tool_end', { tool: toolName, result: result });
       return JSON.stringify(result, null, 2);
 
     } catch (error) {
+      engine.broadcastEvent('tool_end', { tool: toolName, error: error.message });
       const processedError = ErrorHandler.process(error, { agentId, toolName });
       
       // Record the tool execution error

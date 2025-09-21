@@ -1,17 +1,13 @@
 import React, { useState } from 'react';
-import useWebSocket from '../hooks/useWebSocket.js';
 import './TaskManagement.css';
 
-const TaskManagement = () => {
-  const { state, sendMessage } = useWebSocket();
+const TaskManagement = ({ tasks, sendMessage }) => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newTask, setNewTask] = useState({
     description: '',
     priority: 'medium',
   });
   const [filter, setFilter] = useState('all');
-
-  const tasks = state?.project_manifest?.tasks || [];
 
   const filteredTasks = tasks.filter(task => {
     if (filter === 'all') return true;
