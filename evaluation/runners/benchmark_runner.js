@@ -124,7 +124,7 @@ class BenchmarkRunner {
           "author": "",
           "license": "ISC",
           "devDependencies": {
-            "stigmergy": "file:../.."
+            "@randy888chan/stigmergy": "file:../.."
           }
         };
         await fs.writeJson(packageJsonPath, packageJson, { spaces: 2 });
@@ -161,8 +161,9 @@ class BenchmarkRunner {
           });
         });
         
-        // Finally, use spawn with the non-interactive flag
-        const initProcess = spawn('npx', ['stigmergy', 'init', '--no-interactive'], { 
+        // Finally, use spawn with the non-interactive flag, calling the cli script directly with node
+        const cliIndexPath = path.resolve(process.cwd(), 'cli', 'index.js');
+        const initProcess = spawn('node', [cliIndexPath, 'init', '--no-interactive'], {
           cwd: tempDir,
           stdio: ['pipe', 'pipe', 'pipe']
         });

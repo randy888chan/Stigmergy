@@ -1,0 +1,16 @@
+{
+  "name": "stigmergy-benchmark-temp",
+  "version": "1.0.0",
+  "description": "Temporary package for Stigmergy benchmark",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "stigmergy": "file:../.."
+  }
+}
