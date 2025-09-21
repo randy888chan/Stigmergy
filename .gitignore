@@ -17,6 +17,8 @@ lerna-debug.log*
 .stigmergy-backups/
 safe-core/
 test-project/
+.stigmergy
+
 
 # Test artifacts
 coverage/
