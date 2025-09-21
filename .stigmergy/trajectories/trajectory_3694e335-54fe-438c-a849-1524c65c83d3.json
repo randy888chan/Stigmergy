@@ -1,0 +1,123 @@
+{
+  "id": "3694e335-54fe-438c-a849-1524c65c83d3",
+  "taskId": "agent_health_monitor",
+  "startTime": "2025-09-21T17:46:44.335Z",
+  "events": [
+    {
+      "id": "6dae8d65-4626-46b6-91a6-e98959c69f16",
+      "timestamp": "2025-09-21T17:46:44.336Z",
+      "type": "recording_started",
+      "data": {
+        "taskId": "agent_health_monitor",
+        "initialContext": {
+          "agentId": "health_monitor",
+          "userPrompt": "Perform a routine system health and performance analysis.",
+          "context": {}
+        }
+      }
+    },
+    {
+      "id": "c91fc571-56d9-4043-9d00-c98a4739f19c",
+      "timestamp": "2025-09-21T17:46:44.338Z",
+      "type": "llm_interaction",
+      "data": {
+        "agentId": "health_monitor",
+        "modelTier": "utility_tier",
+        "systemPrompt": "**Name:** Health Monitor\n        **Identity:** I continuously monitor the system's health. My primary function is to detect issues early and trigger the self-improvement cycle.\n        **Role:** Monitors system health and performance.\n        **Style:** Proactive, vigilant, and detail-oriented.\n\n        **Core Protocols (MUST be followed at all times):**\n        PROACTIVE_MONITORING_PROTOCOL: My core function is to periodically analyze system performance. I use the `swarm_intelligence.get_failure_patterns` tool to do this. If I detect a significant recurring failure pattern (e.g., more than 3 failures with the same tag), I MUST use the `system.updateStatus` tool to set the project status to 'NEEDS_IMPROVEMENT', providing my findings as the reason. Otherwise, I will report that the system is healthy and requires no action.",
+        "userPrompt": "Perform a routine system health and performance analysis."
+      }
+    },
+    {
+      "id": "657bda41-38ea-4587-aa8b-a108289f732b",
+      "timestamp": "2025-09-21T17:46:44.341Z",
+      "type": "llm_response",
+      "data": {
+        "success": false,
+        "responseType": "structured",
+        "error": "Unsupported model version v1 for provider \"google.generative-ai\" and model \"gemini-1.5-flash-8b\". AI SDK 5 only supports models that implement specification version \"v2\"."
+      }
+    },
+    {
+      "id": "704dacb4-fbdd-4887-968f-746cab41c939",
+      "timestamp": "2025-09-21T17:46:44.345Z",
+      "type": "agent_error",
+      "data": {
+        "error": "Unsupported model version v1 for provider \"google.generative-ai\" and model \"gemini-1.5-flash-8b\". AI SDK 5 only supports models that implement specification version \"v2\".",
+        "stack": "AI_UnsupportedModelVersionError: Unsupported model version v1 for provider \"google.generative-ai\" and model \"gemini-1.5-flash-8b\". AI SDK 5 only supports models that implement specification version \"v2\".\n    at resolveLanguageModel (file:///Users/user/Documents/GitHub/Stigmergy/node_modules/ai/dist/index.mjs:454:13)\n    at generateText (file:///Users/user/Documents/GitHub/Stigmergy/node_modules/ai/dist/index.mjs:2156:17)\n    at file:///Users/user/Documents/GitHub/Stigmergy/engine/server.js:1080:24\n    at retryWithBackoff (file:///Users/user/Documents/GitHub/Stigmergy/engine/server.js:53:20)\n    at Engine.triggerAgent (file:///Users/user/Documents/GitHub/Stigmergy/engine/server.js:1079:32)\n    at processTicksAndRejections (node:internal/process/task_queues:105:5)\n    at runNextTicks (node:internal/process/task_queues:69:3)\n    at process.processTimers (node:internal/timers:526:9)\n    at async Engine.runHealthCheck (file:///Users/user/Documents/GitHub/Stigmergy/engine/server.js:267:5)"
+      }
+    },
+    {
+      "id": "74b22730-8473-420b-ab20-695b629c091f",
+      "timestamp": "2025-09-21T17:46:44.345Z",
+      "type": "error_response",
+      "data": {
+        "error": "Unsupported model version v1 for provider \"google.generative-ai\" and model \"gemini-1.5-flash-8b\". AI SDK 5 only supports models that implement specification version \"v2\".",
+        "toolCall": {
+          "tool": "log",
+          "args": {
+            "message": "Error: Unsupported model version v1 for provider \"google.generative-ai\" and model \"gemini-1.5-flash-8b\". AI SDK 5 only supports models that implement specification version \"v2\".",
+            "status": "error"
+          }
+        }
+      }
+    },
+    {
+      "id": "e55021e3-ed7e-426f-a5db-83f3c0734c68",
+      "timestamp": "2025-09-21T17:46:44.396Z",
+      "type": "recording_finalized",
+      "data": {
+        "finalState": {
+          "finalState": {
+            "project_name": "default",
+            "project_status": "NEEDS_INITIALIZATION",
+            "project_manifest": {
+              "tasks": []
+            },
+            "history": [],
+            "fallback_mode": true,
+            "project_config": {
+              "projectName": "Stigmergy",
+              "features": {
+                "neo4j": "auto",
+                "automation_mode": "autonomous",
+                "provider_isolation": true,
+                "deepcode_integration": true
+              }
+            },
+            "fallback_reason": "Neo4j query failed",
+            "persistence_warning": "State will not persist between sessions"
+          }
+        }
+      }
+    }
+  ],
+  "context": {
+    "agentId": "health_monitor",
+    "userPrompt": "Perform a routine system health and performance analysis.",
+    "context": {}
+  },
+  "endTime": "2025-09-21T17:46:44.394Z",
+  "finalState": {
+    "finalState": {
+      "project_name": "default",
+      "project_status": "NEEDS_INITIALIZATION",
+      "project_manifest": {
+        "tasks": []
+      },
+      "history": [],
+      "fallback_mode": true,
+      "project_config": {
+        "projectName": "Stigmergy",
+        "features": {
+          "neo4j": "auto",
+          "automation_mode": "autonomous",
+          "provider_isolation": true,
+          "deepcode_integration": true
+        }
+      },
+      "fallback_reason": "Neo4j query failed",
+      "persistence_warning": "State will not persist between sessions"
+    }
+  },
+  "duration": 59
+}

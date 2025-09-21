@@ -27,7 +27,12 @@ tool_executor_test_temp_core/
 evaluation/test_results*.json
 
 # Local environment configurations
+.env.development
 .env.production
+
+# Dashboard build artifacts
+dashboard/public/*.bundle.js
+dashboard/public/*.bundle.js.LICENSE.txt
 
 # IDE & OS files
 .vscode/
