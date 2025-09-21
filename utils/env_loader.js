@@ -1,71 +1,50 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Use a function to safely initialize __dirname to avoid circular reference issues
-const getDirName = (url) => path.dirname(fileURLToPath(url));
-const __dirname = getDirName(import.meta.url);
 
 /**
- * Load environment configuration with inheritance priority:
- * 1. Global Stigmergy installation .env (base configuration)
- * 2. Project-specific .env.stigmergy.example (if exists)
- * 3. Local project .env (project overrides)
+ * Loads environment variables from the correct .env file based on the NODE_ENV environment variable.
+ *
+ * - If NODE_ENV is 'production', it loads '.env.production'.
+ * - Otherwise, it defaults to loading '.env.development'.
+ *
+ * This ensures that the application uses the appropriate configuration for the environment it's running in.
  */
 export function loadEnvironmentConfig() {
-  const currentDir = process.cwd();
-  const stigmergyRoot = path.resolve(__dirname, '..');
-  
-  console.log(`🔧 Loading environment configuration...`);
-  console.log(`   Current directory: ${currentDir}`);
-  console.log(`   Stigmergy root: ${stigmergyRoot}`);
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  const envFileName = nodeEnv === 'production' ? '.env.production' : '.env.development';
+  const envFilePath = path.resolve(process.cwd(), envFileName);
 
-  // Priority order for environment files (later files override earlier ones)
-  const envFilesToLoad = [
-    // 1. Global Stigmergy base configuration
-    path.join(stigmergyRoot, '.env'),
-    
-    // 2. Project-specific Stigmergy configuration (if exists)
-    path.join(currentDir, '.env.stigmergy.example'),
-    
-    // 3. Local project overrides
-    path.join(currentDir, '.env'),
-  ];
+  console.log(`🔧 Loading environment configuration for: ${nodeEnv}`);
 
-  let loadedCount = 0;
-  let configSources = [];
-  
-  // Load in priority order
-  for (const envFile of envFilesToLoad) {
-    if (fs.existsSync(envFile)) {
-      try {
-        const result = dotenv.config({ path: envFile, override: true });
-        if (!result.error) {
-          const relativePath = path.relative(process.cwd(), envFile);
-          console.log(`   ✅ Loaded: ${relativePath}`);
-          configSources.push(relativePath);
-          loadedCount++;
-        }
-      } catch (error) {
-        const relativePath = path.relative(process.cwd(), envFile);
-        console.log(`   ⚠️  Failed to load: ${relativePath} (${error.message})`);
-      }
-    }
-  }
-
-  if (loadedCount === 0) {
-    console.log(`   ❌ No environment files found. Please run 'stigmergy install' to set up configuration.`);
+  if (!fs.existsSync(envFilePath)) {
+    console.log(`   ❌ Environment file not found: ${envFileName}`);
+    console.log(`   Please ensure ${envFileName} exists in the project root.`);
     return {
       loaded: false,
       filesLoaded: 0,
-      configSources: [],
-      error: 'No configuration files found'
+      error: `Configuration file not found: ${envFileName}`,
     };
   }
 
-  console.log(`   📊 Total files loaded: ${loadedCount}`);
-  
+  try {
+    dotenv.config({ path: envFilePath, override: true });
+    console.log(`   ✅ Loaded: ${envFileName}`);
+
+    // Set NODE_ENV in process.env if not already set
+    if (!process.env.NODE_ENV) {
+      process.env.NODE_ENV = nodeEnv;
+    }
+
+  } catch (error) {
+    console.log(`   ⚠️  Failed to load: ${envFileName} (${error.message})`);
+    return {
+      loaded: false,
+      filesLoaded: 0,
+      error: `Failed to load ${envFileName}`,
+    };
+  }
+
   // Validate critical environment variables
   const validation = validateCriticalVars();
   if (!validation.valid) {
@@ -76,12 +55,10 @@ export function loadEnvironmentConfig() {
   }
 
   return {
-    loaded: loadedCount > 0,
-    filesLoaded: loadedCount,
-    configSources: configSources,
-    workingDirectory: currentDir,
-    stigmergyRoot: stigmergyRoot,
-    validation: validation
+    loaded: true,
+    filesLoaded: 1,
+    configSources: [envFileName],
+    validation: validation,
   };
 }
 
@@ -92,7 +69,7 @@ function validateCriticalVars() {
   const issues = [];
   
   // Check if we have at least one AI provider configured
-  const hasGoogle = process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY !== 'YOUR_GOOGLE_API_KEY_HERE';
+  const hasGoogle = process.env.GOOGLE_API_KEY && process.env.GOOGLE_API_KEY !== 'your_google_api_key_here' && process.env.GOOGLE_API_KEY !== '${GOOGLE_API_KEY}';
   const hasOpenRouter = process.env.OPENROUTER_API_KEY && process.env.OPENROUTER_BASE_URL;
   
   if (!hasGoogle && !hasOpenRouter) {
@@ -125,6 +102,7 @@ function validateCriticalVars() {
   };
 }
 
+
 /**
  * Validate that required environment variables are available
  */
@@ -137,8 +115,7 @@ export function validateEnvironment(requiredVars = []) {
       valid: false, 
       missing: missing,
       suggestions: [
-        "Copy .env.example to .env and configure your API keys",
-        "Or run 'stigmergy install' to set up configuration"
+        "Ensure your .env.development or .env.production file is correctly configured."
       ]
     };
   }

@@ -51,9 +51,14 @@
     "mcp:setup-project": "node scripts/setup-mcp.js",
     "validate:comprehensive": "node scripts/comprehensive-validation.js",
     "test:benchmark": "node evaluation/runners/benchmark_runner.js",
-    "postinstall": "npm run build:dashboard"
+    "postinstall": "npm run build:dashboard",
+    "prod:start": "pm2 start ecosystem.config.js --env production",
+    "prod:stop": "pm2 stop stigmergy-service",
+    "prod:list": "pm2 list",
+    "prod:logs": "pm2 logs stigmergy-service"
   },
   "dependencies": {
+    "pm2": "^5.3.0",
     "@ai-sdk/google": "^1.0.2",
     "@ai-sdk/openai": "^2.0.23",
     "@babel/parser": "^7.24.5",
