@@ -24,11 +24,9 @@ coverage/
 tool_executor_test_temp_core/
 
 # Evaluation and Test Results
-evaluation/results*.json
 evaluation/test_results*.json
 
 # Local environment configurations
-.env.development
 .env.production
 
 # IDE & OS files
