@@ -290,7 +290,7 @@ Containerization is the standard for modern, portable, and scalable deployment. 
 The `Dockerfile` defines the environment for your application. It installs dependencies, copies your code, and sets the command to run the application.
 
 **2. `docker-compose.yml`:**
-The `docker-compose.yml` file orchestrates the services required for your application, including the Stigmergy service and a Neo4j database.
+The `docker-compose.yml` file orchestrates the services required for your application, including the Stigmergy service and a Neo4j database. the placeholder password (your_secure_password) must be changed for a real deployment and should be managed via environment variables or a secret management system.
 
 **3. Running with Docker Compose:**
 To build and run the services, use the following command:
@@ -486,9 +486,7 @@ npm run setup:complete            # Complete setup verification
 
 ## 📚 Documentation
 
-- **[System Architecture](docs/architecture.md)** - Deep dive into system design
 - **[MCP Integration Guide](docs/MCP_INTEGRATION.md)** - Universal IDE integration setup
-- **[Agent Development](docs/agents.md)** - Creating custom agents
 - **[Tool Integration](docs/tools.md)** - Adding new tools
 - **[Reference Patterns](docs/patterns.md)** - Pattern indexing and discovery
 - **[Quality Assurance](docs/qa.md)** - TDD and quality standards
@@ -517,12 +515,6 @@ npm run health-check
 
 MIT License - see [LICENSE](LICENSE) for details.
 
-## 🔮 Roadmap
-
-- **Q1 2024**: Multi-language support (Python, Java, Go)
-- **Q2 2024**: Visual design integration with Figma/Sketch
-- **Q3 2024**: Team collaboration features
-- **Q4 2024**: Enterprise deployment options
 
 ## 💡 Philosophy
 

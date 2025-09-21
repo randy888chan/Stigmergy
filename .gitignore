@@ -11,14 +11,12 @@ lerna-debug.log*
 # Build artifacts
 
 
-# Stigmergy/BMAD operational files
+# Stigmergy
 .ai/
 *.bak
 .stigmergy-backups/
 safe-core/
 test-project/
-.roomodes
-stigmergy.env.example
 
 # Test artifacts
 coverage/
@@ -28,6 +26,10 @@ tool_executor_test_temp_core/
 # Evaluation and Test Results
 evaluation/results*.json
 evaluation/test_results*.json
+
+# Local environment configurations
+.env.development
+.env.production
 
 # IDE & OS files
 .vscode/
