@@ -17,7 +17,8 @@ const CostMonitor = lazy(() => import('../components/CostMonitor.js'));
 
 
 const Dashboard = () => {
-  const { data, sendMessage } = useWebSocket(`ws://localhost:${process.env.PORT || 3010}`);
+  // CORRECTED: Hardcode the port to 3010, removing the 'process.env.PORT' reference.
+  const { data, sendMessage } = useWebSocket('ws://localhost:3010');
 
   // Centralized state management
   const [logs, setLogs] = useState([]);
