@@ -4,15 +4,13 @@ Stigmergy's standalone service architecture allows it to integrate with any deve
 
 ## Architecture Overview
 
-The integration is simple and robust: your IDE communicates directly with the Stigmergy global service, which runs in the background on your system.
+The integration is simple and robust: your IDE communicates directly with the Stigmergy global service, which runs persistently in the background on your system. The IDE no longer needs to start its own server script.
 
 ```mermaid
 graph TD
     A["IDE (VS Code, Roo Code, etc.)"] -- MCP over WebSocket --> B["Stigmergy Global Service (localhost:3010)"];
     B -- "Manages & Interacts With" --> C["Your Project Files (/path/to/project)"];
 ```
-
-The Stigmergy service intelligently detects which project you are working on based on the file paths sent by your IDE.
 
 ## 🚀 Setup
 
@@ -37,25 +35,43 @@ Setup is a one-time process. Once configured, Stigmergy will work automatically 
     ```
 
 3.  **Configure Your IDE**:
-    In your IDE's settings (e.g., for the Continue extension in VS Code, or the native settings in Roo Code), find the "MCP Server" or "IDE Connection" setting and point it to the Stigmergy global service URL:
+    In your IDE's configuration file, you now only need to provide the URL of the running Stigmergy service.
 
-    **URL:** `http://localhost:3010`
+    Here are examples of what the configuration looks like in common IDEs:
 
-    That's it! There is no need to configure a path to a specific script file. Your IDE is now connected to the Stigmergy engine.
+    #### **For Roo Code (`.roo/mcp.json`)**
+    ```json
+    {
+      "mcpServers": {
+        "stigmergy-service": {
+          "url": "http://localhost:3010"
+        }
+      }
+    }
+    ```
+
+    #### **For VS Code with Continue (`.vscode/config.json`)**
+    ```json
+    {
+      // ... your other VS Code Continue settings ...
+      "mcp": {
+        "url": "http://localhost:3010"
+      }
+    }
+    ```
+    That's it! Your IDE is now connected to the Stigmergy engine.
 
 ## Legacy Projects
 
-If you have an older Stigmergy project that contains a local `mcp-server.js` file, you can easily migrate to the new architecture:
+If you have an older Stigmergy project that was configured to run a local `mcp-server.js` script, you can easily migrate to the new architecture:
 
 1.  **Delete the old script**: `rm mcp-server.js`
 2.  **Run the new init command**: `stigmergy init`
-3.  **Update your IDE**: Ensure your IDE is configured to point to the global URL (`http://localhost:3010`) instead of the old script path.
-
-Your local agent overrides in `.stigmergy-core/agents/` will continue to work as expected.
+3.  **Update your IDE**: Modify your IDE's configuration file (e.g., `.roo/mcp.json`) to use the new, simpler `url` format as shown in the examples above.
 
 ## ✅ Benefits of the New Architecture
 
 - **Truly Universal**: Works with any project (Python, Java, Go, etc.) without any project-level installation.
-- **Zero Maintenance**: The connection is to the global service. When you update Stigmergy (`npm update -g @randy888chan/stigmergy`), all your projects get the latest features automatically.
-- **Smart Context Detection**: The global service knows which project you're working on and manages context automatically.
+- **Zero Maintenance**: When you update Stigmergy (`npm update -g @randy888chan/stigmergy`), all your projects get the latest features automatically.
+- **Instant Connection**: No more waiting for a local server script to start up for each project.
 - **Robust and Stable**: Runs as a persistent background service, ensuring it's always ready when you need it.
