@@ -2,18 +2,22 @@ import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
+// List of background agents whose routine executions should not be recorded
+const IGNORED_AGENTS = new Set(['health_monitor']);
+
 class TrajectoryRecorder {
   constructor() {
     this.recordings = new Map();
   }
 
-  /**
-   * Start recording a new trajectory
-   * @param {string} taskId - Unique identifier for the task
-   * @param {object} initialContext - Initial context for the trajectory
-   * @returns {string} recordingId - Unique identifier for the recording
-   */
   startRecording(taskId, initialContext = {}) {
+    const agentId = initialContext?.agentId;
+
+    // Do not start recording for ignored background agents
+    if (agentId && IGNORED_AGENTS.has(agentId)) {
+      return null; // Return null to indicate no recording was started
+    }
+
     const recordingId = uuidv4();
     const recording = {
       id: recordingId,
@@ -28,40 +32,10 @@ class TrajectoryRecorder {
     return recordingId;
   }
 
-  /**
-   * Log an LLM interaction in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {object} llmCall - Details of the LLM call
-   */
-  logLLMInteraction(recordingId, llmCall) {
-    this.logEvent(recordingId, 'llm_interaction', llmCall);
-  }
-
-  /**
-   * Log a tool call in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {object} toolCall - Details of the tool call
-   */
-  logToolCall(recordingId, toolCall) {
-    this.logEvent(recordingId, 'tool_call', toolCall);
-  }
-
-  /**
-   * Log a state change in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {object} stateChange - Details of the state change
-   */
-  logStateChange(recordingId, stateChange) {
-    this.logEvent(recordingId, 'state_change', stateChange);
-  }
-
-  /**
-   * Log a general event in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {string} eventType - Type of the event
-   * @param {object} eventData - Data associated with the event
-   */
   logEvent(recordingId, eventType, eventData = {}) {
+    // If recordingId is null, do nothing
+    if (!recordingId) return;
+
     const recording = this.recordings.get(recordingId);
     if (!recording) {
       console.warn(`[TrajectoryRecorder] Attempted to log event for non-existent recording: ${recordingId}`);
@@ -78,31 +52,10 @@ class TrajectoryRecorder {
     recording.events.push(event);
   }
 
-  /**
-   * Log an error event in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {object} errorData - Details of the error
-   */
-  logError(recordingId, errorData) {
-    this.logEvent(recordingId, 'error', errorData);
-  }
-
-  /**
-   * Log a decision event in the trajectory
-   * @param {string} recordingId - The recording identifier
-   * @param {object} decisionData - Details of the decision
-   */
-  logDecision(recordingId, decisionData) {
-    this.logEvent(recordingId, 'decision', decisionData);
-  }
-
-  /**
-   * Finalize a recording and save it to disk
-   * @param {string} recordingId - The recording identifier
-   * @param {object} finalState - Final state of the task
-   * @returns {Promise<void>}
-   */
   async finalizeRecording(recordingId, finalState = {}) {
+    // If recordingId is null, do nothing
+    if (!recordingId) return;
+
     const recording = this.recordings.get(recordingId);
     if (!recording) {
       console.warn(`[TrajectoryRecorder] Attempted to finalize non-existent recording: ${recordingId}`);
@@ -115,40 +68,31 @@ class TrajectoryRecorder {
 
     this.logEvent(recordingId, 'recording_finalized', { finalState });
 
-    // Save to disk
     try {
-      // Try to save in the new .stigmergy directory structure first
       let trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
-      
-      // If .stigmergy directory doesn't exist, try the legacy .stigmergy-core directory
       if (!await fs.pathExists(path.join(process.cwd(), '.stigmergy'))) {
         trajectoryDir = path.join(process.cwd(), '.stigmergy-core', 'trajectories');
       }
-      
       await fs.ensureDir(trajectoryDir);
       
       const filename = `trajectory_${recordingId}.json`;
       const filepath = path.join(trajectoryDir, filename);
       
       await fs.writeJson(filepath, recording, { spaces: 2 });
-      console.log(`[TrajectoryRecorder] Saved trajectory to ${filepath}`);
     } catch (error) {
       console.error(`[TrajectoryRecorder] Failed to save trajectory: ${error.message}`);
     }
 
-    // Remove from memory
     this.recordings.delete(recordingId);
   }
 
-  /**
-   * Get a recording by ID (for testing purposes)
-   * @param {string} recordingId - The recording identifier
-   * @returns {object|null} The recording or null if not found
-   */
-  getRecording(recordingId) {
-    return this.recordings.get(recordingId) || null;
-  }
+  // --- All other methods remain the same ---
+  logLLMInteraction(recordingId, llmCall) { this.logEvent(recordingId, 'llm_interaction', llmCall); }
+  logToolCall(recordingId, toolCall) { this.logEvent(recordingId, 'tool_call', toolCall); }
+  logStateChange(recordingId, stateChange) { this.logEvent(recordingId, 'state_change', stateChange); }
+  logError(recordingId, errorData) { this.logEvent(recordingId, 'error', errorData); }
+  logDecision(recordingId, decisionData) { this.logEvent(recordingId, 'decision', decisionData); }
+  getRecording(recordingId) { return this.recordings.get(recordingId) || null; }
 }
 
-// Export a singleton instance
 export default new TrajectoryRecorder();
