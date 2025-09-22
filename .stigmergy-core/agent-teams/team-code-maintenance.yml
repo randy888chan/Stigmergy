@@ -1,3 +1,6 @@
+# Use Case: Fixing a bug, refactoring a complex module, or improving test coverage in an existing project.
+# Environment: Local IDE
+# Output: Improved, tested, and higher-quality code.
 bundle:
   name: "Code Maintenance"
   icon: "🔧"
@@ -7,15 +10,11 @@ bundle:
     - "dispatcher"
 
     # --- Core Maintenance Crew ---
-    - "debugger"           # The primary bug fixer
-    - "refactorer"         # Improves code quality and maintainability
-    - "qa"                 # Verifies fixes and prevents regressions
+    - "debugger"
+    - "refactorer"
+    - "qa"
     
     # --- Proactive Monitoring ---
-    - "health_monitor"     # Watches for recurring issues
-    - "metis"              # Proposes improvements based on bugs
-    - "guardian"           # Applies the improvements securely
-```
-**Use Case:** Fixing a bug, refactoring a complex module, or improving test coverage in an existing project.
-**Environment:** **Local IDE**
-**Output:** Improved, tested, and higher-quality code.
+    - "health_monitor"
+    - "metis"
+    - "guardian"

@@ -1,3 +1,6 @@
+# Use Case: Full, end-to-end autonomous development.
+# Environment: Local IDE
+# Output: Production-ready code and tests.
 bundle:
   name: "Autonomous Core"
   icon: "⚙️"
@@ -9,15 +12,11 @@ bundle:
     - "reference-architect"
     
     # --- Core Execution ---
-    - "executor"           # High-speed code implementation
-    - "qa"                 # Runs tests and verifies quality
-    - "debugger"           # Fixes bugs found by QA
+    - "executor"
+    - "qa"
+    - "debugger"
     
     # --- Self-Improvement & Health ---
-    - "health_monitor"     # Proactively monitors for issues
-    - "metis"              # Learns from failures
-    - "guardian"           # Securely applies improvements
-```
-**Use Case:** Full, end-to-end autonomous development.
-**Environment:** **Local IDE**
-**Output:** Production-ready code and tests.
+    - "health_monitor"
+    - "metis"
+    - "guardian"

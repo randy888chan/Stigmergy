@@ -1,26 +1,25 @@
+# Use Case: Starting a new project from a high-level idea in the Web UI.
+# Environment: Web UI
+# Output: A complete set of project documents (business-plan.md, architecture_blueprint.yml, spec.md, plan.md, etc.).
 bundle:
   name: "Strategic Planners"
   icon: "📜"
   description: "A specialized team of planner agents designed for the Web UI. They create all necessary project documentation and plans, but do not execute code or run shell commands."
   agents:
     # --- Orchestration ---
-    - "dispatcher"         # The orchestrator
+    - "dispatcher"
 
     # --- Research & Analysis ---
-    - "analyst"            # Performs market and user research
-    - "reference-architect"# Finds proven patterns from external sources
+    - "analyst"
+    - "reference-architect"
 
     # --- High-Level Planning ---
-    - "business_planner"   # Creates the business plan
-    - "ux-expert"          # Creates the UX proposal
-    - "design-architect"   # Creates the technical blueprint
+    - "business_planner"
+    - "ux-expert"
+    - "design-architect"
     
     # --- Detailed Specification ---
-    - "specifier"          # Creates the formal spec and machine-readable task breakdown
+    - "specifier"
     
     # --- Validation ---
-    - "valuator"           # Assesses business value
-```
-**Use Case:** Starting a new project from a high-level idea in the Web UI.
-**Environment:** **Web UI**
-**Output:** A complete set of project documents (`business-plan.md`, `architecture_blueprint.yml`, `spec.md`, `plan.md`, etc.).
+    - "valuator"

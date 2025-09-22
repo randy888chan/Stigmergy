@@ -1,3 +1,6 @@
+# Use Case: Answering questions like "Analyze the market for AI-powered to-do apps".
+# Environment: Web UI or Local IDE
+# Output: A comprehensive Markdown report.
 bundle:
   name: "Research & Analysis"
   icon: "📊"
@@ -7,10 +10,6 @@ bundle:
     - "dispatcher"
     
     # --- Core Research Agents ---
-    - "analyst"            # Performs deep-dive research and synthesizes findings
-    - "reference-architect"# Excellent at finding and analyzing external documents and code
-    - "whitepaper_writer"  # Specialized in creating formal reports from research data
-```
-**Use Case:** Answering questions like "Analyze the market for AI-powered to-do apps" or "Generate a report on the best practices for real-time collaboration in web apps."
-**Environment:** **Web UI** or **Local IDE**
-**Output:** A comprehensive Markdown report.
+    - "analyst"
+    - "reference-architect"
+    - "whitepaper_writer"
