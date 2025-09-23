@@ -17,6 +17,94 @@ jest.mock("fs-extra", () => {
   };
 });
 
+describe("Engine WebSocket Message Handling", () => {
+  let engine;
+  let mockWss;
+  let mockWs;
+
+  beforeEach(async () => {
+    // Mock the WebSocket server and client
+    mockWs = {
+      on: jest.fn(),
+      close: jest.fn(),
+      send: jest.fn(),
+      readyState: 1, // WebSocket.OPEN
+    };
+
+    mockWss = {
+      on: jest.fn((event, callback) => {
+        if (event === 'connection') {
+          callback(mockWs);
+        }
+      }),
+      clients: [mockWs],
+    };
+
+    // Create a new engine instance
+    engine = new Engine();
+
+    // We need to mock parts of the engine's setup that interact with the filesystem or network
+    jest.spyOn(engine.stateManager, 'on').mockImplementation(() => {});
+    jest.spyOn(engine.server, 'listen').mockImplementation((port, cb) => cb());
+
+
+    // Replace the engine's wss with our mock
+    engine.wss = mockWss;
+
+    // Spy on agent-related methods
+    jest.spyOn(engine, 'getAgent').mockImplementation((agentId) => ({ id: agentId, systemPrompt: 'mock prompt' }));
+    jest.spyOn(engine, 'triggerAgent').mockResolvedValue({});
+
+    // Start the engine to attach the message handlers
+    await engine.start();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    engine.stop();
+  });
+
+  it('should trigger the @system agent on user_chat_message', async () => {
+    // Find the message handler assigned by the engine during start()
+    const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
+
+    const message = {
+      type: 'user_chat_message',
+      payload: { prompt: 'test prompt' },
+    };
+
+    await messageHandler(JSON.stringify(message));
+
+    expect(engine.getAgent).toHaveBeenCalledWith('system');
+    expect(engine.triggerAgent).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'system' }),
+      'test prompt'
+    );
+  });
+
+  it('should handle clarification_response messages without triggering an agent', async () => {
+    const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
+    const message = {
+      type: 'clarification_response',
+      payload: { some: 'data' },
+    };
+
+    await messageHandler(JSON.stringify(message));
+    expect(engine.triggerAgent).not.toHaveBeenCalled();
+  });
+
+  it('should handle unknown message types gracefully without triggering an agent', async () => {
+    const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
+    const message = {
+      type: 'unknown_type',
+      payload: {},
+    };
+
+    await messageHandler(JSON.stringify(message));
+    expect(engine.triggerAgent).not.toHaveBeenCalled();
+  });
+});
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Helper to create valid agent content

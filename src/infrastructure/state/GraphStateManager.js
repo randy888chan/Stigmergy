@@ -259,6 +259,11 @@ class GraphStateManager extends EventEmitter {
     return this.updateState(event);
   }
 
+  async initializeProject(goal) {
+    const event = { type: "PROJECT_INITIALIZED", goal, project_status: "ENRICHMENT_PHASE" };
+    return this.updateState(event);
+  }
+
   // Write state to file when in fallback mode
   async writeStateToFile(state) {
     console.log(`GraphStateManager: writeStateToFile called with state:`, JSON.stringify(state, null, 2));
