@@ -246,18 +246,61 @@ export class Engine {
     return requiredVars;
   }
 
+// In engine/server.js
+
 async executeGoal(initialPrompt) {
   const startMessage = `[Engine] Starting high-speed execution for goal: "${initialPrompt}"`;
   console.log(chalk.magenta(startMessage));
   this.broadcastEvent('log', { message: startMessage });
 
-  // For benchmark purposes, first set the goal in the state, then call the task executor directly.
-  await this.stateManager.updateState({ goal: initialPrompt });
-  const state = await this.stateManager.getState();
-  await this.executeProjectTasks(state);
+  // Set the initial status to signal work is beginning
+  await this.stateManager.updateStatus({ newStatus: 'EXECUTION_IN_PROGRESS', message: `Starting goal: ${initialPrompt}` });
 
-  // The original agent loop is bypassed for the benchmark.
-  return;
+  let currentTaskDescription = initialPrompt;
+  const MAX_STEPS = 25; // Safety break to prevent infinite loops
+
+  for (let i = 0; i < MAX_STEPS; i++) {
+    const state = await this.stateManager.getState();
+    if (state.project_status !== 'EXECUTION_IN_PROGRESS' || this.isPaused) {
+      const haltMessage = `[Engine] Execution halted or completed. Status: ${state.project_status}, Paused: ${this.isPaused}`;
+      console.log(chalk.yellow(haltMessage));
+      this.broadcastEvent('log', { message: haltMessage });
+      break;
+    }
+
+    const stepMessage = `[Engine] >>>> Step ${i + 1}: Triggering dispatcher with task: ${currentTaskDescription.substring(0, 80)}...`;
+    console.log(chalk.cyan(stepMessage));
+    this.broadcastEvent('executeGoal_step', { step: i + 1, task: currentTaskDescription });
+
+    try {
+      const dispatcher = this.getAgent('dispatcher');
+      // The triggerAgent function returns an object with a 'toolCall' property
+      const { toolCall } = await this.triggerAgent(dispatcher, currentTaskDescription, { current_step: i + 1 });
+
+      if (toolCall && toolCall.tool) {
+        const toolMessage = `[Engine] Dispatcher decided to call tool: ${toolCall.tool}`;
+        console.log(chalk.yellow(toolMessage));
+        this.broadcastEvent('log', { message: toolMessage });
+
+        const result = await this.executeTool(toolCall.tool, toolCall.args, 'dispatcher');
+
+        // The result of the previous action becomes the input for the next step of the loop
+        currentTaskDescription = `The last action was '${toolCall.tool}' which returned: '${result}'. Based on the project's overall goal and current state, what is the next logical step?`;
+
+      } else {
+        const completionMessage = "[Engine] Dispatcher returned no tool call. Assuming goal is complete.";
+        console.log(chalk.green(completionMessage));
+        this.broadcastEvent('log', { message: completionMessage });
+        await this.stateManager.updateStatus({ newStatus: 'EXECUTION_COMPLETE', message: 'Goal reached.' });
+        break;
+      }
+    } catch (error) {
+      console.error(chalk.red("[Engine] Error during high-speed execution loop:"), error);
+      this.broadcastEvent('log', { message: `ERROR: ${error.message}` });
+      await this.stateManager.updateStatus({ newStatus: "EXECUTION_FAILED", message: `Execution failed: ${error.message}` });
+      break;
+    }
+  }
 }
 
 async runHealthCheck() {
@@ -1171,18 +1214,9 @@ Use this context to inform your response.`;
             console.log(chalk.green(`[Engine] Creating tool call from text response`));
             const toolCallResponse = { 
               toolCall: { 
-                tool: 'log', 
+                tool: 'system.log',
                 args: { 
-                  message: text.trim(),
-                  status: "success",
-                  progress: "100%",
-                  files_modified: [],
-                  next_actions: "awaiting_command",
-                  suggestions: [
-                    "How can I assist you today?",
-                    "Try 'health check' for a detailed system status.",
-                    "To begin, you can say 'setup neo4j' or 'index github repos'."
-                  ]
+                  message: `Fallback response from agent @${agent.id}: ${text.trim()}`
                 } 
               } 
             };

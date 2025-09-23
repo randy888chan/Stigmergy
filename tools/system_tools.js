@@ -15,9 +15,21 @@ export default (engine) => ({
     if (!newStatus) {
       throw new Error("The 'newStatus' argument is required for system.updateStatus.");
     }
-    await engine.stateManager.updateStatus({ newStatus, message });
+    // Note: We use the engine's stateManagerModule to call the function
+    await engine.stateManagerModule.updateStatus({ newStatus, message });
     const confirmation = `System status successfully updated to ${newStatus}.`;
     console.log(`[System Tool] ${confirmation}`);
     return confirmation;
+  },
+
+  /**
+   * Logs a message from an agent, typically used for fallbacks.
+   * @param {Object} args
+   * @param {string} args.message - The message to log.
+   * @returns {Promise<string>} Confirmation of the log.
+   */
+  log: async ({ message }) => {
+    console.log(`[System Tool Log] ${message}`);
+    return "Message logged successfully.";
   },
 });
