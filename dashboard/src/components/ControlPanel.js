@@ -7,9 +7,14 @@ const ControlPanel = ({ sendMessage, engineStatus }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (prompt.trim()) {
+      let finalPrompt = prompt.trim();
+      const urlRegex = /^(https?:\/\/[^\s]+)/;
+      if (urlRegex.test(finalPrompt)) {
+        finalPrompt = `Analyze the content of this webpage for me: ${finalPrompt}`;
+      }
       sendMessage({
         type: 'user_chat_message',
-        payload: { prompt: prompt.trim() },
+        payload: { prompt: finalPrompt },
       });
       setPrompt('');
     }

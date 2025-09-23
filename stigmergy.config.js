@@ -47,6 +47,15 @@ const config = {
       use_cases: ["complex_planning", "architectural_decisions", "problem_solving"]
     },
     
+    vision_tier: {
+      provider: "openrouter",
+      model_name: "anthropic/claude-3.5-sonnet", // A powerful multimodal model
+      api_key_env: "OPENROUTER_API_KEY",
+      base_url_env: "OPENROUTER_BASE_URL",
+      capabilities: ["vision", "reasoning"],
+      use_cases: ["ui_analysis", "design_feedback"]
+    },
+
     strategic_tier: { 
       provider: process.env.STRATEGIC_PROVIDER || "openrouter",
       model_name: process.env.STRATEGIC_MODEL || "deepseek/deepseek-chat-v3.1:free",

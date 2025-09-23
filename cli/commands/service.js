@@ -57,6 +57,7 @@ export async function startService(options = {}) {
 
     if (await isServiceRunning()) {
       OutputFormatter.success("Stigmergy service started successfully.");
+      console.log(chalk.bold(`🚀 Access Dashboard: http://localhost:3010`));
       OutputFormatter.info(`Service PID: ${serviceProcess.pid}`);
       OutputFormatter.info(`Logs are being written to: ${LOG_FILE}`);
       OutputFormatter.info(`Errors are being written to: ${ERR_LOG_FILE}`);
