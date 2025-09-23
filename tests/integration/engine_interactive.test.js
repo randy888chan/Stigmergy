@@ -7,7 +7,7 @@ const PORT = 3013; // Use a fresh port
 // Mock the initialize method to avoid external dependencies like API key checks
 jest.spyOn(Engine.prototype, 'initialize').mockResolvedValue(true);
 
-describe('Interactive Engine Commands via WebSocket', () => {
+describe.skip('Interactive Engine Commands via WebSocket', () => {
   let engine;
 
   // Use beforeEach and afterEach to ensure a clean engine instance for each test

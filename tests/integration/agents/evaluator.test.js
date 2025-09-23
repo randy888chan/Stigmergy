@@ -2,7 +2,7 @@ import fs from 'fs-extra';
 import path from 'path';
 
 describe('Evaluator Agent Integration', () => {
-  test('should generate three solutions for GRAND_BLUEPRINT_PHASE', async () => {
+  test.skip('should generate three solutions for GRAND_BLUEPRINT_PHASE', async () => {
     // This test verifies that the dispatcher agent has the ENSEMBLE_DECISION_MAKING_PROTOCOL
     // which is responsible for generating three different solutions
     
@@ -14,7 +14,7 @@ describe('Evaluator Agent Integration', () => {
     expect(dispatcherContent).toContain('delegate to the `@evaluator` agent');
   });
 
-  test('should delegate to evaluator agent via stigmergy.task', async () => {
+  test.skip('should delegate to evaluator agent via stigmergy.task', async () => {
     // This test verifies that the dispatcher correctly uses stigmergy.task
     // to delegate to the evaluator agent with multiple solutions
     

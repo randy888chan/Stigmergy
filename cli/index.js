@@ -142,6 +142,25 @@ evaluations, and state management.
   `);
 
 program
+  .command("setup")
+  .description("Runs the interactive setup wizard to initialize and configure Stigmergy.")
+  .action(async () => {
+    const setupPath = path.resolve(__dirname, './commands/setup.js');
+    const { setup } = await import(setupPath);
+    await setup();
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy setup
+
+This command starts an interactive wizard that helps you:
+  - Initialize the project
+  - Configure API keys
+  - Run a health check
+  - Start the Stigmergy service
+  `);
+
+program
   .command("validate")
   .description("Runs a system health check on the local installation.")
   .action(async () => {

@@ -24,7 +24,13 @@ const toolSchemas = {
   'deepwiki.query': {
     repository: z.string().min(1),
     question: z.string().min(1),
-  }
+  },
+  'chat_interface.process_chat_command': {
+    command: z.string().min(1),
+    context: z.string().optional(),
+    user_preferences: z.record(z.string(), z.any()).optional(),
+    source: z.string().optional(),
+  },
 };
 
 /**

@@ -11,7 +11,6 @@ import AgentPerformance from './agent_performance.js';
 const getDirName = (url) => path.dirname(fileURLToPath(url));
 const __dirname = getDirName(import.meta.url);
 
-import * as stateManagerModule from "./state_manager.js";
 import stateManager from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
@@ -98,7 +97,6 @@ export class Engine {
     
     this.isPowerMode = isPowerMode;
     this.stateManager = stateManager;
-    this.stateManagerModule = stateManagerModule;
     this.codeIntelligence = new CodeIntelligenceService();
     this.executeTool = createExecutor(this);
 
@@ -253,8 +251,8 @@ async executeGoal(initialPrompt) {
   console.log(chalk.magenta(startMessage));
   this.broadcastEvent('log', { message: startMessage });
 
-  // Set the initial status to signal work is beginning
-  await this.stateManager.updateStatus({ newStatus: 'EXECUTION_IN_PROGRESS', message: `Starting goal: ${initialPrompt}` });
+  // This correctly sets the initial state that the @dispatcher agent expects.
+  await this.stateManager.initializeProject(initialPrompt);
 
   let currentTaskDescription = initialPrompt;
   const MAX_STEPS = 25; // Safety break to prevent infinite loops
@@ -835,54 +833,29 @@ module.exports = { main };
       
       ws.on('message', async (message) => {
         try {
-          const data = JSON.parse(message);
+            const data = JSON.parse(message);
 
-          switch (data.type) {
-            // CORRECTED: This now triggers the main execution loop
-            case 'user_create_task':
-              console.log(chalk.blue('[WebSocket] Received new task from user:'), data.payload);
-              // Directly call the high-speed execution goal with the task description
-              this.executeGoal(data.payload.description);
-              break;
+            switch (data.type) {
+                case 'user_chat_message':
+                    console.log(chalk.blue(`[WebSocket] Received chat message: "${data.payload.prompt}"`));
+                    // All user text input now flows through the @system agent.
+                    const systemAgent = this.getAgent('system');
+                    await this.triggerAgent(systemAgent, data.payload.prompt);
+                    break;
 
-            case 'user_command':
-              console.log(chalk.blue(`[WebSocket] Received command: ${data.payload}`));
-              switch (data.payload) {
-                case 'pause':
-                  this.pause();
-                  break;
-                case 'resume':
-                  this.resume();
-                  break;
-                case 'approve':
-                  if (this.approvalRequired && this.userApproval) {
-                    this.approvalRequired = false;
-                    this.resume();
-                  }
-                  break;
-                // ADDED: A case to handle the logout command
-                case 'logout':
-                  console.log(chalk.blue('[WebSocket] Received logout command from user.'));
-                  // In a real app, this would invalidate a session. For now, we just log it.
-                  this.broadcastEvent('log', { message: 'User logout requested.' });
-                  break;
-              }
-              break;
+                // Clarification responses can remain as they are a different workflow.
+                case 'clarification_response':
+                    console.log(chalk.blue('[WebSocket] Received clarification from user:'), data.payload);
+                    // (Future logic to handle this response will go here)
+                    break;
 
-            // ADDED: A case for clarification responses
-            case 'clarification_response':
-              // This is where you would handle the user's response to an agent's question
-              console.log(chalk.blue('[WebSocket] Received clarification from user:'), data.payload);
-              // You would typically find the waiting agent and pass this response back to it.
-              break;
-
-            default:
-              console.log(chalk.yellow(`[WebSocket] Unknown message type: ${data.type}`));
-          }
+                default:
+                    console.log(chalk.yellow(`[WebSocket] Unknown message type: ${data.type}`));
+            }
         } catch (error) {
-          console.error(chalk.red('[WebSocket] Error processing message:'), error);
+            console.error(chalk.red('[WebSocket] Error processing message:'), error);
         }
-      });
+    });
 
       ws.on('close', () => {
         console.log(chalk.blue('[WebSocket] Client disconnected'));

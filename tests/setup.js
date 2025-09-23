@@ -1,3 +1,4 @@
+import 'dotenv/config';
 // This file handles the global setup for Jest tests.
 import fs from "fs-extra";
 import path from "path";
@@ -18,13 +19,24 @@ export default async () => {
 
   // Create a fresh, isolated test core from our fixtures
   try {
+    console.log(`[Setup] Copying from: ${FIXTURE_CORE_PATH}`);
+    console.log(`[Setup] Copying to: ${TEST_CORE_PATH}`);
     fs.copySync(FIXTURE_CORE_PATH, TEST_CORE_PATH);
+    console.log(`[Setup] Copy complete.`);
+    const expectedAgentPath = path.join(TEST_CORE_PATH, 'agents', 'system.md');
+    console.log(`[Setup] Checking for agent at: ${expectedAgentPath}`);
+    if (fs.existsSync(expectedAgentPath)) {
+      console.log(`[Setup] Agent file found!`);
+    } else {
+      console.log(`[Setup] Agent file NOT found!`);
+    }
   } catch (error) {
     console.error(`[Setup Worker ${workerId}] Failed to copy test fixtures:`, error);
     process.exit(1); // Exit if setup fails, to prevent running tests in a bad state
   }
 
   // Set an environment variable for the test files to use
+  process.env.STIGMERGY_CORE_PATH = TEST_CORE_PATH;
   process.env.STIGMERGY_TEST_CORE_PATH = TEST_CORE_PATH;
 
   // Pass the path to the teardown script via a global variable.
