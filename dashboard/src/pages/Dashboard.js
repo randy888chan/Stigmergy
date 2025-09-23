@@ -12,8 +12,8 @@ import ClarificationHandler from '../components/ClarificationHandler.js';
 const StateManagement = lazy(() => import('../components/StateManagement.js'));
 const TaskManagement = lazy(() => import('../components/TaskManagement.js'));
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
-const Terminal = lazy(() => import('../components/Terminal.js'));
 const CostMonitor = lazy(() => import('../components/CostMonitor.js'));
+const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 
 
 const Dashboard = () => {
@@ -97,9 +97,7 @@ const Dashboard = () => {
             </Suspense>
           </div>
           {renderCard(CostMonitor)}
-          <div className="dashboard-card terminal-card">
-            {renderCard(Terminal)}
-          </div>
+          {renderCard(DocumentUploader)}
         </div>
       </main>
       

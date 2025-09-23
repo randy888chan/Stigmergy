@@ -6,6 +6,11 @@ import chalk from "chalk";
 import { fileURLToPath } from 'url';
 import path from 'path';
 import AgentPerformance from './agent_performance.js';
+import multer from 'multer';
+import { processDocument } from '../tools/document_intelligence.js'; // Ensure this is imported
+
+// Configure multer for file uploads
+const upload = multer({ dest: path.join(process.cwd(), '.stigmergy', 'uploads') });
 
 // Define __dirname for ESM compatibility using function to avoid circular dependency issues
 const getDirName = (url) => path.dirname(fileURLToPath(url));
@@ -172,6 +177,26 @@ export class Engine {
       } catch (error) {
         // This catch is for initial request handling errors, not for the loop itself.
         console.error(chalk.red(`[API Error] ${error.message}`));
+      }
+    });
+
+    this.app.post('/api/upload-document', upload.single('document'), async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: 'No document uploaded.' });
+        }
+        console.log(chalk.blue(`[API] Received document: ${req.file.originalname}`));
+
+        // Trigger the document intelligence tool
+        const result = await processDocument({ filePath: req.file.path });
+
+        res.json({
+          message: 'Document processed successfully.',
+          result: result,
+        });
+      } catch (error) {
+        console.error(chalk.red('[API Upload Error]'), error);
+        res.status(500).json({ error: 'Failed to process document.' });
       }
     });
   }
