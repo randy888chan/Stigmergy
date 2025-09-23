@@ -93,6 +93,12 @@
   grid-column: 1 / -1; /* Span full width */
 }
 
+.code-browser-card {
+  grid-column: span 2;
+  grid-row: span 2;
+  min-height: 500px; /* Ensure it has enough vertical space */
+}
+
 .terminal-card h2 {
   margin: 0 0 15px 0;
   color: #333;

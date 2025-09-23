@@ -788,7 +788,6 @@ module.exports = { main };
     this.wss.on('connection', (ws) => {
       console.log(chalk.blue('[WebSocket] Client connected'));
       
-      // Send initial state to the newly connected client
       this.sendStateToClient(ws);
       
       ws.on('message', async (message) => {
@@ -796,12 +795,11 @@ module.exports = { main };
           const data = JSON.parse(message);
 
           switch (data.type) {
+            // CORRECTED: This now triggers the main execution loop
             case 'user_create_task':
               console.log(chalk.blue('[WebSocket] Received new task from user:'), data.payload);
-              await this.stateManagerModule.addTask({
-                description: data.payload.description,
-                priority: data.payload.priority,
-              });
+              // Directly call the high-speed execution goal with the task description
+              this.executeGoal(data.payload.description);
               break;
 
             case 'user_command':
@@ -816,10 +814,23 @@ module.exports = { main };
                 case 'approve':
                   if (this.approvalRequired && this.userApproval) {
                     this.approvalRequired = false;
-                    this.resume(); // This will also resolve the promise
+                    this.resume();
                   }
                   break;
+                // ADDED: A case to handle the logout command
+                case 'logout':
+                  console.log(chalk.blue('[WebSocket] Received logout command from user.'));
+                  // In a real app, this would invalidate a session. For now, we just log it.
+                  this.broadcastEvent('log', { message: 'User logout requested.' });
+                  break;
               }
+              break;
+
+            // ADDED: A case for clarification responses
+            case 'clarification_response':
+              // This is where you would handle the user's response to an agent's question
+              console.log(chalk.blue('[WebSocket] Received clarification from user:'), data.payload);
+              // You would typically find the waiting agent and pass this response back to it.
               break;
 
             default:

@@ -91,7 +91,11 @@ const Dashboard = () => {
           </div>
 
           {renderCard(StateManagement, { state: systemState })}
-          {renderCard(CodeBrowser)}
+          <div className="dashboard-card code-browser-card">
+            <Suspense fallback={<div>Loading Code Browser...</div>}>
+              <CodeBrowser />
+            </Suspense>
+          </div>
           {renderCard(CostMonitor)}
           <div className="dashboard-card terminal-card">
             {renderCard(Terminal)}
