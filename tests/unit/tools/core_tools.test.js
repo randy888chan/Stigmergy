@@ -1,18 +1,18 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, jest, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock dependencies
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
     default: {
         writeFile: jest.fn(),
     }
 }));
-jest.unstable_mockModule("../../../services/core_backup.js", () => ({
+mock.module("../../../services/core_backup.js", () => ({
   default: {
     autoBackup: jest.fn(),
     restoreLatest: jest.fn(),
   }
 }));
-jest.unstable_mockModule("../../../cli/commands/validate.js", () => ({
+mock.module("../../../cli/commands/validate.js", () => ({
   validateAgents: jest.fn(),
 }));
 
