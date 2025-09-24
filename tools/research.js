@@ -7,13 +7,13 @@ import chalk from "chalk";
 import fs from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
-import axios from "axios";
+import defaultAxios from "axios";
 
 const ARCHON_API_URL = "http://localhost:8181/api";
 
 let firecrawl;
 
-async function healthCheck() {
+async function healthCheck(axios) {
   try {
     const response = await axios.get(`${ARCHON_API_URL}/health`, { timeout: 1000 });
     return response.status === 200 && response.data.status === "healthy";
@@ -46,8 +46,8 @@ function getFirecrawlClient() {
   return firecrawl;
 }
 
-export async function deep_dive({ query, learnings = [] }) {
-  const isArchonRunning = await healthCheck();
+export async function deep_dive({ query, learnings = [], axios = defaultAxios }) {
+  const isArchonRunning = await healthCheck(axios);
 
   if (isArchonRunning) {
     console.log(chalk.green("🚀 Archon server detected. Using advanced RAG for research."));
