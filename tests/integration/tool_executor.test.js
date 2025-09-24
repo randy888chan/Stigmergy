@@ -1,24 +1,24 @@
 import * as fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
-import { jest } from "@jest/globals";
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock the file system tool
-jest.unstable_mockModule("../../tools/file_system.js", () => ({
-  readFile: jest.fn(),
+mock.module("../../tools/file_system.js", () => ({
+  readFile: mock(),
   default: {
-    readFile: jest.fn(),
+    readFile: mock(),
   }
 }));
 
 // Mock the state manager to prevent Neo4j connection attempts
-jest.unstable_mockModule("../../engine/state_manager.js", () => ({
-  initializeProject: jest.fn(),
-  getState: jest.fn(),
+mock.module("../../engine/state_manager.js", () => ({
+  initializeProject: mock(),
+  getState: mock(),
 }));
 
-jest.unstable_mockModule("../../services/model_monitoring.js", () => ({
-    trackToolUsage: jest.fn(),
+mock.module("../../services/model_monitoring.js", () => ({
+    trackToolUsage: mock(),
 }));
 
 // Mock the manifest
@@ -58,9 +58,9 @@ describe("Tool Executor", () => {
 
     // Set up the mock engine and executor
     mockEngine = {
-        triggerAgent: jest.fn().mockResolvedValue("Task triggered"),
-        getAgent: jest.fn().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' }),
-        broadcastEvent: jest.fn()
+        triggerAgent: mock().mockResolvedValue("Task triggered"),
+        getAgent: mock().mockReturnValue({ id: 'test-type', systemPrompt: 'Test system prompt', modelTier: 'b_tier' }),
+        broadcastEvent: mock()
     };
     execute = createExecutor(mockEngine);
     fileSystem.readFile.mockClear();
