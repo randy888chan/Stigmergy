@@ -1,19 +1,19 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock the entire neo4j-driver module
 const mockDriver = {
-  verifyConnectivity: jest.fn(),
-  close: jest.fn().mockResolvedValue(undefined),
+  verifyConnectivity: mock(),
+  close: mock().mockResolvedValue(undefined),
 };
-jest.unstable_mockModule('neo4j-driver', () => ({
-  driver: jest.fn().mockReturnValue(mockDriver),
+mock.module('neo4j-driver', () => ({
+  driver: mock().mockReturnValue(mockDriver),
   auth: {
-    basic: jest.fn(),
+    basic: mock(),
   },
 }));
 
 // Mock the config module
-jest.unstable_mockModule('../../../stigmergy.config.js', () => ({
+mock.module('../../../stigmergy.config.js', () => ({
   default: {
     features: {
       neo4j: 'auto', // Default for tests
@@ -33,7 +33,7 @@ describe('CodeIntelligenceService', () => {
     config = (await import('../../../stigmergy.config.js')).default;
 
     // Reset mocks before each test
-    jest.clearAllMocks();
+    mock.restore();
     mockDriver.verifyConnectivity.mockResolvedValue({}); // Reset to success
   });
 
