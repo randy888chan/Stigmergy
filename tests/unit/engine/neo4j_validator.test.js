@@ -1,10 +1,10 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 
 // Mock the dependency using the ESM-compatible API
 // We mock the entire class and the methods that will be called.
-const mockTestConnection = jest.fn();
-jest.unstable_mockModule('../../../services/code_intelligence_service.js', () => ({
-  CodeIntelligenceService: jest.fn().mockImplementation(() => ({
+const mockTestConnection = mock();
+mock.module('../../../services/code_intelligence_service.js', () => ({
+  CodeIntelligenceService: mock().mockImplementation(() => ({
     testConnection: mockTestConnection,
   })),
 }));
@@ -19,16 +19,16 @@ describe('Neo4jValidator', () => {
     CodeIntelligenceService = (await import('../../../services/code_intelligence_service.js')).CodeIntelligenceService;
 
     // Reset mocks before each test
-    jest.clearAllMocks();
+    mock.restore();
     mockTestConnection.mockReset();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    mock.restore();
   });
 
   it('should return { success: true } when CodeIntelligenceService reports a successful connection', async () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
 
     mockTestConnection.mockResolvedValue({
       status: 'ok',
@@ -47,7 +47,7 @@ describe('Neo4jValidator', () => {
   });
 
   it('should return { success: false } and an error message when CodeIntelligenceService reports a failed connection', async () => {
-    const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+    const consoleSpy = spyOn(console, 'log').mockImplementation(() => {});
 
     mockTestConnection.mockResolvedValue({
       status: 'error',
