@@ -1,28 +1,29 @@
 # This is the master list of all agents available to the Stigmergy system.
 # The core engine uses this to discover and load agent definitions.
 agents:
-  - id: analyst
-  - id: business_planner
-  - id: context_preparer
-  - id: debugger
-  - id: design-architect
-  - id: dev
-  - id: dispatcher
-  - id: enhanced-dev
-  - id: evaluator
-  - id: executor
-  - id: gemini-executor
-  - id: guardian
-  - id: health_monitor
-  - id: metis
-  - id: orion
-  - id: qa
-  - id: qwen-executor
-  - id: refactorer
-  - id: reference-architect
-  - id: specifier
-  - id: system
-  - id: unified-executor
-  - id: ux-expert
-  - id: valuator
-  - id: whitepaper_writer
+  # === Core Autonomous Workflow ===
+  - system              # The main user interface
+  - specifier           # Creates the plan.md
+  - dispatcher          # Executes the plan.md
+  - executor            # Implements code for a single task
+  - qa                  # Verifies the code
+  - debugger            # Fixes code that fails verification
+
+  # === Self-Improvement Loop ===
+  - metis               # Analyzes failures and proposes improvements
+  - guardian            # Safely applies improvements to the core
+
+  # === On-Call Documentation & Planning Specialists ===
+  - analyst             # Performs deep research
+  - business_planner    # Creates business plans
+  - valuator            # Performs financial analysis and valuation
+  - ux-expert           # Analyzes and generates UI/UX designs
+  - design-architect    # Creates the technical architecture blueprint
+  - whitepaper_writer   # Creates high-level documentation
+
+  # === On-Call Code Maintenance Specialists ===
+  - refactorer          # Improves existing code quality
+
+  # === Specialized CLI Executors ===
+  - gemini-executor
+  - qwen-executor
