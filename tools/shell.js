@@ -1,9 +1,9 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 
-const execPromise = promisify(exec);
+const defaultExecPromise = promisify(exec);
 
-export async function execute({ command, agentConfig }) {
+export async function execute({ command, agentConfig, execPromise = defaultExecPromise }) {
   if (!command) return "EXECUTION FAILED: No command provided.";
   
   // Security check: only allow permitted commands
