@@ -1,28 +1,28 @@
-import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import os from 'os';
 
 // Mock modules at the top using the ESM-compatible API
-jest.unstable_mockModule('child_process', () => ({
-  spawn: jest.fn(),
-  exec: jest.fn(),
+mock.module('child_process', () => ({
+  spawn: mock(),
+  exec: mock(),
 }));
 
-jest.unstable_mockModule('fs-extra', () => ({
+mock.module('fs-extra', () => ({
   default: {
-    ensureDir: jest.fn(),
-    readJson: jest.fn(),
-    pathExists: jest.fn(),
-    writeJson: jest.fn(),
-    writeFile: jest.fn(),
-    remove: jest.fn(),
-    copy: jest.fn(),
-    readdir: jest.fn(),
+    ensureDir: mock(),
+    readJson: mock(),
+    pathExists: mock(),
+    writeJson: mock(),
+    writeFile: mock(),
+    remove: mock(),
+    copy: mock(),
+    readdir: mock(),
   },
 }));
 
 // Mock fetch globally for this test file
-global.fetch = jest.fn();
+global.fetch = mock();
 
 // TODO: This test suite is skipped because it involves complex process spawning and
 // file system interactions that are difficult to reliably mock in the current Jest ESM setup.
@@ -30,6 +30,7 @@ global.fetch = jest.fn();
 // in a separate node environment, which is outside the direct control of the Jest test runner.
 // This requires a more in-depth fix, potentially involving refactoring the benchmark runner
 // to not rely on executing external scripts.
+// Additionally, Bun's test runner does not yet support fake timers.
 describe.skip('Benchmark Runner Integration', () => {
   let BenchmarkRunner;
   let fs;
@@ -42,9 +43,6 @@ describe.skip('Benchmark Runner Integration', () => {
   let testBenchmark;
 
   beforeEach(async () => {
-    // Use fake timers for each test and reset them
-    jest.useFakeTimers();
-
     // Import modules after mocks are set up
     BenchmarkRunner = (await import('../../../evaluation/runners/benchmark_runner.js')).default;
     fs = (await import('fs-extra')).default;
@@ -53,7 +51,7 @@ describe.skip('Benchmark Runner Integration', () => {
     exec = cp.exec;
 
     // Reset mocks
-    jest.clearAllMocks();
+    mock.clearAllMocks();
 
     testDir = path.join(os.tmpdir(), `stigmergy-test-${Date.now()}`);
     testBenchmarkFile = path.join(testDir, 'test_benchmark.json');
@@ -69,9 +67,9 @@ describe.skip('Benchmark Runner Integration', () => {
 
     // Universal mocks
     mockChildProcess = {
-      stdout: { on: jest.fn() },
-      stderr: { on: jest.fn() },
-      on: jest.fn((event, callback) => {
+      stdout: { on: mock() },
+      stderr: { on: mock() },
+      on: mock((event, callback) => {
         if (event === 'close') {
           // Defer the close event to simulate async process exit
           setTimeout(() => callback(0), 1);
@@ -80,14 +78,12 @@ describe.skip('Benchmark Runner Integration', () => {
       pid: 1234,
     };
     spawn.mockReturnValue(mockChildProcess);
-    process.kill = jest.fn(); // Mock process.kill
+    process.kill = mock(); // Mock process.kill
     global.fetch.mockResolvedValue({ ok: true, json: async () => ({}) });
     fs.ensureDir.mockResolvedValue(true);
   });
 
   afterEach(() => {
-    // Restore real timers after each test
-    jest.useRealTimers();
   });
 
   test('should run a problem successfully', async () => {
@@ -114,7 +110,7 @@ describe.skip('Benchmark Runner Integration', () => {
     const problemDir = path.join(testDir, 'problems');
     const runPromise = runner.runProblem(problem, problemDir);
 
-    await jest.advanceTimersByTimeAsync(15000);
+    // await jest.advanceTimersByTimeAsync(15000);
     const result = await runPromise;
 
     // Assertions
@@ -142,7 +138,7 @@ describe.skip('Benchmark Runner Integration', () => {
     const problemDir = path.join(testDir, 'problems');
     const runPromise = runner.runProblem(problem, problemDir);
 
-    await jest.advanceTimersByTimeAsync(5000);
+    // await jest.advanceTimersByTimeAsync(5000);
     const result = await runPromise;
 
     // Assertions
@@ -169,7 +165,7 @@ describe.skip('Benchmark Runner Integration', () => {
     const problemDir = path.join(testDir, 'problems');
     const runPromise = runner.runProblem(problem, problemDir);
 
-    await jest.advanceTimersByTimeAsync(5000);
+    // await jest.advanceTimersByTimeAsync(5000);
     const result = await runPromise;
 
     // Assertions
