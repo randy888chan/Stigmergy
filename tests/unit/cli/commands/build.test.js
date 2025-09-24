@@ -1,34 +1,34 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
-jest.unstable_mockModule('fs-extra', () => ({
-  readFile: jest.fn(),
-  writeFile: jest.fn(),
-  readdir: jest.fn(),
-  existsSync: jest.fn(),
-  ensureDir: jest.fn(),
+mock.module('fs-extra', () => ({
+  readFile: mock(),
+  writeFile: mock(),
+  readdir: mock(),
+  existsSync: mock(),
+  ensureDir: mock(),
   default: {
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    readdir: jest.fn(),
-    existsSync: jest.fn(),
-    ensureDir: jest.fn(),
+    readFile: mock(),
+    writeFile: mock(),
+    readdir: mock(),
+    existsSync: mock(),
+    ensureDir: mock(),
   }
 }));
 
-jest.unstable_mockModule('glob', () => ({
-    glob: jest.fn(),
+mock.module('glob', () => ({
+    glob: mock(),
 }));
 
-jest.unstable_mockModule('../../../../cli/utils/output_formatter.js', () => ({
+mock.module('../../../../cli/utils/output_formatter.js', () => ({
     OutputFormatter: {
-        section: jest.fn(),
-        step: jest.fn(),
-        info: jest.fn(),
-        warning: jest.fn(),
-        success: jest.fn(),
-        summary: jest.fn(),
-        table: jest.fn(),
-        error: jest.fn(),
+        section: mock(),
+        step: mock(),
+        info: mock(),
+        warning: mock(),
+        success: mock(),
+        summary: mock(),
+        table: mock(),
+        error: mock(),
     }
 }));
 
@@ -38,7 +38,7 @@ describe("Build Command", () => {
     let build;
 
   beforeEach(async() => {
-    jest.clearAllMocks();
+    mock.restore();
     fs = (await import('fs-extra')).default;
     glob = (await import('glob')).glob;
     build = (await import('../../../../cli/commands/build.js')).default;
