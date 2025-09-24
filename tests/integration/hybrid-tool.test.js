@@ -1,12 +1,28 @@
-// In tests/integration/hybrid-tool.test.js
-import axios from "axios";
-import { query as archonQuery } from "../../tools/archon_tool.js";
-import * as nativeResearch from "../../tools/research.js";
+import { jest } from "@jest/globals";
 
-jest.mock("axios");
-jest.mock("../../tools/research.js");
+jest.unstable_mockModule("axios", () => ({
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+  }
+}));
+jest.unstable_mockModule("../../tools/research.js", () => ({
+  deep_dive: jest.fn(),
+}));
 
 describe("Hybrid Archon Tool", () => {
+  let axios;
+  let archonQuery;
+  let nativeResearch;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    axios = (await import("axios")).default;
+    const archonToolModule = await import("../../tools/archon_tool.js");
+    archonQuery = archonToolModule.query;
+    nativeResearch = await import("../../tools/research.js");
+  });
+
   it("should use Archon RAG when the server is healthy", async () => {
     axios.get.mockResolvedValue({ status: 200, data: { status: "healthy" } });
     axios.post.mockResolvedValue({ data: { results: [{ content: "Archon Result" }] } });

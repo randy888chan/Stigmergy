@@ -1,11 +1,25 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import { exec, spawn } from 'child_process';
-import { promisify } from 'util';
 import chalk from 'chalk';
 import os from 'os';
 
-const execPromise = promisify(exec);
+// exec is callback-based, so we wrap it in a promise for async/await
+const execPromise = (command, options) => {
+  return new Promise((resolve, reject) => {
+    exec(command, options, (error, stdout, stderr) => {
+      if (error) {
+        // Attach stdout and stderr to the error object for more context
+        error.stdout = stdout;
+        error.stderr = stderr;
+        reject(error);
+        return;
+      }
+      resolve({ stdout, stderr });
+    });
+  });
+};
+
 const sleep = (ms) => {
   console.log(`[Benchmark] sleeping for ${ms}ms`);
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -471,10 +485,6 @@ NEO4J_PASSWORD=password`;
         
         // Execute validation script directly using node
         try {
-          const { exec } = await import('child_process');
-          const { promisify } = await import('util');
-          const execPromise = promisify(exec);
-          
           // Create a package.json file to enable ES modules support
           const packageJsonPath = path.join(tempSolutionDir, 'package.json');
           const packageJson = {
@@ -496,9 +506,7 @@ NEO4J_PASSWORD=password`;
           console.log(`[Benchmark] Executing validation command: ${command}`);
           
           // Execute with more detailed error handling
-          const result = await execPromise(command, { cwd: solutionDir, maxBuffer: 1024 * 1024 * 10 });
-          
-          const { stdout, stderr } = result;
+          const { stdout, stderr } = await execPromise(command, { cwd: solutionDir, maxBuffer: 1024 * 1024 * 10 });
           
           if (stderr) {
             console.error(chalk.red(`Validation script stderr: ${stderr}`));
@@ -772,24 +780,6 @@ NEO4J_PASSWORD=password`;
   }
 }
 
-// CLI interface
-async function main() {
-  const benchmarkFile = process.argv[2] || path.join(process.cwd(), 'evaluation', 'benchmark.json');
-  const outputFile = process.argv[3] || path.join(process.cwd(), 'evaluation', 'results.json');
-  
-  try {
-    const runner = new BenchmarkRunner(benchmarkFile);
-    await runner.runAll();
-    await runner.saveResults(outputFile);
-  } catch (error) {
-    console.error(chalk.red(`Benchmark runner failed: ${error.message}`));
-    process.exit(1);
-  }
-}
-
-// Run if called directly
-if (process.argv[1] === new URL(import.meta.url).pathname) {
-  main();
-}
-
+// The CLI execution logic has been moved to a separate script
+// to make this file a pure, importable module.
 export default BenchmarkRunner;

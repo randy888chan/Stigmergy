@@ -1,6 +1,6 @@
 import { get_failure_patterns } from '../../tools/swarm_intelligence_tools.js';
 import { appendFile } from '../../tools/file_system.js';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 
 const TEMP_REPORTS_DIR = path.join(process.cwd(), '.ai', 'test_temp_memory');
@@ -11,18 +11,18 @@ describe('Self-Improvement Data Pipeline', () => {
   beforeEach(async () => {
     // Create a unique temp file for each test
     tempReportsPath = path.join(TEMP_REPORTS_DIR, `failures-${Date.now()}.jsonl`);
-    await fs.ensureDir(TEMP_REPORTS_DIR);
-    await fs.writeFile(tempReportsPath, '');
+    await fs.default.ensureDir(TEMP_REPORTS_DIR);
+    await fs.default.writeFile(tempReportsPath, '');
   });
 
   afterEach(async () => {
     // Clean up the unique file after each test
-    await fs.remove(tempReportsPath);
+    await fs.default.remove(tempReportsPath);
   });
 
   afterAll(async () => {
     // Clean up the temp directory
-    await fs.remove(TEMP_REPORTS_DIR);
+    await fs.default.remove(TEMP_REPORTS_DIR);
   });
 
   test('should correctly identify the most common failure pattern from the log file', async () => {

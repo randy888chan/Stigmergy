@@ -1,17 +1,32 @@
-import fs from "fs-extra";
-import { exec } from "child_process";
-import { CoreBackup } from "../../../services/core_backup.js";
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
-// Mock dependencies
-jest.mock("fs-extra");
-jest.mock("child_process", () => ({
+// Mock dependencies using the ESM-compatible API
+jest.unstable_mockModule("fs-extra", () => ({
+  default: {
+    pathExists: jest.fn(),
+    ensureDir: jest.fn(),
+    readdir: jest.fn(),
+    remove: jest.fn(),
+    existsSync: jest.fn(),
+    stat: jest.fn(),
+  },
+}));
+jest.unstable_mockModule("child_process", () => ({
   exec: jest.fn(),
 }));
 
 describe("CoreBackup Service", () => {
+  let CoreBackup;
+  let fs;
+  let exec;
   let coreBackup;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Dynamically import modules to get mocked versions
+    CoreBackup = (await import("../../../services/core_backup.js")).CoreBackup;
+    fs = (await import("fs-extra")).default;
+    exec = (await import("child_process")).exec;
+
     coreBackup = new CoreBackup();
     jest.clearAllMocks();
   });

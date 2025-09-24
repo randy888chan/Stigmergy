@@ -1,4 +1,4 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 
 const METRICS_FILE = path.join(process.cwd(), ".ai", "monitoring", "events.jsonl");

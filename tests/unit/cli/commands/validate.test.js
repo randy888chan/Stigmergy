@@ -1,13 +1,21 @@
-import fs from "fs-extra";
-import { validateAgents } from "../../../../cli/commands/validate.js";
-import path from "path";
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
-// Mock fs-extra
-jest.mock("fs-extra");
+jest.unstable_mockModule("fs-extra", () => ({
+    default: {
+        readdir: jest.fn(),
+        readFile: jest.fn(),
+        existsSync: jest.fn(),
+    },
+}));
 
 describe("Validation Command", () => {
-  beforeEach(() => {
+    let fs;
+    let validateAgents;
+
+  beforeEach(async () => {
     jest.clearAllMocks();
+    fs = (await import("fs-extra")).default;
+    validateAgents = (await import("../../../../cli/commands/validate.js")).validateAgents;
     // Reset any global config that might interfere
     delete global.StigmergyConfig;
   });
@@ -31,7 +39,7 @@ agent:
       fs.readFile.mockResolvedValue(validAgentContent);
       fs.existsSync.mockReturnValue(true);
 
-      const result = await validateAgents();
+      const result = await validateAgents("/fake/path");
       expect(result.success).toBe(true);
     });
 
@@ -40,7 +48,7 @@ agent:
         fs.readFile.mockResolvedValue("Just text");
         fs.existsSync.mockReturnValue(true);
 
-        const result = await validateAgents();
+        const result = await validateAgents("/fake/path");
         expect(result.success).toBe(false);
         expect(result.error).toContain("1 agent definition(s) failed validation");
       });
@@ -50,7 +58,7 @@ agent:
       fs.readFile.mockResolvedValue("```yaml\nkey: - value\n```");
       fs.existsSync.mockReturnValue(true);
 
-      const result = await validateAgents();
+      const result = await validateAgents("/fake/path");
       expect(result.success).toBe(false);
       expect(result.error).toContain("1 agent definition(s) failed validation");
     });
@@ -69,7 +77,7 @@ agent:
         fs.readFile.mockResolvedValue(invalidSchemaContent);
         fs.existsSync.mockReturnValue(true);
 
-        const result = await validateAgents();
+        const result = await validateAgents("/fake/path");
         expect(result.success).toBe(false);
       });
 
@@ -84,13 +92,14 @@ agent:
         });
         fs.existsSync.mockReturnValue(true);
 
-        const result = await validateAgents();
+        const result = await validateAgents("/fake/path");
         expect(result.success).toBe(false);
         expect(result.error).toContain("agent definition(s) failed validation");
     });
 
     test("should return failure if agents directory does not exist", async () => {
         fs.existsSync.mockReturnValue(false);
+        // Call without a path to test the fallback logic
         const result = await validateAgents();
         expect(result.success).toBe(false);
         expect(result.error).toContain("No agent definitions found");

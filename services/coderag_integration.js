@@ -1,5 +1,5 @@
 import { CodeIntelligenceService } from './code_intelligence_service.js';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 
 export class CodeRAGIntegration extends CodeIntelligenceService {

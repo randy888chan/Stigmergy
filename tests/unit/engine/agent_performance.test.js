@@ -1,11 +1,19 @@
-import agentPerformance from '../../../engine/agent_performance.js';
-import fs from 'fs-extra';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 import path from 'path';
 
-// Mock the fs-extra module
-jest.mock('fs-extra');
+// Mock the fs-extra module using the ESM-compatible API
+jest.unstable_mockModule('fs-extra', () => ({
+  default: {
+    ensureDir: jest.fn(),
+    pathExists: jest.fn(),
+    writeJson: jest.fn(),
+    readJson: jest.fn(),
+  },
+}));
 
 describe('AgentPerformance', () => {
+  let agentPerformance;
+  let fs;
   const metricsPath = path.join(process.cwd(), '.ai', 'agent_metrics');
   const indexPath = path.join(metricsPath, 'index.json');
 
@@ -15,14 +23,16 @@ describe('AgentPerformance', () => {
     taskTypes: {},
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Import modules after mocking
+    agentPerformance = (await import('../../../engine/agent_performance.js')).default;
+    fs = (await import('fs-extra')).default;
+
     // Reset all mocks before each test
-    jest.clearAllMocks();
-    // Provide default mock implementations
-    fs.ensureDir.mockResolvedValue();
-    fs.pathExists.mockResolvedValue(true);
-    fs.writeJson.mockResolvedValue();
-    fs.readJson.mockResolvedValue(getMockIndex());
+    fs.ensureDir.mockReset().mockResolvedValue();
+    fs.pathExists.mockReset().mockResolvedValue(true);
+    fs.writeJson.mockReset().mockResolvedValue();
+    fs.readJson.mockReset().mockResolvedValue(getMockIndex());
   });
 
   describe('initialize', () => {

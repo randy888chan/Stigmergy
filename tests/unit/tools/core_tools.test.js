@@ -1,27 +1,38 @@
-import fs from "fs-extra";
-import coreBackup from "../../../services/core_backup.js";
-import { validateAgents } from "../../../cli/commands/validate.js";
-import {
-  backup,
-  validate,
-  applyPatch,
-  restore,
-  createSystemControlTools,
-} from "../../../tools/core_tools.js";
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
 // Mock dependencies
-jest.mock("fs-extra");
-jest.mock("../../../services/core_backup.js", () => ({
-  autoBackup: jest.fn(),
-  restoreLatest: jest.fn(),
+jest.unstable_mockModule("fs-extra", () => ({
+    default: {
+        writeFile: jest.fn(),
+    }
 }));
-jest.mock("../../../cli/commands/validate.js", () => ({
+jest.unstable_mockModule("../../../services/core_backup.js", () => ({
+  default: {
+    autoBackup: jest.fn(),
+    restoreLatest: jest.fn(),
+  }
+}));
+jest.unstable_mockModule("../../../cli/commands/validate.js", () => ({
   validateAgents: jest.fn(),
 }));
 
 describe("Core Tools", () => {
-  beforeEach(() => {
+    let fs;
+    let coreBackup;
+    let validateAgents;
+    let backup, validate, applyPatch, restore, createSystemControlTools;
+
+  beforeEach(async () => {
     jest.clearAllMocks();
+    fs = (await import("fs-extra")).default;
+    coreBackup = (await import("../../../services/core_backup.js")).default;
+    validateAgents = (await import("../../../cli/commands/validate.js")).validateAgents;
+    const coreTools = await import("../../../tools/core_tools.js");
+    backup = coreTools.backup;
+    validate = coreTools.validate;
+    applyPatch = coreTools.applyPatch;
+    restore = coreTools.restore;
+    createSystemControlTools = coreTools.createSystemControlTools;
   });
 
   describe("Guardian Tools", () => {

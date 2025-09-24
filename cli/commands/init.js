@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import * as fs from "fs-extra";
 import path from "path";
 import { fileURLToPath } from "url";
 import config from "../../stigmergy.config.js";

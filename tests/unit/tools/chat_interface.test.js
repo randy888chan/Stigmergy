@@ -1,19 +1,29 @@
-import { jest } from '@jest/globals';
-import * as stateManager from '../../../engine/state_manager.js';
-import { process_chat_command } from '../../../tools/chat_interface.js';
-import { createStructuredResponse } from '../../../tools/core_tools.js';
+import { jest, describe, test, expect, afterEach, beforeEach } from '@jest/globals';
 
-jest.mock('../../../tools/core_tools.js', () => ({
+// Mock dependencies using the ESM-compatible API
+jest.unstable_mockModule('../../../tools/core_tools.js', () => ({
   createStructuredResponse: jest.fn((data) => data),
   analyzeTaskExecutionStrategy: jest.fn(),
 }));
 
-jest.mock('../../../engine/state_manager.js', () => ({
+jest.unstable_mockModule('../../../engine/state_manager.js', () => ({
   initializeProject: jest.fn().mockResolvedValue({}),
 }));
 
 
 describe('Chat Interface Tool', () => {
+  let stateManager;
+  let coreTools;
+  let process_chat_command;
+
+  beforeEach(async () => {
+    // Dynamically import modules to get the mocked versions
+    stateManager = await import('../../../engine/state_manager.js');
+    coreTools = await import('../../../tools/core_tools.js');
+    const chatInterface = await import('../../../tools/chat_interface.js');
+    process_chat_command = chatInterface.process_chat_command;
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });
@@ -26,7 +36,7 @@ describe('Chat Interface Tool', () => {
     expect(stateManager.initializeProject).toHaveBeenCalledWith(command);
 
     // Verify a structured response was created to inform the user
-    expect(createStructuredResponse).toHaveBeenCalledWith(
+    expect(coreTools.createStructuredResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'in_progress',
         message: expect.stringContaining('Received new goal'),
@@ -58,7 +68,7 @@ describe('Chat Interface Tool', () => {
     expect(stateManager.initializeProject).not.toHaveBeenCalled();
 
     // Verify that a clarification response was created
-    expect(createStructuredResponse).toHaveBeenCalledWith(
+    expect(coreTools.createStructuredResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'clarification_needed',
       })

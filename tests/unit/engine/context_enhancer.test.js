@@ -1,26 +1,36 @@
-import { enhance, _private } from "../../../engine/context_enhancer.js";
-import * as codeIntelligence from "../../../tools/code_intelligence.js";
+import { jest, describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 
-const { extractSymbolsFromTask, getContextForSymbols } = _private;
-
-// Mock the code intelligence tool
-jest.mock("../../../tools/code_intelligence.js", () => ({
+// Mock the code intelligence tool using the ESM-compatible API
+jest.unstable_mockModule("../../../tools/code_intelligence.js", () => ({
   getDefinition: jest.fn(),
   findUsages: jest.fn(),
 }));
 
-// Suppress console.log during tests
-beforeAll(() => {
-  jest.spyOn(console, 'log').mockImplementation(() => {});
-  jest.spyOn(console, 'error').mockImplementation(() => {});
-});
-
-afterAll(() => {
-  console.log.mockRestore();
-  console.error.mockRestore();
-});
-
 describe("Context Enhancer", () => {
+  let enhance, _private, codeIntelligence;
+  let extractSymbolsFromTask, getContextForSymbols;
+
+  beforeAll(() => {
+    // Suppress console.log during tests
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterAll(() => {
+    jest.restoreAllMocks();
+  });
+
+  beforeEach(async () => {
+    // Dynamically import modules to get mocked versions
+    const contextEnhancer = await import("../../../engine/context_enhancer.js");
+    enhance = contextEnhancer.enhance;
+    _private = contextEnhancer._private;
+    extractSymbolsFromTask = _private.extractSymbolsFromTask;
+    getContextForSymbols = _private.getContextForSymbols;
+
+    codeIntelligence = await import("../../../tools/code_intelligence.js");
+  });
+
   afterEach(() => {
     jest.clearAllMocks();
   });

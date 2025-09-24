@@ -1,5 +1,5 @@
 // Chat Interface for Stigmergy System - Handles All Setup and Commands
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import { exec, spawn } from 'child_process';
 import { promisify } from 'util';

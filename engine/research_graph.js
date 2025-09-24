@@ -1,6 +1,6 @@
 import { END, StateGraph } from "@langchain/langgraph";
-import { research } from "../tools/research.js";
-import { getModel } from "../ai/providers.js";
+import * as research from "../tools/research.js";
+import { getModelForTier } from "../ai/providers.js";
 
 const graphState = {
   topic: { value: null },
@@ -11,12 +11,12 @@ const graphState = {
 };
 
 const researchNode = async (state) => {
-  const researchResult = await research.search(state.topic);
+  const researchResult = await research.deep_dive({ query: state.topic });
   return { initial_learning: researchResult };
 };
 
 const reflectionNode = async (state) => {
-  const model = getModel("reflection_tier");
+  const model = getModelForTier("reflection_tier");
   const prompt = `You are a researcher. You have been given a topic and some initial research. Your job is to reflect on the research and determine if it is complete. If it is complete, respond with "true". Otherwise, respond with a list of new questions to research.
 
 Topic: ${state.topic}

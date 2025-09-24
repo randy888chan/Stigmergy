@@ -1,27 +1,57 @@
-import FirecrawlApp from "@mendable/firecrawl-js";
-import { generateObject } from "ai";
-import axios from "axios";
-import fs from "fs-extra";
-import { getModelForTier } from "../../../ai/providers.js";
-import { deep_dive, analyze_user_feedback, _resetCache } from "../../../tools/research.js";
+import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 
-// Mock dependencies
-jest.mock("@mendable/firecrawl-js");
-jest.mock("ai", () => ({
+// Mock dependencies using the ESM-compatible API
+jest.unstable_mockModule("@mendable/firecrawl-js", () => ({
+  default: jest.fn(),
+}));
+jest.unstable_mockModule("ai", () => ({
   generateObject: jest.fn(),
 }));
-jest.mock("axios");
-jest.mock("fs-extra");
-jest.mock("../../../ai/providers.js");
+jest.unstable_mockModule("axios", () => ({
+  default: {
+    get: jest.fn(),
+    post: jest.fn(),
+  },
+}));
+jest.unstable_mockModule("fs-extra", () => ({
+  default: {
+    readFile: jest.fn(),
+  },
+}));
+jest.unstable_mockModule("../../../ai/providers.js", () => ({
+  getModelForTier: jest.fn(),
+}));
 
 describe("Research Tools", () => {
-  beforeEach(() => {
+  let deep_dive, analyze_user_feedback, _resetCache;
+  let FirecrawlApp, generateObject, axios, fs, getModelForTier;
+
+  beforeEach(async () => {
+    // Dynamically import modules after mocks are set up
+    const researchTools = await import("../../../tools/research.js");
+    deep_dive = researchTools.deep_dive;
+    analyze_user_feedback = researchTools.analyze_user_feedback;
+    _resetCache = researchTools._resetCache;
+
+    FirecrawlApp = (await import("@mendable/firecrawl-js")).default;
+    generateObject = (await import("ai")).generateObject;
+    axios = (await import("axios")).default;
+    fs = (await import("fs-extra")).default;
+    getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
+
+    // Reset mocks before each test
     jest.clearAllMocks();
     _resetCache();
+
     // Mock the research prompt file
     fs.readFile.mockResolvedValue("```yaml\nresearch_prompt: 'Test prompt'\n```");
     // Set a dummy key for the test environment
     process.env.FIRECRAWL_KEY = "test-key";
+  });
+
+  afterEach(() => {
+    // Clean up environment variables
+    delete process.env.FIRECRAWL_KEY;
   });
 
   describe("deep_dive", () => {

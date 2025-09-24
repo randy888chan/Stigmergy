@@ -1,9 +1,7 @@
-import { getModelForTier, _resetProviderInstances } from '../../ai/providers.js';
-import { createOpenAI } from '@ai-sdk/openai';
-import config from '../../stigmergy.config.js';
+import { jest } from '@jest/globals';
 
 // Mock the entire stigmergy.config.js module
-jest.mock('../../stigmergy.config.js', () => ({
+jest.unstable_mockModule('../../stigmergy.config.js', () => ({
   __esModule: true, // This is important for ES modules
   default: {
     model_tiers: {
@@ -30,12 +28,21 @@ jest.mock('../../stigmergy.config.js', () => ({
 }));
 
 // Mock the createOpenAI function to inspect its calls
-jest.mock('@ai-sdk/openai', () => ({
+jest.unstable_mockModule('@ai-sdk/openai', () => ({
   createOpenAI: jest.fn(),
 }));
 
 describe('Multi-provider configuration', () => {
-  beforeEach(() => {
+  let getModelForTier, _resetProviderInstances, createOpenAI;
+
+  beforeEach(async () => {
+    const providersModule = await import('../../ai/providers.js');
+    getModelForTier = providersModule.getModelForTier;
+    _resetProviderInstances = providersModule._resetProviderInstances;
+
+    const openAiSdkModule = await import('@ai-sdk/openai');
+    createOpenAI = openAiSdkModule.createOpenAI;
+
     // Reset the provider cache before each test
     _resetProviderInstances();
 

@@ -1,22 +1,31 @@
-import GraphStateManager from '../../../../src/infrastructure/state/GraphStateManager.js';
-import neo4j from 'neo4j-driver';
-import config from '../../../../stigmergy.config.js';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
-// Mock the entire neo4j-driver module
-jest.mock('neo4j-driver');
+jest.unstable_mockModule('neo4j-driver', () => ({
+    driver: jest.fn(),
+    auth: {
+        basic: jest.fn(),
+    }
+}));
 
-// Mock the config module
-jest.mock('../../../../stigmergy.config.js', () => ({
-  features: {
-    neo4j: 'auto', // Default mock value
+jest.unstable_mockModule('../../../../stigmergy.config.js', () => ({
+  default: {
+    features: {
+      neo4j: 'auto', // Default mock value
+    },
   },
 }));
 
 describe('GraphStateManager', () => {
+  let GraphStateManager;
+  let neo4j;
   let mockSession;
   let originalEnv;
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Dynamically import modules after mocks are set up
+    neo4j = await import('neo4j-driver');
+    GraphStateManager = (await import('../../../../src/infrastructure/state/GraphStateManager.js')).default;
+
     // Setup mock for the neo4j session and driver
     mockSession = {
       run: jest.fn().mockResolvedValue({ records: [] }),
@@ -37,7 +46,7 @@ describe('GraphStateManager', () => {
     // Reset the singleton's state for each test
     GraphStateManager.driver = null;
     GraphStateManager.connectionStatus = 'UNINITIALIZED';
-    GraphStateManager.initializeDriver(); // Manually initialize
+    await GraphStateManager.initializeDriver(); // Manually initialize
   });
 
   afterEach(() => {

@@ -1,18 +1,7 @@
-import { createPlanningGraph } from "../../engine/planning_graph.js";
+import { jest } from "@jest/globals";
 
-// Mock the researchGraph within the planning_graph module
-jest.mock("../../engine/planning_graph.js", () => {
-  const actual = jest.requireActual("../../engine/planning_graph.js");
-  return {
-    ...actual,
-    researchGraph: {
-      invoke: jest.fn(),
-    }
-  };
-});
-
-// Also mock the research_graph module directly
-jest.mock("../../engine/research_graph.js", () => ({
+// Mock the research_graph module directly
+jest.unstable_mockModule("../../engine/research_graph.js", () => ({
   researchGraph: {
     invoke: jest.fn(),
   },
@@ -22,13 +11,18 @@ describe("Planning Team Graph", () => {
   let planningGraph;
   let triggerAgent;
   let researchGraph;
+  let createPlanningGraph;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Reset mocks
     jest.clearAllMocks();
 
     // Get the mocked researchGraph
-    researchGraph = require("../../engine/research_graph.js").researchGraph;
+    const researchGraphModule = await import("../../engine/research_graph.js");
+    researchGraph = researchGraphModule.researchGraph;
+
+    const planningGraphModule = await import("../../engine/planning_graph.js");
+    createPlanningGraph = planningGraphModule.createPlanningGraph;
 
     // Mock the triggerAgent function
     triggerAgent = jest.fn().mockImplementation((agent, prompt) => {

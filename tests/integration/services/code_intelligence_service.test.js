@@ -1,28 +1,47 @@
-import { CodeIntelligenceService } from '../../../services/code_intelligence_service.js';
-import neo4j from 'neo4j-driver';
-import config from '../../../stigmergy.config.js';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
 // Mock the entire neo4j-driver module
-jest.mock('neo4j-driver');
+const mockDriver = {
+  verifyConnectivity: jest.fn(),
+  close: jest.fn().mockResolvedValue(undefined),
+};
+jest.unstable_mockModule('neo4j-driver', () => ({
+  driver: jest.fn().mockReturnValue(mockDriver),
+  auth: {
+    basic: jest.fn(),
+  },
+}));
+
 // Mock the config module
-jest.mock('../../../stigmergy.config.js');
+jest.unstable_mockModule('../../../stigmergy.config.js', () => ({
+  default: {
+    features: {
+      neo4j: 'auto', // Default for tests
+    },
+  },
+}));
 
 describe('CodeIntelligenceService', () => {
-  let mockDriver;
+  let CodeIntelligenceService;
+  let neo4j;
+  let config;
 
-  beforeEach(() => {
-    // Create a mock driver object
-    mockDriver = {
-      verifyConnectivity: jest.fn().mockResolvedValue({}),
-      close: jest.fn().mockResolvedValue(undefined),
-    };
+  beforeEach(async () => {
+    // Dynamically import modules to get mocked versions
+    CodeIntelligenceService = (await import('../../../services/code_intelligence_service.js')).CodeIntelligenceService;
+    neo4j = await import('neo4j-driver');
+    config = (await import('../../../stigmergy.config.js')).default;
 
-    // Tell the neo4j module to return our mock driver
-    neo4j.driver.mockReturnValue(mockDriver);
+    // Reset mocks before each test
+    jest.clearAllMocks();
+    mockDriver.verifyConnectivity.mockResolvedValue({}); // Reset to success
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Clean up environment variables
+    delete process.env.NEO4J_URI;
+    delete process.env.NEO4J_USER;
+    delete process.env.NEO4J_PASSWORD;
   });
 
   it('should test connection successfully when neo4j is "required"', async () => {
@@ -46,9 +65,6 @@ describe('CodeIntelligenceService', () => {
   it('should fall back to memory mode when neo4j is "auto" and creds are missing', async () => {
     // Arrange
     config.features.neo4j = 'auto';
-    delete process.env.NEO4J_URI;
-    delete process.env.NEO4J_USER;
-    delete process.env.NEO4J_PASSWORD;
     
     const service = new CodeIntelligenceService();
 
@@ -83,9 +99,6 @@ describe('CodeIntelligenceService', () => {
   it('should return an error when neo4j is "required" and creds are missing', async () => {
     // Arrange
     config.features.neo4j = 'required';
-    delete process.env.NEO4J_URI;
-    delete process.env.NEO4J_USER;
-    delete process.env.NEO4J_PASSWORD;
 
     const service = new CodeIntelligenceService();
 

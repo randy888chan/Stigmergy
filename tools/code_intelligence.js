@@ -4,7 +4,7 @@ import { cachedQuery } from "../utils/queryCache.js";
 import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";
 import { z } from "zod";
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import neo4j from 'neo4j-driver';
 

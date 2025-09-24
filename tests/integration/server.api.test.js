@@ -1,16 +1,23 @@
+/**
+ * @jest-environment node
+ */
 import request from 'supertest';
-import { Engine } from '../../engine/server.js';
-import * as docIntelligence from '../../tools/document_intelligence.js';
+import { jest } from '@jest/globals';
 
 // Mock the tool that gets called by the endpoint
-jest.mock('../../tools/document_intelligence.js', () => ({
+jest.unstable_mockModule('../../tools/document_intelligence.js', () => ({
   processDocument: jest.fn().mockResolvedValue({ success: true, segmentCount: 5 }),
 }));
 
 describe('POST /api/upload-document', () => {
   let app;
+  let Engine;
+  let docIntelligence;
 
-  beforeAll(() => {
+  beforeAll(async () => {
+    const engineModule = await import('../../engine/server.js');
+    Engine = engineModule.Engine;
+    docIntelligence = await import('../../tools/document_intelligence.js');
     const engine = new Engine();
     app = engine.app; // Get the express app instance from the engine
   });

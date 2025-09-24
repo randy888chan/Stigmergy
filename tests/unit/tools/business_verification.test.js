@@ -1,18 +1,28 @@
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+
 // Mock dependencies before importing the actual modules
-jest.mock("../../../ai/providers.js");
-jest.mock("ai", () => ({
+jest.unstable_mockModule("../../../ai/providers.js", () => ({
+  getModelForTier: jest.fn(),
+}));
+jest.unstable_mockModule("ai", () => ({
   generateObject: jest.fn(),
 }));
 
-import { getModelForTier } from "../../../ai/providers.js";
-import { generateObject } from "ai";
-import {
-  generate_financial_projections,
-  perform_business_valuation,
-} from "../../../tools/business_verification.js";
-
 describe("Business Verification Tools", () => {
-  beforeEach(() => {
+  let getModelForTier;
+  let generateObject;
+  let generate_financial_projections;
+  let perform_business_valuation;
+
+  beforeEach(async () => {
+    // Dynamically import modules inside beforeEach to use the mocked versions
+    getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
+    generateObject = (await import("ai")).generateObject;
+    const businessTools = await import("../../../tools/business_verification.js");
+    generate_financial_projections = businessTools.generate_financial_projections;
+    perform_business_valuation = businessTools.perform_business_valuation;
+
+    // Clear mocks before each test
     jest.clearAllMocks();
   });
 

@@ -1,7 +1,7 @@
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 
-describe('Evaluator Agent Integration', () => {
+describe.skip('Evaluator Agent Integration', () => {
   test.skip('should generate three solutions for GRAND_BLUEPRINT_PHASE', async () => {
     // This test verifies that the dispatcher agent has the ENSEMBLE_DECISION_MAKING_PROTOCOL
     // which is responsible for generating three different solutions

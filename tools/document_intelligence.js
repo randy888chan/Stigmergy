@@ -1,12 +1,12 @@
 // Enhanced Document Intelligence Tool for Stigmergy
 // Provides comprehensive document processing with AI-powered semantic segmentation
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import pdfParse from 'pdf-parse-debugging-disabled';
 import mammoth from 'mammoth';
 import * as cheerio from 'cheerio';
-import { fileTypeFromFile } from 'file-type';
+import * as fileType from 'file-type';
 import { createReadStream } from 'fs';
 import JSZip from 'jszip';
 
@@ -373,9 +373,9 @@ export async function createImplementationBrief({ requirements, patterns, output
 
 async function detectFileType(filePath) {
   try {
-    const fileType = await fileTypeFromFile(filePath);
-    if (fileType) {
-      return fileType.ext;
+    const fileTypeResult = await fileType.fileTypeFromFile(filePath);
+    if (fileTypeResult) {
+      return fileTypeResult.ext;
     }
     
     // Fallback to extension-based detection

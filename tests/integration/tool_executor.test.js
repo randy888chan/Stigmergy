@@ -1,22 +1,23 @@
-import { createExecutor, _resetManifestCache } from "../../engine/tool_executor.js";
-import * as fileSystem from "../../tools/file_system.js";
-import fs from "fs-extra";
+import * as fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
-import * as modelMonitoring from "../../services/model_monitoring.js";
+import { jest } from "@jest/globals";
 
 // Mock the file system tool
-jest.mock("../../tools/file_system.js", () => ({
+jest.unstable_mockModule("../../tools/file_system.js", () => ({
   readFile: jest.fn(),
+  default: {
+    readFile: jest.fn(),
+  }
 }));
 
 // Mock the state manager to prevent Neo4j connection attempts
-jest.mock("../../engine/state_manager.js", () => ({
+jest.unstable_mockModule("../../engine/state_manager.js", () => ({
   initializeProject: jest.fn(),
   getState: jest.fn(),
 }));
 
-jest.mock("../../services/model_monitoring.js", () => ({
+jest.unstable_mockModule("../../services/model_monitoring.js", () => ({
     trackToolUsage: jest.fn(),
 }));
 
@@ -37,11 +38,21 @@ const mockManifest = {
 describe("Tool Executor", () => {
   let execute;
   let mockEngine;
+  let fileSystem;
+  let modelMonitoring;
+  let _resetManifestCache;
   // This test suite will use the globally provided temporary directory
   // It will create its own files within that directory for each test
   const TEST_DIR = global.StigmergyConfig.core_path;
 
   beforeEach(async () => {
+    const toolExecutorModule = await import("../../engine/tool_executor.js");
+    const createExecutor = toolExecutorModule.createExecutor;
+    _resetManifestCache = toolExecutorModule._resetManifestCache;
+
+    fileSystem = await import("../../tools/file_system.js");
+    modelMonitoring = await import("../../services/model_monitoring.js");
+
     console.log("### tool_executor.test.js: beforeEach: creating files ###");
     _resetManifestCache();
 
@@ -57,12 +68,12 @@ describe("Tool Executor", () => {
 
     // Create necessary files for the test in the shared temp directory
     const manifestPath = path.join(TEST_DIR, "system_docs", "02_Agent_Manifest.md");
-    await fs.ensureDir(path.dirname(manifestPath));
+    await fs.default.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
-    await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
+    await fs.default.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
 
     const agentsPath = path.join(TEST_DIR, "agents");
-    await fs.ensureDir(agentsPath);
+    await fs.default.ensureDir(agentsPath);
 
     const permittedAgentContent = `
 agent:
@@ -71,7 +82,7 @@ agent:
     - "file_system.readFile"
     - "stigmergy.task"
 `;
-    await fs.writeFile(
+    await fs.default.writeFile(
       path.join(agentsPath, "test-agent-permitted.md"),
       "```yaml\n" + permittedAgentContent + "\n```"
     );
@@ -82,7 +93,7 @@ agent:
   engine_tools:
     - "some_other_tool"
 `;
-    await fs.writeFile(
+    await fs.default.writeFile(
       path.join(agentsPath, "test-agent-denied.md"),
       "```yaml\n" + deniedAgentContent + "\n```"
     );
@@ -92,8 +103,8 @@ agent:
     // Clean up the files created in this test suite to not affect others
     const manifestPath = path.join(TEST_DIR, "system_docs");
     const agentsPath = path.join(TEST_DIR, "agents");
-    await fs.remove(manifestPath);
-    await fs.remove(agentsPath);
+    await fs.default.remove(manifestPath);
+    await fs.default.remove(agentsPath);
     console.log("### tool_executor.test.js: afterEach: files removed ###");
   });
 

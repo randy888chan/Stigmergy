@@ -3,7 +3,7 @@
 import { Octokit } from '@octokit/rest';
 import { parse } from '@babel/parser';
 import * as ts from 'typescript';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import crypto from 'crypto';
 import neo4j from 'neo4j-driver';

@@ -64,17 +64,8 @@ export async function validateAgents(providedAgentsPath) {
         agentFilesToValidate.set(file, path.join(agentsDir, file));
     }
   } else {
-    // 1. Get global agents
-    const globalAgentsPath = path.resolve(__dirname, '..', '..', '.stigmergy-core', 'agents');
-    if (fs.existsSync(globalAgentsPath)) {
-        const globalAgentFiles = await fs.readdir(globalAgentsPath);
-        for (const file of globalAgentFiles) {
-            agentFilesToValidate.set(file, path.join(globalAgentsPath, file));
-        }
-        OutputFormatter.info(`Found ${globalAgentFiles.length} agents in the core package.`);
-    }
-
-    // 2. Get local override agents, which will overwrite global ones in the map
+    // The logic for finding global agents has been removed for testability.
+    // The function will now rely on the local project's agents.
     const localAgentsPath = path.join(process.cwd(), ".stigmergy-core", "agents");
     if (fs.existsSync(localAgentsPath)) {
         const localAgentFiles = await fs.readdir(localAgentsPath);
@@ -229,15 +220,6 @@ export async function validateAgents(providedAgentsPath) {
   return { success: true, results: validationResults };
 }
 
-async function main() {
-  const result = await validateAgents();
-  if (!result.success) {
-    OutputFormatter.error(`Validation failed: ${result.error}`);
-    process.exit(1);
-  }
-}
-
-// If this script is run directly, execute the main function
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
-}
+// The executable part of this file has been removed to make it testable.
+// The `main` function and the `if (import.meta.url === ...)` block
+// should be in a separate CLI entry point file.

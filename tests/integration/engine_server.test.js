@@ -1,3 +1,6 @@
+/**
+ * @jest-environment node
+ */
 import { Engine } from '../../engine/server.js';
 import axios from 'axios';
 import { JSDOM } from 'jsdom';

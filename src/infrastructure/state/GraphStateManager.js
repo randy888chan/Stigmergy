@@ -1,4 +1,4 @@
-import neo4j from "neo4j-driver";
+import * as neo4j from "neo4j-driver";
 import "dotenv/config.js";
 import { EventEmitter } from "events";
 import config from "../../../stigmergy.config.js";
