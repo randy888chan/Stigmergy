@@ -3,7 +3,6 @@ import express from "express";
 import http from "http";
 import { WebSocketServer } from "ws";
 import chalk from "chalk";
-import { fileURLToPath } from 'url';
 import path from 'path';
 import AgentPerformance from './agent_performance.js';
 import multer from 'multer';
@@ -12,17 +11,13 @@ import { processDocument } from '../tools/document_intelligence.js'; // Ensure t
 // Configure multer for file uploads
 const upload = multer({ dest: path.join(process.cwd(), '.stigmergy', 'uploads') });
 
-// Define __dirname for ESM compatibility using function to avoid circular dependency issues
-const getDirName = (url) => path.dirname(fileURLToPath(url));
-const __dirname = getDirName(import.meta.url);
-
 import stateManager from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
 import { healthCheck as archonHealthCheck } from '../tools/archon_tool.js';
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import fs from 'fs-extra';
+import fs from 'fs';
 import { generateText, generateObject } from 'ai';
 import { z } from 'zod';
 import { getModelForTier } from '../ai/providers.js';
@@ -804,10 +799,10 @@ module.exports = { main };
         }
         
         // Write the file to the current working directory
-        const filePath = path.default.join(process.cwd(), fileName);
+        const filePath = path.join(process.cwd(), fileName);
         // Ensure the directory exists
-        await fs.default.ensureDir(path.default.dirname(filePath));
-        await fs.default.writeFile(filePath, fileContent);
+        await fs.ensureDir(path.dirname(filePath));
+        await fs.writeFile(filePath, fileContent);
         console.log(`[Engine] Created file: ${filePath}`);
       }
       
@@ -832,14 +827,7 @@ module.exports = { main };
 
   async start() {
     // Standardized port management with intelligent defaults
-    let PORT = process.env.PORT || process.env.STIGMERGY_PORT || 3010;
-    
-    // If port 3010 is not available (e.g., already running from Stigmergy repo), use 3011
-    // But only do this if PORT environment variable is not explicitly set
-    if (!process.env.PORT && process.cwd() !== path.resolve(__dirname, '..') && !process.env.STIGMERGY_PORT) {
-      PORT = 3011;
-      console.log(chalk.blue(`[Engine] Using port ${PORT} for project directory instance`));
-    }
+    const PORT = process.env.PORT || process.env.STIGMERGY_PORT || 3010;
     
     this.server.listen(PORT, () => {
         console.log(chalk.green(`🚀 Stigmergy Engine API server is running on http://localhost:${PORT}`));
@@ -1012,8 +1000,8 @@ module.exports = { main };
       console.log(chalk.blue(`[Engine] Using local override for agent @${agentId} from: ${agentPath}`));
     } else {
       // 2. Fallback to the globally installed (packaged) path
-      // The path is relative to this file (engine/server.js) -> ../.stigmergy-core/agents/
-      const globalPath = path.resolve(__dirname, '..', '.stigmergy-core', 'agents', `${agentId}.md`);
+      // The path is relative to the project root.
+      const globalPath = path.resolve(process.cwd(), '.stigmergy-core', 'agents', `${agentId}.md`);
       
       if (fs.existsSync(globalPath)) {
         agentPath = globalPath;
@@ -1392,16 +1380,4 @@ Use this context to inform your response.`;
       });
     });
   }
-}
-
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-    const engine = new Engine();
-    engine.initialize().then(success => {
-        if (success) {
-            engine.start();
-        } else {
-            console.error(chalk.red("Engine initialization failed critical checks. Aborting."));
-            process.exit(1);
-        }
-    });
 }

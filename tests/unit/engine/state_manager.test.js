@@ -1,31 +1,39 @@
-import {
+import { jest, describe, test, expect, afterEach } from '@jest/globals';
+import { EventEmitter } from 'events';
+
+// Mock the downstream dependencies using the ESM-compatible API
+
+// Create a mock that extends EventEmitter, just like the original, but without using require()
+class MockStateManager extends EventEmitter {
+  constructor() {
+    super();
+    this.getState = jest.fn();
+    this.updateState = jest.fn();
+  }
+}
+const mockStateManagerInstance = new MockStateManager();
+
+jest.unstable_mockModule("../../../src/infrastructure/state/GraphStateManager.js", () => ({
+  __esModule: true,
+  default: mockStateManagerInstance,
+}));
+
+jest.unstable_mockModule("../../../engine/verification_system.js", () => ({
+  verifyMilestone: jest.fn(),
+}));
+
+// Now, we can dynamically import the modules under test
+const {
   getState,
   updateState,
   initializeProject,
   updateStatus,
   transitionToState,
   updateTaskStatus,
-} from "../../../engine/state_manager.js";
-import stateManager from "../../../src/infrastructure/state/GraphStateManager.js";
-import { verifyMilestone } from "../../../engine/verification_system.js";
+} = await import("../../../engine/state_manager.js");
+const { verifyMilestone } = await import("../../../engine/verification_system.js");
+const stateManager = (await import("../../../src/infrastructure/state/GraphStateManager.js")).default;
 
-// Mock the downstream dependencies
-jest.mock("../../../src/infrastructure/state/GraphStateManager.js", () => {
-  // Create a mock that extends EventEmitter
-  const EventEmitter = require('events');
-  class MockStateManager extends EventEmitter {
-    constructor() {
-      super();
-      this.getState = jest.fn();
-      this.updateState = jest.fn();
-    }
-  }
-  return new MockStateManager();
-});
-
-jest.mock("../../../engine/verification_system.js", () => ({
-  verifyMilestone: jest.fn(),
-}));
 
 describe("Engine State Manager", () => {
   afterEach(() => {

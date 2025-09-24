@@ -1,5 +1,5 @@
 // Enhanced QA Tools for Stigmergy with TDD Enforcement and Static Analysis
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import { getModelForTier } from "../ai/providers.js";
 import { generateObject } from "ai";

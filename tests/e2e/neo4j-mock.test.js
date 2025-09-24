@@ -1,15 +1,19 @@
-import neo4j from "neo4j-driver";
+import { jest } from '@jest/globals';
 
 // Mock the neo4j-driver
-jest.mock("neo4j-driver", () => ({
-  driver: jest.fn(),
-  auth: {
-    basic: jest.fn(),
-  },
+jest.unstable_mockModule("neo4j-driver", () => ({
+  default: {
+    driver: jest.fn(),
+    auth: {
+      basic: jest.fn(),
+    },
+  }
 }));
 
 describe("Neo4j Mocked Connection", () => {
   test("should use mocked neo4j-driver", async () => {
+    const neo4j = (await import("neo4j-driver")).default;
+
     const mockDriver = {
       verifyConnectivity: jest.fn().mockResolvedValue(true),
       close: jest.fn().mockResolvedValue(true),

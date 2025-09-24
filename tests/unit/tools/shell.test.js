@@ -1,7 +1,11 @@
-import { execute } from "../../../tools/shell.js";
-import { exec } from "child_process";
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
-jest.mock("child_process");
+jest.unstable_mockModule("child_process", () => ({
+  exec: jest.fn(),
+}));
+
+const { exec } = await import("child_process");
+const { execute } = await import("../../../tools/shell.js");
 
 describe("Shell Tool", () => {
   const mockAgentConfig = {

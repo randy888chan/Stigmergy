@@ -1,17 +1,36 @@
-import { Neo4jValidator } from '../../../engine/neo4j_validator.js';
-import { CodeIntelligenceService } from '../../../services/code_intelligence_service.js';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 
-jest.mock('../../../services/code_intelligence_service.js');
+// Mock the dependency using the ESM-compatible API
+// We mock the entire class and the methods that will be called.
+const mockTestConnection = jest.fn();
+jest.unstable_mockModule('../../../services/code_intelligence_service.js', () => ({
+  CodeIntelligenceService: jest.fn().mockImplementation(() => ({
+    testConnection: mockTestConnection,
+  })),
+}));
 
 describe('Neo4jValidator', () => {
-  beforeEach(() => {
+  let Neo4jValidator;
+  let CodeIntelligenceService;
+
+  beforeEach(async () => {
+    // Dynamically import the modules to get the mocked versions
+    Neo4jValidator = (await import('../../../engine/neo4j_validator.js')).Neo4jValidator;
+    CodeIntelligenceService = (await import('../../../services/code_intelligence_service.js')).CodeIntelligenceService;
+
+    // Reset mocks before each test
     jest.clearAllMocks();
+    mockTestConnection.mockReset();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   it('should return { success: true } when CodeIntelligenceService reports a successful connection', async () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    CodeIntelligenceService.prototype.testConnection.mockResolvedValue({
+    mockTestConnection.mockResolvedValue({
       status: 'ok',
       message: 'Connection successful',
     });
@@ -19,6 +38,8 @@ describe('Neo4jValidator', () => {
     const result = await Neo4jValidator.validate();
 
     expect(result.success).toBe(true);
+    expect(CodeIntelligenceService).toHaveBeenCalled();
+    expect(mockTestConnection).toHaveBeenCalled();
     expect(console.log).toHaveBeenCalledWith('Checking Neo4j connection...');
     expect(console.log).toHaveBeenCalledWith(' -> Neo4j status OK: Connection successful');
     
@@ -28,7 +49,7 @@ describe('Neo4jValidator', () => {
   it('should return { success: false } and an error message when CodeIntelligenceService reports a failed connection', async () => {
     const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-    CodeIntelligenceService.prototype.testConnection.mockResolvedValue({
+    mockTestConnection.mockResolvedValue({
       status: 'error',
       message: 'Connection failed',
     });
@@ -37,6 +58,8 @@ describe('Neo4jValidator', () => {
 
     expect(result.success).toBe(false);
     expect(result.error).toBe('Neo4j connection failed: Connection failed');
+    expect(CodeIntelligenceService).toHaveBeenCalled();
+    expect(mockTestConnection).toHaveBeenCalled();
     expect(console.log).toHaveBeenCalledWith('Checking Neo4j connection...');
 
     consoleSpy.mockRestore();

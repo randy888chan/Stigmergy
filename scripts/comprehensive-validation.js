@@ -7,7 +7,7 @@
  */
 
 import { execSync, spawn } from 'child_process';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';

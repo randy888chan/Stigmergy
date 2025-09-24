@@ -1,24 +1,28 @@
-import { cachedQuery } from "../../../utils/queryCache.js";
-import NodeCache from "node-cache";
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-jest.mock('node-cache', () => {
-    const cache = new Map();
-    return jest.fn().mockImplementation(() => ({
-      get: jest.fn((key) => cache.get(key)),
-      set: jest.fn((key, value) => cache.set(key, value)),
-      flushAll: jest.fn(() => cache.clear()),
-    }));
-  });
+const cache = new Map();
+const mockCacheInstance = {
+    get: jest.fn((key) => cache.get(key)),
+    set: jest.fn((key, value) => cache.set(key, value)),
+    flushAll: jest.fn(() => cache.clear()),
+};
+const mockNodeCache = jest.fn().mockImplementation(() => mockCacheInstance);
+
+jest.unstable_mockModule('node-cache', () => ({
+    default: mockNodeCache,
+}));
+
+const { cachedQuery } = await import("../../../utils/queryCache.js");
+const { default: NodeCache } = await import("node-cache");
   
-  describe('cachedQuery', () => {
+describe('cachedQuery', () => {
     let queryFn;
     let cachedFn;
   
     beforeEach(() => {
       // Reset mocks and cache before each test
-      const MockNodeCache = NodeCache;
-      MockNodeCache.mockClear();
-      const cacheInstance = new MockNodeCache();
+      NodeCache.mockClear();
+      const cacheInstance = new NodeCache();
       cacheInstance.get.mockClear();
       cacheInstance.set.mockClear();
       cacheInstance.flushAll(); 

@@ -1,12 +1,16 @@
-import fs from "fs/promises";
-import { get_failure_patterns, getBestAgentForTask } from "../../../tools/swarm_intelligence_tools.js";
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
 
-jest.mock("fs/promises");
+jest.unstable_mockModule("fs/promises", () => ({
+    readFile: jest.fn(),
+}));
+
+const { readFile } = await import("fs/promises");
+const { get_failure_patterns, getBestAgentForTask } = await import("../../../tools/swarm_intelligence_tools.js");
 
 describe("Swarm Intelligence Tools", () => {
   describe("get_failure_patterns", () => {
     beforeEach(() => {
-      fs.readFile.mockClear();
+      readFile.mockClear();
     });
 
     test("should return the most common failure pattern", async () => {
@@ -16,14 +20,14 @@ describe("Swarm Intelligence Tools", () => {
         { tags: ["db", "connection"] },
         { tags: ["db", "query"] },
       ].map(JSON.stringify).join("\n");
-      fs.readFile.mockResolvedValue(data);
+      readFile.mockResolvedValue(data);
       const result = await get_failure_patterns();
       expect(result.summary).toContain("Analyzed 4 failures");
       expect(result.top_patterns.tag).toContain("db (3 occurrences)");
     });
 
     test("should handle an empty file", async () => {
-      fs.readFile.mockResolvedValue("");
+      readFile.mockResolvedValue("");
       const result = await get_failure_patterns();
       expect(result).toBe("No failure reports logged yet.");
     });
@@ -33,25 +37,25 @@ describe("Swarm Intelligence Tools", () => {
             { error: "some error" },
             { error: "another error" },
           ].map(JSON.stringify).join("\n");
-        fs.readFile.mockResolvedValue(data);
+        readFile.mockResolvedValue(data);
         const result = await get_failure_patterns();
         expect(result.summary).toContain("Analyzed 2 failures");
     });
 
     test("should handle the case where the file does not exist", async () => {
-      fs.readFile.mockRejectedValue({ code: "ENOENT" });
+      readFile.mockRejectedValue({ code: "ENOENT" });
       const result = await get_failure_patterns();
       expect(result).toBe("No failure reports logged yet.");
     });
 
     test("should handle errors during file reading", async () => {
-        fs.readFile.mockRejectedValue(new Error("Read error"));
+        readFile.mockRejectedValue(new Error("Read error"));
         const result = await get_failure_patterns();
         expect(result).toContain("Error analyzing patterns: Read error");
     });
 
     test("should handle invalid JSON in the file", async () => {
-        fs.readFile.mockResolvedValue("invalid json\n" + JSON.stringify({tags: ["a"]}));
+        readFile.mockResolvedValue("invalid json\n" + JSON.stringify({tags: ["a"]}));
         const result = await get_failure_patterns();
         expect(result.top_patterns.tag).toContain("a (1 occurrences)");
     });

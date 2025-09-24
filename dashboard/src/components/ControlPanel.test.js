@@ -1,3 +1,4 @@
+import { describe, it, expect, jest } from '@jest/globals';
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ControlPanel from './ControlPanel';

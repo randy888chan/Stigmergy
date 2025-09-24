@@ -1,5 +1,8 @@
+/**
+ * @jest-environment node
+ */
 import { Engine } from '../../engine/server.js';
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 import { jest } from '@jest/globals';
 
 const PORT = 3013; // Use a fresh port

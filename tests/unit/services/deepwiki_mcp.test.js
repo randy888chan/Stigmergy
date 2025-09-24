@@ -1,13 +1,22 @@
-import { DeepWikiMCP } from '../../../services/deepwiki_mcp.js';
+import { jest, describe, it, expect, beforeEach } from '@jest/globals';
 
-// Mock axios
-jest.mock('axios');
-import axios from 'axios';
+// Mock axios using the ESM-compatible API
+jest.unstable_mockModule('axios', () => ({
+  default: {
+    post: jest.fn(),
+  },
+}));
 
 describe('DeepWikiMCP', () => {
+  let DeepWikiMCP;
+  let axios;
   let deepwiki;
   
-  beforeEach(() => {
+  beforeEach(async () => {
+    // Dynamically import modules to get the mocked versions
+    DeepWikiMCP = (await import('../../../services/deepwiki_mcp.js')).DeepWikiMCP;
+    axios = (await import('axios')).default;
+
     deepwiki = new DeepWikiMCP();
     axios.post.mockReset();
   });

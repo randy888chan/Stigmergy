@@ -14,12 +14,13 @@ const mockResearchGraph = {
   invoke: jest.fn()
 };
 
-jest.mock("../../engine/research_graph.js", () => ({
+jest.unstable_mockModule("../../engine/research_graph.js", () => ({
   researchGraph: mockResearchGraph
 }));
 
 describe("Research Graph with Reflection Node", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await import("../../engine/research_graph.js");
     jest.clearAllMocks();
   });
 

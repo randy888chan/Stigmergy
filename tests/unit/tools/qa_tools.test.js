@@ -1,20 +1,23 @@
-import { getModelForTier } from "../../../ai/providers.js";
-import { generateObject } from "ai";
-import { exec } from "child_process";
-import {
+import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+
+jest.unstable_mockModule("../../../ai/providers.js", () => ({
+    getModelForTier: jest.fn(),
+}));
+jest.unstable_mockModule("ai", () => ({
+  generateObject: jest.fn(),
+}));
+jest.unstable_mockModule("child_process", () => ({
+  exec: jest.fn(),
+}));
+
+const { getModelForTier } = await import("../../../ai/providers.js");
+const { generateObject } = await import("ai");
+const { exec } = await import("child_process");
+const {
   verify_requirements,
   verify_architecture,
   run_tests_and_check_coverage,
-} from "../../../tools/qa_tools.js";
-
-// Mock dependencies
-jest.mock("../../../ai/providers.js");
-jest.mock("ai", () => ({
-  generateObject: jest.fn(),
-}));
-jest.mock("child_process", () => ({
-  exec: jest.fn(),
-}));
+} = await import("../../../tools/qa_tools.js");
 
 describe("QA Tools", () => {
   beforeEach(() => {

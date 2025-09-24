@@ -32,7 +32,7 @@
     "health-check": "node scripts/health-check.js",
     "validate": "node cli/index.js validate",
     "init": "node cli/index.js init",
-    "test": "jest --coverage",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "test:watch": "jest --watch",
     "test:integration": "jest tests/integration --verbose",
     "test:unit": "jest tests/unit --verbose",

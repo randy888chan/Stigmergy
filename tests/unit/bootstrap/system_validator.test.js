@@ -1,27 +1,51 @@
-import { SystemValidator } from '../../../src/bootstrap/system_validator.js';
-import { Neo4jValidator } from '../../../engine/neo4j_validator.js';
-import coreBackup from '../../../services/core_backup.js';
-import fs from 'fs-extra';
-import os from 'os';
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
 import path from 'path';
 
-// Mock dependencies
-jest.mock('../../../engine/neo4j_validator.js');
-jest.mock('../../../services/core_backup.js', () => ({
-  __esModule: true,
+// Mock dependencies using the ESM-compatible API
+jest.unstable_mockModule('../../../engine/neo4j_validator.js', () => ({
+  Neo4jValidator: {
+    validate: jest.fn(),
+  },
+}));
+jest.unstable_mockModule('../../../services/core_backup.js', () => ({
   default: {
     verifyBackup: jest.fn(),
   },
 }));
-jest.mock('fs-extra');
-jest.mock('os');
+jest.unstable_mockModule('fs-extra', () => ({
+  default: {
+    existsSync: jest.fn(),
+    readdir: jest.fn(),
+  },
+}));
+jest.unstable_mockModule('os', () => ({
+  default: {
+    homedir: jest.fn(),
+  },
+}));
 
 describe('SystemValidator', () => {
+  let SystemValidator;
+  let Neo4jValidator;
+  let coreBackup;
+  let fs;
+  let os;
   let validator;
 
-  beforeEach(() => {
-    // Clear all mocks before each test to ensure a clean state
-    jest.clearAllMocks();
+  beforeEach(async () => {
+    // Import modules after mocking
+    SystemValidator = (await import('../../../src/bootstrap/system_validator.js')).SystemValidator;
+    Neo4jValidator = (await import('../../../engine/neo4j_validator.js')).Neo4jValidator;
+    coreBackup = (await import('../../../services/core_backup.js')).default;
+    fs = (await import('fs-extra')).default;
+    os = (await import('os')).default;
+
+    // Reset mocks before each test
+    Neo4jValidator.validate.mockReset();
+    coreBackup.verifyBackup.mockReset();
+    fs.existsSync.mockReset();
+    fs.readdir.mockReset();
+    os.homedir.mockReset();
     
     // Mock os.homedir() for all tests in this suite
     os.homedir.mockReturnValue('/fake/home');
@@ -34,6 +58,7 @@ describe('SystemValidator', () => {
   });
 
   afterEach(() => {
+    // Restore spies
     jest.restoreAllMocks();
   });
 

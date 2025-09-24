@@ -1,5 +1,5 @@
 import { jest } from '@jest/globals';
-import createGuardianTools from '../tools/guardian_tool.js';
+import createGuardianTools from '../../tools/guardian_tool.js';
 
 describe('Metis to Guardian Self-Improvement Workflow', () => {
   let mockEngine;

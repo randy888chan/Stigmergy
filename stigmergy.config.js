@@ -3,6 +3,20 @@ import "./utils/env_loader.js";  // Load environment with inheritance
 
 const config = {
   corePath: ".stigmergy-core",
+  security: {
+    allowedDirs: [
+      "src",
+      "public",
+      "docs",
+      "tests",
+      "scripts",
+      "agents",
+      ".ai",
+      ".vscode",
+      "specs"
+    ],
+    maxFileSizeMB: 1,
+  },
   features: {
     neo4j: "auto", // Options: 'required', 'auto', 'memory'
     automation_mode: "autonomous", // Options: 'autonomous', 'approval_required', 'hybrid'

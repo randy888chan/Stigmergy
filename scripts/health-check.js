@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import fs from 'fs-extra';
+import * as fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { SystemValidator } from '../src/bootstrap/system_validator.js';

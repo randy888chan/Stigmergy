@@ -1,11 +1,12 @@
 import express from "express";
 import * as stateManager from "./state_manager.js";
 import path from "path";
-import { fileURLToPath } from 'url';
 import AgentPerformance from './agent_performance.js';
 import { getCostTracking } from './llm_adapter.js';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+// The __dirname and fileURLToPath combination caused issues in Jest's ESM environment.
+// Using process.cwd() is a more robust way to get the project root.
+const publicPath = path.join(process.cwd(), 'dashboard', 'public');
 const router = express.Router();
 
 router.get("/state", async (req, res) => {
@@ -28,11 +29,11 @@ router.get("/cost", (req, res) => {
 });
 
 // Serve React app for all routes except /state
-router.use(express.static(path.join(__dirname, '..', 'dashboard', 'public')));
+router.use(express.static(publicPath));
 
 // Serve the React app for the root route
 router.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'dashboard', 'public', 'index.html'));
+  res.sendFile(path.join(publicPath, 'index.html'));
 });
 
 export default router;

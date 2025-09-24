@@ -1,6 +1,6 @@
-// This is a more advanced test setup required for mocking a module-level singleton.
+import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
 
-// We use jest.doMock to ensure that whenever this module is imported, it gets our mocked version.
+// Define the mock service instance that all tests will use
 const mockServiceInstance = {
     findUsages: jest.fn(),
     getDefinition: jest.fn(),
@@ -9,31 +9,42 @@ const mockServiceInstance = {
     _runQuery: jest.fn(),
 };
 
-jest.doMock("../../../services/code_intelligence_service.js", () => ({
+// Mock modules using the ESM-compatible API
+jest.unstable_mockModule("../../../services/code_intelligence_service.js", () => ({
+    // Mock the class constructor to return our singleton instance
     CodeIntelligenceService: jest.fn().mockImplementation(() => mockServiceInstance),
 }));
 
-// Mock other dependencies
-jest.mock("../../../utils/queryCache.js", () => ({
-    cachedQuery: jest.fn((name, fn) => fn),
+jest.unstable_mockModule("../../../utils/queryCache.js", () => ({
+    cachedQuery: jest.fn((name, fn) => fn), // Mock cachedQuery to just execute the function
 }));
-jest.mock("../../../ai/providers.js");
-jest.mock("ai", () => ({
+
+jest.unstable_mockModule("../../../ai/providers.js", () => ({
+    getModelForTier: jest.fn(),
+}));
+
+jest.unstable_mockModule("ai", () => ({
     generateObject: jest.fn(),
 }));
 
 
 describe("Code Intelligence Tools", () => {
     let codeIntelligenceTools;
+    let generateObject;
+    let getModelForTier;
 
     beforeEach(async () => {
-        // Reset modules to force re-import with our fresh mock
-        jest.resetModules();
-        // Dynamically import the module *after* the mocks are in place
+        // Dynamically import the modules *after* the mocks are in place
         codeIntelligenceTools = await import("../../../tools/code_intelligence.js");
+        generateObject = (await import("ai")).generateObject;
+        getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
+
+        // It's good practice to reset mocks before each test, though beforeEach should handle this.
+        // We'll clear them in afterEach to be safe.
     });
 
     afterEach(() => {
+        // Clear all mocks after each test to ensure isolation
         jest.clearAllMocks();
     });
 
@@ -91,8 +102,6 @@ describe("Code Intelligence Tools", () => {
 
     describe("validate_tech_stack", () => {
         test("should call generateObject with the correct parameters and return the object", async () => {
-            const { generateObject } = await import("ai");
-            const { getModelForTier } = await import("../../../ai/providers.js");
             const mockResponse = {
                 is_suitable: true,
                 pros: ["Fast"],
