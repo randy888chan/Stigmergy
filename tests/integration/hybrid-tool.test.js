@@ -1,13 +1,13 @@
-import { jest } from "@jest/globals";
+import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
-jest.unstable_mockModule("axios", () => ({
+mock.module("axios", () => ({
   default: {
-    get: jest.fn(),
-    post: jest.fn(),
+    get: mock(),
+    post: mock(),
   }
 }));
-jest.unstable_mockModule("../../tools/research.js", () => ({
-  deep_dive: jest.fn(),
+mock.module("../../tools/research.js", () => ({
+  deep_dive: mock(),
 }));
 
 describe("Hybrid Archon Tool", () => {
@@ -16,7 +16,7 @@ describe("Hybrid Archon Tool", () => {
   let nativeResearch;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    mock.restore();
     axios = (await import("axios")).default;
     const archonToolModule = await import("../../tools/archon_tool.js");
     archonQuery = archonToolModule.query;
