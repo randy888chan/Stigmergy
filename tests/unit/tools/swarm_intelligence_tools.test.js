@@ -1,6 +1,6 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, jest, describe, test, expect, beforeEach } from 'bun:test';
 
-jest.unstable_mockModule("fs/promises", () => ({
+mock.module("fs/promises", () => ({
     readFile: jest.fn(),
 }));
 
