@@ -1,7 +1,7 @@
-import { jest } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock the entire stigmergy.config.js module
-jest.unstable_mockModule('../../stigmergy.config.js', () => ({
+mock.module('../../stigmergy.config.js', () => ({
   __esModule: true, // This is important for ES modules
   default: {
     model_tiers: {
@@ -28,8 +28,8 @@ jest.unstable_mockModule('../../stigmergy.config.js', () => ({
 }));
 
 // Mock the createOpenAI function to inspect its calls
-jest.unstable_mockModule('@ai-sdk/openai', () => ({
-  createOpenAI: jest.fn(),
+mock.module('@ai-sdk/openai', () => ({
+  createOpenAI: mock(),
 }));
 
 describe('Multi-provider configuration', () => {
@@ -58,7 +58,7 @@ describe('Multi-provider configuration', () => {
     process.env.MISTRAL_TEST_URL = 'https://api.mistral.ai/v1';
 
     // Mock the return value of createOpenAI
-    const mockProvider = jest.fn().mockReturnValue('mock-model-instance');
+    const mockProvider = mock().mockReturnValue('mock-model-instance');
     createOpenAI.mockReturnValue(mockProvider);
   });
 
