@@ -1,9 +1,9 @@
-import { jest, describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeAll, afterAll, beforeEach, afterEach, spyOn } from 'bun:test';
 
 // Mock the code intelligence tool using the ESM-compatible API
-jest.unstable_mockModule("../../../tools/code_intelligence.js", () => ({
-  getDefinition: jest.fn(),
-  findUsages: jest.fn(),
+mock.module("../../../tools/code_intelligence.js", () => ({
+  getDefinition: mock(),
+  findUsages: mock(),
 }));
 
 describe("Context Enhancer", () => {
@@ -12,12 +12,12 @@ describe("Context Enhancer", () => {
 
   beforeAll(() => {
     // Suppress console.log during tests
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    mock.restore();
   });
 
   beforeEach(async () => {
@@ -32,7 +32,7 @@ describe("Context Enhancer", () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("extractSymbolsFromTask", () => {
