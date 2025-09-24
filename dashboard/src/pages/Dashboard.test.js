@@ -1,12 +1,12 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { jest, test, expect } from '@jest/globals';
+import { mock, test, expect } from 'bun:test';
 
 // Mock the heavy components that are not relevant to this test using the ESM-compatible API
-jest.unstable_mockModule('../components/Terminal/Terminal.js', () => ({
+mock.module('../components/Terminal/Terminal.js', () => ({
   // The mock needs to be a default export that is a function component
   default: () => <div data-testid="terminal"></div>,
-}), { virtual: true });
+}));
 
 test('should not render the Terminal component', async () => {
   // Dynamically import the component under test AFTER the mock is set up
