@@ -1,16 +1,16 @@
-import { jest, describe, test, expect, beforeAll, afterAll, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeAll, afterAll, beforeEach, spyOn } from 'bun:test';
 import yaml from 'js-yaml';
 import path from 'path';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
   default: {
-    readFile: jest.fn(),
-    pathExists: jest.fn(),
+    readFile: mock(),
+    pathExists: mock(),
   },
 }));
-jest.unstable_mockModule("../../../ai/providers.js", () => ({
-  getModelForTier: jest.fn(),
+mock.module("../../../ai/providers.js", () => ({
+  getModelForTier: mock(),
 }));
 
 describe("LLM Adapter", () => {
@@ -21,12 +21,12 @@ describe("LLM Adapter", () => {
 
   beforeAll(() => {
     // Suppress console output during these tests
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
   });
 
   afterAll(() => {
-    jest.restoreAllMocks();
+    mock.restore();
   });
 
   beforeEach(async () => {
@@ -43,12 +43,12 @@ describe("LLM Adapter", () => {
     fs = (await import("fs-extra")).default;
 
     // Reset mocks before each test
-    jest.clearAllMocks();
+    mock.restore();
     clearFileCache();
 
     // Setup a mock LLM that can be returned by the provider
     mockLlm = {
-      generate: jest.fn(),
+      generate: mock(),
     };
     getModelForTier.mockReturnValue(mockLlm);
 
