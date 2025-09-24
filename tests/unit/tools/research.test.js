@@ -1,30 +1,24 @@
-import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, jest, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule("@mendable/firecrawl-js", () => ({
+mock.module("@mendable/firecrawl-js", () => ({
   default: jest.fn(),
 }));
-jest.unstable_mockModule("ai", () => ({
+mock.module("ai", () => ({
   generateObject: jest.fn(),
 }));
-jest.unstable_mockModule("axios", () => ({
-  default: {
-    get: jest.fn(),
-    post: jest.fn(),
-  },
-}));
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
   default: {
     readFile: jest.fn(),
   },
 }));
-jest.unstable_mockModule("../../../ai/providers.js", () => ({
+mock.module("../../../ai/providers.js", () => ({
   getModelForTier: jest.fn(),
 }));
 
 describe("Research Tools", () => {
   let deep_dive, analyze_user_feedback, _resetCache;
-  let FirecrawlApp, generateObject, axios, fs, getModelForTier;
+  let FirecrawlApp, generateObject, fs, getModelForTier;
 
   beforeEach(async () => {
     // Dynamically import modules after mocks are set up
@@ -35,7 +29,6 @@ describe("Research Tools", () => {
 
     FirecrawlApp = (await import("@mendable/firecrawl-js")).default;
     generateObject = (await import("ai")).generateObject;
-    axios = (await import("axios")).default;
     fs = (await import("fs-extra")).default;
     getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
 
@@ -56,37 +49,43 @@ describe("Research Tools", () => {
 
   describe("deep_dive", () => {
     test("should use Archon if available", async () => {
-      axios.get.mockResolvedValue({ status: 200, data: { status: "healthy" } });
-      axios.post.mockResolvedValue({ data: { results: [{ url: "test.com", content: "Archon content" }] } });
+        const mockAxios = {
+            get: jest.fn().mockResolvedValue({ status: 200, data: { status: "healthy" } }),
+            post: jest.fn().mockResolvedValue({ data: { results: [{ url: "test.com", content: "Archon content" }] } }),
+        };
       generateObject.mockResolvedValue({ object: { newLearnings: ["learning"], next_research_queries: ["query"] } });
 
-      const result = await deep_dive({ query: "test" });
+      const result = await deep_dive({ query: "test", axios: mockAxios });
 
-      expect(axios.get).toHaveBeenCalledWith(expect.stringContaining("/health"), expect.any(Object));
-      expect(axios.post).toHaveBeenCalledWith(expect.stringContaining("/rag/query"), expect.any(Object));
+      expect(mockAxios.get).toHaveBeenCalledWith(expect.stringContaining("/health"), expect.any(Object));
+      expect(mockAxios.post).toHaveBeenCalledWith(expect.stringContaining("/rag/query"), expect.any(Object));
       expect(result.sources).toEqual(["test.com"]);
     });
 
     test("should fall back to Firecrawl if Archon health check fails", async () => {
-        axios.get.mockRejectedValue(new Error("Network error"));
+        const mockAxios = {
+            get: jest.fn().mockRejectedValue(new Error("Network error")),
+        };
         const mockFirecrawlClient = { search: jest.fn().mockResolvedValue({ data: [{ url: "fire.com", markdown: "Firecrawl content" }] }) };
         FirecrawlApp.mockImplementation(() => mockFirecrawlClient);
         generateObject.mockResolvedValue({ object: { query: "search", newLearnings: ["learning"], next_research_queries: ["query"] } });
 
-        const result = await deep_dive({ query: "test" });
+        const result = await deep_dive({ query: "test", axios: mockAxios });
 
-        expect(axios.get).toHaveBeenCalled();
+        expect(mockAxios.get).toHaveBeenCalled();
         expect(mockFirecrawlClient.search).toHaveBeenCalled();
         expect(result.sources).toEqual(["fire.com"]);
       });
 
       test("should handle research failure gracefully", async () => {
-        axios.get.mockRejectedValue(new Error("Network error"));
+        const mockAxios = {
+            get: jest.fn().mockRejectedValue(new Error("Network error")),
+        };
         FirecrawlApp.mockImplementation(() => {
             throw new Error("Firecrawl client error");
         });
 
-        const result = await deep_dive({ query: "test" });
+        const result = await deep_dive({ query: "test", axios: mockAxios });
         expect(result.new_learnings).toEqual([]);
         expect(result.next_research_queries).toEqual([]);
       });
