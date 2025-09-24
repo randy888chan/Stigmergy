@@ -6,10 +6,9 @@ bundle:
   icon: "📊"
   description: "A lightweight team focused solely on research, analysis, and reporting. Safe for all environments."
   agents:
-    # --- Orchestration ---
-    - "dispatcher"
+    # === Core Interface ===
+    - "system"              # KEPT: The primary user interface
     
-    # --- Core Research Agents ---
-    - "analyst"
-    - "reference-architect"
-    - "whitepaper_writer"
+    # === Core Research Agents ===
+    - "analyst"             # KEPT: The core researcher
+    - "whitepaper_writer"   # KEPT: Synthesizes research into a final document
