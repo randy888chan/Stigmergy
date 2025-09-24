@@ -1,11 +1,11 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock dependencies before importing the actual modules
-jest.unstable_mockModule("../../../ai/providers.js", () => ({
-  getModelForTier: jest.fn(),
+mock.module("../../../ai/providers.js", () => ({
+  getModelForTier: mock(),
 }));
-jest.unstable_mockModule("ai", () => ({
-  generateObject: jest.fn(),
+mock.module("ai", () => ({
+  generateObject: mock(),
 }));
 
 describe("Business Verification Tools", () => {
@@ -23,7 +23,7 @@ describe("Business Verification Tools", () => {
     perform_business_valuation = businessTools.perform_business_valuation;
 
     // Clear mocks before each test
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("generate_financial_projections", () => {
