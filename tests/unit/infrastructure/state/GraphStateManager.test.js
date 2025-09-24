@@ -1,13 +1,13 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach } from 'bun:test';
 
-jest.unstable_mockModule('neo4j-driver', () => ({
-    driver: jest.fn(),
+mock.module('neo4j-driver', () => ({
+    driver: mock(),
     auth: {
-        basic: jest.fn(),
+        basic: mock(),
     }
 }));
 
-jest.unstable_mockModule('../../../../stigmergy.config.js', () => ({
+mock.module('../../../../stigmergy.config.js', () => ({
   default: {
     features: {
       neo4j: 'auto', // Default mock value
@@ -28,12 +28,12 @@ describe('GraphStateManager', () => {
 
     // Setup mock for the neo4j session and driver
     mockSession = {
-      run: jest.fn().mockResolvedValue({ records: [] }),
-      close: jest.fn().mockResolvedValue(undefined),
+      run: mock().mockResolvedValue({ records: [] }),
+      close: mock().mockResolvedValue(undefined),
     };
     const mockDriver = {
-      session: jest.fn(() => mockSession),
-      close: jest.fn(),
+      session: mock(() => mockSession),
+      close: mock(),
     };
     neo4j.driver.mockReturnValue(mockDriver);
 
@@ -50,7 +50,7 @@ describe('GraphStateManager', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
     process.env = originalEnv; // Restore original process.env
   });
 
@@ -108,7 +108,7 @@ describe('GraphStateManager', () => {
     });
 
     it('should emit a stateChanged event on successful update', async () => {
-        const mockCallback = jest.fn();
+        const mockCallback = mock();
         GraphStateManager.subscribeToChanges(mockCallback);
 
         const event = { type: 'TEST_EVENT', project_name: 'test-project' };
