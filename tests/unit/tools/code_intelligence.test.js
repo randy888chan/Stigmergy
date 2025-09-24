@@ -1,30 +1,30 @@
-import { jest, describe, test, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
 // Define the mock service instance that all tests will use
 const mockServiceInstance = {
-    findUsages: jest.fn(),
-    getDefinition: jest.fn(),
-    getModuleDependencies: jest.fn(),
-    calculateCKMetrics: jest.fn(),
-    _runQuery: jest.fn(),
+    findUsages: mock(),
+    getDefinition: mock(),
+    getModuleDependencies: mock(),
+    calculateCKMetrics: mock(),
+    _runQuery: mock(),
 };
 
 // Mock modules using the ESM-compatible API
-jest.unstable_mockModule("../../../services/code_intelligence_service.js", () => ({
+mock.module("../../../services/code_intelligence_service.js", () => ({
     // Mock the class constructor to return our singleton instance
-    CodeIntelligenceService: jest.fn().mockImplementation(() => mockServiceInstance),
+    CodeIntelligenceService: mock().mockImplementation(() => mockServiceInstance),
 }));
 
-jest.unstable_mockModule("../../../utils/queryCache.js", () => ({
-    cachedQuery: jest.fn((name, fn) => fn), // Mock cachedQuery to just execute the function
+mock.module("../../../utils/queryCache.js", () => ({
+    cachedQuery: mock((name, fn) => fn), // Mock cachedQuery to just execute the function
 }));
 
-jest.unstable_mockModule("../../../ai/providers.js", () => ({
-    getModelForTier: jest.fn(),
+mock.module("../../../ai/providers.js", () => ({
+    getModelForTier: mock(),
 }));
 
-jest.unstable_mockModule("ai", () => ({
-    generateObject: jest.fn(),
+mock.module("ai", () => ({
+    generateObject: mock(),
 }));
 
 
@@ -45,7 +45,7 @@ describe("Code Intelligence Tools", () => {
 
     afterEach(() => {
         // Clear all mocks after each test to ensure isolation
-        jest.clearAllMocks();
+        mock.restore();
     });
 
     test("findUsages should call the service", async () => {
