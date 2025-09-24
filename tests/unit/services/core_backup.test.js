@@ -1,18 +1,18 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
   default: {
-    pathExists: jest.fn(),
-    ensureDir: jest.fn(),
-    readdir: jest.fn(),
-    remove: jest.fn(),
-    existsSync: jest.fn(),
-    stat: jest.fn(),
+    pathExists: mock(),
+    ensureDir: mock(),
+    readdir: mock(),
+    remove: mock(),
+    existsSync: mock(),
+    stat: mock(),
   },
 }));
-jest.unstable_mockModule("child_process", () => ({
-  exec: jest.fn(),
+mock.module("child_process", () => ({
+  exec: mock(),
 }));
 
 describe("CoreBackup Service", () => {
@@ -28,7 +28,7 @@ describe("CoreBackup Service", () => {
     exec = (await import("child_process")).exec;
 
     coreBackup = new CoreBackup();
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("autoBackup", () => {
