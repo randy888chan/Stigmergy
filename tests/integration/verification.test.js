@@ -1,22 +1,22 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 process.env.OPENROUTER_API_KEY = "test_key";
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule("ai", () => ({
-  generateObject: jest.fn()
+mock.module("ai", () => ({
+  generateObject: mock()
 }));
-jest.unstable_mockModule("../../ai/providers.js", () => ({
-  getModelForTier: jest.fn()
+mock.module("../../ai/providers.js", () => ({
+  getModelForTier: mock()
 }));
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
   default: {
-    pathExists: jest.fn(),
-    readFile: jest.fn(),
+    pathExists: mock(),
+    readFile: mock(),
   },
 }));
-jest.unstable_mockModule("glob", () => ({
-  glob: jest.fn(),
+mock.module("glob", () => ({
+  glob: mock(),
 }));
 
 describe("Milestone Verification", () => {
@@ -31,7 +31,7 @@ describe("Milestone Verification", () => {
     glob = (await import("glob")).glob;
 
     // Reset mocks
-    jest.clearAllMocks();
+    mock.restore();
 
     // Setup mock implementations
     fs.pathExists.mockResolvedValue(true);
