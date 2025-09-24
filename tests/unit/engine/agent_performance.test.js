@@ -1,13 +1,13 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach } from 'bun:test';
 import path from 'path';
 
 // Mock the fs-extra module using the ESM-compatible API
-jest.unstable_mockModule('fs-extra', () => ({
+mock.module('fs-extra', () => ({
   default: {
-    ensureDir: jest.fn(),
-    pathExists: jest.fn(),
-    writeJson: jest.fn(),
-    readJson: jest.fn(),
+    ensureDir: mock(),
+    pathExists: mock(),
+    writeJson: mock(),
+    readJson: mock(),
   },
 }));
 
