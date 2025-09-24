@@ -1,73 +1,59 @@
-# 🏗️ Stigmergy System Architecture
+# 🏗️ Stigmergy System Architecture (Modernized)
 
 ## High-Level Architecture
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                          STIGMERGY SYSTEM                                           │
-├───────────────┬───────────────────────┬───────────────────────┬───────────────────────┬─────────────┤
-│  HUMAN        │  AGENT SWARM          │  STATE MANAGEMENT     │  CODE INTELLIGENCE    │  TOOLS      │
-│  INTERFACE    │                       │                       │                       │             │
-├───────────────┼───────────────────────┼───────────────────────┼───────────────────────┼─────────────┤
-│ Web UI        │ Dispatcher (Saul)     │ State Manager         │ Neo4j Knowledge Graph │ Research    │
-│ IDE Plugin    │ Planner (Mary)        │ Project Ledger        │ Code Analysis Engine  │ File System │
-│ CLI           │ Business (Brian)      │ Swarm Memory          │                       │ Shell       │
-│               │ Architect (Winston)   │                       │                       │             │
-│               │ UX Expert (Sally)     │                       │                       │             │
-│               │ Developer (James)     │                       │                       │             │
-│               │ QA (Quinn)            │                       │                       │             │
-│               │ Debugger (Dexter)     │                       │                       │             │
-│               │ Refactorer (Rocco)    │                       │                       │             │
-│               │ Valuator (Val)        │                       │                       │             │
-│               │ Meta (Metis)          │                       │                       │             │
-└───────────────┴───────────────────────┴───────────────────────┴───────────────────────┴─────────────┘
+The system now operates on a chat-first, plan-driven workflow. The `@system` agent is the primary entry point, and the `@dispatcher` acts as an autonomous project manager executing a machine-readable plan.
+
+```mermaid
+graph TD
+    subgraph "User Interaction Layer"
+        User[🧑 User] --> IDE[💬 IDE / Dashboard];
+    end
+
+    subgraph "Control & Orchestration Layer"
+        IDE --> System["@system (Entry Point)"];
+        System -- "User Goal" --> Specifier["@specifier (Plan Creator)"];
+        Specifier -- "Creates" --> PlanMD["plan.md (YAML Task List)"];
+    end
+
+    subgraph "Autonomous Execution Loop"
+        Dispatcher["@dispatcher (Plan Executor)"] -- "Reads" --> PlanMD;
+        Dispatcher -- "Delegates Task" --> Executor["@executor (Code Implementer)"];
+        Executor -- "Writes Code" --> Files[Project Files];
+        Executor -- "Reports Completion" --> Dispatcher;
+        Dispatcher -- "Updates Status" --> PlanMD;
+    end
+
+    subgraph "Core Services"
+        Tools[🛠️ Tools (File System, Research, etc.)];
+        KnowledgeGraph[(🧠 Neo4j Knowledge Graph)];
+    end
+
+    System --> Tools;
+    Executor --> Tools;
+    Executor --> KnowledgeGraph;
 ```
 
 ## Core Components
 
-### 1. Agent Swarm
+### 1. Control & Orchestration
 
-- **Dispatcher (Saul)**: Coordinates workflow, delegates tasks, enforces process
-- **Planner Agents**: Analyst (Mary), Business Planner (Brian), Design Architect (Winston), UX Expert (Sally)
-- **Executor Agents**: Developer (James), QA (Quinn), Debugger (Dexter), Refactorer (Rocco)
-- **Specialized Agents**: Valuator (Val), Meta (Metis)
+-   **@system**: The primary conversational interface. It interprets the user's initial command and delegates the creation of the project plan to the `@specifier`.
+-   **@specifier**: The primary planner. It takes a high-level goal and creates a detailed, machine-readable `plan.md` file, breaking the goal into a sequence of tasks.
+-   **@dispatcher**: The autonomous project manager. It reads the `plan.md` file and executes the tasks in order, delegating the actual implementation work to executor agents.
 
-### 2. State Management
+### 2. Execution
 
-- **Project Ledger**: Immutable record of all project decisions and states
-- **Swarm Memory**: Historical data on agent performance, task outcomes, and patterns
-- **State Schema**: Formal definition of project state structure and transitions
+-   **@executor / @dev**: Focused agents that receive a single, well-defined task from the dispatcher, generate the required code, and save it to the file system.
+-   **@qa**: A quality assurance agent that can be called by the dispatcher to verify the completed work against the original plan.
 
-### 3. Code Intelligence
+## Modern Workflow Process
 
-- **Neo4j Knowledge Graph**: Stores code structure, relationships, and metrics
-- **Code Analysis Engine**: Provides deep code understanding and metrics
-- **Verification Tools**: Programmatic validation of code against requirements
-
-### 4. Tools & Integrations
-
-- **Research Tools**: Web access for market and technical research
-- **File System**: Read/write access to project files
-- **Shell**: Execution of system commands
-- **Web UI & IDE Integration**: Seamless user experience
-
-## Workflow Process
-
-1. **Brainstorming**: Define high-level goals and vision
-2. **Requirements Gathering**: Convert vision into detailed user stories
-3. **Architectural Design**: Create technical blueprint and execution plan
-4. **Task Breakdown**: Decompose stories into executable micro-tasks
-5. **Execution Planning**: Assign tasks, define verification criteria
-6. **Implementation**: Code development and verification
-7. **Validation**: Ensure outcomes meet business and technical requirements
-8. **Learning**: System self-improvement based on execution data
-
-## Data Flow
-
-1. Human inputs trigger system initialization
-2. Dispatcher delegates to planner agents
-3. Planner agents create structured outputs
-4. Dispatcher coordinates handoff to executor agents
-5. Executors perform work and verify results
-6. Meta agent analyzes outcomes for system improvement
-7. All state changes are recorded in the project ledger
+1.  **Initiation**: The user provides a high-level goal to the `@system` agent via the chat interface.
+2.  **Planning**: The `@system` agent delegates to the `@specifier`, which creates a `plan.md` file containing a YAML list of all tasks, dependencies, and files to be modified.
+3.  **Execution**: The `@dispatcher` agent is activated. It enters a loop:
+    a. Reads `plan.md`.
+    b. Finds the next task with `status: PENDING`.
+    c. Delegates the task to an executor agent (e.g., `@executor`).
+    d. Updates the task's status in `plan.md` and saves the file.
+4.  **Completion**: When all tasks in `plan.md` are `COMPLETED`, the dispatcher reports back that the goal has been achieved.
