@@ -1,9 +1,9 @@
-import { jest } from "@jest/globals";
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock the research_graph module directly
-jest.unstable_mockModule("../../engine/research_graph.js", () => ({
+mock.module("../../engine/research_graph.js", () => ({
   researchGraph: {
-    invoke: jest.fn(),
+    invoke: mock(),
   },
 }));
 
@@ -15,7 +15,7 @@ describe("Planning Team Graph", () => {
 
   beforeEach(async () => {
     // Reset mocks
-    jest.clearAllMocks();
+    mock.restore();
 
     // Get the mocked researchGraph
     const researchGraphModule = await import("../../engine/research_graph.js");
@@ -25,7 +25,7 @@ describe("Planning Team Graph", () => {
     createPlanningGraph = planningGraphModule.createPlanningGraph;
 
     // Mock the triggerAgent function
-    triggerAgent = jest.fn().mockImplementation((agent, prompt) => {
+    triggerAgent = mock((agent, prompt) => {
       return `Response from ${agent} for prompt: ${prompt}`;
     });
     
