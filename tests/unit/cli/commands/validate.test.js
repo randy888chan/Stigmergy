@@ -1,10 +1,10 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
-jest.unstable_mockModule("fs-extra", () => ({
+mock.module("fs-extra", () => ({
     default: {
-        readdir: jest.fn(),
-        readFile: jest.fn(),
-        existsSync: jest.fn(),
+        readdir: mock(),
+        readFile: mock(),
+        existsSync: mock(),
     },
 }));
 
@@ -13,7 +13,7 @@ describe("Validation Command", () => {
     let validateAgents;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    mock.restore();
     fs = (await import("fs-extra")).default;
     validateAgents = (await import("../../../../cli/commands/validate.js")).validateAgents;
     // Reset any global config that might interfere
