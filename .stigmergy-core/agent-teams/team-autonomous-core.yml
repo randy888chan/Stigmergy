@@ -4,19 +4,16 @@
 bundle:
   name: "Autonomous Core"
   icon: "⚙️"
-  description: "The complete agent swarm for full, end-to-end project execution within a local IDE environment. Includes planners, executors, QA, and self-improvement."
+  description: "The complete agent swarm for full, end-to-end project execution. Includes planning, execution, QA, and self-improvement."
   agents:
-    # --- Orchestration & Planning ---
-    - "dispatcher"
+    # --- Core Workflow ---
+    - "system"
     - "specifier"
-    - "reference-architect"
-    
-    # --- Core Execution ---
-    - "executor"
+    - "dispatcher"
+    - "executor" # UPDATED: from dev/enhanced-dev
     - "qa"
     - "debugger"
     
     # --- Self-Improvement & Health ---
-    - "health_monitor"
     - "metis"
     - "guardian"
