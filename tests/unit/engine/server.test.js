@@ -1,14 +1,11 @@
-/**
- * @jest-environment node
- */
 import { vol } from "memfs";
 import path from "path";
-import { jest } from "@jest/globals";
+import { mock, describe, test, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 
 // Mock fs-extra to use memfs
-jest.unstable_mockModule("fs-extra", () => {
-  const memfs = jest.requireActual("memfs");
-  const actualFsExtra = jest.requireActual("fs-extra");
+mock.module("fs-extra", () => {
+  const memfs = require("memfs");
+  const actualFsExtra = require("fs-extra");
   return {
     ...actualFsExtra, // Use actual for functions not in memfs
     ...memfs.fs,
@@ -30,14 +27,14 @@ describe.skip("Engine WebSocket Message Handling", () => {
 
     // Mock the WebSocket server and client
     mockWs = {
-      on: jest.fn(),
-      close: jest.fn(),
-      send: jest.fn(),
+      on: mock(),
+      close: mock(),
+      send: mock(),
       readyState: 1, // WebSocket.OPEN
     };
 
     mockWss = {
-      on: jest.fn((event, callback) => {
+      on: mock((event, callback) => {
         if (event === 'connection') {
           callback(mockWs);
         }
@@ -49,23 +46,23 @@ describe.skip("Engine WebSocket Message Handling", () => {
     engine = new Engine();
 
     // We need to mock parts of the engine's setup that interact with the filesystem or network
-    jest.spyOn(engine.stateManager, 'on').mockImplementation(() => {});
-    jest.spyOn(engine.server, 'listen').mockImplementation((port, cb) => cb());
+    spyOn(engine.stateManager, 'on').mockImplementation(() => {});
+    spyOn(engine.app, 'listen').mockImplementation((port, cb) => cb());
 
 
     // Replace the engine's wss with our mock
     engine.wss = mockWss;
 
     // Spy on agent-related methods
-    jest.spyOn(engine, 'getAgent').mockImplementation((agentId) => ({ id: agentId, systemPrompt: 'mock prompt' }));
-    jest.spyOn(engine, 'triggerAgent').mockResolvedValue({});
+    spyOn(engine, 'getAgent').mockImplementation((agentId) => ({ id: agentId, systemPrompt: 'mock prompt' }));
+    spyOn(engine, 'triggerAgent').mockResolvedValue({});
 
     // Start the engine to attach the message handlers
     await engine.start();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    mock.restore();
     engine.stop();
   });
 
