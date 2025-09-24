@@ -7,7 +7,7 @@ import { z } from "zod";
 import { exec } from "child_process";
 import { promisify } from "util";
 
-const execPromise = promisify(exec);
+const defaultExecPromise = promisify(exec);
 
 /**
  * Run static analysis using ESLint
@@ -143,7 +143,7 @@ export async function enforce_tdd_workflow({ sourceFile, testFile = null, requir
 /**
  * Enhanced coverage analysis with c8 integration
  */
-export async function analyze_test_coverage({ sourceFile, testFile }) {
+export async function analyze_test_coverage({ sourceFile, testFile, execPromise = defaultExecPromise }) {
   console.log(`[QA] Analyzing test coverage for: ${sourceFile}`);
   
   try {
@@ -222,7 +222,7 @@ export async function analyze_test_coverage({ sourceFile, testFile }) {
 /**
  * Run dependency vulnerability scan using npm audit
  */
-export async function run_dependency_audit({ auditLevel = 'high' }) {
+export async function run_dependency_audit({ auditLevel = 'high', execPromise = defaultExecPromise }) {
   console.log('[QA] Running dependency vulnerability scan...');
   
   try {
@@ -380,7 +380,7 @@ export async function verify_architecture({ architecture_blueprint, code }) {
   return object;
 }
 
-export async function run_tests_and_check_coverage({ test_command = "npm test -- --coverage", required_coverage = 80 }) {
+export async function run_tests_and_check_coverage({ test_command = "npm test -- --coverage", required_coverage = 80, execPromise = defaultExecPromise }) {
   try {
     const { stdout } = await execPromise(test_command);
     const coverageRegex = /All files\s*\|\s*([\d.]+)/;
