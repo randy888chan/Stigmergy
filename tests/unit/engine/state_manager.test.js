@@ -1,4 +1,4 @@
-import { jest, describe, test, expect, afterEach } from '@jest/globals';
+import { mock, describe, test, expect, afterEach } from 'bun:test';
 import { EventEmitter } from 'events';
 
 // Mock the downstream dependencies using the ESM-compatible API
@@ -7,19 +7,19 @@ import { EventEmitter } from 'events';
 class MockStateManager extends EventEmitter {
   constructor() {
     super();
-    this.getState = jest.fn();
-    this.updateState = jest.fn();
+    this.getState = mock();
+    this.updateState = mock();
   }
 }
 const mockStateManagerInstance = new MockStateManager();
 
-jest.unstable_mockModule("../../../src/infrastructure/state/GraphStateManager.js", () => ({
+mock.module("../../../src/infrastructure/state/GraphStateManager.js", () => ({
   __esModule: true,
   default: mockStateManagerInstance,
 }));
 
-jest.unstable_mockModule("../../../engine/verification_system.js", () => ({
-  verifyMilestone: jest.fn(),
+mock.module("../../../engine/verification_system.js", () => ({
+  verifyMilestone: mock(),
 }));
 
 // Now, we can dynamically import the modules under test
@@ -37,7 +37,7 @@ const stateManager = (await import("../../../src/infrastructure/state/GraphState
 
 describe("Engine State Manager", () => {
   afterEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   test("getState should call the graph state manager", async () => {
