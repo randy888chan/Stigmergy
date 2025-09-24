@@ -1,26 +1,26 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 import path from 'path';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule('../../../engine/neo4j_validator.js', () => ({
+mock.module('../../../engine/neo4j_validator.js', () => ({
   Neo4jValidator: {
-    validate: jest.fn(),
+    validate: mock(),
   },
 }));
-jest.unstable_mockModule('../../../services/core_backup.js', () => ({
+mock.module('../../../services/core_backup.js', () => ({
   default: {
-    verifyBackup: jest.fn(),
+    verifyBackup: mock(),
   },
 }));
-jest.unstable_mockModule('fs-extra', () => ({
+mock.module('fs-extra', () => ({
   default: {
-    existsSync: jest.fn(),
-    readdir: jest.fn(),
+    existsSync: mock(),
+    readdir: mock(),
   },
 }));
-jest.unstable_mockModule('os', () => ({
+mock.module('os', () => ({
   default: {
-    homedir: jest.fn(),
+    homedir: mock(),
   },
 }));
 
@@ -53,13 +53,13 @@ describe('SystemValidator', () => {
     validator = new SystemValidator();
     
     // Suppress console logs during tests
-    jest.spyOn(console, 'log').mockImplementation(() => {});
-    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'warn').mockImplementation(() => {});
   });
 
   afterEach(() => {
     // Restore spies
-    jest.restoreAllMocks();
+    mock.restore();
   });
 
   describe('comprehensiveCheck', () => {
