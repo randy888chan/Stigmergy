@@ -1,13 +1,13 @@
-import { jest, describe, test, expect, afterEach, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, afterEach, beforeEach } from 'bun:test';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule('../../../tools/core_tools.js', () => ({
-  createStructuredResponse: jest.fn((data) => data),
-  analyzeTaskExecutionStrategy: jest.fn(),
+mock.module('../../../tools/core_tools.js', () => ({
+  createStructuredResponse: mock((data) => data),
+  analyzeTaskExecutionStrategy: mock(),
 }));
 
-jest.unstable_mockModule('../../../engine/state_manager.js', () => ({
-  initializeProject: jest.fn().mockResolvedValue({}),
+mock.module('../../../engine/state_manager.js', () => ({
+  initializeProject: mock().mockResolvedValue({}),
 }));
 
 
@@ -25,7 +25,7 @@ describe('Chat Interface Tool', () => {
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   test('should treat a development-related command as a new project goal', async () => {
