@@ -1,0 +1,3 @@
+[test]
+# This tells Bun to run the setup script before executing the test files.
+preload = ["./tests/bun-setup.js"]
