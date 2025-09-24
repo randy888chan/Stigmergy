@@ -1,4 +1,4 @@
-import fs from "fs-extra";
+import defaultFs from "fs-extra";
 import path from "path";
 import { glob } from "glob";
 import config from "../stigmergy.config.js";
@@ -16,7 +16,7 @@ const SAFE_DIRECTORIES = config.security?.allowedDirs || [
   "system-proposals",
 ];
 
-export function resolvePath(filePath) {
+export function resolvePath(filePath, fs = defaultFs) {
   if (!filePath || typeof filePath !== "string") {
     throw new Error("Invalid file path provided");
   }
@@ -61,25 +61,25 @@ export function resolvePath(filePath) {
   return resolved;
 }
 
-export async function readFile({ path: filePath }) {
-  const safePath = resolvePath(filePath);
+export async function readFile({ path: filePath, fs = defaultFs }) {
+  const safePath = resolvePath(filePath, fs);
   return fs.readFile(safePath, "utf-8");
 }
 
-export async function writeFile({ path: filePath, content }) {
-  const safePath = resolvePath(filePath);
+export async function writeFile({ path: filePath, content, fs = defaultFs }) {
+  const safePath = resolvePath(filePath, fs);
   await fs.ensureDir(path.dirname(safePath));
   await fs.writeFile(safePath, content);
   return `File ${filePath} written successfully`;
 }
 
-export async function listFiles({ directory }) {
-  const safePath = resolvePath(directory);
+export async function listFiles({ directory, fs = defaultFs }) {
+  const safePath = resolvePath(directory, fs);
   return glob("**/*", { cwd: safePath, nodir: true });
 }
 
-export async function appendFile({ path: filePath, content }) {
-  const safePath = resolvePath(filePath);
+export async function appendFile({ path: filePath, content, fs = defaultFs }) {
+  const safePath = resolvePath(filePath, fs);
   await fs.ensureDir(path.dirname(safePath));
   // The 'a' flag stands for "append"
   await fs.appendFile(safePath, content);
