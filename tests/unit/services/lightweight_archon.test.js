@@ -1,15 +1,15 @@
-import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock the dependencies ONLY
-jest.unstable_mockModule('../../../services/coderag_integration.js', () => ({
-  CodeRAGIntegration: jest.fn(),
+mock.module('../../../services/coderag_integration.js', () => ({
+  CodeRAGIntegration: mock(),
 }));
-jest.unstable_mockModule('../../../tools/research.js', () => ({
-  deep_dive: jest.fn(),
+mock.module('../../../tools/research.js', () => ({
+  deep_dive: mock(),
 }));
-const mockComprehensiveSearch = jest.fn();
-jest.unstable_mockModule('../../../services/deepwiki_mcp.js', () => ({
-  DeepWikiMCP: jest.fn().mockImplementation(() => ({
+const mockComprehensiveSearch = mock();
+mock.module('../../../services/deepwiki_mcp.js', () => ({
+  DeepWikiMCP: mock().mockImplementation(() => ({
     comprehensiveSearch: mockComprehensiveSearch,
   })),
 }));
@@ -27,11 +27,11 @@ describe('LightweightArchon Service', () => {
     research = await import('../../../tools/research.js');
     DeepWikiMCP = (await import('../../../services/deepwiki_mcp.js')).DeepWikiMCP;
 
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    mock.restore();
   });
 
   it('is a placeholder test to check mock setup', () => {
