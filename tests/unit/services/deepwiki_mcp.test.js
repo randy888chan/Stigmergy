@@ -1,9 +1,9 @@
-import { jest, describe, it, expect, beforeEach } from '@jest/globals';
+import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
 // Mock axios using the ESM-compatible API
-jest.unstable_mockModule('axios', () => ({
+mock.module('axios', () => ({
   default: {
-    post: jest.fn(),
+    post: mock(),
   },
 }));
 
