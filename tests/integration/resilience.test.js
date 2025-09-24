@@ -1,19 +1,19 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock dependencies using the ESM-compatible API
-jest.unstable_mockModule('../../stigmergy.config.js', () => ({
+mock.module('../../stigmergy.config.js', () => ({
   default: {
     features: { neo4j: 'auto' }
   },
 }));
 const mockDriverInstance = {
-  verifyConnectivity: jest.fn(),
-  close: jest.fn(),
+  verifyConnectivity: mock(),
+  close: mock(),
 };
-jest.unstable_mockModule('neo4j-driver', () => ({
-  driver: jest.fn().mockReturnValue(mockDriverInstance),
+mock.module('neo4j-driver', () => ({
+  driver: mock().mockReturnValue(mockDriverInstance),
   auth: {
-    basic: jest.fn(),
+    basic: mock(),
   },
 }));
 
@@ -29,7 +29,7 @@ describe('Fallback Manager Resilience', () => {
     neo4j = await import('neo4j-driver');
 
     // Reset mocks before each test
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   test("should fallback to 'memory' mode when connection fails in 'auto' mode", async () => {
