@@ -7,21 +7,21 @@ process.env.MISTRAL_BASE_URL = "https://api.mistral.ai/v1";
 process.env.KIMI_API_KEY = "test_key";
 process.env.KIMI_BASE_URL = "https://api.moonshot.cn/v1";
 process.env.FIRECRAWL_KEY = "test";
-import { jest } from "@jest/globals";
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock the researchGraph to simulate the expected behavior
 const mockResearchGraph = {
-  invoke: jest.fn()
+  invoke: mock()
 };
 
-jest.unstable_mockModule("../../engine/research_graph.js", () => ({
+mock.module("../../engine/research_graph.js", () => ({
   researchGraph: mockResearchGraph
 }));
 
 describe("Research Graph with Reflection Node", () => {
   beforeEach(async () => {
     await import("../../engine/research_graph.js");
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   test('should run once and finish when reflection returns "true"', async () => {
