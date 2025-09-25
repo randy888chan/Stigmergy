@@ -1,5 +1,5 @@
 // Note the imports are from "bun:test"
-import { test, expect, beforeEach, mock } from 'bun:test';
+import { test, expect, beforeEach, mock, describe } from 'bun:test';
 import { vol } from 'memfs';
 import path from 'path';
 
