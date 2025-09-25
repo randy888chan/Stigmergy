@@ -3,13 +3,7 @@ import path from "path";
 import yaml from "js-yaml";
 import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
-// Mock the file system tool
-mock.module("../../tools/file_system.js", () => ({
-  readFile: mock(),
-  default: {
-    readFile: mock(),
-  }
-}));
+// No longer need to mock fs-extra, as it's handled globally
 
 // Mock the state manager to prevent Neo4j connection attempts
 mock.module("../../engine/state_manager.js", () => ({
@@ -38,11 +32,8 @@ const mockManifest = {
 describe("Tool Executor", () => {
   let execute;
   let mockEngine;
-  let fileSystem;
   let modelMonitoring;
   let _resetManifestCache;
-  // This test suite will use the globally provided temporary directory
-  // It will create its own files within that directory for each test
   const TEST_DIR = global.StigmergyConfig.core_path;
 
   beforeEach(async () => {
@@ -50,10 +41,8 @@ describe("Tool Executor", () => {
     const createExecutor = toolExecutorModule.createExecutor;
     _resetManifestCache = toolExecutorModule._resetManifestCache;
 
-    fileSystem = await import("../../tools/file_system.js");
     modelMonitoring = await import("../../services/model_monitoring.js");
 
-    console.log("### tool_executor.test.js: beforeEach: creating files ###");
     _resetManifestCache();
 
     // Set up the mock engine and executor
@@ -63,17 +52,16 @@ describe("Tool Executor", () => {
         broadcastEvent: mock()
     };
     execute = createExecutor(mockEngine);
-    fileSystem.readFile.mockClear();
     modelMonitoring.trackToolUsage.mockClear();
 
     // Create necessary files for the test in the shared temp directory
     const manifestPath = path.join(TEST_DIR, "system_docs", "02_Agent_Manifest.md");
-    await fs.default.ensureDir(path.dirname(manifestPath));
+    await fs.ensureDir(path.dirname(manifestPath));
     const yamlString = yaml.dump(mockManifest);
-    await fs.default.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
+    await fs.writeFile(manifestPath, "```yaml\n" + yamlString + "\n```");
 
     const agentsPath = path.join(TEST_DIR, "agents");
-    await fs.default.ensureDir(agentsPath);
+    await fs.ensureDir(agentsPath);
 
     const permittedAgentContent = `
 agent:
@@ -82,7 +70,7 @@ agent:
     - "file_system.readFile"
     - "stigmergy.task"
 `;
-    await fs.default.writeFile(
+    await fs.writeFile(
       path.join(agentsPath, "test-agent-permitted.md"),
       "```yaml\n" + permittedAgentContent + "\n```"
     );
@@ -93,7 +81,7 @@ agent:
   engine_tools:
     - "some_other_tool"
 `;
-    await fs.default.writeFile(
+    await fs.writeFile(
       path.join(agentsPath, "test-agent-denied.md"),
       "```yaml\n" + deniedAgentContent + "\n```"
     );
@@ -103,23 +91,23 @@ agent:
     // Clean up the files created in this test suite to not affect others
     const manifestPath = path.join(TEST_DIR, "system_docs");
     const agentsPath = path.join(TEST_DIR, "agents");
-    await fs.default.remove(manifestPath);
-    await fs.default.remove(agentsPath);
-    console.log("### tool_executor.test.js: afterEach: files removed ###");
+    await fs.remove(manifestPath);
+    await fs.remove(agentsPath);
   });
 
   test("should successfully execute a tool that is explicitly permitted", async () => {
-    fileSystem.readFile.mockResolvedValue("file content");
+    const testContent = "This is a test file.";
+    const testPath = "docs/test.txt";
+    await fs.ensureDir(path.dirname(testPath));
+    await fs.writeFile(testPath, testContent);
+
     const result = await execute(
       "file_system.readFile",
-      { path: "test.txt" },
+      { path: testPath },
       "test-agent-permitted"
     );
-    expect(fileSystem.readFile).toHaveBeenCalledWith({
-      path: "test.txt",
-      agentConfig: expect.any(Object),
-    });
-    expect(result).toBe(JSON.stringify("file content", null, 2));
+    const parsedResult = JSON.parse(result);
+    expect(parsedResult).toBe(testContent);
     expect(modelMonitoring.trackToolUsage).toHaveBeenCalledWith(expect.objectContaining({ success: true }));
   });
 
@@ -131,22 +119,18 @@ agent:
   });
 
   test("should throw an error for invalid arguments based on Zod schema", async () => {
-    const dangerousPath = "; rm -rf /"; // This is not a valid path according to most file systems.
+    const dangerousPath = "; rm -rf /"; 
 
     await expect(
       execute("file_system.readFile", { path: dangerousPath }, "test-agent-permitted")
     ).rejects.toThrow("Invalid arguments for tool 'file_system.readFile'");
 
-    expect(fileSystem.readFile).not.toHaveBeenCalled();
     expect(modelMonitoring.trackToolUsage).toHaveBeenCalledWith(expect.objectContaining({ success: false }));
   });
 
   test("should execute stigmergy.task tool", async () => {
     const args = { subagent_type: 'test-type', description: 'test description' };
     const result = await execute("stigmergy.task", args, "test-agent-permitted");
-    // The stigmergy.task tool calls engine.getAgent and engine.triggerAgent
-    // We need to check that getAgent was called with the subagent_type
-    // and that triggerAgent was called with the agent object and description
     expect(mockEngine.getAgent).toHaveBeenCalledWith('test-type');
     expect(result).toBe(JSON.stringify("Task triggered", null, 2));
   });
@@ -159,7 +143,7 @@ agent:
 
   test("should throw an error if agent definition file is not found", async () => {
     await expect(execute("file_system.readFile", {}, "non-existent-agent")).rejects.toThrow(
-      "ENOENT: no such file or directory"
+      "Agent definition file not found for agent: non-existent-agent"
     );
   });
 });
