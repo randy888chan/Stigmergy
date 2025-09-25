@@ -29,6 +29,7 @@
     "dev": "bun --hot run engine/server.js",
     "test": "bun test",
     "test:watch": "bun test --watch",
+    "build:dashboard": "bun build ./dashboard/src/index.js --outdir ./dashboard/public",
     "health-check": "bun run scripts/health-check.js",
     "validate": "bun run cli/index.js validate",
     "init": "bun run cli/index.js init"
