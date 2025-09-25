@@ -1,34 +1,25 @@
-import { mock, describe, it, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
+import axios from 'axios';
 
-// Mock axios using the ESM-compatible API
-mock.module('axios', () => ({
-  default: {
-    post: mock(),
-  },
-}));
+// Import the modules after mocking
+import { DeepWikiMCP } from '../../../services/deepwiki_mcp.js';
 
 describe('DeepWikiMCP', () => {
-  let DeepWikiMCP;
-  let axios;
   let deepwiki;
   
-  beforeEach(async () => {
-    // Dynamically import modules to get the mocked versions
-    DeepWikiMCP = (await import('../../../services/deepwiki_mcp.js')).DeepWikiMCP;
-    axios = (await import('axios')).default;
-
-    deepwiki = new DeepWikiMCP();
+  beforeEach(() => {
     axios.post.mockReset();
+    deepwiki = new DeepWikiMCP({ serverUrl: 'https://mcp.deepwiki.com', protocol: 'sse' });
   });
 
   describe('constructor', () => {
-    it('should initialize with default values', () => {
+    test('should initialize with default values', () => {
       const instance = new DeepWikiMCP();
       expect(instance.serverUrl).toBe('https://mcp.deepwiki.com');
       expect(instance.protocol).toBe('sse');
     });
 
-    it('should initialize with custom values', () => {
+    test('should initialize with custom values', () => {
       const instance = new DeepWikiMCP({
         serverUrl: 'https://custom.deepwiki.com',
         protocol: 'mcp'
@@ -39,12 +30,12 @@ describe('DeepWikiMCP', () => {
   });
 
   describe('getEndpointUrl', () => {
-    it('should return correct SSE endpoint URL', () => {
+    test('should return correct SSE endpoint URL', () => {
       const url = deepwiki.getEndpointUrl('/tools/call');
       expect(url).toBe('https://mcp.deepwiki.com/sse/tools/call');
     });
 
-    it('should return correct MCP endpoint URL', () => {
+    test('should return correct MCP endpoint URL', () => {
       deepwiki.protocol = 'mcp';
       const url = deepwiki.getEndpointUrl('/tools/call');
       expect(url).toBe('https://mcp.deepwiki.com/mcp/tools/call');
@@ -52,7 +43,7 @@ describe('DeepWikiMCP', () => {
   });
 
   describe('readWikiStructure', () => {
-    it('should call the read_wiki_structure tool', async () => {
+    test('should call the read_wiki_structure tool', async () => {
       const mockResponse = {
         data: {
           result: {
@@ -78,7 +69,7 @@ describe('DeepWikiMCP', () => {
   });
 
   describe('readWikiContents', () => {
-    it('should call the read_wiki_contents tool', async () => {
+    test('should call the read_wiki_contents tool', async () => {
       const mockResponse = {
         data: {
           result: {
@@ -104,7 +95,7 @@ describe('DeepWikiMCP', () => {
   });
 
   describe('askQuestion', () => {
-    it('should call the ask_question tool', async () => {
+    test('should call the ask_question tool', async () => {
       const mockResponse = {
         data: {
           result: {
@@ -130,7 +121,7 @@ describe('DeepWikiMCP', () => {
   });
 
   describe('comprehensiveSearch', () => {
-    it('should perform a comprehensive search', async () => {
+    test('should perform a comprehensive search', async () => {
       const structureResponse = {
         data: {
           result: {
