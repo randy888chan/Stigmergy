@@ -4,10 +4,22 @@ import { vol } from 'memfs';
 import path from 'path';
 
 // THE BUN WAY: Mock the module and define its exports.
-mock.module('fs-extra', () => ({
-  ...require('memfs').fs,
-  __esModule: true, // Important for ESM compatibility
-}));
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+        pathExists: memfs.fs.exists.bind(null),
+    }
+  };
+});
 mock.module('inquirer', () => ({
   default: {
     prompt: () => Promise.resolve({ configureKeys: false }),

@@ -1,19 +1,25 @@
 import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
-mock.module('fs-extra', () => ({
-  readFile: mock(),
-  writeFile: mock(),
-  readdir: mock(),
-  existsSync: mock(),
-  ensureDir: mock(),
-  default: {
-    readFile: mock(),
-    writeFile: mock(),
-    readdir: mock(),
-    existsSync: mock(),
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
     ensureDir: mock(),
-  }
-}));
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        readFile: mock(),
+        writeFile: mock(),
+        readdir: mock(),
+        existsSync: mock(),
+        ensureDir: mock(),
+        pathExists: memfs.fs.exists.bind(null),
+    }
+  };
+});
 
 mock.module('glob', () => ({
     glob: mock(),

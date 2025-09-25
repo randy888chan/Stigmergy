@@ -2,14 +2,24 @@ import { mock, describe, it, expect, beforeEach } from 'bun:test';
 import path from 'path';
 
 // Mock the fs-extra module using the ESM-compatible API
-mock.module('fs-extra', () => ({
-  default: {
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
     ensureDir: mock(),
     pathExists: mock(),
-    writeJson: mock(),
-    readJson: mock(),
-  },
-}));
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        ensureDir: mock(),
+        pathExists: mock(),
+        writeJson: mock(),
+        readJson: mock(),
+    }
+  };
+});
 
 describe('AgentPerformance', () => {
   let agentPerformance;

@@ -12,12 +12,22 @@ mock.module('../../../services/core_backup.js', () => ({
     verifyBackup: mock(),
   },
 }));
-mock.module('fs-extra', () => ({
-  default: {
-    existsSync: mock(),
-    readdir: mock(),
-  },
-}));
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+        pathExists: memfs.fs.exists.bind(null),
+    }
+  };
+});
 mock.module('os', () => ({
   default: {
     homedir: mock(),
@@ -43,8 +53,6 @@ describe('SystemValidator', () => {
     // Reset mocks before each test
     Neo4jValidator.validate.mockReset();
     coreBackup.verifyBackup.mockReset();
-    fs.existsSync.mockReset();
-    fs.readdir.mockReset();
     os.homedir.mockReset();
     
     // Mock os.homedir() for all tests in this suite

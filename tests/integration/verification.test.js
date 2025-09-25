@@ -9,12 +9,23 @@ mock.module("ai", () => ({
 mock.module("../../ai/providers.js", () => ({
   getModelForTier: mock()
 }));
-mock.module("fs-extra", () => ({
-  default: {
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
     pathExists: mock(),
-    readFile: mock(),
-  },
-}));
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        pathExists: mock(),
+        readFile: mock(),
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    }
+  };
+});
 mock.module("glob", () => ({
   glob: mock(),
 }));

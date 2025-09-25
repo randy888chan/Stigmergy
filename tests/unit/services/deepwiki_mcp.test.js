@@ -1,14 +1,21 @@
 import { mock, describe, test, expect, beforeEach } from 'bun:test';
-import axios from 'axios';
+
+// Mock axios before importing the module that uses it
+mock.module('axios', () => ({
+  default: {
+    post: mock(),
+  }
+}));
 
 // Import the modules after mocking
+import axios from 'axios';
 import { DeepWikiMCP } from '../../../services/deepwiki_mcp.js';
 
 describe('DeepWikiMCP', () => {
   let deepwiki;
   
   beforeEach(() => {
-    axios.post.mockReset();
+    mock.restore(); // Use Bun's global mock restoration
     deepwiki = new DeepWikiMCP({ serverUrl: 'https://mcp.deepwiki.com', protocol: 'sse' });
   });
 

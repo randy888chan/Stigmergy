@@ -2,16 +2,31 @@ import { vol } from "memfs";
 import path from "path";
 import { mock, describe, test, expect, beforeEach, afterEach, spyOn } from 'bun:test';
 
+mock.module('hono', () => ({
+  Hono: class {
+    get = mock();
+    post = mock();
+    use = mock();
+    fetch = mock();
+    listen = mock();
+  }
+}));
+
 // Mock fs-extra to use memfs
-mock.module("fs-extra", () => {
-  const memfs = require("memfs");
-  const actualFsExtra = require("fs-extra");
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
   return {
-    ...actualFsExtra, // Use actual for functions not in memfs
-    ...memfs.fs,
-    existsSync: memfs.fs.existsSync,
-    readFileSync: memfs.fs.readFileSync,
-    readdir: memfs.fs.readdir,
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+        pathExists: memfs.fs.exists.bind(null),
+    }
   };
 });
 

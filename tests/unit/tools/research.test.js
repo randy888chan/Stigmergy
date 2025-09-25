@@ -7,11 +7,23 @@ mock.module("@mendable/firecrawl-js", () => ({
 mock.module("ai", () => ({
   generateObject: jest.fn(),
 }));
-mock.module("fs-extra", () => ({
-  default: {
-    readFile: jest.fn(),
-  },
-}));
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        readFile: jest.fn(),
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+        pathExists: memfs.fs.exists.bind(null),
+    }
+  };
+});
 mock.module("../../../ai/providers.js", () => ({
   getModelForTier: jest.fn(),
 }));
@@ -25,7 +37,6 @@ describe("Research Tools", () => {
     const researchTools = await import("../../../tools/research.js");
     deep_dive = researchTools.deep_dive;
     analyze_user_feedback = researchTools.analyze_user_feedback;
-    _resetCache = researchTools._resetCache;
 
     FirecrawlApp = (await import("@mendable/firecrawl-js")).default;
     generateObject = (await import("ai")).generateObject;
@@ -33,8 +44,8 @@ describe("Research Tools", () => {
     getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
 
     // Reset mocks before each test
-    jest.clearAllMocks();
-    _resetCache();
+    mock.restore();
+    researchTools._resetCache();
 
     // Mock the research prompt file
     fs.readFile.mockResolvedValue("```yaml\nresearch_prompt: 'Test prompt'\n```");

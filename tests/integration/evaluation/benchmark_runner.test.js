@@ -8,18 +8,28 @@ mock.module('child_process', () => ({
   exec: mock(),
 }));
 
-mock.module('fs-extra', () => ({
-  default: {
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
     ensureDir: mock(),
-    readJson: mock(),
     pathExists: mock(),
-    writeJson: mock(),
-    writeFile: mock(),
-    remove: mock(),
-    copy: mock(),
-    readdir: mock(),
-  },
-}));
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        ensureDir: mock(),
+        readJson: mock(),
+        pathExists: mock(),
+        writeJson: mock(),
+        writeFile: mock(),
+        remove: mock(),
+        copy: mock(),
+        readdir: mock(),
+    }
+  };
+});
 
 // Mock fetch globally for this test file
 global.fetch = mock();
