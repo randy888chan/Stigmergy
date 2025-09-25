@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
-import { serve, upgradeWebSocket } from '@hono/node-server';
+import { serve } from '@hono/node-server';
+import { upgradeWebSocket } from 'hono/bun';
 import chalk from 'chalk';
 
 // NOTE: Bun automatically loads .env files, so the explicit env_loader is no longer needed.
