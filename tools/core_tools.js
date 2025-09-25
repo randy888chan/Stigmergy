@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import path from "path";
-import coreBackup from "../services/core_backup.js";
+import { CoreBackup } from "../services/core_backup.js";
+const coreBackup = new CoreBackup();
 import { validateAgents } from "../cli/commands/validate.js";
 
 // ===================================================================

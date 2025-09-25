@@ -1,15 +1,27 @@
 import { mock, jest, describe, test, expect, beforeEach } from 'bun:test';
 
 // Mock dependencies
-mock.module("fs-extra", () => ({
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    pathExists: memfs.fs.exists.bind(null),
+    // Add default export for compatibility
     default: {
+        ...memfs.fs,
         writeFile: jest.fn(),
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+        pathExists: memfs.fs.exists.bind(null),
     }
-}));
+  };
+});
 mock.module("../../../services/core_backup.js", () => ({
-  default: {
-    autoBackup: jest.fn(),
-    restoreLatest: jest.fn(),
+  CoreBackup: class {
+    autoBackup = jest.fn();
+    restoreLatest = jest.fn();
   }
 }));
 mock.module("../../../cli/commands/validate.js", () => ({
@@ -25,7 +37,8 @@ describe("Core Tools", () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     fs = (await import("fs-extra")).default;
-    coreBackup = (await import("../../../services/core_backup.js")).default;
+    const { CoreBackup } = await import("../../../services/core_backup.js");
+    coreBackup = new CoreBackup();
     validateAgents = (await import("../../../cli/commands/validate.js")).validateAgents;
     const coreTools = await import("../../../tools/core_tools.js");
     backup = coreTools.backup;

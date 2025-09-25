@@ -74,5 +74,4 @@ export class CoreBackup {
   }
 }
 
-const coreBackup = new CoreBackup();
-export default coreBackup;
+// The service is now exported as a class, and consumers will instantiate it.

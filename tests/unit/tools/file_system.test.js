@@ -1,6 +1,10 @@
-import { jest, describe, it, expect, beforeEach } from 'bun:test';
+import { jest, describe, it, expect, beforeEach, mock } from 'bun:test';
 import path from 'path';
 import { resolvePath } from '../../../tools/file_system.js';
+
+mock.module('glob', () => ({
+    glob: jest.fn(),
+}));
 
 describe('resolvePath', () => {
   let mockFs;

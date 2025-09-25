@@ -3,13 +3,24 @@ import yaml from 'js-yaml';
 import path from 'path';
 
 // Mock dependencies before any imports
-mock.module("fs-extra", () => ({
-  default: {
-    readFile: mock(),
+mock.module('fs-extra', () => {
+  const memfs = require('memfs'); // Use require here for the in-memory file system
+  return {
+    ...memfs.fs, // Spread the entire in-memory fs library
+    __esModule: true, // Mark as an ES Module
+    // Explicitly add any functions that might be missing from memfs but are in fs-extra
+    ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
     pathExists: mock(),
-    readdir: mock(),
-  },
-}));
+    // Add default export for compatibility
+    default: {
+        ...memfs.fs,
+        readFile: mock(),
+        pathExists: mock(),
+        readdir: mock(),
+        ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
+    }
+  };
+});
 mock.module("../../../ai/providers.js", () => ({
   getModelForTier: mock(),
 }));
@@ -56,8 +67,17 @@ describe("LLM Adapter", () => {
         return Promise.reject(new Error(`File not found: ${fPath}`));
     });
 
-    // Mock readdir to return the list of docs we want to exist
-    fs.readdir.mockResolvedValue(['00_System_Goal.md', '01_System_Architecture.md']);
+    // Mock readdir to return different files for different directories
+    fs.readdir.mockImplementation(async (dirPath) => {
+        const p = String(dirPath);
+        if (p.endsWith('system_docs')) {
+            return ['00_System_Goal.md', '01_System_Architecture.md'];
+        }
+        if (p.endsWith('docs')) {
+            return ['prd.md'];
+        }
+        return [];
+    });
     fs.pathExists.mockResolvedValue(true);
   });
 
@@ -71,27 +91,34 @@ describe("LLM Adapter", () => {
   describe("getSharedContext", () => {
     test("should read and concatenate the content of the documentation files", async () => {
       const context = await llmAdapter.getSharedContext();
-      expect(context).toContain("--- START system_docs/00_System_Goal.md ---");
+      expect(context).toContain("--- START .stigmergy-core/system_docs/00_System_Goal.md ---");
       expect(context).toContain("System Goal Content");
-      expect(context).toContain("--- START system_docs/01_System_Architecture.md ---");
+      expect(context).toContain("--- START .stigmergy-core/system_docs/01_System_Architecture.md ---");
       expect(context).toContain("System Architecture Content");
+      expect(context).toContain("--- START docs/prd.md ---");
     });
 
     test("should use the cache to avoid reading the same file multiple times", async () => {
         await llmAdapter.getSharedContext();
         await llmAdapter.getSharedContext();
-        // fs.readFile should be called once for each existing file (2 in this case)
-        expect(fs.readFile).toHaveBeenCalledTimes(2);
+        // Called for each file in the two mocked directories (system_docs and docs)
+        expect(fs.readFile).toHaveBeenCalledTimes(3);
       });
 
       test("should handle missing files gracefully", async () => {
-        // Only pretend one file exists
-        fs.readdir.mockResolvedValue(['00_System_Goal.md']);
+        // Only pretend one directory exists
+        fs.readdir.mockImplementation(async (dirPath) => {
+            const p = String(dirPath);
+            if (p.endsWith('system_docs')) {
+                return ['00_System_Goal.md'];
+            }
+            return [];
+        });
         const context = await llmAdapter.getSharedContext();
         expect(context).toContain("System Goal Content");
         expect(context).not.toContain("System Architecture Content");
-        // readdir is called once, readFile is called once for the file that exists
-        expect(fs.readdir).toHaveBeenCalledTimes(1);
+        // readdir is called for each doc directory, readFile is called once for the file that exists
+        expect(fs.readdir).toHaveBeenCalledTimes(5);
         expect(fs.readFile).toHaveBeenCalledTimes(1);
       });
   });
