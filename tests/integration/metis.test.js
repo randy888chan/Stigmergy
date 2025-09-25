@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, mock } from 'bun:test';
 import createGuardianTools from '../../tools/guardian_tool.js';
 
 describe('Metis to Guardian Self-Improvement Workflow', () => {
@@ -8,7 +8,7 @@ describe('Metis to Guardian Self-Improvement Workflow', () => {
   beforeEach(() => {
     // Create a mock of the core Engine for each test
     mockEngine = {
-      triggerAgent: jest.fn().mockResolvedValue('Guardian task acknowledged.'),
+      triggerAgent: mock().mockResolvedValue('Guardian task acknowledged.'),
     };
     // The guardian tool is a factory that needs the engine instance
     guardianTool = createGuardianTools(mockEngine).propose_change;
