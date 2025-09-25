@@ -1,7 +1,8 @@
 import { get_failure_patterns } from '../../tools/swarm_intelligence_tools.js';
 import { appendFile } from '../../tools/file_system.js';
-import * as fs from 'fs-extra';
+import fs from 'fs-extra';
 import path from 'path';
+import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'bun:test';
 
 const TEMP_REPORTS_DIR = path.join(process.cwd(), '.ai', 'test_temp_memory');
 
@@ -11,18 +12,18 @@ describe('Self-Improvement Data Pipeline', () => {
   beforeEach(async () => {
     // Create a unique temp file for each test
     tempReportsPath = path.join(TEMP_REPORTS_DIR, `failures-${Date.now()}.jsonl`);
-    await fs.default.ensureDir(TEMP_REPORTS_DIR);
-    await fs.default.writeFile(tempReportsPath, '');
+    await fs.ensureDir(TEMP_REPORTS_DIR);
+    await fs.writeFile(tempReportsPath, '');
   });
 
   afterEach(async () => {
     // Clean up the unique file after each test
-    await fs.default.remove(tempReportsPath);
+    await fs.remove(tempReportsPath);
   });
 
   afterAll(async () => {
     // Clean up the temp directory
-    await fs.default.remove(TEMP_REPORTS_DIR);
+    await fs.remove(TEMP_REPORTS_DIR);
   });
 
   test('should correctly identify the most common failure pattern from the log file', async () => {
@@ -65,6 +66,6 @@ describe('Self-Improvement Data Pipeline', () => {
     const analysisResult = await get_failure_patterns({ reportsPath: tempReportsPath });
 
     // Assert
-    expect(analysisResult).toBe("No failure reports logged yet.");
+    expect(analysisResult.summary).toBe("No failure reports logged yet.");
   });
 });
