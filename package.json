@@ -25,15 +25,19 @@
     "stigmergy.config.js"
   ],
   "scripts": {
-    "start": "bun run engine/server.js",
-    "dev": "bun --hot run engine/server.js",
-    "test": "bun test",
-    "test:watch": "bun test --watch",
-    "build:dashboard": "bun build ./dashboard/src/index.js --outdir ./dashboard/public",
-    "health-check": "bun run scripts/health-check.js",
-    "validate": "bun run cli/index.js validate",
-    "init": "bun run cli/index.js init"
-  },
+  "start": "bun run engine/server.js",
+  "dev": "bun --hot run engine/server.js",
+  "test": "bun test",
+  "test:watch": "bun test --watch",
+  
+  "build": "bun run build:dashboard && bun run build:agents",
+  "build:dashboard": "bun build ./dashboard/src/index.js --outdir ./dashboard/public",
+  "build:agents": "bun run cli/commands/build.js",
+  
+  "health-check": "bun run scripts/health-check.js",
+  "validate": "bun run cli/index.js validate",
+  "init": "bun run cli/index.js init"
+},
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",
     "@ai-sdk/openai": "^2.0.23",
