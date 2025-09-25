@@ -15,7 +15,7 @@ mock.module("fs-extra", () => {
   };
 });
 
-describe.skip("Engine WebSocket Message Handling", () => {
+describe("Engine WebSocket Message Handling", () => {
   let Engine;
   let engine;
   let mockWss;
@@ -66,7 +66,7 @@ describe.skip("Engine WebSocket Message Handling", () => {
     engine.stop();
   });
 
-  it('should trigger the @system agent on user_chat_message', async () => {
+  test('should trigger the @system agent on user_chat_message', async () => {
     // Find the message handler assigned by the engine during start()
     const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
 
@@ -84,7 +84,7 @@ describe.skip("Engine WebSocket Message Handling", () => {
     );
   });
 
-  it('should handle clarification_response messages without triggering an agent', async () => {
+  test('should handle clarification_response messages without triggering an agent', async () => {
     const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
     const message = {
       type: 'clarification_response',
@@ -95,7 +95,7 @@ describe.skip("Engine WebSocket Message Handling", () => {
     expect(engine.triggerAgent).not.toHaveBeenCalled();
   });
 
-  it('should handle unknown message types gracefully without triggering an agent', async () => {
+  test('should handle unknown message types gracefully without triggering an agent', async () => {
     const messageHandler = mockWs.on.mock.calls.find(call => call[0] === 'message')[1];
     const message = {
       type: 'unknown_type',
@@ -123,7 +123,7 @@ agent:
 This is a test agent.
 `;
 
-describe.skip("Engine Agent Loading", () => {
+describe("Engine Agent Loading", () => {
   let Engine;
   let engine;
 
@@ -134,7 +134,7 @@ describe.skip("Engine Agent Loading", () => {
     engine = new Engine();
   });
 
-  it("should load an agent from the global package path if no local override exists", () => {
+  test("should load an agent from the global package path if no local override exists", () => {
     const globalAgentPath = path.resolve(process.cwd(), ".stigmergy-core/agents/global-agent.md");
     vol.fromJSON({
       [globalAgentPath]: createAgentContent("global-agent", "Global Agent"),
@@ -145,7 +145,7 @@ describe.skip("Engine Agent Loading", () => {
     expect(agent.systemPrompt).toContain("Global Agent");
   });
 
-  it("should load an agent from the local override path if it exists", () => {
+  test("should load an agent from the local override path if it exists", () => {
     const globalAgentPath = path.resolve(process.cwd(), ".stigmergy-core/agents/test-agent.md");
     const localAgentPath = path.join(process.cwd(), ".stigmergy-core/agents/test-agent.md");
 
@@ -160,7 +160,7 @@ describe.skip("Engine Agent Loading", () => {
     expect(agent.systemPrompt).not.toContain("Global Test Agent");
   });
 
-  it("should load an agent from the local path even if no global version exists", () => {
+  test("should load an agent from the local path even if no global version exists", () => {
     const localAgentPath = path.join(process.cwd(), ".stigmergy-core/agents/local-only-agent.md");
 
     vol.fromJSON({
@@ -172,7 +172,7 @@ describe.skip("Engine Agent Loading", () => {
     expect(agent.systemPrompt).toContain("Local Only Agent");
   });
 
-  it("should throw an error if the agent does not exist in either location", () => {
+  test("should throw an error if the agent does not exist in either location", () => {
     // Setup an empty filesystem
     vol.fromJSON({});
 
