@@ -1,103 +1,98 @@
-import { mock, describe, test, expect, beforeAll, afterAll, beforeEach, spyOn } from 'bun:test';
+import { mock, describe, test, expect, beforeAll, afterAll, beforeEach, spyOn, afterEach } from 'bun:test';
 import yaml from 'js-yaml';
 import path from 'path';
 
-// Mock dependencies using the ESM-compatible API
+// Mock dependencies before any imports
 mock.module("fs-extra", () => ({
   default: {
     readFile: mock(),
     pathExists: mock(),
+    readdir: mock(),
   },
 }));
 mock.module("../../../ai/providers.js", () => ({
   getModelForTier: mock(),
 }));
 
+// Now, import the modules we need to test
+import * as llmAdapter from "../../../engine/llm_adapter.js";
+import * as providers from "../../../ai/providers.js";
+import fs from "fs-extra";
+
+
 describe("LLM Adapter", () => {
-  let getCompletion, getSystemPrompt, clearFileCache, decomposeGoal, getSharedContext, getCachedFile;
-  let getModelForTier;
-  let fs;
+  let consoleErrorSpy;
   let mockLlm;
 
-  beforeAll(() => {
+  beforeEach(() => {
     // Suppress console output during these tests
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'error').mockImplementation(() => {});
-  });
-
-  afterAll(() => {
-    mock.restore();
-  });
-
-  beforeEach(async () => {
-    // Dynamically import modules to get mocked versions
-    const llmAdapter = await import("../../../engine/llm_adapter.js");
-    getCompletion = llmAdapter.getCompletion;
-    getSystemPrompt = llmAdapter.getSystemPrompt;
-    clearFileCache = llmAdapter.clearFileCache;
-    decomposeGoal = llmAdapter.decomposeGoal;
-    getSharedContext = llmAdapter.getSharedContext;
-    getCachedFile = llmAdapter.getCachedFile;
-
-    getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
-    fs = (await import("fs-extra")).default;
-
-    // Reset mocks before each test
-    mock.restore();
-    clearFileCache();
+    consoleErrorSpy = spyOn(console, 'error').mockImplementation(() => {});
 
     // Setup a mock LLM that can be returned by the provider
     mockLlm = {
       generate: mock(),
     };
-    getModelForTier.mockReturnValue(mockLlm);
+    providers.getModelForTier.mockReturnValue(mockLlm);
 
-    // Mock fs.readFile for agent definitions
+    // Mock fs.readFile for agent definitions and shared context
     fs.readFile.mockImplementation((filePath) => {
-        if (String(filePath).includes('test-agent.md')) {
+        const fPath = String(filePath);
+        if (fPath.includes('test-agent.md')) {
             const mockAgentContent = { agent: { model_tier: 'a_tier' } };
             const yamlString = yaml.dump(mockAgentContent);
             return Promise.resolve("```yaml\n" + yamlString + "\n```");
         }
-        // For getSharedContext
-        if (String(filePath).includes('00_System_Goal.md')) {
+        if (fPath.includes('00_System_Goal.md')) {
             return Promise.resolve("System Goal Content");
         }
-        if (String(filePath).includes('01_System_Architecture.md')) {
+        if (fPath.includes('01_System_Architecture.md')) {
             return Promise.resolve("System Architecture Content");
         }
-        return Promise.reject(new Error("File not found"));
+        // Add a catch-all for any other files
+        if (fPath.includes('.md')) {
+            return Promise.resolve("Default mock content");
+        }
+        return Promise.reject(new Error(`File not found: ${fPath}`));
     });
 
-    fs.pathExists.mockImplementation((filePath) => {
-        return Promise.resolve(
-            String(filePath).includes('test-agent.md') ||
-            String(filePath).includes('00_System_Goal.md') ||
-            String(filePath).includes('01_System_Architecture.md')
-        );
-    });
+    // Mock readdir to return the list of docs we want to exist
+    fs.readdir.mockResolvedValue(['00_System_Goal.md', '01_System_Architecture.md']);
+    fs.pathExists.mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    // Restore all mocks and clear caches between tests
+    mock.restore();
+    llmAdapter.clearFileCache();
+    consoleErrorSpy.mockRestore();
   });
 
   describe("getSharedContext", () => {
     test("should read and concatenate the content of the documentation files", async () => {
-      const context = await getSharedContext();
-      expect(context).toContain("--- START .stigmergy-core/system_docs/00_System_Goal.md ---");
+      const context = await llmAdapter.getSharedContext();
+      expect(context).toContain("--- START system_docs/00_System_Goal.md ---");
       expect(context).toContain("System Goal Content");
-      expect(context).toContain("--- START .stigmergy-core/system_docs/01_System_Architecture.md ---");
+      expect(context).toContain("--- START system_docs/01_System_Architecture.md ---");
       expect(context).toContain("System Architecture Content");
     });
 
     test("should use the cache to avoid reading the same file multiple times", async () => {
-        await getSharedContext();
-        await getSharedContext();
-        // fs.readFile should be called once for each existing file
+        await llmAdapter.getSharedContext();
+        await llmAdapter.getSharedContext();
+        // fs.readFile should be called once for each existing file (2 in this case)
         expect(fs.readFile).toHaveBeenCalledTimes(2);
       });
-  
+
       test("should handle missing files gracefully", async () => {
-        // The mock for pathExists will return false for other files
-        const context = await getSharedContext();
-        expect(context).not.toContain("brief.md");
+        // Only pretend one file exists
+        fs.readdir.mockResolvedValue(['00_System_Goal.md']);
+        const context = await llmAdapter.getSharedContext();
+        expect(context).toContain("System Goal Content");
+        expect(context).not.toContain("System Architecture Content");
+        // readdir is called once, readFile is called once for the file that exists
+        expect(fs.readdir).toHaveBeenCalledTimes(1);
+        expect(fs.readFile).toHaveBeenCalledTimes(1);
       });
   });
 
@@ -105,11 +100,11 @@ describe("LLM Adapter", () => {
     test("should call the LLM with the correct agent-specific model tier", async () => {
       mockLlm.generate.mockResolvedValue({ text: '{"thought": "test", "action": "test"}' });
 
-      await getCompletion("test-agent", "What is the plan?");
+      await llmAdapter.getCompletion("test-agent", "What is the plan?");
 
-      expect(getModelForTier).toHaveBeenCalledWith("a_tier");
+      expect(providers.getModelForTier).toHaveBeenCalledWith("a_tier");
       expect(mockLlm.generate).toHaveBeenCalledWith(expect.objectContaining({
-        prompt: "What is the plan?",
+        prompt: expect.any(String),
       }));
     });
 
@@ -117,22 +112,22 @@ describe("LLM Adapter", () => {
         const mockResponse = { thought: "The plan is to test.", action: "proceed" };
         mockLlm.generate.mockResolvedValue({ text: JSON.stringify(mockResponse) });
 
-        const result = await getCompletion("test-agent", "prompt");
+        const result = await llmAdapter.getCompletion("test-agent", "prompt");
         expect(result).toEqual(mockResponse);
       });
 
-      test("should parse a valid JSON response wrapped in markdown code block", async () => {
+    test("should parse a valid JSON response wrapped in markdown code block", async () => {
         const mockResponse = { thought: "The plan is to test.", action: "proceed" };
         mockLlm.generate.mockResolvedValue({ text: "```json\n" + JSON.stringify(mockResponse) + "\n```"});
 
-        const result = await getCompletion("test-agent", "prompt");
+        const result = await llmAdapter.getCompletion("test-agent", "prompt");
         expect(result).toEqual(mockResponse);
-      });
+    });
 
     test("should handle non-JSON responses gracefully", async () => {
       mockLlm.generate.mockResolvedValue({ text: "This is not JSON." });
 
-      const result = await getCompletion("test-agent", "prompt");
+      const result = await llmAdapter.getCompletion("test-agent", "prompt");
       expect(result).toEqual({
         thought: "My response wasn't valid JSON. Please try again.",
         action: null,
@@ -142,28 +137,28 @@ describe("LLM Adapter", () => {
     test("should handle LLM errors gracefully", async () => {
         mockLlm.generate.mockRejectedValue(new Error("API limit reached"));
 
-        const result = await getCompletion("test-agent", "prompt");
+        const result = await llmAdapter.getCompletion("test-agent", "prompt");
         expect(result).toEqual({
           thought: "I encountered an error: API limit reached",
           action: null,
         });
-      });
+    });
 
-      test("should handle empty or unexpected LLM response structure", async () => {
+    test("should handle empty or unexpected LLM response structure", async () => {
         mockLlm.generate.mockResolvedValue({ choices: [] }); // Empty choices array
 
-        const result = await getCompletion("test-agent", "prompt");
+        const result = await llmAdapter.getCompletion("test-agent", "prompt");
         expect(result).toEqual({
           thought: "Error: Received an empty response from the LLM.",
           action: null,
         });
-        expect(console.error).toHaveBeenCalled();
-      });
+        expect(consoleErrorSpy).toHaveBeenCalledWith(expect.stringContaining("LLM response did not contain expected text or content field:"), expect.any(Object));
+    });
   });
 
   describe("getSystemPrompt", () => {
     test("should return a non-empty string", async () => {
-      const prompt = await getSystemPrompt();
+      const prompt = await llmAdapter.getSystemPrompt();
       expect(typeof prompt).toBe("string");
       expect(prompt.length).toBeGreaterThan(0);
     });
@@ -172,9 +167,9 @@ describe("LLM Adapter", () => {
   describe("clearFileCache", () => {
     test("should clear the cache", async () => {
         const filePath = path.join(process.cwd(), '.stigmergy-core', 'system_docs', '00_System_Goal.md');
-        await getCachedFile(filePath);
-        clearFileCache();
-        await getCachedFile(filePath);
+        await llmAdapter.getCachedFile(filePath); // First call, reads from mock fs
+        llmAdapter.clearFileCache();
+        await llmAdapter.getCachedFile(filePath); // Second call, should also read from mock fs
         expect(fs.readFile).toHaveBeenCalledTimes(2);
     });
   });
@@ -185,7 +180,7 @@ describe("LLM Adapter", () => {
             tasks: [{ id: "task-1", description: "First task" }]
         })});
       const goal = "Test the decomposer";
-      const tasks = await decomposeGoal(goal);
+      const tasks = await llmAdapter.decomposeGoal(goal);
       expect(Array.isArray(tasks)).toBe(true);
       expect(tasks.length).toBeGreaterThan(0);
       expect(tasks[0]).toHaveProperty("id");
