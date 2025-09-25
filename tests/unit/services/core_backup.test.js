@@ -1,41 +1,25 @@
 import { mock, describe, test, expect, beforeEach } from 'bun:test';
-
-// Mock dependencies using the ESM-compatible API
-mock.module("fs-extra", () => ({
-  default: {
-    pathExists: mock(),
-    ensureDir: mock(),
-    readdir: mock(),
-    remove: mock(),
-    existsSync: mock(),
-    stat: mock(),
-  },
-}));
-mock.module("child_process", () => ({
-  exec: mock(),
-}));
+import fs from "fs-extra";
+import { exec } from "child_process";
+import { CoreBackup } from "../../../services/core_backup.js";
 
 describe("CoreBackup Service", () => {
-  let CoreBackup;
-  let fs;
-  let exec;
   let coreBackup;
 
-  beforeEach(async () => {
-    // Dynamically import modules to get mocked versions
-    CoreBackup = (await import("../../../services/core_backup.js")).CoreBackup;
-    fs = (await import("fs-extra")).default;
-    exec = (await import("child_process")).exec;
-
-    coreBackup = new CoreBackup();
+  beforeEach(() => {
+    // Reset all mocks before each test using the mock module's API
     mock.restore();
+    // We can also reset specific mocks if needed, but restore() is more thorough
+    fs.vol.reset(); // Clear the in-memory file system
+    
+    coreBackup = new CoreBackup();
   });
 
   describe("autoBackup", () => {
     test("should create a backup if .stigmergy-core exists", async () => {
       fs.pathExists.mockResolvedValue(true);
       exec.mockImplementation((command, callback) => callback(null, { stdout: "", stderr: "" }));
-      fs.readdir.mockResolvedValue([]); // No old backups to clean up
+      fs.readdir.mockResolvedValue([]);
 
       const backupPath = await coreBackup.autoBackup();
 
@@ -58,8 +42,7 @@ describe("CoreBackup Service", () => {
         fs.readdir.mockResolvedValue(mockBackups);
 
         await coreBackup.cleanupOldBackups();
-
-        // MAX_BACKUPS is 10, so 5 should be deleted
+        
         expect(fs.remove).toHaveBeenCalledTimes(5);
         expect(fs.remove).toHaveBeenCalledWith(expect.stringContaining("backup-0.tar.gz"));
       });
