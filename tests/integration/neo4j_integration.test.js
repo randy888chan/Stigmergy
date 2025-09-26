@@ -1,5 +1,5 @@
 import { SystemValidator } from '../../src/bootstrap/system_validator.js';
-import neo4j from 'neo4j-driver';
+import * as neo4j from 'neo4j-driver';
 
 // This test requires a running Neo4j instance.
 // It will be skipped if the connection fails, to avoid breaking the CI pipeline.

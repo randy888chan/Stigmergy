@@ -1,10 +1,10 @@
-import { mock, jest, describe, test, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 mock.module("../../../ai/providers.js", () => ({
-    getModelForTier: jest.fn(),
+    getModelForTier: mock(),
 }));
 mock.module("ai", () => ({
-  generateObject: jest.fn(),
+  generateObject: mock(),
 }));
 
 const { getModelForTier } = await import("../../../ai/providers.js");
@@ -17,7 +17,7 @@ const {
 
 describe("QA Tools", () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    mock.restore();
   });
 
   describe("verify_requirements", () => {
@@ -49,7 +49,7 @@ describe("QA Tools", () => {
   describe("run_tests_and_check_coverage", () => {
     test("should return passed if coverage is sufficient", async () => {
       const stdout = "All files | 95.5 | ...";
-      const mockExecPromise = jest.fn().mockResolvedValue({ stdout });
+      const mockExecPromise = mock().mockResolvedValue({ stdout });
       const result = await run_tests_and_check_coverage({ required_coverage: 90, execPromise: mockExecPromise });
       expect(result.passed).toBe(true);
       expect(result.feedback).toContain("95.5%");
@@ -57,14 +57,14 @@ describe("QA Tools", () => {
 
     test("should return failed if coverage is insufficient", async () => {
         const stdout = "All files | 75.0 | ...";
-        const mockExecPromise = jest.fn().mockResolvedValue({ stdout });
+        const mockExecPromise = mock().mockResolvedValue({ stdout });
         const result = await run_tests_and_check_coverage({ required_coverage: 90, execPromise: mockExecPromise });
         expect(result.passed).toBe(false);
         expect(result.feedback).toContain("75%");
       });
 
       test("should handle test execution failure", async () => {
-        const mockExecPromise = jest.fn().mockRejectedValue(new Error("Tests failed"));
+        const mockExecPromise = mock().mockRejectedValue(new Error("Tests failed"));
         const result = await run_tests_and_check_coverage({ execPromise: mockExecPromise });
         expect(result.passed).toBe(false);
         expect(result.feedback).toContain("Test execution failed: Tests failed");
@@ -72,7 +72,7 @@ describe("QA Tools", () => {
 
       test("should handle no coverage match in stdout", async () => {
         const stdout = "No coverage found";
-        const mockExecPromise = jest.fn().mockResolvedValue({ stdout });
+        const mockExecPromise = mock().mockResolvedValue({ stdout });
         const result = await run_tests_and_check_coverage({ execPromise: mockExecPromise });
         expect(result.passed).toBe(false);
         expect(result.feedback).toContain("Coverage of 0% is below");

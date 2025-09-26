@@ -1,8 +1,10 @@
 import fs from "fs-extra";
 import path from "path";
 import { CoreBackup } from "../services/core_backup.js";
-const coreBackup = new CoreBackup();
 import { validateAgents } from "../cli/commands/validate.js";
+
+// Create a default instance
+const defaultCoreBackup = new CoreBackup();
 
 // ===================================================================
 // == Guardian Tools (@guardian) - High Privilege, System Modifying ==
@@ -10,11 +12,12 @@ import { validateAgents } from "../cli/commands/validate.js";
 
 /**
  * Creates a new backup of the .stigmergy-core directory.
+ * @param {CoreBackup} coreBackupInstance - Optional CoreBackup instance for testing
  * @returns {Promise<string>} Confirmation message.
  */
-export async function backup() {
+export async function backup(coreBackupInstance = defaultCoreBackup) {
   console.log("[Core Tools] Guardian is creating a system backup...");
-  const backupPath = await coreBackup.autoBackup();
+  const backupPath = await coreBackupInstance.autoBackup();
   if (backupPath) {
     return `Core backup created successfully at ${backupPath}`;
   }
@@ -58,10 +61,11 @@ export async function applyPatch({ filePath, content }) {
 
 /**
  * Restores the .stigmergy-core from the latest backup.
+ * @param {CoreBackup} coreBackupInstance - Optional CoreBackup instance for testing
  * @returns {Promise<string>} Confirmation message.
  */
-export async function restore() {
-    if (await coreBackup.restoreLatest()) {
+export async function restore(coreBackupInstance = defaultCoreBackup) {
+    if (await coreBackupInstance.restoreLatest()) {
         return "Core restored successfully from latest backup.";
     }
     throw new Error("Core restore failed.");

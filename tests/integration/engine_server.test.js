@@ -1,6 +1,4 @@
-/**
- * @jest-environment node
- */
+import { mock, describe, it, expect, beforeAll, afterAll } from 'bun:test';
 import { Engine } from '../../engine/server.js';
 import axios from 'axios';
 import { JSDOM } from 'jsdom';
@@ -15,12 +13,12 @@ describe.skip('Engine Server', () => {
   beforeAll(async () => {
     engine = new Engine();
     // Mock the triggerAgent method to return a predictable response
-    engine.triggerAgent = jest.fn().mockResolvedValue({ 
+    engine.triggerAgent = mock().mockResolvedValue({ 
       toolCall: { tool: 'log', args: { message: 'Hello back!' } } 
     });
     
     // Mock the initialize method to avoid complex initialization
-    engine.initialize = jest.fn().mockResolvedValue(true);
+    engine.initialize = mock().mockResolvedValue(true);
     
     await engine.initialize();
     

@@ -1,4 +1,4 @@
-import { jest, describe, test, expect, beforeEach } from '@jest/globals';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 import { createExecutionGraph } from "../../engine/execution_graph.js";
 
 describe("Execution Team Graph", () => {
@@ -7,7 +7,7 @@ describe("Execution Team Graph", () => {
 
   beforeEach(() => {
     // Mock the triggerAgent function
-    triggerAgent = jest.fn();
+    triggerAgent = mock();
     // Create a new graph for each test
     executionGraph = createExecutionGraph(triggerAgent);
   });

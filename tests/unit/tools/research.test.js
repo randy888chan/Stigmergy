@@ -1,14 +1,14 @@
-import { mock, jest, describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock dependencies using the ESM-compatible API
 mock.module("@mendable/firecrawl-js", () => ({
-  default: jest.fn(),
+  default: mock(),
 }));
 mock.module("ai", () => ({
-  generateObject: jest.fn(),
+  generateObject: mock(),
 }));
-mock.module('fs-extra', () => {
-  const memfs = require('memfs'); // Use require here for the in-memory file system
+mock.module('fs-extra', async () => {
+  const memfs = await import('memfs'); // Use ESM import for the in-memory file system
   return {
     ...memfs.fs, // Spread the entire in-memory fs library
     __esModule: true, // Mark as an ES Module
@@ -18,14 +18,14 @@ mock.module('fs-extra', () => {
     // Add default export for compatibility
     default: {
         ...memfs.fs,
-        readFile: jest.fn(),
+        readFile: mock(),
         ensureDir: memfs.fs.mkdir.bind(null, { recursive: true }),
         pathExists: memfs.fs.exists.bind(null),
     }
   };
 });
 mock.module("../../../ai/providers.js", () => ({
-  getModelForTier: jest.fn(),
+  getModelForTier: mock(),
 }));
 
 describe("Research Tools", () => {
@@ -61,8 +61,8 @@ describe("Research Tools", () => {
   describe("deep_dive", () => {
     test("should use Archon if available", async () => {
         const mockAxios = {
-            get: jest.fn().mockResolvedValue({ status: 200, data: { status: "healthy" } }),
-            post: jest.fn().mockResolvedValue({ data: { results: [{ url: "test.com", content: "Archon content" }] } }),
+            get: mock().mockResolvedValue({ status: 200, data: { status: "healthy" } }),
+            post: mock().mockResolvedValue({ data: { results: [{ url: "test.com", content: "Archon content" }] } }),
         };
       generateObject.mockResolvedValue({ object: { newLearnings: ["learning"], next_research_queries: ["query"] } });
 
@@ -75,9 +75,9 @@ describe("Research Tools", () => {
 
     test("should fall back to Firecrawl if Archon health check fails", async () => {
         const mockAxios = {
-            get: jest.fn().mockRejectedValue(new Error("Network error")),
+            get: mock().mockRejectedValue(new Error("Network error")),
         };
-        const mockFirecrawlClient = { search: jest.fn().mockResolvedValue({ data: [{ url: "fire.com", markdown: "Firecrawl content" }] }) };
+        const mockFirecrawlClient = { search: mock().mockResolvedValue({ data: [{ url: "fire.com", markdown: "Firecrawl content" }] }) };
         FirecrawlApp.mockImplementation(() => mockFirecrawlClient);
         generateObject.mockResolvedValue({ object: { query: "search", newLearnings: ["learning"], next_research_queries: ["query"] } });
 
@@ -90,7 +90,7 @@ describe("Research Tools", () => {
 
       test("should handle research failure gracefully", async () => {
         const mockAxios = {
-            get: jest.fn().mockRejectedValue(new Error("Network error")),
+            get: mock().mockRejectedValue(new Error("Network error")),
         };
         FirecrawlApp.mockImplementation(() => {
             throw new Error("Firecrawl client error");

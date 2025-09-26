@@ -1,24 +1,29 @@
 import { appendFile, readFile, writeFile, listFiles } from "../../tools/file_system.js";
-import fs from "fs-extra";
 import path from "path";
 
 describe("File System Tools Integration", () => {
+  let fs;
   const testDir = path.resolve(process.cwd(), "docs", "fs_test");
   const testFilePath = path.join(testDir, "test.txt");
   const nestedDir = path.join(testDir, "nested");
   const nestedFilePath = path.join(nestedDir, "nested.txt");
 
   beforeAll(async () => {
+    fs = (await import("fs-extra")).default;
     await fs.ensureDir(nestedDir);
   });
 
   beforeEach(async () => {
-    await fs.emptyDir(testDir);
-    await fs.ensureDir(nestedDir);
+    if (fs) {
+      await fs.emptyDir(testDir);
+      await fs.ensureDir(nestedDir);
+    }
   });
 
   afterAll(async () => {
-    await fs.remove(testDir);
+    if (fs) {
+      await fs.remove(testDir);
+    }
   });
 
   describe('writeFile and readFile', () => {

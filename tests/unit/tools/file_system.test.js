@@ -1,18 +1,22 @@
-import { jest, describe, it, expect, beforeEach, mock } from 'bun:test';
+import { mock, describe, it, expect, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import { resolvePath } from '../../../tools/file_system.js';
-
-mock.module('glob', () => ({
-    glob: jest.fn(),
-}));
 
 describe('resolvePath', () => {
   let mockFs;
 
   beforeEach(() => {
+    mock.module('glob', () => ({
+      glob: mock(),
+    }));
+    
     mockFs = {
-      statSync: jest.fn(),
+      statSync: mock(),
     };
+  });
+  
+  afterEach(() => {
+    mock.restore();
   });
 
   it('should resolve a safe path correctly', () => {

@@ -1,22 +1,21 @@
 import { mock, describe, test, expect, afterEach, beforeEach } from 'bun:test';
 
-// Mock dependencies using the ESM-compatible API
-mock.module('../../../tools/core_tools.js', () => ({
-  createStructuredResponse: mock((data) => data),
-  analyzeTaskExecutionStrategy: mock(),
-}));
-
-mock.module('../../../engine/state_manager.js', () => ({
-  initializeProject: mock().mockResolvedValue({}),
-}));
-
-
 describe('Chat Interface Tool', () => {
   let stateManager;
   let coreTools;
   let process_chat_command;
 
   beforeEach(async () => {
+    // Mock only the specific functions we need for this test
+    mock.module('../../../tools/core_tools.js', () => ({
+      createStructuredResponse: mock((data) => data),
+      analyzeTaskExecutionStrategy: mock(),
+    }));
+
+    mock.module('../../../engine/state_manager.js', () => ({
+      initializeProject: mock().mockResolvedValue({}),
+    }));
+
     // Dynamically import modules to get the mocked versions
     stateManager = await import('../../../engine/state_manager.js');
     coreTools = await import('../../../tools/core_tools.js');

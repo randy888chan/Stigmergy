@@ -1,4 +1,4 @@
-import { jest, describe, test, expect } from 'bun:test';
+import { mock, describe, test, expect } from 'bun:test';
 const { execute } = await import("../../../tools/shell.js");
 
 
@@ -9,7 +9,7 @@ describe("Shell Tool", () => {
   };
 
   test("should execute a permitted command successfully", async () => {
-    const mockExecPromise = jest.fn().mockResolvedValue({ stdout: "mocked output", stderr: "" });
+    const mockExecPromise = mock().mockResolvedValue({ stdout: "mocked output", stderr: "" });
 
     const result = await execute({
       command: "echo 'Hello World'",
@@ -23,7 +23,7 @@ describe("Shell Tool", () => {
   test("should handle execution failure of a permitted command", async () => {
     const error = new Error("Command failed");
     error.stderr = "Error details";
-    const mockExecPromise = jest.fn().mockRejectedValue(error);
+    const mockExecPromise = mock().mockRejectedValue(error);
 
     const result = await execute({
       command: "failingcommand",
@@ -53,7 +53,7 @@ describe("Shell Tool", () => {
       alias: "test-agent",
       permitted_shell_commands: ["echo.*"], // Allow echo commands
     };
-    const mockExecPromise = jest.fn().mockImplementation(async (command) => {
+    const mockExecPromise = mock().mockImplementation(async (command) => {
         const output = command.replace("echo ", "").replace(/'/g, "");
         return { stdout: output, stderr: "" };
     });

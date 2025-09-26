@@ -1,14 +1,23 @@
-/**
- * @jest-environment node
- */
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { Engine } from '../../engine/server.js';
 import { WebSocket } from 'ws';
-import { jest } from '@jest/globals';
 
 const PORT = 3013; // Use a fresh port
 
 // Mock the initialize method to avoid external dependencies like API key checks
-jest.spyOn(Engine.prototype, 'initialize').mockResolvedValue(true);
+mock.module('../../engine/server.js', async () => {
+  const originalModule = await import('../../engine/server.js');
+  
+  // Create a mock Engine class that extends the original
+  class MockEngine extends originalModule.Engine {
+    initialize = mock().mockResolvedValue(true);
+  }
+  
+  return {
+    ...originalModule,
+    Engine: MockEngine
+  };
+});
 
 describe.skip('Interactive Engine Commands via WebSocket', () => {
   let engine;

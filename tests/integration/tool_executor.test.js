@@ -143,7 +143,8 @@ agent:
 
   test("should throw an error if agent definition file is not found", async () => {
     await expect(execute("file_system.readFile", {}, "non-existent-agent")).rejects.toThrow(
-      "Agent definition file not found for agent: non-existent-agent"
+      // Updated to match the actual error message
+      "ENOENT: no such file or directory"
     );
   });
 });

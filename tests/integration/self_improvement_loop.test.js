@@ -1,6 +1,11 @@
 import { get_failure_patterns } from "../../tools/swarm_intelligence_tools.js";
-import fs from "fs-extra";
 import path from "path";
+
+let fs;
+
+beforeAll(async () => {
+  fs = (await import("fs-extra")).default;
+});
 
 describe("Self-Improvement Loop Tools", () => {
   const tempDir = path.resolve(process.cwd(), ".ai", "test_temp_memory_loop");

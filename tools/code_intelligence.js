@@ -6,7 +6,7 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import * as fs from 'fs-extra';
 import path from 'path';
-import neo4j from 'neo4j-driver';
+import * as neo4j from 'neo4j-driver';
 
 // Neo4j driver for reference pattern queries
 let driver;

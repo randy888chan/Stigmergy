@@ -1,12 +1,12 @@
-import { mock, describe, it, expect, beforeEach, jest } from 'bun:test';
+import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
 const cache = new Map();
 const mockCacheInstance = {
-    get: jest.fn((key) => cache.get(key)),
-    set: jest.fn((key, value) => cache.set(key, value)),
-    flushAll: jest.fn(() => cache.clear()),
+    get: mock((key) => cache.get(key)),
+    set: mock((key, value) => cache.set(key, value)),
+    flushAll: mock(() => cache.clear()),
 };
-const mockNodeCache = jest.fn().mockImplementation(() => mockCacheInstance);
+const mockNodeCache = mock().mockImplementation(() => mockCacheInstance);
 
 mock.module('node-cache', () => ({
     default: mockNodeCache,
@@ -27,7 +27,7 @@ describe('cachedQuery', () => {
       mockCacheInstance.flushAll.mockClear();
       cache.clear();
 
-      queryFn = jest.fn();
+      queryFn = mock();
     });
 
     it('should call the query function when the cache is empty', async () => {

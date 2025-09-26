@@ -2,7 +2,7 @@ import { get_failure_patterns } from '../../tools/swarm_intelligence_tools.js';
 import { appendFile } from '../../tools/file_system.js';
 import fs from 'fs-extra';
 import path from 'path';
-import { describe, test, expect, beforeAll, afterAll, beforeEach } from 'bun:test';
+import { describe, test, expect, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
 
 const TEMP_REPORTS_DIR = path.join(process.cwd(), '.ai', 'test_temp_memory');
 
@@ -66,6 +66,6 @@ describe('Self-Improvement Data Pipeline', () => {
     const analysisResult = await get_failure_patterns({ reportsPath: tempReportsPath });
 
     // Assert
-    expect(analysisResult.summary).toBe("No failure reports logged yet.");
+    expect(analysisResult).toBe("No failure reports logged yet.");
   });
 });

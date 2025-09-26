@@ -24,8 +24,8 @@ describe("Hybrid Archon Tool", () => {
   });
 
   it("should use Archon RAG when the server is healthy", async () => {
-    axios.get.mockResolvedValue({ status: 200, data: { status: "healthy" } });
-    axios.post.mockResolvedValue({ data: { results: [{ content: "Archon Result" }] } });
+    axios.get.mockResolvedValueOnce({ status: 200, data: { status: "healthy" } });
+    axios.post.mockResolvedValueOnce({ data: { results: [{ content: "Archon Result" }] } });
 
     await archonQuery({ query: "test" });
 
@@ -37,7 +37,7 @@ describe("Hybrid Archon Tool", () => {
   });
 
   it("should fall back to native research when Archon server fails", async () => {
-    axios.get.mockRejectedValue(new Error("Network error"));
+    axios.get.mockRejectedValueOnce(new Error("Network error"));
 
     await archonQuery({ query: "test" });
 

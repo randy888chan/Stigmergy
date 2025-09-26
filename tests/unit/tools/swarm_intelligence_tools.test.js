@@ -1,7 +1,7 @@
-import { mock, jest, describe, test, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
 
 mock.module("fs/promises", () => ({
-    readFile: jest.fn(),
+    readFile: mock(),
 }));
 
 const { readFile } = await import("fs/promises");
