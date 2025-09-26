@@ -1,6 +1,6 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
-import { generateObject } from "ai";
-import { getModelForTier } from "../ai/providers.js";
+import { generateObject as defaultGenerateObject } from "ai";
+import { getAiProviders } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
 import chalk from "chalk";
@@ -8,6 +8,7 @@ import fs from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
 import defaultAxios from "axios";
+import config from "../stigmergy.config.js"; // Import config
 
 const ARCHON_API_URL = "http://localhost:8181/api";
 
@@ -46,7 +47,7 @@ function getFirecrawlClient() {
   return firecrawl;
 }
 
-export async function deep_dive({ query, learnings = [], axios = defaultAxios }) {
+export async function deep_dive({ query, learnings = [], axios = defaultAxios }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) { { 
   const isArchonRunning = await healthCheck(axios);
 
   if (isArchonRunning) {
@@ -55,41 +56,18 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios })
       const response = await axios.post(`${ARCHON_API_URL}/rag/query`, { query, match_count: 10 });
 
       const allContent = response.data.results
-        .map((item) => `Source: ${item.url}\n\n${item.markdown || item.content}`)
-        .join("\n\n---\n\n");
+        .map((item) => `Source: ${item.url}\n        \n${item.markdown || item.content}`)
+        .join("\n        \n---\n        \n");
 
-      const synthesis = await generateObject({
-        model: getModelForTier('b_tier'),
+      const { object } = await generateObject({
+        model: getModelForTier('b_tier', config), // Pass config
         system: await getResearchPrompt(),
-        prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
-    ---
-    CONTENT:
-    ${allContent}`,
+        prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.\n    ---\n    CONTENT:\n    ${allContent}`,
         schema: z.object({
-          newLearnings: z
-            .array(z.string())
-            .describe("A list of key insights and facts discovered."),
-          next_research_queries: z
-            .array(z.string())
-            .describe("A list of new, more focused search queries to continue the research."),
+          synthesis: z.string(),
+          new_queries: z.array(z.string()),
         }),
       });
-
-      const visitedUrls = response.data.results.map((item) => item.url);
-
-      return {
-        new_learnings: synthesis.object.newLearnings,
-        next_research_queries: synthesis.object.next_research_queries,
-        sources: visitedUrls,
-      };
-    } catch (error) {
-      console.error(
-        chalk.yellow(`[Research Tool] Archon query failed, falling back to Firecrawl:`),
-        error.message
-      );
-      // Fall through to Firecrawl logic
-    }
-  }
 
   // --- Fallback to Firecrawl ---
   console.log(
@@ -98,16 +76,9 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios })
   try {
     const client = getFirecrawlClient();
     const serpGen = await generateObject({
-      model: getModelForTier('b_tier'),
+      model: getModelForTier('b_tier', config), // Pass config
       system: await getResearchPrompt(),
-      prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
-    ---
-    PRIMARY GOAL: ${query}
-    ---
-    EXISTING LEARNINGS:
-    ${learnings.join("\n") || "No learnings yet."}
-    ---
-    What is the next single most important question to answer?`,
+      prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.\n    ---\n    PRIMARY GOAL: ${query}\n    ---\n    EXISTING LEARNINGS:\n    ${learnings.join("\n") || "No learnings yet."}\n    ---\n    What is the next single most important question to answer?`,
       schema: z.object({
         query: z.string().describe("The single best search query to run next."),
       }),
@@ -125,12 +96,9 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios })
       .join("\n\n---\n\n");
 
     const synthesis = await generateObject({
-      model: getModelForTier('b_tier'),
+      model: getModelForTier('b_tier', config), // Pass config
       system: await getResearchPrompt(),
-      prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
-    ---
-    CONTENT:
-    ${allContent}`,
+      prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.\n    ---\n    CONTENT:\n    ${allContent}`,
       schema: z.object({
         newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
         next_research_queries: z
@@ -152,7 +120,7 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios })
       error.message
     );
     return {
-      thought: `The research tool failed to execute the deep dive due to an external error: ${error.message}. Returning empty results to allow the system to proceed.`,
+      thought: `The research tool failed to execute the deep dive due to an external error: ${error.message}. Returning empty results to allow the system to proceed.`, 
       new_learnings: [],
       next_research_queries: [],
       sources: [],
@@ -166,10 +134,10 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios })
  * @param {string} args.research_data - Text content from market research, user interviews, etc.
  * @returns {Promise<{personas: object[], pain_points: string[]}>}
  */
-export async function analyze_user_feedback({ research_data }) {
+export async function analyze_user_feedback({ research_data }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) {
   console.log("[Research] Analyzing user feedback to extract personas and pain points...");
   const { object } = await generateObject({
-    model: getModelForTier('b_tier'),
+    model: getModelForTier('b_tier', config), // Pass config
     prompt: `You are a UX researcher. From the following research data, identify the primary user personas and their key pain points.
         ---
         RESEARCH DATA:

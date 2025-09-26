@@ -1,9 +1,16 @@
-import fs from 'fs-extra';
-import path from 'path';
+// Global teardown script that runs once after all tests
+import { rm } from 'fs/promises';
+import { join } from 'path';
 
-const TEST_TEMP_DIR = path.resolve(process.cwd(), '.stigmergy-core-test-temp');
-
-if (fs.existsSync(TEST_TEMP_DIR)) {
-  fs.removeSync(TEST_TEMP_DIR);
-  console.log(`[Global Teardown] Removed test directory: ${TEST_TEMP_DIR}`);
+// Delete the temporary directory created by setup.js
+export default async function teardown() {
+  const tempCoreDir = join(process.cwd(), '.stigmergy-core-test');
+  
+  try {
+    await rm(tempCoreDir, { recursive: true, force: true });
+    console.log('Global teardown completed: Removed temporary .stigmergy-core-test directory');
+  } catch (error) {
+    console.error('Error during global teardown:', error);
+    // Don't throw here as it shouldn't fail the test suite
+  }
 }

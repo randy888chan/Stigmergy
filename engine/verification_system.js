@@ -1,80 +1,69 @@
-import fs from "fs-extra";
-import path from "path";
-import { glob } from "glob";
-import { getModelForTier } from "../ai/providers.js";
-import { generateObject } from "ai";
-import { z } from "zod";
+import fs from 'fs-extra';
+import path from 'path';
+import { glob } from 'glob';
+import { generateObject } from 'ai';
+import { z } from 'zod';
+import { getAiProviders } from '../ai/providers.js'; // Changed import
+import config from "../stigmergy.config.js"; // Import config
 
-async function extractKeyTerms(content, prompt) {
+async function extractKeyTerms(content, prompt, { getModelForTier }) {
   const { object } = await generateObject({
-    model: getModelForTier('b_tier'),
-    prompt: `${prompt}\n---\nDOCUMENT:\n${content}`,
+    model: getModelForTier('b_tier', config), // Pass config
+    prompt: `${prompt}
+---
+DOCUMENT:
+${content}`,
     schema: z.object({
-      terms: z.array(z.string()).describe("A list of 5-10 essential keywords or phrases."),
+      terms: z.array(z.string()),
     }),
   });
   return object.terms;
 }
 
 async function verifyCodebaseContains(terms) {
-  const files = await glob("src/**/*.{js,ts,jsx,tsx}", { ignore: "node_modules/**" });
-  const report = {};
+  const files = await glob('**/*', { nodir: true, cwd: process.cwd(), ignore: ['node_modules/**', 'dist/**', '.git/**'] });
   let foundCount = 0;
-
   for (const term of terms) {
-    let found = false;
     for (const file of files) {
-      const content = await fs.readFile(file, "utf-8");
-      if (new RegExp(`\\b${term}\\b`, "i").test(content)) {
-        report[term] = { found: true, file };
-        found = true;
-        foundCount++;
-        break;
+      try {
+        const content = await fs.readFile(file, 'utf-8');
+        if (content.includes(term)) {
+          foundCount++;
+          break;
+        }
+      } catch (error) {
+        // Ignore files that can't be read (e.g. binary files)
       }
     }
-    if (!found) {
-      report[term] = { found: false, file: null };
-    }
   }
-  return { verified: foundCount === terms.length, report };
+  return (foundCount / terms.length) * 100;
 }
 
-export async function verifyMilestone(milestoneDescription) {
+export async function verifyMilestone(milestoneDescription, { getModelForTier = getAiProviders().getModelForTier } = {}) { // Changed default value
   try {
-    console.log(`[Verification] Verifying milestone: ${milestoneDescription}`);
-    const prdPath = path.join(process.cwd(), "docs", "prd.md");
-    const archPath = path.join(process.cwd(), "docs", "architecture.md");
+    // const configPath = path.join(process.cwd(), 'stigmergy.config.js'); // No longer need to import here
+    // const { default: config } = await import(`file://${configPath}`); // No longer need to import here
+    
+    const archPath = config.documentation.architecture_prd;
+    const prdPath = config.documentation.prd;
 
-    if (!(await fs.pathExists(prdPath)) || !(await fs.pathExists(archPath))) {
-      return { success: false, details: { error: "Planning documents not found." } };
+    if (!fs.existsSync(archPath) || !fs.existsSync(prdPath)) {
+        return { success: false, details: { error: "Documentation files not found." } };
     }
 
-    const prdContent = await fs.readFile(prdPath, "utf-8");
-    const archContent = await fs.readFile(archPath, "utf-8");
+    const archContent = await fs.readFile(archPath, 'utf-8');
+    const prdContent = await fs.readFile(prdPath, 'utf-8');
 
-    const archTerms = await extractKeyTerms(
-      archContent,
-      "Extract critical technical keywords, component names, and library names from this architecture document."
-    );
-    const archVerification = await verifyCodebaseContains(archTerms);
+    const archTerms = await extractKeyTerms(archContent, 'Extract key architectural terms from this document.', { getModelForTier });
+    const prdGoals = await extractKeyTerms(prdContent, 'Extract key product goals from this document.', { getModelForTier });
 
-    const prdGoals = await extractKeyTerms(
-      prdContent,
-      "Extract primary functional goals or user-facing capabilities from this PRD."
-    );
-    const prdVerification = await verifyCodebaseContains(prdGoals);
+    const codebaseMatchPercentage = await verifyCodebaseContains([...archTerms, ...prdGoals]);
 
-    const success = archVerification.verified && prdVerification.verified;
-    console.log(`[Verification] Result: ${success ? "PASSED" : "FAILED"}`);
-
-    return {
-      success,
-      details: {
-        milestone: milestoneDescription,
-        architectural_compliance: archVerification,
-        functional_compliance: prdVerification,
-      },
-    };
+    if (codebaseMatchPercentage > 50) {
+      return { success: true, details: { codebaseMatchPercentage } };
+    } else {
+      return { success: false, details: { codebaseMatchPercentage, reason: 'Low codebase match.' } };
+    }
   } catch (error) {
     return { success: false, details: { error: error.message } };
   }

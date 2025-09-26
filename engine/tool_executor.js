@@ -28,6 +28,9 @@ import { query_deepwiki } from "../services/deepwiki_mcp.js";
 import { clearFileCache } from "./llm_adapter.js";
 import ErrorHandler, { OperationalError } from "../utils/errorHandler.js";
 import { trackToolUsage } from "../services/model_monitoring.js";
+
+// Import the new AI providers function
+import { getAiProviders } from "../ai/providers.js";
 import trajectoryRecorder from "../services/trajectory_recorder.js";
 
 function getCorePath() {
@@ -129,6 +132,8 @@ async function triggerContextSummarization(toolName, args, agentId, engine) {
 }
 
 export function createExecutor(engine) {
+  const ai = getAiProviders(); // GET THE AI FUNCTIONS ONCE
+  
   const toolbelt = {
     file_system: fileSystem,
     shell,
@@ -233,7 +238,7 @@ export function createExecutor(engine) {
         }
       });
 
-      const result = await toolbelt[namespace][funcName]({ ...safeArgs, agentConfig });
+      const result = await toolbelt[namespace][funcName]({ ...safeArgs, agentConfig, ai });
 
       await trackToolUsage({
         toolName,

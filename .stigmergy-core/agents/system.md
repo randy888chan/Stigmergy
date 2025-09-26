@@ -18,4 +18,6 @@ agent:
   engine_tools:
     - "chat_interface.process_chat_command"
     - "stigmergy.task"
+    - "system.run_health_check"
+    - "system.run_validation"
 ```

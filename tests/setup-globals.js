@@ -1,18 +1,12 @@
-import path from 'path';
-import { TextEncoder, TextDecoder } from 'util';
+// Setup script that runs before each test file
+// Sets a global configuration variable that points to the temporary .stigmergy-core directory
 
-// Polyfill for TextEncoder and TextDecoder which are not available in Bun's test environment
-global.TextEncoder = TextEncoder;
-global.TextDecoder = TextDecoder;
-
-const TEST_TEMP_DIR = path.resolve(process.cwd(), '.stigmergy-core-test-temp');
-
-// Set a global config for tests to use the temporary directory
-global.StigmergyConfig = {
-  core_path: TEST_TEMP_DIR,
-  paths: {
-    root: TEST_TEMP_DIR,
-    agents: path.join(TEST_TEMP_DIR, 'agents'),
-    system_docs: path.join(TEST_TEMP_DIR, 'system_docs'),
-  }
+// Set the global test configuration
+global.testConfig = {
+  stigmergyCoreDir: '.stigmergy-core-test',
+  isTestEnvironment: true
 };
+
+// You can also set environment variables for tests
+process.env.NODE_ENV = 'test';
+process.env.STIGMERGY_CORE_DIR = '.stigmergy-core-test';

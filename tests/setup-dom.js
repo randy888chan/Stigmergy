@@ -1,3 +1,5 @@
+// Setup script that runs before each test file to create a fake browser environment
 import { GlobalRegistrator } from '@happy-dom/global-registrator';
-// This creates the fake window and document objects needed by React's testing library.
+
+// Register the global DOM environment
 GlobalRegistrator.register();

@@ -1,3 +1,8 @@
+[test.mocks]
+# This line tells Bun: "Any time a test file tries to import
+# 'ai/providers.js', give it our fake one from 'tests/mocks' instead."
+"ai/providers.js" = "/Users/user/Documents/GitHub/Stigmergy/tests/mocks/ai-providers.js"
+
 [test]
 # These two files will run BEFORE every test file.
 # setup-globals.js creates our temporary test directory.
@@ -7,3 +12,6 @@ preload = ["./tests/setup-globals.js", "./tests/setup-dom.js"]
 # These point to the scripts that run once before and after the entire test suite.
 setup = "./tests/setup.js"
 teardown = "./tests/teardown.js"
+
+# Directory pattern to search for tests - limit to our new tests directory
+dir = ["./tests"]

@@ -1,8 +1,7 @@
 // Enhanced QA Tools for Stigmergy with TDD Enforcement and Static Analysis
 import * as fs from 'fs-extra';
 import path from 'path';
-import { getModelForTier } from "../ai/providers.js";
-import { generateObject } from "ai";
+import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -362,19 +361,23 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
 
 // Legacy QA tools for backward compatibility
 
-export async function verify_requirements({ requirements, code }) {
+export async function verify_requirements({ requirements, code, ai, generateObject = defaultGenerateObject }) {
   const { object } = await generateObject({
-    model: getModelForTier('b_tier'),
-    prompt: `Does the code satisfy all requirements? Respond with a boolean and feedback. Requirements: ${requirements}\n\nCode: ${code}`,
+    model: ai.getModelForTier('b_tier'),
+    prompt: `Does the code satisfy all requirements? Respond with a boolean and feedback. Requirements: ${requirements}
+
+Code: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
   });
   return object;
 }
 
-export async function verify_architecture({ architecture_blueprint, code }) {
+export async function verify_architecture({ architecture_blueprint, code, ai, generateObject = defaultGenerateObject }) {
   const { object } = await generateObject({
-    model: getModelForTier('b_tier'),
-    prompt: `Does the code adhere to the blueprint? Blueprint: ${architecture_blueprint}\n\nCode: ${code}`,
+    model: ai.getModelForTier('b_tier'),
+    prompt: `Does the code adhere to the blueprint? Blueprint: ${architecture_blueprint}
+
+Code: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
   });
   return object;

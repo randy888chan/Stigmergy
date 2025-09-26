@@ -1,8 +1,7 @@
-import { describe, test, expect } from 'bun:test';
-import { t, localizeError } from '../../../utils/localization.js';
+import { t, localizeError } from '../../utils/localization.js';
 
-// Basic unit test for localization utility
-describe('Localization Utilities', () => {
+// Basic unit test to verify the test environment is working
+describe('Localization utilities', () => {
   test('should translate error messages', () => {
     expect(t('no_neo4j', 'en')).toBe('Neo4j database not running');
     expect(t('no_neo4j', 'es')).toBe('Base de datos Neo4j no está en ejecución');

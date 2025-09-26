@@ -1,61 +1,67 @@
-import { mock, describe, test, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect } from 'bun:test';
 
-// Mock dependencies before importing the actual modules
-mock.module("../../../ai/providers.js", () => ({
-  getModelForTier: mock(),
-}));
-mock.module("ai", () => ({
-  generateObject: mock(),
-}));
+// Import the business verification tools module
+import { generate_financial_projections, perform_business_valuation } from '../../../tools/business_verification.js';
 
-describe("Business Verification Tools", () => {
-  let getModelForTier;
-  let generateObject;
-  let generate_financial_projections;
-  let perform_business_valuation;
-
-  beforeEach(async () => {
-    // Dynamically import modules inside beforeEach to use the mocked versions
-    getModelForTier = (await import("../../../ai/providers.js")).getModelForTier;
-    generateObject = (await import("ai")).generateObject;
-    const businessTools = await import("../../../tools/business_verification.js");
-    generate_financial_projections = businessTools.generate_financial_projections;
-    perform_business_valuation = businessTools.perform_business_valuation;
-
-    // Clear mocks before each test
-    mock.restore();
-  });
-
-  describe("generate_financial_projections", () => {
-    test("should call generateObject and return its result", async () => {
-      const mockResponse = {
-        projections: [{ year: 1, revenue: "100k", cogs: "20k", opex: "30k", net_profit: "50k" }],
-        summary: "Looks good",
-      };
-      generateObject.mockResolvedValue({ object: mockResponse });
-
-      const result = await generate_financial_projections({ business_plan_content: "A great plan" });
-
-      expect(getModelForTier).toHaveBeenCalledWith("b_tier");
-      expect(generateObject).toHaveBeenCalled();
-      expect(result).toEqual(mockResponse);
+describe('Business Verification Tools', () => {
+    test('should have all required business verification functions', () => {
+        expect(typeof generate_financial_projections).toBe('function');
+        expect(typeof perform_business_valuation).toBe('function');
     });
-  });
+    
+    test('generate_financial_projections should use the injected AI functions', async () => {
+        // Create simple, local mocks for the dependencies.
+        const mockGenerateObject = mock().mockResolvedValue({ 
+            object: { 
+                projections: [
+                    { year: 1, revenue: "100k", cogs: "50k", opex: "30k", net_profit: "20k" }
+                ],
+                summary: "test summary" 
+            } 
+        });
+        const mockGetModelForTier = mock(() => 'mock-model');
 
-  describe("perform_business_valuation", () => {
-    test("should call generateObject and return its result", async () => {
-        const mockResponse = {
-            swot_analysis: { strengths: [], weaknesses: [], opportunities: [], threats: [] },
-            qualitative_valuation: "It's valuable.",
-            estimated_value_range: "1M-2M"
+        const mockAiProvider = {
+            getModelForTier: mockGetModelForTier,
         };
-        generateObject.mockResolvedValue({ object: mockResponse });
 
-        const result = await perform_business_valuation({ business_plan_content: "A great plan" });
+        const result = await generate_financial_projections(
+          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject }
+        );
 
-        expect(getModelForTier).toHaveBeenCalledWith("b_tier");
-        expect(generateObject).toHaveBeenCalled();
-        expect(result).toEqual(mockResponse);
-      });
-  });
+        // Assert that our local mocks were called and the result has expected properties.
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
+        expect(result.projections).toBeDefined();
+        expect(result.summary).toBe("test summary");
+    });
+    
+    test('perform_business_valuation should use the injected AI functions', async () => {
+        // Create simple, local mocks for the dependencies.
+        const mockGenerateObject = mock().mockResolvedValue({ 
+            object: { 
+                swot_analysis: {
+                    strengths: ["strong team"],
+                    weaknesses: ["limited funding"],
+                    opportunities: ["market gap"],
+                    threats: ["competition"]
+                },
+                qualitative_valuation: "promising",
+                estimated_value_range: "$1M - $5M"
+            } 
+        });
+        const mockGetModelForTier = mock(() => 'mock-model');
+
+        const mockAiProvider = {
+            getModelForTier: mockGetModelForTier,
+        };
+
+        const result = await perform_business_valuation(
+          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject }
+        );
+
+        // Assert that our local mocks were called and the result has expected properties.
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
+        expect(result.swot_analysis).toBeDefined();
+        expect(result.qualitative_valuation).toBe("promising");
+    });
 });

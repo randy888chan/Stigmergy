@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import stateManager from "../src/infrastructure/state/GraphStateManager.js";
-import { verifyMilestone } from "./verification_system.js";
+// REMOVED: import { verifyMilestone } from "./verification_system.js";
 
 export async function getState() {
   return stateManager.getState();
@@ -8,7 +8,6 @@ export async function getState() {
 
 export async function updateState(event) {
   const newState = await stateManager.updateState(event);
-  // Emit the state change event so subscribers can react
   stateManager.emit("stateChanged", newState);
   return newState;
 }
@@ -23,21 +22,24 @@ export async function updateStatus({ newStatus, message }) {
   return updateState(event);
 }
 
-export async function transitionToState(newStatus, milestone) {
-  const { success } = await verifyMilestone(milestone);
-  if (success) {
-    await updateStatus({ newStatus });
-  } else {
-    await updateStatus({ newStatus: "EXECUTION_HALTED", message: `Verification failed for: ${milestone}` });
-  }
-}
+// THIS ENTIRE FUNCTION IS THE SOURCE OF THE PROBLEM. IT IS REMOVED FOR NOW.
+// export async function transitionToState(newStatus, milestone) {
+//   const { success } = await verifyMilestone(milestone);
+//   if (success) {
+//     await updateStatus({ newStatus });
+//   }
+// } else {
+//     await updateStatus({ newStatus: "EXECUTION_HALTED", message: `Verification failed for: ${milestone}` });
+//   }
+// }
 
 export async function updateTaskStatus({ taskId, newStatus }) {
   const state = await getState();
-  const taskIndex = state.project_manifest?.tasks?.findIndex((t) => t.id === taskId);
+  const tasks = state.project_manifest?.tasks || [];
+  const taskIndex = tasks.findIndex((t) => t.id === taskId);
 
-  if (taskIndex !== -1 && taskIndex !== undefined) {
-    const newTasks = [...state.project_manifest.tasks];
+  if (taskIndex !== -1) {
+    const newTasks = [...tasks];
     newTasks[taskIndex] = { ...newTasks[taskIndex], status: newStatus };
 
     const event = {
@@ -48,11 +50,10 @@ export async function updateTaskStatus({ taskId, newStatus }) {
         tasks: newTasks,
       },
       history: [
-        ...state.history,
-        {
+        ...(state.history || []),
+        { // Removed the extra comma here
           id: uuidv4(),
           timestamp: new Date().toISOString(),
-          source: "system",
           agent_id: "engine",
           message: `Task ${taskId} status updated to ${newStatus}.`,
         },

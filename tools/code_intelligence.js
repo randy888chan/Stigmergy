@@ -1,12 +1,13 @@
 import { CodeIntelligenceService } from "../services/code_intelligence_service.js";
 const codeIntelligenceService = new CodeIntelligenceService();
 import { cachedQuery } from "../utils/queryCache.js";
-import { getModelForTier } from "../ai/providers.js";
-import { generateObject } from "ai";
+import { getAiProviders } from "../ai/providers.js";
+import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 import * as fs from 'fs-extra';
 import path from 'path';
 import * as neo4j from 'neo4j-driver';
+import config from "../stigmergy.config.js"; // Import config
 
 // Neo4j driver for reference pattern queries
 let driver;
@@ -52,17 +53,17 @@ export async function get_full_codebase_context() {
       return "No code intelligence data found. The database may be empty or the initial indexing failed.";
     }
 
-    let summary = "Current Codebase Structure:\\n\\n";
+    let summary = "Current Codebase Structure:\n\n";
     results.forEach((record) => {
       const file = record.file;
       const members = record.members;
-      summary += `- File: ${file}\\n`;
+      summary += `- File: ${file}\n`;
       if (members.length > 0 && members[0].name) {
         members.forEach((member) => {
-          summary += `  - ${member.type}: ${member.name}\\n`;
+          summary += `  - ${member.type}: ${member.name}\n`;
         });
       } else {
-        summary += `  (No defined classes or functions found)\\n`;
+        summary += `  (No defined classes or functions found)\n`;
       }
     });
     return summary;
@@ -79,21 +80,23 @@ export async function get_full_codebase_context() {
  * @param {string} args.project_goal - The high-level project goal.
  * @returns {Promise<{is_suitable: boolean, pros: string[], cons: string[], recommendation: string}>}
  */
-export async function validate_tech_stack({ technology, project_goal }) {
+export async function validate_tech_stack({ technology, project_goal }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) {
   console.log(`[Code Intelligence] Validating tech: ${technology} for goal: ${project_goal}`);
   const { object } = await generateObject({
-    model: getModelForTier('b_tier'),
+    model: getModelForTier('b_tier', config), // Pass config
     prompt: `As a senior solutions architect, analyze the suitability of using "${technology}" for a project with the goal: "${project_goal}".
         Provide a concise analysis focusing on pros and cons. Conclude with a clear recommendation.`,
     schema: z.object({
-      is_suitable: z
-        .boolean()
-        .describe("Is this technology a suitable choice for the project goal?"),
+      is_suitable:
+        z
+          .boolean()
+          .describe("Is this technology a suitable choice for the project goal?"),
       pros: z.array(z.string()).describe("List 2-3 key advantages."),
       cons: z.array(z.string()).describe("List 2-3 key disadvantages or risks."),
-      recommendation: z
-        .string()
-        .describe("A final recommendation on whether to use this technology."),
+      recommendation:
+        z
+          .string()
+          .describe("A final recommendation on whether to use this technology."),
     }),
   });
   return object;
@@ -286,128 +289,14 @@ async function searchPatternsInCache({ query, language, type, limit }) {
  * Simple text similarity calculation
  */
 function calculateTextSimilarity(text1, text2) {
-  const words1 = text1.toLowerCase().split(/\s+/);
-  const words2 = text2.toLowerCase().split(/\s+/);
-  
-  const intersection = words1.filter(word => words2.includes(word));
-  const union = [...new Set([...words1, ...words2])];
-  
-  return intersection.length / union.length;
-}
-
-/**
- * NEW: Generate Technical Implementation Brief using found patterns
- * @param {object} args
- * @param {string} args.requirements - Project requirements
- * @param {string} args.context - Additional context
- * @param {number} args.patternLimit - Max patterns to include
- */
-export async function generate_implementation_brief({ requirements, context = '', patternLimit = 5 }) {
-  console.log(`[Code Intelligence] Generating implementation brief for: ${requirements}`);
-  
-  try {
-    // Extract key concepts from requirements
-    const keywords = extractKeywords(requirements + ' ' + context);
-    console.log('Extracted keywords:', keywords);
-    
-    // Find relevant patterns for each keyword
-    const allPatterns = [];
-    for (const keyword of keywords.slice(0, 3)) { // Limit to top 3 keywords
-      const patternResult = await find_reference_patterns({
-        query: keyword,
-        language: 'javascript',
-        limit: 3
-      });
-      
-      if (patternResult.success) {
-        allPatterns.push(...patternResult.patterns);
-      }
-    }
-    
-    // Remove duplicates and get top patterns
-    const uniquePatterns = allPatterns.filter((pattern, index, array) => 
-      array.findIndex(p => p.id === pattern.id) === index
-    ).slice(0, patternLimit);
-    
-    // Generate the brief using AI
-    const aiProvider = await import('../ai/providers.js');
-    if (aiProvider.default) {
-      const briefPrompt = `
-Create a Technical Implementation Brief based on these requirements and reference patterns:
-
-## Requirements:
-${requirements}
-
-## Context:
-${context}
-
-## Reference Patterns Found:
-${uniquePatterns.map(p => `
-### ${p.name} (${p.type})
-**Repository:** ${p.repository}
-**Complexity:** ${p.complexity}
-**Code:**
-\`\`\`${p.language}
-${p.code.substring(0, 500)}${p.code.length > 500 ? '...' : ''}
-\`\`\`
-`).join('\n')}
-
-## Instructions:
-1. Analyze the requirements and identify key implementation challenges
-2. Select the most relevant patterns from above
-3. Adapt patterns to fit the specific requirements
-4. Provide concrete implementation guidance
-5. Include architecture recommendations
-6. Suggest testing strategies
-
-Create a comprehensive Technical Implementation Brief that bridges the requirements with the reference patterns.
-`;
-      
-      const response = await aiProvider.default.generateText({
-        prompt: briefPrompt,
-        model: getModelForTier('s_tier'), // Use reasoning model for planning
-        maxTokens: 3000
-      });
-      
-      return {
-        success: true,
-        brief: response.text,
-        patternsUsed: uniquePatterns.length,
-        keywords,
-        totalPatternsFound: allPatterns.length
-      };
-    }
-    
-    // Fallback: Generate basic brief without AI
-    const basicBrief = generateBasicBrief(requirements, context, uniquePatterns);
-    return {
-      success: true,
-      brief: basicBrief,
-      patternsUsed: uniquePatterns.length,
-      keywords,
-      fallback: true
-    };
-  } catch (error) {
-    console.error('Error generating implementation brief:', error.message);
-    return {
-      success: false,
-      error: error.message
-    };
-  }
-}
-
-/**
- * Extract keywords from text
- */
-function extractKeywords(text) {
-  const words = text.toLowerCase()
+  const words1 = text1.toLowerCase()
     .replace(/[^a-zA-Z\s]/g, ' ')
     .split(/\s+/)
     .filter(word => word.length > 3 && !isStopWord(word));
   
   // Count frequency
   const frequency = {};
-  words.forEach(word => {
+  words1.forEach(word => {
     frequency[word] = (frequency[word] || 0) + 1;
   });
   
@@ -439,16 +328,19 @@ ${patterns.map(p => `
 **Repository:** ${p.repository}
 **Complexity:** ${p.complexity}
 
-\`\`\`${p.language}
+\
+```${p.language}
 ${p.code.substring(0, 300)}${p.code.length > 300 ? '...' : ''}
-\`\`\`
-`).join('\n')}
+\
+```
+`).join('
+')}
 
 ## Implementation Guidance
 1. Review the reference patterns above
 2. Adapt patterns to fit your specific requirements
-3. Consider the complexity levels when implementing
-4. Follow established patterns from high-quality repositories
+2. Consider the complexity levels when implementing
+3. Follow established patterns from high-quality repositories
 
 ## Next Steps
 1. Select the most relevant patterns
