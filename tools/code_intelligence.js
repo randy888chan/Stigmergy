@@ -71,6 +71,11 @@ export async function get_full_codebase_context() {
   }
 }
 
+export async function getFullCodebaseContext() {
+  // This is a wrapper to match the requested API name.
+  return get_full_codebase_context();
+}
+
 /**
  * NEW TOOL: Validates a proposed technology against project goals.
  * @param {object} args

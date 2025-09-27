@@ -35,6 +35,16 @@ const toolSchemas = {
     user_preferences: z.record(z.string(), z.any()).optional(),
     source: z.string().optional(),
   },
+  'code_intelligence.findUsages': {
+    symbolName: z.string().min(1),
+  },
+  'code_intelligence.getDefinition': {
+    symbolName: z.string().min(1),
+  },
+  'code_intelligence.getModuleDependencies': {
+    filePath: z.string().min(1),
+  },
+  'code_intelligence.getFullCodebaseContext': {},
 };
 
 /**
