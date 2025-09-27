@@ -230,7 +230,16 @@ export function createExecutor(engine, ai, config) {
 
       const permittedTools = agentConfig.engine_tools || [];
       const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
-      if (!isSystemOrDispatcher && !permittedTools.includes(toolName)) {
+
+      const isAuthorized = permittedTools.some(permittedTool => {
+        if (permittedTool.endsWith('.*')) {
+          const namespace = permittedTool.slice(0, -2);
+          return toolName.startsWith(namespace + '.');
+        }
+        return permittedTool === toolName;
+      });
+
+      if (!isSystemOrDispatcher && !isAuthorized) {
         throw new Error(`Tool '${toolName}' is not authorized for agent '${agentId}'.`);
       }
 

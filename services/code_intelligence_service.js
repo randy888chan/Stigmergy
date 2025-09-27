@@ -140,8 +140,18 @@ export class CodeIntelligenceService {
     return [];
   }
 
-  // ... other methods like getDefinition, etc.
-  
+  async getDefinition({ symbolName }) {
+    if (this.isMemoryMode) return null;
+    // Placeholder for real implementation
+    return { symbolName, definition: "Not implemented", filePath: "unknown" };
+  }
+
+  async getModuleDependencies({ filePath }) {
+    if (this.isMemoryMode) return [];
+    // Placeholder for real implementation
+    return [`dependency for ${filePath}`];
+  }
+
   /**
    * Get all files in a directory recursively
    * @param {string} dir - Directory path
