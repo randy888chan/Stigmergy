@@ -1,7 +1,5 @@
 import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
 import { Engine } from '../../engine/server.js';
-import stateManager from '../../src/infrastructure/state/GraphStateManager.js';
-import WebSocket from 'ws';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -19,7 +17,7 @@ describe('End-to-End Workflow', () => {
     await fs.ensureDir(path.join(TEST_PROJECT_DIR, 'src'));
 
     process.env.STIGMERGY_PORT = PORT;
-    engine = new Engine(stateManager);
+    engine = new Engine({ projectRoot: TEST_PROJECT_DIR });
     // In a real test, we might start this in a separate process.
     // For now, starting it directly is fine.
     await engine.start();
@@ -45,16 +43,16 @@ describe('End-to-End Workflow', () => {
       const ws = new WebSocket(serverUrl);
 
       // CRITICAL: Handle connection errors. This will now fail the test correctly.
-      ws.on('error', (err) => {
+      ws.onerror = (err) => {
         console.error('WebSocket error:', err);
-        reject(new Error(`WebSocket connection failed: ${err.message}`));
-      });
+        reject(new Error(`WebSocket connection failed`));
+      };
 
       // Listen for the final confirmation message from the engine
-      ws.on('message', async (message) => {
-        console.log('WebSocket message received:', message.toString());
+      ws.onmessage = async (event) => {
+        console.log('WebSocket message received:', event.data.toString());
         try {
-          const data = JSON.parse(message);
+          const data = JSON.parse(event.data);
           if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
             ws.close();
             resolve(); // The promise is resolved only on full success
@@ -62,10 +60,10 @@ describe('End-to-End Workflow', () => {
         } catch (e) {
           reject(e); // If JSON parsing or assertions fail, reject the promise
         }
-      });
+      };
 
       // Once connected, send the initial command
-      ws.on('open', () => {
+      ws.onopen = () => {
         console.log('WebSocket connection opened.');
         try {
           const prompt = `Create a file named src/output.js that contains a single line: ${expectedFileContent}`;
@@ -76,7 +74,7 @@ describe('End-to-End Workflow', () => {
         } catch (e) {
           reject(e);
         }
-      });
+      };
     });
   }, E2E_TIMEOUT);
 });
