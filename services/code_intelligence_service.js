@@ -46,23 +46,24 @@ export class CodeIntelligenceService {
   }
 
   async testConnection() {
-    this.initializeDriver(); // Call initializeDriver first
+    this.initializeDriver();
 
-    if (this.isMemoryMode) { // Now this will be true if neo4jFeature === 'memory'
-      return { 
-        status: 'ok', 
-        mode: 'memory', 
+    // Case 1: Explicitly in memory mode from config
+    if (this.isMemoryMode) {
+      return {
+        status: 'ok',
+        mode: 'memory',
         message: 'Running in Memory Mode (No Database).',
-        fallback_reason: 'Explicitly set to memory mode'
+        fallback_reason: 'Explicitly set to memory mode in config'
       };
     }
     
+    // Case 2: Driver failed to initialize (e.g., missing credentials)
     if (!this.driver) {
-      this.initializeDriver();
-      if (!this.driver && this.config.features.neo4j === 'required') {
-        return { 
-          status: 'error', 
-          mode: 'database', 
+      if (this.config.features.neo4j === 'required') {
+        return {
+          status: 'error',
+          mode: 'database',
           message: 'Neo4j is required, but credentials are not set in .env.',
           recovery_suggestions: [
             'Set NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in .env',
@@ -70,11 +71,11 @@ export class CodeIntelligenceService {
             'Create a new database in Neo4j Desktop'
           ]
         };
-      } else if (!this.driver) {
+      } else { // 'auto' mode, fall back to memory
         this.isMemoryMode = true;
-        return { 
-          status: 'ok', 
-          mode: 'memory', 
+        return {
+          status: 'ok',
+          mode: 'memory',
           message: 'Credentials not set, falling back to Memory Mode.',
           fallback_reason: 'Missing Neo4j credentials',
           warning: 'Code intelligence features will be limited'
@@ -82,21 +83,23 @@ export class CodeIntelligenceService {
       }
     }
 
+    // Case 3: Driver initialized, attempt to connect
     try {
       await this.driver.verifyConnectivity();
       const version = await this.getNeo4jVersion();
-      return { 
-        status: 'ok', 
-        mode: 'database', 
+      return {
+        status: 'ok',
+        mode: 'database',
         message: `Connected to Neo4j at ${process.env.NEO4J_URI}.`,
         version
       };
     } catch (error) {
+      // Case 4: Connection failed
       if (this.config.features.neo4j === 'auto') {
         this.isMemoryMode = true;
-        return { 
-          status: 'ok', 
-          mode: 'memory', 
+        return {
+          status: 'ok',
+          mode: 'memory',
           message: `Neo4j connection failed. Fell back to Memory Mode. Error: ${error.message}`,
           fallback_reason: `Connection error: ${error.message}`,
           warning: 'Code intelligence features will be limited',
@@ -107,9 +110,10 @@ export class CodeIntelligenceService {
           ]
         };
       }
-      return { 
-        status: 'error', 
-        mode: 'database', 
+      // 'required' mode with connection failure
+      return {
+        status: 'error',
+        mode: 'database',
         message: `Neo4j connection failed: ${error.message}`,
         recovery_suggestions: [
           'Check if Neo4j Desktop is running',
