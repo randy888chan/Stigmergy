@@ -3,26 +3,56 @@ import { Engine } from '../../engine/server.js';
 import fs from 'fs-extra';
 import path from 'path';
 
-// Give E2E tests a longer timeout
-const E2E_TIMEOUT = 60000;
+const E2E_TIMEOUT = 15000;
 
-describe('End-to-End Workflow', () => {
-  let engine;
-  const PORT = 3017; // Use a clean port for E2E tests
-  const TEST_PROJECT_DIR = path.join(process.cwd(), 'temp-e2e-project-final');
-  const serverUrl = `ws://localhost:${PORT}/ws`;
+describe('End-to-End Workflow with Mocked AI', () => {
+    let engine;
+    const PORT = 3017;
+    const TEST_PROJECT_DIR = path.join(process.cwd(), 'temp-e2e-project-final');
+    const serverUrl = `ws://localhost:${PORT}/ws`;
 
-  beforeAll(async () => {
-    console.log('beforeAll: Starting...');
-    await fs.ensureDir(path.join(TEST_PROJECT_DIR, 'src'));
+    beforeAll(async () => {
+        console.log('beforeAll: Starting...');
+        await fs.ensureDir(path.join(TEST_PROJECT_DIR, 'src'));
 
-    process.env.STIGMERGY_PORT = PORT;
-    engine = new Engine({ projectRoot: TEST_PROJECT_DIR });
-    // In a real test, we might start this in a separate process.
-    // For now, starting it directly is fine.
-    await engine.start();
-    console.log('beforeAll: Done.');
-  });
+        const planContent = `
+# Implementation Plan: E2E Test
+- id: "e2e-task-01"
+  description: "Create a file at src/output.js with content: console.log('Hello from the dispatcher!');"
+  status: "PENDING"
+  dependencies: []
+  files_to_create_or_modify:
+    - "src/output.js"
+`;
+        await fs.writeFile(path.join(TEST_PROJECT_DIR, 'plan.md'), planContent);
+
+        // This is our stateful mock function that we will inject into the Engine.
+        let callCount = 0;
+        const mockStreamText = async ({ messages }) => {
+            callCount++;
+            if (callCount === 1) {
+                // First call: Simulate the AI deciding to write the file.
+                return {
+                    toolCalls: [{ toolCallId: 'c1', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: "console.log('Hello from the dispatcher!');" } }],
+                    finishReason: 'tool-calls'
+                };
+            }
+            // Second call: Simulate the AI deciding the work is done.
+            return {
+                toolCalls: [{ toolCallId: 'c2', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }],
+                finishReason: 'tool-calls'
+            };
+        };
+
+        process.env.STIGMERGY_PORT = PORT;
+        // Inject the mock function into the engine. No API key needed.
+        engine = new Engine({
+            projectRoot: TEST_PROJECT_DIR,
+            _test_streamText: mockStreamText
+        });
+        await engine.start();
+        console.log('beforeAll: Done.');
+    });
 
   afterAll(async () => {
     console.log('afterAll: Starting...');
@@ -33,40 +63,37 @@ describe('End-to-End Workflow', () => {
     console.log('afterAll: Done.');
   });
 
-  test('should create a file with specific content via a full WebSocket workflow', async () => {
+  test('should execute a plan from plan.md and create the specified file', async () => {
     console.log('Starting test...');
-    const expectedFileContent = "console.log('Hello, Stigmergy!');";
+    const expectedFileContent = "console.log('Hello from the dispatcher!');";
+    const expectedFilePath = path.join(TEST_PROJECT_DIR, 'src', 'output.js');
 
-    // This promise-based wrapper is the key to a robust test.
-    // It will not resolve until the entire workflow is complete.
     await new Promise((resolve, reject) => {
       const ws = new WebSocket(serverUrl);
 
-      // CRITICAL: Handle connection errors. This will now fail the test correctly.
       ws.onerror = (err) => {
         console.error('WebSocket error:', err);
         reject(new Error(`WebSocket connection failed`));
       };
 
-      // Listen for the final confirmation message from the engine
       ws.onmessage = async (event) => {
         console.log('WebSocket message received:', event.data.toString());
         try {
           const data = JSON.parse(event.data);
           if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
             ws.close();
-            resolve(); // The promise is resolved only on full success
+            resolve();
           }
         } catch (e) {
-          reject(e); // If JSON parsing or assertions fail, reject the promise
+          reject(e);
         }
       };
 
-      // Once connected, send the initial command
       ws.onopen = () => {
         console.log('WebSocket connection opened.');
         try {
-          const prompt = `Create a file named src/output.js that contains a single line: ${expectedFileContent}`;
+          // The prompt is now just a trigger; the actual work is defined in plan.md
+          const prompt = `Execute the plan.`;
           ws.send(JSON.stringify({
             type: 'user_chat_message',
             payload: { prompt },
@@ -76,5 +103,11 @@ describe('End-to-End Workflow', () => {
         }
       };
     });
+
+    // After the workflow is complete, verify the file was created correctly
+    const fileExists = await fs.pathExists(expectedFilePath);
+    expect(fileExists).toBe(true);
+    const actualFileContent = await fs.readFile(expectedFilePath, 'utf-8');
+    expect(actualFileContent).toBe(expectedFileContent);
   }, E2E_TIMEOUT);
 });

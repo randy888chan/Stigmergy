@@ -17,6 +17,10 @@ const toolSchemas = {
   'shell.run': {
     command: z.string().min(1),
   },
+  'system.updateStatus': {
+    newStatus: z.string().min(1),
+    message: z.string().optional(),
+  },
   'stigmergy.task': {
     subagent_type: z.string().min(1),
     description: z.string().min(1),
