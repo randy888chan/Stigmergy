@@ -6,6 +6,8 @@ import path from "path";
 import { promisify } from "util";
 import { glob } from "glob";
 import * as neo4j from 'neo4j-driver';
+import * as parser from '@babel/parser';
+import traverse from '@babel/traverse';
 
 export class CodeIntelligenceService {
   constructor(configOverride = config, neo4jDriverModule = neo4j) {
@@ -296,170 +298,154 @@ export class CodeIntelligenceService {
   }
   
   /**
-   * Check if a file is a code file
-   * @param {string} filePath - Path to the file
-   * @returns {boolean} - True if it's a code file
+   * Scans the project structure to find all relevant source code files.
+   * @param {string} projectPath - The root path of the project to scan.
+   * @returns {Promise<string[]>} A list of file paths.
    */
-  isCodeFile(filePath) {
-    const codeExtensions = [
-      '.js', '.ts', '.jsx', '.tsx', '.java', '.py', '.cpp', '.c', '.cs', 
-      '.go', '.rb', '.php', '.swift', '.kt', '.rs', '.scala', '.dart'
-    ];
-    
-    return codeExtensions.some(ext => filePath.endsWith(ext));
+  async scanProjectStructure(projectPath) {
+    // For now, we'll consider 'js' and 'ts' files as relevant.
+    // This can be expanded based on the detected technologies.
+    const codeExtensions = ['js', 'ts', 'jsx', 'tsx'];
+    return this.getAllFiles(projectPath, codeExtensions);
   }
-  
+
   /**
-   * Analyze a code file
-   * @param {string} filePath - Path to the file
-   * @returns {Promise<object>} - Analysis results
+   * Extracts semantic information from a list of files.
+   * @param {string[]} filePaths - A list of file paths to analyze.
+   * @returns {Promise<{symbols: object[], relationships: object[]}>} An object containing lists of symbols and their relationships.
    */
-  async analyzeCodeFile(filePath) {
+  async extractSemanticInformation(filePaths) {
+    const allSymbols = [];
+    const allRelationships = [];
+
+    for (const filePath of filePaths) {
+      try {
+        const content = await fs.readFile(filePath, 'utf8');
+        const ast = parser.parse(content, {
+          sourceType: 'module',
+          plugins: ['jsx', 'typescript'],
+          errorRecovery: true,
+        });
+
+        let scopeStack = [];
+
+        traverse(ast, {
+          enter(path) {
+            if (path.isFunctionDeclaration() || path.isClassDeclaration() || path.isFunctionExpression() || path.isArrowFunctionExpression()) {
+              let name = '[Anonymous]';
+              if (path.node.id) {
+                name = path.node.id.name;
+              } else if (path.parentPath.isVariableDeclarator() && path.parent.id) {
+                name = path.parent.id.name;
+              }
+              scopeStack.push(name);
+            }
+          },
+          exit(path) {
+            if (path.isFunctionDeclaration() || path.isClassDeclaration() || path.isFunctionExpression() || path.isArrowFunctionExpression()) {
+              scopeStack.pop();
+            }
+          },
+          FunctionDeclaration(path) {
+            if (path.node.id) {
+              allSymbols.push({ name: path.node.id.name, type: 'Function', filePath, line: path.node.loc.start.line });
+            }
+          },
+          ClassDeclaration(path) {
+            if (path.node.id) {
+              allSymbols.push({ name: path.node.id.name, type: 'Class', filePath, line: path.node.loc.start.line });
+            }
+          },
+          VariableDeclarator(path) {
+            if (path.node.id.type === 'Identifier') {
+              allSymbols.push({ name: path.node.id.name, type: 'Variable', filePath, line: path.node.loc.start.line });
+            }
+          },
+          CallExpression(path) {
+            const currentScope = scopeStack.length > 0 ? scopeStack[scopeStack.length - 1] : null;
+            if (currentScope && path.node.callee.type === 'Identifier') {
+              allRelationships.push({ from: currentScope, to: path.node.callee.name, type: 'CALLS', filePath });
+            }
+          },
+          ImportDeclaration(path) {
+            path.node.specifiers.forEach(specifier => {
+              allRelationships.push({ from: specifier.local.name, to: path.node.source.value, type: 'IMPORTS', filePath });
+            });
+          },
+          ExportNamedDeclaration(path) {
+            if (path.node.declaration) {
+              if (path.node.declaration.id) {
+                allRelationships.push({ from: path.node.declaration.id.name, to: filePath, type: 'EXPORTS', filePath });
+              } else if (path.node.declaration.declarations) {
+                path.node.declaration.declarations.forEach(declarator => {
+                  if (declarator.id.type === 'Identifier') {
+                    allRelationships.push({ from: declarator.id.name, to: filePath, type: 'EXPORTS', filePath });
+                  }
+                });
+              }
+            } else if (path.node.specifiers) {
+              path.node.specifiers.forEach(specifier => {
+                allRelationships.push({ from: specifier.local.name, to: filePath, type: 'EXPORTS', filePath });
+              });
+            }
+          },
+        });
+      } catch (error) {
+        console.error(chalk.red(`Failed to parse ${filePath}:`), error);
+      }
+    }
+    return { symbols: allSymbols, relationships: allRelationships };
+  }
+
+  /**
+   * Builds the knowledge graph in the Neo4j database.
+   * @param {object[]} symbols - A list of symbol objects.
+   * @param {object[]} relationships - A list of relationship objects.
+   * @returns {Promise<void>}
+   */
+  async buildKnowledgeGraph(symbols, relationships) {
+    if (this.isMemoryMode) {
+      console.log('Skipping knowledge graph build in Memory Mode.');
+      return;
+    }
+    
+    const session = this.driver.session();
     try {
-      const content = await fs.readFile(filePath, 'utf8');
-      const extension = path.extname(filePath);
-      
-      // Simple analysis based on file extension
-      switch (extension) {
-        case '.js':
-        case '.jsx':
-          return this.analyzeJavaScriptFile(content, filePath);
-        case '.ts':
-        case '.tsx':
-          return this.analyzeTypeScriptFile(content, filePath);
-        default:
-          // Generic analysis for other file types
-          return {
-            symbols: [],
-            relationships: []
-          };
+      // Use a transaction to ensure all queries succeed or none do.
+      const tx = session.beginTransaction();
+
+      // Create nodes for symbols
+      for (const symbol of symbols) {
+        await tx.run(
+          'MERGE (s:Symbol {name: $name, filePath: $filePath}) SET s.type = $type, s.line = $line',
+          { name: symbol.name, filePath: symbol.filePath, type: symbol.type, line: symbol.line }
+        );
       }
+
+      // Create relationships
+      for (const rel of relationships) {
+        // Ensure both nodes exist before creating a relationship
+        await tx.run(
+          `
+          MERGE (a:Symbol {name: $from})
+          MERGE (b:Symbol {name: $to})
+          MERGE (a)-[:${rel.type}]->(b)
+          `,
+          { from: rel.from, to: rel.to }
+        );
+      }
+
+      await tx.commit();
+      console.log(chalk.green('Successfully built knowledge graph.'));
     } catch (error) {
-      console.error(`Error analyzing file ${filePath}:`, error);
-      return {
-        symbols: [],
-        relationships: []
-      };
-    }
-  }
-  
-  /**
-   * Analyze a JavaScript file
-   * @param {string} content - File content
-   * @param {string} filePath - Path to the file
-   * @returns {object} - Analysis results
-   */
-  analyzeJavaScriptFile(content, filePath) {
-    const symbols = [];
-    const relationships = [];
-    
-    // Extract classes
-    const classMatches = content.matchAll(/class\s+(\w+)(?:\s+extends\s+(\w+))?/g);
-    for (const match of classMatches) {
-      symbols.push({
-        name: match[1],
-        type: 'Class',
-        file: filePath,
-        line: this.getLineNumber(content, match.index)
-      });
-      
-      // Add inheritance relationship
-      if (match[2]) {
-        relationships.push({
-          from: match[1],
-          to: match[2],
-          type: 'extends',
-          file: filePath
-        });
+      console.error(chalk.red('Failed to build knowledge graph:'), error);
+      if (tx) {
+        await tx.rollback();
       }
+    } finally {
+      await session.close();
     }
-    
-    // Extract functions
-    const functionMatches = content.matchAll(/(?:function\s+(\w+)|(\w+)\s*[:=]\s*(?:async\s+)?function)/g);
-    for (const match of functionMatches) {
-      const functionName = match[1] || match[2];
-      if (functionName) {
-        symbols.push({
-          name: functionName,
-          type: 'Function',
-          file: filePath,
-          line: this.getLineNumber(content, match.index)
-        });
-      }
-    }
-    
-    // Extract variables
-    const variableMatches = content.matchAll(/(?:const|let|var)\s+(\w+)/g);
-    for (const match of variableMatches) {
-      symbols.push({
-        name: match[1],
-        type: 'Variable',
-        file: filePath,
-        line: this.getLineNumber(content, match.index)
-      });
-    }
-    
-    return { symbols, relationships };
   }
-  
-  /**
-   * Analyze a TypeScript file
-   * @param {string} content - File content
-   * @param {string} filePath - Path to the file
-   * @returns {object} - Analysis results
-   */
-  analyzeTypeScriptFile(content, filePath) {
-    // For now, use the same analysis as JavaScript
-    return this.analyzeJavaScriptFile(content, filePath);
-  }
-  
-  /**
-   * Get line number from character index
-   * @param {string} content - File content
-   * @param {number} index - Character index
-   * @returns {number} - Line number
-   */
-  getLineNumber(content, index) {
-    if (index === undefined) return 1;
-    
-    // Count newlines before the index
-    const lines = content.substring(0, index).split('\n');
-    return lines.length;
-  }
-  
-  /**
-   * Build in-memory knowledge graph
-   * @param {object} structure - Project structure
-   * @param {object} semanticData - Semantic data
-   */
-  buildMemoryGraph(structure, semanticData) {
-    // This is a placeholder implementation
-    // In a real implementation, this would build an in-memory graph
-    console.log('Building in-memory knowledge graph with', 
-                structure.files.length, 'files and', 
-                semanticData.symbols.length, 'symbols');
-  }
-  
-  /**
-   * Create a symbol node in the database
-   * @param {object} symbol - Symbol data
-   */
-  async createSymbolNode(symbol) {
-    // This is a placeholder implementation
-    // In a real implementation, this would create a node in Neo4j
-    console.log('Creating symbol node:', symbol.name);
-  }
-  
-  /**
-   * Create a relationship in the database
-   * @param {object} relationship - Relationship data
-   */
-  async createRelationship(relationship) {
-    // This is a placeholder implementation
-    // In a real implementation, this would create a relationship in Neo4j
-    console.log('Creating relationship:', relationship.from, '->', relationship.to);
-  }
-  
   /**
    * Run a database query
    * @param {string} query - Cypher query
@@ -467,9 +453,19 @@ export class CodeIntelligenceService {
    * @returns {Promise<any>} - Query results
    */
   async _runQuery(query, params = {}) {
-    // This is a placeholder implementation
-    // In a real implementation, this would run a query against Neo4j
-    console.log('Running query:', query.substring(0, 100) + '...');
-    return [];
+    if (this.isMemoryMode) {
+      console.log('Running in-memory query (placeholder).');
+      return [];
+    }
+    const session = this.driver.session();
+    try {
+      const result = await session.run(query, params);
+      return result.records;
+    } catch (error) {
+      console.error(chalk.red('Database query failed:'), error);
+      return [];
+    } finally {
+      await session.close();
+    }
   }
 }
