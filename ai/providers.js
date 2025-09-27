@@ -1,11 +1,12 @@
 import { createOpenAI } from "@ai-sdk/openai";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import config from '../stigmergy.config.js';
+// REMOVED: import config from '../stigmergy.config.js';
 
-// THIS IS THE CRITICAL FUNCTION THAT WAS MISSING
-export function getAiProviders() {
+export function getAiProviders(config) { // ACCEPTS config
+  // This function now acts as a factory for the other functions,
+  // passing the necessary config to them.
   return {
-    getModelForTier,
+    getModelForTier: (tier, useCase) => getModelForTier(tier, useCase, config),
     _resetProviderInstances,
     getExecutionOptions,
     selectExecutionMethod,
@@ -14,25 +15,20 @@ export function getAiProviders() {
   };
 }
 
-// --- ALL THE OTHER CODE REMAINS THE SAME ---
-
-const RETRY_CONFIG = {
-  maxRetries: 3,
-  baseDelay: 1000,
-  maxDelay: 10000,
-  backoffFactor: 2
-};
-
 let providerInstances = {};
 
 export function _resetProviderInstances() {
     providerInstances = {};
 }
 
-export function getModelForTier(tier = 'utility_tier', useCase = null) {
+// THE CRITICAL CHANGE: This function now ACCEPTS the config.
+export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
+    if (!config || !config.model_tiers) {
+        throw new Error("A valid configuration object with model_tiers must be provided.");
+    }
     const tierConfig = config.model_tiers[tier];
     if (!tierConfig) {
-        throw new Error(`Model tier '${tier}' is not defined in stigmergy.config.js.`);
+        throw new Error(`Model tier '${tier}' is not defined in the provided config.`);
     }
     const { provider, model_name } = tierConfig;
     const api_key_env = typeof tierConfig.api_key_env === 'function' ? tierConfig.api_key_env() : tierConfig.api_key_env;
@@ -64,10 +60,9 @@ export function getModelForTier(tier = 'utility_tier', useCase = null) {
     return providerInstances[cacheKey](model_name);
 }
 
-function findOptimalTierForUseCase(useCase) { /* ... */ }
+// These other functions are kept for architectural completeness.
+// If they need config in the future, it should be passed to them.
 export function getExecutionOptions() { /* ... */ }
 export function selectExecutionMethod(taskComplexity = 'medium', userPreference = null) { /* ... */ }
-function getSuggestionForProvider(provider) { /* ... */ }
-async function retryWithExponentialBackoff(fn) { /* ... */ }
 export function validateProviderConfig() { /* ... */ }
 export function getProviderSummary() { /* ... */ }

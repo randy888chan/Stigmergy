@@ -1,13 +1,11 @@
 import { CodeIntelligenceService } from "../services/code_intelligence_service.js";
 const codeIntelligenceService = new CodeIntelligenceService();
 import { cachedQuery } from "../utils/queryCache.js";
-import { getAiProviders } from "../ai/providers.js";
 import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 import * as fs from 'fs-extra';
 import path from 'path';
 import * as neo4j from 'neo4j-driver';
-import config from "../stigmergy.config.js"; // Import config
 
 // Neo4j driver for reference pattern queries
 let driver;
@@ -78,12 +76,15 @@ export async function get_full_codebase_context() {
  * @param {object} args
  * @param {string} args.technology - The technology to validate (e.g., "React", "PostgreSQL").
  * @param {string} args.project_goal - The high-level project goal.
+ * @param {object} ai - The AI provider object with model functions
+ * @param {object} config - The configuration object
  * @returns {Promise<{is_suitable: boolean, pros: string[], cons: string[], recommendation: string}>}
  */
-export async function validate_tech_stack({ technology, project_goal }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) {
+export async function validate_tech_stack({ technology, project_goal }, ai, config) {
+  const { getModelForTier } = ai;
   console.log(`[Code Intelligence] Validating tech: ${technology} for goal: ${project_goal}`);
-  const { object } = await generateObject({
-    model: getModelForTier('b_tier', config), // Pass config
+  const { object } = await ai.generateObject({
+    model: getModelForTier('b_tier', null, config), // Pass config
     prompt: `As a senior solutions architect, analyze the suitability of using "${technology}" for a project with the goal: "${project_goal}".
         Provide a concise analysis focusing on pros and cons. Conclude with a clear recommendation.`,
     schema: z.object({
@@ -312,6 +313,17 @@ function isStopWord(word) {
   return stopWords.includes(word);
 }
 
+function formatPattern(p) {
+  return `\n### ${p.name}
+**Type:** ${p.type}
+**Repository:** ${p.repository}
+**Complexity:** ${p.complexity}
+
+\`\`\`${p.language}
+${p.code.substring(0, 300)}${p.code.length > 300 ? '...' : ''}
+\`\`\``;
+}
+
 function generateBasicBrief(requirements, context, patterns) {
   return `# Technical Implementation Brief
 
@@ -322,19 +334,7 @@ ${requirements}
 ${context}
 
 ## Reference Patterns Found
-${patterns.map(p => `
-### ${p.name}
-**Type:** ${p.type}
-**Repository:** ${p.repository}
-**Complexity:** ${p.complexity}
-
-\
-```${p.language}
-${p.code.substring(0, 300)}${p.code.length > 300 ? '...' : ''}
-\
-```
-`).join('
-')}
+${patterns.map(formatPattern).join('\n')}
 
 ## Implementation Guidance
 1. Review the reference patterns above

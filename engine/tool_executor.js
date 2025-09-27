@@ -29,8 +29,7 @@ import { clearFileCache } from "./llm_adapter.js";
 import ErrorHandler, { OperationalError } from "../utils/errorHandler.js";
 import { trackToolUsage } from "../services/model_monitoring.js";
 
-// Import the new AI providers function
-import { getAiProviders } from "../ai/providers.js";
+// Import trajectory recorder
 import trajectoryRecorder from "../services/trajectory_recorder.js";
 
 function getCorePath() {
@@ -131,9 +130,7 @@ async function triggerContextSummarization(toolName, args, agentId, engine) {
   }
 }
 
-export function createExecutor(engine) {
-  const ai = getAiProviders(); // GET THE AI FUNCTIONS ONCE
-  
+export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS PARAMETERS
   const toolbelt = {
     file_system: fileSystem,
     shell,
@@ -198,62 +195,28 @@ export function createExecutor(engine) {
       // Special handling for system and dispatcher agents
       const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
       
-      // Wildcard permission check
-      const hasWildcardPermission = permittedTools.some(p => p === '*');
-      
-      // Specific permission check
-      const isPermitted = hasWildcardPermission || 
-                         isSystemOrDispatcher ||
-                         permittedTools.some(p => {
-                           if (p.endsWith('.*')) {
-                             // Handle namespace wildcards
-                             const namespace = p.replace('.*', '');
-                             return toolName.startsWith(namespace);
-                           }
-                           // Handle exact matches
-                           return toolName === p;
-                         });
-      
-      if (!isPermitted) {
-        throw new OperationalError(
-          `Agent '${agentId}' not permitted for engine tool '${toolName}'. ` +
-          `Permitted tools: [${permittedTools.join(', ')}].`,
-          "PermissionDenied"
-        );
+      if (!isSystemOrDispatcher && !permittedTools.includes(toolName)) {
+        throw new Error(`Tool '${toolName}' is not authorized for agent '${agentId}'.`);
       }
 
-      const safeArgs = sanitizeToolCall(toolName, args);
+      // Sanitize arguments before passing to the tool
+      const safeArgs = sanitizeToolCall({ arguments: args })?.arguments || args;
+
+      // Call the tool function with the appropriate signature
+      // Different tools expect different signatures
+      const toolFunction = toolbelt[namespace][funcName];
       
-      // Record the tool call
-      trajectoryRecorder.logToolCall(recordingId, {
-        toolName,
-        namespace,
-        funcName,
-        args: safeArgs,
-        agentId,
-        agentConfig: {
-          id: agentConfig.id,
-          alias: agentConfig.alias,
-          model_tier: agentConfig.model_tier
-        }
-      });
-
-      const result = await toolbelt[namespace][funcName]({ ...safeArgs, agentConfig, ai });
-
-      await trackToolUsage({
-        toolName,
-        success: true,
-        agentId,
-        executionTime: Date.now() - startTime,
-      });
-
-      // Record the successful tool execution
-      trajectoryRecorder.logEvent(recordingId, 'tool_execution_success', {
-        toolName,
-        result: typeof result === 'string' ? result : JSON.stringify(result, null, 2),
-        executionTime: Date.now() - startTime
-      });
-
+      // Determine the tool signature based on namespace
+      let result;
+      if (namespace === 'file_system' || namespace === 'shell') {
+        // Simple tools that expect just (args)
+        result = await toolFunction(safeArgs);
+      } else {
+        // AI-dependent tools that expect (args, ai, config)
+        result = await toolFunction(safeArgs, ai, config);
+      }
+      
+      // Clear file cache if modifying file system
       if (toolName.startsWith("file_system.write")) {
         clearFileCache();
         // Trigger context summarization after writeFile operations for memory management

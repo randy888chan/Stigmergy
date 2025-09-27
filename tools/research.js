@@ -1,6 +1,5 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
 import { generateObject as defaultGenerateObject } from "ai";
-import { getAiProviders } from "../ai/providers.js";
 import { z } from "zod";
 import "dotenv/config.js";
 import chalk from "chalk";
@@ -8,7 +7,6 @@ import fs from "fs-extra";
 import yaml from "js-yaml";
 import path from "path";
 import defaultAxios from "axios";
-import config from "../stigmergy.config.js"; // Import config
 
 const ARCHON_API_URL = "http://localhost:8181/api";
 
@@ -47,7 +45,8 @@ function getFirecrawlClient() {
   return firecrawl;
 }
 
-export async function deep_dive({ query, learnings = [], axios = defaultAxios }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) { { 
+export async function deep_dive({ query, learnings = [], axios = defaultAxios }, ai, config) {
+  const { getModelForTier } = ai;
   const isArchonRunning = await healthCheck(axios);
 
   if (isArchonRunning) {
@@ -59,26 +58,49 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
         .map((item) => `Source: ${item.url}\n        \n${item.markdown || item.content}`)
         .join("\n        \n---\n        \n");
 
-      const { object } = await generateObject({
-        model: getModelForTier('b_tier', config), // Pass config
+      const { object } = await ai.generateObject({
+        model: getModelForTier('b_tier', null, config), // Pass config
         system: await getResearchPrompt(),
-        prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.\n    ---\n    CONTENT:\n    ${allContent}`,
+        prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
+    ---
+    CONTENT:
+    ${allContent}`,
         schema: z.object({
           synthesis: z.string(),
           new_queries: z.array(z.string()),
         }),
       });
+      return {
+        new_learnings: object.synthesis,
+        next_research_queries: object.new_queries,
+        sources: response.data.results.map(item => item.url),
+      };
+    } catch (error) {
+      console.error(
+        chalk.red(`[Research Tool] Archon deep dive failed for query "${query}":`),
+        error.message
+      );
+      // Fallback to Firecrawl if Archon fails
+    }
+  }
 
-  // --- Fallback to Firecrawl ---
+  // --- Fallback to Firecrawl --- (This block executes if Archon is not running or failed)
   console.log(
     chalk.blue("🔧 Archon server not detected or failed. Using native Firecrawl research tool.")
   );
   try {
     const client = getFirecrawlClient();
-    const serpGen = await generateObject({
-      model: getModelForTier('b_tier', config), // Pass config
+    const serpGen = await ai.generateObject({
+      model: getModelForTier('b_tier', null, config), // Pass config
       system: await getResearchPrompt(),
-      prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.\n    ---\n    PRIMARY GOAL: ${query}\n    ---\n    EXISTING LEARNINGS:\n    ${learnings.join("\n") || "No learnings yet."}\n    ---\n    What is the next single most important question to answer?`,
+      prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
+    ---
+    PRIMARY GOAL: ${query}
+    ---
+    EXISTING LEARNINGS:
+    ${learnings.join('\n') || 'No learnings yet.'}
+    ---
+    What is the next single most important question to answer?`,
       schema: z.object({
         query: z.string().describe("The single best search query to run next."),
       }),
@@ -95,10 +117,13 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
       .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
       .join("\n\n---\n\n");
 
-    const synthesis = await generateObject({
-      model: getModelForTier('b_tier', config), // Pass config
+    const synthesis = await ai.generateObject({
+      model: getModelForTier('b_tier', null, config), // Pass config
       system: await getResearchPrompt(),
-      prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.\n    ---\n    CONTENT:\n    ${allContent}`,
+      prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
+    ---
+    CONTENT:
+    ${allContent}`,
       schema: z.object({
         newLearnings: z.array(z.string()).describe("A list of key insights and facts discovered."),
         next_research_queries: z
@@ -126,42 +151,4 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
       sources: [],
     };
   }
-}
-
-/**
- * NEW TOOL: Analyzes a block of text to identify user personas and pain points.
- * @param {object} args
- * @param {string} args.research_data - Text content from market research, user interviews, etc.
- * @returns {Promise<{personas: object[], pain_points: string[]}>}
- */
-export async function analyze_user_feedback({ research_data }, { generateObject = defaultGenerateObject, getModelForTier = getAiProviders().getModelForTier } = {}) {
-  console.log("[Research] Analyzing user feedback to extract personas and pain points...");
-  const { object } = await generateObject({
-    model: getModelForTier('b_tier', config), // Pass config
-    prompt: `You are a UX researcher. From the following research data, identify the primary user personas and their key pain points.
-        ---
-        RESEARCH DATA:
-        ${research_data}`,
-    schema: z.object({
-      personas: z
-        .array(
-          z.object({
-            name: z
-              .string()
-              .describe("A descriptive name for the persona, e.g., 'The Busy Professional'"),
-            description: z.string().describe("A brief description of this user type."),
-            goals: z.array(z.string()).describe("What this persona wants to achieve."),
-          })
-        )
-        .describe("A list of identified user personas."),
-      pain_points: z
-        .array(z.string())
-        .describe("A list of the most significant problems or frustrations mentioned in the data."),
-    }),
-  });
-  return object;
-}
-
-export function _resetCache() {
-    firecrawl = undefined;
 }

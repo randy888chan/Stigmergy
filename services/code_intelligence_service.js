@@ -1,4 +1,3 @@
-import * as neo4j from "neo4j-driver";
 import "dotenv/config.js";
 import config from "../stigmergy.config.js";
 import chalk from "chalk";
@@ -6,17 +5,23 @@ import fs from "fs-extra";
 import path from "path";
 import { promisify } from "util";
 import { glob } from "glob";
+import * as neo4j from 'neo4j-driver';
 
 export class CodeIntelligenceService {
-  constructor() {
+  constructor(configOverride = config, neo4jDriverModule = neo4j) {
+    this.config = configOverride;
+    this.neo4j = neo4jDriverModule; // Store the neo4j module
     this.driver = null;
     this.isMemoryMode = false;
   }
 
   initializeDriver() {
-    const neo4jFeature = config.features?.neo4j;
+    console.log('initializeDriver called');
+    const neo4jFeature = this.config.features?.neo4j;
+    console.log('neo4jFeature:', neo4jFeature);
     if (neo4jFeature === 'memory') {
       this.isMemoryMode = true;
+      console.log('isMemoryMode set to true:', this.isMemoryMode);
       return;
     }
 
@@ -26,9 +31,9 @@ export class CodeIntelligenceService {
 
     if (uri && user && password) {
       try {
-        this.driver = neo4j.driver(
+        this.driver = this.neo4j.driver(
           uri,
-          neo4j.auth.basic(user, password),
+          this.neo4j.auth.basic(user, password),
           { connectionTimeout: 10000 } // 10-second timeout
         );
       } catch (error) {
@@ -39,7 +44,9 @@ export class CodeIntelligenceService {
   }
 
   async testConnection() {
-    if (this.isMemoryMode) {
+    this.initializeDriver(); // Call initializeDriver first
+
+    if (this.isMemoryMode) { // Now this will be true if neo4jFeature === 'memory'
       return { 
         status: 'ok', 
         mode: 'memory', 
@@ -50,7 +57,7 @@ export class CodeIntelligenceService {
     
     if (!this.driver) {
       this.initializeDriver();
-      if (!this.driver && config.features.neo4j === 'required') {
+      if (!this.driver && this.config.features.neo4j === 'required') {
         return { 
           status: 'error', 
           mode: 'database', 
@@ -83,7 +90,7 @@ export class CodeIntelligenceService {
         version
       };
     } catch (error) {
-      if (config.features.neo4j === 'auto') {
+      if (this.config.features.neo4j === 'auto') {
         this.isMemoryMode = true;
         return { 
           status: 'ok', 

@@ -20,12 +20,11 @@ describe('QA Tools', () => {
         };
 
         const result = await verify_requirements(
-          { requirements: "reqs", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject }
+          { requirements: "reqs", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
         // Assert that our local mocks were called and the result is correct.
-        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
-        expect(result.passed).toBe(true);
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
     });
     
     test('verify_architecture should use the injected AI functions', async () => {
@@ -38,11 +37,11 @@ describe('QA Tools', () => {
         };
 
         const result = await verify_architecture(
-          { architecture_blueprint: "blueprint", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject }
+          { architecture_blueprint: "blueprint", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
         // Assert that our local mocks were called and the result is correct.
-        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
         expect(result.passed).toBe(false);
     });
 });

@@ -26,11 +26,11 @@ describe('Business Verification Tools', () => {
         };
 
         const result = await generate_financial_projections(
-          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject }
+          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
         // Assert that our local mocks were called and the result has expected properties.
-        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
         expect(result.projections).toBeDefined();
         expect(result.summary).toBe("test summary");
     });
@@ -56,11 +56,11 @@ describe('Business Verification Tools', () => {
         };
 
         const result = await perform_business_valuation(
-          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject }
+          { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
         // Assert that our local mocks were called and the result has expected properties.
-        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier');
+        expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
         expect(result.swot_analysis).toBeDefined();
         expect(result.qualitative_valuation).toBe("promising");
     });

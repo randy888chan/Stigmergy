@@ -1,5 +1,5 @@
 import { createStructuredResponse } from './core_tools.js';
-import { initializeProject } from '../engine/state_manager.js';
+import stateManager from '../src/infrastructure/state/GraphStateManager.js';
 
 // --- Command Identification Functions ---
 // These helpers make the logic clear and prevent errors.
@@ -49,7 +49,7 @@ export async function process_chat_command({ command }) {
   
   if (isDevelopmentCommand(normalizedCommand)) {
     console.log("Command is development related.");
-    await initializeProject(command);
+    await stateManager.initializeProject(command);
     return createStructuredResponse({
       status: 'in_progress',
       message: `Received new goal: "${command}". Kicking off the autonomous engine.`, 

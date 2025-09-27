@@ -3,9 +3,9 @@ import path from "path";
 import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 
-export async function generate_financial_projections({ business_plan_content, ai, generateObject = defaultGenerateObject }) {
+export async function generate_financial_projections({ business_plan_content, ai, generateObject = defaultGenerateObject, config }) {
   const { object } = await generateObject({
-    model: ai.getModelForTier('b_tier'),
+    model: ai.getModelForTier('b_tier', null, config),
     prompt: `Based on the following business plan, generate a simple 3-year financial projection table focusing on Revenue, COGS, OpEx, and Net Profit.`,
     schema: z.object({
       projections: z
@@ -25,9 +25,9 @@ export async function generate_financial_projections({ business_plan_content, ai
   return object;
 }
 
-export async function perform_business_valuation({ business_plan_content, ai, generateObject = defaultGenerateObject }) {
+export async function perform_business_valuation({ business_plan_content, ai, generateObject = defaultGenerateObject, config }) {
   const { object } = await generateObject({
-    model: ai.getModelForTier('b_tier'),
+    model: ai.getModelForTier('b_tier', null, config),
     prompt: `Analyze the provided business plan and perform a SWOT analysis. Provide a qualitative valuation summary.`,
     schema: z.object({
       swot_analysis: z.object({

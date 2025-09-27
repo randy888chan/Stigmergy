@@ -1,14 +1,12 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { glob } from 'glob';
-import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getAiProviders } from '../ai/providers.js'; // Changed import
-import config from "../stigmergy.config.js"; // Import config
 
-async function extractKeyTerms(content, prompt, { getModelForTier }) {
-  const { object } = await generateObject({
-    model: getModelForTier('b_tier', config), // Pass config
+async function extractKeyTerms(content, prompt, aiProviders, config) {
+  const { getModelForTier } = aiProviders;
+  const { object } = await aiProviders.generateObject({
+    model: getModelForTier('b_tier', null, config), // Pass config
     prompt: `${prompt}
 ---
 DOCUMENT:
@@ -39,7 +37,7 @@ async function verifyCodebaseContains(terms) {
   return (foundCount / terms.length) * 100;
 }
 
-export async function verifyMilestone(milestoneDescription, { getModelForTier = getAiProviders().getModelForTier } = {}) { // Changed default value
+export async function verifyMilestone(milestoneDescription, aiProviders, config) {
   try {
     // const configPath = path.join(process.cwd(), 'stigmergy.config.js'); // No longer need to import here
     // const { default: config } = await import(`file://${configPath}`); // No longer need to import here
@@ -54,8 +52,8 @@ export async function verifyMilestone(milestoneDescription, { getModelForTier = 
     const archContent = await fs.readFile(archPath, 'utf-8');
     const prdContent = await fs.readFile(prdPath, 'utf-8');
 
-    const archTerms = await extractKeyTerms(archContent, 'Extract key architectural terms from this document.', { getModelForTier });
-    const prdGoals = await extractKeyTerms(prdContent, 'Extract key product goals from this document.', { getModelForTier });
+    const archTerms = await extractKeyTerms(archContent, 'Extract key architectural terms from this document.', aiProviders, config);
+    const prdGoals = await extractKeyTerms(prdContent, 'Extract key product goals from this document.', aiProviders, config);
 
     const codebaseMatchPercentage = await verifyCodebaseContains([...archTerms, ...prdGoals]);
 

@@ -327,7 +327,7 @@ class GraphStateManager extends EventEmitter {
           const projectConfig = projectConfigModule.default || projectConfigModule;
           this.projectConfig = projectConfig;
           return this.projectConfig;
-        }
+        } 
         // For .json files, we can read them directly
         else if (configPath.endsWith('.json')) {
           const projectConfig = fs.readJsonSync(configPath);
