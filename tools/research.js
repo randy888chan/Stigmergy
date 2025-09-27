@@ -152,3 +152,59 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
     };
   }
 }
+
+export async function evaluate_sources({ urls }, ai, config) {
+  // Ensure ai and config are properly passed and utilized
+  const { getModelForTier, generateObject } = ai;
+
+  // Define a schema for the expected LLM output
+  const evaluationSchema = z.object({
+    credibility_score: z.number().min(0).max(10).describe("The credibility score from 0 to 10."),
+    justification: z.string().describe("A brief justification for the score."),
+  });
+
+  const results = await Promise.all(urls.map(async (url) => {
+    let score = 0;
+    let justification = "Justification not yet determined.";
+
+    // Heuristic-based scoring
+    if (/(react\.dev|nodejs\.org|martinfowler\.com|kentcdodds\.com|\.gov|\.edu)/.test(url)) {
+      score = 9;
+      justification = "Official project documentation or a highly reputable technical source.";
+    } else if (/(stackoverflow\.com|medium\.com|dev\.to|techcrunch\.com|wired\.com|github\.com)/.test(url)) {
+      score = 7;
+      justification = "Reputable source like Stack Overflow, a major tech news site, or a GitHub repository.";
+    } else if (/(gist\.github\.com|reddit\.com|quora\.com|forum\.)/.test(url)) {
+      score = 4;
+      justification = "Forums, personal blogs, or other user-generated content that requires careful scrutiny.";
+    }
+
+    // If the heuristic score is low or undetermined, use the LLM for a more nuanced evaluation.
+    if (score < 5) {
+      try {
+        console.log(chalk.yellow(`[Research Tool] Ambiguous URL "${url}". Consulting reasoning_tier LLM for evaluation.`));
+        const { object } = await generateObject({
+          model: getModelForTier('reasoning_tier', null, config),
+          prompt: `Act as a research librarian. Assess the authority, expertise, and potential biases of the source at this URL: ${url}. Consider the author, publisher, and purpose of the site. Return a credibility score from 0-10 and a brief justification for your score.`,
+          schema: evaluationSchema,
+        });
+        // We can choose to either replace the heuristic score or average it.
+        // For this implementation, the LLM's more detailed analysis will override the initial heuristic.
+        score = object.credibility_score;
+        justification = object.justification;
+      } catch (error) {
+        console.error(chalk.red(`[Research Tool] LLM evaluation failed for URL "${url}":`), error.message);
+        // Keep the heuristic score and add a note about the failure.
+        justification = `Initial heuristic score. LLM evaluation failed: ${error.message}`;
+      }
+    }
+
+    return {
+      url,
+      credibility_score: score,
+      justification,
+    };
+  }));
+
+  return results;
+}

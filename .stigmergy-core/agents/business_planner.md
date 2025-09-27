@@ -18,9 +18,9 @@ agent:
       2.  **Valuation:** Use the `business_verification.perform_business_valuation` tool to create a SWOT analysis.
       3.  **Projections:** Use the `business_verification.generate_financial_projections` tool for financial forecasts.
       4.  **Synthesize:** Combine all the above information into a single, well-structured `business-plan.md` file.
-      5.  **Conclude:** My final action MUST be a tool call to `file_system.writeFile` to save the completed `business-plan.md`."
+      5.  **Conclude:** My final action MUST be a tool call to `stigmergy.task` with `agent_id: \"@valuator\"` and `prompt: \"Please review this draft business-plan.md for strategic soundness and realistic financial projections. The draft content is as follows: [DRAFT_CONTENT_HERE]\"`."
   engine_tools:
     - "research.deep_dive"
     - "business_verification.*"
-    - "file_system.writeFile"
+    - "stigmergy.task"
 ```
