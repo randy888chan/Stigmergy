@@ -1,0 +1,1096 @@
+$ bun --hot run engine/server.js
+🔧 Loading environment configuration for: development
+   ❌ Environment file not found: .env.development
+   Please ensure .env.development exists in the project root.
+GraphStateManager: Setting up stateChanged event listener
+Initializing Stigmergy Engine...
+[Engine] Detected Bun environment. Using Bun.serve.
+🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:3010
+GraphStateManager: Neo4j credentials not set. State will not be persisted.
+GraphStateManager: Running in memory-only mode. State changes will not persist between sessions.
+[WebSocket] Client connected
+[Engine] Received new goal: "Refactor the `testConnection` method in `services/code_intelligence_service.js`. The current implementation has complex nested `if/else` logic. Simplify it to be cleaner, more readable, and easier to maintain, without changing its external behavior."
+GraphStateManager: updateState called with event: {
+  "type": "PROJECT_INITIALIZED",
+  "goal": "Refactor the `testConnection` method in `services/code_intelligence_service.js`. The current implementation has complex nested `if/else` logic. Simplify it to be cleaner, more readable, and easier to maintain, without changing its external behavior.",
+  "project_status": "ENRICHMENT_PHASE"
+}
+GraphStateManager: connectionStatus = NOT_CONFIGURED
+GraphStateManager: Operating in fallback mode. State update for event 'PROJECT_INITIALIZED' will be stored in memory only.
+GraphStateManager: Operating in fallback mode - state will not persist between sessions.
+GraphStateManager: Initialized memoryState: {
+  "project_name": "default",
+  "project_status": "NEEDS_INITIALIZATION",
+  "project_manifest": {
+    "tasks": []
+  },
+  "history": [],
+  "fallback_mode": true,
+  "project_config": {
+    "projectName": "app",
+    "features": {
+      "neo4j": "auto",
+      "automation_mode": "autonomous",
+      "provider_isolation": true,
+      "deepcode_integration": true
+    }
+  },
+  "fallback_reason": "Neo4j connection unavailable",
+  "persistence_warning": "State will not persist between sessions"
+}
+GraphStateManager: Updated memory state for project default {
+  project_name: "default",
+  project_status: "ENRICHMENT_PHASE",
+  project_manifest: {
+    tasks: [],
+  },
+  history: [],
+  fallback_mode: true,
+  project_config: {
+    projectName: "app",
+    features: {
+      neo4j: "auto",
+      automation_mode: "autonomous",
+      provider_isolation: true,
+      deepcode_integration: true,
+    },
+  },
+  fallback_reason: "Neo4j connection unavailable",
+  persistence_warning: "State will not persist between sessions",
+  type: "PROJECT_INITIALIZED",
+  goal: "Refactor the `testConnection` method in `services/code_intelligence_service.js`. The current implementation has complex nested `if/else` logic. Simplify it to be cleaner, more readable, and easier to maintain, without changing its external behavior.",
+  last_updated: "2025-09-27T15:22:24.999Z",
+}
+GraphStateManager: Emitting stateChanged event
+GraphStateManager: stateChanged event received
+GraphStateManager: writeStateToFile called with state: {
+  "project_name": "default",
+  "project_status": "ENRICHMENT_PHASE",
+  "project_manifest": {
+    "tasks": []
+  },
+  "history": [],
+  "fallback_mode": true,
+  "project_config": {
+    "projectName": "app",
+    "features": {
+      "neo4j": "auto",
+      "automation_mode": "autonomous",
+      "provider_isolation": true,
+      "deepcode_integration": true
+    }
+  },
+  "fallback_reason": "Neo4j connection unavailable",
+  "persistence_warning": "State will not persist between sessions",
+  "type": "PROJECT_INITIALIZED",
+  "goal": "Refactor the `testConnection` method in `services/code_intelligence_service.js`. The current implementation has complex nested `if/else` logic. Simplify it to be cleaner, more readable, and easier to maintain, without changing its external behavior.",
+  "last_updated": "2025-09-27T15:22:24.999Z"
+}
+GraphStateManager: Attempting to write state to file: /app/.stigmergy/state/current.json
+GraphStateManager: Current working directory: /app
+[Engine] State changed to: ENRICHMENT_PHASE
+[Engine] Dispatcher loop started.
+[Engine] Triggering agent @dispatcher with prompt: "The project plan is ready. Begin executing the tasks in plan.md."
+[Engine] Agent loop turn 1...
+[Engine] Agent loop turn 2...
+[Engine] Agent loop turn 3...
+[Engine] Agent loop turn 4...
+[Engine] Agent loop turn 5...
+[Engine] Agent loop turn 6...
+[Engine] Agent loop turn 7...
+[Engine] Agent loop turn 8...
+[Engine] Agent loop turn 9...
+[Engine] Agent loop turn 10...
+[Engine] Agent loop reached max turns. Aborting.
+GraphStateManager: State written to file: /app/.stigmergy/state/current.json
+[WebSocket] Client disconnected
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12c94c79d9-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "27",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "29",
+  "x-request-id": "req_b4a82a05f72c4a3b86dddecee295e42d",
+  "set-cookie": "_cfuvid=iwb0DuQhNdugUbYz97yZMBzApbVXNYK1yHlBJxvhwos-1758986545179-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12c82de120-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "41",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "44",
+  "x-request-id": "req_f3806178421898e3bad8fb6c3f9b9936",
+  "set-cookie": "_cfuvid=sD44Ev9._qImhtt4T6z4QhFVjRUjZU63bi9XAwwDRQ4-1758986545183-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12bb38e811-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "42",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "46",
+  "x-request-id": "req_f7cce42508d30315a4f0831257904673",
+  "set-cookie": "_cfuvid=Qarh6ZKsZ8x7cdMHMJZgG0H2H5VAaZ5oT_Mo6YGtpMU-1758986545192-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12ca13b7ac-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "39",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "42",
+  "x-request-id": "req_bced6edcde177ff073574353e641c239",
+  "set-cookie": "_cfuvid=p_9VZvBQrOf51TThvgBTHC18Ewec.k0oAyvjcDm5sog-1758986545193-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12bdf15769-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "52",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "56",
+  "x-request-id": "req_1f757ce2651eaf4aa185ab4e3c6e1e7e",
+  "set-cookie": "_cfuvid=b3XBcc3k9GeVkeF71T8D2xZlX2zFVaWUAm3fNib_tjQ-1758986545195-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12cc9c2197-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "32",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "33",
+  "x-request-id": "req_abea61686f75159acdfa0e7fca448a3f",
+  "set-cookie": "_cfuvid=b3XBcc3k9GeVkeF71T8D2xZlX2zFVaWUAm3fNib_tjQ-1758986545195-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12ba91f14b-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "50",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "53",
+  "x-request-id": "req_d2bfb9f9ab3fcea1a3fdf6c3ef8c56db",
+  "set-cookie": "_cfuvid=6lshBndfcMvzyBrQDgb_ppVxkCOHOasXJsnsE5.XDAQ-1758986545201-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12b8c3e8fb-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "37",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "39",
+  "x-request-id": "req_ee1f34f5a8cca91bf95bb9468db3f8d0",
+  "set-cookie": "_cfuvid=Z4qGp2ecQ4CuJIJP9oVTbTqeG_5p0Qltz6RbaoZP5.Y-1758986545284-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12be3610b6-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "124",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "152",
+  "x-request-id": "req_cec410dadedf1ef139485a10a1ac0e22",
+  "set-cookie": "_cfuvid=dVjnTFxzxCEPouobt9PunBXXdMnQQeUxKkL3Sa4Fktw-1758986545301-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  tools: [
+    [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...], [Object ...]
+  ],
+  tool_choice: "auto",
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "985bff12cdcb1253-ORD",
+  connection: "keep-alive",
+  "content-length": "302",
+  "content-type": "application/json",
+  date: "Sat, 27 Sep 2025 15:22:25 GMT",
+  "openai-processing-ms": "314",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-envoy-upstream-service-time": "472",
+  "x-request-id": "req_00b2f32c1a7abf1fc783d053062bda28",
+  "set-cookie": "_cfuvid=NSz6_nxV0rAyPHWy6e_5sGmdc_QztZTKz4u4ttv.vNE-1758986545622-0.0.1.1-604800000; path=/; domain=.api.openai.com; HttpOnly; Secure; SameSite=None",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: sk-or-v1*************************************************************0efb. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/openai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:269:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4722:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4719:19)
+      at finalize (5:73)
