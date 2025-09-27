@@ -6,6 +6,8 @@ import GraphStateManager from "../src/infrastructure/state/GraphStateManager.js"
 import { createExecutor } from "./tool_executor.js";
 import fs from 'fs-extra';
 import path from 'path';
+import yaml from 'js-yaml';
+import { streamText } from 'ai';
 import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
 
@@ -16,6 +18,7 @@ export class Engine {
         this.stateManager = new GraphStateManager(this.projectRoot);
         this.clients = new Set();
         this.server = null;
+        this._test_streamText = options._test_streamText; // For dependency injection in tests
 
         const aiProviders = getAiProviders(config);
         this.ai = aiProviders;
@@ -36,25 +39,94 @@ export class Engine {
             this.broadcastEvent('state_update', newState);
 
             if (newState.project_status === 'ENRICHMENT_PHASE') {
-                this.runMockAutonomousLoop(newState);
+                this.runDispatcher(newState);
             }
         });
     }
-    
-    async runMockAutonomousLoop(state) {
-        console.log(chalk.yellow('[Engine] Simulating autonomous loop...'));
-        await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Use the projectRoot and create file in the 'src' directory as per the test prompt
-        const filePath = path.join(this.projectRoot, 'src', 'output.js');
-        const fileContent = "console.log('Hello, Stigmergy!');";
+    async runDispatcher(state) {
+        console.log(chalk.cyan('[Engine] Dispatcher loop started.'));
+        // This is the entry point for the new, real autonomous loop
+        await this.triggerAgent('@dispatcher', 'The project plan is ready. Begin executing the tasks in plan.md.');
+    }
 
-        // Ensure the directory exists before writing
-        await fs.ensureDir(path.dirname(filePath));
-        await fs.writeFile(filePath, fileContent);
-        console.log(chalk.green(`[Engine] Mock Executor has written file: ${filePath}`));
+    async triggerAgent(agentId, prompt) {
+        console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
+        const agentName = agentId.replace('@', '');
 
-        await this.stateManager.updateStatus({ newStatus: 'EXECUTION_COMPLETE', message: 'Workflow finished.' });
+        try {
+            // 1. Load Agent Definition
+            const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentName}.md`);
+            const agentFileContent = await fs.readFile(agentPath, 'utf-8');
+            const agentDefinition = yaml.load(agentFileContent.match(/```yaml\n([\s\S]*?)\n```/)[1]);
+
+            // 2. Construct System Prompt
+            const persona = agentDefinition.agent.persona;
+            const protocols = agentDefinition.agent.core_protocols.join('\n- ');
+            const systemPrompt = `${persona.role} ${persona.style} ${persona.identity}\n\nMy core protocols are:\n- ${protocols}`;
+
+            // 3. Initialize Conversation
+            const messages = [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: prompt }
+            ];
+
+            let isDone = false;
+            const maxTurns = 10; // Safeguard against infinite loops
+            let turnCount = 0;
+
+            // 4. LLM Interaction Loop
+            while (!isDone && turnCount < maxTurns) {
+                turnCount++;
+                console.log(chalk.blue(`[Engine] Agent loop turn ${turnCount}...`));
+
+                // Use the injected test function if available, otherwise use the real one.
+                // This is the key to isolating the test from network/API dependencies.
+                const streamTextFunc = this._test_streamText || streamText;
+                const model = this._test_streamText ? null : this.ai.getModelForTier('reasoning_tier');
+
+                const { toolCalls, finishReason } = await streamTextFunc({
+                    model, // This will be null in tests, which is fine as the mock doesn't use it.
+                    messages,
+                    tools: this.executeTool.getTools(),
+                });
+
+                if (toolCalls && toolCalls.length > 0) {
+                    messages.push({ role: 'assistant', content: '', tool_calls: toolCalls });
+
+                    const toolResults = [];
+                    for (const toolCall of toolCalls) {
+                        console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args:`, toolCall.args));
+                        const result = await this.executeTool.execute(toolCall.toolName, toolCall.args, agentName);
+                        toolResults.push({
+                            type: 'tool_result',
+                            tool_call_id: toolCall.toolCallId,
+                            tool_name: toolCall.toolName,
+                            result: result,
+                        });
+
+                        // The dispatcher's job is done when it signals completion
+                        if (toolCall.toolName === 'system.updateStatus' && toolCall.args.newStatus === 'EXECUTION_COMPLETE') {
+                            isDone = true;
+                        }
+                    }
+                    messages.push(...toolResults);
+                }
+
+                if (finishReason === 'stop' || finishReason === 'length') {
+                    console.log(chalk.yellow(`[Engine] Agent loop finished with reason: ${finishReason}`));
+                    isDone = true;
+                }
+            }
+
+            if (turnCount >= maxTurns) {
+                console.error(chalk.red('[Engine] Agent loop reached max turns. Aborting.'));
+            }
+
+        } catch (error) {
+            console.error(chalk.red('[Engine] Error in agent logic:'), error);
+            await this.stateManager.updateStatus({ newStatus: 'ERROR', message: 'Agent failed to execute.' });
+        }
     }
 
     setupRoutes() {

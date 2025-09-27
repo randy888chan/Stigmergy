@@ -130,9 +130,31 @@ async function triggerContextSummarization(toolName, args, agentId, engine) {
   }
 }
 
-export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS PARAMETERS
+// Helper to parse function parameters more robustly
+const getParams = (func) => {
+    const funcString = func.toString();
+    const match = funcString.match(/\(([^)]*)\)/);
+    if (!match) return [];
+
+    const paramsMatch = match[1].match(/\{([^}]+)\}/);
+    if (paramsMatch) {
+        // Handle destructured object parameters, e.g., ({ path, content })
+        return paramsMatch[1].split(',').map(p => p.split(':')[0].split('=')[0].trim());
+    }
+
+    // Handle regular parameters, e.g., (toolName, args)
+    return match[1].split(',').map(p => p.trim()).filter(Boolean);
+};
+
+export function createExecutor(engine, ai, config) {
+  // Create a project-aware wrapper for the file_system toolset
+  const projectFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
+    acc[key] = (args) => fileSystem[key]({ ...args, projectRoot: engine.projectRoot });
+    return acc;
+  }, {});
+
   const toolbelt = {
-    file_system: fileSystem,
+    file_system: projectFileSystem,
     shell,
     research,
     code_intelligence: codeIntelligence,
@@ -140,8 +162,8 @@ export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS 
     qa: qaTools,
     business_verification: businessVerification,
     guardian: createGuardianTools(engine),
-    core: privilegedCoreTools, // For @guardian
-    system: createSystemTools(engine), // Add this line
+    core: privilegedCoreTools,
+    system: createSystemTools(engine),
     mcp_code_search: mcpCodeSearch,
     superdesign: superdesignIntegration,
     qwen_integration: qwenIntegration,
@@ -152,74 +174,78 @@ export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS 
     coderag: { initialize: initialize_coderag, semantic_search },
     deepwiki: { query: query_deepwiki },
     stigmergy: {
-      task: async ({ subagent_type, description }) => {
-        if (!subagent_type || !description) {
-          throw new Error("The 'subagent_type' and 'description' are required for stigmergy.task");
+      task: async ({ agent_id, prompt }) => {
+        if (!agent_id || !prompt) {
+          throw new OperationalError("The 'agent_id' and 'prompt' arguments are required for stigmergy.task");
         }
-        // Get the agent object from the engine
-        const agent = engine.getAgent(subagent_type);
-        return await engine.triggerAgent(agent, description);
+        engine.triggerAgent(agent_id, prompt);
+        return `Task successfully delegated to ${agent_id}. The task will run in the background.`;
       },
     },
   };
 
-  return async function execute(toolName, args, agentId) {
+  const getTools = () => {
+    const tools = {};
+    for (const namespace in toolbelt) {
+      for (const funcName in toolbelt[namespace]) {
+        const toolFunc = toolbelt[namespace][funcName];
+        const toolName = `${namespace}.${funcName}`;
+
+        const params = getParams(toolFunc);
+        const properties = {};
+        params.forEach(param => {
+          properties[param] = { type: 'string' }; // Assume string for simplicity
+        });
+
+        tools[toolName] = {
+          description: `A tool for ${funcName} in the ${namespace} category.`, // Generic description
+          parameters: {
+            type: 'object',
+            properties,
+            required: params,
+          },
+        };
+      }
+    }
+    return tools;
+  };
+
+  const execute = async (toolName, args, agentId) => {
     engine.broadcastEvent('tool_start', { tool: toolName, args });
     const startTime = Date.now();
     
-    // Start trajectory recording for this tool call
-    const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, {
-      toolName,
-      args,
-      agentId
-    });
+    const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
     
     try {
       const agentDefPath = path.join(getCorePath(), "agents", `${agentId}.md`);
       const agentFileContent = await fs.readFile(agentDefPath, "utf8");
-      // Updated regex to match the pattern used in server.js for consistency
       const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
-      if (!yamlMatch) {
-        throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
-      }
+      if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
       const agentConfig = yaml.load(yamlMatch[1]).agent;
 
       const [namespace, funcName] = toolName.split(".");
-
       if (!toolbelt[namespace] || typeof toolbelt[namespace][funcName] !== 'function') {
-        throw new Error(`Tool '${toolName}' not found or is not a function in the engine toolbelt.`);
+        throw new Error(`Tool '${toolName}' not found.`);
       }
 
       const permittedTools = agentConfig.engine_tools || [];
-      
-      // Special handling for system and dispatcher agents
       const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
-      
       if (!isSystemOrDispatcher && !permittedTools.includes(toolName)) {
         throw new Error(`Tool '${toolName}' is not authorized for agent '${agentId}'.`);
       }
 
-      // Sanitize arguments before passing to the tool
-      const safeArgs = sanitizeToolCall({ arguments: args })?.arguments || args;
-
-      // Call the tool function with the appropriate signature
-      // Different tools expect different signatures
+      const safeArgs = sanitizeToolCall(toolName, args)?.arguments || args;
       const toolFunction = toolbelt[namespace][funcName];
-      
-      // Determine the tool signature based on namespace
+
       let result;
-      if (namespace === 'file_system' || namespace === 'shell') {
-        // Simple tools that expect just (args)
+      if (['file_system', 'shell', 'stigmergy'].includes(namespace)) {
         result = await toolFunction(safeArgs);
       } else {
-        // AI-dependent tools that expect (args, ai, config)
         result = await toolFunction(safeArgs, ai, config);
       }
       
-      // Clear file cache if modifying file system
       if (toolName.startsWith("file_system.write")) {
         clearFileCache();
-        // Trigger context summarization after writeFile operations for memory management
         await triggerContextSummarization(toolName, safeArgs, agentId, engine);
       }
       engine.broadcastEvent('tool_end', { tool: toolName, result: result });
@@ -229,7 +255,6 @@ export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS 
       engine.broadcastEvent('tool_end', { tool: toolName, error: error.message });
       const processedError = ErrorHandler.process(error, { agentId, toolName });
       
-      // Record the tool execution error
       trajectoryRecorder.logEvent(recordingId, 'tool_execution_error', {
         toolName,
         error: processedError.message,
@@ -246,7 +271,6 @@ export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS 
       });
       throw processedError;
     } finally {
-      // Finalize the recording
       try {
         await trajectoryRecorder.finalizeRecording(recordingId);
       } catch (finalizeError) {
@@ -254,4 +278,6 @@ export function createExecutor(engine, ai, config) { // ACCEPT ai AND config AS 
       }
     }
   };
+
+  return { execute, getTools };
 }

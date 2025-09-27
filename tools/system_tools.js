@@ -15,8 +15,8 @@ export default (engine) => ({
     if (!newStatus) {
       throw new Error("The 'newStatus' argument is required for system.updateStatus.");
     }
-    // Note: We use the engine's stateManagerModule to call the function
-    await engine.stateManagerModule.updateStatus({ newStatus, message });
+    // Note: We use the engine's stateManager to call the function
+    await engine.stateManager.updateStatus({ newStatus, message });
     const confirmation = `System status successfully updated to ${newStatus}.`;
     console.log(`[System Tool] ${confirmation}`);
     return confirmation;
