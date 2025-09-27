@@ -6,8 +6,9 @@ import path from "path";
 import fs from "fs-extra";
 
 class GraphStateManager extends EventEmitter {
-  constructor() {
+  constructor(projectRoot) {
     super();
+    this.projectRoot = projectRoot || process.cwd();
     this.driver = null;
     this.connectionStatus = "UNINITIALIZED";
     this.connectionTested = false;
@@ -271,11 +272,11 @@ class GraphStateManager extends EventEmitter {
     if (state.fallback_mode) {
       try {
         // Determine the state file path based on the current working directory
-        const stateDir = path.join(process.cwd(), '.stigmergy', 'state');
+        const stateDir = path.join(this.projectRoot, '.stigmergy', 'state');
         const stateFile = path.join(stateDir, 'current.json');
         
         console.log(`GraphStateManager: Attempting to write state to file: ${stateFile}`);
-        console.log(`GraphStateManager: Current working directory: ${process.cwd()}`);
+        console.log(`GraphStateManager: Current working directory: ${this.projectRoot}`);
         
         // Ensure the directory exists
         await fs.ensureDir(stateDir);
@@ -301,21 +302,21 @@ class GraphStateManager extends EventEmitter {
     // Try to load project-specific configuration
     try {
       // First check for .stigmergy/config.js (new structure)
-      let configPath = path.join(process.cwd(), '.stigmergy', 'config.js');
+      let configPath = path.join(this.projectRoot, '.stigmergy', 'config.js');
       
       // If not found, check for .stigmergy-core/config.js (legacy structure)
       if (!fs.existsSync(configPath)) {
-        configPath = path.join(process.cwd(), '.stigmergy-core', 'config.js');
+        configPath = path.join(this.projectRoot, '.stigmergy-core', 'config.js');
       }
       
       // If still not found, check for .stigmergy/config.json
       if (!fs.existsSync(configPath)) {
-        configPath = path.join(process.cwd(), '.stigmergy', 'config.json');
+        configPath = path.join(this.projectRoot, '.stigmergy', 'config.json');
       }
       
       // If still not found, check for .stigmergy-core/config.json
       if (!fs.existsSync(configPath)) {
-        configPath = path.join(process.cwd(), '.stigmergy-core', 'config.json');
+        configPath = path.join(this.projectRoot, '.stigmergy-core', 'config.json');
       }
       
       // If we found a config file, load it
@@ -348,4 +349,4 @@ class GraphStateManager extends EventEmitter {
   }
 }
 
-export default new GraphStateManager();
+export default GraphStateManager;
