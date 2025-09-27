@@ -3,7 +3,7 @@ import fs from "fs-extra";
 import path from "path";
 import os from "os";
 import { Neo4jValidator } from "../../engine/neo4j_validator.js";
-import coreBackup from "../../services/core_backup.js";
+import { CoreBackup } from "../../services/core_backup.js";
 
 /**
  * Validates the health of the entire Stigmergy system.
@@ -11,6 +11,7 @@ import coreBackup from "../../services/core_backup.js";
 export class SystemValidator {
   constructor() {
     this.results = {};
+    this.coreBackup = new CoreBackup();
   }
 
   async comprehensiveCheck() {
@@ -63,7 +64,7 @@ export class SystemValidator {
         return { success: false, error: "No backup files found." };
       }
       const latestBackup = path.join(backupDir, backups[backups.length - 1]);
-      const verification = await coreBackup.verifyBackup(latestBackup);
+      const verification = await this.coreBackup.verifyBackup(latestBackup);
       return verification;
     } catch (error) {
       return { success: false, error: "Backup validation failed: " + error.message };
