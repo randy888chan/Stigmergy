@@ -1,5 +1,6 @@
 import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
 import { Engine } from '../../engine/server.js';
+import stateManager from '../../src/infrastructure/state/GraphStateManager.js';
 import WebSocket from 'ws';
 import fs from 'fs-extra';
 import path from 'path';
@@ -18,7 +19,7 @@ describe('End-to-End Workflow', () => {
     await fs.ensureDir(path.join(TEST_PROJECT_DIR, 'src'));
 
     process.env.STIGMERGY_PORT = PORT;
-    engine = new Engine();
+    engine = new Engine(stateManager);
     // In a real test, we might start this in a separate process.
     // For now, starting it directly is fine.
     await engine.start();

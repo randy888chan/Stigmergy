@@ -2,7 +2,6 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { createNodeWebSocket } from '@hono/node-ws';
 import chalk from 'chalk';
-// CORRECT: Import the real State Manager directly.
 import stateManager from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import fs from 'fs-extra';
@@ -11,10 +10,12 @@ import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
 
 export class Engine {
-    constructor(options = {}) {
+    constructor(stateManagerInstance, options = {}) {
+        if (!stateManagerInstance) {
+            throw new Error("Engine requires a StateManager instance.");
+        }
         this.app = new Hono();
-        // CORRECT: Use the real state manager instance.
-        this.stateManager = stateManager;
+        this.stateManager = stateManagerInstance;
         this.clients = new Set();
         this.server = null;
 
@@ -28,12 +29,10 @@ export class Engine {
 
     async executeGoal(prompt) {
         console.log(chalk.cyan(`[Engine] Received new goal: "${prompt}"`));
-        // CORRECT: Call the method directly on the GraphStateManager.
         await this.stateManager.initializeProject(prompt);
     }
     
     setupStateListener() {
-        // CORRECT: The listener is now directly on the source of the event.
         this.stateManager.on('stateChanged', (newState) => {
             console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
             this.broadcastEvent('state_update', newState);
@@ -57,30 +56,32 @@ export class Engine {
     }
 
     setupRoutes() {
-        const { upgradeWebSocket, wss } = createNodeWebSocket({ app: this.app });
+        const engineInstance = this;
+        const { upgradeWebSocket } = createNodeWebSocket({ app: this.app });
 
-        this.app.get('/ws', upgradeWebSocket((ws) => {
-            console.log(chalk.blue('[WebSocket] Client connected'));
-            this.clients.add(ws);
-
-            ws.on('message', async (event) => {
-                const message = event.data;
-                try {
-                    const data = JSON.parse(message);
-                    if (data.type === 'user_chat_message') {
-                        await this.executeGoal(data.payload.prompt);
+        this.app.get('/ws', upgradeWebSocket((c) => {
+            return {
+                onOpen: (evt, ws) => {
+                    console.log(chalk.blue('[WebSocket] Client connected'));
+                    engineInstance.clients.add(ws);
+                },
+                onMessage: async (evt, ws) => {
+                    try {
+                        const data = JSON.parse(evt.data);
+                        if (data.type === 'user_chat_message') {
+                            await engineInstance.executeGoal(data.payload.prompt);
+                        }
+                    } catch (error) {
+                        console.error(chalk.red('[WebSocket] Error processing message:'), error);
                     }
-                } catch (error) {
-                    console.error(chalk.red('[WebSocket] Error processing message:'), error);
-                }
-            });
-
-            ws.on('close', () => {
-                console.log(chalk.blue('[WebSocket] Client disconnected'));
-                this.clients.delete(ws);
-            });
+                },
+                onClose: (evt, ws) => {
+                    console.log(chalk.blue('[WebSocket] Client disconnected'));
+                    engineInstance.clients.delete(ws);
+                },
+            };
         }));
-
+        
         this.app.get('/', (c) => c.text('Stigmergy Engine is running!'));
     }
 
@@ -98,10 +99,12 @@ export class Engine {
         const PORT = process.env.STIGMERGY_PORT || 3010;
         
         return new Promise((resolve) => {
+            // THIS IS THE CRITICAL FIX:
+            // The `serve` function must be explicitly told to handle WebSockets.
             this.server = serve({
                 fetch: this.app.fetch,
                 port: Number(PORT),
-                websocket: true,
+                websocket: true, // This line enables the WebSocket server.
             }, (info) => {
                 console.log(chalk.green(`🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:${info.port}`));
                 resolve();
@@ -110,7 +113,6 @@ export class Engine {
     }
 
     async stop() {
-        // This makes the stop method more robust.
         return new Promise((resolve) => {
             if (this.server && this.server.close) {
                 this.server.close(() => {
@@ -124,7 +126,9 @@ export class Engine {
     }
 }
 
+// This block ensures the server can run directly for production
 if (import.meta.main) {
-    const engine = new Engine();
+    const mainStateManager = await import("../src/infrastructure/state/GraphStateManager.js").then(m => m.default);
+    const engine = new Engine(mainStateManager);
     engine.start();
 }
