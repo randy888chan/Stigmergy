@@ -1,20 +1,23 @@
-# 1. Use an official Node.js runtime as a parent image
-FROM node:18-alpine
-
-# 2. Set the working directory in the container
+# ---- Base Stage ----
+# Use the official Bun image, which is based on Debian.
+FROM oven/bun:1.0 AS base
 WORKDIR /usr/src/app
 
-# 3. Copy package.json and package-lock.json
-COPY package*.json ./
+# ---- Dependencies Stage ----
+# Create a separate stage for installing dependencies to leverage Docker's layer caching.
+FROM base AS deps
+COPY package.json bun.lockb* ./
+# Install ONLY production dependencies. This creates a smaller, more secure final image.
+RUN bun install --production
 
-# 4. Install production dependencies
-RUN npm ci --only=production
-
-# 5. Copy the rest of your application's source code
+# ---- Final Application Stage ----
+# Copy dependencies from the 'deps' stage and then copy the application code.
+FROM base AS runner
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
 
-# 6. Expose the port the app runs on
+# Expose the port the app runs on.
 EXPOSE 3010
 
-# 7. Define the command to run your app
-CMD [ "node", "engine/server.js" ]
+# Define the command to run your app using Bun.
+CMD ["bun", "start"]

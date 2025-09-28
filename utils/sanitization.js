@@ -21,6 +21,10 @@ const toolSchemas = {
     newStatus: z.string().min(1),
     message: z.string().optional(),
   },
+  'system.request_human_approval': {
+    message: z.string().min(1),
+    data: z.record(z.string(), z.any()),
+  },
   'stigmergy.task': {
     subagent_type: z.string().min(1),
     description: z.string().min(1),
