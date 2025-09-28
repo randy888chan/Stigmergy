@@ -2,15 +2,17 @@ import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 
 // Mock the dependencies of the module we are testing.
 // The chat_interface tool calls stateManager and coreTools.
-mock.module('../../../engine/state_manager.js', () => ({
-  initializeProject: mock().mockResolvedValue({}),
+mock.module('../../../src/infrastructure/state/GraphStateManager.js', () => ({
+  default: {
+    initializeProject: mock().mockResolvedValue({}),
+  },
 }));
 mock.module('../../../tools/core_tools.js', () => ({
   createStructuredResponse: mock((data) => data), // Mock returns the data it received
 }));
 
 // NOW, we can safely import the modules. Bun will give us the mocked versions.
-import * as stateManager from '../../../engine/state_manager.js';
+import stateManager from '../../../src/infrastructure/state/GraphStateManager.js';
 import * as coreTools from '../../../tools/core_tools.js';
 import { process_chat_command } from '../../../tools/chat_interface.js';
 

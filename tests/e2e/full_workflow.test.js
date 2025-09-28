@@ -67,42 +67,48 @@ describe('End-to-End Workflow with Mocked AI', () => {
     console.log('Starting test...');
     const expectedFileContent = "console.log('Hello from the dispatcher!');";
     const expectedFilePath = path.join(TEST_PROJECT_DIR, 'src', 'output.js');
+    let ws;
 
-    await new Promise((resolve, reject) => {
-      const ws = new WebSocket(serverUrl);
+    try {
+      await new Promise((resolve, reject) => {
+        ws = new WebSocket(serverUrl);
 
-      ws.onerror = (err) => {
-        console.error('WebSocket error:', err);
-        reject(new Error(`WebSocket connection failed`));
-      };
+        ws.onerror = (err) => {
+          console.error('WebSocket error:', err);
+          reject(new Error(`WebSocket connection failed`));
+        };
 
-      ws.onmessage = async (event) => {
-        console.log('WebSocket message received:', event.data.toString());
-        try {
-          const data = JSON.parse(event.data);
-          if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
-            ws.close();
-            resolve();
+        ws.onmessage = async (event) => {
+          console.log('WebSocket message received:', event.data.toString());
+          try {
+            const data = JSON.parse(event.data);
+            if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
+              resolve();
+            }
+          } catch (e) {
+            reject(e);
           }
-        } catch (e) {
-          reject(e);
-        }
-      };
+        };
 
-      ws.onopen = () => {
-        console.log('WebSocket connection opened.');
-        try {
-          // The prompt is now just a trigger; the actual work is defined in plan.md
-          const prompt = `Execute the plan.`;
-          ws.send(JSON.stringify({
-            type: 'user_chat_message',
-            payload: { prompt },
-          }));
-        } catch (e) {
-          reject(e);
-        }
-      };
-    });
+        ws.onopen = () => {
+          console.log('WebSocket connection opened.');
+          try {
+            const prompt = `Execute the plan.`;
+            ws.send(JSON.stringify({
+              type: 'user_chat_message',
+              payload: { prompt },
+            }));
+          } catch (e) {
+            reject(e);
+          }
+        };
+      });
+    } finally {
+      if (ws && ws.readyState !== WebSocket.CLOSED) {
+        ws.close();
+        console.log('[Test Cleanup] WebSocket connection closed in finally block.');
+      }
+    }
 
     // After the workflow is complete, verify the file was created correctly
     const fileExists = await fs.pathExists(expectedFilePath);

@@ -216,13 +216,38 @@ export class Engine {
     }
 
     async stop() {
-        return new Promise((resolve) => {
-            if (this.server) {
-                this.server.stop(true);
-                console.log(chalk.yellow('[Engine] Server stopped.'));
-            }
-            resolve();
-        });
+        if (!this.server) {
+            return;
+        }
+
+        console.log(chalk.yellow('[Engine] Attempting to stop server...'));
+
+        // Close all active WebSocket connections
+        console.log(chalk.yellow(`[Engine] Closing ${this.clients.size} WebSocket clients...`));
+        for (const client of this.clients) {
+            client.close(1000, 'Server is shutting down');
+        }
+        this.clients.clear();
+
+        if (typeof Bun !== 'undefined' && this.server.stop) {
+            // Bun environment
+            await this.server.stop(true); // Force close
+            console.log(chalk.yellow('[Engine] Server stopped (Bun).'));
+        } else if (this.server.close) {
+            // Node.js environment
+            await new Promise((resolve, reject) => {
+                this.server.close((err) => {
+                    if (err) {
+                        console.error(chalk.red('[Engine] Error stopping server (Node):'), err);
+                        return reject(err);
+                    }
+                    console.log(chalk.yellow('[Engine] Server stopped (Node).'));
+                    resolve();
+                });
+            });
+        } else {
+            console.warn(chalk.yellow('[Engine] Server object found, but no stop() or close() method available.'));
+        }
     }
 }
 

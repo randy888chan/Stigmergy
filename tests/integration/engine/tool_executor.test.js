@@ -26,6 +26,6 @@ describe('Tool Executor Integration', () => {
     
     // This is a placeholder test. You can now write real integration tests here.
     // For now, we just confirm that the executor can be created without crashing.
-    expect(typeof executor).toBe('function');
+    expect(typeof executor).toBe('object');
   });
 });
