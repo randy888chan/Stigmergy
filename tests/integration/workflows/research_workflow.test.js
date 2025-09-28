@@ -1,4 +1,19 @@
-import { vi, test, expect, beforeEach, afterEach } from "vitest";
+import { mock, spyOn, test, expect, beforeEach, afterEach } from "bun:test";
+
+// Mock the GraphStateManager dependency EXPLICITLY for this test file.
+mock.module("../../../src/infrastructure/state/GraphStateManager.js", () => {
+    return {
+      default: mock(() => ({
+        initializeProject: mock().mockResolvedValue({}),
+        updateStatus: mock().mockResolvedValue({}),
+        updateState: mock().mockResolvedValue({}),
+        getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
+        on: mock(),
+        emit: mock(),
+      })),
+    };
+});
+
 import { Engine as Stigmergy } from "../../../engine/server.js";
 import fs from "fs-extra";
 import path from "path";
@@ -11,12 +26,12 @@ let engine;
 let executeSpy;
 
 // A mock for the streamText function to simulate LLM responses
-const mockStreamText = vi.fn();
+const mockStreamText = mock();
 
 beforeEach(async () => {
     // Inject the mock streamText function into the engine
     engine = new Stigmergy({ _test_streamText: mockStreamText });
-    executeSpy = vi.spyOn(engine.executeTool, 'execute');
+    executeSpy = spyOn(engine.executeTool, 'execute');
 
     // Setup mock agent definitions in a temporary directory
     const tempAgentPath = path.join(process.cwd(), '.tmp', '.stigmergy-core', 'agents');
@@ -25,11 +40,14 @@ beforeEach(async () => {
     await fs.copy(analystAgentPath, path.join(tempAgentPath, 'analyst.md'));
 
     // Override the agent loading path for the test
-    vi.spyOn(process, 'cwd').mockReturnValue(path.join(process.cwd(), '.tmp'));
+    spyOn(process, 'cwd').mockReturnValue(path.join(process.cwd(), '.tmp'));
 });
 
-afterEach(() => {
-    vi.restoreAllMocks();
+afterEach(async () => {
+    if (engine) {
+        await engine.stop();
+    }
+    mock.restore();
 });
 
 test("Research workflow triggers deep_dive, evaluate_sources, and reports with confidence", async () => {

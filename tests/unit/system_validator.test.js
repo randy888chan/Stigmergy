@@ -1,12 +1,13 @@
-import { describe, it, expect, beforeEach, mock } from "bun:test";
+import { describe, it, expect, beforeEach, afterAll, mock, spyOn } from "bun:test";
+import fs from "fs-extra";
+import path from "path";
+import os from "os";
+import { SystemValidator } from "../../src/bootstrap/system_validator.js";
 
-// 1. Create mock functions that are in scope for the whole file
-const mockVerifyBackup = mock(() => Promise.resolve({ success: true }));
-const mockNeo4jValidate = mock(() => Promise.resolve({ success: true }));
-const mockFsExistsSync = mock(() => true);
-const mockFsReadDir = mock(() => Promise.resolve(["backup1.tar.gz"]));
+// Mock dependencies that are not the focus of this test
+const mockVerifyBackup = mock();
+const mockNeo4jValidate = mock();
 
-// 2. Mock the modules and use the functions from step 1
 mock.module("../../services/core_backup.js", () => ({
   CoreBackup: class {
     verifyBackup = mockVerifyBackup;
@@ -19,39 +20,29 @@ mock.module("../../engine/neo4j_validator.js", () => ({
   },
 }));
 
-// fs-extra is a CJS module, so mocking the default export is key.
-mock.module("fs-extra", () => ({
-  default: {
-    existsSync: mockFsExistsSync,
-    readdir: mockFsReadDir,
-  },
-}));
-
-// 3. Now that mocks are set up, import the system under test
-import { SystemValidator } from "../../src/bootstrap/system_validator.js";
-
 describe("SystemValidator", () => {
   let validator;
 
   beforeEach(() => {
-    // 4. Reset mocks before each test using the handles from step 1
-    mockVerifyBackup.mockClear();
-    mockNeo4jValidate.mockClear();
-    mockFsExistsSync.mockClear();
-    mockFsReadDir.mockClear();
-
-    // Set default behaviors for a "happy path" test
-    mockFsExistsSync.mockReturnValue(true);
-    mockFsReadDir.mockResolvedValue(["backup1.tar.gz"]);
-    mockVerifyBackup.mockResolvedValue({ success: true });
-    mockNeo4jValidate.mockResolvedValue({ success: true });
-
-    // Instantiate the validator
+    mockVerifyBackup.mockReset();
+    mockNeo4jValidate.mockReset();
+    mock.restore(); // Restore all spies before each test
     validator = new SystemValidator();
   });
 
+  afterAll(() => {
+    mock.restore();
+  });
+
   it("should run comprehensiveCheck and report success when all checks pass", async () => {
+    // Setup for happy path for ALL checks
+    spyOn(fs, 'existsSync').mockReturnValue(true);
+    spyOn(fs, 'readdir').mockResolvedValue(['backup.tar.gz']);
+    mockVerifyBackup.mockResolvedValue({ success: true });
+    mockNeo4jValidate.mockResolvedValue({ success: true });
+
     const results = await validator.comprehensiveCheck();
+
     expect(results.core.success).toBe(true);
     expect(results.neo4j.success).toBe(true);
     expect(results.backups.success).toBe(true);
@@ -59,28 +50,44 @@ describe("SystemValidator", () => {
   });
 
   it("validateBackups should return success when backups are valid", async () => {
+    // Setup for happy path
+    spyOn(fs, 'existsSync').mockReturnValue(true);
+    spyOn(fs, 'readdir').mockResolvedValue(['backup.tar.gz']);
+    mockVerifyBackup.mockResolvedValue({ success: true });
+
     const result = await validator.validateBackups();
     expect(result.success).toBe(true);
     expect(mockVerifyBackup).toHaveBeenCalled();
   });
 
   it("validateBackups should return an error if the backup directory does not exist", async () => {
-    // Override the default mock behavior for this specific test
-    mockFsExistsSync.mockReturnValueOnce(false);
+    // Force the condition for this test
+    spyOn(fs, 'existsSync').mockReturnValue(false);
+
     const result = await validator.validateBackups();
     expect(result.success).toBe(false);
     expect(result.error).toBe("Backup directory not found.");
+    expect(mockVerifyBackup).not.toHaveBeenCalled();
   });
 
   it("validateBackups should return an error if there are no backup files", async () => {
-    mockFsReadDir.mockResolvedValue([]);
+    // Force the conditions for this test
+    spyOn(fs, 'existsSync').mockReturnValue(true);
+    spyOn(fs, 'readdir').mockResolvedValue([]);
+
     const result = await validator.validateBackups();
     expect(result.success).toBe(false);
     expect(result.error).toBe("No backup files found.");
+    expect(mockVerifyBackup).not.toHaveBeenCalled();
   });
 
   it("comprehensiveCheck should report failure if any check fails", async () => {
-    // Make the backup check fail
+    // Setup for happy path for other checks
+    spyOn(fs, 'existsSync').mockReturnValue(true);
+    spyOn(fs, 'readdir').mockResolvedValue(['backup.tar.gz']);
+    mockNeo4jValidate.mockResolvedValue({ success: true });
+
+    // Make the backup verification itself fail
     mockVerifyBackup.mockResolvedValue({ success: false, error: "Backup corrupted" });
 
     const results = await validator.comprehensiveCheck();

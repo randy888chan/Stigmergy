@@ -64,8 +64,12 @@ export function resolvePath(filePath, projectRoot, fs = defaultFs) {
 }
 
 export async function readFile({ path: filePath, projectRoot, fs = defaultFs }) {
-  const safePath = resolvePath(filePath, projectRoot, fs);
-  return fs.readFile(safePath, "utf-8");
+  try {
+    const safePath = resolvePath(filePath, projectRoot, fs);
+    return await fs.readFile(safePath, "utf-8");
+  } catch (error) {
+    return `EXECUTION FAILED: ${error.message}`;
+  }
 }
 
 export async function writeFile({ path: filePath, content, projectRoot, fs = defaultFs }) {
