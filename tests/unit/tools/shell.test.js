@@ -1,41 +1,37 @@
-import { mock, describe, test, expect, beforeEach } from 'bun:test';
-
-// Mock the dependencies before importing the module under test
-const mockExecPromise = mock();
-mock.module('child_process', () => ({
-  execPromise: mockExecPromise,
-}));
-
-// Import the shell tool module after mocking dependencies
+import { mock, describe, test, expect } from 'bun:test';
 import { execute } from '../../../tools/shell.js';
 
 describe('Shell Tool', () => {
-  beforeEach(() => {
-    mock.restore();
+  test('should execute shell commands and return output', async () => {
+    // Create a mock for the execPromise function
+    const mockExecPromise = mock(async () => ({ stdout: "mocked output", stderr: "" }));
+
+    const result = await execute({
+      command: 'echo "hello world"',
+      agentConfig: { permitted_shell_commands: ["echo *"] },
+      // Inject the mock directly
+      execPromise: mockExecPromise
+    });
+
+    expect(result).toBeDefined();
+    expect(result).toBe('mocked output');
+    expect(mockExecPromise).toHaveBeenCalledWith('echo "hello world"', { timeout: 5000 });
   });
 
-  test('should execute shell commands and return output', async () => {
-    mockExecPromise.mockResolvedValue({ stdout: "mocked output", stderr: "" });
-    
-    const result = await execute({ 
-      command: 'echo "hello world"',
-      agentConfig: { permitted_shell_commands: ["echo *"] }
-    });
-    
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('string');
-  });
-  
   test('should handle command errors gracefully', async () => {
-    mockExecPromise.mockRejectedValue(new Error('Command failed'));
-    
-    const result = await execute({ 
+    // Create a mock that rejects
+    const mockExecPromise = mock(async () => { throw new Error('Command failed') });
+
+    const result = await execute({
       command: 'invalid command',
-      agentConfig: { permitted_shell_commands: ["*"] }
+      agentConfig: { permitted_shell_commands: ["*"] },
+      // Inject the mock directly
+      execPromise: mockExecPromise
     });
-    
+
     expect(result).toBeDefined();
     expect(typeof result).toBe('string');
-    expect(result).toContain('EXECUTION FAILED');
+    expect(result).toContain('EXECUTION FAILED: Command failed');
+    expect(mockExecPromise).toHaveBeenCalledWith('invalid command', { timeout: 5000 });
   });
 });

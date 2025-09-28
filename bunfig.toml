@@ -1,7 +1,14 @@
 [test.mocks]
 # This line tells Bun: "Any time a test file tries to import
 # 'ai/providers.js', give it our fake one from 'tests/mocks' instead."
-"ai/providers.js" = "/Users/user/Documents/GitHub/Stigmergy/tests/mocks/ai-providers.js"
+"ai/providers.js" = "./tests/mocks/ai-providers.js"
+
+# This tells Bun: "Any time ANY file in the test suite tries to import
+# 'fs-extra', give them our high-fidelity mock from tests/mocks/ instead."
+"fs-extra" = "./tests/mocks/fs-extra.js"
+
+# Do the same for the GraphStateManager
+"src/infrastructure/state/GraphStateManager.js" = "./tests/mocks/GraphStateManager.js"
 
 [test]
 # These two files will run BEFORE every test file.

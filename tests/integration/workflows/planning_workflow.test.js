@@ -1,15 +1,15 @@
-import { vi, test, expect, beforeEach, afterEach } from "vitest";
+import { spyOn, mock, test, expect, beforeEach, afterEach } from "bun:test";
 import { Engine as Stigmergy } from "../../../engine/server.js";
 import fs from "fs-extra";
 import path from "path";
 
 let engine;
 let executeSpy;
-const mockStreamText = vi.fn();
+const mockStreamText = mock();
 
 beforeEach(async () => {
     engine = new Stigmergy({ _test_streamText: mockStreamText });
-    executeSpy = vi.spyOn(engine.executeTool, 'execute');
+    executeSpy = spyOn(engine.executeTool, 'execute');
 
     // Setup mock agent definitions
     const tempAgentPath = path.join(process.cwd(), '.tmp', '.stigmergy-core', 'agents');
@@ -20,11 +20,14 @@ beforeEach(async () => {
         const destPath = path.join(tempAgentPath, file);
         await fs.copy(sourcePath, destPath);
     }
-    vi.spyOn(process, 'cwd').mockReturnValue(path.join(process.cwd(), '.tmp'));
+    spyOn(process, 'cwd').mockReturnValue(path.join(process.cwd(), '.tmp'));
 });
 
-afterEach(() => {
-    vi.restoreAllMocks();
+afterEach(async () => {
+    if (engine) {
+        await engine.stop();
+    }
+    mock.restore();
 });
 
 test("Planning workflow simulates the full review and refine loop", async () => {

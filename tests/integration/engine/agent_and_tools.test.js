@@ -1,23 +1,20 @@
-import { expect } from 'chai';
-import sinon from 'sinon';
+import { test, describe, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
 import fs from 'fs-extra';
 import { createExecutor } from '../../../engine/tool_executor.js';
 import { CodeIntelligenceService } from '../../../services/code_intelligence_service.js';
 
 describe('Engine: Agent and Tools Integration', () => {
   let executor;
-  let fsReadFileStub;
-  let findUsagesStub, getDefinitionStub, getModuleDependenciesStub, runQueryStub;
+  let findUsagesSpy, getDefinitionSpy, getModuleDependenciesSpy, runQuerySpy;
 
   beforeEach(() => {
-    // Stub individual methods on the prototype to ensure they exist for testing
-    findUsagesStub = sinon.stub(CodeIntelligenceService.prototype, 'findUsages');
-    getDefinitionStub = sinon.stub(CodeIntelligenceService.prototype, 'getDefinition');
-    getModuleDependenciesStub = sinon.stub(CodeIntelligenceService.prototype, 'getModuleDependencies');
-    runQueryStub = sinon.stub(CodeIntelligenceService.prototype, '_runQuery');
+    // Spy on individual methods on the prototype
+    findUsagesSpy = spyOn(CodeIntelligenceService.prototype, 'findUsages');
+    getDefinitionSpy = spyOn(CodeIntelligenceService.prototype, 'getDefinition');
+    getModuleDependenciesSpy = spyOn(CodeIntelligenceService.prototype, 'getModuleDependencies');
+    runQuerySpy = spyOn(CodeIntelligenceService.prototype, '_runQuery');
 
-    // Stub fs.readFile to provide a mock agent definition
-    fsReadFileStub = sinon.stub(fs, 'readFile');
+    // Spy on fs.readFile to provide a mock agent definition
     const mockDebuggerAgent = `
 \`\`\`yaml
 agent:
@@ -27,14 +24,21 @@ agent:
     - "code_intelligence.*"
 \`\`\`
 `;
-    fsReadFileStub.withArgs(sinon.match(/debugger\.md$/)).resolves(mockDebuggerAgent);
-    fsReadFileStub.callThrough();
+    // Use a spy to conditionally mock readFile
+    const originalReadFile = fs.readFile;
+    spyOn(fs, 'readFile').mockImplementation(async (path, ...args) => {
+        if (typeof path === 'string' && /debugger\.md$/.test(path)) {
+            return mockDebuggerAgent;
+        }
+        // Ensure the original function is called for other paths
+        return originalReadFile(path, ...args);
+    });
 
     const mockEngine = {
-      broadcastEvent: sinon.stub(),
+      broadcastEvent: mock(),
       projectRoot: '/app',
-      getAgent: sinon.stub(),
-      triggerAgent: sinon.stub(),
+      getAgent: mock(),
+      triggerAgent: mock(),
     };
     const mockAi = {};
     const mockConfig = {};
@@ -43,51 +47,51 @@ agent:
   });
 
   afterEach(() => {
-    // Restore all stubs
-    sinon.restore();
+    // Restore all mocks and spies
+    mock.restore();
   });
 
-  it('should call code_intelligence.findUsages', async () => {
+  test('should call code_intelligence.findUsages', async () => {
     const fakeUsages = [{ filePath: 'src/some/file.js', line: 10, code: 'const mySymbol = 42;' }];
-    findUsagesStub.resolves(fakeUsages);
+    findUsagesSpy.mockResolvedValue(fakeUsages);
 
     const result = JSON.parse(await executor.execute('code_intelligence.findUsages', { symbolName: 'mySymbol' }, 'debugger'));
 
-    expect(result).to.deep.equal(fakeUsages);
-    sinon.assert.calledOnce(findUsagesStub);
+    expect(result).toEqual(fakeUsages);
+    expect(findUsagesSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should call code_intelligence.getDefinition', async () => {
+  test('should call code_intelligence.getDefinition', async () => {
     const fakeDefinition = { filePath: 'src/some/file.js', line: 5, definition: 'function mySymbol() {}' };
-    getDefinitionStub.resolves(fakeDefinition);
+    getDefinitionSpy.mockResolvedValue(fakeDefinition);
 
     const result = JSON.parse(await executor.execute('code_intelligence.getDefinition', { symbolName: 'mySymbol' }, 'debugger'));
 
-    expect(result).to.deep.equal(fakeDefinition);
-    sinon.assert.calledOnce(getDefinitionStub);
+    expect(result).toEqual(fakeDefinition);
+    expect(getDefinitionSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should call code_intelligence.getModuleDependencies', async () => {
+  test('should call code_intelligence.getModuleDependencies', async () => {
     const fakeDeps = ['path/to/dep1.js', 'path/to/dep2.js'];
-    getModuleDependenciesStub.resolves(fakeDeps);
+    getModuleDependenciesSpy.mockResolvedValue(fakeDeps);
 
     const result = JSON.parse(await executor.execute('code_intelligence.getModuleDependencies', { filePath: 'src/app.js' }, 'debugger'));
 
-    expect(result).to.deep.equal(fakeDeps);
-    sinon.assert.calledOnce(getModuleDependenciesStub);
+    expect(result).toEqual(fakeDeps);
+    expect(getModuleDependenciesSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should call code_intelligence.getFullCodebaseContext', async () => {
+  test('should call code_intelligence.getFullCodebaseContext', async () => {
     const fakeQueryResults = [
         { file: 'src/app.js', members: [{ name: 'start', type: 'Function' }] },
         { file: 'src/utils.js', members: [] }
     ];
-    runQueryStub.resolves(fakeQueryResults);
+    runQuerySpy.mockResolvedValue(fakeQueryResults);
 
     const result = JSON.parse(await executor.execute('code_intelligence.getFullCodebaseContext', {}, 'debugger'));
 
     const expectedSummary = "Current Codebase Structure:\n\n- File: src/app.js\n  - Function: start\n- File: src/utils.js\n  (No defined classes or functions found)\n";
-    expect(result).to.equal(expectedSummary);
-    sinon.assert.calledOnce(runQueryStub);
+    expect(result).toEqual(expectedSummary);
+    expect(runQuerySpy).toHaveBeenCalledTimes(1);
   });
 });
