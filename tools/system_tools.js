@@ -6,20 +6,32 @@
 export default (engine) => ({
   /**
    * Updates the overall project status.
-   * @param {Object} args
-   * @param {string} args.newStatus - The new status for the project.
-   * @param {string} args.message - A descriptive message for the status change.
-   * @returns {Promise<string>} Confirmation of the status change.
    */
   updateStatus: async ({ newStatus, message }) => {
     if (!newStatus) {
       throw new Error("The 'newStatus' argument is required for system.updateStatus.");
     }
-    // Note: We use the engine's stateManager to call the function
     await engine.stateManager.updateStatus({ newStatus, message });
     const confirmation = `System status successfully updated to ${newStatus}.`;
     console.log(`[System Tool] ${confirmation}`);
     return confirmation;
+  },
+
+  /**
+   * Sends a structured request for human approval to the dashboard.
+   * This is the new tool for the dispatcher's "Human Handoff" protocol.
+   * @param {object} args
+   * @param {string} args.message - The question for the user (e.g., "Please approve this business plan.").
+   * @param {object} args.data - The data to be reviewed (e.g., the content of the business plan).
+   * @returns {Promise<string>} Confirmation message.
+   */
+  request_human_approval: async ({ message, data }) => {
+    if (!message || !data) {
+      throw new Error("The 'message' and 'data' arguments are required for system.request_human_approval.");
+    }
+    console.log(`[System Tool] Requesting human approval: ${message}`);
+    engine.broadcastEvent('human_approval_request', { message, data });
+    return "Request for human approval has been sent to the dashboard.";
   },
 
   /**
