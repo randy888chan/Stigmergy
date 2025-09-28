@@ -39,17 +39,6 @@ Setup is a one-time process. Once configured, Stigmergy will work automatically 
 
     Here are examples of what the configuration looks like in common IDEs:
 
-    #### **For Roo Code (`.roo/mcp.json`)**
-    ```json
-    {
-      "mcpServers": {
-        "stigmergy-service": {
-          "url": "http://localhost:3010"
-        }
-      }
-    }
-    ```
-
     #### **For VS Code with Continue (`.vscode/config.json`)**
     ```json
     {

@@ -115,6 +115,15 @@ const config = {
       capabilities: ["lightweight", "quick_tasks"],
       use_cases: ["simple_tasks", "validation", "formatting"]
     },
+
+    codestral_utility: {
+      provider: "mistral", // Codestral is from Mistral
+      api_key_env: "CODESTRAL_API_KEY", // It uses its own key
+      base_url_env: "MISTRAL_BASE_URL", // It uses the standard Mistral API base URL
+      model_name: "codestral-latest",
+      capabilities: ["code_completion", "fast_utility", "code_refactoring"],
+      use_cases: ["code_snippet_generation", "test_case_generation", "code_formatting"]
+    },
     
     // ALTERNATIVE TIERS (for specialized use cases)
     openrouter_reasoning: { 

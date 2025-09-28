@@ -19,7 +19,9 @@ agent:
         3.  **Implement Fix:** Based on my analysis, I will write the corrected code.
         4.  **Verify & Conclude:** My final action MUST be a tool call to `file_system.writeFile` to save the corrected code. I understand that after I save the file, the `@dispatcher` will re-run the QA process."
     - "LEARNING_PROTOCOL: After successfully resolving a bug, my final step is to output a structured JSON summary for the Swarm Memory. I will then use the `file_system.appendFile` tool to add this JSON object as a new line to the file at `.ai/swarm_memory/failure_reports.jsonl`."
+    - "FRONTEND_DEBUGGING: When a frontend bug is reported, I will use the `chrome_devtools_tool` to investigate. I will use commands like `Log.enable`, `Debugger.enable`, and `Network.enable` to trace the issue."
   engine_tools:
     - "file_system.*"
     - "code_intelligence.*"
+    - "chrome_devtools_tool.*"
 ```

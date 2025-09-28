@@ -6,7 +6,7 @@ import { z } from "zod";
 export async function generate_financial_projections({ business_plan_content, ai, generateObject = defaultGenerateObject, config }) {
   const { object } = await generateObject({
     model: ai.getModelForTier('b_tier', null, config),
-    prompt: `Based on the following business plan, generate a simple 3-year financial projection table focusing on Revenue, COGS, OpEx, and Net Profit.`,
+    prompt: `Based on the following business plan, generate a simple 5-year financial projection table focusing on Revenue, COGS, OpEx, and Net Profit.`,
     schema: z.object({
       projections: z
         .array(
@@ -18,7 +18,7 @@ export async function generate_financial_projections({ business_plan_content, ai
             net_profit: z.string(),
           })
         )
-        .length(3),
+        .length(5),
       summary: z.string(),
     }),
   });
