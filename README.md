@@ -1,535 +1,111 @@
 # 🚀 Stigmergy - Autonomous AI Development System
 
-> **The world's first truly autonomous development system with reference-first architecture and natural language chat interface**
+**Stigmergy is a modern, autonomous development system that transforms high-level product goals into production-ready code. It's built on a fast, efficient Bun/Hono architecture and features a powerful swarm of AI agents that collaborate to build, test, and deploy software.**
 
-**Note: Stigmergy now supports a new standalone service architecture that enables global installation and cross-language project support. See [Standalone Service Architecture](#standalone-service-architecture) for details.**
+[![Bun](https://img.shields.io/badge/Bun-1.x-yellow.svg)](https://bun.sh/)
+[![Hono](https://img.shields.io/badge/Hono-4.x-orange.svg)](https://hono.dev/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](#-testing)
 
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![Neo4j](https://img.shields.io/badge/Neo4j-5.x-blue.svg)](https://neo4j.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](#testing)
-
-Stigmergy transforms high-level product goals into production-ready code through autonomous AI agents, reference pattern discovery, and intelligent workflow orchestration. Built for developers who want to focus on vision while AI handles implementation.
-
-## 🔒 Security-First Architecture
-
-Stigmergy is built with a security-first architecture to ensure a safe and stable development environment. This is achieved through several key protections:
-
-- **Immutable Core**: The primary `.stigmergy-core` directory, containing all core agent definitions and system files, is bundled as a read-only asset within the globally installed NPM package. This prevents accidental or malicious modification of core system components.
-- **Isolated Test Environment**: The test framework is hardened to prevent any interaction with the real `.stigmergy-core` or user data. Each test worker creates a temporary, isolated copy of the core assets in a `.stigmergy-core-test-temp-${JEST_WORKER_ID}` directory, which is safely deleted after the test run.
-- **Resilient Shell Executor**: The shell tool has been rewritten to use the built-in `child_process.exec`. It no longer uses the insecure `vm` module. All shell command executions are sandboxed and wrapped in a `try...catch` block, ensuring that command failures (e.g., command not found, execution errors) are gracefully handled and returned as formatted error strings, rather than crashing the engine.
-- **Hierarchical Agent Loading**: The engine uses a safe, prioritized loading strategy. It first checks for a local agent override in the project's `.stigmergy-core/agents` directory. If no local version is found, it safely falls back to the immutable, globally installed agent definition. This allows for project-specific customization without risking the integrity of the core system.
-
-## ✨ What Makes Stigmergy Unique
-
-### 🧠 **Reference-First Architecture**
-- **Document Intelligence**: Processes PDFs, DOCX, and technical specs with AI-powered semantic segmentation
-- **Pattern Discovery**: Indexes GitHub repositories to find proven code patterns and best practices
-- **Technical Implementation Briefs**: AI generates detailed implementation guides with real code examples
-- **Quality Assurance**: Built-in TDD enforcement, static analysis, and pattern compliance verification
-
-### 💬 **Natural Language Interface**
-- **Chat Commands**: Replace complex CLI operations with simple chat - "setup neo4j", "index github repos", "create auth system"
-- **Intelligent Setup**: Automated configuration of databases, APIs, and development environment
-- **Contextual Suggestions**: Smart command recommendations based on your project state
-- **IDE Integration**: Seamless integration with VS Code, Roo Code, and other IDEs supporting MCP
-
-### 🤖 **Autonomous Agent Swarm**
-- **@reference-architect**: Analyzes documents and creates implementation briefs
-- **@unified-executor**: Intelligently routes tasks to optimal execution methods
-- **@system**: Universal gateway handling all external communications
-- **Enhanced QA**: Test-driven development enforcement with comprehensive quality checks
-
-## 🏗️ Standalone Service Architecture
-
-Stigmergy now supports a new standalone service architecture that enables:
-
-- **Global Installation**: Install once, use everywhere
-- **Cross-Language Support**: Works with Python, Java, Go, and any language
-- **No Project Duplication**: Core system files remain in global installation
-- **Backward Compatibility**: Existing projects continue to work
-- **Enhanced Security**: Immutable core assets protect against accidental modification
-
-### How It Works
-
-```┌─────────────────────────────────────────────────────────────────────┐
-│                      Development Environment                        │
-├─────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐             │
-│  │   Python    │    │    Java     │    │     Go      │             │
-│  │   Project   │    │   Project   │    │   Project   │             │
-│  │             │    │             │    │             │             │
-│  │  ┌────────┐ │    │  ┌────────┐ │    │  ┌────────┐ │             │
-│  │  │.stigmer│ │    │  │.stigmer│ │    │  │.stigmer│ │             │
-│  │  │  gy/   │ │    │  │  gy/   │ │    │  │  gy/   │ │             │
-│  │  └────────┘ │    │  └────────┘ │    │  └────────┘ │             │
-│  └─────────────┘    └─────────────┘    └─────────────┘             │
-└─────────┬─────────────────┬───────────────────┬─────────────────────┘
-          │                 │                   │
-          └─────────────────┼───────────────────┘
-                            │
-          ┌─────────────────▼───────────────────┐
-          │     Stigmergy Standalone Service    │
-          │                                     │
-          │  ┌────────────────────────────────┐ │
-          │  │        CLI Interface           │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │      Engine (WebSocket)        │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │     Trajectory Recorder        │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │       Cost Monitor             │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │       Evaluator Agent          │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │     Benchmark Runner           │ │
-          │  └────────────────────────────────┘ │
-          │  ┌────────────────────────────────┐ │
-          │  │   Immutable .stigmergy-core    │ │
-          │  │    (Read-Only Bundle)          │ │
-          │  └────────────────────────────────┘ │
-          └─────────────────┬───────────────────┘
-                            │
-          ┌─────────────────▼───────────────────┐
-          │         IDE Integration             │
-          │  (VS Code, Roo Code, Cursor, etc.)  │
-          └─────────────────────────────────────┘
-```
-
-### Key Benefits
-
-1. **Install Once, Use Everywhere**: Global installation eliminates the need to install Stigmergy in every project
-2. **Cross-Language Support**: Works with any programming language - Python, Java, Go, etc.
-3. **No Duplication**: Lightweight project initialization prevents duplicating the full system in each repository
-4. **Backward Compatibility**: Existing projects with `.stigmergy-core` continue to work without changes
-5. **Enhanced Security**: Immutable core assets protect against accidental modification or deletion
-
-### Migration Path
-
-- **New Projects**: Use `stigmergy init` for lightweight initialization
-- **Existing Projects**: Use `stigmergy init` to migrate to the new structure
-
-## 🚀 Quick Start (2 minutes)
-
-The recommended way to use Stigmergy is by installing it globally. This provides a standalone service that can work with any project on your system, regardless of the programming language.
-
-```bash
-# 1. Install Stigmergy globally (one-time setup)
-npm install -g @randy888chan/stigmergy
-
-# 2. Start the global Stigmergy service
-stigmergy start-service
-
-# 3. Initialize Stigmergy in your project directory
-cd /path/to/your/project
-stigmergy init
-
-# 4. Connect your IDE
-# Configure your IDE's MCP (Model-Context-Protocol) client to connect to the Stigmergy service at:
-# http://localhost:3010
-```
-
-Once connected, you can start interacting with Stigmergy using natural language commands directly from your IDE's chat interface.
+Stigmergy simplifies the development process by allowing you to focus on your vision while AI agents handle the heavy lifting of implementation, debugging, and documentation.
 
 ---
 
-## 💬 Chat Interface Commands
+## ✨ Core Features
 
-Replace all complex CLI operations with natural language:
+-   **🤖 Autonomous Agent Swarm:** A team of specialized AI agents (@ux-expert, @debugger, @executor) that can plan, code, debug, and analyze applications.
+-   **🌐 Live Web Interaction:** Agents can see and interact with live webpages using an integrated Chrome DevTools toolset, enabling real-time UI/UX analysis and frontend debugging.
+-   **💼 VC-Grade Business Planning:** Upgraded tools for generating professional, 5-year financial projections and comprehensive business plans.
+-   **⚡️ High-Performance Architecture:** Built with Bun and Hono for blazing-fast performance and a lightweight footprint.
+-   **🧠 Advanced Model Integration:** Easily configurable model tiers, including specialized models like Codestral for code-related tasks.
+-   **✅ Simplified Workflow:** Get started in minutes with simple `bun run dev` and `bun test` commands.
 
-### 🔧 Setup & Configuration
+---
+
+## 🏗️ System Architecture
+
+Our new architecture is designed for simplicity, speed, and power. The Hono server acts as the central hub, managing WebSocket connections for real-time communication and orchestrating the agent swarm.
+
 ```
-"setup neo4j"               # Configure database
-"configure environment"      # Setup API keys
-"install dependencies"       # Run npm install
-"health check"              # System diagnostics
-```
-
-### 📚 Reference Pattern Management
-```
-"index github repos"        # Build reference library
-"scan local codebase"       # Index current project
-"update patterns"           # Refresh pattern database
-"show available patterns"   # List indexed patterns
-```
-
-### 🛠️ Development Tasks
-```
-"create authentication system"     # Build secure auth
-"implement JWT middleware"         # Specific components
-"optimize database queries"       # Performance improvements
-"add user registration"           # Feature additions
-"create REST API for users"       # Full system components
-```
-
-### 🔍 System Management```
-"validate system"           # Check configuration
-"show status"              # Current system state
-"restart services"         # System restart
-"what can I do?"           # Get suggestions
-```
-
-## 🔧 CLI Commands
-
-Stigmergy provides powerful CLI commands for easy setup and management:
-
-### Global Service Commands
-These commands are available anywhere in your terminal after the global installation.
-
-```bash
-# Install Stigmergy globally (one-time setup)
-npm install -g @randy888chan/stigmergy
-
-# Start the global Stigmergy service in the background
-stigmergy start-service
-
-# Stop the global Stigmergy service
-stigmergy stop-service
-
-# Check the status of the global service
-stigmergy service-status
-```
-
-### Project Commands
-These commands should be run inside your project's directory.
-
-```bash
-# Initialize a new or existing project for use with Stigmergy
-# This creates a local .stigmergy/ directory for configuration and overrides.
-stigmergy init
-
-# Interactively initialize the project with guided setup
-stigmergy init --interactive
-
-# Validate agent definitions (checks local .stigmergy/agents/ first, then global)
-stigmergy validate
-
-# Build web bundles for the project
-stigmergy build
+┌───────────────────────────────┐
+│         User / IDE            │
+└───────────────┬───────────────┘
+                │ (WebSocket)
+┌───────────────▼───────────────┐
+│     Hono Web Server           │
+├───────────────────────────────┤
+│  - WebSocket Management       │
+│  - Agent Orchestration        │
+│  - Tool Registration          │
+└───────────────┬───────────────┘
+                │
+┌───────────────▼───────────────┐
+│         Agent Swarm           │
+├───────────────────────────────┤
+│  - @dispatcher (Manager)      │
+│  - @ux-expert (UI/UX Analyst) │
+│  - @debugger (Code Fixer)     │
+│  - @executor (Coder)          │
+│  - ...and more                │
+└───────────────┬───────────────┘
+                │
+┌───────────────▼───────────────┐
+│           Tool Library        │
+├───────────────────────────────┤
+│  - chrome_devtools_tool       │
+│  - file_system                │
+│  - business_verification      │
+│  - ...and more                │
+└───────────────────────────────┘
 ```
 
 ---
 
-## 🚀 Production Deployment
+## 🚀 Quick Start
 
-Stigmergy is designed for robust, production-ready deployments. We provide support for both traditional process management using PM2 and modern containerized deployments using Docker.
+Getting started with Stigmergy is now easier than ever.
 
-### Environment Configuration
+**Prerequisites:**
+*   [Bun](https://bun.sh/) installed on your system.
+*   A Neo4j database (optional but recommended for full functionality).
 
-For production environments, it is crucial to manage configurations securely and effectively. Stigmergy uses a `.env` file system to handle environment-specific variables.
-
-- **`.env.development`**: Used for local development. This file is loaded by default when `NODE_ENV` is not set to `production`.
-- **`.env.production`**: Used for production deployments. This file is loaded when `NODE_ENV` is set to `production`.
-
-**Setup:**
-1. Create `.env.development` and `.env.production` files in your project root.
-2. Populate them with the necessary environment variables, ensuring you use production-grade settings (e.g., different database credentials, more powerful AI models) in `.env.production`.
-3. The application will automatically load the correct file based on the `NODE_ENV` environment variable.
-
-### Option 1: Using PM2 for Process Management
-
-PM2 is a production process manager for Node.js applications with a built-in load balancer. It allows you to keep applications alive forever, to reload them without downtime, and to facilitate common system admin tasks.
-
-**1. Install PM2 Globally:**
+**1. Clone the Repository:**
 ```bash
-npm install -g pm2
+git clone https://github.com/your-repo/stigmergy.git
+cd stigmergy
 ```
 
-**2. Create an `ecosystem.config.js`:**
-This file describes the configuration for your application. We provide a standard configuration file:```javascript
-// ecosystem.config.js
-module.exports = {
-  apps: [{
-    name: 'stigmergy-service',
-    script: './engine/server.js',
-    instances: 1,
-    autorestart: true,
-    watch: false,
-    max_memory_restart: '1G',
-    env_production: {
-      NODE_ENV: 'production',
-      PORT: 3010
-    }
-  }]
-};
-```
-
-**3. Manage the Application with `npm` Scripts:**
-We have added convenient scripts to `package.json` for managing the production service:
-
-- **Start the service in production mode:**
-  ```bash
-  npm run prod:start
-  ```
-- **Stop the service:**
-  ```bash
-  npm run prod:stop
-  ```
-- **List all running processes managed by PM2:**
-  ```bash
-  npm run prod:list
-  ```
-- **View logs for the service:**
-  ```bash
-  npm run prod:logs
-  ```
-
-### Option 2: Using Docker for Containerization
-
-Containerization is the standard for modern, portable, and scalable deployment. We provide a `Dockerfile` and a `docker-compose.yml` file to get you started.
-
-**1. `Dockerfile`:**
-The `Dockerfile` defines the environment for your application. It installs dependencies, copies your code, and sets the command to run the application.
-
-**2. `docker-compose.yml`:**
-The `docker-compose.yml` file orchestrates the services required for your application, including the Stigmergy service and a Neo4j database. the placeholder password (your_secure_password) must be changed for a real deployment and should be managed via environment variables or a secret management system.
-
-**3. Running with Docker Compose:**
-To build and run the services, use the following command:
+**2. Install Dependencies:**
 ```bash
-docker-compose up --build
+bun install
 ```
-To run in detached mode:
+
+**3. Configure Your Environment:**
+Copy the new, user-friendly `.env.example` file to `.env` and add your API keys.
 ```bash
-docker-compose up --build -d
+cp .env.example .env
+# Now, open .env and add your keys
 ```
+Our new `.env.example` is designed to be clean and easy to understand, getting you set up in seconds.
 
-Your Stigmergy application will be available at `http://localhost:3010`, and the Neo4j browser at `http://localhost:7474`.
-
-### Web Bundle Commands
+**4. Run the Development Server:**
 ```bash
-# Build optimized agent bundles for web-based AI assistants
-stigmergy build
+bun run dev
 ```
+This single command starts the Hono server, and you're ready to go!
 
-Web bundles are optimized collections of Stigmergy agents designed for use with web-based AI assistants like ChatGPT and Gemini. These bundles contain specialized agent personas that can be used to fulfill high-level goals through iterative, multi-step prompting.
-
-**Best Practices for Web Bundle Usage:**
-- Use smaller, specialized teams (`team-web-planners.yml`, `team-execution.yml`) for focused tasks
-- Adopt agent personas explicitly by announcing "Now acting as @agent-name..." before beginning a task
-- Switch personas as the conversation requires (e.g., planning as @business_planner, then technical details as @design-architect)
-- Approach complex tasks iteratively with multi-step prompting rather than trying to solve everything at once
-
-## 🏗️ Reference-First Development Workflow
-
-### 1. **Document Analysis** 📄
+**5. Run Tests:**
+To ensure everything is working correctly, run the test suite:
 ```bash
-# Upload technical specs, requirements, or documentation
-# Stigmergy automatically:
-# - Extracts requirements and constraints
-# - Preserves code examples and algorithms
-# - Identifies key technical concepts
+bun test
 ```
 
-### 2. **Pattern Discovery** 🔍
-```bash
-# Searches indexed repositories for relevant patterns:
-# - Authentication implementations
-# - Database patterns
-# - API design examples
-# - Security best practices
-```
-
-### 3. **Implementation Brief Creation** 📋
-```bash
-# AI generates comprehensive technical briefs:
-# - Adapted code snippets from proven repositories
-# - Architecture recommendations
-# - Step-by-step implementation guidance
-# - Testing strategies and quality checks
-```
-
-### 4. **Intelligent Execution** ⚡
-```bash
-# Smart routing based on:
-# - Task complexity (algorithms → Qwen CLI)
-# - Standard patterns (CRUD → Gemini CLI)
-# - Integration needs (complex → Enhanced Dev)
-# - Quality requirements (TDD enforcement)
-```
-
-## 🎯 Key Features
-
-### 🧩 **Multi-Executor Architecture**
-- **Internal Dev**: Context-aware development with full codebase understanding
-- **Gemini CLI**: Fast generation for standard patterns and boilerplate
-- **Qwen CLI**: Advanced algorithms and mathematical operations
-- **Intelligent Routing**: Automatic selection based on task requirements
-
-### 🛡️ **Quality Assurance**
-- **TDD Enforcement**: Tests must be written before implementation
-- **Static Analysis**: ESLint integration for code quality
-- **Pattern Compliance**: Verification against reference implementations
-- **Coverage Analysis**: Minimum 80% test coverage requirement
-
-### 🔗 **IDE Integration**
-- **Universal MCP Server**: Works in any project directory without manual configuration
-- **VS Code**: Native integration through Continue extension with MCP protocol
-- **Roo Code**: Native integration with automatic setup via `stigmergy init`
-- **Auto-detection**: Intelligent project context detection and port management
-- **MCP Protocol**: Model-Context Protocol for seamless IDE communication
-- **Structured Responses**: JSON-formatted status updates and coordination
-- **File Tracking**: Real-time monitoring of modified and created files
-- **Natural Language**: Use simple commands through your IDE for project coordination
-
-
-### 🧠 **Code Intelligence**
-- **Neo4j Knowledge Graph**: Deep codebase understanding
-- **Semantic Search**: Find relevant code patterns and examples
-- **Architectural Analysis**: Pattern detection and recommendations
-- **Impact Analysis**: Understand change implications
-
-## 📊 System Architecture
-
-```
-graph TB
-    User[🧑 User] --> System[🎯 @system]
-    System --> Chat[💬 Chat Interface]
-    System --> RefArch[📚 @reference-architect]
-    System --> Unified[🎯 @unified-executor]
-    
-    RefArch --> DocIntel[📄 Document Intelligence]
-    RefArch --> PatternSearch[🔍 Pattern Search]
-    RefArch --> Brief[📋 Implementation Brief]
-    
-    Unified --> InternalDev[🔧 @enhanced-dev]
-    Unified --> GeminiCLI[⚡ @gemini-executor]
-    Unified --> QwenCLI[🧮 @qwen-executor]
-    
-    InternalDev --> QA[🛡️ @qa]
-    GeminiCLI --> QA
-    QwenCLI --> QA
-    
-    QA --> TDD[✅ TDD Enforcement]
-    QA --> Static[🔍 Static Analysis]
-    QA --> Coverage[📊 Coverage Check]
-    
-    subgraph "Data Layer"
-        Neo4j[(🗃️ Neo4j)]
-        Patterns[(📚 Pattern Library)]
-        GitHub[(🐙 GitHub Repos)]
-    end
-    
-    DocIntel --> Patterns
-    PatternSearch --> GitHub
-    InternalDev --> Neo4j
-```
-
-## 🔧 Advanced Configuration
-
-### Environment Variables
-```bash
-# Core AI Providers
-GOOGLE_API_KEY=your_google_api_key          # Required for AI operations
-GITHUB_TOKEN=your_github_token              # Required for pattern indexing
-
-# Database (Optional - graceful degradation)
-NEO4J_URI=bolt://localhost:7687
-NEO4J_USER=neo4j
-NEO4J_PASSWORD=your_password
-
-# Alternative Providers (Optional)
-OPENROUTER_API_KEY=your_openrouter_key
-OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-```
-
-### Model Tiers Configuration
-```javascript
-// stigmergy.config.js
-export default {
-  model_tiers: {
-    reasoning_tier: {        // Strategic planning
-      model_name: "gemini-2.0-flash-thinking-exp"
-    },
-    execution_tier: {        // Code generation
-      model_name: "gemini-1.5-flash"
-    },
-    utility_tier: {          // Simple tasks
-      model_name: "gemini-1.5-flash-8b"
-    }
-  }
-};
-```
-
-## 🧪 Testing
-
-### Run All Tests
-```bash
-npm test                           # Full test suite
-npm run test:unit                  # Unit tests only
-npm run test:integration           # Integration tests
-npm run coverage                   # Coverage report
-```
-
-### Test Specific Components
-```bash
-npm run test:reference-architecture   # Reference-first workflow
-npm run test:simple-reference         # Basic pattern discovery
-npm run chat:test                     # Chat interface
-npm run qa:comprehensive              # Quality assurance
-```
-
-### Health Checks
-```bash
-npm run health-check              # Full system diagnostic
-npm run validate                  # Agent validation
-npm run setup:complete            # Complete setup verification
-```
-
-## 📚 Documentation
-
-- **[MCP Integration Guide](docs/MCP_INTEGRATION.md)** - Universal IDE integration setup
-- **[Agent Development Guide](docs/AGENT_DEVELOPMENT_GUIDE.md)** - Guide for creating new agents
-- **[Tool Development Guide](docs/TOOL_DEVELOPMENT_GUIDE.md)** - Guide for creating new tools
-- **[Benchmark Execution System](docs/BENCHMARK_EXECUTION_SYSTEM.md)** - Details on the performance benchmark suite
-- **[Observability Guide](docs/OBSERVABILITY.md)** - How to monitor the system
-- **[Provider Configuration](docs/provider-configuration.md)** - Configuring different LLM providers
+---
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Development Setup
-```bash
-git clone https://github.com/randy888chan/stigmergy.git
-cd stigmergy
-npm install
-stigmergy init
-npm run health-check
-```
-
-### Code Standards
-- **TDD Required**: All new features must include tests
-- **ESLint Compliance**: Code must pass static analysis
-- **Pattern Documentation**: Reference implementations for new patterns
-- **Chat Commands**: All CLI operations should have chat equivalents
+We welcome contributions! Please feel free to submit pull requests or open issues.
 
 ## 📜 License
 
 MIT License - see [LICENSE](LICENSE) for details.
-
-
-## 💡 Philosophy
-
-> "The best code is not written from scratch - it's intelligently adapted from proven patterns."
-
-Stigmergy embodies the principle that great software development should focus on:
-1. **Understanding** what needs to be built
-2. **Discovering** how others have solved similar problems
-3. **Adapting** proven solutions to specific needs
-4. **Ensuring** quality through systematic verification
-
----
-
-<div align="center">
-  <strong>Ready to revolutionize your development workflow?</strong><br>
-  <code>npm install -g @randy888chan/stigmergy</code><br>
-  <code>stigmergy start-service</code><br>
-  Then, in your project: <code>stigmergy init</code><br>
-  Configure your IDE to connect to the global service at <code>http://localhost:3010</code> and start coordinating!
-</div>
