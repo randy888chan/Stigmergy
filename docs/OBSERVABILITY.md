@@ -53,7 +53,7 @@ The Stigmergy benchmark suite is a powerful tool for performance observability. 
 *   **How to Run**:
     ```bash
     # Run the full benchmark suite
-    npm run test:benchmark
+    bun node evaluation/runners/benchmark_runner.js
     ```
 *   **Output**: The runner generates detailed JSON reports in the `evaluation/` directory, including pass/fail status, execution duration, and resource usage for each problem.
 

@@ -226,6 +226,6 @@ For provider-specific issues, check:
 - Stigmergy GitHub issues
 
 For configuration help:
-- Run `npm run health-check`
+- Run `bun run health-check`
 - Check console logs
-- Validate configuration with `npm run validate`
+- Validate configuration with `bun run validate`
