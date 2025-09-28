@@ -250,10 +250,10 @@ To run the benchmark suite:
 
 ```bash
 # Run the full benchmark suite
-npm run test:benchmark
+bun node evaluation/runners/benchmark_runner.js
 
 # Run with custom benchmark file and output location
-node evaluation/runners/benchmark_runner.js path/to/benchmark.json path/to/results.json
+bun node evaluation/runners/benchmark_runner.js path/to/benchmark.json path/to/results.json
 ```
 
 ## Results and Reporting
