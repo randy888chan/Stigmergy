@@ -42,6 +42,11 @@ export class Engine {
                 this.initiateAutonomousSwarm(newState);
             }
         });
+
+        this.stateManager.on('triggerAgent', ({ agentId, prompt }) => {
+            console.log(chalk.green(`[Engine] Received triggerAgent event for ${agentId}`));
+            this.triggerAgent(agentId, prompt);
+        });
     }
 
     // This function name is now more generic
@@ -114,6 +119,11 @@ export class Engine {
 
                         // The dispatcher's job is done when it signals completion
                         if (toolCall.toolName === 'system.updateStatus' && toolCall.args.newStatus === 'EXECUTION_COMPLETE') {
+                            isDone = true;
+                        }
+                        // THIS IS THE CRITICAL FIX:
+                        if (toolCall.toolName === 'stigmergy.task') {
+                            console.log(chalk.yellow(`[Engine] Agent ${agentName} is delegating. Ending its turn.`));
                             isDone = true;
                         }
                     }
