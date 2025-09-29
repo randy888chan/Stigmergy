@@ -8,7 +8,7 @@ bundle:
   agents:
     # === Core Interface ===
     - "system"              # KEPT: The primary user interface
-
+    
     # === Core Research Agents ===
     - "analyst"             # KEPT: The core researcher
     - "whitepaper_writer"   # KEPT: Synthesizes research into a final document

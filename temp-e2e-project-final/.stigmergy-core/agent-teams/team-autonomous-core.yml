@@ -13,7 +13,7 @@ bundle:
     - "executor" # UPDATED: from dev/enhanced-dev
     - "qa"
     - "debugger"
-
+    
     # --- Self-Improvement & Health ---
     - "metis"
     - "guardian"
