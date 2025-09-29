@@ -349,4 +349,6 @@ class GraphStateManager extends EventEmitter {
   }
 }
 
-export default GraphStateManager;
+const stateManagerInstance = new GraphStateManager();
+export { GraphStateManager as GraphStateManagerClass }; // Export the class for testing
+export default stateManagerInstance; // Export the singleton instance for the app
