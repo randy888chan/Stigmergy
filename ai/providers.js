@@ -21,7 +21,6 @@ export function _resetProviderInstances() {
     providerInstances = {};
 }
 
-// THE CRITICAL CHANGE: This function now ACCEPTS the config.
 export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     if (!config || !config.model_tiers) {
         throw new Error("A valid configuration object with model_tiers must be provided.");
@@ -30,10 +29,12 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     if (!tierConfig) {
         throw new Error(`Model tier '${tier}' is not defined in the provided config.`);
     }
-    const { provider, model_name } = tierConfig;
-    const api_key_env = typeof tierConfig.api_key_env === 'function' ? tierConfig.api_key_env() : tierConfig.api_key_env;
-    const base_url_env = typeof tierConfig.base_url_env === 'function' ? tierConfig.base_url_env() : tierConfig.base_url_env;
+
+    const { provider, model_name, api_key_env, base_url_env } = tierConfig;
+    
     const apiKey = process.env[api_key_env];
+    // THIS IS THE CRITICAL LOGIC CHANGE:
+    // It now correctly uses the tier-specific base URL if it exists.
     const baseURL = base_url_env ? process.env[base_url_env] : null;
 
     if (!apiKey) {
@@ -54,6 +55,7 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
             if (provider === 'openrouter' || baseURL?.includes('openrouter')) {
                 providerOptions.compatibility = 'strict';
             }
+            // This will now work for Mistral, Codestral, OpenAI, etc.
             providerInstances[cacheKey] = createOpenAI(providerOptions);
         }
     }

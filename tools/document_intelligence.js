@@ -3,7 +3,7 @@
 import * as fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import pdfParse from 'pdf-parse';
+import pdfParse from 'pdf-parse-debugging-disabled';
 import mammoth from 'mammoth';
 import * as cheerio from 'cheerio';
 import * as fileType from 'file-type';

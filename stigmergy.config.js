@@ -119,7 +119,7 @@ const config = {
     codestral_utility: {
       provider: "mistral", // Codestral is from Mistral
       api_key_env: "CODESTRAL_API_KEY", // It uses its own key
-      base_url_env: "MISTRAL_BASE_URL", // It uses the standard Mistral API base URL
+      base_url_env: "CODESTRAL_BASE_URL", // Now it has its own specific URL variable
       model_name: "codestral-latest",
       capabilities: ["code_completion", "fast_utility", "code_refactoring"],
       use_cases: ["code_snippet_generation", "test_case_generation", "code_formatting"]

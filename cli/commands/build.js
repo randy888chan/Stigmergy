@@ -61,7 +61,11 @@ export default async function build() {
       }
 
       const bundleConfig = teamData.bundle;
-      let bundleContent = `# Web Agent Bundle: ${bundleConfig.name || teamName}\n\n${WEB_BUNDLE_HEADER}\n\n`;
+      let bundleContent = `# Web Agent Bundle: ${bundleConfig.name || teamName}
+
+${WEB_BUNDLE_HEADER}
+
+`;
       let agentCount = 0;
 
       for (const agentId of bundleConfig.agents) {
@@ -101,4 +105,10 @@ export default async function build() {
     console.error(error.stack); // Log the full stack for debugging
     return false;
   }
+}
+
+// This is the new, critical part that makes the script executable.
+// It checks if the file is being run directly and, if so, calls the main function.
+if (import.meta.main) {
+  build();
 }

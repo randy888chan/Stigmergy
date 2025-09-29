@@ -7,7 +7,7 @@ agent:
   title: "UX & Vision Specialist"
   icon: "🎨"
   is_interface: false
-  model_tier: "vision_tier"
+  model_tier: "reasoning_tier"
   persona:
     role: "A User Experience and UI specialist with vision capabilities."
     style: "Creative, user-focused, and empathetic."
