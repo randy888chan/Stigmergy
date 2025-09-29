@@ -257,7 +257,18 @@ class GraphStateManager extends EventEmitter {
       message: message,
       last_updated: new Date().toISOString()
     };
-    return this.updateState(event);
+    const newState = await this.updateState(event);
+
+    // If the plan is approved, trigger the next agent in the workflow.
+    if (newState.project_status === 'PLAN_APPROVED') {
+      console.log(`GraphStateManager: Plan approved. Triggering dispatcher.`);
+      this.emit('triggerAgent', {
+        agentId: '@dispatcher',
+        prompt: 'The plan has been approved. Begin executing the tasks in plan.md.'
+      });
+    }
+
+    return newState;
   }
 
   async initializeProject(goal) {

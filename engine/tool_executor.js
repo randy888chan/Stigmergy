@@ -178,8 +178,10 @@ export function createExecutor(engine, ai, config) {
         if (!agent_id || !prompt) {
           throw new OperationalError("The 'agent_id' and 'prompt' arguments are required for stigmergy.task");
         }
-        engine.triggerAgent(agent_id, prompt);
-        return `Task successfully delegated to ${agent_id}. The task will run in the background.`;
+        // Awaiting this is critical to ensure the delegated agent completes its turn
+        // before the current agent's turn is considered over.
+        await engine.triggerAgent(agent_id, prompt);
+        return `Task successfully delegated to ${agent_id} and completed.`;
       },
     },
   };

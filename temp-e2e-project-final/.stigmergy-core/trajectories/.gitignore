@@ -1,0 +1,2 @@
+# Ignore all trajectory files, as they are generated artifacts.
+*.json
