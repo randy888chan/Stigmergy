@@ -10,7 +10,9 @@ ws.onopen = () => {
   };
   ws.send(JSON.stringify(prompt));
   console.log("Sent prompt to the engine.");
-  ws.close();
+  setTimeout(() => {
+    ws.close();
+  }, 2000); // Add a 2-second delay
 };
 
 ws.onmessage = (event) => {
