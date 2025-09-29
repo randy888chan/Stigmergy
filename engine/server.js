@@ -39,15 +39,16 @@ export class Engine {
             this.broadcastEvent('state_update', newState);
 
             if (newState.project_status === 'ENRICHMENT_PHASE') {
-                this.runDispatcher(newState);
+                this.initiateAutonomousSwarm(newState);
             }
         });
     }
 
-    async runDispatcher(state) {
-        console.log(chalk.cyan('[Engine] Dispatcher loop started.'));
-        // This is the entry point for the new, real autonomous loop
-        await this.triggerAgent('@dispatcher', 'The project plan is ready. Begin executing the tasks in plan.md.');
+    // This function name is now more generic
+    initiateAutonomousSwarm(state) {
+        console.log(chalk.cyan('[Engine] Autonomous swarm initiated.'));
+        // The CORRECT first step is to trigger the PLANNER, not the dispatcher.
+        this.triggerAgent('@specifier', 'A new project goal has been set. Please create the initial `plan.md` file to achieve it.');
     }
 
     async triggerAgent(agentId, prompt) {
