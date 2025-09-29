@@ -48,78 +48,74 @@ export class CodeIntelligenceService {
   async testConnection() {
     this.initializeDriver();
 
-    // Case 1: Explicitly in memory mode from config
+    // Early exit if already in memory mode from config
     if (this.isMemoryMode) {
       return {
         status: 'ok',
         mode: 'memory',
         message: 'Running in Memory Mode (No Database).',
-        fallback_reason: 'Explicitly set to memory mode in config'
+        fallback_reason: 'Explicitly set to memory mode in config',
       };
     }
-    
-    // Case 2: Driver failed to initialize (e.g., missing credentials)
-    if (!this.driver) {
-      if (this.config.features.neo4j === 'required') {
-        return {
-          status: 'error',
-          mode: 'database',
-          message: 'Neo4j is required, but credentials are not set in .env.',
-          recovery_suggestions: [
-            'Set NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in .env',
-            'Download and install Neo4j Desktop from https://neo4j.com/download/',
-            'Create a new database in Neo4j Desktop'
-          ]
-        };
-      } else { // 'auto' mode, fall back to memory
-        this.isMemoryMode = true;
-        return {
-          status: 'ok',
-          mode: 'memory',
-          message: 'Credentials not set, falling back to Memory Mode.',
-          fallback_reason: 'Missing Neo4j credentials',
-          warning: 'Code intelligence features will be limited'
-        };
-      }
-    }
 
-    // Case 3: Driver initialized, attempt to connect
     try {
+      // Unify credential and connectivity errors: if driver is missing, throw to be caught by the same logic.
+      if (!this.driver) {
+        throw new Error('Credentials not set');
+      }
       await this.driver.verifyConnectivity();
       const version = await this.getNeo4jVersion();
+      // Happy path: successful connection
       return {
         status: 'ok',
         mode: 'database',
         message: `Connected to Neo4j at ${process.env.NEO4J_URI}.`,
-        version
+        version,
       };
     } catch (error) {
-      // Case 4: Connection failed
-      if (this.config.features.neo4j === 'auto') {
-        this.isMemoryMode = true;
+      const isCredentialError = error.message === 'Credentials not set';
+
+      // Handle 'required' mode first (as a guard clause)
+      if (this.config.features.neo4j === 'required') {
         return {
-          status: 'ok',
-          mode: 'memory',
-          message: `Neo4j connection failed. Fell back to Memory Mode. Error: ${error.message}`,
-          fallback_reason: `Connection error: ${error.message}`,
-          warning: 'Code intelligence features will be limited',
+          status: 'error',
+          mode: 'database',
+          message: isCredentialError
+            ? 'Neo4j is required, but credentials are not set in .env.'
+            : `Neo4j connection failed: ${error.message}`,
+          recovery_suggestions: isCredentialError
+            ? [
+                'Set NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in .env',
+                'Download and install Neo4j Desktop from https://neo4j.com/download/',
+                'Create a new database in Neo4j Desktop',
+              ]
+            : [
+                'Check if Neo4j Desktop is running',
+                'Verify NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in .env',
+                'Ensure Neo4j database is started and accessible',
+              ],
+        };
+      }
+
+      // Fallback to memory mode for 'auto'
+      this.isMemoryMode = true;
+      return {
+        status: 'ok',
+        mode: 'memory',
+        message: isCredentialError
+          ? 'Credentials not set, falling back to Memory Mode.'
+          : `Neo4j connection failed. Fell back to Memory Mode. Error: ${error.message}`,
+        fallback_reason: isCredentialError
+          ? 'Missing Neo4j credentials'
+          : `Connection error: ${error.message}`,
+        warning: 'Code intelligence features will be limited',
+        ...(!isCredentialError && {
           recovery_suggestions: [
             'Check if Neo4j Desktop is running',
             'Verify database is started',
-            'Check network connectivity'
-          ]
-        };
-      }
-      // 'required' mode with connection failure
-      return {
-        status: 'error',
-        mode: 'database',
-        message: `Neo4j connection failed: ${error.message}`,
-        recovery_suggestions: [
-          'Check if Neo4j Desktop is running',
-          'Verify NEO4J_URI, NEO4J_USER, and NEO4J_PASSWORD in .env',
-          'Ensure Neo4j database is started and accessible'
-        ]
+            'Check network connectivity',
+          ],
+        }),
       };
     }
   }
