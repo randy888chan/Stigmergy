@@ -1,23 +1,18 @@
 import { mock, spyOn, test, expect, beforeEach, afterEach } from "bun:test";
-
-// Mock the GraphStateManager dependency EXPLICITLY for this test file.
-mock.module("../../../src/infrastructure/state/GraphStateManager.js", () => {
-    return {
-      default: mock(() => ({
-        initializeProject: mock().mockResolvedValue({}),
-        updateStatus: mock().mockResolvedValue({}),
-        updateState: mock().mockResolvedValue({}),
-        getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
-        on: mock(),
-        emit: mock(),
-      })),
-    };
-});
-
 import { Engine as Stigmergy } from "../../../engine/server.js";
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
+
+// Create a mock instance that our test can control
+const mockStateManagerInstance = {
+    initializeProject: mock().mockResolvedValue({}),
+    updateStatus: mock().mockResolvedValue({}),
+    updateState: mock().mockResolvedValue({}),
+    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
+    on: mock(),
+    emit: mock(),
+};
 
 // This is a more realistic integration test for the workflow.
 // It spies on the tool executor to see what the agent *actually* does.
@@ -29,8 +24,11 @@ let executeSpy;
 const mockStreamText = mock();
 
 beforeEach(async () => {
-    // Inject the mock streamText function into the engine
-    engine = new Stigmergy({ _test_streamText: mockStreamText });
+    // INJECT the mock StateManager when creating the engine
+    engine = new Stigmergy({
+        _test_streamText: mockStreamText,
+        stateManager: mockStateManagerInstance // Pass the mock instance directly
+    });
     executeSpy = spyOn(engine.executeTool, 'execute');
 
     // Setup mock agent definitions in a temporary directory

@@ -1,16 +1,27 @@
 import { mock, describe, test, expect, beforeEach } from 'bun:test';
 import { Engine } from '../../../engine/server.js';
-import stateManager from '../../../src/infrastructure/state/GraphStateManager.js';
 import fs from 'fs-extra';
 import path from 'path';
+
+// Create a mock instance that our test can control
+const mockStateManagerInstance = {
+    initializeProject: mock().mockResolvedValue({}),
+    updateStatus: mock().mockResolvedValue({}),
+    updateState: mock().mockResolvedValue({}),
+    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
+    on: mock(),
+    emit: mock(),
+};
 
 describe('Human Handoff Workflow', () => {
   let engine;
 
   beforeEach(() => {
     mock.restore();
-    // We must instantiate the engine with the real state manager for this test.
-    engine = new Engine(stateManager);
+    // Inject the mock StateManager when creating the engine
+    engine = new Engine({
+        stateManager: mockStateManagerInstance // Pass the mock instance directly
+    });
   });
 
   test('Dispatcher should be able to call the request_human_approval tool', async () => {

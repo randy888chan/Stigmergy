@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { upgradeWebSocket } from 'hono/bun';
 import chalk from 'chalk';
-import GraphStateManager from "../src/infrastructure/state/GraphStateManager.js";
+import stateManagerInstance from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import fs from 'fs-extra';
 import path from 'path';
@@ -15,7 +15,7 @@ export class Engine {
     constructor(options = {}) {
         this.app = new Hono();
         this.projectRoot = options.projectRoot || process.cwd();
-        this.stateManager = new GraphStateManager(this.projectRoot);
+        this.stateManager = options.stateManager || stateManagerInstance;
         this.clients = new Set();
         this.server = null;
         this._test_streamText = options._test_streamText; // For dependency injection in tests
@@ -81,12 +81,18 @@ export class Engine {
                 console.log(chalk.blue(`[Engine] Agent loop turn ${turnCount}...`));
 
                 // Use the injected test function if available, otherwise use the real one.
-                // This is the key to isolating the test from network/API dependencies.
                 const streamTextFunc = this._test_streamText || streamText;
-                const model = this._test_streamText ? null : this.ai.getModelForTier('reasoning_tier');
+
+                // Explicitly check for the test mock to avoid calling the real AI provider in tests.
+                let model;
+                if (this._test_streamText) {
+                    model = null;
+                } else {
+                    model = this.ai.getModelForTier('reasoning_tier');
+                }
 
                 const { toolCalls, finishReason } = await streamTextFunc({
-                    model, // This will be null in tests, which is fine as the mock doesn't use it.
+                    model,
                     messages,
                     tools: this.executeTool.getTools(),
                 });

@@ -3,12 +3,26 @@ import { Engine as Stigmergy } from "../../../engine/server.js";
 import fs from "fs-extra";
 import path from "path";
 
+// Create a mock instance that our test can control
+const mockStateManagerInstance = {
+    initializeProject: mock().mockResolvedValue({}),
+    updateStatus: mock().mockResolvedValue({}),
+    updateState: mock().mockResolvedValue({}),
+    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
+    on: mock(),
+    emit: mock(),
+};
+
 let engine;
 let executeSpy;
 const mockStreamText = mock();
 
 beforeEach(async () => {
-    engine = new Stigmergy({ _test_streamText: mockStreamText });
+    // INJECT the mock StateManager when creating the engine
+    engine = new Stigmergy({
+        _test_streamText: mockStreamText,
+        stateManager: mockStateManagerInstance // Pass the mock instance directly
+    });
     executeSpy = spyOn(engine.executeTool, 'execute');
 
     // Setup mock agent definitions
