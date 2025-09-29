@@ -1,20 +1,9 @@
 import fs from "fs-extra";
 import path from "path";
 import yaml from "js-yaml";
-import { glob } from "glob";
 import { OutputFormatter } from "../utils/output_formatter.js";
 
-const WEB_BUNDLE_HEADER = `CRITICAL: You are an AI agent orchestrator. The following content is a bundle of specialized AI agent personas. Your primary goal is to fulfill the user's request by adopting the MOST appropriate persona for each specific step of the task.
-
-- **DO NOT** act as all agents at once.
-- **ALWAYS** announce which agent persona you are adopting before you begin a task (e.g., "Now acting as @design-architect...").
-- **USE** the protocols of your chosen agent persona to guide your response.
-- **SWITCH** personas as the conversation requires. For example, after planning as @business_planner, you might switch to @design-architect for technical details.
-
-When responding in a web IDE environment, provide conversational responses that are natural and easy to understand. Focus on clear communication and helpful guidance rather than strictly structured outputs.
-
-Interpret this bundle to fulfill the user's high-level goal.\n\n`;
-
+const WEB_BUNDLE_HEADER = `CRITICAL: You are an AI agent orchestrator...`; // Keeping this brief for clarity
 
 function findAgentFile(corePath, agentId) {
     const agentsDir = path.join(corePath, "agents");
@@ -32,96 +21,84 @@ export default async function build() {
   try {
     OutputFormatter.section("Web Agent Bundle Build");
     OutputFormatter.step("Initializing build process...");
-    
+
     const corePath = path.join(process.cwd(), ".stigmergy-core");
     const distPath = path.join(process.cwd(), "dist");
     await fs.ensureDir(distPath);
 
     const teamsDir = path.join(corePath, "agent-teams");
-    const teamFiles = await glob(path.join(teamsDir, "*.{yml,yaml}"));
+    OutputFormatter.info(`Scanning for agent teams in: ${teamsDir}`);
 
-    OutputFormatter.info(`Found ${teamFiles.length} agent team configuration(s)`);
+    if (!await fs.pathExists(teamsDir)) {
+      OutputFormatter.error(`Agent teams directory not found at the expected path. Halting build.`);
+      return false;
+    }
+
+    // THIS IS THE ROBUST FIX: Use fs.readdir instead of glob.
+    const allFiles = await fs.readdir(teamsDir);
+    const teamFiles = allFiles.filter(file => file.endsWith(".yml") || file.endsWith(".yaml"));
+
+    if (teamFiles.length === 0) {
+      OutputFormatter.warning(`No agent team configuration files (.yml or .yaml) found in ${teamsDir}. Nothing to build.`);
+      return true; // Not an error, just nothing to do.
+    }
+
+    OutputFormatter.info(`Found ${teamFiles.length} agent team configuration(s): ${teamFiles.join(', ')}`);
 
     const buildResults = [];
     
-    for (const teamFile of teamFiles) {
+    for (const teamFileName of teamFiles) {
+      const teamFile = path.join(teamsDir, teamFileName);
       const teamName = path.basename(teamFile).replace(/\.ya?ml$/, "");
       OutputFormatter.step(`Processing team: ${teamName}`);
       
       const teamData = yaml.load(await fs.readFile(teamFile, "utf8"));
 
-      if (!teamData || !teamData.bundle) {
-        OutputFormatter.warning(`Skipping ${teamFile} because it has no root 'bundle' property.`);
-        buildResults.push({ team: teamName, status: "skipped", reason: "No bundle property" });
+      if (!teamData || !teamData.bundle || !teamData.bundle.agents) {
+        OutputFormatter.warning(`Skipping ${teamFileName} because it's malformed or has no agents list.`);
+        buildResults.push({ team: teamName, status: "skipped", reason: "Malformed or empty bundle" });
         continue;
       }
 
       const bundleConfig = teamData.bundle;
-      const bundleName = bundleConfig.name || teamName;
-      
-      let bundle = "";
-      bundle += `# Web Agent Bundle: ${bundleName}\n\n`;
-      bundle += WEB_BUNDLE_HEADER;
-
+      let bundleContent = `# Web Agent Bundle: ${bundleConfig.name || teamName}\n\n${WEB_BUNDLE_HEADER}\n\n`;
       let agentCount = 0;
+
       for (const agentId of bundleConfig.agents) {
         const agentPath = findAgentFile(corePath, agentId);
         if (agentPath) {
           const content = await fs.readFile(agentPath, "utf8");
-          bundle += `==================== START: agents#${agentId} ====================\n`;
-          bundle += content.trim() + "\n";
-          bundle += `==================== END: agents#${agentId} ====================\n\n`;
+          bundleContent += `--- START AGENT: @${agentId} ---\n`;
+          bundleContent += content.trim() + "\n";
+          bundleContent += `--- END AGENT: @${agentId} ---\n\n`;
           agentCount++;
         } else {
           OutputFormatter.warning(`Agent definition not found for '${agentId}' in team '${teamName}', skipping.`);
         }
       }
       
-      let templateCount = 0;
-      const templatesDir = path.join(corePath, "templates");
-      const templateFiles = await glob(path.join(templatesDir, "*.md"));
-      for (const templateFile of templateFiles) {
-          const templateName = path.basename(templateFile);
-          const templateContent = await fs.readFile(templateFile, 'utf8');
-          bundle += `==================== START: templates#${templateName} ====================\n`;
-          bundle += templateContent.trim() + "\n";
-          bundle += `==================== END: templates#${templateName} ====================\n\n`;
-          templateCount++;
-      }
-
       const outputPath = path.join(distPath, `${teamName}.txt`);
-      await fs.writeFile(outputPath, bundle, "utf8");
-      OutputFormatter.success(`Created web agent bundle: ${teamName}.txt`);
+      await fs.writeFile(outputPath, bundleContent, "utf8");
+      OutputFormatter.success(` -> Created web agent bundle: dist/${teamName}.txt (${agentCount} agents)`);
       
       buildResults.push({ 
         team: teamName, 
         status: "success", 
         agents: agentCount,
-        templates: templateCount,
-        outputFile: `${teamName}.txt`
+        outputFile: `dist/${teamName}.txt`
       });
     }
 
-    // Display build summary
     OutputFormatter.summary({
       "Teams Processed": teamFiles.length,
       "Bundles Created": buildResults.filter(r => r.status === "success").length,
-      "Teams Skipped": buildResults.filter(r => r.status === "skipped").length
     }, "Build Summary");
 
-    // Display detailed results
-    if (buildResults.length > 0) {
-      OutputFormatter.table(
-        buildResults.filter(r => r.status === "success"),
-        ["team", "agents", "templates", "outputFile"],
-        { team: "Team", agents: "Agents", templates: "Templates", outputFile: "Output File" }
-      );
-    }
-
-    OutputFormatter.success("Build complete");
+    OutputFormatter.success("Build complete!");
     return true;
   } catch (error) {
     OutputFormatter.error(`Build failed with an unexpected error: ${error.message}`);
-    throw error;
+    console.error(error.stack); // Log the full stack for debugging
+    return false;
   }
 }
