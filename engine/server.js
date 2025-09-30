@@ -133,10 +133,6 @@ export class Engine {
         } catch (error) {
             console.error(chalk.red('[Engine] Error in agent logic:'), error);
             await this.stateManager.updateStatus({ newStatus: 'ERROR', message: 'Agent failed to execute.' });
-        } finally {
-            console.log(chalk.blue('[Engine] Agent turn finished. Broadcasting final state.'));
-            const finalState = await this.stateManager.getState();
-            this.broadcastEvent('state_update', finalState);
         }
     }
 
