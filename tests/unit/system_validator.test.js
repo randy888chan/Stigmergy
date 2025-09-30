@@ -38,6 +38,7 @@ describe("SystemValidator", () => {
     // Setup for happy path for ALL checks
     spyOn(fs, 'existsSync').mockReturnValue(true);
     spyOn(fs, 'readdir').mockResolvedValue(['backup.tar.gz']);
+    spyOn(fs, 'statSync').mockReturnValue({ mtime: new Date() });
     mockVerifyBackup.mockResolvedValue({ success: true });
     mockNeo4jValidate.mockResolvedValue({ success: true });
 
@@ -53,6 +54,7 @@ describe("SystemValidator", () => {
     // Setup for happy path
     spyOn(fs, 'existsSync').mockReturnValue(true);
     spyOn(fs, 'readdir').mockResolvedValue(['backup.tar.gz']);
+    spyOn(fs, 'statSync').mockReturnValue({ mtime: new Date() });
     mockVerifyBackup.mockResolvedValue({ success: true });
 
     const result = await validator.validateBackups();
@@ -95,5 +97,28 @@ describe("SystemValidator", () => {
 
     const hasFailures = Object.values(results).some((r) => !r.success);
     expect(hasFailures).toBe(true);
+  });
+
+  it("validateBackups should validate the most recent backup file", async () => {
+    const backupDir = path.join(os.homedir(), ".stigmergy-backups");
+    const backupFiles = ["backup-2023-01-01.tar.gz", "backup-2023-01-03.tar.gz", "backup-2023-01-02.tar.gz"];
+    const latestBackupFile = "backup-2023-01-03.tar.gz";
+    const latestBackupPath = path.join(backupDir, latestBackupFile);
+
+    spyOn(fs, 'existsSync').mockReturnValue(true);
+    spyOn(fs, 'readdir').mockResolvedValue(backupFiles);
+    spyOn(fs, 'statSync').mockImplementation((filePath) => {
+      const fileName = path.basename(filePath);
+      if (fileName === "backup-2023-01-01.tar.gz") return { mtime: new Date("2023-01-01") };
+      if (fileName === "backup-2023-01-02.tar.gz") return { mtime: new Date("2023-01-02") };
+      if (fileName === "backup-2023-01-03.tar.gz") return { mtime: new Date("2023-01-03") };
+      return { mtime: new Date(0) }; // Default for any other statSync calls
+    });
+    mockVerifyBackup.mockResolvedValue({ success: true });
+
+    const result = await validator.validateBackups();
+
+    expect(result.success).toBe(true);
+    expect(mockVerifyBackup).toHaveBeenCalledWith(latestBackupPath);
   });
 });
