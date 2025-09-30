@@ -118,9 +118,6 @@ export class Engine {
                             result: JSON.stringify(result),
                         });
 
-                        if ((result && result.project_status === 'EXECUTION_COMPLETE') || toolCall.toolName === 'stigmergy.task') {
-                            isDone = true;
-                        }
                     }
                     messages.push(...toolResults);
                 }
