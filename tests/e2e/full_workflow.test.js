@@ -15,7 +15,6 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
     beforeAll(async () => {
         await fs.ensureDir(TEST_PROJECT_DIR);
 
-        // Set up a self-contained project environment for the test
         const coreSrc = path.join(originalCwd, '.stigmergy-core');
         const coreDest = path.join(TEST_PROJECT_DIR, '.stigmergy-core');
         await fs.copy(coreSrc, coreDest);
@@ -29,30 +28,34 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
             callCount++;
             console.log(`[Mock AI] Call #${callCount} | Prompt: "${currentPrompt.substring(0, 80)}..."`);
 
-            // Simulate the multi-agent "Review and Refine" workflow
             if (currentPrompt.includes('create the initial `plan.md`')) {
-                // 1. @specifier is triggered, delegates to @qa for review
+                // 1. @specifier is triggered, delegates to @qa for review.
+                // THIS IS THE CRITICAL FIX: The arguments now match the Zod schema.
                 return {
-                    toolCalls: [{ toolCallId: 'c1', toolName: 'stigmergy.task', args: { agent_id: '@qa', prompt: 'Please review this draft plan...' } }],
+                    toolCalls: [{
+                        toolCallId: 'c1',
+                        toolName: 'stigmergy.task',
+                        args: { subagent_type: '@qa', description: 'Please review this draft plan...' }
+                    }],
                     finishReason: 'tool-calls'
                 };
             }
             if (currentPrompt.includes('Please review this draft plan')) {
-                // 2. @qa is triggered, approves the plan by updating the status
+                // 2. @qa is triggered, approves the plan by updating the status.
                 return {
                     toolCalls: [{ toolCallId: 'c_qa_approve', toolName: 'system.updateStatus', args: { newStatus: 'PLAN_APPROVED' } }],
                     finishReason: 'tool-calls'
                 };
             }
             if (currentPrompt.includes('Begin executing the tasks in plan.md')) {
-                // 3. @dispatcher is triggered, writes the file
+                // 3. @dispatcher is triggered, writes the file.
                 return {
                     toolCalls: [{ toolCallId: 'c2', toolName: 'file_system.writeFile', args: { path: 'output.js', content: "console.log('Hello, Stigmergy!');" } }],
                     finishReason: 'tool-calls'
                 };
             }
             if (messages.some(m => m.role === 'tool' && m.tool_name === 'file_system.writeFile')) {
-                // 4. @dispatcher's loop continues, decides the work is done
+                // 4. @dispatcher's loop continues, decides the work is done.
                 return {
                     toolCalls: [{ toolCallId: 'c3', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }],
                     finishReason: 'tool-calls'
@@ -71,7 +74,7 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
     });
 
   afterAll(async () => {
-    process.chdir(originalCwd); // Return to original directory
+    process.chdir(originalCwd);
     if (engine && engine.stop) {
       await engine.stop();
     }
@@ -85,15 +88,25 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
 
     try {
       await new Promise((resolve, reject) => {
+        // Set a timeout for the entire test promise
+        const testTimeout = setTimeout(() => {
+          reject(new Error('Test promise timed out after 15 seconds.'));
+        }, 15000);
+
         ws = new WebSocket(serverUrl);
-        ws.onerror = (err) => reject(new Error(`WebSocket connection failed`));
+        ws.onerror = (err) => {
+            clearTimeout(testTimeout);
+            reject(new Error(`WebSocket connection failed`));
+        };
         ws.onmessage = async (event) => {
           try {
             const data = JSON.parse(event.data);
             if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
+              clearTimeout(testTimeout);
               resolve();
             }
           } catch (e) {
+            clearTimeout(testTimeout);
             reject(e);
           }
         };
