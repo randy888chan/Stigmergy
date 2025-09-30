@@ -59,11 +59,19 @@ export class SystemValidator {
       if (!fs.existsSync(backupDir)) {
         return { success: false, error: "Backup directory not found." };
       }
-      const backups = await fs.readdir(backupDir);
-      if (backups.length === 0) {
+      const backupFiles = await fs.readdir(backupDir);
+      if (backupFiles.length === 0) {
         return { success: false, error: "No backup files found." };
       }
-      const latestBackup = path.join(backupDir, backups[backups.length - 1]);
+
+      const latestBackupFile = backupFiles
+        .map((file) => ({
+          file,
+          mtime: fs.statSync(path.join(backupDir, file)).mtime,
+        }))
+        .sort((a, b) => b.mtime.getTime() - a.mtime.getTime())[0].file;
+
+      const latestBackup = path.join(backupDir, latestBackupFile);
       const verification = await this.coreBackup.verifyBackup(latestBackup);
       return verification;
     } catch (error) {
