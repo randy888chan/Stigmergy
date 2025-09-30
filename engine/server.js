@@ -61,78 +61,68 @@ export class Engine {
         const agentName = agentId.replace('@', '');
 
         try {
-            // 1. Load Agent Definition
             const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
             const agentDefinition = yaml.load(agentFileContent.match(/```yaml\n([\s\S]*?)\n```/)[1]);
 
-            // 2. Construct System Prompt
             const persona = agentDefinition.agent.persona;
             const protocols = agentDefinition.agent.core_protocols.join('\n- ');
             const systemPrompt = `${persona.role} ${persona.style} ${persona.identity}\n\nMy core protocols are:\n- ${protocols}`;
 
-            // 3. Initialize Conversation
             const messages = [
                 { role: 'system', content: systemPrompt },
                 { role: 'user', content: prompt }
             ];
 
             let isDone = false;
-            const maxTurns = 10; // Safeguard against infinite loops
+            const maxTurns = 10;
             let turnCount = 0;
 
-            // 4. LLM Interaction Loop
             while (!isDone && turnCount < maxTurns) {
                 turnCount++;
                 console.log(chalk.blue(`[Engine] Agent loop turn ${turnCount}...`));
 
-                // Use the injected test function if available, otherwise use the real one.
                 const streamTextFunc = this._test_streamText || streamText;
+                const model = this._test_streamText ? null : this.ai.getModelForTier('reasoning_tier');
 
-                // Explicitly check for the test mock to avoid calling the real AI provider in tests.
-                let model;
-                if (this._test_streamText) {
-                    model = null;
-                } else {
-                    model = this.ai.getModelForTier('reasoning_tier');
-                }
-
-                const { toolCalls, finishReason } = await streamTextFunc({
+                const { toolCalls, finishReason, text } = await streamTextFunc({
                     model,
                     messages,
                     tools: this.executeTool.getTools(),
                 });
 
+                // THIS IS THE CRITICAL FIX:
+                // We must check the finishReason here to correctly terminate the loop.
+                if (finishReason === 'stop' || finishReason === 'length') {
+                    console.log(chalk.yellow(`[Engine] Agent loop finished with reason: ${finishReason}`));
+                    isDone = true;
+                    continue; // Exit the current iteration of the loop
+                }
+
                 if (toolCalls && toolCalls.length > 0) {
-                    messages.push({ role: 'assistant', content: '', tool_calls: toolCalls });
+                    messages.push({ role: 'assistant', content: text || '', tool_calls: toolCalls });
 
                     const toolResults = [];
                     for (const toolCall of toolCalls) {
                         console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args:`, toolCall.args));
                         const result = await this.executeTool.execute(toolCall.toolName, toolCall.args, agentName);
+                        
+                        if (result && result.project_status) {
+                            this.broadcastEvent('state_update', result);
+                        }
+                        
                         toolResults.push({
                             type: 'tool_result',
                             tool_call_id: toolCall.toolCallId,
                             tool_name: toolCall.toolName,
-                            result: result,
+                            result: JSON.stringify(result),
                         });
 
-                        // The dispatcher's job is done when it signals completion
-                        if (toolCall.toolName === 'system.updateStatus' && toolCall.args.newStatus === 'EXECUTION_COMPLETE') {
-                            isDone = true;
-                        }
-                        // THIS IS THE CRITICAL FIX:
-                        if (toolCall.toolName === 'stigmergy.task') {
-                            console.log(chalk.yellow(`[Engine] Agent ${agentName} is delegating. Ending its turn.`));
+                        if ((result && result.project_status === 'EXECUTION_COMPLETE') || toolCall.toolName === 'stigmergy.task') {
                             isDone = true;
                         }
                     }
                     messages.push(...toolResults);
-                }
-
-                if (finishReason === 'stop' || finishReason === 'length') {
-                    console.log(chalk.yellow(`[Engine] Agent loop finished with reason: ${finishReason}`));
-                    isDone = true;
                 }
             }
 
@@ -142,12 +132,8 @@ export class Engine {
 
         } catch (error) {
             console.error(chalk.red('[Engine] Error in agent logic:'), error);
-            // It's still important to set the error state if something goes wrong.
             await this.stateManager.updateStatus({ newStatus: 'ERROR', message: 'Agent failed to execute.' });
         } finally {
-            // THIS IS THE CRITICAL FIX IN THE CORRECT LOCATION:
-            // This block will ALWAYS run, whether the `try` block succeeds or the `catch` block is triggered.
-            // This guarantees that the final state is always broadcast to the test client.
             console.log(chalk.blue('[Engine] Agent turn finished. Broadcasting final state.'));
             const finalState = await this.stateManager.getState();
             this.broadcastEvent('state_update', finalState);
