@@ -43,9 +43,9 @@ export class Engine {
             }
         });
 
-        this.stateManager.on('triggerAgent', ({ agentId, prompt }) => {
+        this.stateManager.on('triggerAgent', async ({ agentId, prompt }) => {
             console.log(chalk.green(`[Engine] Received triggerAgent event for ${agentId}`));
-            this.triggerAgent(agentId, prompt);
+            await this.triggerAgent(agentId, prompt);
         });
     }
 
@@ -142,7 +142,15 @@ export class Engine {
 
         } catch (error) {
             console.error(chalk.red('[Engine] Error in agent logic:'), error);
+            // It's still important to set the error state if something goes wrong.
             await this.stateManager.updateStatus({ newStatus: 'ERROR', message: 'Agent failed to execute.' });
+        } finally {
+            // THIS IS THE CRITICAL FIX IN THE CORRECT LOCATION:
+            // This block will ALWAYS run, whether the `try` block succeeds or the `catch` block is triggered.
+            // This guarantees that the final state is always broadcast to the test client.
+            console.log(chalk.blue('[Engine] Agent turn finished. Broadcasting final state.'));
+            const finalState = await this.stateManager.getState();
+            this.broadcastEvent('state_update', finalState);
         }
     }
 
