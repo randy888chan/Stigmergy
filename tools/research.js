@@ -58,8 +58,9 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
         .map((item) => `Source: ${item.url}\n        \n${item.markdown || item.content}`)
         .join("\n        \n---\n        \n");
 
+      const { client, modelName } = getModelForTier('b_tier', null, config);
       const { object } = await ai.generateObject({
-        model: getModelForTier('b_tier', null, config), // Pass config
+        model: client(modelName), // Pass config
         system: await getResearchPrompt(),
         prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
@@ -90,8 +91,9 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
   );
   try {
     const client = getFirecrawlClient();
+    const { client: client1, modelName: modelName1 } = getModelForTier('b_tier', null, config);
     const serpGen = await ai.generateObject({
-      model: getModelForTier('b_tier', null, config), // Pass config
+      model: client1(modelName1), // Pass config
       system: await getResearchPrompt(),
       prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
     ---
@@ -117,8 +119,9 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
       .map((item) => `Source: ${item.url}\n\n${item.markdown}`)
       .join("\n\n---\n\n");
 
+    const { client: synthesisClient, modelName: synthesisModelName } = getModelForTier('b_tier', null, config);
     const synthesis = await ai.generateObject({
-      model: getModelForTier('b_tier', null, config), // Pass config
+      model: synthesisClient(synthesisModelName), // Pass config
       system: await getResearchPrompt(),
       prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
@@ -183,8 +186,9 @@ export async function evaluate_sources({ urls }, ai, config) {
     if (score < 5) {
       try {
         console.log(chalk.yellow(`[Research Tool] Ambiguous URL "${url}". Consulting reasoning_tier LLM for evaluation.`));
+        const { client, modelName } = getModelForTier('reasoning_tier', null, config);
         const { object } = await generateObject({
-          model: getModelForTier('reasoning_tier', null, config),
+          model: client(modelName),
           prompt: `Act as a research librarian. Assess the authority, expertise, and potential biases of the source at this URL: ${url}. Consider the author, publisher, and purpose of the site. Return a credibility score from 0-10 and a brief justification for your score.`,
           schema: evaluationSchema,
         });

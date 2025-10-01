@@ -1,44 +1,108 @@
-import { test, expect, describe, mock } from 'bun:test';
+import { test, expect, describe, mock, beforeEach, afterEach } from 'bun:test';
 
-// Mock the external dependencies
+// This is the mock function we will control and inspect.
+const mockCreateOpenAI = mock(() => mock(() => 'mock-model-instance'));
+
+// We tell bun.test to replace the real module with our mock.
 mock.module('@ai-sdk/openai', () => ({
-  createOpenAI: mock(() => mock(() => 'mock-model')),
+  createOpenAI: mockCreateOpenAI,
 }));
 
-// Dynamically import the module to be tested
-const { getAiProviders } = await import('../../../ai/providers.js');
-const { createOpenAI } = await import('@ai-sdk/openai');
+// Now, when we import from providers, it will see the mocked version of createOpenAI.
+// We also need to reset the internal state of the provider instances between tests.
+const { getModelForTier, _resetProviderInstances } = await import('../../../ai/providers.js');
 
-describe('AI Provider Configuration', () => {
-  test('should create OpenAI provider with strict compatibility', () => {
+describe('AI Provider Logic', () => {
+  beforeEach(() => {
+    // Clear any previous mock calls and reset the provider cache.
+    mockCreateOpenAI.mockClear();
+    _resetProviderInstances();
+  });
+
+  afterEach(() => {
+    // Clean up environment variables
+    delete process.env.OPENAI_API_KEY;
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_BASE_URL;
+  });
+
+  test('should use createOpenAI with "strict" compatibility for OpenAI provider', () => {
     // 1. Arrange
-    const mockConfig = {
+    const config = {
       model_tiers: {
-        openai_reasoning: {
+        some_tier: {
           provider: 'openai',
-          model_name: 'o1-preview',
+          model_name: 'gpt-4',
           api_key_env: 'OPENAI_API_KEY',
-          base_url_env: null,
         },
       },
     };
-
     process.env.OPENAI_API_KEY = 'test-key';
-    const ai = getAiProviders(mockConfig);
 
     // 2. Act
-    ai.getModelForTier('openai_reasoning');
+    getModelForTier('some_tier', null, config);
 
     // 3. Assert
-    expect(createOpenAI).toHaveBeenCalled();
-    const lastCall = createOpenAI.mock.calls[createOpenAI.mock.calls.length - 1];
-    expect(lastCall[0]).toEqual(
-      expect.objectContaining({
-        compatibility: 'strict',
-      })
-    );
+    expect(mockCreateOpenAI).toHaveBeenCalledTimes(1);
+    const options = mockCreateOpenAI.mock.calls[0][0];
+    expect(options).toEqual({
+      apiKey: 'test-key',
+      compatibility: 'strict', // This is the key assertion
+    });
+  });
 
-    // Cleanup
-    delete process.env.OPENAI_API_KEY;
+  test('should use createOpenAI with "strict" compatibility for OpenRouter provider', () => {
+    // 1. Arrange
+    const config = {
+      model_tiers: {
+        some_tier: {
+          provider: 'openrouter',
+          model_name: 'openrouter/some-model',
+          api_key_env: 'OPENROUTER_API_KEY',
+          base_url_env: 'OPENROUTER_BASE_URL',
+        },
+      },
+    };
+    process.env.OPENROUTER_API_KEY = 'test-key-or';
+    process.env.OPENROUTER_BASE_URL = 'https://openrouter.ai/api';
+
+
+    // 2. Act
+    getModelForTier('some_tier', null, config);
+
+    // 3. Assert
+    expect(mockCreateOpenAI).toHaveBeenCalledTimes(1);
+    const options = mockCreateOpenAI.mock.calls[0][0];
+    expect(options).toEqual({
+      apiKey: 'test-key-or',
+      baseURL: 'https://openrouter.ai/api',
+      compatibility: 'strict', // This is the key assertion
+    });
+  });
+
+  test('should remove trailing /v1 from baseURL before calling provider', () => {
+    // 1. Arrange
+    const config = {
+      model_tiers: {
+        some_tier: {
+          provider: 'openrouter',
+          model_name: 'openrouter/some-model',
+          api_key_env: 'OPENROUTER_API_KEY',
+          base_url_env: 'OPENROUTER_BASE_URL',
+        },
+      },
+    };
+    process.env.OPENROUTER_API_KEY = 'test-key-or';
+    // The key part of this test: the URL has a trailing /v1
+    process.env.OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1';
+
+    // 2. Act
+    getModelForTier('some_tier', null, config);
+
+    // 3. Assert
+    expect(mockCreateOpenAI).toHaveBeenCalledTimes(1);
+    const options = mockCreateOpenAI.mock.calls[0][0];
+    // We expect the /v1 to have been removed.
+    expect(options.baseURL).toBe('https://openrouter.ai/api');
   });
 });
