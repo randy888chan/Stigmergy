@@ -31,11 +31,17 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     }
 
     const { provider, model_name, api_key_env, base_url_env } = tierConfig;
+    console.log(`[DEBUG] Tier: ${tier}`);
+    console.log(`[DEBUG] Provider: ${provider}`);
+    console.log(`[DEBUG] Model Name: ${model_name}`);
+    console.log(`[DEBUG] API Key Env: ${api_key_env}`);
+    console.log(`[DEBUG] Base URL Env: ${base_url_env}`);
     
     const apiKey = process.env[api_key_env];
     // THIS IS THE CRITICAL LOGIC CHANGE:
     // It now correctly uses the tier-specific base URL if it exists.
     const baseURL = base_url_env ? process.env[base_url_env] : null;
+    console.log(`[DEBUG] Base URL: ${baseURL}`);
 
     if (!apiKey) {
         throw new Error(`API key environment variable '${api_key_env}' for tier '${tier}' is not set.`);
