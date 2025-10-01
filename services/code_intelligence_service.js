@@ -210,7 +210,7 @@ export class CodeIntelligenceService {
           
           if (stat.isDirectory()) {
             // Skip node_modules and other ignored directories
-            if (!item.includes('node_modules') && 
+            if (item !== 'node_modules' &&
                 !item.startsWith('.') && 
                 !['dist', 'build', '.next', '.nuxt', 'coverage'].includes(item)) {
               files.push(...await this._walkDirectory(itemPath, extensions));
