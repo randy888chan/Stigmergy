@@ -2,12 +2,13 @@ import fs from 'fs-extra';
 import path from 'path';
 import { glob } from 'glob';
 import { z } from 'zod';
+import { generateObject } from 'ai';
 
 async function extractKeyTerms(content, prompt, aiProviders, config) {
   const { getModelForTier } = aiProviders;
   const { client, modelName } = getModelForTier('b_tier', null, config);
-  const { object } = await aiProviders.generateObject({
-    model: client(modelName), // Pass config
+  const { object } = await generateObject({
+    model: client(modelName),
     prompt: `${prompt}
 ---
 DOCUMENT:

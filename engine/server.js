@@ -40,10 +40,8 @@ export class Engine {
 
             if (newState.project_status === 'ENRICHMENT_PHASE') {
                 this.initiateAutonomousSwarm(newState);
-            } else if (newState.project_status === 'PLAN_APPROVED') {
-                console.log(chalk.cyan('[Engine] Plan approved. Triggering dispatcher.'));
-                this.triggerAgent('@dispatcher', 'The plan has been approved. Begin executing the tasks in plan.md.');
             }
+
         });
 
         this.stateManager.on('triggerAgent', async ({ agentId, prompt }) => {

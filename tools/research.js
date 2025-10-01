@@ -59,8 +59,8 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
         .join("\n        \n---\n        \n");
 
       const { client, modelName } = getModelForTier('b_tier', null, config);
-      const { object } = await ai.generateObject({
-        model: client(modelName), // Pass config
+      const { object } = await defaultGenerateObject({
+        model: client(modelName),
         system: await getResearchPrompt(),
         prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
@@ -92,8 +92,8 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
   try {
     const client = getFirecrawlClient();
     const { client: client1, modelName: modelName1 } = getModelForTier('b_tier', null, config);
-    const serpGen = await ai.generateObject({
-      model: client1(modelName1), // Pass config
+    const serpGen = await defaultGenerateObject({
+      model: client1(modelName1),
       system: await getResearchPrompt(),
       prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
     ---
@@ -120,8 +120,8 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
       .join("\n\n---\n\n");
 
     const { client: synthesisClient, modelName: synthesisModelName } = getModelForTier('b_tier', null, config);
-    const synthesis = await ai.generateObject({
-      model: synthesisClient(synthesisModelName), // Pass config
+    const synthesis = await defaultGenerateObject({
+      model: synthesisClient(synthesisModelName),
       system: await getResearchPrompt(),
       prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
     ---
