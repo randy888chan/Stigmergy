@@ -2,7 +2,8 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 
 export async function generateStructuredOutput(prompt, schema, ai, tier = 'utility_tier', config) {
-  const model = ai.getModelForTier(tier, null, config); // Pass config
+  const { client, modelName } = ai.getModelForTier(tier, null, config); // Pass config
+  const model = client(modelName);
   const { object } = await generateObject({
     model: model,
     prompt: prompt,
@@ -12,7 +13,8 @@ export async function generateStructuredOutput(prompt, schema, ai, tier = 'utili
 }
 
 export async function generateText(prompt, ai, tier = 'utility_tier', config) {
-  const model = ai.getModelForTier(tier, null, config); // Pass config
+  const { client, modelName } = ai.getModelForTier(tier, null, config); // Pass config
+  const model = client(modelName);
   // Assuming a simple text generation for now, not structured.
   // In a real scenario, you might use generateText from 'ai' or a similar function.
   const { text } = await generateObject({

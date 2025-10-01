@@ -5,8 +5,9 @@ import { z } from 'zod';
 
 async function extractKeyTerms(content, prompt, aiProviders, config) {
   const { getModelForTier } = aiProviders;
+  const { client, modelName } = getModelForTier('b_tier', null, config);
   const { object } = await aiProviders.generateObject({
-    model: getModelForTier('b_tier', null, config), // Pass config
+    model: client(modelName), // Pass config
     prompt: `${prompt}
 ---
 DOCUMENT:

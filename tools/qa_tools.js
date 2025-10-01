@@ -362,8 +362,9 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
 // Legacy QA tools for backward compatibility
 
 export async function verify_requirements({ requirements, code, ai, generateObject = defaultGenerateObject, config }) {
+  const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
-    model: ai.getModelForTier('b_tier', null, config),
+    model: client(modelName),
     prompt: `Does the code satisfy all requirements? Respond with a boolean and feedback. Requirements: ${requirements}
 
 Code: ${code}`,
@@ -373,8 +374,9 @@ Code: ${code}`,
 }
 
 export async function verify_architecture({ architecture_blueprint, code, ai, generateObject = defaultGenerateObject, config }) {
+  const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
-    model: ai.getModelForTier('b_tier', null, config),
+    model: client(modelName),
     prompt: `Does the code adhere to the blueprint? Blueprint: ${architecture_blueprint}
 
 Code: ${code}`,

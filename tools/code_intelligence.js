@@ -88,8 +88,9 @@ export async function getFullCodebaseContext() {
  */
 export async function validate_tech_stack({ technology, project_goal }, ai, config) {
   const { getModelForTier } = ai;
+  const { client, modelName } = getModelForTier('b_tier', null, config);
   const { object } = await defaultGenerateObject({
-    model: getModelForTier('b_tier', null, config),
+    model: client(modelName),
     prompt: `As a senior solutions architect, analyze the suitability of using "${technology}" for a project with the goal: "${project_goal}".`,
     schema: z.object({
       is_suitable: z.boolean(),

@@ -11,9 +11,13 @@ describe('QA Tools', () => {
     });
     
     test('verify_requirements should use the injected AI functions', async () => {
-        // Create simple, local mocks for the dependencies.
+        // Create mocks that reflect the new { client, modelName } structure.
         const mockGenerateObject = mock().mockResolvedValue({ object: { passed: true, feedback: 'test feedback' } });
-        const mockGetModelForTier = mock(() => 'mock-model');
+        const mockClient = mock(() => 'mock-model-from-client');
+        const mockGetModelForTier = mock(() => ({
+          client: mockClient,
+          modelName: 'mock-model-name',
+        }));
 
         const mockAiProvider = {
             getModelForTier: mockGetModelForTier,
@@ -23,14 +27,21 @@ describe('QA Tools', () => {
           { requirements: "reqs", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
-        // Assert that our local mocks were called and the result is correct.
+        // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
+        expect(mockClient).toHaveBeenCalledWith('mock-model-name');
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
+        expect(result.passed).toBe(true);
     });
     
     test('verify_architecture should use the injected AI functions', async () => {
-        // Create simple, local mocks for the dependencies.
+        // Create mocks that reflect the new { client, modelName } structure.
         const mockGenerateObject = mock().mockResolvedValue({ object: { passed: false, feedback: 'test feedback' } });
-        const mockGetModelForTier = mock(() => 'mock-model');
+        const mockClient = mock(() => 'mock-model-from-client');
+        const mockGetModelForTier = mock(() => ({
+          client: mockClient,
+          modelName: 'mock-model-name',
+        }));
 
         const mockAiProvider = {
             getModelForTier: mockGetModelForTier,
@@ -40,8 +51,10 @@ describe('QA Tools', () => {
           { architecture_blueprint: "blueprint", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
-        // Assert that our local mocks were called and the result is correct.
+        // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
+        expect(mockClient).toHaveBeenCalledWith('mock-model-name');
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
         expect(result.passed).toBe(false);
     });
 });

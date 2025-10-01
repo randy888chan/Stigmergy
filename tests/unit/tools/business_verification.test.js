@@ -10,7 +10,7 @@ describe('Business Verification Tools', () => {
     });
     
     test('generate_financial_projections should use the injected AI functions', async () => {
-        // Create simple, local mocks for the dependencies.
+        // Create mocks that reflect the new { client, modelName } structure.
         const mockGenerateObject = mock().mockResolvedValue({ 
             object: { 
                 projections: [
@@ -19,7 +19,11 @@ describe('Business Verification Tools', () => {
                 summary: "test summary" 
             } 
         });
-        const mockGetModelForTier = mock(() => 'mock-model');
+        const mockClient = mock(() => 'mock-model-from-client');
+        const mockGetModelForTier = mock(() => ({
+          client: mockClient,
+          modelName: 'mock-model-name',
+        }));
 
         const mockAiProvider = {
             getModelForTier: mockGetModelForTier,
@@ -29,14 +33,16 @@ describe('Business Verification Tools', () => {
           { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
-        // Assert that our local mocks were called and the result has expected properties.
+        // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
+        expect(mockClient).toHaveBeenCalledWith('mock-model-name');
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
         expect(result.projections).toBeDefined();
         expect(result.summary).toBe("test summary");
     });
     
     test('perform_business_valuation should use the injected AI functions', async () => {
-        // Create simple, local mocks for the dependencies.
+        // Create mocks that reflect the new { client, modelName } structure.
         const mockGenerateObject = mock().mockResolvedValue({ 
             object: { 
                 swot_analysis: {
@@ -49,7 +55,11 @@ describe('Business Verification Tools', () => {
                 estimated_value_range: "$1M - $5M"
             } 
         });
-        const mockGetModelForTier = mock(() => 'mock-model');
+        const mockClient = mock(() => 'mock-model-from-client');
+        const mockGetModelForTier = mock(() => ({
+          client: mockClient,
+          modelName: 'mock-model-name',
+        }));
 
         const mockAiProvider = {
             getModelForTier: mockGetModelForTier,
@@ -59,8 +69,10 @@ describe('Business Verification Tools', () => {
           { business_plan_content: "test plan", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
         );
 
-        // Assert that our local mocks were called and the result has expected properties.
+        // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
+        expect(mockClient).toHaveBeenCalledWith('mock-model-name');
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
         expect(result.swot_analysis).toBeDefined();
         expect(result.qualitative_valuation).toBe("promising");
     });

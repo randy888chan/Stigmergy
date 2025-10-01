@@ -86,7 +86,13 @@ export class Engine {
                 console.log(chalk.blue(`[Engine] Agent loop turn ${turnCount}...`));
 
                 const streamTextFunc = this._test_streamText || streamText;
-                const model = this._test_streamText ? null : this.ai.getModelForTier('reasoning_tier');
+                let model;
+                if (this._test_streamText) {
+                    model = null;
+                } else {
+                    const { client, modelName } = this.ai.getModelForTier('reasoning_tier');
+                    model = client(modelName);
+                }
 
                 const { toolCalls, finishReason, text } = await streamTextFunc({
                     model,

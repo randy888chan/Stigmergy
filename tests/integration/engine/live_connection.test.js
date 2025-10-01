@@ -1,47 +1,32 @@
 import { test, expect, describe } from 'bun:test';
 import { generateText } from 'ai';
 
-// This test is designed to be the final, definitive check of live AI connectivity.
-// It is self-contained and bypasses the complex agent loop.
-
-const LIVE_TEST_TIMEOUT = 60000; // 60 seconds, to allow for slow network or cold starts
+const LIVE_TEST_TIMEOUT = 60000;
 
 describe('Live AI Provider Integration', () => {
 
-  // This test is designed to be a live integration test. It is expected to fail if the
-  // necessary API keys (e.g., OPENROUTER_API_KEY) are not available in the test environment.
   test('should connect to the configured reasoning_tier model and get a valid response', async () => {
-    // --- 1. SETUP ---
-    // We load the environment variables from the user's configured .env.development file.
-    // This test assumes that the necessary API keys (e.g., OPENROUTER_API_KEY) are present there.
-    // We do NOT need a separate .env.test file.
-
-    // --- 2. DYNAMIC IMPORT ---
-    // We MUST dynamically import the modules AFTER the environment is loaded.
-    const { getAiProviders } = await import('../../../ai/providers.js');
+    // --- DYNAMIC IMPORT ---
+    const { getModelForTier } = await import('../../../ai/providers.js');
     const config = await import('../../../stigmergy.config.js').then(m => m.default);
 
-    // --- 3. EXECUTION ---
-    // Get the AI provider functions using the loaded config
-    const ai = getAiProviders(config);
+    // --- EXECUTION ---
+    // Get the provider client and model name from our updated function
+    const { client, modelName } = getModelForTier('reasoning_tier', null, config);
 
-    // Get the specific model for the reasoning tier, as configured in the user's .env files
-    const model = ai.getModelForTier('reasoning_tier');
-
-    // Make one single, direct call to the AI model.
+    // Make one single, direct call, passing the client instance to the 'model' property.
+    // This tells the SDK to bypass the Vercel Gateway.
     const { text, finishReason } = await generateText({
-      model: model,
+      model: client(modelName),
       prompt: 'Respond with only the word "OK".',
     });
 
-    // --- 4. VERIFICATION ---
-    // Assert that we got a successful response. We don't care about the content,
-    // only that the connection worked and the response is valid.
+    // --- VERIFICATION ---
     expect(text).toBeString();
     expect(text.length).toBeGreaterThan(0);
     expect(finishReason).toBe('stop');
 
-    console.log(`\n[Live Test] Successfully received response from reasoning_tier model: "${text}"`);
+    console.log(`\n[Live Test] Successfully received response from ${modelName}: "${text}"`);
   });
 
 }, LIVE_TEST_TIMEOUT);
