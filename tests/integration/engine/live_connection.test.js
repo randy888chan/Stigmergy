@@ -1,4 +1,5 @@
 import { test, expect, describe } from 'bun:test';
+// THIS IS THE CORRECT HIGH-LEVEL FUNCTION TO USE
 import { generateText } from 'ai';
 
 const LIVE_TEST_TIMEOUT = 60000;
@@ -12,11 +13,14 @@ describe('Live AI Provider Integration', () => {
     const config = await import('../../../stigmergy.config.js').then(m => m.default);
 
     // --- EXECUTION ---
-    // Get the provider client and model name from our updated function
+    // Get the provider client and model name from our robust function.
     const { client, modelName } = getModelForTier('reasoning_tier', null, config);
 
-    // Make one single, direct call, passing the client instance to the 'model' property.
-    // This tells the SDK to bypass the Vercel Gateway.
+    // THIS IS THE CRITICAL AND DEFINITIVE FIX:
+    // We use the high-level `generateText` function, but we pass it a model
+    // instance created by our specific provider client `client(modelName)`.
+    // This is the official, documented way to bypass the Vercel Gateway and
+    // connect directly to a third-party provider like OpenRouter.
     const { text, finishReason } = await generateText({
       model: client(modelName),
       prompt: 'Respond with only the word "OK".',

@@ -41,20 +41,11 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
         if (provider === 'google') {
             providerInstances[cacheKey] = createGoogleGenerativeAI(providerOptions);
         } else {
-            // For OpenAI, ensure we don't pass a baseURL, as it uses the default.
-            if (provider === 'openai') {
-                delete providerOptions.baseURL;
-            }
-
-            // ALL other providers (OpenAI, OpenRouter, Mistral, Codestral, Kimi, DeepSeek etc.)
+            // ALL other providers (OpenAI, OpenRouter, Mistral, Codestral, Kimi etc.)
             // use the createOpenAI helper. This is the official pattern.
-            // For non-OpenAI providers that use an OpenAI-compatible API, we must use 'strict'
-            // compatibility to bypass the Vercel Gateway and connect directly.
-            const compatibleProviders = ['openrouter', 'deepseek', 'kimi', 'mistral', 'anthropic', 'codestral'];
-            if (compatibleProviders.includes(provider) || (baseURL && !baseURL.includes('api.openai.com'))) {
+            if (provider === 'openrouter' || (baseURL && baseURL.includes('openrouter'))) {
                 providerOptions.compatibility = 'strict';
             }
-
             providerInstances[cacheKey] = createOpenAI(providerOptions);
         }
     }
