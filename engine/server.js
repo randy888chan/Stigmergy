@@ -40,6 +40,9 @@ export class Engine {
 
             if (newState.project_status === 'ENRICHMENT_PHASE') {
                 this.initiateAutonomousSwarm(newState);
+            } else if (newState.project_status === 'PLAN_APPROVED') {
+                console.log(chalk.cyan('[Engine] Plan approved. Triggering dispatcher.'));
+                this.triggerAgent('@dispatcher', 'The plan has been approved. Begin executing the tasks in plan.md.');
             }
         });
 
@@ -111,11 +114,13 @@ export class Engine {
                             this.broadcastEvent('state_update', result);
                         }
                         
+                        // This is the critical fix for the data format mismatch.
+                        // The Vercel AI SDK expects `role: 'tool'` and `content`.
                         toolResults.push({
-                            type: 'tool_result',
+                            role: 'tool',
                             tool_call_id: toolCall.toolCallId,
                             tool_name: toolCall.toolName,
-                            result: JSON.stringify(result),
+                            content: JSON.stringify(result),
                         });
 
                     }

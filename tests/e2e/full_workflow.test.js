@@ -32,7 +32,7 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
 
             if (prompt.includes('create the initial `plan.md`')) {
                 return {
-                    toolCalls: [{ toolCallId: 'c1', toolName: 'stigmergy.task', args: { subagent_type: ' @qa', description: 'Please review this draft plan...' } }],
+                    toolCalls: [{ toolCallId: 'c1', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: 'Please review this draft plan...' } }],
                     finishReason: 'tool-calls'
                 };
             }
@@ -66,6 +66,8 @@ describe('End-to-End Workflow with Full Cognitive Loop', () => {
             _test_streamText: mockStreamText
         });
         await engine.start();
+        // Add a small delay to prevent race condition where test starts before server is fully ready
+        await new Promise(resolve => setTimeout(resolve, 200));
     });
 
   afterAll(async () => {
