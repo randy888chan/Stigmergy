@@ -52,10 +52,21 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
         if (provider === 'google') {
             providerInstances[cacheKey] = createGoogleGenerativeAI(providerOptions);
         } else {
-            if (provider === 'openrouter' || baseURL?.includes('openrouter')) {
+            // List of providers known to use OpenAI-compatible APIs that benefit from strict compatibility.
+            const openAICompatibleProviders = [
+                'openrouter',
+                'deepseek',
+                'kimi',
+                'mistral',
+                'anthropic' // Assuming Anthropic is accessed via an OpenAI-compatible endpoint as per config
+            ];
+
+            // Apply strict compatibility for known providers or if the URL suggests it (e.g., OpenRouter).
+            if (openAICompatibleProviders.includes(provider) || (baseURL && baseURL.includes('openrouter'))) {
                 providerOptions.compatibility = 'strict';
             }
-            // This will now work for Mistral, Codestral, OpenAI, etc.
+
+            // Use the OpenAI SDK for all non-Google providers, which supports various compatible APIs.
             providerInstances[cacheKey] = createOpenAI(providerOptions);
         }
     }
