@@ -216,8 +216,8 @@ export class CodeIntelligenceService {
               files.push(...await this._walkDirectory(itemPath, extensions));
             }
           } else if (stat.isFile()) {
-            // Check if file matches extensions filter
-            if (!extensions || extensions.some(ext => item.endsWith(ext))) {
+            // Check if file matches extensions filter, ensuring a dot precedes the extension
+            if (!extensions || extensions.some(ext => item.endsWith(`.${ext}`))) {
               files.push(itemPath);
             }
           }
