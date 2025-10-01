@@ -58,7 +58,8 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
                 'deepseek',
                 'kimi',
                 'mistral',
-                'anthropic' // Assuming Anthropic is accessed via an OpenAI-compatible endpoint as per config
+                'anthropic', // Assuming Anthropic is accessed via an OpenAI-compatible endpoint as per config
+                'openai'
             ];
 
             // Apply strict compatibility for known providers or if the URL suggests it (e.g., OpenRouter).
