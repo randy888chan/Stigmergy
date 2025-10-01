@@ -1,9 +1,26 @@
-import { mock, describe, test, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { Engine } from '../../../engine/server.js';
-import fs from 'fs-extra';
 import path from 'path';
+import { Volume } from 'memfs';
 
-// Create a mock instance that our test can control
+// --- 1. Setup In-Memory File System & Mock ---
+const vol = new Volume();
+const memfs = require('memfs').createFsFromVolume(vol);
+const mockFs = {
+  // Add all necessary fs-extra methods
+  readFile: memfs.promises.readFile,
+  writeFile: memfs.promises.writeFile,
+  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+  writeFileSync: memfs.writeFileSync,
+  existsSync: memfs.existsSync,
+  promises: memfs.promises,
+};
+mockFs.default = mockFs;
+
+// --- 2. Mock the fs-extra module for the entire test file ---
+mock.module('fs-extra', () => mockFs);
+
+// --- 3. Mock the StateManager ---
 const mockStateManagerInstance = {
     initializeProject: mock().mockResolvedValue({}),
     updateStatus: mock().mockResolvedValue({}),
@@ -17,11 +34,29 @@ describe('Human Handoff Workflow', () => {
   let engine;
 
   beforeEach(() => {
-    mock.restore();
+    vol.reset(); // Clear the in-memory file system
+
+    // --- 4. Create mock agent files in-memory ---
+    const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
+    mockFs.ensureDirSync(agentDir);
+    const mockDispatcherAgent = `
+\`\`\`yaml
+agent:
+  id: "dispatcher"
+  engine_tools:
+    - "system.request_human_approval"
+\`\`\`
+`;
+    mockFs.writeFileSync(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
+
     // Inject the mock StateManager when creating the engine
     engine = new Engine({
-        stateManager: mockStateManagerInstance // Pass the mock instance directly
+        stateManager: mockStateManagerInstance
     });
+  });
+
+  afterEach(() => {
+      mock.restore();
   });
 
   test('Dispatcher should be able to call the request_human_approval tool', async () => {
@@ -30,7 +65,6 @@ describe('Human Handoff Workflow', () => {
     engine.broadcastEvent = broadcastSpy;
 
     // Simulate a tool call from the @dispatcher agent.
-    // We are calling the tool executor directly to isolate the test.
     await engine.executeTool.execute(
       'system.request_human_approval',
       { message: 'Approve plan?', data: { content: 'plan details' } },

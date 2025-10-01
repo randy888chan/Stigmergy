@@ -1,73 +1,88 @@
-import { describe, test, expect, beforeEach, afterAll, mock } from 'bun:test';
-import fs from 'fs-extra';
+import { describe, test, expect, beforeEach } from 'bun:test';
+import { Volume } from 'memfs';
 import path from 'path';
 import {
   readFile,
   writeFile,
   listFiles,
-  appendFile
+  appendFile,
 } from '../../../tools/file_system.js';
 
-afterAll(() => {
-    mock.restore();
-});
+// 1. Create an in-memory file system using memfs.
+const vol = new Volume();
+// The 'fs' from memfs has callback-based async methods by default.
+const memfs = require('memfs').createFsFromVolume(vol);
 
-describe('File System Tools', () => {
+// 2. Create a mock that correctly mimics the fs-extra promise-based API.
+const mockFs = {
+  // Manually map the promise-based methods that the tools use.
+  readFile: memfs.promises.readFile,
+  writeFile: memfs.promises.writeFile,
+  appendFile: memfs.promises.appendFile,
+  // fs-extra's ensureDir is async, so we map it to mkdir (recursive).
+  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
+
+  // Include the sync methods needed for setup and path resolution.
+  statSync: memfs.statSync,
+  mkdirSync: memfs.mkdirSync,
+  writeFileSync: memfs.writeFileSync,
+  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+};
+
+describe('File System Tools (with Corrected In-Memory FS)', () => {
+  const projectRoot = process.cwd();
 
   beforeEach(() => {
-    // Reset the in-memory file system before each test to ensure isolation
-    if (fs.vol) {
-      fs.vol.reset();
-    }
-    // Bun's test runner runs in a specific directory, let's ensure our CWD is consistent
-    fs.mkdirSync(process.cwd(), { recursive: true });
-    // The security model requires files to be in specific subdirectories. Let's create 'src'.
-    fs.mkdirSync(path.join(process.cwd(), 'src'), { recursive: true });
+    // Before each test, reset the volume to ensure a clean slate.
+    vol.reset();
+    // Set up the base 'src' directory in our in-memory file system.
+    mockFs.mkdirSync(path.join(projectRoot, 'src'), { recursive: true });
   });
 
   test('should write a file and then read it back', async () => {
-    const testPath = 'src/test-file.txt'; // Use a safe, relative path
+    const testPath = 'src/test-file.txt';
     const testContent = 'Hello, world!';
 
-    const writeResult = await writeFile({ path: testPath, content: testContent });
+    // Inject the correctly mocked 'fs' object.
+    const writeResult = await writeFile({ path: testPath, content: testContent, fs: mockFs, projectRoot });
     expect(writeResult).toContain('successfully');
 
-    const readResult = await readFile({ path: testPath });
+    const readResult = await readFile({ path: testPath, fs: mockFs, projectRoot });
     expect(readResult).toBe(testContent);
   });
 
   test('should append content to an existing file', async () => {
-    const testPath = 'src/append.txt'; // Use a safe, relative path
+    const testPath = 'src/append.txt';
     const initialContent = 'Initial line.';
     const appendedContent = '\nAppended line.';
 
-    await writeFile({ path: testPath, content: initialContent });
-    const appendResult = await appendFile({ path: testPath, content: appendedContent });
+    await writeFile({ path: testPath, content: initialContent, fs: mockFs, projectRoot });
+    const appendResult = await appendFile({ path: testPath, content: appendedContent, fs: mockFs, projectRoot });
     expect(appendResult).toContain('successfully');
 
-    const finalContent = await readFile({ path: testPath });
+    const finalContent = await readFile({ path: testPath, fs: mockFs, projectRoot });
     expect(finalContent).toBe(initialContent + appendedContent);
   });
 
   test('should list files and directories in a given path', async () => {
-    fs.ensureDirSync('src/dir1');
-    fs.writeFileSync('src/file1.txt', 'content');
-    fs.writeFileSync('src/dir1/file2.txt', 'content');
+    mockFs.ensureDirSync(path.join(projectRoot, 'src/dir1'));
+    mockFs.writeFileSync(path.join(projectRoot, 'src/file1.txt'), 'content');
+    mockFs.writeFileSync(path.join(projectRoot, 'src/dir1/file2.txt'), 'content');
 
-    // The tool's parameter is 'directory', not 'path'
-    const result = await listFiles({ directory: 'src' });
-    
-    // The result is now an array of strings from 'glob'
-    expect(result).toBeInstanceOf(Array);
-    expect(result).toContain('dir1/file2.txt');
-    expect(result).toContain('file1.txt');
+    // Test the listFiles function, injecting our mock fs.
+    const result = await listFiles({ directory: 'src', fs: mockFs, projectRoot });
+
+    // Verify the results. Glob returns platform-specific paths, so we normalize.
+    const normalizedResult = result.map(p => p.replace(/\\/g, '/'));
+    expect(normalizedResult).toBeInstanceOf(Array);
+    expect(normalizedResult).toContain('file1.txt');
+    expect(normalizedResult).toContain('dir1/file2.txt');
   });
 
   test('readFile should return an error if the file does not exist', async () => {
-    // The tool is expected to return an error message, not throw.
-    const result = await readFile({ path: 'src/non-existent-file.txt' });
+    const result = await readFile({ path: 'src/non-existent-file.txt', fs: mockFs, projectRoot });
     expect(result).toContain('EXECUTION FAILED');
-    // Check for the specific error message from the tool's catch block
-    expect(result).toContain('ENOENT: no such file or directory');
+    // memfs provides Node.js-like error codes.
+    expect(result).toContain('ENOENT');
   });
 });
