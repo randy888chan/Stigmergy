@@ -1,20 +1,40 @@
 import { test, describe, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
-import fs from 'fs-extra';
+import { Volume } from 'memfs';
+import path from 'path';
 import { createExecutor } from '../../../engine/tool_executor.js';
 import { CodeIntelligenceService } from '../../../services/code_intelligence_service.js';
+
+// --- 1. Setup In-Memory File System & Mock ---
+const vol = new Volume();
+const memfs = require('memfs').createFsFromVolume(vol);
+const mockFs = {
+  // Add all necessary methods that might be called by the executor or services.
+  readFile: memfs.promises.readFile,
+  writeFile: memfs.promises.writeFile,
+  appendFile: memfs.promises.appendFile,
+  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
+  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+  statSync: memfs.statSync,
+  mkdirSync: memfs.mkdirSync,
+  writeFileSync: memfs.writeFileSync,
+  existsSync: memfs.existsSync, // The missing function
+  promises: memfs.promises,
+};
+mockFs.default = mockFs;
+
+// --- 2. Mock the fs-extra module for the entire test file ---
+mock.module('fs-extra', () => mockFs);
 
 describe('Engine: Agent and Tools Integration', () => {
   let executor;
   let findUsagesSpy, getDefinitionSpy, getModuleDependenciesSpy, runQuerySpy;
 
   beforeEach(() => {
-    // Spy on individual methods on the prototype
-    findUsagesSpy = spyOn(CodeIntelligenceService.prototype, 'findUsages');
-    getDefinitionSpy = spyOn(CodeIntelligenceService.prototype, 'getDefinition');
-    getModuleDependenciesSpy = spyOn(CodeIntelligenceService.prototype, 'getModuleDependencies');
-    runQuerySpy = spyOn(CodeIntelligenceService.prototype, '_runQuery');
+    vol.reset(); // Clear the in-memory file system
 
-    // Spy on fs.readFile to provide a mock agent definition
+    // --- 3. Create mock agent files in-memory ---
+    const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
+    mockFs.ensureDirSync(agentDir);
     const mockDebuggerAgent = `
 \`\`\`yaml
 agent:
@@ -24,19 +44,18 @@ agent:
     - "code_intelligence.*"
 \`\`\`
 `;
-    // Use a spy to conditionally mock readFile
-    const originalReadFile = fs.readFile;
-    spyOn(fs, 'readFile').mockImplementation(async (path, ...args) => {
-        if (typeof path === 'string' && /debugger\.md$/.test(path)) {
-            return mockDebuggerAgent;
-        }
-        // Ensure the original function is called for other paths
-        return originalReadFile(path, ...args);
-    });
+    mockFs.writeFileSync(path.join(agentDir, 'debugger.md'), mockDebuggerAgent);
+
+
+    // Spy on the actual methods of the real service
+    findUsagesSpy = spyOn(CodeIntelligenceService.prototype, 'findUsages');
+    getDefinitionSpy = spyOn(CodeIntelligenceService.prototype, 'getDefinition');
+    getModuleDependenciesSpy = spyOn(CodeIntelligenceService.prototype, 'getModuleDependencies');
+    runQuerySpy = spyOn(CodeIntelligenceService.prototype, '_runQuery');
 
     const mockEngine = {
       broadcastEvent: mock(),
-      projectRoot: '/app',
+      projectRoot: process.cwd(),
       getAgent: mock(),
       triggerAgent: mock(),
     };
@@ -47,7 +66,6 @@ agent:
   });
 
   afterEach(() => {
-    // Restore all mocks and spies
     mock.restore();
   });
 
@@ -82,9 +100,10 @@ agent:
   });
 
   test('should call code_intelligence.getFullCodebaseContext', async () => {
+    // Mock the neo4j record's .get() method more accurately.
     const fakeQueryResults = [
-        { file: 'src/app.js', members: [{ name: 'start', type: 'Function' }] },
-        { file: 'src/utils.js', members: [] }
+      { get: (key) => ({ file: 'src/app.js', members: [{ properties: { name: 'start', type: 'Function' } }] }[key]) },
+      { get: (key) => ({ file: 'src/utils.js', members: [] }[key]) }
     ];
     runQuerySpy.mockResolvedValue(fakeQueryResults);
 

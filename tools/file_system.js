@@ -81,7 +81,8 @@ export async function writeFile({ path: filePath, content, projectRoot, fs = def
 
 export async function listFiles({ directory, projectRoot, fs = defaultFs }) {
   const safePath = resolvePath(directory, projectRoot, fs);
-  return glob("**/*", { cwd: safePath, nodir: true });
+  // Pass the fs instance to glob to ensure it uses the in-memory file system for tests.
+  return glob("**/*", { cwd: safePath, nodir: true, fs });
 }
 
 export async function appendFile({ path: filePath, content, projectRoot, fs = defaultFs }) {

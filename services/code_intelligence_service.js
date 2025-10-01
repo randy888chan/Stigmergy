@@ -179,7 +179,8 @@ export class CodeIntelligenceService {
           "**/*.log",
           "**/.DS_Store"
         ],
-        nodir: true
+        nodir: true,
+        fs: fs,
       });
       
       return files;
