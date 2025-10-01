@@ -8,8 +8,8 @@ const LIVE_TEST_TIMEOUT = 60000; // 60 seconds, to allow for slow network or col
 
 describe('Live AI Provider Integration', () => {
 
-  // This test is skipped because it requires a live connection to an AI provider and the
-  // necessary API keys (e.g., OPENROUTER_API_KEY) are not available in the current test environment.
+  // This test is designed to be a live integration test. It is expected to fail if the
+  // necessary API keys (e.g., OPENROUTER_API_KEY) are not available in the test environment.
   test('should connect to the configured reasoning_tier model and get a valid response', async () => {
     // --- 1. SETUP ---
     // We load the environment variables from the user's configured .env.development file.

@@ -40,7 +40,14 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     const apiKey = process.env[api_key_env];
     // THIS IS THE CRITICAL LOGIC CHANGE:
     // It now correctly uses the tier-specific base URL if it exists.
-    const baseURL = base_url_env ? process.env[base_url_env] : null;
+    let baseURL = base_url_env ? process.env[base_url_env] : null;
+
+    // Defensive coding: The Vercel AI SDK automatically adds `/v1`, so we MUST remove it from the base URL if it exists.
+    if (baseURL && baseURL.endsWith('/v1')) {
+      baseURL = baseURL.slice(0, -3);
+      console.log(`[INFO] Removed trailing '/v1' from base URL. New URL: ${baseURL}`);
+    }
+
     console.log(`[DEBUG] Base URL: ${baseURL}`);
 
     if (!apiKey) {
