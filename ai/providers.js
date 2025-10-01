@@ -43,7 +43,6 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
         } else {
             // ALL other providers (OpenAI, OpenRouter, Mistral, Codestral, Kimi etc.)
             // use the createOpenAI helper. This is the official pattern.
-            // We set compatibility to 'strict' for OpenRouter as it's a good practice.
             if (provider === 'openrouter' || (baseURL && baseURL.includes('openrouter'))) {
                 providerOptions.compatibility = 'strict';
             }
