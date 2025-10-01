@@ -1,7 +1,7 @@
 [test.mocks]
 # This line tells Bun: "Any time a test file tries to import
 # 'ai/providers.js', give it our fake one from 'tests/mocks' instead."
-"ai/providers.js" = "./tests/mocks/ai-providers.js"
+# "ai/providers.js" = "./tests/mocks/ai-providers.js"
 
 # This tells Bun: "Any time ANY file in the test suite tries to import
 # 'fs-extra', give them our high-fidelity mock from tests/mocks/ instead."
@@ -14,7 +14,7 @@
 # These two files will run BEFORE every test file.
 # setup-globals.js creates our temporary test directory.
 # setup-dom.js creates a fake browser environment for React tests.
-preload = ["./tests/setup-globals.js", "./tests/setup-dom.js"]
+preload = ["./utils/env_loader.js", "./tests/setup-globals.js", "./tests/setup-dom.js"]
 
 # These point to the scripts that run once before and after the entire test suite.
 setup = "./tests/setup.js"
