@@ -1,9 +1,10 @@
-import { generateObject } from 'ai';
-import { z } from 'zod';
+import { generateObject, generateText as vercelGenerateText } from 'ai';
 
 export async function generateStructuredOutput(prompt, schema, ai, tier = 'utility_tier', config) {
-  const { client, modelName } = ai.getModelForTier(tier, null, config); // Pass config
+  // CORRECT PATTERN: Get both client and modelName, then create the model instance.
+  const { client, modelName } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
+
   const { object } = await generateObject({
     model: model,
     prompt: prompt,
@@ -13,16 +14,14 @@ export async function generateStructuredOutput(prompt, schema, ai, tier = 'utili
 }
 
 export async function generateText(prompt, ai, tier = 'utility_tier', config) {
-  const { client, modelName } = ai.getModelForTier(tier, null, config); // Pass config
+  // CORRECT PATTERN: Get both client and modelName, then create the model instance.
+  const { client, modelName } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
-  // Assuming a simple text generation for now, not structured.
-  // In a real scenario, you might use generateText from 'ai' or a similar function.
-  const { text } = await generateObject({
+
+  // We use generateText from 'ai' for this now.
+  const { text } = await vercelGenerateText({
     model: model,
     prompt: prompt,
-    schema: z.object({
-      text: z.string(),
-    }),
   });
   return text;
 }

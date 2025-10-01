@@ -7,7 +7,6 @@ export function _resetProviderInstances() {
     providerInstances = {};
 }
 
-// THIS FUNCTION IS THE CORE OF THE FIX. It now returns the client and the model name separately.
 export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     if (!config || !config.model_tiers) {
         throw new Error("A valid configuration object with model_tiers must be provided.");
@@ -25,10 +24,10 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
         throw new Error(`API key environment variable '${api_key_env}' for tier '${tier}' is not set.`);
     }
 
-    // Defensive coding: The Vercel AI SDK automatically adds `/v1`, so we MUST remove it from the base URL if it exists.
+    // Defensive coding: The Vercel AI SDK handles /v1 automatically for some providers.
+    // To be safe, we ensure the base URL does NOT end with /v1.
     if (baseURL && baseURL.endsWith('/v1')) {
       baseURL = baseURL.slice(0, -3);
-      console.log(`[INFO] Removed trailing '/v1' from base URL. New URL: ${baseURL}`);
     }
 
     const cacheKey = `${tier}-${apiKey.slice(-4)}-${baseURL || 'default'}`;
@@ -42,9 +41,10 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
         if (provider === 'google') {
             providerInstances[cacheKey] = createGoogleGenerativeAI(providerOptions);
         } else {
-            // All other providers (OpenAI, OpenRouter, Mistral, etc.) use the OpenAI-compatible client.
-            const openAICompatibleProviders = ['openrouter', 'deepseek', 'mistral', 'anthropic', 'openai', 'codestral_utility'];
-            if (openAICompatibleProviders.includes(provider) || (baseURL && baseURL.includes('openrouter'))) {
+            // ALL other providers (OpenAI, OpenRouter, Mistral, Codestral, Kimi etc.)
+            // use the createOpenAI helper. This is the official pattern.
+            // We set compatibility to 'strict' for OpenRouter as it's a good practice.
+            if (provider === 'openrouter' || (baseURL && baseURL.includes('openrouter'))) {
                 providerOptions.compatibility = 'strict';
             }
             providerInstances[cacheKey] = createOpenAI(providerOptions);
@@ -54,11 +54,8 @@ export function getModelForTier(tier = 'utility_tier', useCase = null, config) {
     return { client: providerInstances[cacheKey], modelName: model_name };
 }
 
-// The getAiProviders function is no longer the best pattern. We can simplify by removing it
-// or keeping it for legacy reasons, but the core logic is now in getModelForTier.
 export function getAiProviders(config) {
   return {
     getModelForTier: (tier, useCase) => getModelForTier(tier, useCase, config),
-    // ... other functions
   };
 }
