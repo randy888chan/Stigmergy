@@ -31,6 +31,7 @@ evaluation/test_results*.json
 # Local environment configurations
 .env.development
 .env.production
+.env.test
 
 # Dashboard build artifacts
 dashboard/public/*.bundle.js
