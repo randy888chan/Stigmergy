@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeAll, afterAll, mock } from 'bun:test';
 import { Engine } from '../../engine/server.js';
-import stateManager from '../../src/infrastructure/state/GraphStateManager.js';
+import { GraphStateManager } from '../../src/infrastructure/state/GraphStateManager.js';
 import fs from 'fs-extra';
 import path from 'path';
 
@@ -36,6 +36,7 @@ describe('E2E Workflow (Mock AI)', () => {
             return { text: '', finishReason: 'stop' };
         };
 
+        const stateManager = new GraphStateManager();
         engine = new Engine({ stateManager, _test_streamText: mockStreamText });
         await engine.start();
     });

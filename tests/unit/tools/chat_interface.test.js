@@ -1,36 +1,43 @@
 import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
+import { createChatProcessor } from '../../../tools/chat_interface.js';
 
-// Mock the dependencies of the module we are testing.
-// The chat_interface tool calls stateManager and coreTools.
-mock.module('../../../src/infrastructure/state/GraphStateManager.js', () => ({
-  default: {
-    initializeProject: mock().mockResolvedValue({}),
-  },
-}));
+// Mock the core_tools dependency, as it's not the focus of this unit test.
+const mockCreateStructuredResponse = mock((data) => data);
 mock.module('../../../tools/core_tools.js', () => ({
-  createStructuredResponse: mock((data) => data), // Mock returns the data it received
+  createStructuredResponse: mockCreateStructuredResponse,
 }));
-
-// NOW, we can safely import the modules. Bun will give us the mocked versions.
-import stateManager from '../../../src/infrastructure/state/GraphStateManager.js';
-import * as coreTools from '../../../tools/core_tools.js';
-import { process_chat_command } from '../../../tools/chat_interface.js';
 
 describe('Chat Interface Tool', () => {
+  let process_chat_command;
+  let mockStateManager;
+  const mockInitializeProject = mock(async () => ({}));
 
   beforeEach(() => {
-    // Reset call history for all mocks before each test
+    // Reset mocks
+    mockInitializeProject.mockClear();
+    mockCreateStructuredResponse.mockClear();
+
+    // Create a fresh mock stateManager for each test
+    mockStateManager = {
+      initializeProject: mockInitializeProject,
+    };
+
+    // Create the tool function using the factory, injecting the mock dependency
+    process_chat_command = createChatProcessor(mockStateManager);
+  });
+
+  afterEach(() => {
+    // Restore any global mocks if necessary
     mock.restore();
-    stateManager.initializeProject.mockClear(); // Explicitly clear the mock
   });
 
   test('should call initializeProject for a development-related command', async () => {
     const command = 'Create a new API endpoint for users';
     await process_chat_command({ command });
 
-    // VERIFY: The correct function was called for a development goal.
-    expect(stateManager.initializeProject).toHaveBeenCalledWith(command);
-    expect(coreTools.createStructuredResponse).toHaveBeenCalled();
+    // VERIFY: The correct function on the injected stateManager was called.
+    expect(mockInitializeProject).toHaveBeenCalledWith(command);
+    expect(mockCreateStructuredResponse).toHaveBeenCalled();
   });
 
   test('should NOT call initializeProject for a system status command', async () => {
@@ -38,8 +45,8 @@ describe('Chat Interface Tool', () => {
     await process_chat_command({ command });
 
     // VERIFY: The development workflow was NOT triggered.
-    expect(stateManager.initializeProject).not.toHaveBeenCalled();
-    expect(coreTools.createStructuredResponse).toHaveBeenCalled();
+    expect(mockInitializeProject).not.toHaveBeenCalled();
+    expect(mockCreateStructuredResponse).toHaveBeenCalled();
   });
 
   test('should return a clarification message for an unknown command', async () => {
@@ -47,10 +54,10 @@ describe('Chat Interface Tool', () => {
     await process_chat_command({ command });
 
     // VERIFY: The development workflow was NOT triggered.
-    expect(stateManager.initializeProject).not.toHaveBeenCalled();
+    expect(mockInitializeProject).not.toHaveBeenCalled();
 
     // VERIFY: A clarification response was created.
-    expect(coreTools.createStructuredResponse).toHaveBeenCalledWith(
+    expect(mockCreateStructuredResponse).toHaveBeenCalledWith(
       expect.objectContaining({
         status: 'clarification_needed',
       })

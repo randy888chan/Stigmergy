@@ -2,7 +2,7 @@ import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { upgradeWebSocket } from 'hono/bun';
 import chalk from 'chalk';
-import stateManagerInstance from "../src/infrastructure/state/GraphStateManager.js";
+import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import fs from 'fs-extra';
 import path from 'path';
@@ -13,9 +13,12 @@ import { getAiProviders } from '../ai/providers.js';
 
 export class Engine {
     constructor(options = {}) {
+        if (!options.stateManager) {
+            throw new Error("Engine requires a stateManager instance on construction.");
+        }
         this.app = new Hono();
         this.projectRoot = options.projectRoot || process.cwd();
-        this.stateManager = options.stateManager || stateManagerInstance;
+        this.stateManager = options.stateManager;
         this.clients = new Set();
         this.server = null;
         this._test_streamText = options._test_streamText; // For dependency injection in tests
@@ -34,14 +37,18 @@ export class Engine {
     }
     
     setupStateListener() {
-        this.stateManager.on('stateChanged', (newState) => {
-            console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
-            this.broadcastEvent('state_update', newState);
+        this.stateManager.on('stateChanged', async (newState) => {
+            try {
+                console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
+                this.broadcastEvent('state_update', newState);
 
-            if (newState.project_status === 'ENRICHMENT_PHASE') {
-                this.initiateAutonomousSwarm(newState);
+                if (newState.project_status === 'ENRICHMENT_PHASE') {
+                    await this.initiateAutonomousSwarm(newState);
+                }
+            } catch (error) {
+                console.error(chalk.red('[Engine] CRITICAL ERROR in stateChanged handler:'), error);
+                await this.stateManager.updateStatus({ newStatus: 'ERROR', message: `Critical error in state handler: ${error.message}` });
             }
-
         });
 
         this.stateManager.on('triggerAgent', async ({ agentId, prompt }) => {
@@ -50,11 +57,10 @@ export class Engine {
         });
     }
 
-    // This function name is now more generic
-    initiateAutonomousSwarm(state) {
+    async initiateAutonomousSwarm(state) {
         console.log(chalk.cyan('[Engine] Autonomous swarm initiated.'));
         // The CORRECT first step is to trigger the PLANNER, not the dispatcher.
-        this.triggerAgent('@specifier', 'A new project goal has been set. Please create the initial `plan.md` file to achieve it.');
+        await this.triggerAgent('@specifier', 'A new project goal has been set. Please create the initial `plan.md` file to achieve it.');
     }
 
     async triggerAgent(agentId, prompt) {
@@ -98,12 +104,10 @@ export class Engine {
                     tools: this.executeTool.getTools(),
                 });
 
-                // THIS IS THE CRITICAL FIX:
-                // We must check the finishReason here to correctly terminate the loop.
                 if (finishReason === 'stop' || finishReason === 'length') {
                     console.log(chalk.yellow(`[Engine] Agent loop finished with reason: ${finishReason}`));
                     isDone = true;
-                    continue; // Exit the current iteration of the loop
+                    continue;
                 }
 
                 if (toolCalls && toolCalls.length > 0) {
@@ -118,8 +122,6 @@ export class Engine {
                             this.broadcastEvent('state_update', result);
                         }
                         
-                        // This is the critical fix for the data format mismatch.
-                        // The Vercel AI SDK expects `role: 'tool'` and `content`.
                         toolResults.push({
                             role: 'tool',
                             tool_call_id: toolCall.toolCallId,
@@ -276,6 +278,7 @@ function createWebSocketEvent(ws, data, code, reason) {
 
 // This block ensures the server can run directly for production
 if (import.meta.main) {
-    const engine = new Engine();
+    const stateManager = new GraphStateManager();
+    const engine = new Engine({ stateManager });
     engine.start();
 }
