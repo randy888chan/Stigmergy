@@ -5,7 +5,7 @@ import config from "../../../stigmergy.config.js";
 import path from "path";
 import fs from "fs-extra";
 
-class GraphStateManager extends EventEmitter {
+export class GraphStateManager extends EventEmitter {
   constructor(projectRoot) {
     super();
     this.projectRoot = projectRoot || process.cwd();
@@ -281,7 +281,7 @@ class GraphStateManager extends EventEmitter {
         console.log(`GraphStateManager: Current working directory: ${this.projectRoot}`);
         
         // Ensure the directory exists
-        await fs.ensureDir(stateDir);
+        await fs.mkdir(stateDir, { recursive: true });
         
         // Write the state to the file
         await fs.writeJson(stateFile, state, { spaces: 2 });
@@ -350,7 +350,3 @@ class GraphStateManager extends EventEmitter {
     this.on("stateChanged", callback);
   }
 }
-
-const stateManagerInstance = new GraphStateManager();
-export { GraphStateManager as GraphStateManagerClass }; // Export the class for testing
-export default stateManagerInstance; // Export the singleton instance for the app

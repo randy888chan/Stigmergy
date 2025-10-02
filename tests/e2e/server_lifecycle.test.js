@@ -1,12 +1,14 @@
 import { test, describe, beforeAll, afterAll } from 'bun:test';
 import { Engine } from '../../engine/server.js';
+import { GraphStateManager } from '../../src/infrastructure/state/GraphStateManager.js';
 
 describe('Server Lifecycle', () => {
   let engine;
 
   beforeAll(async () => {
     process.env.STIGMERGY_PORT = 3018;
-    engine = new Engine();
+    const stateManager = new GraphStateManager();
+    engine = new Engine({ stateManager });
     await engine.start();
   });
 
