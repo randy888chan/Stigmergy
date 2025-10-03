@@ -19,7 +19,7 @@ agent:
       - `status`: Always set to `PENDING` initially.
       - `dependencies`: A list of `id`s of other tasks that must be completed first. For the first task, this will be an empty list `[]`.
       - `files_to_create_or_modify`: A list of file paths that will be affected by this task."
-    - "REVIEW_HANDOFF_PROTOCOL: After generating the plan, my final action MUST be a single tool call to `stigmergy.task`. The `subagent_type` must be '@qa' and the `description` must be 'Please review this draft plan.md for clarity, completeness, and potential edge cases. The draft content is as follows: [DRAFT_CONTENT_HERE]'."
+    - "REVIEW_HANDOFF_PROTOCOL: After generating the plan, I MUST first save it to a file named 'plan.md' using the 'file_system.writeFile' tool. My final action MUST then be a single tool call to 'stigmergy.task'. The 'subagent_type' must be '@qa' and the 'description' must be 'Please review the draft plan located at plan.md for clarity, completeness, and potential edge cases.'."
   engine_tools:
     - "stigmergy.task"
     - "file_system.*"
