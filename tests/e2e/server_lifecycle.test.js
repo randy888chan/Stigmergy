@@ -5,8 +5,21 @@ import { GraphStateManager } from '../../src/infrastructure/state/GraphStateMana
 describe('Server Lifecycle', () => {
   let engine;
 
+  // Store original env vars to restore them later
+  const originalEnv = {
+    NEO4J_URI: process.env.NEO4J_URI,
+    NEO4J_USER: process.env.NEO4J_USER,
+    NEO4J_PASSWORD: process.env.NEO4J_PASSWORD,
+  };
+
   beforeAll(async () => {
+    // Force memory mode by unsetting Neo4j env vars
+    delete process.env.NEO4J_URI;
+    delete process.env.NEO4J_USER;
+    delete process.env.NEO4J_PASSWORD;
+
     process.env.STIGMERGY_PORT = 3018;
+    // This will now initialize safely in memory mode
     const stateManager = new GraphStateManager();
     engine = new Engine({ stateManager });
     await engine.start();
@@ -16,6 +29,10 @@ describe('Server Lifecycle', () => {
     if (engine && engine.stop) {
       await engine.stop();
     }
+    // Restore original env vars
+    process.env.NEO4J_URI = originalEnv.NEO4J_URI;
+    process.env.NEO4J_USER = originalEnv.NEO4J_USER;
+    process.env.NEO4J_PASSWORD = originalEnv.NEO4J_PASSWORD;
   });
 
   test('should start and stop the server', () => {
