@@ -24,10 +24,12 @@ export class Engine {
         this.clients = new Set();
         this.server = null;
         this._test_streamText = options._test_streamText; // For dependency injection in tests
+        this._test_createExecutor = options._test_createExecutor; // For dependency injection in tests
 
         const aiProviders = getAiProviders(config);
         this.ai = aiProviders;
-        this.executeTool = createExecutor(this, this.ai);
+        // DEPRECATED: executeTool is now created on-the-fly in triggerAgent
+        // this.executeTool = createExecutor(this, this.ai);
 
         this.setupRoutes();
         this.setupStateListener();
@@ -70,7 +72,16 @@ export class Engine {
         const agentName = agentId.replace('@', '');
 
         try {
-            const agentPath = path.join(process.cwd(), '.stigmergy-core', 'agents', `${agentName}.md`);
+            // 1. Create a dedicated working directory (sandbox) for the agent
+            const workingDirectory = path.join(this.projectRoot, '.stigmergy-core', 'sandboxes', agentName);
+            await fs.ensureDir(workingDirectory);
+            console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
+
+            // 2. Create a tool executor instance specific to this agent's context
+            const executorFactory = this._test_createExecutor || createExecutor;
+            const executeTool = executorFactory(this, this.ai, { workingDirectory, config });
+
+            const agentPath = path.join(this.projectRoot, '.stigmergy-core', 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
             const agentDefinition = yaml.load(agentFileContent.match(/```yaml\n([\s\S]*?)\n```/)[1]);
 
@@ -103,7 +114,7 @@ export class Engine {
                 const { toolCalls, finishReason, text } = await streamTextFunc({
                     model,
                     messages,
-                    tools: this.executeTool.getTools(),
+                    tools: executeTool.getTools(),
                 });
 
                 if (finishReason === 'stop' || finishReason === 'length') {
@@ -118,7 +129,7 @@ export class Engine {
                     const toolResults = [];
                     for (const toolCall of toolCalls) {
                         console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args:`, toolCall.args));
-                        const result = await this.executeTool.execute(toolCall.toolName, toolCall.args, agentName);
+                        const result = await executeTool.execute(toolCall.toolName, toolCall.args, agentName);
                         
                         if (result && result.project_status) {
                             this.broadcastEvent('state_update', result);

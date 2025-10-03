@@ -146,10 +146,16 @@ const getParams = (func) => {
     return match[1].split(',').map(p => p.trim()).filter(Boolean);
 };
 
-export function createExecutor(engine, ai, config) {
+export function createExecutor(engine, ai, options = {}) {
+  const { workingDirectory, config } = options;
+
   // Create a project-aware wrapper for the file_system toolset
   const projectFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
-    acc[key] = (args) => fileSystem[key]({ ...args, projectRoot: engine.projectRoot });
+    acc[key] = (args) => fileSystem[key]({
+      ...args,
+      projectRoot: engine.projectRoot,
+      workingDirectory: workingDirectory, // Pass the sandbox directory
+    });
     return acc;
   }, {});
 
