@@ -33,14 +33,16 @@ const mockStateManagerInstance = {
     emit: mock(),
 };
 
-let engine;
-let executeSpy;
+// Create a single, persistent mock function for the executor
+const executeMock = mock().mockResolvedValue(JSON.stringify({ success: true }));
 const mockStreamText = mock();
+
+let engine;
 
 beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
-    if (executeSpy) executeSpy.mockClear();
+    executeMock.mockClear(); // Clear the shared mock before each test
 
     const projectRoot = path.join(process.cwd(), 'test-project');
     const agentDir = path.join(projectRoot, '.stigmergy-core', 'agents');
@@ -63,17 +65,18 @@ agent:
     createAgentFile('QA');
     createAgentFile('Dispatcher');
 
-    // This is the dependency injection pattern.
-    // We create a function that will be passed to the engine to construct the tool executor.
+    // Dependency injection for the tool executor.
+    // Each time a new executor is created, we replace its 'execute' method
+    // with our persistent mock function.
     const testExecutorFactory = (engine, ai, options) => {
         const executor = realCreateExecutor(engine, ai, options);
-        executeSpy = spyOn(executor, 'execute').mockResolvedValue(JSON.stringify({ success: true }));
+        executor.execute = executeMock; // Use the same mock for all instances
         return executor;
     };
 
     engine = new Stigmergy({
         _test_streamText: mockStreamText,
-        _test_createExecutor: testExecutorFactory, // Inject the factory here
+        _test_createExecutor: testExecutorFactory, // Inject the factory
         stateManager: mockStateManagerInstance,
         projectRoot: projectRoot,
     });
@@ -90,11 +93,23 @@ test("Planning workflow simulates the full review and refine loop", async () => 
     const draftPlan = "id: task-1...";
 
     mockStreamText
+        // 1. Specifier is triggered, decides to delegate to QA
         .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '1', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: `Review this: ${draftPlan}` } }], finishReason: 'tool-calls' })
+        .mockResolvedValueOnce({ text: 'Okay, delegating to QA.', finishReason: 'stop' })
+
+        // 2. QA is triggered, reviews, and requests revision
         .mockResolvedValueOnce({ text: JSON.stringify({ status: 'revision_needed', feedback: 'Missing details.' }), finishReason: 'stop' })
+
+        // 3. Specifier is triggered again, decides to delegate to QA again
         .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '2', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: `Review this revised plan: ${draftPlan}` } }], finishReason: 'tool-calls' })
+        .mockResolvedValueOnce({ text: 'Okay, delegating revised plan to QA.', finishReason: 'stop' })
+
+        // 4. QA is triggered again, approves
         .mockResolvedValueOnce({ text: JSON.stringify({ status: 'approved', feedback: 'Looks good.' }), finishReason: 'stop' })
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'file_system.writeFile', args: { path: 'plan.md', content: draftPlan } }], finishReason: 'tool-calls' });
+
+        // 5. Dispatcher is triggered, writes the file
+        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'file_system.writeFile', args: { path: 'plan.md', content: draftPlan } }], finishReason: 'tool-calls' })
+        .mockResolvedValueOnce({ text: 'File written.', finishReason: 'stop' });
 
     await engine.triggerAgent('@specifier', 'Create a new plan');
     await engine.triggerAgent('@qa', `Review this: ${draftPlan}`);
@@ -102,5 +117,6 @@ test("Planning workflow simulates the full review and refine loop", async () => 
     await engine.triggerAgent('@qa', `Review this revised plan: ${draftPlan}`);
     await engine.triggerAgent('@dispatcher', 'The plan is approved. Write it to disk.');
 
-    expect(executeSpy).toHaveBeenCalledWith('file_system.writeFile', expect.objectContaining({ path: 'plan.md' }), 'dispatcher');
+    expect(executeMock).toHaveBeenCalledTimes(3); // stigmergy.task, stigmergy.task, file_system.writeFile
+    expect(executeMock).toHaveBeenCalledWith('file_system.writeFile', expect.objectContaining({ path: 'plan.md' }), 'dispatcher');
 });

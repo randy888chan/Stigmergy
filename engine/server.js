@@ -12,6 +12,67 @@ import { streamText } from 'ai';
 import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
 
+// A mock streamText function for local development without API keys
+const mockStreamTextForRefactor = async ({ messages }) => {
+    const lastMessage = messages[messages.length - 1];
+    const prompt = lastMessage.content;
+
+    console.log(`[Mock AI] Received prompt snippet: ${prompt.substring(0, 100)}...`);
+
+    // 1. Engine triggers @specifier with a generic prompt that now includes the goal.
+    if (prompt.includes('A new project goal has been set')) {
+        console.log('[Mock AI] Specifier received goal, deciding to read the relevant file.');
+        return {
+            toolCalls: [{
+                toolCallId: 'mock-read',
+                toolName: 'file_system.readFile',
+                args: { path: 'services/code_intelligence_service.js' }
+            }],
+            finishReason: 'tool-calls'
+        };
+    }
+
+    // 2. After reading the file, the agent has the context and decides to write the refactored version.
+    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.readFile') {
+        console.log('[Mock AI] Read file content, deciding to write the refactored file.');
+        return {
+            toolCalls: [{
+                toolCallId: 'mock-write',
+                toolName: 'file_system.writeFile',
+                args: {
+                    path: 'services/code_intelligence_service.js',
+                    content: '// Refactored content by mock AI'
+                }
+            }],
+            finishReason: 'tool-calls'
+        };
+    }
+
+    // 3. After writing the file, the agent's job is done, so it marks the task as complete.
+    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.writeFile') {
+        console.log('[Mock AI] Wrote file, deciding to mark task as complete.');
+        return {
+            toolCalls: [{
+                toolCallId: 'mock-complete',
+                toolName: 'system.updateStatus',
+                args: { newStatus: 'EXECUTION_COMPLETE' }
+            }],
+            finishReason: 'tool-calls'
+        };
+    }
+
+    // 4. After the final tool call, the agent has nothing left to do and stops.
+    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'system.updateStatus') {
+        console.log('[Mock AI] Status updated, workflow is complete. Stopping.');
+        return { text: 'Finished.', finishReason: 'stop' };
+    }
+
+    // Default fallback to prevent loops
+    console.log('[Mock AI] No specific action found for this turn. Stopping.');
+    return { text: 'Finished.', finishReason: 'stop' };
+};
+
+
 export class Engine {
     constructor(options = {}) {
         if (!options.stateManager) {
@@ -83,11 +144,34 @@ export class Engine {
 
             const agentPath = path.join(this.projectRoot, '.stigmergy-core', 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
-            const agentDefinition = yaml.load(agentFileContent.match(/```yaml\n([\s\S]*?)\n```/)[1]);
+            const yamlMatch = agentFileContent.match(/```yaml\n([\s\S]*?)\n```/);
 
-            const persona = agentDefinition.agent.persona;
-            const protocols = agentDefinition.agent.core_protocols.join('\n- ');
-            const systemPrompt = `${persona.role} ${persona.style} ${persona.identity}\n\nMy core protocols are:\n- ${protocols}`;
+            let systemPrompt = 'You are a helpful AI assistant.'; // Default prompt
+
+            if (yamlMatch && yamlMatch[1]) {
+                const agentDefinition = yaml.load(yamlMatch[1]);
+                const agentConfig = agentDefinition.agent || {};
+
+                const persona = agentConfig.persona || {};
+                const protocols = agentConfig.core_protocols || [];
+
+                const personaText = [persona.role, persona.style, persona.identity].filter(Boolean).join(' ');
+
+                let finalPrompt = personaText;
+
+                if (protocols.length > 0) {
+                    const protocolText = `My core protocols are:\n- ${protocols.join('\n- ')}`;
+                    if (finalPrompt) {
+                        finalPrompt += `\n\n${protocolText}`;
+                    } else {
+                        finalPrompt = protocolText;
+                    }
+                }
+
+                if (finalPrompt) {
+                    systemPrompt = finalPrompt;
+                }
+            }
 
             const messages = [
                 { role: 'system', content: systemPrompt },
@@ -128,7 +212,7 @@ export class Engine {
 
                     const toolResults = [];
                     for (const toolCall of toolCalls) {
-                        console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args:`, toolCall.args));
+                        console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args: ${JSON.stringify(toolCall.args, null, 2)}`));
                         const result = await executeTool.execute(toolCall.toolName, toolCall.args, agentName);
                         
                         if (result && result.project_status) {
@@ -292,6 +376,18 @@ function createWebSocketEvent(ws, data, code, reason) {
 // This block ensures the server can run directly for production
 if (import.meta.main) {
     const stateManager = new GraphStateManager();
-    const engine = new Engine({ stateManager });
+
+    const engineOptions = { stateManager };
+
+    // If the USE_MOCK_AI flag is set, inject the mock AI function.
+    if (process.env.USE_MOCK_AI === 'true') {
+        console.log(chalk.yellow('--- [NOTICE] ---'));
+        console.log(chalk.yellow('Running with USE_MOCK_AI=true. All AI calls will be mocked.'));
+        console.log(chalk.yellow('This is for local testing of the `send_prompt.js` script without API keys.'));
+        console.log(chalk.yellow('--- [NOTICE] ---'));
+        engineOptions._test_streamText = mockStreamTextForRefactor;
+    }
+
+    const engine = new Engine(engineOptions);
     engine.start();
 }

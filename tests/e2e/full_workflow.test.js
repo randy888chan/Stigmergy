@@ -113,9 +113,11 @@ describe('E2E Workflow (Out-of-Process)', () => {
                     reject(err);
                 });
 
-                ws.on('message', (event) => {
+                ws.on('message', (message) => {
                     try {
-                        const data = JSON.parse(event.data);
+                        // The 'ws' library returns the raw data (often a Buffer)
+                        const data = JSON.parse(message.toString());
+
                         // Check for the final state that indicates success
                         if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
                             finalStateReceived = true;
@@ -123,7 +125,7 @@ describe('E2E Workflow (Out-of-Process)', () => {
                             resolve();
                         }
                     } catch (e) {
-                        // Ignore non-JSON messages
+                        console.log('[Test Client] Failed to parse WebSocket message:', message.toString(), e);
                     }
                 });
 
@@ -143,8 +145,9 @@ describe('E2E Workflow (Out-of-Process)', () => {
                 });
             });
 
-            // After the workflow completes, verify the file was actually created
-            const outputFile = path.join(TEST_PROJECT_DIR, '.stigmergy-core', 'sandboxes', 'dispatcher', 'src', 'output.js');
+            // After the workflow completes, verify the file was actually created in the correct sandbox location.
+            // The server process's projectRoot is the originalCwd, not the temp dir it runs in.
+            const outputFile = path.join(originalCwd, '.stigmergy-core', 'sandboxes', 'dispatcher', 'src', 'output.js');
             const fileExists = await fs.pathExists(outputFile);
             expect(fileExists).toBe(true);
 
