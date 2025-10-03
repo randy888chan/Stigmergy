@@ -8,7 +8,7 @@ The integration is simple and robust: your IDE communicates directly with the St
 
 ```mermaid
 graph TD
-    A["IDE (VS Code, Roo Code, etc.)"] -- MCP over WebSocket --> B["Stigmergy Global Service (localhost:3010)"];
+    A["IDE (e.g., VS Code)"] -- MCP over WebSocket --> B["Stigmergy Global Service (localhost:3010)"];
     B -- "Manages & Interacts With" --> C["Your Project Files (/path/to/project)"];
 ```
 
@@ -34,29 +34,6 @@ Setup is a one-time process. Once configured, Stigmergy will work automatically 
     stigmergy init
     ```
 
-3.  **Configure Your IDE**:
-    In your IDE's configuration file, you now only need to provide the URL of the running Stigmergy service.
-
-    Here are examples of what the configuration looks like in common IDEs:
-
-    #### **For VS Code with Continue (`.vscode/config.json`)**
-    ```json
-    {
-      // ... your other VS Code Continue settings ...
-      "mcp": {
-        "url": "http://localhost:3010"
-      }
-    }
-    ```
-    That's it! Your IDE is now connected to the Stigmergy engine.
-
-## Legacy Projects
-
-If you have an older Stigmergy project that was configured to run a local `mcp-server.js` script, you can easily migrate to the new architecture:
-
-1.  **Delete the old script**: `rm mcp-server.js`
-2.  **Run the new init command**: `stigmergy init`
-3.  **Update your IDE**: Modify your IDE's configuration file (e.g., `.roo/mcp.json`) to use the new, simpler `url` format as shown in the examples above.
 
 ## ✅ Benefits of the New Architecture
 

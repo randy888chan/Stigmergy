@@ -41,7 +41,7 @@ export async function startService(options = {}) {
     const err = fs.openSync(ERR_LOG_FILE, 'a');
 
     // Start the service as a detached background process, redirecting output to log files
-    const serviceProcess = spawn('node', [enginePath], {
+    const serviceProcess = spawn('bun', ['run', enginePath], {
       detached: true,
       stdio: ['ignore', out, err] // 'ignore' stdin, pipe stdout and stderr
     });
