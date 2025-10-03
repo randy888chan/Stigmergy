@@ -16,11 +16,12 @@ const mockStreamText = async ({ messages }) => {
     if (prompt.includes('Execute')) {
         return { toolCalls: [{ toolCallId: 'c3', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: 'Hello World' } }], finishReason: 'tool-calls' };
     }
-    // Check the tool name from the message, not the content
-    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.writeFile') {
-        return { toolCalls: [{ toolCallId: 'c4', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' };
+    if (lastMessage.role === 'tool') {
+        // After any tool call, the agent should decide to update the status to complete.
+        return { toolCalls: [{ toolCallId: 'c4', toolName: 'system.updateStatus', args: { project_status: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' };
     }
-    return { text: '', finishReason: 'stop' };
+    // Default stop for any other case
+    return { text: 'Default stop.', finishReason: 'stop' };
 };
 
 

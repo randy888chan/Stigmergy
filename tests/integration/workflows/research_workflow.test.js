@@ -46,14 +46,14 @@ const mockStateManagerInstance = {
     emit: mock(),
 };
 
-let engine;
-let executeSpy;
+const executeMock = mock();
 const mockStreamText = mock();
+let engine;
 
 beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
-    if (executeSpy) executeSpy.mockClear();
+    executeMock.mockClear();
 
     const projectRoot = path.join(process.cwd(), 'test-project-research');
     const agentDir = path.join(projectRoot, '.stigmergy-core', 'agents');
@@ -73,7 +73,7 @@ agent:
     // Dependency injection for the tool executor
     const testExecutorFactory = (engine, ai, options) => {
         const executor = realCreateExecutor(engine, ai, options);
-        executeSpy = spyOn(executor, 'execute');
+        executor.execute = executeMock; // Use the persistent mock
         return executor;
     };
 
@@ -95,13 +95,19 @@ afterEach(async () => {
 test("Research workflow triggers deep_dive, evaluate_sources, and reports with confidence", async () => {
     const researchTopic = "What is the impact of AI on software development?";
 
+    // This mock chain simulates a multi-turn conversation where the agent performs research.
     mockStreamText
+        // Turn 1: Initial prompt -> deep_dive
         .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '1', toolName: 'research.deep_dive', args: { query: 'impact of AI on SWE' } }], finishReason: 'tool-calls' })
+        // Turn 2: Gets result of first deep_dive -> another deep_dive
         .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '2', toolName: 'research.deep_dive', args: { query: 'AI in software testing' } }], finishReason: 'tool-calls' })
+        // Turn 3: Gets result of second deep_dive -> evaluate_sources
         .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'research.evaluate_sources', args: { urls: ['http://a.com', 'http://b.com'] } }], finishReason: 'tool-calls' })
+        // Turn 4: Gets result of evaluation -> generates final report
         .mockResolvedValueOnce({ text: "Final Report...\n\n**Confidence Score:** High...", finishReason: 'stop' });
 
-    executeSpy.mockImplementation(async (toolName, args) => {
+    // The mock implementation for the tool calls themselves.
+    executeMock.mockImplementation(async (toolName, args) => {
         if (toolName === 'research.deep_dive') {
             return JSON.stringify({ new_learnings: `Learnings from ${args.query}`, sources: ['http://a.com', 'http://b.com'] });
         }
@@ -111,16 +117,17 @@ test("Research workflow triggers deep_dive, evaluate_sources, and reports with c
         return JSON.stringify({});
     });
 
-    await engine.triggerAgent("@analyst", researchTopic);
-    await engine.triggerAgent("@analyst", researchTopic);
-    await engine.triggerAgent("@analyst", researchTopic);
+    // We only need to trigger the agent once with the initial prompt.
+    // The agent will then loop internally based on the mockStreamText responses.
     await engine.triggerAgent("@analyst", researchTopic);
 
-    const deepDiveCalls = executeSpy.mock.calls.filter(call => call[0] === 'research.deep_dive');
-    expect(deepDiveCalls.length).toBeGreaterThanOrEqual(2);
+    // Verify the tool calls were made as expected.
+    const deepDiveCalls = executeMock.mock.calls.filter(call => call[0] === 'research.deep_dive');
+    expect(deepDiveCalls.length).toBe(2);
 
-    const evaluateSourcesCalls = executeSpy.mock.calls.filter(call => call[0] === 'research.evaluate_sources');
+    const evaluateSourcesCalls = executeMock.mock.calls.filter(call => call[0] === 'research.evaluate_sources');
     expect(evaluateSourcesCalls.length).toBe(1);
 
+    // The agent should have gone through 4 turns (3 tool calls + 1 final text response).
     expect(mockStreamText).toHaveBeenCalledTimes(4);
 });
