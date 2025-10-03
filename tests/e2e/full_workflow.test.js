@@ -11,23 +11,59 @@ const healthCheckUrl = `http://localhost:${PORT}/`;
 const originalCwd = process.cwd();
 const TEST_PROJECT_DIR = path.join(originalCwd, 'temp-e2e-workflow-final');
 
-// Helper function to wait for the server to be ready
+// Helper function to wait for the server to be ready, including WebSocket check
 const waitForServer = async () => {
-    const maxRetries = 20;
+    const maxRetries = 50;
     const retryDelay = 500;
+    console.log(`[Health Check] Waiting for server at ${healthCheckUrl} and ${serverUrl}...`);
+
     for (let i = 0; i < maxRetries; i++) {
+        let httpReady = false;
+        let wsReady = false;
+
+        // 1. Check HTTP server
         try {
-            const response = await fetch(healthCheckUrl);
+            const response = await fetch(healthCheckUrl, { signal: AbortSignal.timeout(450) });
             if (response.ok) {
-                console.log("E2E Test Server is ready.");
-                return;
+                httpReady = true;
             }
-        } catch (e) {
-            // Ignore connection errors and retry
+        } catch (e) { /* Ignore */ }
+
+        // 2. Check WebSocket server
+        if (httpReady) {
+            await new Promise(resolve => {
+                const ws = new WebSocket(serverUrl);
+                ws.on('open', () => {
+                    wsReady = true;
+                    ws.close();
+                    resolve();
+                });
+                ws.on('error', () => {
+                    wsReady = false;
+                    resolve();
+                });
+                // Timeout for the WebSocket connection itself
+                setTimeout(() => {
+                    if (!wsReady) {
+                        ws.terminate();
+                        resolve();
+                    }
+                }, 450);
+            });
+        }
+
+        if (httpReady && wsReady) {
+            console.log("[Health Check] HTTP and WebSocket servers are ready.");
+            return;
+        }
+
+        if (i % 5 === 0) {
+            console.log(`[Health Check] Attempt ${i + 1}/${maxRetries}: HTTP=${httpReady}, WS=${wsReady}. Retrying...`);
         }
         await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
-    throw new Error("E2E Test Server failed to start in time.");
+
+    throw new Error(`E2E Test Server failed to start after ${maxRetries} retries.`);
 };
 
 describe('E2E Workflow (Out-of-Process)', () => {

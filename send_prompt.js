@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 
-const serverUrl = "ws://localhost:3010/ws";
+const serverUrl = `ws://localhost:${process.env.STIGMERGY_PORT || 3010}/ws`;
 const ws = new WebSocket(serverUrl);
 
 console.log("Attempting to connect to Stigmergy engine...");

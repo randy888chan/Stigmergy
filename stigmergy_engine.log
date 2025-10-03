@@ -1,10 +1,3 @@
-$ bun --hot run engine/server.js
 🔧 Loading environment configuration for: development
-   ❌ Environment file not found: .env.development
-   Please ensure .env.development exists in the project root.
-GraphStateManager: Setting up stateChanged event listener
-Initializing Stigmergy Engine...
-[Engine] Detected Bun environment. Using Bun.serve.
-🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:3010
-GraphStateManager: Neo4j credentials not set. State will not be persisted.
-GraphStateManager: Running in memory-only mode. State changes will not persist between sessions.
+[dotenv@17.2.3] injecting env (1) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+   ✅ Loaded: .env
