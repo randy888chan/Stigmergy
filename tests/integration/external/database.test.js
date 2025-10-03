@@ -15,7 +15,9 @@ describe('External Service Health Check: Neo4j Database', () => {
 
     let driver;
     try {
-      driver = neo4j.driver(uri, neo4j.auth.basic(user, password));
+      driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
+        connectionTimeout: 5000, // 5-second timeout
+      });
       await driver.verifyConnectivity();
       console.log(`\n[Live Health Check] Successfully connected to Neo4j database.`);
       expect(true).toBe(true); // If we reach here, the connection is a success
