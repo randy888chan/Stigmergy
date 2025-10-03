@@ -22,5 +22,4 @@ agent:
     - "TOOL_CALL_PROTOCOL: My final action MUST be a single tool call to `stigmergy.task`. The `subagent_type` must be '@qa' and the `description` must be 'Please review this draft plan.md for clarity, completeness, and potential edge cases. The draft content is as follows: [DRAFT_CONTENT_HERE]'."
   engine_tools:
     - "stigmergy.task"
-    - "file_system.writeFile"
 ```

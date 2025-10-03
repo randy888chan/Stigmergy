@@ -1,78 +1,64 @@
-import { test, expect, describe, beforeAll, afterAll } from 'bun:test';
-import { spawn } from 'bun';
+import { test, expect, describe, beforeAll, afterAll, mock } from 'bun:test';
+import { Engine } from '../../engine/server.js';
+import stateManager from '../../src/infrastructure/state/GraphStateManager.js';
+import fs from 'fs-extra';
+import path from 'path';
+import WebSocket from 'ws';
 
 const E2E_TIMEOUT = 30000;
-const PORT = 3011; // Using a different port to avoid conflicts
-const serverUrl = `http://localhost:${PORT}`;
-const wsServerUrl = `ws://localhost:${PORT}/ws`;
 
-// Health check function to wait for the server to be ready
-async function healthCheck(url, retries = 10, delay = 500) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const response = await fetch(url);
-      if (response.ok) {
-        console.log('Server is healthy.');
-        return;
-      }
-    } catch (error) {
-      // Ignore fetch errors, server might not be up yet
-    }
-    await new Promise(resolve => setTimeout(resolve, delay));
-  }
-  throw new Error('Server did not become healthy in time.');
-}
-
-
-describe('E2E Workflow (Mock AI)', () => {
-    let serverProcess;
+describe('E2E Workflow (Mock AI, In-Process)', () => {
+    let engine;
+    const PORT = 3017;
+    const serverUrl = `ws://localhost:${PORT}/ws`;
+    const originalCwd = process.cwd();
+    const TEST_PROJECT_DIR = path.join(originalCwd, 'temp-e2e-workflow-final');
 
     beforeAll(async () => {
-        console.log('Spawning mock server process...');
-        serverProcess = spawn(['bun', 'run', 'tests/e2e/mock_server.js'], {
-            stdout: 'pipe',
-            stderr: 'pipe',
-            env: { ...process.env, STIGMERGY_PORT: String(PORT) },
-        });
+        // --- 1. Setup the test environment ---
+        await fs.ensureDir(path.join(TEST_PROJECT_DIR, 'src'));
+        process.chdir(TEST_PROJECT_DIR);
 
-        // Log server output for debugging
-        const streamToString = async (stream) => {
-            const chunks = [];
-            for await (const chunk of stream) {
-                chunks.push(chunk);
-                console.log(`[SERVER LOG] ${Buffer.from(chunk).toString()}`);
+        // --- 2. Define the Mock AI's script ---
+        const mockStreamText = async ({ messages }) => {
+            const lastMessage = messages[messages.length - 1];
+            const prompt = lastMessage.role === 'user' ? lastMessage.content : `[Received tool result for ${lastMessage.tool_name}]`;
+
+            if (prompt.includes('create the initial `plan.md`')) {
+                return { toolCalls: [{ toolCallId: 'c1', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: 'Please review...' } }], finishReason: 'tool-calls' };
             }
-            return Buffer.concat(chunks).toString();
-        }
-        streamToString(serverProcess.stdout);
-        streamToString(serverProcess.stderr);
+            if (prompt.includes('Please review')) {
+                return { toolCalls: [{ toolCallId: 'c2', toolName: 'stigmergy.task', args: { subagent_type: '@dispatcher', description: 'Plan approved. Execute.' } }], finishReason: 'tool-calls' };
+            }
+            if (prompt.includes('Execute')) {
+                return { toolCalls: [{ toolCallId: 'c3', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: 'Hello World' } }], finishReason: 'tool-calls' };
+            }
+            if (lastMessage.tool_name === 'file_system.writeFile') {
+                return { toolCalls: [{ toolCallId: 'c4', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' };
+            }
+            return { text: '', finishReason: 'stop' };
+        };
 
-        console.log('Waiting for mock server to become healthy...');
-        await healthCheck(serverUrl);
-    }, E2E_TIMEOUT);
-
-    afterAll(() => {
-        console.log('Killing mock server process...');
-        if (serverProcess) {
-            serverProcess.kill();
-        }
+        // --- 3. Start the Engine in the same process ---
+        process.env.STIGMERGY_PORT = PORT;
+        // Inject the REAL state manager and the MOCK AI
+        engine = new Engine({ stateManager, _test_streamText: mockStreamText });
+        await engine.start();
     });
 
-    // This test is no longer skipped. It runs the server in a child process
-    // to avoid deadlocks with the Bun test runner.
+    afterAll(async () => {
+        if (engine) await engine.stop();
+        process.chdir(originalCwd);
+        await fs.remove(TEST_PROJECT_DIR);
+    });
+
     test('should execute the full specifier->qa->dispatcher workflow', async () => {
         let ws;
         try {
             await new Promise((resolve, reject) => {
                 const testTimeout = setTimeout(() => reject(new Error('Test timed out')), 15000);
-
-                ws = new WebSocket(wsServerUrl);
-
-                ws.onerror = (err) => {
-                    clearTimeout(testTimeout);
-                    reject(err);
-                };
-
+                ws = new WebSocket(serverUrl);
+                ws.onerror = (err) => { clearTimeout(testTimeout); reject(err); };
                 ws.onmessage = (event) => {
                     const data = JSON.parse(event.data);
                     if (data.type === 'state_update' && data.payload.project_status === 'EXECUTION_COMPLETE') {
@@ -80,15 +66,10 @@ describe('E2E Workflow (Mock AI)', () => {
                         resolve();
                     }
                 };
-
-                ws.onopen = () => {
-                    ws.send(JSON.stringify({ type: 'user_chat_message', payload: { prompt: "Create a simple file." } }));
-                };
+                ws.onopen = () => ws.send(JSON.stringify({ type: 'user_chat_message', payload: { prompt: "Create a simple file." } }));
             });
         } finally {
-            if (ws) {
-                ws.close();
-            }
+            if (ws) ws.close();
         }
     });
 }, E2E_TIMEOUT);
