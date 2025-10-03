@@ -14,7 +14,7 @@
 # These two files will run BEFORE every test file.
 # setup-globals.js creates our temporary test directory.
 # setup-dom.js creates a fake browser environment for React tests.
-preload = ["./utils/env_loader.js", "./tests/setup-globals.js", "./tests/setup-dom.js"]
+preload = ["./tests/setup-globals.js", "./tests/setup-dom.js"]
 
 # These point to the scripts that run once before and after the entire test suite.
 setup = "./tests/setup.js"

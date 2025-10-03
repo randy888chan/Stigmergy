@@ -12,64 +12,66 @@ import { streamText } from 'ai';
 import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
 
-// A mock streamText function for local development without API keys
+// This is the definitive mock AI logic that correctly simulates the agent swarm workflow.
 const mockStreamTextForRefactor = async ({ messages }) => {
     const lastMessage = messages[messages.length - 1];
-    const prompt = lastMessage.content;
 
-    console.log(`[Mock AI] Received prompt snippet: ${prompt.substring(0, 100)}...`);
+    const getAgentFromSystemPrompt = (msgs) => {
+        const systemMessage = msgs.find(m => m.role === 'system');
+        if (!systemMessage || !systemMessage.content) return null;
+        if (systemMessage.content.includes('I am the Specifier')) return '@specifier';
+        if (systemMessage.content.includes('I am Quinn')) return '@qa';
+        if (systemMessage.content.includes('I am Saul')) return '@dispatcher';
+        return null;
+    };
 
-    // 1. Engine triggers @specifier with a generic prompt that now includes the goal.
-    if (prompt.includes('A new project goal has been set')) {
-        console.log('[Mock AI] Specifier received goal, deciding to read the relevant file.');
-        return {
-            toolCalls: [{
-                toolCallId: 'mock-read',
-                toolName: 'file_system.readFile',
-                args: { path: 'services/code_intelligence_service.js' }
-            }],
-            finishReason: 'tool-calls'
-        };
-    }
+    const currentAgent = getAgentFromSystemPrompt(messages);
 
-    // 2. After reading the file, the agent has the context and decides to write the refactored version.
-    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.readFile') {
-        console.log('[Mock AI] Read file content, deciding to write the refactored file.');
-        return {
-            toolCalls: [{
-                toolCallId: 'mock-write',
-                toolName: 'file_system.writeFile',
-                args: {
-                    path: 'services/code_intelligence_service.js',
-                    content: '// Refactored content by mock AI'
+    switch (currentAgent) {
+        case '@specifier':
+            // Specifier's only job is to delegate to QA. After that, it's done.
+            if (lastMessage.role === 'tool' && lastMessage.tool_name === 'stigmergy.task') {
+                return { text: 'Specifier task delegated. Stopping.', finishReason: 'stop' };
+            }
+            return {
+                toolCalls: [{ toolCallId: 'spec-to-qa', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: 'Please review the plan.' } }],
+                finishReason: 'tool-calls'
+            };
+
+        case '@qa':
+            // QA's only job is to delegate to the Dispatcher. After that, it's done.
+            if (lastMessage.role === 'tool' && lastMessage.tool_name === 'stigmergy.task') {
+                return { text: 'QA task delegated. Stopping.', finishReason: 'stop' };
+            }
+            return {
+                toolCalls: [{ toolCallId: 'qa-to-dispatcher', toolName: 'stigmergy.task', args: { subagent_type: '@dispatcher', description: 'Plan approved. Execute.' } }],
+                finishReason: 'tool-calls'
+            };
+
+        case '@dispatcher':
+            // Dispatcher has a two-step job.
+            const hasWrittenFile = messages.some(m => m.role === 'tool' && m.tool_name === 'file_system.writeFile');
+
+            if (!hasWrittenFile) {
+                // Step 1: Write the file. The loop will continue for the next step.
+                return {
+                    toolCalls: [{ toolCallId: 'dispatch-write', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: 'Hello World' } }],
+                    finishReason: 'tool-calls'
+                };
+            } else {
+                // Step 2: Update the status. After this, the dispatcher is done.
+                 if (lastMessage.role === 'tool' && lastMessage.tool_name === 'system.updateStatus') {
+                    return { text: 'Dispatcher finished. Stopping.', finishReason: 'stop' };
                 }
-            }],
-            finishReason: 'tool-calls'
-        };
-    }
+                return {
+                    toolCalls: [{ toolCallId: 'dispatch-complete', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }],
+                    finishReason: 'tool-calls'
+                };
+            }
 
-    // 3. After writing the file, the agent's job is done, so it marks the task as complete.
-    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.writeFile') {
-        console.log('[Mock AI] Wrote file, deciding to mark task as complete.');
-        return {
-            toolCalls: [{
-                toolCallId: 'mock-complete',
-                toolName: 'system.updateStatus',
-                args: { newStatus: 'EXECUTION_COMPLETE' }
-            }],
-            finishReason: 'tool-calls'
-        };
+        default:
+            return { text: 'Unknown agent or final step. Stopping.', finishReason: 'stop' };
     }
-
-    // 4. After the final tool call, the agent has nothing left to do and stops.
-    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'system.updateStatus') {
-        console.log('[Mock AI] Status updated, workflow is complete. Stopping.');
-        return { text: 'Finished.', finishReason: 'stop' };
-    }
-
-    // Default fallback to prevent loops
-    console.log('[Mock AI] No specific action found for this turn. Stopping.');
-    return { text: 'Finished.', finishReason: 'stop' };
 };
 
 
@@ -87,8 +89,14 @@ export class Engine {
         this._test_streamText = options._test_streamText; // For dependency injection in tests
         this._test_createExecutor = options._test_createExecutor; // For dependency injection in tests
 
-        const aiProviders = getAiProviders(config);
-        this.ai = aiProviders;
+        // Conditionally initialize AI providers only if not in mock mode
+        if (options._test_streamText) {
+            this.ai = null; // In mock mode, no real AI providers are needed.
+            console.log(chalk.yellow('[Engine] Mock AI is active. Skipping real AI provider initialization.'));
+        } else {
+            const aiProviders = getAiProviders(config);
+            this.ai = aiProviders;
+        }
         // DEPRECATED: executeTool is now created on-the-fly in triggerAgent
         // this.executeTool = createExecutor(this, this.ai);
 
@@ -125,7 +133,8 @@ export class Engine {
     async initiateAutonomousSwarm(state) {
         console.log(chalk.cyan('[Engine] Autonomous swarm initiated.'));
         // The CORRECT first step is to trigger the PLANNER, not the dispatcher.
-        await this.triggerAgent('@specifier', 'A new project goal has been set. Please create the initial `plan.md` file to achieve it.');
+        const initialPrompt = `A new project goal has been set. Please create the initial \`plan.md\` file to achieve it. The goal is: "${state.goal}"`;
+        await this.triggerAgent('@specifier', initialPrompt);
     }
 
     async triggerAgent(agentId, prompt) {
@@ -133,6 +142,7 @@ export class Engine {
         const agentName = agentId.replace('@', '');
 
         try {
+            console.log(chalk.red.bold(`[DEBUG] Is _test_streamText defined? ${!!this._test_streamText}`));
             // 1. Create a dedicated working directory (sandbox) for the agent
             const workingDirectory = path.join(this.projectRoot, '.stigmergy-core', 'sandboxes', agentName);
             await fs.ensureDir(workingDirectory);
