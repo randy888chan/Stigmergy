@@ -18,7 +18,7 @@ describe('Server Lifecycle', () => {
     delete process.env.NEO4J_USER;
     delete process.env.NEO4J_PASSWORD;
 
-    process.env.STIGMERGY_PORT = 3018;
+    process.env.STIGMERGY_PORT = 3020; // Changed port to avoid conflict
     // This will now initialize safely in memory mode
     const stateManager = new GraphStateManager();
     engine = new Engine({ stateManager });

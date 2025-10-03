@@ -32,9 +32,12 @@ describe('Engine: Agent and Tools Integration', () => {
   beforeEach(() => {
     vol.reset(); // Clear the in-memory file system
 
-    // --- 3. Create mock agent files in-memory ---
+    // --- 3. Create mock agent & trajectory directories in-memory ---
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
+    const trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
     mockFs.ensureDirSync(agentDir);
+    mockFs.ensureDirSync(trajectoryDir); // Ensure the trajectory directory exists
+
     const mockDebuggerAgent = `
 \`\`\`yaml
 agent:

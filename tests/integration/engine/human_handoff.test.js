@@ -1,5 +1,6 @@
 import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { Engine } from '../../../engine/server.js';
+import { createExecutor } from '../../../engine/tool_executor.js'; // Import the executor
 import path from 'path';
 import { Volume } from 'memfs';
 
@@ -31,14 +32,19 @@ const mockStateManagerInstance = {
 };
 
 describe('Human Handoff Workflow', () => {
-  let engine;
+  let executeTool;
+  let mockEngine;
+  let broadcastSpy;
 
   beforeEach(() => {
     vol.reset(); // Clear the in-memory file system
 
-    // --- 4. Create mock agent files in-memory ---
+    // --- 4. Create mock agent & trajectory directories in-memory ---
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
+    const trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
     mockFs.ensureDirSync(agentDir);
+    mockFs.ensureDirSync(trajectoryDir); // For clean test output
+
     const mockDispatcherAgent = `
 \`\`\`yaml
 agent:
@@ -49,10 +55,16 @@ agent:
 `;
     mockFs.writeFileSync(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
 
-    // Inject the mock StateManager when creating the engine
-    engine = new Engine({
-        stateManager: mockStateManagerInstance
-    });
+    // --- 5. Setup mock engine and executor ---
+    broadcastSpy = mock(() => {});
+    mockEngine = {
+        stateManager: mockStateManagerInstance,
+        broadcastEvent: broadcastSpy,
+        projectRoot: process.cwd(),
+    };
+
+    // The executor is now created directly, mirroring the real engine flow
+    executeTool = createExecutor(mockEngine, {}, {});
   });
 
   afterEach(() => {
@@ -60,12 +72,8 @@ agent:
   });
 
   test('Dispatcher should be able to call the request_human_approval tool', async () => {
-    // Spy on the engine's broadcastEvent method. This is our verification point.
-    const broadcastSpy = mock(engine.broadcastEvent);
-    engine.broadcastEvent = broadcastSpy;
-
     // Simulate a tool call from the @dispatcher agent.
-    await engine.executeTool.execute(
+    await executeTool.execute(
       'system.request_human_approval',
       { message: 'Approve plan?', data: { content: 'plan details' } },
       'dispatcher'
