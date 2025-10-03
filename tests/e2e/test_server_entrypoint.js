@@ -7,19 +7,31 @@ const mockStreamText = async ({ messages }) => {
     const lastMessage = messages[messages.length - 1];
     const prompt = lastMessage.role === 'user' ? lastMessage.content : `[Received tool result for ${lastMessage.tool_name}]`;
 
+    // Specifier creates the plan and asks for review
     if (prompt.includes('create the initial `plan.md`')) {
         return { toolCalls: [{ toolCallId: 'c1', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: 'Please review...' } }], finishReason: 'tool-calls' };
     }
+
+    // QA reviews the plan and approves it for dispatch
     if (prompt.includes('Please review')) {
         return { toolCalls: [{ toolCallId: 'c2', toolName: 'stigmergy.task', args: { subagent_type: '@dispatcher', description: 'Plan approved. Execute.' } }], finishReason: 'tool-calls' };
     }
+
+    // Dispatcher is told to execute the plan, so it writes the file
     if (prompt.includes('Execute')) {
         return { toolCalls: [{ toolCallId: 'c3', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: 'Hello World' } }], finishReason: 'tool-calls' };
     }
-    if (lastMessage.role === 'tool') {
-        // After any tool call, the agent should decide to update the status to complete.
-        return { toolCalls: [{ toolCallId: 'c4', toolName: 'system.updateStatus', args: { project_status: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' };
+
+    // After the dispatcher's file writing tool succeeds, it updates the status.
+    if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.writeFile') {
+        return { toolCalls: [{ toolCallId: 'c4', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' };
     }
+
+    // For all other tool calls (like the tasks from specifier and qa), the agent loop should just stop for this test.
+    if (lastMessage.role === 'tool') {
+        return { text: 'Tool call successful. Stopping.', finishReason: 'stop' };
+    }
+
     // Default stop for any other case
     return { text: 'Default stop.', finishReason: 'stop' };
 };

@@ -23,5 +23,4 @@ agent:
   engine_tools:
     - "stigmergy.task"
     - "file_system.*"
-    - "system.updateStatus"
 ```

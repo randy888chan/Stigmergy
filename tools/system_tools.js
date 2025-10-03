@@ -6,13 +6,16 @@
 export default (engine) => ({
   /**
    * Updates the overall project status.
+   * This tool is intentionally flexible to accept `project_status` as an alias for `newStatus`,
+   * making it more robust to common AI model mistakes.
    */
-  updateStatus: async ({ newStatus, message }) => {
-    if (!newStatus) {
-      throw new Error("The 'newStatus' argument is required for system.updateStatus.");
+  updateStatus: async ({ newStatus, project_status, message }) => {
+    const status = newStatus || project_status;
+    if (!status) {
+      throw new Error("The 'newStatus' or 'project_status' argument is required for system.updateStatus.");
     }
-    await engine.stateManager.updateStatus({ newStatus, message });
-    const confirmation = `System status successfully updated to ${newStatus}.`;
+    await engine.stateManager.updateStatus({ newStatus: status, message });
+    const confirmation = `System status successfully updated to ${status}.`;
     console.log(`[System Tool] ${confirmation}`);
     return confirmation;
   },
