@@ -1,22 +1,30 @@
-import { test, expect, describe, mock, beforeEach, afterEach, afterAll } from 'bun:test';
+import { test, expect, describe, mock, beforeEach, afterAll } from 'bun:test';
 
-// This is the mock function we will control and inspect.
+// 1. Get the real reset function from the original module *before* any mocking.
+import { _resetProviderInstances } from '../../../ai/providers.js';
+
+// 2. This is the mock function we will control and inspect.
 const mockCreateOpenAI = mock(() => mock(() => 'mock-model-instance'));
 
-// We tell bun.test to replace the real module with our mock.
+// 3. We tell bun.test to replace the dependency with our mock.
 mock.module('@ai-sdk/openai', () => ({
   createOpenAI: mockCreateOpenAI,
 }));
 
-// Now, when we import from providers, it will see the mocked version of createOpenAI.
-// We also need to reset the internal state of the provider instances between tests.
-const { getModelForTier, _resetProviderInstances } = await import('../../../ai/providers.js');
+// 4. Declare the function we will be testing. It will be assigned in beforeEach.
+let getModelForTier;
 
 describe('AI Provider Logic', () => {
-  beforeEach(() => {
-    // Clear any previous mock calls and reset the provider cache.
+  beforeEach(async () => {
+    // Dynamically import the module here to get a fresh version for each test.
+    // This is a robust pattern to avoid test pollution.
+    const providersModule = await import('../../../ai/providers.js');
+    getModelForTier = providersModule.getModelForTier;
+
+    // Clear any previous mock calls and reset the provider cache using the real function.
     mockCreateOpenAI.mockClear();
     _resetProviderInstances();
+
     // Reset environment variables
     delete process.env.OPENAI_API_KEY;
     delete process.env.OPENROUTER_API_KEY;
@@ -42,7 +50,6 @@ describe('AI Provider Logic', () => {
     // 3. Assert
     expect(mockCreateOpenAI).toHaveBeenCalledTimes(1);
     const options = mockCreateOpenAI.mock.calls[0][0];
-    // CORRECTED: The 'openai' provider does not use the 'compatibility' flag in our setup.
     expect(options).toEqual({
       apiKey: 'test-key',
     });
@@ -105,6 +112,6 @@ describe('AI Provider Logic', () => {
 });
 
 afterAll(() => {
-  // Restore the original module after all tests in this file are done
+  // Restore the original module after all tests in this file are done to prevent pollution
   mock.restore();
 });
