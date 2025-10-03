@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { upgradeWebSocket } from 'hono/bun';
+import { cors } from 'hono/cors';
 import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
@@ -17,6 +18,7 @@ export class Engine {
             throw new Error("Engine requires a stateManager instance on construction.");
         }
         this.app = new Hono();
+        this.app.use('*', cors());
         this.projectRoot = options.projectRoot || process.cwd();
         this.stateManager = options.stateManager;
         this.clients = new Set();
