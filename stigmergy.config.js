@@ -1,6 +1,15 @@
 import path from "path";
 import "./utils/env_loader.js";  // Load environment with inheritance
 
+// Helper to determine API key and base URL from a provider environment variable
+function getProviderDetails(providerEnvVar) {
+  const provider = process.env[providerEnvVar] || "openrouter";
+  return {
+    api_key_env: provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY",
+    base_url_env: provider === "google" ? null : "OPENROUTER_BASE_URL",
+  };
+}
+
 const config = {
   corePath: ".stigmergy-core",
   security: {
@@ -49,14 +58,7 @@ const config = {
     reasoning_tier: { 
       provider: process.env.REASONING_PROVIDER || "openrouter", // 'google' or 'openrouter'
       model_name: process.env.REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",
-      api_key_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("REASONING_PROVIDER"),
       capabilities: ["reasoning", "planning", "analysis"],
       use_cases: ["complex_planning", "architectural_decisions", "problem_solving"]
     },
@@ -73,14 +75,7 @@ const config = {
     strategic_tier: { 
       provider: process.env.STRATEGIC_PROVIDER || "openrouter",
       model_name: process.env.STRATEGIC_MODEL || "deepseek/deepseek-chat-v3.1:free",
-      api_key_env: function() {
-        const provider = process.env.STRATEGIC_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.STRATEGIC_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("STRATEGIC_PROVIDER"),
       capabilities: ["reasoning", "strategic_thinking"],
       use_cases: ["business_planning", "technical_architecture", "research"]
     },
@@ -89,14 +84,7 @@ const config = {
     execution_tier: { 
       provider: process.env.EXECUTION_PROVIDER || "openrouter",
       model_name: process.env.EXECUTION_MODEL || "deepseek/deepseek-chat-v3.1:free",
-      api_key_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("EXECUTION_PROVIDER"),
       capabilities: ["fast_execution", "code_generation"],
       use_cases: ["code_implementation", "documentation", "testing"]
     },
@@ -104,14 +92,7 @@ const config = {
     utility_tier: { 
       provider: process.env.UTILITY_PROVIDER || "openrouter",
       model_name: process.env.UTILITY_MODEL || "deepseek/deepseek-chat-v3.1:free",
-      api_key_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("UTILITY_PROVIDER"),
       capabilities: ["lightweight", "quick_tasks"],
       use_cases: ["simple_tasks", "validation", "formatting"]
     },
@@ -202,40 +183,19 @@ const config = {
     // LEGACY TIERS (for backward compatibility - will be deprecated)
     s_tier: { 
       provider: process.env.REASONING_PROVIDER || "openrouter",
-      api_key_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.REASONING_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("REASONING_PROVIDER"),
       model_name: process.env.REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",
     },
     
     a_tier: { 
       provider: process.env.EXECUTION_PROVIDER || "openrouter",
-      api_key_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.EXECUTION_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("EXECUTION_PROVIDER"),
       model_name: process.env.EXECUTION_MODEL || "deepseek/deepseek-chat-v3.1:free",
     },
     
     b_tier: { 
       provider: process.env.UTILITY_PROVIDER || "openrouter",
-      api_key_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "openrouter";
-        return provider === "google" ? "GOOGLE_API_KEY" : "OPENROUTER_API_KEY";
-      }(),
-      base_url_env: function() {
-        const provider = process.env.UTILITY_PROVIDER || "openrouter";
-        return provider === "google" ? null : "OPENROUTER_BASE_URL";
-      }(),
+      ...getProviderDetails("UTILITY_PROVIDER"),
       model_name: process.env.UTILITY_MODEL || "deepseek/deepseek-chat-v3.1:free",
     }
   },
