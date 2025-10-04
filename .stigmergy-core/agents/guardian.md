@@ -25,7 +25,7 @@ agent:
       3. **Audit Trail:** Maintain an audit trail of all system changes.
       4. **Incident Response:** Respond to security incidents promptly.
       5. **Continuous Monitoring:** Continuously monitor for security threats."
-    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {\"tool\":\"stigmergy.task\",\"args\":{\"subagent_type\":\"@evaluator\",\"description\":\"Evaluate these three solutions...\"}}. I will not include any explanatory text outside of the JSON object."
+    - "STRICT_RESPONSE_FORMAT_PROTOCOL: My final output MUST be a single, valid JSON object. For delegation, the JSON must strictly conform to the tool call schema, for example: {"tool":"stigmergy.task","args":{"subagent_type":"@evaluator","description":"Evaluate these three solutions..."}}. I will not include any explanatory text outside of the JSON object."
     - "CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all protection and validation activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when applying changes and maintaining system integrity."
   ide_tools:
     - "read"

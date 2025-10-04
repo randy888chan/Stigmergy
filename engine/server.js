@@ -133,7 +133,13 @@ export class Engine {
     async initiateAutonomousSwarm(state) {
         console.log(chalk.cyan('[Engine] Autonomous swarm initiated.'));
         // The CORRECT first step is to trigger the PLANNER, not the dispatcher.
-        const initialPrompt = `A new project goal has been set. Please create the initial \`plan.md\` file to achieve it. The goal is: "${state.goal}"`;
+        const extractFilePaths = (text) => {
+            const filePathRegex = /([\w\/-]+\.[\w]+)/g;
+            const matches = text.match(filePathRegex);
+            return matches || [];
+        };
+        const filePaths = extractFilePaths(state.goal);
+        const initialPrompt = `A new project goal has been set. Please create the initial \`plan.md\` file to achieve it. The goal is: "${state.goal}". The relevant file is: ${filePaths.join(', ')}`;
         await this.triggerAgent('@specifier', initialPrompt);
     }
 
