@@ -1,56 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { FiFolder, FiFile, FiChevronRight, FiChevronDown } from 'react-icons/fi';
 import './CodeBrowser.css';
 
-const CodeBrowser = ({ state }) => {
-  const [fileStructure, setFileStructure] = useState([]);
+const CodeBrowser = ({ fileStructure = [] }) => {
   const [expandedFolders, setExpandedFolders] = useState({});
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState('');
-
-  // Mock file structure - in a real implementation, this would come from an API
-  useEffect(() => {
-    const mockFileStructure = [
-      {
-        name: 'src',
-        type: 'folder',
-        children: [
-          {
-            name: 'components',
-            type: 'folder',
-            children: [
-              { name: 'Header.js', type: 'file' },
-              { name: 'Footer.js', type: 'file' },
-              { name: 'Sidebar.js', type: 'file' }
-            ]
-          },
-          {
-            name: 'pages',
-            type: 'folder',
-            children: [
-              { name: 'Home.js', type: 'file' },
-              { name: 'About.js', type: 'file' },
-              { name: 'Contact.js', type: 'file' }
-            ]
-          },
-          { name: 'App.js', type: 'file' },
-          { name: 'index.js', type: 'file' }
-        ]
-      },
-      {
-        name: 'public',
-        type: 'folder',
-        children: [
-          { name: 'index.html', type: 'file' },
-          { name: 'favicon.ico', type: 'file' }
-        ]
-      },
-      { name: 'package.json', type: 'file' },
-      { name: 'README.md', type: 'file' }
-    ];
-    
-    setFileStructure(mockFileStructure);
-  }, []);
 
   const toggleFolder = (path) => {
     setExpandedFolders(prev => ({
@@ -59,10 +14,10 @@ const CodeBrowser = ({ state }) => {
     }));
   };
 
-  const handleFileSelect = (filePath) => {
-    setSelectedFile(filePath);
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
     // In a real implementation, this would fetch the file content from an API
-    setFileContent(`// Content of ${filePath}\n\n// This is a mock file content.\n// In a real implementation, this would show the actual file content.`);
+    setFileContent(`// Content for ${file.name} would be displayed here.`);
   };
 
   const renderFileTree = (items, basePath = '') => {

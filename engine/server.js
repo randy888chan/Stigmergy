@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { upgradeWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
 import chalk from 'chalk';
@@ -7,7 +8,6 @@ import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from '../ai/providers.js';
 import config from '../stigmergy.config.js';
-import { createDashboardApp } from './dashboard.js';
 import { streamText } from 'ai';
 import path from 'path';
 import fs from 'fs-extra';
@@ -40,13 +40,48 @@ export class Engine {
         this.setupRoutes();
         this.setupStateListener();
 
-        // Mount the dashboard app as the final step.
-        const dashboard = createDashboardApp(this.projectRoot);
-        this.app.route('/', dashboard);
+        // --- Serve Static Dashboard Files ---
+        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
+        const indexPath = path.join(publicPath, 'index.html');
+
+        // This middleware serves files from the public directory.
+        this.app.use('/*', serveStatic({ root: publicPath }));
+
+        // Fallback route for the SPA: serve index.html for any request that wasn't a file.
+        this.app.get('*', async (c) => {
+            try {
+                const indexHtml = await fs.readFile(indexPath, 'utf-8');
+                return c.html(indexHtml);
+            } catch (error) {
+                console.error('Failed to read index.html:', error);
+                return c.text('Application not found. Please run `bun run build:dashboard`.', 404);
+            }
+        });
+    }
+
+    async setActiveProject(projectPath) {
+        console.log(chalk.blue(`[Engine] Setting active project to: ${projectPath}`));
+        if (!projectPath || typeof projectPath !== 'string') {
+            console.error(chalk.red('[Engine] Invalid project path provided.'));
+            return;
+        }
+
+        this.projectRoot = projectPath;
+
+        // Re-initialize the GraphStateManager with the new project root
+        if (this.stateManager) {
+             this.stateManager.off('stateChanged');
+             this.stateManager.off('triggerAgent');
+        }
+        this.stateManager = new GraphStateManager(this.projectRoot);
+        this.setupStateListener();
+
+        console.log(chalk.green(`[Engine] Project context switched. New root: ${this.projectRoot}`));
+        this.broadcastEvent('project_switched', { path: this.projectRoot });
     }
 
     async executeGoal(prompt) {
-        console.log(chalk.cyan(`[Engine] Received new goal: "${prompt}"`));
+        console.log(chalk.cyan(`[Engine] Received new goal for project ${this.projectRoot}: "${prompt}"`));
         await this.stateManager.initializeProject(prompt);
     }
     
@@ -201,13 +236,40 @@ export class Engine {
 
         // Add the IDE (MCP) Endpoint
         this.app.post('/mcp', async (c) => {
-            const body = await c.req.json();
-            const prompt = body.prompt;
-            console.log(chalk.cyan('[MCP] Received prompt from IDE.'));
+            const { prompt, project_path } = await c.req.json();
+
+            if (!prompt || !project_path) {
+                return c.json({ error: 'Prompt and project_path are required.' }, 400);
+            }
+
+            console.log(chalk.cyan(`[MCP] Received prompt for project: ${project_path}`));
+            await this.setActiveProject(project_path);
 
             return c.streamText(async (stream) => {
-                await this.executeGoal(prompt);
-                stream.write("Received. Kicking off the autonomous swarm...");
+                // Subscribe this stream to state changes
+                const listener = (event) => {
+                    stream.write(JSON.stringify(event) + '\n');
+                };
+                this.stateManager.on('stateChanged', listener);
+
+                stream.onAbort(() => {
+                    console.log(chalk.yellow('[MCP] Stream aborted by client.'));
+                    this.stateManager.off('stateChanged', listener);
+                });
+
+                try {
+                    stream.write(JSON.stringify({ type: 'status', payload: { message: 'Processing goal...' }}) + '\n');
+                    await this.executeGoal(prompt);
+                    // The rest of the updates will come from the stateChanged listener
+                } catch (error) {
+                    console.error(chalk.red('[MCP] Error executing goal:'), error);
+                    stream.write(JSON.stringify({ type: 'error', payload: { message: error.message }}) + '\n');
+                } finally {
+                    // Keep the stream open for a short period to ensure final messages are sent
+                    setTimeout(() => {
+                         this.stateManager.off('stateChanged', listener);
+                    }, 5000);
+                }
             });
         });
 
@@ -223,6 +285,8 @@ export class Engine {
                         const data = JSON.parse(evt.data);
                         if (data.type === 'user_chat_message') {
                             await this.executeGoal(data.payload.prompt);
+                        } else if (data.type === 'set_project') {
+                            await this.setActiveProject(data.payload.path);
                         }
                     } catch (error) {
                          console.error(chalk.red('[WebSocket] Error processing message:'), error);

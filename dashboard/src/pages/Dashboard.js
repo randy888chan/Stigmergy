@@ -15,47 +15,52 @@ const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const CostMonitor = lazy(() => import('../components/CostMonitor.js'));
 const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 
+const INITIAL_STATE = {
+  logs: [],
+  agentActivity: [],
+  tasks: [],
+  goalSteps: [],
+  project_status: 'Idle',
+  project_manifest: null,
+  project_path: '',
+  goal: '',
+  file_structure: [],
+};
 
 const Dashboard = () => {
-  // CORRECTED: Hardcode the port to 3010, removing the 'process.env.PORT' reference.
   const { data, sendMessage } = useWebSocket('ws://localhost:3010');
-
-  // Centralized state management
-  const [logs, setLogs] = useState([]);
-  const [agentActivity, setAgentActivity] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  const [goalSteps, setGoalSteps] = useState([]);
-  const [engineStatus, setEngineStatus] = useState('Idle');
-  const [systemState, setSystemState] = useState(null);
+  const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [projectPathInput, setProjectPathInput] = useState('');
 
   useEffect(() => {
     if (data) {
       const { type, payload } = data;
+      console.log("WS Message:", type, payload);
       switch (type) {
-        case 'log':
-          setLogs(prevLogs => [...prevLogs.slice(-50), payload]);
-          break;
-        case 'agent_start':
-        case 'tool_start':
-        case 'tool_end':
-          setAgentActivity(prev => [...prev.slice(-50), { type, ...payload }]);
-          break;
-        case 'executeGoal_step':
-          setGoalSteps([payload]);
-          break;
         case 'state_update':
-          setSystemState(payload);
-          setTasks(payload.project_manifest?.tasks || []);
-          setEngineStatus(payload.project_status || 'Idle');
+          setSystemState(prevState => ({ ...prevState, ...payload }));
           break;
-        case 'status':
-          setEngineStatus(payload.message);
+        case 'project_switched':
+          setSystemState({ ...INITIAL_STATE, project_path: payload.path, project_status: 'Project Set' });
           break;
         default:
+          // For legacy events, we can handle them individually for now
+          setSystemState(prevState => {
+             const newState = {...prevState};
+             if (type === 'log') newState.logs = [...prevState.logs.slice(-50), payload];
+             if (['agent_start', 'tool_start', 'tool_end'].includes(type)) newState.agentActivity = [...prevState.agentActivity.slice(-50), { type, ...payload }];
+             return newState;
+          });
           break;
       }
     }
   }, [data]);
+
+  const handleSetProject = () => {
+    if (projectPathInput) {
+      sendMessage({ type: 'set_project', payload: { path: projectPathInput } });
+    }
+  };
 
   const renderCard = (Component, props = {}) => (
     <div className="dashboard-card">
@@ -69,8 +74,18 @@ const Dashboard = () => {
     <div className="dashboard">
       <header className="dashboard-header">
         <h1>Stigmergy Command & Control</h1>
+        <div className="project-selector">
+          <input
+            type="text"
+            placeholder="Enter project path..."
+            value={projectPathInput}
+            onChange={(e) => setProjectPathInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSetProject()}
+          />
+          <button onClick={handleSetProject}>Set Project</button>
+        </div>
         <div className="user-info">
-          <span>Status: {engineStatus}</span>
+          <span>Status: {systemState.project_status || 'Idle'}</span>
           <button onClick={() => sendMessage({ type: 'user_command', payload: 'logout' })} className="logout-button">Logout</button>
         </div>
       </header>
@@ -78,22 +93,22 @@ const Dashboard = () => {
       <main className="dashboard-content">
         <div className="dashboard-grid interactive-grid">
           <div className="dashboard-card wide-card">
-            <ControlPanel sendMessage={sendMessage} engineStatus={engineStatus} />
+            <ControlPanel sendMessage={sendMessage} engineStatus={systemState.project_status} />
           </div>
           <div className="dashboard-card wide-card">
-            <GoalVisualizer goalSteps={goalSteps} />
+            <GoalVisualizer goalSteps={systemState.goalSteps} />
           </div>
           <div className="dashboard-card tall-card">
-            <ActivityLog logs={logs} agentActivity={agentActivity} />
+            <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
           </div>
           <div className="dashboard-card tall-card">
-            {renderCard(TaskManagement, { tasks, sendMessage })}
+            {renderCard(TaskManagement, { tasks: systemState.tasks, sendMessage })}
           </div>
 
           {renderCard(StateManagement, { state: systemState })}
           <div className="dashboard-card code-browser-card">
             <Suspense fallback={<div>Loading Code Browser...</div>}>
-              <CodeBrowser />
+              <CodeBrowser fileStructure={systemState.file_structure} />
             </Suspense>
           </div>
           {renderCard(CostMonitor)}
