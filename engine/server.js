@@ -11,6 +11,7 @@ import yaml from 'js-yaml';
 import { streamText } from 'ai';
 import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
+import { createDashboardApp } from './dashboard.js';
 
 // This is the definitive mock AI logic that correctly simulates the agent swarm workflow.
 const mockStreamTextForRefactor = async ({ messages }) => {
@@ -80,10 +81,27 @@ export class Engine {
         if (!options.stateManager) {
             throw new Error("Engine requires a stateManager instance on construction.");
         }
+        this.stateManager = options.stateManager;
+        this.projectRoot = options.projectRoot || process.cwd();
+
         this.app = new Hono();
         this.app.use('*', cors());
-        this.projectRoot = options.projectRoot || process.cwd();
-        this.stateManager = options.stateManager;
+
+        // --- THIS IS THE CRITICAL FIX ---
+        // Create the dashboard app
+        const dashboard = createDashboardApp(this.projectRoot);
+
+        // Use a middleware to make the stateManager available to the dashboard's API routes
+        this.app.use('*', (c, next) => {
+            c.set('stateManager', this.stateManager);
+            return next();
+        });
+
+        // Mount the dashboard app on the root path.
+        // All requests (/, /api/state, etc.) will now be handled by our dashboard logic.
+        this.app.route('/', dashboard);
+        // --- END OF CRITICAL FIX ---
+
         this.clients = new Set();
         this.server = null;
         this._test_streamText = options._test_streamText; // For dependency injection in tests
@@ -258,34 +276,53 @@ export class Engine {
     }
 
     setupRoutes() {
-        this.app.get(
-            '/ws',
-            upgradeWebSocket((c) => {
-                return {
-                    onOpen: (evt, ws) => {
-                        console.log(chalk.blue('[WebSocket] Client connected'));
-                        this.clients.add(ws);
-                    },
-                    onMessage: async (evt, ws) => {
-                        try {
-                            const data = JSON.parse(evt.data);
-                            if (data.type === 'user_chat_message') {
-                                await this.executeGoal(data.payload.prompt);
-                            }
-                        } catch (error) {
-                            console.error(chalk.red('[WebSocket] Error processing message:'), error);
+        const engineInstance = this;
+
+        // --- ADD THIS NEW BLOCK ---
+        // This is the new HTTP endpoint for IDEs like continue.dev
+        this.app.post('/mcp', async (c) => {
+            const body = await c.req.json();
+            const prompt = body.prompt; // The prompt from the IDE
+
+            console.log(chalk.cyan('[MCP] Received prompt from IDE.'));
+
+            // This tells Hono to stream the response back to the IDE
+            return c.streamText(async (stream) => {
+                // For now, we will just acknowledge the request.
+                // In a real implementation, you would call executeGoal here and
+                // stream back the agent's thoughts and actions.
+                await engineInstance.executeGoal(prompt);
+                stream.write("Received. Kicking off the autonomous swarm...");
+            });
+        });
+        // --- END OF NEW BLOCK ---
+
+        this.app.get('/ws', upgradeWebSocket((c) => {
+            // ... your existing WebSocket code ...
+            return {
+                onOpen: (evt, ws) => {
+                    console.log(chalk.blue('[WebSocket] Client connected'));
+                    this.clients.add(ws);
+                },
+                onMessage: async (evt, ws) => {
+                    try {
+                        const data = JSON.parse(evt.data);
+                        if (data.type === 'user_chat_message') {
+                            await this.executeGoal(data.payload.prompt);
                         }
-                    },
-                    onClose: (evt, ws) => {
-                        console.log(chalk.blue('[WebSocket] Client disconnected'));
-                        this.clients.delete(ws);
-                    },
-                    onError: (err) => {
-                        console.error(chalk.red('[WebSocket] Error:'), err);
-                    },
-                };
-            })
-        );
+                    } catch (error) {
+                        console.error(chalk.red('[WebSocket] Error processing message:'), error);
+                    }
+                },
+                onClose: (evt, ws) => {
+                    console.log(chalk.blue('[WebSocket] Client disconnected'));
+                    this.clients.delete(ws);
+                },
+                onError: (err) => {
+                    console.error(chalk.red('[WebSocket] Error:'), err);
+                },
+            };
+        }));
 
         this.app.get('/', (c) => c.text('Stigmergy Engine is running!'));
     }

@@ -1,39 +1,38 @@
-import express from "express";
-import * as stateManager from "./state_manager.js";
-import path from "path";
-import AgentPerformance from './agent_performance.js';
-import { getCostTracking } from './llm_adapter.js';
+import { Hono } from 'hono';
+import { serveStatic } from '@hono/node-server/serve-static';
+import { readFile } from 'fs/promises'
+import path from 'path';
 
-// The __dirname and fileURLToPath combination caused issues in Jest's ESM environment.
-// Using process.cwd() is a more robust way to get the project root.
-const publicPath = path.join(process.cwd(), 'dashboard', 'public');
-const router = express.Router();
+export function createDashboardApp(projectRoot = process.cwd()) {
+  const dashboardApp = new Hono();
+  const publicPath = path.join(projectRoot, 'dashboard', 'public');
 
-router.get("/state", async (req, res) => {
-  try {
-    const state = await stateManager.getState();
-    const performance = await AgentPerformance.getPerformanceInsights();
-    res.json({ ...state, performance });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+  // 1. API routes come first
+  dashboardApp.get('/api/state', async (c) => {
+    const stateManager = c.get('stateManager');
+    if (stateManager) {
+      const state = await stateManager.getState();
+      return c.json(state);
+    }
+    return c.json({ error: 'StateManager not available' });
+  });
 
-router.get("/cost", (req, res) => {
-  try {
-    const costData = getCostTracking();
-    res.json(costData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+  // 2. Serve static assets from the root
+  dashboardApp.use('/*', serveStatic({ root: publicPath }));
 
-// Serve React app for all routes except /state
-router.use(express.static(publicPath));
+  // 3. SPA fallback using notFound
+  // This is the most robust way to handle SPAs in Hono.
+  // It ensures that any request that doesn't match a static file falls back to index.html.
+  dashboardApp.notFound(async (c) => {
+    try {
+      const indexHtmlPath = path.join(publicPath, 'index.html');
+      const content = await readFile(indexHtmlPath, 'utf-8');
+      return c.html(content, 200);
+    } catch (error) {
+      console.error(`[Dashboard] Could not serve index.html: ${error.message}`);
+      return c.text('Not Found', 404);
+    }
+  });
 
-// Serve the React app for the root route
-router.get('/', (req, res) => {
-  res.sendFile(path.join(publicPath, 'index.html'));
-});
-
-export default router;
+  return dashboardApp;
+}
