@@ -24467,64 +24467,19 @@ var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react10, jsx_dev_runtime7, CodeBrowser = ({ state }) => {
-  const [fileStructure, setFileStructure] = import_react10.useState([]);
+var import_react10, jsx_dev_runtime7, CodeBrowser = ({ fileStructure = [] }) => {
   const [expandedFolders, setExpandedFolders] = import_react10.useState({});
   const [selectedFile, setSelectedFile] = import_react10.useState(null);
   const [fileContent, setFileContent] = import_react10.useState("");
-  import_react10.useEffect(() => {
-    const mockFileStructure = [
-      {
-        name: "src",
-        type: "folder",
-        children: [
-          {
-            name: "components",
-            type: "folder",
-            children: [
-              { name: "Header.js", type: "file" },
-              { name: "Footer.js", type: "file" },
-              { name: "Sidebar.js", type: "file" }
-            ]
-          },
-          {
-            name: "pages",
-            type: "folder",
-            children: [
-              { name: "Home.js", type: "file" },
-              { name: "About.js", type: "file" },
-              { name: "Contact.js", type: "file" }
-            ]
-          },
-          { name: "App.js", type: "file" },
-          { name: "index.js", type: "file" }
-        ]
-      },
-      {
-        name: "public",
-        type: "folder",
-        children: [
-          { name: "index.html", type: "file" },
-          { name: "favicon.ico", type: "file" }
-        ]
-      },
-      { name: "package.json", type: "file" },
-      { name: "README.md", type: "file" }
-    ];
-    setFileStructure(mockFileStructure);
-  }, []);
   const toggleFolder = (path) => {
     setExpandedFolders((prev) => ({
       ...prev,
       [path]: !prev[path]
     }));
   };
-  const handleFileSelect = (filePath) => {
-    setSelectedFile(filePath);
-    setFileContent(`// Content of ${filePath}
-
-// This is a mock file content.
-// In a real implementation, this would show the actual file content.`);
+  const handleFileSelect = (file) => {
+    setSelectedFile(file);
+    setFileContent(`// Content for ${file.name} would be displayed here.`);
   };
   const renderFileTree = (items, basePath = "") => {
     return items.map((item, index) => {
@@ -27211,7 +27166,7 @@ var require_use_sync_external_store_shim_development = __commonJS((exports) => {
         inst.getSnapshot = getSnapshot;
         checkIfSnapshotChanged(inst) && forceUpdate({ inst });
       }, [subscribe, value, getSnapshot]);
-      useEffect6(function() {
+      useEffect5(function() {
         checkIfSnapshotChanged(inst) && forceUpdate({ inst });
         return subscribe(function() {
           checkIfSnapshotChanged(inst) && forceUpdate({ inst });
@@ -27234,7 +27189,7 @@ var require_use_sync_external_store_shim_development = __commonJS((exports) => {
       return getSnapshot();
     }
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function" && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-    var objectIs = typeof Object.is === "function" ? Object.is : is, useState8 = React12.useState, useEffect6 = React12.useEffect, useLayoutEffect2 = React12.useLayoutEffect, useDebugValue2 = React12.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = typeof window === "undefined" || typeof window.document === "undefined" || typeof window.document.createElement === "undefined" ? useSyncExternalStore$1 : useSyncExternalStore$2;
+    var objectIs = typeof Object.is === "function" ? Object.is : is, useState8 = React12.useState, useEffect5 = React12.useEffect, useLayoutEffect2 = React12.useLayoutEffect, useDebugValue2 = React12.useDebugValue, didWarnOld18Alpha = false, didWarnUncachedGetSnapshot = false, shim = typeof window === "undefined" || typeof window.document === "undefined" || typeof window.document.createElement === "undefined" ? useSyncExternalStore$1 : useSyncExternalStore$2;
     exports.useSyncExternalStore = React12.useSyncExternalStore !== undefined ? React12.useSyncExternalStore : shim;
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop === "function" && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
   })();
@@ -27255,7 +27210,7 @@ var require_with_selector_development = __commonJS((exports) => {
       return x2 === y2 && (x2 !== 0 || 1 / x2 === 1 / y2) || x2 !== x2 && y2 !== y2;
     }
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function" && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-    var shim = require_shim(), objectIs = typeof Object.is === "function" ? Object.is : is, useSyncExternalStore = shim.useSyncExternalStore, useRef3 = React12.useRef, useEffect6 = React12.useEffect, useMemo2 = React12.useMemo, useDebugValue2 = React12.useDebugValue;
+    var shim = require_shim(), objectIs = typeof Object.is === "function" ? Object.is : is, useSyncExternalStore = shim.useSyncExternalStore, useRef3 = React12.useRef, useEffect5 = React12.useEffect, useMemo2 = React12.useMemo, useDebugValue2 = React12.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
       var instRef = useRef3(null);
       if (instRef.current === null) {
@@ -27296,7 +27251,7 @@ var require_with_selector_development = __commonJS((exports) => {
         ];
       }, [getSnapshot, getServerSnapshot, selector, isEqual]);
       var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-      useEffect6(function() {
+      useEffect5(function() {
         inst.hasValue = true;
         inst.value = value;
       }, [value]);
@@ -45480,7 +45435,7 @@ var require_use_sync_external_store_with_selector_development = __commonJS((expo
       return x2 === y2 && (x2 !== 0 || 1 / x2 === 1 / y2) || x2 !== x2 && y2 !== y2;
     }
     typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ !== "undefined" && typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart === "function" && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-    var objectIs = typeof Object.is === "function" ? Object.is : is2, useSyncExternalStore2 = React37.useSyncExternalStore, useRef12 = React37.useRef, useEffect19 = React37.useEffect, useMemo8 = React37.useMemo, useDebugValue2 = React37.useDebugValue;
+    var objectIs = typeof Object.is === "function" ? Object.is : is2, useSyncExternalStore2 = React37.useSyncExternalStore, useRef12 = React37.useRef, useEffect18 = React37.useEffect, useMemo8 = React37.useMemo, useDebugValue2 = React37.useDebugValue;
     exports.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
       var instRef = useRef12(null);
       if (instRef.current === null) {
@@ -45521,7 +45476,7 @@ var require_use_sync_external_store_with_selector_development = __commonJS((expo
         ];
       }, [getSnapshot, getServerSnapshot, selector, isEqual]);
       var value = useSyncExternalStore2(subscribe, instRef[0], instRef[1]);
-      useEffect19(function() {
+      useEffect18(function() {
         inst.hasValue = true;
         inst.value = value;
       }, [value]);
@@ -47380,42 +47335,50 @@ var TaskManagement2 = import_react57.lazy(() => Promise.resolve().then(() => (in
 var CodeBrowser2 = import_react57.lazy(() => Promise.resolve().then(() => (init_CodeBrowser2(), exports_CodeBrowser)));
 var CostMonitor2 = import_react57.lazy(() => Promise.resolve().then(() => (init_CostMonitor2(), exports_CostMonitor)));
 var DocumentUploader2 = import_react57.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
+var INITIAL_STATE = {
+  logs: [],
+  agentActivity: [],
+  tasks: [],
+  goalSteps: [],
+  project_status: "Idle",
+  project_manifest: null,
+  project_path: "",
+  goal: "",
+  file_structure: []
+};
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010");
-  const [logs, setLogs] = import_react57.useState([]);
-  const [agentActivity, setAgentActivity] = import_react57.useState([]);
-  const [tasks, setTasks] = import_react57.useState([]);
-  const [goalSteps, setGoalSteps] = import_react57.useState([]);
-  const [engineStatus, setEngineStatus] = import_react57.useState("Idle");
-  const [systemState, setSystemState] = import_react57.useState(null);
+  const [systemState, setSystemState] = import_react57.useState(INITIAL_STATE);
+  const [projectPathInput, setProjectPathInput] = import_react57.useState("");
   import_react57.useEffect(() => {
     if (data) {
       const { type, payload } = data;
+      console.log("WS Message:", type, payload);
       switch (type) {
-        case "log":
-          setLogs((prevLogs) => [...prevLogs.slice(-50), payload]);
-          break;
-        case "agent_start":
-        case "tool_start":
-        case "tool_end":
-          setAgentActivity((prev) => [...prev.slice(-50), { type, ...payload }]);
-          break;
-        case "executeGoal_step":
-          setGoalSteps([payload]);
-          break;
         case "state_update":
-          setSystemState(payload);
-          setTasks(payload.project_manifest?.tasks || []);
-          setEngineStatus(payload.project_status || "Idle");
+          setSystemState((prevState) => ({ ...prevState, ...payload }));
           break;
-        case "status":
-          setEngineStatus(payload.message);
+        case "project_switched":
+          setSystemState({ ...INITIAL_STATE, project_path: payload.path, project_status: "Project Set" });
           break;
         default:
+          setSystemState((prevState) => {
+            const newState = { ...prevState };
+            if (type === "log")
+              newState.logs = [...prevState.logs.slice(-50), payload];
+            if (["agent_start", "tool_start", "tool_end"].includes(type))
+              newState.agentActivity = [...prevState.agentActivity.slice(-50), { type, ...payload }];
+            return newState;
+          });
           break;
       }
     }
   }, [data]);
+  const handleSetProject = () => {
+    if (projectPathInput) {
+      sendMessage({ type: "set_project", payload: { path: projectPathInput } });
+    }
+  };
   const renderCard = (Component2, props = {}) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
     className: "dashboard-card",
     children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(import_react57.Suspense, {
@@ -47437,12 +47400,28 @@ var Dashboard = () => {
             children: "Stigmergy Command & Control"
           }, undefined, false, undefined, this),
           /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+            className: "project-selector",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("input", {
+                type: "text",
+                placeholder: "Enter project path...",
+                value: projectPathInput,
+                onChange: (e) => setProjectPathInput(e.target.value),
+                onKeyDown: (e) => e.key === "Enter" && handleSetProject()
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("button", {
+                onClick: handleSetProject,
+                children: "Set Project"
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
             className: "user-info",
             children: [
               /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("span", {
                 children: [
                   "Status: ",
-                  engineStatus
+                  systemState.project_status || "Idle"
                 ]
               }, undefined, true, undefined, this),
               /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("button", {
@@ -47463,25 +47442,25 @@ var Dashboard = () => {
               className: "dashboard-card wide-card",
               children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ControlPanel_default, {
                 sendMessage,
-                engineStatus
+                engineStatus: systemState.project_status
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this),
             /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
               className: "dashboard-card wide-card",
               children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(GoalVisualizer_default, {
-                goalSteps
+                goalSteps: systemState.goalSteps
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this),
             /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
               className: "dashboard-card tall-card",
               children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ActivityLog_default, {
-                logs,
-                agentActivity
+                logs: systemState.logs,
+                agentActivity: systemState.agentActivity
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this),
             /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
               className: "dashboard-card tall-card",
-              children: renderCard(TaskManagement2, { tasks, sendMessage })
+              children: renderCard(TaskManagement2, { tasks: systemState.tasks, sendMessage })
             }, undefined, false, undefined, this),
             renderCard(StateManagement2, { state: systemState }),
             /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
@@ -47490,7 +47469,9 @@ var Dashboard = () => {
                 fallback: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
                   children: "Loading Code Browser..."
                 }, undefined, false, undefined, this),
-                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(CodeBrowser2, {}, undefined, false, undefined, this)
+                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(CodeBrowser2, {
+                  fileStructure: systemState.file_structure
+                }, undefined, false, undefined, this)
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this),
             renderCard(CostMonitor2),
