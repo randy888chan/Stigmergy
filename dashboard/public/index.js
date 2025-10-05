@@ -24010,14 +24010,14 @@ var import_react5 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
-var useWebSocket = () => {
+var useWebSocket = (url) => {
   const [data, setData] = import_react.useState(null);
   const [error, setError] = import_react.useState(null);
   const [loading, setLoading] = import_react.useState(true);
   const ws = import_react.useRef(null);
   import_react.useEffect(() => {
-    const url = process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3010";
-    ws.current = new WebSocket(url);
+    const wsUrl = url || process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3010/ws";
+    ws.current = new WebSocket(wsUrl);
     ws.current.onopen = () => {
       console.log(`WebSocket connection opened to ${url}`);
       setLoading(false);

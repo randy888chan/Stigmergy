@@ -117,15 +117,15 @@ Integrate Stigmergy directly into your VS Code workflow using the `continue.dev`
 
     ```json
     {
-      "models": [
-        {
-          "title": "Stigmergy",
-          "provider": "custom",
-          "model": "stigmergy-mcp",
-          "apiKey": "EMPTY",
-          "apiBase": "http://localhost:3010/mcp"
-        }
-      ]
+        "models": [
+            {
+                "title": "Stigmergy",
+                "provider": "openai-compatible",
+                "model": "stigmergy-mcp",
+                "apiKey": "EMPTY",
+                "apiBase": "http://localhost:3010/mcp"
+            }
+        ]
     }
     ```
     *   `apiBase`: This must point to the `/mcp` (Master Control Protocol) endpoint of your running Stigmergy engine.
