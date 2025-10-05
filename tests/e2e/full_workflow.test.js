@@ -5,7 +5,8 @@ import fs from 'fs-extra';
 import WebSocket from 'ws';
 
 const E2E_TIMEOUT = 30000;
-const PORT = 3019; // Use a different port to avoid conflicts
+// Use a random port in the ephemeral range to avoid EADDRINUSE errors in CI
+const PORT = Math.floor(Math.random() * (65535 - 49152) + 49152);
 const serverUrl = `ws://localhost:${PORT}/ws`;
 const healthCheckUrl = `http://localhost:${PORT}/`;
 const originalCwd = process.cwd();

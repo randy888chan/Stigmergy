@@ -8,7 +8,7 @@ import { Volume } from 'memfs';
 const vol = new Volume();
 const memfs = require('memfs').createFsFromVolume(vol);
 
-const mockFs = {
+const mockFsExtra = {
   ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
   copy: memfs.promises.copyFile,
   remove: (p) => memfs.promises.rm(p, { recursive: true, force: true }),
@@ -31,10 +31,13 @@ const mockFs = {
   },
   promises: memfs.promises
 };
-mockFs.default = mockFs;
+mockFsExtra.default = mockFsExtra;
 
-// Mock the fs-extra module FOR THIS TEST FILE
-mock.module('fs-extra', () => mockFs);
+// Mock fs-extra for our direct usage
+mock.module('fs-extra', () => mockFsExtra);
+// ALSO MOCK NATIVE FS for libraries like @hono/node-server/serve-static
+mock.module('fs', () => memfs);
+mock.module('fs/promises', () => memfs.promises);
 
 // Create a mock instance for the StateManager
 const mockStateManagerInstance = {
@@ -58,8 +61,10 @@ beforeEach(async () => {
     const projectRoot = path.join(process.cwd(), 'test-project-research');
     const agentDir = path.join(projectRoot, '.stigmergy-core', 'agents');
     const trajectoryDir = path.join(projectRoot, '.stigmergy', 'trajectories');
-    mockFs.ensureDirSync(agentDir);
-    mockFs.ensureDirSync(trajectoryDir);
+    const dashboardDir = path.join(projectRoot, 'dashboard', 'public');
+    mockFsExtra.ensureDirSync(agentDir);
+    mockFsExtra.ensureDirSync(trajectoryDir);
+    mockFsExtra.ensureDirSync(dashboardDir);
 
     const analystAgentContent = `
 \`\`\`yaml
@@ -68,7 +73,7 @@ agent:
   engine_tools: ["research.*"]
 \`\`\`
 `;
-    mockFs.writeFileSync(path.join(agentDir, 'analyst.md'), analystAgentContent);
+    mockFsExtra.writeFileSync(path.join(agentDir, 'analyst.md'), analystAgentContent);
 
     // Dependency injection for the tool executor
     const testExecutorFactory = (engine, ai, options) => {
