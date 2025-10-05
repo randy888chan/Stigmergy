@@ -5,121 +5,44 @@ import { cors } from 'hono/cors';
 import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
-import fs from 'fs-extra';
-import path from 'path';
-import yaml from 'js-yaml';
-import { streamText } from 'ai';
-import config from '../stigmergy.config.js';
 import { getAiProviders } from '../ai/providers.js';
+import config from '../stigmergy.config.js';
 import { createDashboardApp } from './dashboard.js';
-
-// This is the definitive mock AI logic that correctly simulates the agent swarm workflow.
-const mockStreamTextForRefactor = async ({ messages }) => {
-    const lastMessage = messages[messages.length - 1];
-
-    const getAgentFromSystemPrompt = (msgs) => {
-        const systemMessage = msgs.find(m => m.role === 'system');
-        if (!systemMessage || !systemMessage.content) return null;
-        if (systemMessage.content.includes('I am the Specifier')) return '@specifier';
-        if (systemMessage.content.includes('I am Quinn')) return '@qa';
-        if (systemMessage.content.includes('I am Saul')) return '@dispatcher';
-        return null;
-    };
-
-    const currentAgent = getAgentFromSystemPrompt(messages);
-
-    switch (currentAgent) {
-        case '@specifier':
-            // Specifier's only job is to delegate to QA. After that, it's done.
-            if (lastMessage.role === 'tool' && lastMessage.tool_name === 'stigmergy.task') {
-                return { text: 'Specifier task delegated. Stopping.', finishReason: 'stop' };
-            }
-            return {
-                toolCalls: [{ toolCallId: 'spec-to-qa', toolName: 'stigmergy.task', args: { subagent_type: '@qa', description: 'Please review the plan.' } }],
-                finishReason: 'tool-calls'
-            };
-
-        case '@qa':
-            // QA's only job is to delegate to the Dispatcher. After that, it's done.
-            if (lastMessage.role === 'tool' && lastMessage.tool_name === 'stigmergy.task') {
-                return { text: 'QA task delegated. Stopping.', finishReason: 'stop' };
-            }
-            return {
-                toolCalls: [{ toolCallId: 'qa-to-dispatcher', toolName: 'stigmergy.task', args: { subagent_type: '@dispatcher', description: 'Plan approved. Execute.' } }],
-                finishReason: 'tool-calls'
-            };
-
-        case '@dispatcher':
-            // Dispatcher has a two-step job.
-            const hasWrittenFile = messages.some(m => m.role === 'tool' && m.tool_name === 'file_system.writeFile');
-
-            if (!hasWrittenFile) {
-                // Step 1: Write the file. The loop will continue for the next step.
-                return {
-                    toolCalls: [{ toolCallId: 'dispatch-write', toolName: 'file_system.writeFile', args: { path: 'src/output.js', content: 'Hello World' } }],
-                    finishReason: 'tool-calls'
-                };
-            } else {
-                // Step 2: Update the status. After this, the dispatcher is done.
-                 if (lastMessage.role === 'tool' && lastMessage.tool_name === 'system.updateStatus') {
-                    return { text: 'Dispatcher finished. Stopping.', finishReason: 'stop' };
-                }
-                return {
-                    toolCalls: [{ toolCallId: 'dispatch-complete', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }],
-                    finishReason: 'tool-calls'
-                };
-            }
-
-        default:
-            return { text: 'Unknown agent or final step. Stopping.', finishReason: 'stop' };
-    }
-};
-
+import { streamText } from 'ai';
+import path from 'path';
+import fs from 'fs-extra';
+import yaml from 'js-yaml';
 
 export class Engine {
     constructor(options = {}) {
-        if (!options.stateManager) {
-            throw new Error("Engine requires a stateManager instance on construction.");
-        }
-        this.stateManager = options.stateManager;
         this.projectRoot = options.projectRoot || process.cwd();
+        this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
 
         this.app = new Hono();
         this.app.use('*', cors());
 
-        // --- THIS IS THE CRITICAL FIX ---
-        // Create the dashboard app
-        const dashboard = createDashboardApp(this.projectRoot);
-
-        // Use a middleware to make the stateManager available to the dashboard's API routes
+        // Middleware to make stateManager available to all routes
         this.app.use('*', (c, next) => {
             c.set('stateManager', this.stateManager);
             return next();
         });
 
-        // Mount the dashboard app on the root path.
-        // All requests (/, /api/state, etc.) will now be handled by our dashboard logic.
-        this.app.route('/', dashboard);
-        // --- END OF CRITICAL FIX ---
-
         this.clients = new Set();
         this.server = null;
-        this._test_streamText = options._test_streamText; // For dependency injection in tests
-        this._test_createExecutor = options._test_createExecutor; // For dependency injection in tests
+        this._test_streamText = options._test_streamText;
+        this._test_createExecutor = options._test_createExecutor;
 
-        // Conditionally initialize AI providers only if not in mock mode
-        if (options._test_streamText) {
-            this.ai = null; // In mock mode, no real AI providers are needed.
-            console.log(chalk.yellow('[Engine] Mock AI is active. Skipping real AI provider initialization.'));
-        } else {
-            const aiProviders = getAiProviders(config);
-            this.ai = aiProviders;
+        if (!this._test_streamText) {
+            this.ai = getAiProviders(config);
         }
-        // DEPRECATED: executeTool is now created on-the-fly in triggerAgent
-        // this.executeTool = createExecutor(this, this.ai);
 
+        // ** ROUTING FIX: Define specific routes BEFORE mounting the catch-all dashboard **
         this.setupRoutes();
         this.setupStateListener();
+
+        // Mount the dashboard app as the final step.
+        const dashboard = createDashboardApp(this.projectRoot);
+        this.app.route('/', dashboard);
     }
 
     async executeGoal(prompt) {
@@ -150,7 +73,6 @@ export class Engine {
 
     async initiateAutonomousSwarm(state) {
         console.log(chalk.cyan('[Engine] Autonomous swarm initiated.'));
-        // The CORRECT first step is to trigger the PLANNER, not the dispatcher.
         const extractFilePaths = (text) => {
             const filePathRegex = /([\w\/-]+\.[\w]+)/g;
             const matches = text.match(filePathRegex);
@@ -166,13 +88,10 @@ export class Engine {
         const agentName = agentId.replace('@', '');
 
         try {
-            console.log(chalk.red.bold(`[DEBUG] Is _test_streamText defined? ${!!this._test_streamText}`));
-            // 1. Create a dedicated working directory (sandbox) for the agent
             const workingDirectory = path.join(this.projectRoot, '.stigmergy-core', 'sandboxes', agentName);
             await fs.ensureDir(workingDirectory);
             console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
-            // 2. Create a tool executor instance specific to this agent's context
             const executorFactory = this._test_createExecutor || createExecutor;
             const executeTool = executorFactory(this, this.ai, { workingDirectory, config });
 
@@ -180,19 +99,15 @@ export class Engine {
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
             const yamlMatch = agentFileContent.match(/```yaml\n([\s\S]*?)\n```/);
 
-            let systemPrompt = 'You are a helpful AI assistant.'; // Default prompt
+            let systemPrompt = 'You are a helpful AI assistant.';
 
             if (yamlMatch && yamlMatch[1]) {
                 const agentDefinition = yaml.load(yamlMatch[1]);
                 const agentConfig = agentDefinition.agent || {};
-
                 const persona = agentConfig.persona || {};
                 const protocols = agentConfig.core_protocols || [];
-
                 const personaText = [persona.role, persona.style, persona.identity].filter(Boolean).join(' ');
-
                 let finalPrompt = personaText;
-
                 if (protocols.length > 0) {
                     const protocolText = `My core protocols are:\n- ${protocols.join('\n- ')}`;
                     if (finalPrompt) {
@@ -201,7 +116,6 @@ export class Engine {
                         finalPrompt = protocolText;
                     }
                 }
-
                 if (finalPrompt) {
                     systemPrompt = finalPrompt;
                 }
@@ -259,7 +173,6 @@ export class Engine {
                             tool_name: toolCall.toolName,
                             content: JSON.stringify(result),
                         });
-
                     }
                     messages.push(...toolResults);
                 }
@@ -276,29 +189,30 @@ export class Engine {
     }
 
     setupRoutes() {
-        const engineInstance = this;
+        // API route for the dashboard to get the current state
+        this.app.get('/api/state', async (c) => {
+            const stateManager = c.get('stateManager');
+            if (stateManager) {
+                const state = await stateManager.getState();
+                return c.json(state);
+            }
+            return c.json({ error: 'StateManager not available' }, 500);
+        });
 
-        // --- ADD THIS NEW BLOCK ---
-        // This is the new HTTP endpoint for IDEs like continue.dev
+        // Add the IDE (MCP) Endpoint
         this.app.post('/mcp', async (c) => {
             const body = await c.req.json();
-            const prompt = body.prompt; // The prompt from the IDE
-
+            const prompt = body.prompt;
             console.log(chalk.cyan('[MCP] Received prompt from IDE.'));
 
-            // This tells Hono to stream the response back to the IDE
             return c.streamText(async (stream) => {
-                // For now, we will just acknowledge the request.
-                // In a real implementation, you would call executeGoal here and
-                // stream back the agent's thoughts and actions.
-                await engineInstance.executeGoal(prompt);
+                await this.executeGoal(prompt);
                 stream.write("Received. Kicking off the autonomous swarm...");
             });
         });
-        // --- END OF NEW BLOCK ---
 
+        // Add the WebSocket Endpoint
         this.app.get('/ws', upgradeWebSocket((c) => {
-            // ... your existing WebSocket code ...
             return {
                 onOpen: (evt, ws) => {
                     console.log(chalk.blue('[WebSocket] Client connected'));
@@ -311,7 +225,7 @@ export class Engine {
                             await this.executeGoal(data.payload.prompt);
                         }
                     } catch (error) {
-                        console.error(chalk.red('[WebSocket] Error processing message:'), error);
+                         console.error(chalk.red('[WebSocket] Error processing message:'), error);
                     }
                 },
                 onClose: (evt, ws) => {
@@ -323,8 +237,6 @@ export class Engine {
                 },
             };
         }));
-
-        this.app.get('/', (c) => c.text('Stigmergy Engine is running!'));
     }
 
     broadcastEvent(type, payload) {
@@ -387,7 +299,6 @@ export class Engine {
 
         console.log(chalk.yellow('[Engine] Attempting to stop server...'));
 
-        // Close all active WebSocket connections
         console.log(chalk.yellow(`[Engine] Closing ${this.clients.size} WebSocket clients...`));
         for (const client of this.clients) {
             client.close(1000, 'Server is shutting down');
@@ -395,11 +306,9 @@ export class Engine {
         this.clients.clear();
 
         if (typeof Bun !== 'undefined' && this.server.stop) {
-            // Bun environment
-            await this.server.stop(true); // Force close
+            await this.server.stop(true);
             console.log(chalk.yellow('[Engine] Server stopped (Bun).'));
         } else if (this.server.close) {
-            // Node.js environment
             await new Promise((resolve, reject) => {
                 this.server.close((err) => {
                     if (err) {
@@ -426,19 +335,16 @@ function createWebSocketEvent(ws, data, code, reason) {
     return new Event('open');
 }
 
-// This block ensures the server can run directly for production
 if (import.meta.main) {
     const stateManager = new GraphStateManager();
-
     const engineOptions = { stateManager };
 
-    // If the USE_MOCK_AI flag is set, inject the mock AI function.
     if (process.env.USE_MOCK_AI === 'true') {
         console.log(chalk.yellow('--- [NOTICE] ---'));
-        console.log(chalk.yellow('Running with USE_MOCK_AI=true. All AI calls will be mocked.'));
-        console.log(chalk.yellow('This is for local testing of the `send_prompt.js` script without API keys.'));
+        console.log(chalk.yellow('Running with USE_MOCK_AI=true. AI provider initialization will be skipped.'));
+        console.log(chalk.yellow('This is for local testing and requires a mock function to be injected during tests.'));
         console.log(chalk.yellow('--- [NOTICE] ---'));
-        engineOptions._test_streamText = mockStreamTextForRefactor;
+        engineOptions._test_streamText = true;
     }
 
     const engine = new Engine(engineOptions);
