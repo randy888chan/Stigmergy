@@ -1,36 +1,25 @@
 import { Hono } from 'hono';
 import { serveStatic } from '@hono/node-server/serve-static';
-import { readFile } from 'fs/promises'
 import path from 'path';
+import fs from 'fs/promises';
 
-export function createDashboardApp(projectRoot = process.cwd()) {
+// This function now creates and configures a Hono app specifically for the dashboard UI.
+export function createDashboardApp(projectRoot) {
   const dashboardApp = new Hono();
   const publicPath = path.join(projectRoot, 'dashboard', 'public');
+  const indexPath = path.join(publicPath, 'index.html');
 
-  // 1. API routes come first
-  dashboardApp.get('/api/state', async (c) => {
-    const stateManager = c.get('stateManager');
-    if (stateManager) {
-      const state = await stateManager.getState();
-      return c.json(state);
-    }
-    return c.json({ error: 'StateManager not available' });
-  });
+  // This middleware will try to serve a file. If not found, it calls next().
+  dashboardApp.use('*', serveStatic({ root: publicPath }));
 
-  // 2. Serve static assets from the root
-  dashboardApp.use('/*', serveStatic({ root: publicPath }));
-
-  // 3. SPA fallback using notFound
-  // This is the most robust way to handle SPAs in Hono.
-  // It ensures that any request that doesn't match a static file falls back to index.html.
-  dashboardApp.notFound(async (c) => {
+  // Fallback route: For any GET request that wasn't a static file, serve the SPA.
+  dashboardApp.get('*', async (c) => {
     try {
-      const indexHtmlPath = path.join(publicPath, 'index.html');
-      const content = await readFile(indexHtmlPath, 'utf-8');
-      return c.html(content, 200);
+      const indexHtml = await fs.readFile(indexPath, 'utf-8');
+      return c.html(indexHtml);
     } catch (error) {
-      console.error(`[Dashboard] Could not serve index.html: ${error.message}`);
-      return c.text('Not Found', 404);
+      console.error('Failed to read index.html:', error);
+      return c.text('Application not found.', 404);
     }
   });
 
