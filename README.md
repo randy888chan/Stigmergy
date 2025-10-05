@@ -60,40 +60,81 @@ Our architecture is designed for simplicity, speed, and power. The Hono server a
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Getting Started: A Step-by-Step Guide
 
-Getting started with Stigmergy is now easier than ever.
+This guide will walk you through setting up the Stigmergy engine, connecting the dashboard, and integrating it with your IDE.
 
 **Prerequisites:**
 *   [Bun](https://bun.sh/) installed on your system.
-*   An API key from an AI provider (see our [Provider Configuration Guide](./docs/provider-configuration.md)).
+*   An API key from an AI provider.
 
-**1. Clone the Repository:**
-```bash
-git clone https://github.com/your-repo/stigmergy.git
-cd stigmergy
-```
+### **Step 1: Installation & Configuration**
 
-**2. Install Dependencies:**
-```bash
-bun install
-```
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/your-repo/stigmergy.git
+    cd stigmergy
+    ```
 
-**3. Configure Your Environment:**
-Copy the `.env.example` file to `.env` and add your API keys.
-```bash
-cp .env.example .env
-# Now, open .env and add your keys
-```
+2.  **Install Dependencies:**
+    ```bash
+    bun install
+    ```
 
-**4. Run the Development Server:**
-```bash
-bun run dev
-```
-This command starts the Hono server, and you're ready to go!
+3.  **Configure Your Environment:**
+    Copy the `.env.example` file to `.env` and add your AI provider API keys.
+    ```bash
+    cp .env.example .env
+    # Now, open .env and add your keys
+    ```
 
-**5. Run Tests:**
-To ensure everything is working correctly, run the test suite:
+### **Step 2: Run the Engine & Dashboard**
+
+1.  **Start the Development Server:**
+    ```bash
+    bun run dev
+    ```
+    This command starts the high-performance Hono server, which powers both the agent engine and the web dashboard.
+
+2.  **Open the Command & Control Dashboard:**
+    Navigate to **`http://localhost:3010`** in your web browser. You will see the live dashboard interface.
+
+3.  **Set Your Active Project:**
+    The engine needs to know which project you want to work on.
+    *   In the dashboard header, find the "Project Selector" input field.
+    *   Enter the **full, absolute path** to your project's directory.
+    *   Click **"Set Active Project"**. The dashboard will update to show your selected project, and the engine is now ready to work on it.
+
+### **Step 3: Connect Your IDE (continue.dev)**
+
+Integrate Stigmergy directly into your VS Code workflow using the `continue.dev` extension.
+
+1.  **Install `continue.dev`:**
+    If you haven't already, install the [continue.dev extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) from the VS Code Marketplace.
+
+2.  **Configure `continue.dev`:**
+    Open (or create) your `continue.dev` configuration file. This is typically located at `~/.continue/config.json` or within your project's `.continue/config.json` file. Add the following `CustomLLM` configuration to the `models` array:
+
+    ```json
+    {
+      "models": [
+        {
+          "title": "Stigmergy",
+          "provider": "custom",
+          "model": "stigmergy-mcp",
+          "apiKey": "EMPTY",
+          "apiBase": "http://localhost:3010/mcp"
+        }
+      ]
+    }
+    ```
+    *   `apiBase`: This must point to the `/mcp` (Master Control Protocol) endpoint of your running Stigmergy engine.
+
+3.  **Reload VS Code & Start Developing:**
+    Reload your VS Code window. The "Stigmergy" model will now be available in the `continue.dev` panel. When you send a prompt, `continue.dev` will automatically include the active project path in its request to the engine. You can monitor all agent activity in real-time on your dashboard.
+
+### **Step 4: Run Tests**
+To ensure everything is working correctly, run the full test suite:
 ```bash
 bun test
 ```

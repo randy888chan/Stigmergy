@@ -36,27 +36,9 @@ export class Engine {
             this.ai = getAiProviders(config);
         }
 
-        // ** ROUTING FIX: Define specific routes BEFORE mounting the catch-all dashboard **
+        // Setup routes and listeners
         this.setupRoutes();
         this.setupStateListener();
-
-        // --- Serve Static Dashboard Files ---
-        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
-        const indexPath = path.join(publicPath, 'index.html');
-
-        // This middleware serves files from the public directory.
-        this.app.use('/*', serveStatic({ root: publicPath }));
-
-        // Fallback route for the SPA: serve index.html for any request that wasn't a file.
-        this.app.get('*', async (c) => {
-            try {
-                const indexHtml = await fs.readFile(indexPath, 'utf-8');
-                return c.html(indexHtml);
-            } catch (error) {
-                console.error('Failed to read index.html:', error);
-                return c.text('Application not found. Please run `bun run build:dashboard`.', 404);
-            }
-        });
     }
 
     async setActiveProject(projectPath) {
@@ -234,7 +216,7 @@ export class Engine {
             return c.json({ error: 'StateManager not available' }, 500);
         });
 
-        // Add the IDE (MCP) Endpoint
+        // Add the IDE (MCP) Endpoint for continue.dev
         this.app.post('/mcp', async (c) => {
             const { prompt, project_path } = await c.req.json();
 
@@ -273,7 +255,7 @@ export class Engine {
             });
         });
 
-        // Add the WebSocket Endpoint
+        // Add the WebSocket Endpoint for the dashboard
         this.app.get('/ws', upgradeWebSocket((c) => {
             return {
                 onOpen: (evt, ws) => {
@@ -301,6 +283,16 @@ export class Engine {
                 },
             };
         }));
+
+        // --- Correctly Serve Static Dashboard Files ---
+        // This logic MUST come AFTER all API routes
+        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
+
+        // This middleware serves the JS, CSS, etc.
+        this.app.use('/*', serveStatic({ root: publicPath }));
+
+        // This fallback serves the index.html for any other route, making React Router work.
+        this.app.get('*', serveStatic({ path: 'index.html', root: publicPath }));
     }
 
     broadcastEvent(type, payload) {
