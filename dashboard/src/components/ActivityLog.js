@@ -1,5 +1,4 @@
 import React from 'react';
-import './ActivityLog.css';
 
 const ActivityLog = ({ logs, agentActivity }) => {
   // CORRECTED: This no longer overwrites the original event type
@@ -27,7 +26,6 @@ const ActivityLog = ({ logs, agentActivity }) => {
 
   return (
     <div className="activity-log-container">
-      <h2>Real-Time Activity Log</h2>
       <ul id="activity-log">
           {combinedFeed.length > 0 ? (
             combinedFeed.map((item, index) => (

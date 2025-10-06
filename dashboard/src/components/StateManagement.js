@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import './StateManagement.css';
 
 const StateManagement = ({ state }) => {
   const [expandedSections, setExpandedSections] = useState({
@@ -57,7 +56,6 @@ const StateManagement = ({ state }) => {
 
   return (
     <div className="state-management-container">
-      <h2>State Management</h2>
       
       <div className="state-section">
         <div className="state-section-header" onClick={() => toggleSection('project')}>
