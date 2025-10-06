@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './ControlPanel.css';
 
 const ControlPanel = ({ sendMessage, engineStatus }) => {
   const [prompt, setPrompt] = useState('');

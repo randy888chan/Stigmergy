@@ -1,10 +1,10 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import useWebSocket from '../hooks/useWebSocket.js';
-import '../styles/Dashboard.css';
 
 // --- Core Interactive Components ---
 import ControlPanel from '../components/ControlPanel.js';
 import ActivityLog from '../components/ActivityLog.js';
+import DocumentUploader from '../components/DocumentUploader.js';
 
 // --- Lazy-load other components if needed ---
 const StateManagement = lazy(() => import('../components/StateManagement.js'));
@@ -90,16 +90,31 @@ const Dashboard = () => {
 
       <main className="dashboard-content">
         <div className="dashboard-grid">
-            <div className="dashboard-card wide-card">
-                <ControlPanel sendMessage={sendMessage} engineStatus={systemState.project_status} />
+            <div className="dashboard-card grid-col-span-8 grid-row-span-2">
+                <h2>Activity Log</h2>
+                <div className="card-content">
+                    <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
+                </div>
             </div>
-            <div className="dashboard-card tall-card">
-                <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
+            <div className="dashboard-card grid-col-span-4">
+                <h2>Control Panel</h2>
+                <div className="card-content">
+                    <ControlPanel sendMessage={sendMessage} engineStatus={systemState.project_status} />
+                </div>
             </div>
-            <div className="dashboard-card">
-                <Suspense fallback={<div>Loading State...</div>}>
-                    <StateManagement state={systemState} />
-                </Suspense>
+            <div className="dashboard-card grid-col-span-4">
+                <h2>Document Uploader</h2>
+                <div className="card-content">
+                    <DocumentUploader />
+                </div>
+            </div>
+            <div className="dashboard-card grid-col-span-12">
+                <h2>System State</h2>
+                <div className="card-content">
+                    <Suspense fallback={<div>Loading State...</div>}>
+                        <StateManagement state={systemState} />
+                    </Suspense>
+                </div>
             </div>
         </div>
       </main>
