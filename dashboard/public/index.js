@@ -23657,16 +23657,13 @@ var require_jsx_dev_runtime = __commonJS((exports, module) => {
   }
 });
 
-// dashboard/src/components/StateManagement.css
-var init_StateManagement = () => {};
-
 // dashboard/src/components/StateManagement.js
 var exports_StateManagement = {};
 __export(exports_StateManagement, {
   default: () => StateManagement_default
 });
-var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
-  const [expandedSections, setExpandedSections] = import_react4.useState({
+var import_react5, jsx_dev_runtime4, StateManagement = ({ state }) => {
+  const [expandedSections, setExpandedSections] = import_react5.useState({
     project: true,
     tasks: false,
     history: false,
@@ -23686,27 +23683,27 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
   };
   const renderObject = (obj, path = "") => {
     if (typeof obj !== "object" || obj === null) {
-      return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+      return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
         className: "state-value",
         children: formatValue(obj)
       }, undefined, false, undefined, this);
     }
-    return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+    return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
       className: "state-object",
-      children: Object.entries(obj).map(([key, value]) => /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      children: Object.entries(obj).map(([key, value]) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-property",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
             className: "state-key",
             children: [
               key,
               ":"
             ]
           }, undefined, true, undefined, this),
-          typeof value === "object" && value !== null ? /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          typeof value === "object" && value !== null ? /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-nested",
             children: renderObject(value, `${path}.${key}`)
-          }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+          }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
             className: "state-value",
             children: formatValue(value)
           }, undefined, false, undefined, this)
@@ -23715,87 +23712,84 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
     }, undefined, false, undefined, this);
   };
   if (!state) {
-    return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+    return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
       className: "state-management-container",
       children: [
-        /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h2", {
+        /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h2", {
           children: "State Management"
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("p", {
+        /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("p", {
           children: "No state data available"
         }, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this);
   }
-  return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
     className: "state-management-container",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h2", {
-        children: "State Management"
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-section",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-header",
             onClick: () => toggleSection("project"),
-            children: /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h3", {
+            children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h3", {
               children: [
                 "Project Information ",
                 expandedSections.project ? "▼" : "▶"
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          expandedSections.project && /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          expandedSections.project && /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-content",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                 className: "state-property",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-key",
                     children: "Project Name:"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-value",
                     children: state.project_name
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                 className: "state-property",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-key",
                     children: "Project Status:"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-value",
                     children: state.project_status
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                 className: "state-property",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-key",
                     children: "Fallback Mode:"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-value",
                     children: state.fallback_mode ? "Yes" : "No"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              state.fallback_mode && /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+              state.fallback_mode && /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                 className: "state-property",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-key",
                     children: "Fallback Reason:"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                     className: "state-value",
                     children: state.fallback_reason
                   }, undefined, false, undefined, this)
@@ -23805,13 +23799,13 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-section",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-header",
             onClick: () => toggleSection("tasks"),
-            children: /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h3", {
+            children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h3", {
               children: [
                 "Tasks (",
                 state.project_manifest?.tasks?.length || 0,
@@ -23820,77 +23814,77 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          expandedSections.tasks && /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          expandedSections.tasks && /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-content",
-            children: state.project_manifest?.tasks?.length > 0 ? state.project_manifest.tasks.map((task, index) => /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+            children: state.project_manifest?.tasks?.length > 0 ? state.project_manifest.tasks.map((task, index) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
               className: "task-item",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "ID:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: task.id
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Description:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: task.description
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Status:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: task.status
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Assigned Agent:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: task.assigned_agent || "Unassigned"
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               ]
-            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("p", {
+            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("p", {
               children: "No tasks available"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-section",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-header",
             onClick: () => toggleSection("history"),
-            children: /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h3", {
+            children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h3", {
               children: [
                 "History (",
                 state.history?.length || 0,
@@ -23899,90 +23893,90 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          expandedSections.history && /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          expandedSections.history && /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-content",
-            children: state.history?.length > 0 ? state.history.slice().reverse().map((entry, index) => /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+            children: state.history?.length > 0 ? state.history.slice().reverse().map((entry, index) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
               className: "history-item",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Timestamp:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: new Date(entry.timestamp).toLocaleString()
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Agent:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: entry.agent_id
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
                   className: "state-property",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-key",
                       children: "Message:"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
                       className: "state-value",
                       children: entry.message
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               ]
-            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("p", {
+            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("p", {
               children: "No history available"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-section",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-header",
             onClick: () => toggleSection("performance"),
-            children: /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h3", {
+            children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h3", {
               children: [
                 "Performance Data ",
                 expandedSections.performance ? "▼" : "▶"
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          expandedSections.performance && /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+          expandedSections.performance && /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
             className: "state-section-content",
-            children: state.performance ? renderObject(state.performance) : /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("p", {
+            children: state.performance ? renderObject(state.performance) : /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("p", {
               children: "No performance data available"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
         className: "state-actions",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("button", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("button", {
             className: "state-action-button",
             children: "Export State"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("button", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("button", {
             className: "state-action-button",
             children: "Reset State"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("button", {
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("button", {
             className: "state-action-button",
             children: "Save Snapshot"
           }, undefined, false, undefined, this)
@@ -23991,22 +23985,21 @@ var import_react4, jsx_dev_runtime3, StateManagement = ({ state }) => {
     ]
   }, undefined, true, undefined, this);
 }, StateManagement_default;
-var init_StateManagement2 = __esm(() => {
-  import_react4 = __toESM(require_react(), 1);
-  init_StateManagement();
-  jsx_dev_runtime3 = __toESM(require_jsx_dev_runtime(), 1);
+var init_StateManagement = __esm(() => {
+  import_react5 = __toESM(require_react(), 1);
+  jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
   StateManagement_default = StateManagement;
 });
 
 // dashboard/src/index.js
-var import_react7 = __toESM(require_react(), 1);
+var import_react8 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react6 = __toESM(require_react(), 1);
+var import_react7 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react5 = __toESM(require_react(), 1);
+var import_react6 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
@@ -24138,27 +24131,89 @@ var ActivityLog = ({ logs, agentActivity }) => {
   };
   return /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("div", {
     className: "activity-log-container",
-    children: [
-      /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("h2", {
-        children: "Real-Time Activity Log"
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("ul", {
-        id: "activity-log",
-        children: combinedFeed.length > 0 ? combinedFeed.map((item, index) => /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("li", {
-          className: `log-entry log-${item.source}`,
-          children: item.source === "log" ? item.message : formatActivity(item)
-        }, index, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("li", {
-          children: "No activity yet."
-        }, undefined, false, undefined, this)
+    children: /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("ul", {
+      id: "activity-log",
+      children: combinedFeed.length > 0 ? combinedFeed.map((item, index) => /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("li", {
+        className: `log-entry log-${item.source}`,
+        children: item.source === "log" ? item.message : formatActivity(item)
+      }, index, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime2.jsxDEV("li", {
+        children: "No activity yet."
       }, undefined, false, undefined, this)
-    ]
-  }, undefined, true, undefined, this);
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this);
 };
 var ActivityLog_default = ActivityLog;
 
+// dashboard/src/components/DocumentUploader.js
+var import_react4 = __toESM(require_react(), 1);
+var jsx_dev_runtime3 = __toESM(require_jsx_dev_runtime(), 1);
+var DocumentUploader = () => {
+  const [file, setFile] = import_react4.useState(null);
+  const [status, setStatus] = import_react4.useState("idle");
+  const [message, setMessage] = import_react4.useState("Upload documents for analysis.");
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setMessage("Please select a file first.");
+      return;
+    }
+    const formData = new FormData;
+    formData.append("document", file);
+    setStatus("uploading");
+    setMessage(`Uploading ${file.name}...`);
+    try {
+      const response = await fetch("/api/upload-document", {
+        method: "POST",
+        body: formData
+      });
+      const result = await response.json();
+      if (response.ok) {
+        setStatus("success");
+        setMessage(`Success: ${result.message} ${result.result.segmentCount} segments created.`);
+      } else {
+        throw new Error(result.error || "Upload failed");
+      }
+    } catch (error) {
+      setStatus("error");
+      setMessage(`Error: ${error.message}`);
+    }
+  };
+  return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("h3", {
+        children: "Document Intelligence"
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("form", {
+        onSubmit: handleSubmit,
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("input", {
+            type: "file",
+            onChange: handleFileChange
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("button", {
+            type: "submit",
+            disabled: status === "uploading",
+            children: status === "uploading" ? "Processing..." : "Process Document"
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("p", {
+        children: [
+          "Status: ",
+          message
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+};
+var DocumentUploader_default = DocumentUploader;
+
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
-var StateManagement2 = import_react5.lazy(() => Promise.resolve().then(() => (init_StateManagement2(), exports_StateManagement)));
+var jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
+var StateManagement2 = import_react6.lazy(() => Promise.resolve().then(() => (init_StateManagement(), exports_StateManagement)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -24172,9 +24227,9 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react5.useState(INITIAL_STATE);
-  const [projectPathInput, setProjectPathInput] = import_react5.useState("");
-  import_react5.useEffect(() => {
+  const [systemState, setSystemState] = import_react6.useState(INITIAL_STATE);
+  const [projectPathInput, setProjectPathInput] = import_react6.useState("");
+  import_react6.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -24202,52 +24257,52 @@ var Dashboard = () => {
       sendMessage({ type: "set_project", payload: { path: projectPathInput } });
     }
   };
-  const renderCard = (Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  const renderCard = (Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
     className: "dashboard-card",
-    children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(import_react5.Suspense, {
-      fallback: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
+      fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
         children: "Loading..."
       }, undefined, false, undefined, this),
-      children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Component, {
+      children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Component, {
         ...props
       }, undefined, false, undefined, this)
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this);
-  return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
     className: "dashboard",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("header", {
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("header", {
         className: "dashboard-header",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("h1", {
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h1", {
             children: "Stigmergy Command & Control"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
             className: "project-selector",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("input", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("input", {
                 type: "text",
                 placeholder: "Enter absolute path to project...",
                 value: projectPathInput,
                 onChange: (e) => setProjectPathInput(e.target.value),
                 onKeyDown: (e) => e.key === "Enter" && handleSetProject()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("button", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
                 onClick: handleSetProject,
                 children: "Set Active Project"
               }, undefined, false, undefined, this)
             ]
           }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
             className: "user-info",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
                 children: [
                   "Active Project: ",
                   systemState.project_path || "None"
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
                 children: [
                   "Status: ",
                   systemState.project_status || "Idle"
@@ -24257,36 +24312,72 @@ var Dashboard = () => {
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("main", {
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("main", {
         className: "dashboard-content",
-        children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
           className: "dashboard-grid",
           children: [
-            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-              className: "dashboard-card wide-card",
-              children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(ControlPanel_default, {
-                sendMessage,
-                engineStatus: systemState.project_status
-              }, undefined, false, undefined, this)
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-              className: "dashboard-card tall-card",
-              children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(ActivityLog_default, {
-                logs: systemState.logs,
-                agentActivity: systemState.agentActivity
-              }, undefined, false, undefined, this)
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-              className: "dashboard-card",
-              children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(import_react5.Suspense, {
-                fallback: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-                  children: "Loading State..."
+            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              className: "dashboard-card grid-col-span-8 grid-row-span-2",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+                  children: "Activity Log"
                 }, undefined, false, undefined, this),
-                children: /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(StateManagement2, {
-                  state: systemState
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                  className: "card-content",
+                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ActivityLog_default, {
+                    logs: systemState.logs,
+                    agentActivity: systemState.agentActivity
+                  }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this)
-              }, undefined, false, undefined, this)
-            }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              className: "dashboard-card grid-col-span-4",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+                  children: "Control Panel"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                  className: "card-content",
+                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ControlPanel_default, {
+                    sendMessage,
+                    engineStatus: systemState.project_status
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              className: "dashboard-card grid-col-span-4",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+                  children: "Document Uploader"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                  className: "card-content",
+                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(DocumentUploader_default, {}, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              className: "dashboard-card grid-col-span-12",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+                  children: "System State"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                  className: "card-content",
+                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
+                    fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                      children: "Loading State..."
+                    }, undefined, false, undefined, this),
+                    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(StateManagement2, {
+                      state: systemState
+                    }, undefined, false, undefined, this)
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
           ]
         }, undefined, true, undefined, this)
       }, undefined, false, undefined, this)
@@ -24296,18 +24387,15 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-    className: "App",
-    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this)
-  }, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/index.js
-var jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime6.jsxDEV(import_react7.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime7.jsxDEV(import_react8.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(App_default, {}, undefined, false, undefined, this)
 }, undefined, false, undefined, this));
