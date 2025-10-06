@@ -316,7 +316,12 @@ export class Engine {
                 onMessage: async (evt, ws) => {
                     try {
                         const data = JSON.parse(evt.data);
-                        if (data.type === 'user_chat_message') {
+                        if (data.type === 'start_mission') {
+                            const { goal, project_path } = data.payload;
+                            console.log(chalk.blue(`[WebSocket] Received start_mission for project: ${project_path}`));
+                            await this.setActiveProject(project_path);
+                            await this.executeGoal(goal);
+                        } else if (data.type === 'user_chat_message') {
                             await this.executeGoal(data.payload.prompt);
                         } else if (data.type === 'set_project') {
                             await this.setActiveProject(data.payload.path);

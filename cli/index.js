@@ -15,6 +15,7 @@ const coreBackup = new CoreBackup();
 
 // Define available commands for suggestions
 const availableCommands = [
+  'run',
   'start',
   'start --power',
   'init',
@@ -296,6 +297,25 @@ enter Stigmergy commands without the "stigmergy" prefix.
 Type "help" within the interactive mode to see available commands.
   `);
 
+program
+  .command("run")
+  .description("Run a new mission with a specified goal.")
+  .option('-g, --goal <goal>', 'The high-level goal for the mission')
+  .action(async (options) => {
+    const runPath = path.resolve(__dirname, './commands/run.js');
+    const { handler } = await import(runPath);
+    // Commander passes the options object directly, which matches the 'argv' expected by the yargs-style handler.
+    await handler(options);
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy run --goal "Fix the authentication bug"
+  $ stigmergy run -g "Implement feature X"
+
+This command sends a goal to the running Stigmergy service
+and streams the mission status back to the terminal.
+  `);
+
 // Override the default help command to add examples
 program.addHelpText('after', `
 Examples:
@@ -313,7 +333,7 @@ async function main() {
     const command = process.argv[2];
     // The guardian check should only run if a stigmergy command that REQUIRES a core is run.
     // 'init', 'start-service', 'stop-service', 'service-status' do not require one to exist beforehand.
-    const commandsWithoutGuardian = ["init", "start-service", "stop-service", "service-status", "interactive"];
+    const commandsWithoutGuardian = ["run", "init", "start-service", "stop-service", "service-status", "interactive"];
     if (command && !commandsWithoutGuardian.includes(command)) {
       if (!await runGuardianCheck()) {
         process.exit(1);
