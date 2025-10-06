@@ -227,11 +227,30 @@ export class Engine {
             console.log(chalk.cyan(`[MCP] Received prompt for project: ${project_path}`));
             await this.setActiveProject(project_path);
 
-            return c.streamText(async (stream) => {
-                // Subscribe this stream to state changes
-                const listener = (event) => {
-                    stream.write(JSON.stringify(event) + '\n');
+            // This endpoint now uses streamSSE for OpenAI compatibility
+            return c.streamSSE(async (stream) => {
+                const formatAsOpenAIStream = (content, finishReason = null) => {
+                    const chunk = {
+                        id: `chatcmpl-${Date.now()}`,
+                        object: 'chat.completion.chunk',
+                        created: Math.floor(Date.now() / 1000),
+                        model: 'stigmergy-mcp',
+                        choices: [
+                            {
+                                index: 0,
+                                delta: { content },
+                                finish_reason: finishReason,
+                            },
+                        ],
+                    };
+                    return JSON.stringify(chunk);
                 };
+
+                const listener = async (event) => {
+                    const content = `\`\`\`json\n${JSON.stringify(event, null, 2)}\n\`\`\``;
+                    await stream.writeSSE({ data: formatAsOpenAIStream(content) });
+                };
+
                 this.stateManager.on('stateChanged', listener);
 
                 stream.onAbort(() => {
@@ -240,17 +259,44 @@ export class Engine {
                 });
 
                 try {
-                    stream.write(JSON.stringify({ type: 'status', payload: { message: 'Processing goal...' }}) + '\n');
+                    const initialMessage = 'Processing new goal...';
+                    await stream.writeSSE({ data: formatAsOpenAIStream(initialMessage) });
+
                     await this.executeGoal(prompt);
-                    // The rest of the updates will come from the stateChanged listener
+                    // The stateChanged listener will now handle subsequent updates.
+                    // We need to keep the connection alive until a terminal state is reached.
+
+                    // Add a timeout to prevent hanging indefinitely
+                    const timeout = setTimeout(async () => {
+                        console.warn(chalk.yellow('[MCP] Stream timed out. Sending final message.'));
+                        this.stateManager.off('stateChanged', listener);
+                        await stream.writeSSE({ data: formatAsOpenAIStream(null, 'stop') });
+                        await stream.writeSSE({ data: '[DONE]' });
+                        stream.close();
+                    }, 120000); // 2 minutes timeout
+
+                    // Listen for a terminal state to close the stream cleanly
+                    const terminalStates = ['COMPLETED', 'ERROR', 'PLAN_EXECUTED'];
+                    const finalStateListener = async (state) => {
+                        if (terminalStates.includes(state.project_status)) {
+                            console.log(chalk.green(`[MCP] Reached terminal state: ${state.project_status}. Closing stream.`));
+                            clearTimeout(timeout);
+                            this.stateManager.off('stateChanged', listener);
+                            this.stateManager.off('stateChanged', finalStateListener); // Clean up self
+                            await stream.writeSSE({ data: formatAsOpenAIStream(null, 'stop') });
+                            await stream.writeSSE({ data: '[DONE]' });
+                            stream.close();
+                        }
+                    };
+                    this.stateManager.on('stateChanged', finalStateListener);
+
+
                 } catch (error) {
                     console.error(chalk.red('[MCP] Error executing goal:'), error);
-                    stream.write(JSON.stringify({ type: 'error', payload: { message: error.message }}) + '\n');
-                } finally {
-                    // Keep the stream open for a short period to ensure final messages are sent
-                    setTimeout(() => {
-                         this.stateManager.off('stateChanged', listener);
-                    }, 5000);
+                    const errorMessage = `Error: ${error.message}`;
+                    await stream.writeSSE({ data: formatAsOpenAIStream(errorMessage, 'stop') });
+                    await stream.writeSSE({ data: '[DONE]' });
+                    stream.close();
                 }
             });
         });

@@ -117,18 +117,18 @@ Integrate Stigmergy directly into your VS Code workflow using the `continue.dev`
 
     ```json
     {
-        "models": [
-            {
-                "title": "Stigmergy",
-                "provider": "openai-compatible",
-                "model": "stigmergy-mcp",
-                "apiKey": "EMPTY",
-                "apiBase": "http://localhost:3010/mcp"
-            }
-        ]
+      "models": [
+        {
+          "title": "Stigmergy",
+          "provider": "openai-compatible",
+          "model": "stigmergy-mcp",
+          "apiKey": "EMPTY",
+          "apiBase": "http://localhost:3010/mcp"
+        }
+      ]
     }
     ```
-    *   `apiBase`: This must point to the `/mcp` (Master Control Protocol) endpoint of your running Stigmergy engine.
+    *   `apiBase`: This must point to the `/mcp` (Model-Context Protocol) endpoint of your running Stigmergy engine. The `openai-compatible` provider in `continue.dev` will automatically append the necessary path, so ensure you do not add a trailing slash.
 
 3.  **Reload VS Code & Start Developing:**
     Reload your VS Code window. The "Stigmergy" model will now be available in the `continue.dev` panel. When you send a prompt, `continue.dev` will automatically include the active project path in its request to the engine. You can monitor all agent activity in real-time on your dashboard.
