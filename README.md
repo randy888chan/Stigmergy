@@ -105,33 +105,50 @@ This guide will walk you through setting up the Stigmergy engine, connecting the
     *   Enter the **full, absolute path** to your project's directory.
     *   Click **"Set Active Project"**. The dashboard will update to show your selected project, and the engine is now ready to work on it.
 
-### **Step 3: Connect Your IDE (continue.dev)**
+### **Step 3: Connect Your IDE (The New CLI-First Way)**
 
-Integrate Stigmergy directly into your VS Code workflow using the `continue.dev` extension.
+Our new CLI-first approach simplifies IDE integration. Instead of complex model configurations, you now use a simple command.
+
+#### **For `continue.dev` (VS Code)**
 
 1.  **Install `continue.dev`:**
     If you haven't already, install the [continue.dev extension](https://marketplace.visualstudio.com/items?itemName=Continue.continue) from the VS Code Marketplace.
 
-2.  **Configure `continue.dev`:**
-    Open (or create) your `continue.dev` configuration file. This is typically located at `~/.continue/config.json` or within your project's `.continue/config.json` file. Add the following `CustomLLM` configuration to the `models` array:
+2.  **Configure a Slash Command:**
+    Open your `continue.dev` configuration file (`~/.continue/config.json` or `.continue/config.json`) and add the following to the `slashCommands` array:
 
     ```json
     {
-      "models": [
+      "slashCommands": [
         {
-          "title": "Stigmergy",
-          "provider": "openai-compatible",
-          "model": "stigmergy-mcp",
-          "apiKey": "EMPTY",
-          "apiBase": "http://localhost:3010/mcp"
+          "name": "stigmergy",
+          "description": "Run a Stigmergy mission",
+          "options": {
+            "command": "stigmergy run --goal \"{{{ input }}}\""
+          }
         }
       ]
     }
     ```
-    *   `apiBase`: This must point to the `/mcp` (Model-Context Protocol) endpoint of your running Stigmergy engine. The `openai-compatible` provider in `continue.dev` will automatically append the necessary path, so ensure you do not add a trailing slash.
 
-3.  **Reload VS Code & Start Developing:**
-    Reload your VS Code window. The "Stigmergy" model will now be available in the `continue.dev` panel. When you send a prompt, `continue.dev` will automatically include the active project path in its request to the engine. You can monitor all agent activity in real-time on your dashboard.
+3.  **Usage:**
+    In the `continue.dev` input box, type `/stigmergy` followed by your goal. For example:
+    ```
+    /stigmergy Fix the authentication bug
+    ```
+    This will execute the command directly in your integrated terminal, and you will see the mission status streamed live.
+
+#### **For Qoder, Cursor, Trae, and any other IDE**
+
+The beauty of the CLI-first approach is its universality. For any IDE with a built-in terminal:
+
+1.  **Open the Terminal:** Open your IDE's integrated terminal.
+2.  **Navigate to Your Project:** `cd /path/to/your/project`
+3.  **Run the Command:**
+    ```bash
+    stigmergy run --goal "Your high-level objective here"
+    ```
+    The mission status will be streamed directly into your terminal, providing a universal and reliable integration for any development environment.
 
 ### **Step 4: Run Tests**
 To ensure everything is working correctly, run the full test suite:
