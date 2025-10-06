@@ -206,7 +206,12 @@ export class Engine {
     }
 
     setupRoutes() {
-        // API route for the dashboard to get the current state
+        // --- THIS IS THE CRITICAL FIX: DEFINE SPECIFIC ROUTES FIRST ---
+
+        // 1. Health Check Endpoint
+        this.app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
+
+        // 2. Dashboard API Endpoint
         this.app.get('/api/state', async (c) => {
             const stateManager = c.get('stateManager');
             if (stateManager) {
@@ -216,7 +221,7 @@ export class Engine {
             return c.json({ error: 'StateManager not available' }, 500);
         });
 
-        // Add the IDE (MCP) Endpoint for continue.dev
+        // 3. IDE (MCP) Endpoint
         this.app.post('/mcp', async (c) => {
             const { prompt, project_path } = await c.req.json();
 
@@ -301,7 +306,7 @@ export class Engine {
             });
         });
 
-        // Add the WebSocket Endpoint for the dashboard
+        // 4. WebSocket Endpoint
         this.app.get('/ws', upgradeWebSocket((c) => {
             return {
                 onOpen: (evt, ws) => {
@@ -330,15 +335,15 @@ export class Engine {
             };
         }));
 
-        // --- Correctly Serve Static Dashboard Files ---
-        // This logic MUST come AFTER all API routes
-        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
+        // --- THIS MUST BE LAST: THE GENERAL "CATCH-ALL" ROUTES ---
 
-        // This middleware serves the JS, CSS, etc.
+        // 5. Serve Static Assets (JS, CSS, images) from the public directory
+        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
         this.app.use('/*', serveStatic({ root: publicPath }));
 
-        // This fallback serves the index.html for any other route, making React Router work.
-        this.app.get('*', serveStatic({ path: 'index.html', root: publicPath }));
+        // 6. Fallback for Single-Page App: Serve index.html for any other GET request.
+        // This makes React Router work.
+        this.app.get('*', serveStatic({ path: './index.html', root: publicPath }));
     }
 
     broadcastEvent(type, payload) {
