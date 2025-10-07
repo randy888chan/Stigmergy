@@ -24047,46 +24047,40 @@ var useWebSocket = (url) => {
 };
 var useWebSocket_default = useWebSocket;
 
-// dashboard/src/components/ControlPanel.js
+// dashboard/src/components/ChatInterface.js
 var import_react2 = __toESM(require_react(), 1);
 var jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
-var ControlPanel = ({ sendMessage, engineStatus }) => {
-  const [prompt, setPrompt] = import_react2.useState("");
-  const handleSubmit = (e) => {
+var ChatInterface = ({ sendMessage, engineStatus }) => {
+  const [message, setMessage] = import_react2.useState("");
+  const handleSend = (e) => {
     e.preventDefault();
-    if (prompt.trim()) {
-      let finalPrompt = prompt.trim();
-      const urlRegex = /^(https?:\/\/[^\s]+)/;
-      if (urlRegex.test(finalPrompt)) {
-        finalPrompt = `Analyze the content of this webpage for me: ${finalPrompt}`;
-      }
-      sendMessage({
-        type: "user_chat_message",
-        payload: { prompt: finalPrompt }
-      });
-      setPrompt("");
+    if (message.trim()) {
+      sendMessage({ type: "user_message", payload: { message } });
+      setMessage("");
     }
   };
   return /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
-    className: "control-panel-container",
+    className: "chat-interface-container",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime.jsxDEV("h3", {
-        children: "Chat Interface"
+      /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
+        className: "chat-messages"
       }, undefined, false, undefined, this),
       /* @__PURE__ */ jsx_dev_runtime.jsxDEV("form", {
-        onSubmit: handleSubmit,
+        onSubmit: handleSend,
         className: "chat-form",
         children: [
           /* @__PURE__ */ jsx_dev_runtime.jsxDEV("input", {
             type: "text",
-            value: prompt,
-            onChange: (e) => setPrompt(e.target.value),
-            placeholder: "Enter your command or goal...",
-            className: "chat-input"
+            className: "chat-input",
+            value: message,
+            onChange: (e) => setMessage(e.target.value),
+            placeholder: "Type your message...",
+            disabled: engineStatus !== "Running"
           }, undefined, false, undefined, this),
           /* @__PURE__ */ jsx_dev_runtime.jsxDEV("button", {
             type: "submit",
             className: "chat-submit",
+            disabled: engineStatus !== "Running",
             children: "Send"
           }, undefined, false, undefined, this)
         ]
@@ -24094,17 +24088,16 @@ var ControlPanel = ({ sendMessage, engineStatus }) => {
       /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
         className: "status",
         children: [
+          "Engine Status: ",
           /* @__PURE__ */ jsx_dev_runtime.jsxDEV("strong", {
-            children: "Status:"
-          }, undefined, false, undefined, this),
-          " ",
-          engineStatus
+            children: engineStatus
+          }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this)
     ]
   }, undefined, true, undefined, this);
 };
-var ControlPanel_default = ControlPanel;
+var ChatInterface_default = ChatInterface;
 
 // dashboard/src/components/ActivityLog.js
 var import_react3 = __toESM(require_react(), 1);
@@ -24255,132 +24248,101 @@ var Dashboard = () => {
   const handleSetProject = () => {
     if (projectPathInput) {
       sendMessage({ type: "set_project", payload: { path: projectPathInput } });
+      setProjectPathInput("");
     }
   };
-  const renderCard = (Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+  const renderCard = (title, Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
     className: "dashboard-card",
-    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
-      fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-        children: "Loading..."
-      }, undefined, false, undefined, this),
-      children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Component, {
-        ...props
-      }, undefined, false, undefined, this)
-    }, undefined, false, undefined, this)
-  }, undefined, false, undefined, this);
-  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-    className: "dashboard",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("header", {
-        className: "dashboard-header",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h1", {
-            children: "Stigmergy Command & Control"
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+        children: title
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+        className: "card-content",
+        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
+          fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            children: "Loading..."
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-            className: "project-selector",
+          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Component, {
+            ...props
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+    className: "dashboard-layout",
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("main", {
+        className: "dashboard-main",
+        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+          className: "chat-container",
+          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ChatInterface_default, {
+            sendMessage,
+            engineStatus: systemState.project_status
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("aside", {
+        className: "dashboard-sidebar",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("header", {
+            className: "sidebar-header",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("input", {
-                type: "text",
-                placeholder: "Enter absolute path to project...",
-                value: projectPathInput,
-                onChange: (e) => setProjectPathInput(e.target.value),
-                onKeyDown: (e) => e.key === "Enter" && handleSetProject()
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h1", {
+                children: "Stigmergy"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
-                onClick: handleSetProject,
-                children: "Set Active Project"
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-            className: "user-info",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                className: "project-selector",
                 children: [
-                  "Active Project: ",
-                  systemState.project_path || "None"
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("input", {
+                    type: "text",
+                    placeholder: "Enter absolute path to project...",
+                    value: projectPathInput,
+                    onChange: (e) => setProjectPathInput(e.target.value),
+                    onKeyDown: (e) => e.key === "Enter" && handleSetProject()
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
+                    onClick: handleSetProject,
+                    children: "Set Active Project"
+                  }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                className: "user-info",
                 children: [
-                  "Status: ",
-                  systemState.project_status || "Idle"
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("b", {
+                        children: "Active Project:"
+                      }, undefined, false, undefined, this),
+                      " ",
+                      systemState.project_path || "None"
+                    ]
+                  }, undefined, true, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("b", {
+                        children: "Status:"
+                      }, undefined, false, undefined, this),
+                      " ",
+                      systemState.project_status || "Idle"
+                    ]
+                  }, undefined, true, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             ]
+          }, undefined, true, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            className: "sidebar-content",
+            children: [
+              renderCard("Activity Log", ActivityLog_default, { logs: systemState.logs, agentActivity: systemState.agentActivity }),
+              renderCard("Document Uploader", DocumentUploader_default),
+              renderCard("System State", StateManagement2, { state: systemState })
+            ]
           }, undefined, true, undefined, this)
         ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("main", {
-        className: "dashboard-content",
-        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-          className: "dashboard-grid",
-          children: [
-            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-              className: "dashboard-card grid-col-span-8 grid-row-span-2",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
-                  children: "Activity Log"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-                  className: "card-content",
-                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ActivityLog_default, {
-                    logs: systemState.logs,
-                    agentActivity: systemState.agentActivity
-                  }, undefined, false, undefined, this)
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-              className: "dashboard-card grid-col-span-4",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
-                  children: "Control Panel"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-                  className: "card-content",
-                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ControlPanel_default, {
-                    sendMessage,
-                    engineStatus: systemState.project_status
-                  }, undefined, false, undefined, this)
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-              className: "dashboard-card grid-col-span-4",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
-                  children: "Document Uploader"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-                  className: "card-content",
-                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(DocumentUploader_default, {}, undefined, false, undefined, this)
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-              className: "dashboard-card grid-col-span-12",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
-                  children: "System State"
-                }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-                  className: "card-content",
-                  children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
-                    fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-                      children: "Loading State..."
-                    }, undefined, false, undefined, this),
-                    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(StateManagement2, {
-                      state: systemState
-                    }, undefined, false, undefined, this)
-                  }, undefined, false, undefined, this)
-                }, undefined, false, undefined, this)
-              ]
-            }, undefined, true, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      }, undefined, false, undefined, this)
+      }, undefined, true, undefined, this)
     ]
   }, undefined, true, undefined, this);
 };
