@@ -4,62 +4,50 @@ This guide explains how to create and configure new agents for the Stigmergy sys
 
 ## Agent Definition File Structure
 
-Each agent is defined by a Markdown file (`.md`) located in the `.stigmergy-core/agents/` directory. These files have a specific structure consisting of a YAML frontmatter block and a Markdown body.
+Each agent is defined by a Markdown file (`.md`) located in the `.stigmergy-core/agents/` directory. The file must contain a YAML code block that defines the agent's behavior.
 
-### YAML Frontmatter
+### Agent Configuration Block
 
-The YAML frontmatter is a block of YAML at the very top of the file, enclosed in triple-dashed lines (`---`). It defines the core configuration of the agent.
+The agent's configuration is defined in a `yaml` fenced code block. The system prompt sent to the AI model is constructed directly from the `persona` and `core_protocols` fields. **Any content outside of this YAML block is ignored.**
 
+```markdown
 ```yaml
 agent:
-  name: My New Agent
   persona:
     identity: "A helpful assistant that specializes in a specific task."
     role: "Performs a specific function within the Stigmergy ecosystem."
     style: "Communicates in a clear, concise, and professional manner."
-  model_tier: "b_tier" # or 'a_tier', 's_tier', 'utility_tier', etc.
-  tools:
-    - "core.log"
-    - "my_custom_tool.do_something"
   core_protocols:
     - "Protocol 1: Always be helpful."
-    - "Protocol 2: Never reveal your secret identity."
+    - "Protocol 2: Follow instructions precisely."
 ```
 
 **Fields:**
 
-*   `agent.name`: The display name of the agent.
-*   `agent.persona`: An object describing the agent's personality and purpose.
+*   `agent.persona`: An object describing the agent's personality and purpose. The `identity`, `role`, and `style` fields are concatenated to form the base system prompt.
     *   `identity`: A brief description of who the agent is.
     *   `role`: The agent's specific role or function in the system.
     *   `style`: The communication style of the agent.
-*   `agent.model_tier`: The tier of the language model the agent should use. This determines the model's capabilities and cost. See `stigmergy.config.js` for tier definitions.
-*   `agent.tools`: A list of tools the agent is permitted to use. The format is `<tool_filename>.<function_name>`.
-*   `agent.core_protocols`: A list of core principles or rules that the agent must always follow. These are high-level directives that guide the agent's behavior.
+*   `agent.core_protocols`: A list of core principles or rules that the agent must always follow. These are appended to the system prompt as a list of high-level directives.
 
-### Markdown Body
-
-The content below the YAML frontmatter is the main prompt or instruction set for the agent. This is where you provide the detailed instructions, context, and examples the agent needs to perform its task. This content is used as the system prompt for the language model.
+**Note on Ignored Fields:** Fields such as `name`, `model_tier`, and `tools` are currently not processed by the engine and should not be included. Tool access and model selection are configured globally.
 
 ## Example
 
-Here is a complete example of an agent definition file:
+Here is a complete, valid example of an agent definition file for a "planner" agent.
 
+**File: `.stigmergy-core/agents/planner.md`**
 ```markdown
----
+```yaml
 agent:
-  name: Greeter
+  id: "@planner"
+  name: "Planner Agent"
   persona:
-    identity: "A friendly agent that greets users."
-    role: "To provide a warm welcome to users interacting with the system."
-    style: "Friendly, welcoming, and slightly informal."
-  model_tier: "utility_tier"
-  tools:
-    - "core.log"
+    identity: "I am a meticulous planning agent."
+    role: "My role is to break down complex goals into a step-by-step plan, saving it to a `plan.md` file."
+    style: "I communicate with clarity, precision, and a focus on actionable steps."
   core_protocols:
-    - "Always greet the user by name if it is known."
-    - "Keep greetings short and to the point."
----
-
-You are a friendly greeter agent. Your job is to welcome users to the Stigmergy system. When triggered, you should respond with a warm and welcoming message.
+    - "Always create a plan.md file."
+    - "Ensure the plan is detailed and covers all aspects of the user's request."
+    - "Do not execute the plan, only create it."
 ```

@@ -18,7 +18,6 @@ The dashboard is a real-time, web-based interface that provides a complete overv
 *   **Cost Monitoring**: A live-updating view of your spending on AI models, with breakdowns by provider and historical trends.
 *   **Task Management**: View the status of all current tasks, including their dependencies and assigned agents.
 *   **State Visualization**: Inspect the raw state of the project, including the project manifest, history, and performance metrics.
-*   **Interactive Controls**: Pause, resume, or approve engine operations directly from the UI.
 
 ## Advanced Observability (For Power Users)
 

@@ -18,7 +18,12 @@ graph TD
     C --> G[QA Agent]
     B --> H[State Management]
     H --> I[Graph State Manager]
-    I --> J[Neo4j Database]
+    I --> J[State Persistence]
+    subgraph State Persistence
+        direction LR
+        J_File[File System (.json)]
+        J_DB[(Neo4j DB)]
+    end
     B --> K[Tool Execution Layer]
     K --> L[File System Tools]
     K --> M[Code Intelligence Tools]
@@ -52,6 +57,13 @@ The benchmark system interfaces with the core engine to:
 - Send problem descriptions to the system
 - Monitor execution state through the state manager
 - Trigger validation upon completion
+
+### State Management: Dual-Mode Persistence
+The `GraphStateManager` is a key component. It operates in a dual mode:
+- **Default (File-based):** By default, it persists the project state to a JSON file within the project's `.stigmergy/state` directory. This is the standard mode and requires no configuration.
+- **Advanced (Neo4j):** If Neo4j credentials are provided in the environment configuration, the state manager will use a Neo4j database for more robust, queryable state persistence. This is an optional, advanced feature.
+
+The benchmark system documentation primarily reflects the more complex Neo4j setup, but all tests run perfectly in the default file-based mode.
 
 ## Benchmark Execution Flow
 

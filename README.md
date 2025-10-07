@@ -28,7 +28,11 @@ Stigmergy simplifies the development process by allowing you to focus on your vi
 Stigmergy's architecture is built for simplicity and power, centering around a universal command-line interface.
 
 1.  **The `stigmergy` CLI:** This is the primary entry point for all development tasks. You invoke `stigmergy run` with a high-level goal, and the engine takes over. It streams output directly to your terminal and exits upon completion. This is the **only** supported method for running missions.
-2.  **The Optional Dashboard:** For visual monitoring, a web-based dashboard can be run using `bun run dashboard`. This is a read-only observability tool that connects to the engine's state.
+2.  **The Optional Dashboard:** For visual monitoring, a web-based dashboard can be run alongside the engine. Use the `dev` script to run both the server and the dashboard in watch mode:
+    ```bash
+    bun run dev
+    ```
+    This is a read-only observability tool that connects to the engine's state.
 
 This approach eliminates the complex synchronization issues of previous versions and provides a clear, reliable, and universal workflow.
 
