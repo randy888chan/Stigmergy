@@ -1,1 +1,0 @@
-$ USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js

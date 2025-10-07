@@ -1,46 +1,46 @@
 # 🚀 Stigmergy - Autonomous AI Development System
 
-**Stigmergy is a modern, autonomous development system that transforms high-level product goals into production-ready code. It's built on a fast, efficient Bun/Hono architecture and features a powerful swarm of AI agents that collaborate to build, test, and deploy software.**
+**Stigmergy is a modern, autonomous development system that transforms high-level product goals into production-ready code. It's built on a fast, efficient, Bun-native architecture and uses a powerful "CLI-First" model for robust and flexible operation.**
 
 [![Bun](https://img.shields.io/badge/Bun-1.x-yellow.svg)](https://bun.sh/)
 [![Hono](https://img.shields.io/badge/Hono-4.x-orange.svg)](https://hono.dev/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](#-testing)
+[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen.svg)](#-running-tests)
 
-Stigmergy simplifies the development process by allowing you to focus on your vision while AI agents handle the heavy lifting of implementation, debugging, and documentation.
+Stigmergy simplifies the development process by allowing you to focus on your vision while AI agents handle the heavy lifting of implementation, debugging, and documentation. Our new CLI-first approach ensures maximum reliability and seamless integration with any development environment.
 
 ---
 
 ## ✨ Core Features
 
 -   **🤖 Autonomous Agent Swarm:** A team of specialized AI agents that can plan, code, debug, and analyze applications.
+-   **🔌 Universal CLI-First Integration:** The `stigmergy` command-line tool provides a single, reliable entry point for running development tasks, making it compatible with any IDE, including VS Code, Qoder, Cursor, and more.
 -   **🌐 Live Web Interaction:** Agents can see and interact with live webpages using an integrated Chrome DevTools toolset, enabling real-time UI/UX analysis and frontend debugging.
--   **🔌 Universal IDE Integration:** Flexible integration with any IDE (VS Code, Qoder, etc.) through a powerful CLI and a web-based dashboard.
--   **📊 Real-Time Observability:** A comprehensive Command & Control Dashboard to monitor costs, track tasks, and analyze agent behavior in real-time.
+-   **📊 Real-Time Observability:** A web-based Command & Control Dashboard to monitor costs, track tasks, and analyze agent behavior in real-time.
 -   **⚡️ High-Performance Architecture:** Built with Bun and Hono for blazing-fast performance and a lightweight footprint.
--   **🧠 Advanced Model Integration:** Easily configurable model tiers, including specialized models like Codestral for code-related tasks.
--   **✅ Simplified Workflow:** Get started in minutes with simple `bun run dev` and `bun test` commands.
+-   **🧠 Advanced Model Integration:** Easily configurable model tiers for different tasks.
+-   **✅ Simplified Workflow:** Get started in minutes with simple `bun install` and `bun test` commands.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ System Architecture: CLI-First
 
-Stigmergy's architecture is built for flexibility, centering around a powerful agent engine that can be controlled in two primary ways:
+Stigmergy's architecture is built for simplicity and power, centering around a universal command-line interface.
 
-1.  **CLI-First Workflow:** For direct, task-oriented execution from any IDE's terminal. You invoke the `stigmergy` CLI for a specific mission, and the engine runs, streams output, and exits upon completion.
-2.  **Server & Dashboard Workflow:** For a more visual and interactive experience. You run the `bun run dev` server, which launches the engine and a web-based dashboard. This allows you to set the active project, initiate missions, and observe the agent swarm in real-time.
+1.  **The `stigmergy` CLI:** This is the primary entry point for all development tasks. You invoke `stigmergy run` with a high-level goal, and the engine takes over. It streams output directly to your terminal and exits upon completion. This is the **only** supported method for running missions.
+2.  **The Optional Dashboard:** For visual monitoring, a web-based dashboard can be run using `bun run dashboard`. This is a read-only observability tool that connects to the engine's state.
 
-Both workflows utilize the same core components: a swarm of specialized AI agents, an extensible tool library, and a robust state management system.
+This approach eliminates the complex synchronization issues of previous versions and provides a clear, reliable, and universal workflow.
 
 ---
 
-## 🚀 Getting Started: A Step-by-Step Guide
+## 🚀 Getting Started: The Official Workflow
 
-This guide will walk you through setting up the Stigmergy engine, connecting the dashboard, and integrating it with your IDE.
+This guide will walk you through setting up the Stigmergy engine and integrating it with your IDE.
 
 **Prerequisites:**
 *   [Bun](https://bun.sh/) installed on your system.
-*   An API key from an AI provider.
+*   An API key from an AI provider (e.g., OpenAI, Anthropic, Google).
 
 ### **Step 1: Installation & Configuration**
 
@@ -54,6 +54,7 @@ This guide will walk you through setting up the Stigmergy engine, connecting the
     ```bash
     bun install
     ```
+    This single command installs all necessary packages for the CLI, engine, and dashboard.
 
 3.  **Configure Your Environment:**
     Copy the `.env.example` file to `.env` and add your AI provider API keys.
@@ -62,26 +63,9 @@ This guide will walk you through setting up the Stigmergy engine, connecting the
     # Now, open .env and add your keys
     ```
 
-### **Step 2: Run the Engine & Dashboard**
+### **Step 2: How to Run a Mission (IDE Integration)**
 
-1.  **Start the Development Server:**
-    ```bash
-    bun run dev
-    ```
-    This command starts the high-performance Hono server, which powers both the agent engine and the web dashboard.
-
-2.  **Open the Command & Control Dashboard:**
-    Navigate to **`http://localhost:3010`** in your web browser. You will see the live dashboard interface.
-
-3.  **Set Your Active Project:**
-    The engine needs to know which project you want to work on.
-    *   In the dashboard header, find the "Project Selector" input field.
-    *   Enter the **full, absolute path** to your project's directory.
-    *   Click **"Set Active Project"**. The dashboard will update to show your selected project, and the engine is now ready to work on it.
-
-### **Step 3: Connect Your IDE (The New CLI-First Way)**
-
-Our new CLI-first approach simplifies IDE integration. Instead of complex model configurations, you now use a simple command.
+Our new CLI-first approach simplifies IDE integration to a single command.
 
 #### **For `continue.dev` (VS Code)**
 
@@ -112,7 +96,7 @@ Our new CLI-first approach simplifies IDE integration. Instead of complex model 
     ```
     This will execute the command directly in your integrated terminal, and you will see the mission status streamed live.
 
-#### **For Qoder, Cursor, Trae, and any other IDE**
+#### **For Qoder, Cursor, Trae, and Any Other IDE**
 
 The beauty of the CLI-first approach is its universality. For any IDE with a built-in terminal:
 
@@ -124,7 +108,8 @@ The beauty of the CLI-first approach is its universality. For any IDE with a bui
     ```
     The mission status will be streamed directly into your terminal, providing a universal and reliable integration for any development environment.
 
-### **Step 4: Run Tests**
+### **Step 3: Running Tests**
+
 To ensure everything is working correctly, run the full test suite:
 ```bash
 bun test
@@ -134,14 +119,8 @@ bun test
 
 ## 📚 Documentation
 
-For more detailed information, please refer to our comprehensive guides:
-
 -   **[AGENT_DEVELOPMENT_GUIDE.md](./docs/AGENT_DEVELOPMENT_GUIDE.md):** Learn how to create and configure new agents.
 -   **[TOOL_DEVELOPMENT_GUIDE.md](./docs/TOOL_DEVELOPMENT_GUIDE.md):** A guide to adding new tools to the Stigmergy system.
--   **[MCP_INTEGRATION.md](./docs/MCP_INTEGRATION.md):** Instructions for integrating Stigmergy with your IDE.
--   **[OBSERVABILITY.md](./docs/OBSERVABILITY.md):** An overview of the Command & Control Dashboard and other monitoring features.
--   **[BENCHMARK_EXECUTION_SYSTEM.md](./docs/BENCHMARK_EXECUTION_SYSTEM.md):** Information on our benchmark suite for performance validation.
--   **[provider-configuration.md](./docs/provider-configuration.md):** A guide to configuring different AI providers.
 
 ---
 
