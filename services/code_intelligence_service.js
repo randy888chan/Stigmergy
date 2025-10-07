@@ -236,10 +236,9 @@ export class CodeIntelligenceService {
   
   /**
    * Detect technologies used in the project
-   * @param {string} projectPath - Path to the project
    * @returns {Promise<string[]>} - Array of detected technologies
    */
-  async detectTechnologies(projectPath) {
+  async detectTechnologies() {
     // This is a simplified implementation
     // In a real implementation, this would analyze package.json, 
     // configuration files, and source code to detect technologies
@@ -247,7 +246,7 @@ export class CodeIntelligenceService {
     
     try {
       // Check for package.json
-      const packageJsonPath = path.join(projectPath, 'package.json');
+      const packageJsonPath = path.join(this.projectRoot, 'package.json');
       if (await fs.pathExists(packageJsonPath)) {
         const packageJson = await fs.readJson(packageJsonPath);
         
@@ -267,7 +266,7 @@ export class CodeIntelligenceService {
       }
       
       // Check for specific files
-      const files = await this.getAllFiles(projectPath, ['js', 'ts', 'jsx', 'tsx', 'html', 'css']);
+      const files = await this.getAllFiles(this.projectRoot, ['js', 'ts', 'jsx', 'tsx', 'html', 'css']);
       for (const file of files) {
         const content = await fs.readFile(file, 'utf8');
         
@@ -288,12 +287,11 @@ export class CodeIntelligenceService {
   
   /**
    * Parse dependencies from package.json
-   * @param {string} projectPath - Path to the project
    * @returns {Promise<object>} - Dependencies object
    */
-  async parseDependencies(projectPath) {
+  async parseDependencies() {
     try {
-      const packageJsonPath = path.join(projectPath, 'package.json');
+      const packageJsonPath = path.join(this.projectRoot, 'package.json');
       if (await fs.pathExists(packageJsonPath)) {
         const packageJson = await fs.readJson(packageJsonPath);
         return {
@@ -477,6 +475,96 @@ export class CodeIntelligenceService {
       return [];
     } finally {
       await session.close();
+    }
+  }
+
+  /**
+   * Orchestrates the entire process of scanning, analyzing, and indexing the codebase.
+   * @returns {Promise<void>}
+   */
+  async initializeCodeRAG() {
+    console.log(chalk.cyan(`[CodeRAG] Starting indexing for project at: ${this.projectRoot}`));
+    await this.testConnection();
+
+    if (this.isMemoryMode) {
+        console.log(chalk.yellow('[CodeRAG] Running in Memory Mode. Skipping Neo4j graph build. Full analysis will be performed, but results will not be persisted.'));
+    }
+
+    try {
+        console.log(chalk.blue('[CodeRAG] Step 1: Scanning project structure...'));
+        const filePaths = await this.scanProjectStructure();
+        if (filePaths.length === 0) {
+            console.log(chalk.yellow('[CodeRAG] No relevant source code files found. Indexing complete.'));
+            return;
+        }
+        console.log(chalk.green(`[CodeRAG] Found ${filePaths.length} source files.`));
+
+        console.log(chalk.blue('[CodeRAG] Step 2: Extracting semantic information...'));
+        const { symbols, relationships } = await this.extractSemanticInformation(filePaths);
+        console.log(chalk.green(`[CodeRAG] Extracted ${symbols.length} symbols and ${relationships.length} relationships.`));
+
+        if (!this.isMemoryMode) {
+            console.log(chalk.blue('[CodeRAG] Step 3: Building knowledge graph...'));
+            await this.buildKnowledgeGraph(symbols, relationships);
+            console.log(chalk.green('[CodeRAG] Knowledge graph built successfully.'));
+        }
+
+        console.log(chalk.cyan.bold('[CodeRAG] Indexing process completed.'));
+    } catch (error) {
+        console.error(chalk.red.bold(`[CodeRAG] A critical error occurred during indexing: ${error.message}`), error);
+    }
+  }
+
+  /**
+   * Orchestrates the entire process of scanning, analyzing, and indexing a specific project.
+   * This method is designed to be called by the `index_project` tool.
+   * @param {string} projectRoot - The absolute path to the project to be indexed.
+   * @returns {Promise<void>}
+   */
+  async runIndexingForProject(projectRoot) {
+    console.log(chalk.cyan(`[CodeRAG] Starting indexing for project at: ${projectRoot}`));
+    await this.testConnection();
+
+    if (this.isMemoryMode) {
+        console.log(chalk.yellow('[CodeRAG] Running in Memory Mode. Skipping Neo4j graph build.'));
+    }
+
+    try {
+        const codeExtensions = ['js', 'ts', 'jsx', 'tsx'];
+        const allowedDirs = this.config?.security?.allowedDirs;
+
+        if (!allowedDirs || allowedDirs.length === 0) {
+            console.error(chalk.red('[CodeRAG] CRITICAL: Config setting `security.allowedDirs` is missing or empty. Cannot perform targeted indexing.'));
+            return;
+        }
+
+        console.log(chalk.blue(`[CodeRAG] Scanning configured source directories: ${allowedDirs.join(', ')}`));
+
+        const patterns = allowedDirs.map(dir =>
+          path.join(projectRoot, dir, '**', `*.{${codeExtensions.join(',')}}`)
+        );
+
+        const filePaths = await glob(patterns, { nodir: true, dot: true });
+
+        if (filePaths.length === 0) {
+            console.log(chalk.yellow('[CodeRAG] No relevant source code files found in allowed directories. Indexing complete.'));
+            return;
+        }
+        console.log(chalk.green(`[CodeRAG] Found ${filePaths.length} source files.`));
+
+        console.log(chalk.blue('[CodeRAG] Step 2: Extracting semantic information...'));
+        const { symbols, relationships } = await this.extractSemanticInformation(filePaths);
+        console.log(chalk.green(`[CodeRAG] Extracted ${symbols.length} symbols and ${relationships.length} relationships.`));
+
+        if (!this.isMemoryMode) {
+            console.log(chalk.blue('[CodeRAG] Step 3: Building knowledge graph...'));
+            await this.buildKnowledgeGraph(symbols, relationships);
+            console.log(chalk.green('[CodeRAG] Knowledge graph built successfully.'));
+        }
+
+        console.log(chalk.cyan.bold('[CodeRAG] Indexing process completed.'));
+    } catch (error) {
+        console.error(chalk.red.bold(`[CodeRAG] A critical error occurred during indexing: ${error.message}`), error);
     }
   }
 }

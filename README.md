@@ -1,65 +1,79 @@
-# Stigmergy - A CLI-First AI Swarm for Software Development
+# Stigmergy - The Autonomous AI Development System
 
-Stigmergy is a powerful, command-line-driven system that uses a swarm of AI agents to autonomously accomplish complex software engineering tasks. It is designed for developers who are comfortable working in a terminal and want to integrate AI capabilities directly into their existing workflows.
+**Stigmergy is a CLI-first autonomous AI development system designed for seamless integration with your local Integrated Development Environment (IDE) through the Universal Malleable Communications Protocol (MCP).**
 
-## Core Philosophy: CLI-First
+It empowers AI agents to tackle complex software development tasks by providing them with a robust set of tools, a structured workflow, and direct access to your codebase in a safe, sandboxed environment.
 
-The primary interface for Stigmergy is the `stigmergy` command-line tool, powered by Bun. While a web-based dashboard exists for observability, all core actions—from running tasks to managing projects—are designed to be executed from the terminal. This "CLI-First" approach ensures maximum flexibility, scriptability, and integration with standard development environments.
+---
 
-## Quick Start
+## Core Philosophy: CLI-First, IDE-Integrated
 
-### Prerequisites
+Stigmergy is built on a "CLI-First" principle. The command line is the primary interface for initiating, monitoring, and managing AI-driven tasks. This ensures maximum compatibility, scriptability, and control for the developer.
 
-*   **Bun:** Stigmergy is built on the Bun runtime. Installation is simple:
-    ```bash
-    curl -fsSL https://bun.sh/install | bash
-    ```
-*   **API Keys:** You will need API keys for your chosen AI models. Configure them in a `.env` file in the project root. See `env.example` for the required format.
+The dashboard is a secondary, read-only observability tool that provides a visual representation of the agent swarm's activity and the project's state.
 
-### Installation
+## Key Commands
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-org/stigmergy.git
-    cd stigmergy
-    ```
+The two primary commands you will use are `stigmergy start-service` and `stigmergy run`.
 
-2.  **Install dependencies:**
+### 1. `stigmergy start-service`
+
+This command starts the core Stigmergy engine, which includes the main server, the WebSocket endpoint for real-time updates, and the MCP server for IDE communication. You must have this service running in a terminal window before you can assign tasks.
+
+```bash
+# Start the Stigmergy engine and all related services
+stigmergy start-service
+```
+
+Once running, the service will provide a local URL for the observability dashboard (e.g., `http://localhost:3010`).
+
+### 2. `stigmergy run`
+
+This is the command used to assign a new goal to the agent swarm. It sends the task to the running Stigmergy service and returns a mission ID.
+
+There are two modes of operation:
+
+#### A) Single Goal Mode (`--goal`)
+
+This is the primary mode for autonomous operation. You provide a high-level objective, and the agent swarm will work to achieve it.
+
+```bash
+# Assign a high-level goal to the agent swarm
+stigmergy run --goal "Refactor the authentication module to use JWT instead of session cookies."
+```
+
+#### B) Interactive Chat Mode
+
+If you run the command without any arguments, it will launch an interactive chat session, allowing for a more conversational workflow.
+
+```bash
+# Start an interactive chat session with the Stigmergy system
+stigmergy run
+```
+
+---
+
+## Getting Started
+
+1.  **Install Dependencies:**
     ```bash
     bun install
     ```
 
-### Running a Mission
+2.  **Set Up Environment:**
+    Copy the `.env.example` file to a new file named `.env` and fill in your API keys (e.g., `OPENAI_API_KEY`, `GOOGLE_API_KEY`).
 
-The core of Stigmergy is the `run` command. Provide it with a high-level goal, and the AI swarm will work to achieve it.
-
-```bash
-bun run stigmergy run --goal "Refactor the authentication service to use a more secure hashing algorithm and then write integration tests for it."
-```
-
-The system will automatically select the right agents, create a sandboxed environment for the work, and execute the plan.
-
-## IDE Integration
-
-Integrate Stigmergy with your favorite IDE (like VS Code, Zed, or Cursor) by using its built-in terminal. This allows you to run missions and interact with the AI swarm without leaving your development environment.
-
-1.  Open the Stigmergy project in your IDE.
-2.  Open the integrated terminal (`Ctrl+` or `Cmd+`).
-3.  Run a mission directly from the terminal:
+3.  **Start the Service:**
+    Open a terminal window and run:
     ```bash
-    bun run stigmergy run --goal "Implement the user profile page based on the new Figma designs."
+    stigmergy start-service
     ```
 
-This workflow keeps all your tools—code editor, terminal, and AI swarm—in one place, providing a seamless and efficient development experience.
-
-## The Dashboard (Optional)
-
-For a read-only view of the swarm's activity, you can launch the optional web dashboard.
-
-1.  **Start the server:**
+4.  **Assign a Goal:**
+    Open a *second* terminal window and run:
     ```bash
-    bun run dev
+    stigmergy run --goal "Your development task here"
     ```
-2.  **View the dashboard:** Open your browser to `http://localhost:3011`.
 
-The dashboard is useful for observing agent states, watching file changes in real-time, and reviewing logs, but it is not required for running the system.
+5.  **Observe:**
+    Open the dashboard URL provided by the `start-service` command in your browser to watch the agents work in real-time.

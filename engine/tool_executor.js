@@ -181,13 +181,13 @@ export function createExecutor(engine, ai, options = {}) {
     coderag: { initialize: initialize_coderag, semantic_search },
     deepwiki: { query: query_deepwiki },
 stigmergy: {
-  task: ({ subagent_type, description }) => { // USE THE NEW ARGUMENTS
+  task: async ({ subagent_type, description }) => {
     if (!subagent_type || !description) {
       throw new OperationalError("The 'subagent_type' and 'description' arguments are required for stigmergy.task");
     }
-    // Do not await this call. Let it run in the background.
-    engine.triggerAgent(subagent_type, description); // PASS THEM TO THE ENGINE
-    return `Task successfully delegated to ${subagent_type}.`;
+    // This now awaits the sub-agent's completion, getting its final response.
+    const result = await engine.triggerAgent(subagent_type, description);
+    return result || `Task successfully delegated to ${subagent_type}, which returned no final message.`;
   },
 },
   };
