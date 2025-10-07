@@ -1,5 +1,1 @@
-[1] $ bun build ./dashboard/src/index.js --outdir ./dashboard/public --watch
-[1] Bundled 17 modules in 58ms
-[1]
-[1]   index.js  1.0 MB  (entry point)
-[1]
+$ USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js

@@ -343,12 +343,16 @@ export class Engine {
         // --- THIS MUST BE LAST: THE GENERAL "CATCH-ALL" ROUTES ---
 
         // 5. Serve Static Assets (JS, CSS, images) from the public directory
-        const publicPath = path.join(this.projectRoot, 'dashboard', 'public');
+        // Construct a reliable path to the 'public' directory, independent of CWD
+        const currentFilePath = new URL(import.meta.url).pathname;
+        const engineDir = path.dirname(currentFilePath);
+        const projectRootForStatic = path.resolve(engineDir, '..'); // Goes up from /engine to the project root
+        const publicPath = path.join(projectRootForStatic, 'dashboard', 'public');
+
         this.app.use('/*', serveStatic({ root: publicPath }));
 
         // 6. Fallback for Single-Page App: Serve index.html for any other GET request.
-        // This makes React Router work.
-        this.app.get('*', serveStatic({ path: './index.html', root: publicPath }));
+        this.app.get('*', serveStatic({ path: 'index.html', root: publicPath }));
     }
 
     broadcastEvent(type, payload) {
