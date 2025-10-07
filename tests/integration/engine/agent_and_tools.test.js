@@ -1,8 +1,18 @@
-import { test, describe, expect, spyOn, mock, beforeEach, afterEach } from 'bun:test';
+import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Volume } from 'memfs';
 import path from 'path';
+
+// --- Mock the entire coderag tool module ---
+const mockCoderagTool = {
+  semantic_search: mock(async ({ query, project_root }) => []),
+  calculate_metrics: mock(async () => '{"metrics": "mocked"}'),
+  find_architectural_issues: mock(async () => []),
+};
+mock.module('../../../tools/coderag_tool.js', () => ({
+  coderag: mockCoderagTool,
+}));
+
 import { createExecutor } from '../../../engine/tool_executor.js';
-import { unifiedIntelligenceService } from '../../../services/unified_intelligence.js';
 
 // --- 1. Setup In-Memory File System & Mock ---
 const vol = new Volume();
@@ -33,10 +43,13 @@ mock.module('../../../engine/context.js', () => ({
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
   let executor;
-  let semanticSearchSpy, calculateMetricsSpy, findArchitecturalIssuesSpy;
 
   beforeEach(() => {
     vol.reset(); // Clear the in-memory file system
+    // Clear the new module-level mocks
+    mockCoderagTool.semantic_search.mockClear();
+    mockCoderagTool.calculate_metrics.mockClear();
+    mockCoderagTool.find_architectural_issues.mockClear();
 
     // --- Create mock agent & trajectory directories in-memory ---
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
@@ -55,21 +68,15 @@ agent:
 `;
     mockFs.writeFileSync(path.join(agentDir, 'debugger.md'), mockDebuggerAgent);
 
-    // Spy on the methods of the unifiedIntelligenceService singleton
-    semanticSearchSpy = spyOn(unifiedIntelligenceService, 'semanticSearch').mockImplementation(async () => {});
-    calculateMetricsSpy = spyOn(unifiedIntelligenceService, 'calculateMetrics').mockImplementation(async () => {});
-    findArchitecturalIssuesSpy = spyOn(unifiedIntelligenceService, 'findArchitecturalIssues').mockImplementation(async () => {});
-
     const mockEngine = {
       broadcastEvent: mock(),
       projectRoot: process.cwd(),
       getAgent: mock(),
       triggerAgent: mock(),
     };
-    const mockAi = {};
-    const mockConfig = {};
 
-    executor = createExecutor(mockEngine, mockAi, mockConfig);
+    // The executor now gets the mocked coderag tool automatically via module mocking
+    executor = createExecutor(mockEngine, {}, {});
   });
 
   afterEach(() => {
@@ -78,32 +85,36 @@ agent:
 
   test('should call coderag.semantic_search', async () => {
     const fakeResults = [{ file: 'src/app.js', snippet: 'function main() {}' }];
-    semanticSearchSpy.mockResolvedValue(fakeResults);
+    mockCoderagTool.semantic_search.mockResolvedValue(fakeResults);
 
     const result = await executor.execute('coderag.semantic_search', { query: 'main function' }, 'debugger');
 
     expect(JSON.parse(result)).toEqual(fakeResults);
-    expect(semanticSearchSpy).toHaveBeenCalledTimes(1);
-    expect(semanticSearchSpy).toHaveBeenCalledWith('main function');
+    expect(mockCoderagTool.semantic_search).toHaveBeenCalledTimes(1);
+    expect(mockCoderagTool.semantic_search).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'main function' })
+    );
   });
 
   test('should call coderag.calculate_metrics', async () => {
     const fakeMetrics = { cyclomaticComplexity: 15, maintainability: 85 };
-    calculateMetricsSpy.mockResolvedValue(`Metrics calculation complete: ${JSON.stringify(fakeMetrics)}`);
+    // The mock now directly returns the stringified JSON the tool is expected to return
+    mockCoderagTool.calculate_metrics.mockResolvedValue(`Metrics calculation complete: ${JSON.stringify(fakeMetrics)}`);
 
     const result = await executor.execute('coderag.calculate_metrics', {}, 'debugger');
 
-    expect(JSON.parse(result)).toContain('{"cyclomaticComplexity":15,"maintainability":85}');
-    expect(calculateMetricsSpy).toHaveBeenCalledTimes(1);
+    const toolOutput = JSON.parse(result);
+    expect(toolOutput).toContain('{"cyclomaticComplexity":15,"maintainability":85}');
+    expect(mockCoderagTool.calculate_metrics).toHaveBeenCalledTimes(1);
   });
 
   test('should call coderag.find_architectural_issues', async () => {
     const fakeIssues = [{ type: 'Cyclic Dependency', files: ['a.js', 'b.js'] }];
-    findArchitecturalIssuesSpy.mockResolvedValue(fakeIssues);
+    mockCoderagTool.find_architectural_issues.mockResolvedValue(fakeIssues);
 
     const result = await executor.execute('coderag.find_architectural_issues', {}, 'debugger');
 
     expect(JSON.parse(result)).toEqual(fakeIssues);
-    expect(findArchitecturalIssuesSpy).toHaveBeenCalledTimes(1);
+    expect(mockCoderagTool.find_architectural_issues).toHaveBeenCalledTimes(1);
   });
 });

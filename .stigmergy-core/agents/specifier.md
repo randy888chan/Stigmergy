@@ -21,6 +21,5 @@ agent:
       4. **Delegate for Review:** After generating the plan, I MUST delegate to the `@qa` agent using the `stigmergy.task` tool for review of my plan.
   engine_tools:
     - "stigmergy.task"
-    - "file_system.*"
     - "coderag.*"
 ```
