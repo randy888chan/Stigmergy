@@ -50,9 +50,25 @@ const CodeBrowser = ({ activeProject }) => {
     fetchFiles();
   }, [activeProject]);
 
-  const handleFileSelect = (file) => {
+  const handleFileSelect = async (file) => {
+    if (file.type === 'folder') return;
+
     setSelectedFile(file.name);
-    setFileContent(`// In a real app, content for ${file.name} would be fetched here.`);
+    setFileContent('Loading...');
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/file-content?path=${encodeURIComponent(file.name)}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      setFileContent(data.content);
+    } catch (e) {
+      console.error('Failed to fetch file content:', e);
+      setFileContent(`Error loading file: ${e.message}`);
+    }
   };
 
   const renderFileTree = (items) => {

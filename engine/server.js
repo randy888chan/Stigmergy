@@ -228,6 +228,22 @@ export class Engine {
             return c.json(files);
         });
 
+        this.app.get('/api/file-content', async (c) => {
+            const { path: filePath } = c.req.query();
+            if (!filePath) {
+                return c.json({ error: 'File path is required.' }, 400);
+            }
+            try {
+                if (filePath.includes('..')) {
+                    return c.json({ error: 'Invalid file path.' }, 400);
+                }
+                const content = await fileSystem.readFile({ path: filePath, projectRoot: this.projectRoot });
+                return c.json({ content });
+            } catch (error) {
+                return c.json({ error: `Failed to read file: ${error.message}` }, 500);
+            }
+        });
+
         // 3. IDE (MCP) Endpoint
         this.app.post('/mcp', async (c) => {
             const { prompt, project_path } = await c.req.json();
