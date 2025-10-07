@@ -33,23 +33,28 @@ It is good practice to include JSDoc comments to describe the tool and its param
 
 All tool functions must be exported from the module using `export`.
 
-## Granting Agents Permission
+## Making Tools Available to Agents
 
-For an agent to be able to use a new tool, you must grant it permission in its agent definition file (`.stigmergy-core/agents/<agent_name>.md`).
+Tools are automatically discovered by the engine, but they must be explicitly authorized for an agent to use them.
 
-In the YAML frontmatter of the agent's definition file, add the tool to the `tools` list. The format is `<tool_filename>.<function_name>`.
+### 1. Automatic Discovery
+The engine automatically loads all exported functions from JavaScript files within the `tools/` directory. You do not need to register them manually. The tool's name will be `<filename>.<function_name>`. For example, a function `do_something` exported from `my_custom_tool.js` will be available as the tool `my_custom_tool.do_something`.
+
+### 2. Agent Authorization
+For security, an agent can only use tools that are explicitly listed in its `engine_tools` configuration. This is done in the agent's YAML definition file (`.stigmergy-core/agents/<agent_name>.md`).
 
 **Example:**
+
+To grant an agent permission to use `file_system.readFile` and all tools from the `shell` module, you would configure it as follows:
 
 ```yaml
 # .stigmergy-core/agents/my_agent.md
 
 agent:
-  name: My Agent
   # ... other properties
-  tools:
-    - "core.log"
-    - "my_custom_tool.do_something" # Grant permission to the new tool
+  engine_tools:
+    - "file_system.readFile"
+    - "shell.*" # Use a wildcard to grant access to all tools in the 'shell' namespace
 ```
 
-Once you have added the tool to the agent's definition file, the agent will be able to call it during its execution cycle.
+The system will prevent an agent from executing any tool not listed in its `engine_tools` array.
