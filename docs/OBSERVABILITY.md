@@ -9,7 +9,7 @@ Stigmergy provides comprehensive observability features to monitor system perfor
 The dashboard is a real-time, web-based interface that provides a complete overview of the Stigmergy engine's operations.
 
 **How to Access:**
-1.  Start the Stigmergy service with `stigmergy start-service`.
+1.  Start the Stigmergy engine and dashboard with `bun run dev` from the project root.
 2.  Open your web browser and navigate to **`http://localhost:3010`**.
 
 ### Key Features
@@ -23,17 +23,6 @@ The dashboard is a real-time, web-based interface that provides a complete overv
 ## Advanced Observability (For Power Users)
 
 While the dashboard is the primary interface, the underlying data sources can be accessed directly for advanced use cases or scripting.
-
-### Cost Monitoring API
-
-Stigmergy exposes a simple API endpoint to get the latest cost tracking data.
-
-*   **Endpoint**: `GET /api/cost`
-*   **Example**:
-    ```bash
-    curl http://localhost:3010/api/cost
-    ```
-*   **Returns**: A JSON object containing `totalCost`, `dailyCost`, `providerCosts`, and `dailyCostHistory`.
 
 ### Trajectory Recordings
 

@@ -23991,15 +23991,393 @@ var init_StateManagement = __esm(() => {
   StateManagement_default = StateManagement;
 });
 
+// node_modules/react-icons/lib/iconsManifest.mjs
+var init_iconsManifest = () => {};
+
+// node_modules/react-icons/lib/iconContext.mjs
+var import_react6, DefaultContext, IconContext;
+var init_iconContext = __esm(() => {
+  import_react6 = __toESM(require_react(), 1);
+  DefaultContext = {
+    color: undefined,
+    size: undefined,
+    className: undefined,
+    style: undefined,
+    attr: undefined
+  };
+  IconContext = import_react6.default.createContext && /* @__PURE__ */ import_react6.default.createContext(DefaultContext);
+});
+
+// node_modules/react-icons/lib/iconBase.mjs
+function _objectWithoutProperties(source, excluded) {
+  if (source == null)
+    return {};
+  var target = _objectWithoutPropertiesLoose(source, excluded);
+  var key, i;
+  if (Object.getOwnPropertySymbols) {
+    var sourceSymbolKeys = Object.getOwnPropertySymbols(source);
+    for (i = 0;i < sourceSymbolKeys.length; i++) {
+      key = sourceSymbolKeys[i];
+      if (excluded.indexOf(key) >= 0)
+        continue;
+      if (!Object.prototype.propertyIsEnumerable.call(source, key))
+        continue;
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null)
+    return {};
+  var target = {};
+  for (var key in source) {
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      if (excluded.indexOf(key) >= 0)
+        continue;
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+function _extends() {
+  _extends = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i = 1;i < arguments.length; i++) {
+      var source = arguments[i];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
+  };
+  return _extends.apply(this, arguments);
+}
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function(r2) {
+      return Object.getOwnPropertyDescriptor(e, r2).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread(e) {
+  for (var r = 1;r < arguments.length; r++) {
+    var t = arguments[r] != null ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), true).forEach(function(r2) {
+      _defineProperty(e, r2, t[r2]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function(r2) {
+      Object.defineProperty(e, r2, Object.getOwnPropertyDescriptor(t, r2));
+    });
+  }
+  return e;
+}
+function _defineProperty(obj, key, value) {
+  key = _toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, { value, enumerable: true, configurable: true, writable: true });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function _toPropertyKey(t) {
+  var i = _toPrimitive(t, "string");
+  return typeof i == "symbol" ? i : i + "";
+}
+function _toPrimitive(t, r) {
+  if (typeof t != "object" || !t)
+    return t;
+  var e = t[Symbol.toPrimitive];
+  if (e !== undefined) {
+    var i = e.call(t, r || "default");
+    if (typeof i != "object")
+      return i;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (r === "string" ? String : Number)(t);
+}
+function Tree2Element(tree) {
+  return tree && tree.map((node, i) => /* @__PURE__ */ import_react7.default.createElement(node.tag, _objectSpread({
+    key: i
+  }, node.attr), Tree2Element(node.child)));
+}
+function GenIcon(data) {
+  return (props) => /* @__PURE__ */ import_react7.default.createElement(IconBase, _extends({
+    attr: _objectSpread({}, data.attr)
+  }, props), Tree2Element(data.child));
+}
+function IconBase(props) {
+  var elem = (conf) => {
+    var {
+      attr,
+      size,
+      title
+    } = props, svgProps = _objectWithoutProperties(props, _excluded);
+    var computedSize = size || conf.size || "1em";
+    var className;
+    if (conf.className)
+      className = conf.className;
+    if (props.className)
+      className = (className ? className + " " : "") + props.className;
+    return /* @__PURE__ */ import_react7.default.createElement("svg", _extends({
+      stroke: "currentColor",
+      fill: "currentColor",
+      strokeWidth: "0"
+    }, conf.attr, attr, svgProps, {
+      className,
+      style: _objectSpread(_objectSpread({
+        color: props.color || conf.color
+      }, conf.style), props.style),
+      height: computedSize,
+      width: computedSize,
+      xmlns: "http://www.w3.org/2000/svg"
+    }), title && /* @__PURE__ */ import_react7.default.createElement("title", null, title), props.children);
+  };
+  return IconContext !== undefined ? /* @__PURE__ */ import_react7.default.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
+}
+var import_react7, _excluded;
+var init_iconBase = __esm(() => {
+  import_react7 = __toESM(require_react(), 1);
+  init_iconContext();
+  _excluded = ["attr", "size", "title"];
+});
+
+// node_modules/react-icons/lib/index.mjs
+var init_lib = __esm(() => {
+  init_iconsManifest();
+  init_iconBase();
+  init_iconContext();
+});
+
+// node_modules/react-icons/fi/index.mjs
+function FiFile(props) {
+  return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "path", attr: { d: "M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" }, child: [] }, { tag: "polyline", attr: { points: "13 2 13 9 20 9" }, child: [] }] })(props);
+}
+function FiFolder(props) {
+  return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "path", attr: { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }, child: [] }] })(props);
+}
+var init_fi = __esm(() => {
+  init_lib();
+});
+
+// dashboard/src/components/CodeBrowser.css
+var init_CodeBrowser = () => {};
+
+// dashboard/src/components/CodeBrowser.js
+var exports_CodeBrowser = {};
+__export(exports_CodeBrowser, {
+  default: () => CodeBrowser_default
+});
+var import_react8, jsx_dev_runtime5, CodeBrowser = ({ activeProject }) => {
+  const [files, setFiles] = import_react8.useState([]);
+  const [selectedFile, setSelectedFile] = import_react8.useState(null);
+  const [fileContent, setFileContent] = import_react8.useState("");
+  const [error, setError] = import_react8.useState(null);
+  const [isLoading, setIsLoading] = import_react8.useState(false);
+  import_react8.useEffect(() => {
+    if (!activeProject) {
+      setFiles([]);
+      return;
+    }
+    const fetchFiles = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/files");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        if (Array.isArray(data)) {
+          data.sort((a, b) => {
+            if (a.type === "folder" && b.type !== "folder")
+              return -1;
+            if (a.type !== "folder" && b.type === "folder")
+              return 1;
+            return a.name.localeCompare(b.name);
+          });
+          setFiles(data);
+        } else if (data.error) {
+          throw new Error(data.error);
+        } else {
+          console.error("API did not return a valid array:", data);
+          setFiles([]);
+        }
+      } catch (e) {
+        console.error("Failed to fetch files:", e);
+        setError(e.message);
+        setFiles([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchFiles();
+  }, [activeProject]);
+  const handleFileSelect = (file) => {
+    setSelectedFile(file.name);
+    setFileContent(`// In a real app, content for ${file.name} would be fetched here.`);
+  };
+  const renderFileTree = (items) => {
+    return items.map((item) => {
+      if (item.type === "folder") {
+        return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+          className: "tree-item",
+          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            className: "tree-folder",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(FiFolder, {
+                className: "folder-icon"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                className: "item-name",
+                children: item.name
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        }, item.name, false, undefined, this);
+      } else {
+        return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+          className: `tree-item tree-file ${selectedFile === item.name ? "selected" : ""}`,
+          onClick: () => handleFileSelect(item),
+          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            className: "tree-file-content",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(FiFile, {
+                className: "file-icon"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                className: "item-name",
+                children: item.name
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        }, item.name, false, undefined, this);
+      }
+    });
+  };
+  const renderContent = () => {
+    if (!activeProject) {
+      return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
+        className: "info-message",
+        children: "Please set an active project to browse files."
+      }, undefined, false, undefined, this);
+    }
+    if (isLoading) {
+      return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
+        className: "info-message",
+        children: "Loading files..."
+      }, undefined, false, undefined, this);
+    }
+    if (error) {
+      return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
+        className: "error-message",
+        children: [
+          "Error: ",
+          error
+        ]
+      }, undefined, true, undefined, this);
+    }
+    if (files.length === 0) {
+      return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
+        className: "info-message",
+        children: "No files found in the project root."
+      }, undefined, false, undefined, this);
+    }
+    return renderFileTree(files);
+  };
+  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+    className: "code-browser-container",
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+        children: "Code Browser"
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+        className: "code-browser-content",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            className: "file-tree",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h3", {
+                children: "File Structure"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                className: "tree-root",
+                children: renderContent()
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+            className: "file-viewer",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h3", {
+                children: "File Content"
+              }, undefined, false, undefined, this),
+              selectedFile ? /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                className: "file-content",
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                    className: "file-header",
+                    children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                      className: "file-path",
+                      children: selectedFile
+                    }, undefined, false, undefined, this)
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("pre", {
+                    className: "file-content-text",
+                    children: fileContent
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                    className: "file-actions",
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
+                        className: "file-action-button",
+                        children: "Edit"
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
+                        className: "file-action-button",
+                        children: "Save"
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
+                        className: "file-action-button",
+                        children: "Download"
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this)
+                ]
+              }, undefined, true, undefined, this) : /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+                className: "no-file-selected",
+                children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
+                  children: "Select a file to view its content."
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}, CodeBrowser_default;
+var init_CodeBrowser2 = __esm(() => {
+  import_react8 = __toESM(require_react(), 1);
+  init_fi();
+  init_CodeBrowser();
+  jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
+  CodeBrowser_default = CodeBrowser;
+});
+
 // dashboard/src/index.js
-var import_react8 = __toESM(require_react(), 1);
+var import_react11 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react7 = __toESM(require_react(), 1);
+var import_react10 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react6 = __toESM(require_react(), 1);
+var import_react9 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
@@ -24205,8 +24583,9 @@ var DocumentUploader = () => {
 var DocumentUploader_default = DocumentUploader;
 
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
-var StateManagement2 = import_react6.lazy(() => Promise.resolve().then(() => (init_StateManagement(), exports_StateManagement)));
+var jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+var StateManagement2 = import_react9.lazy(() => Promise.resolve().then(() => (init_StateManagement(), exports_StateManagement)));
+var CodeBrowser2 = import_react9.lazy(() => Promise.resolve().then(() => (init_CodeBrowser2(), exports_CodeBrowser)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -24220,9 +24599,9 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react6.useState(INITIAL_STATE);
-  const [projectPathInput, setProjectPathInput] = import_react6.useState("");
-  import_react6.useEffect(() => {
+  const [systemState, setSystemState] = import_react9.useState(INITIAL_STATE);
+  const [projectPathInput, setProjectPathInput] = import_react9.useState("");
+  import_react9.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -24230,7 +24609,13 @@ var Dashboard = () => {
           setSystemState((prevState) => ({ ...prevState, ...payload }));
           break;
         case "project_switched":
-          setSystemState({ ...INITIAL_STATE, project_path: payload.path, project_status: "Project Set" });
+          setSystemState((prevState) => ({
+            ...prevState,
+            project_path: payload.path,
+            project_status: "Project Set",
+            logs: [`Project switched to ${payload.path}`],
+            agentActivity: []
+          }));
           break;
         default:
           setSystemState((prevState) => {
@@ -24251,78 +24636,88 @@ var Dashboard = () => {
       setProjectPathInput("");
     }
   };
-  const renderCard = (title, Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+  const renderCard = (title, Component, props = {}) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
     className: "dashboard-card",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h2", {
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("h2", {
         children: title
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
         className: "card-content",
-        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(import_react6.Suspense, {
-          fallback: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+        children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(import_react9.Suspense, {
+          fallback: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
             children: "Loading..."
           }, undefined, false, undefined, this),
-          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Component, {
+          children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Component, {
             ...props
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
-  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
     className: "dashboard-layout",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("main", {
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("main", {
         className: "dashboard-main",
-        children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-          className: "chat-container",
-          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(ChatInterface_default, {
-            sendMessage,
-            engineStatus: systemState.project_status
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+            className: "chat-container",
+            children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(ChatInterface_default, {
+              sendMessage,
+              engineStatus: systemState.project_status
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          systemState.project_path && /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(import_react9.Suspense, {
+            fallback: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+              children: "Loading Code Browser..."
+            }, undefined, false, undefined, this),
+            children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(CodeBrowser2, {
+              activeProject: systemState.project_path
+            }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
-        }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("aside", {
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("aside", {
         className: "dashboard-sidebar",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("header", {
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("header", {
             className: "sidebar-header",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h1", {
+              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("h1", {
                 children: "Stigmergy"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
                 className: "project-selector",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("input", {
+                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("input", {
                     type: "text",
                     placeholder: "Enter absolute path to project...",
                     value: projectPathInput,
                     onChange: (e) => setProjectPathInput(e.target.value),
                     onKeyDown: (e) => e.key === "Enter" && handleSetProject()
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("button", {
+                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("button", {
                     onClick: handleSetProject,
                     children: "Set Active Project"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
                 className: "user-info",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("b", {
+                      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("b", {
                         children: "Active Project:"
                       }, undefined, false, undefined, this),
                       " ",
                       systemState.project_path || "None"
                     ]
                   }, undefined, true, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("b", {
+                      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("b", {
                         children: "Status:"
                       }, undefined, false, undefined, this),
                       " ",
@@ -24333,7 +24728,7 @@ var Dashboard = () => {
               }, undefined, true, undefined, this)
             ]
           }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
             className: "sidebar-content",
             children: [
               renderCard("Activity Log", ActivityLog_default, { logs: systemState.logs, agentActivity: systemState.agentActivity }),
@@ -24349,15 +24744,15 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/index.js
-var jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime7.jsxDEV(import_react8.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime8.jsxDEV(import_react11.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(App_default, {}, undefined, false, undefined, this)
 }, undefined, false, undefined, this));

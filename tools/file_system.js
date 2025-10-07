@@ -45,7 +45,7 @@ export function resolvePath(filePath, projectRoot, workingDirectory, fs = defaul
   // Verify the final resolved path is within a safe directory if not in a sandbox
   if (!workingDirectory) {
     const relative = path.relative(projectScope, resolved);
-    const isSafe = SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
+    const isSafe = relative === '' || SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
     if (!isSafe) {
       const rootDir = relative.split(path.sep)[0] || relative;
       throw new Error(`Access restricted to ${rootDir} directory`);
@@ -91,6 +91,16 @@ export async function writeFile({ path: filePath, content, projectRoot, workingD
     } catch (error) {
         return `EXECUTION FAILED: ${error.message}`;
     }
+}
+
+export async function listDirectory({ path: dirPath, projectRoot, fs = defaultFs }) {
+  try {
+    const safePath = resolvePath(dirPath || '.', projectRoot, undefined, fs); // Pass projectRoot, but not workingDirectory
+    const files = await fs.readdir(safePath, { withFileTypes: true });
+    return files.map(file => ({ name: file.name, type: file.isDirectory() ? 'folder' : 'file' }));
+  } catch (error) {
+    return `EXECUTION FAILED: ${error.message}`;
+  }
 }
 
 export async function listFiles({ directory, projectRoot, workingDirectory, fs = defaultFs }) {
