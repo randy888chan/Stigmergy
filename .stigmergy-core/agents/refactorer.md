@@ -15,7 +15,7 @@ agent:
   core_protocols:
     - "PATTERN_DRIVEN_REFACTORING_WORKFLOW: When dispatched to improve a file or class, I will follow this loop:
       1.  **Analyze Target:** I will analyze the target file or class that needs improvement.
-      2.  **Identify Refactoring Opportunity:** I will use the `intelligence_fusion_tool.search_for_code_patterns` with queries for common 'code smells' (e.g., 'long method', 'high coupling', 'large class') to find specific areas to refactor. I will use the fused local and GitHub results to identify best-practice patterns.
+      2.  **Identify Refactoring Opportunity:** I will use the `coderag.calculate_metrics` tool to get objective data on the code's quality (e.g., cyclomatic complexity, maintainability). I will then use `coderag.find_architectural_issues` with a focus on code smells to pinpoint the most critical areas for refactoring.
       3.  **Refactor:** I will perform a single, targeted refactoring (e.g., 'Extract Method', 'Introduce Parameter Object') based on my findings.
       4.  **Verify Functionality:** I will run all relevant unit tests using the `shell` tool to ensure I have not introduced a regression.
       5.  **Report & Repeat:** I will log the improvement and repeat the loop if further refactoring opportunities are identified."
@@ -33,5 +33,5 @@ agent:
   engine_tools:
     - "file_system.*"
     - "shell.*"
-    - "intelligence_fusion_tool.*"
+    - "coderag.*"
 ```

@@ -2,7 +2,7 @@ import { test, describe, expect, spyOn, mock, beforeEach, afterEach } from 'bun:
 import { Volume } from 'memfs';
 import path from 'path';
 import { createExecutor } from '../../../engine/tool_executor.js';
-import { CodeIntelligenceService } from '../../../services/code_intelligence_service.js';
+import { unifiedIntelligenceService } from '../../../services/unified_intelligence.js';
 
 // --- 1. Setup In-Memory File System & Mock ---
 const vol = new Volume();
@@ -17,7 +17,7 @@ const mockFs = {
   statSync: memfs.statSync,
   mkdirSync: memfs.mkdirSync,
   writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync, // The missing function
+  existsSync: memfs.existsSync,
   promises: memfs.promises,
 };
 mockFs.default = mockFs;
@@ -25,18 +25,24 @@ mockFs.default = mockFs;
 // --- 2. Mock the fs-extra module for the entire test file ---
 mock.module('fs-extra', () => mockFs);
 
-describe('Engine: Agent and Tools Integration', () => {
+// --- 3. Mock the context to prevent the singleton from throwing errors ---
+mock.module('../../../engine/context.js', () => ({
+  getContext: () => ({ project_root: process.cwd() }),
+}));
+
+
+describe('Engine: Agent and Coderag Tool Integration', () => {
   let executor;
-  let findUsagesSpy, getDefinitionSpy, getModuleDependenciesSpy, runQuerySpy;
+  let semanticSearchSpy, calculateMetricsSpy, findArchitecturalIssuesSpy;
 
   beforeEach(() => {
     vol.reset(); // Clear the in-memory file system
 
-    // --- 3. Create mock agent & trajectory directories in-memory ---
+    // --- Create mock agent & trajectory directories in-memory ---
     const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
     const trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
     mockFs.ensureDirSync(agentDir);
-    mockFs.ensureDirSync(trajectoryDir); // Ensure the trajectory directory exists
+    mockFs.ensureDirSync(trajectoryDir);
 
     const mockDebuggerAgent = `
 \`\`\`yaml
@@ -44,17 +50,15 @@ agent:
   id: "debugger"
   engine_tools:
     - "file_system.*"
-    - "code_intelligence.*"
+    - "coderag.*"
 \`\`\`
 `;
     mockFs.writeFileSync(path.join(agentDir, 'debugger.md'), mockDebuggerAgent);
 
-
-    // Spy on the actual methods of the real service
-    findUsagesSpy = spyOn(CodeIntelligenceService.prototype, 'findUsages');
-    getDefinitionSpy = spyOn(CodeIntelligenceService.prototype, 'getDefinition');
-    getModuleDependenciesSpy = spyOn(CodeIntelligenceService.prototype, 'getModuleDependencies');
-    runQuerySpy = spyOn(CodeIntelligenceService.prototype, '_runQuery');
+    // Spy on the methods of the unifiedIntelligenceService singleton
+    semanticSearchSpy = spyOn(unifiedIntelligenceService, 'semanticSearch').mockImplementation(async () => {});
+    calculateMetricsSpy = spyOn(unifiedIntelligenceService, 'calculateMetrics').mockImplementation(async () => {});
+    findArchitecturalIssuesSpy = spyOn(unifiedIntelligenceService, 'findArchitecturalIssues').mockImplementation(async () => {});
 
     const mockEngine = {
       broadcastEvent: mock(),
@@ -72,48 +76,34 @@ agent:
     mock.restore();
   });
 
-  test('should call code_intelligence.findUsages', async () => {
-    const fakeUsages = [{ filePath: 'src/some/file.js', line: 10, code: 'const mySymbol = 42;' }];
-    findUsagesSpy.mockResolvedValue(fakeUsages);
+  test('should call coderag.semantic_search', async () => {
+    const fakeResults = [{ file: 'src/app.js', snippet: 'function main() {}' }];
+    semanticSearchSpy.mockResolvedValue(fakeResults);
 
-    const result = JSON.parse(await executor.execute('code_intelligence.findUsages', { symbolName: 'mySymbol' }, 'debugger'));
+    const result = await executor.execute('coderag.semantic_search', { query: 'main function' }, 'debugger');
 
-    expect(result).toEqual(fakeUsages);
-    expect(findUsagesSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(result)).toEqual(fakeResults);
+    expect(semanticSearchSpy).toHaveBeenCalledTimes(1);
+    expect(semanticSearchSpy).toHaveBeenCalledWith('main function');
   });
 
-  test('should call code_intelligence.getDefinition', async () => {
-    const fakeDefinition = { filePath: 'src/some/file.js', line: 5, definition: 'function mySymbol() {}' };
-    getDefinitionSpy.mockResolvedValue(fakeDefinition);
+  test('should call coderag.calculate_metrics', async () => {
+    const fakeMetrics = { cyclomaticComplexity: 15, maintainability: 85 };
+    calculateMetricsSpy.mockResolvedValue(`Metrics calculation complete: ${JSON.stringify(fakeMetrics)}`);
 
-    const result = JSON.parse(await executor.execute('code_intelligence.getDefinition', { symbolName: 'mySymbol' }, 'debugger'));
+    const result = await executor.execute('coderag.calculate_metrics', {}, 'debugger');
 
-    expect(result).toEqual(fakeDefinition);
-    expect(getDefinitionSpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(result)).toContain('{"cyclomaticComplexity":15,"maintainability":85}');
+    expect(calculateMetricsSpy).toHaveBeenCalledTimes(1);
   });
 
-  test('should call code_intelligence.getModuleDependencies', async () => {
-    const fakeDeps = ['path/to/dep1.js', 'path/to/dep2.js'];
-    getModuleDependenciesSpy.mockResolvedValue(fakeDeps);
+  test('should call coderag.find_architectural_issues', async () => {
+    const fakeIssues = [{ type: 'Cyclic Dependency', files: ['a.js', 'b.js'] }];
+    findArchitecturalIssuesSpy.mockResolvedValue(fakeIssues);
 
-    const result = JSON.parse(await executor.execute('code_intelligence.getModuleDependencies', { filePath: 'src/app.js' }, 'debugger'));
+    const result = await executor.execute('coderag.find_architectural_issues', {}, 'debugger');
 
-    expect(result).toEqual(fakeDeps);
-    expect(getModuleDependenciesSpy).toHaveBeenCalledTimes(1);
-  });
-
-  test('should call code_intelligence.getFullCodebaseContext', async () => {
-    // Mock the neo4j record's .get() method more accurately.
-    const fakeQueryResults = [
-      { get: (key) => ({ file: 'src/app.js', members: [{ properties: { name: 'start', type: 'Function' } }] }[key]) },
-      { get: (key) => ({ file: 'src/utils.js', members: [] }[key]) }
-    ];
-    runQuerySpy.mockResolvedValue(fakeQueryResults);
-
-    const result = JSON.parse(await executor.execute('code_intelligence.getFullCodebaseContext', {}, 'debugger'));
-
-    const expectedSummary = "Current Codebase Structure:\n\n- File: src/app.js\n  - Function: start\n- File: src/utils.js\n  (No defined classes or functions found)\n";
-    expect(result).toEqual(expectedSummary);
-    expect(runQuerySpy).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(result)).toEqual(fakeIssues);
+    expect(findArchitecturalIssuesSpy).toHaveBeenCalledTimes(1);
   });
 });

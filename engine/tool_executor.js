@@ -8,21 +8,19 @@ import { sanitizeToolCall } from "../utils/sanitization.js";
 import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
-import * as codeIntelligence from "../tools/code_intelligence.js";
+import { coderag } from "../tools/coderag_tool.js";
 import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
 import * as qaTools from "../tools/qa_tools.js";
 import * as businessVerification from "../tools/business_verification.js";
 import createGuardianTools from "../tools/guardian_tool.js";
 import * as privilegedCoreTools from "../tools/core_tools.js";
 import createSystemTools from "../tools/system_tools.js";
-import * as mcpCodeSearch from "../tools/mcp_code_search.js";
 import * as superdesignIntegration from "../tools/superdesign_integration.js";
 import * as qwenIntegration from "../tools/qwen_integration.js";
 import * as documentIntelligence from "../tools/document_intelligence.js";
 import { createChatProcessor } from "../tools/chat_interface.js";
 import * as continuousExecution from "../tools/continuous_execution.js";
 import { lightweight_archon_query } from "../services/lightweight_archon.js";
-import { initialize_coderag, semantic_search } from "../services/coderag_integration.js";
 import { query_deepwiki } from "../services/deepwiki_mcp.js";
 
 // Import core engine services
@@ -164,21 +162,19 @@ export function createExecutor(engine, ai, options = {}) {
     file_system: projectFileSystem,
     shell,
     research,
-    code_intelligence: codeIntelligence,
+    coderag: coderag,
     swarm_intelligence: swarmIntelligence,
     qa: qaTools,
     business_verification: businessVerification,
     guardian: createGuardianTools(engine),
     core: privilegedCoreTools,
     system: createSystemTools(engine),
-    mcp_code_search: mcpCodeSearch,
     superdesign: superdesignIntegration,
     qwen_integration: qwenIntegration,
     document_intelligence: documentIntelligence,
     chat_interface: { process_chat_command: createChatProcessor(engine.stateManager) },
     continuous_execution: continuousExecution,
     lightweight_archon: { query: lightweight_archon_query },
-    coderag: { initialize: initialize_coderag, semantic_search },
     deepwiki: { query: query_deepwiki },
 stigmergy: {
   task: async ({ subagent_type, description }) => {
@@ -255,7 +251,11 @@ stigmergy: {
       const toolFunction = toolbelt[namespace][funcName];
 
       let result;
-      if (['file_system', 'shell', 'stigmergy'].includes(namespace)) {
+      // Inject project_root for coderag tools that need it.
+      if (namespace === 'coderag') {
+          const contextualArgs = { ...safeArgs, project_root: engine.projectRoot };
+          result = await toolFunction(contextualArgs);
+      } else if (['file_system', 'shell', 'stigmergy'].includes(namespace)) {
         result = await toolFunction(safeArgs);
       } else {
         result = await toolFunction(safeArgs, ai, config);

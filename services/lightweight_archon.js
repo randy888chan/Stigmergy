@@ -1,11 +1,11 @@
-import { CodeRAGIntegration } from './coderag_integration.js';
+import { unifiedIntelligenceService } from './unified_intelligence.js';
 import * as research from '../tools/research.js';
 import { DeepWikiMCP } from './deepwiki_mcp.js';
 
 export class LightweightArchon {
   constructor(options = {}) {
     this.storage = options.storage || 'neo4j';
-    this.coderag = new CodeRAGIntegration();
+    // this.coderag = new CodeRAGIntegration(); // Replaced with the unified service
     this.supabaseClient = null;
     
     if (this.storage === 'supabase') {
@@ -74,9 +74,8 @@ export class LightweightArchon {
 
     if (intent.all.includes('code_search') || intent.all.includes('implementation')) {
       try {
-        contextData.codeIntelligence = await this.coderag.semanticSearch(query, {
-          limit: 10
-        });
+        // Use the new unified intelligence service
+        contextData.codeIntelligence = await unifiedIntelligenceService.semanticSearch(query);
       } catch (error) {
         contextData.codeIntelligence = { results: [] };
       }
@@ -227,7 +226,8 @@ export class LightweightArchon {
           })
         `;
         
-        await this.coderag._runQuery(query_neo4j, insight);
+        // Use the new raw query method from the unified service
+        await unifiedIntelligenceService.runRawQuery(query_neo4j, insight);
       } catch (error) {
         console.warn('Failed to store insight in Neo4j:', error.message);
       }

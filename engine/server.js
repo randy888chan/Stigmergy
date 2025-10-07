@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import * as fileSystem from '../tools/file_system.js';
-import * as codeIntelligence from '../tools/code_intelligence.js';
+import { coderag } from '../tools/coderag_tool.js';
 import { getAiProviders } from '../ai/providers.js';
 import config from '../stigmergy.config.js';
 import { streamText } from 'ai';
@@ -101,8 +101,9 @@ export class Engine {
             console.log(chalk.green('[Engine] @analyst has completed its research.'));
 
             // 2. Local Indexing: Trigger the CodeRAG indexing process
-            console.log(chalk.blue('[Engine] Triggering local codebase indexing.'));
-            await codeIntelligence.index_project({ projectRoot: this.projectRoot });
+            console.log(chalk.blue('[Engine] Triggering local codebase indexing via CodeRAG.'));
+            // Correctly pass the projectRoot to the scan_codebase function
+            await coderag.scan_codebase({ project_root: this.projectRoot });
             console.log(chalk.green('[Engine] Local codebase indexing complete.'));
 
             // 3. Enriched Handoff: Trigger the @specifier with the combined intelligence

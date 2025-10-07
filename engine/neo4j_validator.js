@@ -1,18 +1,19 @@
-import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
+import { unifiedIntelligenceService } from '../services/unified_intelligence.js';
 
 export class Neo4jValidator {
   static async validate() {
-    console.log("Checking Neo4j connection...");
-    const codeIntel = new CodeIntelligenceService();
-    const result = await codeIntel.testConnection();
+    console.log("Checking Unified Intelligence Service connection...");
+
+    // The unifiedIntelligenceService is a singleton, so we can use it directly.
+    const result = await unifiedIntelligenceService.testConnection();
 
     if (result.status === 'ok') {
-      console.log(` -> Neo4j status OK: ${result.message}`);
+      console.log(` -> Unified Intelligence Service status OK: ${result.message}`);
       return { success: true };
     } else {
         return {
             success: false,
-            error: `Neo4j connection failed: ${result.message}`,
+            error: `Unified Intelligence Service connection failed: ${result.message}`,
         };
     }
   }

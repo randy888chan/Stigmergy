@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
 
-export function loadEnvironmentConfig() {
+export function loadEnv() {
   const nodeEnv = process.env.NODE_ENV || 'development';
   console.log(`🔧 Loading environment configuration for: ${nodeEnv}`);
 
@@ -38,6 +38,6 @@ export function loadEnvironmentConfig() {
 }
 
 // Auto-load when this module is imported
-const loadResult = loadEnvironmentConfig();
+const loadResult = loadEnv();
 
 export { loadResult };
