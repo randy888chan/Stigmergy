@@ -101,3 +101,18 @@ export async function validate_tech_stack({ technology, project_goal }, ai, conf
   });
   return object;
 }
+
+/**
+ * Initializes the CodeRAG service for the specified project, indexing all code.
+ * This is a system-level tool called by the engine during the intelligence phase.
+ * @param {object} args - The arguments for the tool.
+ * @param {string} args.projectRoot - The absolute path to the project to be indexed.
+ * @returns {Promise<object>} A confirmation message.
+ */
+export async function index_project({ projectRoot }) {
+    // Instantiate the service without projectRoot, as it's no longer needed in the constructor.
+    const service = new CodeIntelligenceService();
+    // Call the new, dedicated method for project-specific indexing.
+    await service.runIndexingForProject(projectRoot);
+    return { success: true, message: `CodeRAG indexing initiated for ${projectRoot}` };
+}
