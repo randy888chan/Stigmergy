@@ -148,11 +148,10 @@ The benchmark runner implements the following logic for each problem:
 
 1. **Environment Setup**
    - Create isolated temporary directory
-   - Initialize Stigmergy engine with `npx stigmergy init`
    - Start engine server on designated port
 
 2. **Execution Monitoring**
-   - Send initial problem request via HTTP POST to `/api/chat`
+   - Send initial problem request to the engine
    - Poll state file for completion status
    - Enforce timeout constraints (default: 300 seconds)
 

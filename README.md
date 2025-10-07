@@ -15,7 +15,7 @@ Stigmergy simplifies the development process by allowing you to focus on your vi
 
 -   **🤖 Autonomous Agent Swarm:** A team of specialized AI agents that can plan, code, debug, and analyze applications.
 -   **🌐 Live Web Interaction:** Agents can see and interact with live webpages using an integrated Chrome DevTools toolset, enabling real-time UI/UX analysis and frontend debugging.
--   **🔌 Universal IDE Integration:** A persistent global service that integrates with any IDE (VS Code, Roo Code, etc.) through the Model-Context Protocol (MCP).
+-   **🔌 Universal IDE Integration:** Flexible integration with any IDE (VS Code, Qoder, etc.) through a powerful CLI and a web-based dashboard.
 -   **📊 Real-Time Observability:** A comprehensive Command & Control Dashboard to monitor costs, track tasks, and analyze agent behavior in real-time.
 -   **⚡️ High-Performance Architecture:** Built with Bun and Hono for blazing-fast performance and a lightweight footprint.
 -   **🧠 Advanced Model Integration:** Easily configurable model tiers, including specialized models like Codestral for code-related tasks.
@@ -25,38 +25,12 @@ Stigmergy simplifies the development process by allowing you to focus on your vi
 
 ## 🏗️ System Architecture
 
-Our architecture is designed for simplicity, speed, and power. The Hono server acts as the central hub, managing WebSocket connections for real-time communication and orchestrating the agent swarm. Stigmergy runs as a persistent background service, allowing it to integrate with any development environment through the Model-Context Protocol (MCP).
+Stigmergy's architecture is built for flexibility, centering around a powerful agent engine that can be controlled in two primary ways:
 
-```
-┌───────────────────────────────┐
-│      IDE (VS Code, etc.)      │
-└───────────────┬───────────────┘
-                │ (MCP over WebSocket)
-┌───────────────▼───────────────┐
-│  Stigmergy Global Service     │
-├───────────────────────────────┤
-│  - WebSocket Management       │
-│  - Agent Orchestration        │
-│  - Tool Registration          │
-└───────────────┬───────────────┘
-                │
-┌───────────────▼───────────────┐
-│         Agent Swarm           │
-├───────────────────────────────┤
-│  - @dispatcher (Manager)      │
-│  - @ux-expert (UI/UX Analyst) │
-│  - @debugger (Code Fixer)     │
-│  - @executor (Coder)          │
-└───────────────┬───────────────┘
-                │
-┌───────────────▼───────────────┐
-│           Tool Library        │
-├───────────────────────────────┤
-│  - chrome_devtools_tool       │
-│  - file_system                │
-│  - code_intelligence          │
-└───────────────────────────────┘
-```
+1.  **CLI-First Workflow:** For direct, task-oriented execution from any IDE's terminal. You invoke the `stigmergy` CLI for a specific mission, and the engine runs, streams output, and exits upon completion.
+2.  **Server & Dashboard Workflow:** For a more visual and interactive experience. You run the `bun run dev` server, which launches the engine and a web-based dashboard. This allows you to set the active project, initiate missions, and observe the agent swarm in real-time.
+
+Both workflows utilize the same core components: a swarm of specialized AI agents, an extensible tool library, and a robust state management system.
 
 ---
 

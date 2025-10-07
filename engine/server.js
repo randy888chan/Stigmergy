@@ -6,6 +6,7 @@ import { cors } from 'hono/cors';
 import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
+import * as fileSystem from '../tools/file_system.js';
 import { getAiProviders } from '../ai/providers.js';
 import config from '../stigmergy.config.js';
 import { streamText } from 'ai';
@@ -105,7 +106,8 @@ export class Engine {
         const agentName = agentId.replace('@', '');
 
         try {
-            const workingDirectory = path.join(this.projectRoot, '.stigmergy-core', 'sandboxes', agentName);
+            // The sandbox MUST be created inside the ACTIVE project, not the engine's project.
+            const workingDirectory = path.join(this.projectRoot, '.stigmergy', 'sandboxes', agentName);
             await fs.ensureDir(workingDirectory);
             console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
@@ -211,7 +213,7 @@ export class Engine {
         // 1. Health Check Endpoint
         this.app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }));
 
-        // 2. Dashboard API Endpoint
+        // 2. Dashboard API Endpoints
         this.app.get('/api/state', async (c) => {
             const stateManager = c.get('stateManager');
             if (stateManager) {
@@ -219,6 +221,11 @@ export class Engine {
                 return c.json(state);
             }
             return c.json({ error: 'StateManager not available' }, 500);
+        });
+
+        this.app.get('/api/files', async (c) => {
+            const files = await fileSystem.listDirectory({ path: '.', projectRoot: this.projectRoot });
+            return c.json(files);
         });
 
         // 3. IDE (MCP) Endpoint

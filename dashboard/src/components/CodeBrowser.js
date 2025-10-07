@@ -1,54 +1,77 @@
-import React, { useState } from 'react';
-import { FiFolder, FiFile, FiChevronRight, FiChevronDown } from 'react-icons/fi';
+import React, { useState, useEffect } from 'react';
+import { FiFolder, FiFile } from 'react-icons/fi';
 import './CodeBrowser.css';
 
-const CodeBrowser = ({ fileStructure = [] }) => {
-  const [expandedFolders, setExpandedFolders] = useState({});
+const CodeBrowser = ({ activeProject }) => {
+  const [files, setFiles] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [fileContent, setFileContent] = useState('');
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const toggleFolder = (path) => {
-    setExpandedFolders(prev => ({
-      ...prev,
-      [path]: !prev[path]
-    }));
-  };
+  useEffect(() => {
+    if (!activeProject) {
+      setFiles([]);
+      return;
+    }
+
+    const fetchFiles = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('/api/files');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          data.sort((a, b) => {
+            if (a.type === 'folder' && b.type !== 'folder') return -1;
+            if (a.type !== 'folder' && b.type === 'folder') return 1;
+            return a.name.localeCompare(b.name);
+          });
+          setFiles(data);
+        } else if (data.error) {
+          throw new Error(data.error);
+        } else {
+          console.error('API did not return a valid array:', data);
+          setFiles([]);
+        }
+      } catch (e) {
+        console.error('Failed to fetch files:', e);
+        setError(e.message);
+        setFiles([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFiles();
+  }, [activeProject]);
 
   const handleFileSelect = (file) => {
-    setSelectedFile(file);
-    // In a real implementation, this would fetch the file content from an API
-    setFileContent(`// Content for ${file.name} would be displayed here.`);
+    setSelectedFile(file.name);
+    setFileContent(`// In a real app, content for ${file.name} would be fetched here.`);
   };
 
-  const renderFileTree = (items, basePath = '') => {
-    return items.map((item, index) => {
-      const currentPath = basePath ? `${basePath}/${item.name}` : item.name;
-      
+  const renderFileTree = (items) => {
+    return items.map((item) => {
       if (item.type === 'folder') {
-        const isExpanded = expandedFolders[currentPath];
         return (
-          <div key={currentPath} className="tree-item">
-            <div 
-              className="tree-folder"
-              onClick={() => toggleFolder(currentPath)}
-            >
-              {isExpanded ? <FiChevronDown /> : <FiChevronRight />}
+          <div key={item.name} className="tree-item">
+            <div className="tree-folder">
               <FiFolder className="folder-icon" />
               <span className="item-name">{item.name}</span>
             </div>
-            {isExpanded && item.children && (
-              <div className="tree-children">
-                {renderFileTree(item.children, currentPath)}
-              </div>
-            )}
           </div>
         );
       } else {
         return (
           <div 
-            key={currentPath} 
-            className={`tree-item tree-file ${selectedFile === currentPath ? 'selected' : ''}`}
-            onClick={() => handleFileSelect(currentPath)}
+            key={item.name}
+            className={`tree-item tree-file ${selectedFile === item.name ? 'selected' : ''}`}
+            onClick={() => handleFileSelect(item)}
           >
             <div className="tree-file-content">
               <FiFile className="file-icon" />
@@ -60,18 +83,32 @@ const CodeBrowser = ({ fileStructure = [] }) => {
     });
   };
 
+  const renderContent = () => {
+    if (!activeProject) {
+      return <p className="info-message">Please set an active project to browse files.</p>;
+    }
+    if (isLoading) {
+      return <p className="info-message">Loading files...</p>;
+    }
+    if (error) {
+      return <p className="error-message">Error: {error}</p>;
+    }
+    if (files.length === 0) {
+      return <p className="info-message">No files found in the project root.</p>;
+    }
+    return renderFileTree(files);
+  };
+
   return (
     <div className="code-browser-container">
       <h2>Code Browser</h2>
-      
       <div className="code-browser-content">
         <div className="file-tree">
           <h3>File Structure</h3>
           <div className="tree-root">
-            {renderFileTree(fileStructure)}
+            {renderContent()}
           </div>
         </div>
-        
         <div className="file-viewer">
           <h3>File Content</h3>
           {selectedFile ? (
@@ -88,7 +125,7 @@ const CodeBrowser = ({ fileStructure = [] }) => {
             </div>
           ) : (
             <div className="no-file-selected">
-              <p>Select a file to view its content</p>
+              <p>Select a file to view its content.</p>
             </div>
           )}
         </div>

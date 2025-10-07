@@ -8,6 +8,7 @@ import DocumentUploader from '../components/DocumentUploader.js';
 
 // --- Lazy-load other components ---
 const StateManagement = lazy(() => import('../components/StateManagement.js'));
+const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 
 const INITIAL_STATE = {
   logs: [],
@@ -34,7 +35,14 @@ const Dashboard = () => {
           setSystemState(prevState => ({ ...prevState, ...payload }));
           break;
         case 'project_switched':
-          setSystemState({ ...INITIAL_STATE, project_path: payload.path, project_status: 'Project Set' });
+          // Clear logs and reset status, but base it on the previous state to ensure a clean re-render.
+          setSystemState(prevState => ({
+            ...prevState,
+            project_path: payload.path,
+            project_status: 'Project Set',
+            logs: [`Project switched to ${payload.path}`],
+            agentActivity: [],
+          }));
           break;
         default:
           setSystemState(prevState => {
@@ -73,6 +81,12 @@ const Dashboard = () => {
             <div className="chat-container">
                  <ChatInterface sendMessage={sendMessage} engineStatus={systemState.project_status} />
             </div>
+
+            {systemState.project_path && (
+                <Suspense fallback={<div>Loading Code Browser...</div>}>
+                    <CodeBrowser activeProject={systemState.project_path} />
+                </Suspense>
+            )}
         </main>
 
         {/* Sidebar: Controls, Info, and Logs */}
