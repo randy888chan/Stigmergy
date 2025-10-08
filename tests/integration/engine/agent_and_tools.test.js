@@ -8,9 +8,7 @@ const mockCoderagTool = {
   calculate_metrics: mock(async () => '{"metrics": "mocked"}'),
   find_architectural_issues: mock(async () => []),
 };
-mock.module('../../../tools/coderag_tool.js', () => ({
-  coderag: mockCoderagTool,
-}));
+mock.module('../../../tools/coderag_tool.js', () => mockCoderagTool);
 
 import { createExecutor } from '../../../engine/tool_executor.js';
 

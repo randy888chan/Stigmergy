@@ -8,7 +8,7 @@ import { sanitizeToolCall } from "../utils/sanitization.js";
 import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
-import { coderag } from "../tools/coderag_tool.js";
+import * as coderag from "../tools/coderag_tool.js";
 import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
 import * as qaTools from "../tools/qa_tools.js";
 import * as businessVerification from "../tools/business_verification.js";

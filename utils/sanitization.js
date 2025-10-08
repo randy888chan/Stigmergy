@@ -49,6 +49,14 @@ const toolSchemas = {
     filePath: z.string().min(1),
   },
   'code_intelligence.getFullCodebaseContext': {},
+
+  // Coderag tools
+  'coderag.scan_codebase': {},
+  'coderag.calculate_metrics': {},
+  'coderag.semantic_search': {
+    query: z.string().min(1),
+  },
+  'coderag.find_architectural_issues': {},
 };
 
 /**

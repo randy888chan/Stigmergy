@@ -7,7 +7,7 @@ import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import * as fileSystem from '../tools/file_system.js';
-import { coderag } from '../tools/coderag_tool.js';
+import * as coderag from '../tools/coderag_tool.js';
 import { getAiProviders } from '../ai/providers.js';
 import config from '../stigmergy.config.js';
 import { streamText } from 'ai';
