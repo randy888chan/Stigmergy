@@ -1,10 +1,10 @@
 import { loadEnv } from '../utils/env_loader.js';
 
-// Dynamically import from the vendored coderag package
-import { Neo4jClient } from 'coderag/src/graph/neo4j-client.js';
-import { CodebaseScanner } from 'coderag/src/scanner/codebase-scanner.js';
-import { MetricsManager } from 'coderag/src/analysis/metrics-manager.js';
-import { SemanticSearchManager } from 'coderag/src/services/semantic-search-manager.js';
+// Dynamically import from the merged coderag source
+import { Neo4jClient } from '../src/coderag/graph/neo4j-client.ts';
+import { CodebaseScanner } from '../src/coderag/scanner/codebase-scanner.ts';
+import { MetricsManager } from '../src/coderag/analysis/metrics-manager.ts';
+import { SemanticSearchManager } from '../src/coderag/services/semantic-search-manager.ts';
 
 class UnifiedIntelligenceService {
   constructor() {

@@ -13,7 +13,7 @@ import { unifiedIntelligenceService } from '../services/unified_intelligence.js'
  * @param {string} args.project_root The absolute path to the project's root directory.
  * @returns {Promise<object>} A summary report of the scan, including files indexed.
  */
-async function scan_codebase({ project_root }) {
+export async function scan_codebase({ project_root }) {
   try {
     if (!project_root) return "Error: project_root was not provided by the executor.";
 
@@ -29,7 +29,7 @@ async function scan_codebase({ project_root }) {
  * Calculates a suite of software metrics (e.g., CK, Halstead) for the project.
  * @returns {Promise<object>} An object containing the calculated metrics.
  */
-async function calculate_metrics({}) {
+export async function calculate_metrics({}) {
   try {
     const metrics = await unifiedIntelligenceService.calculateMetrics();
     return `Metrics calculation complete: ${JSON.stringify(metrics)}`;
@@ -46,7 +46,7 @@ async function calculate_metrics({}) {
  * @param {string} args.project_root The absolute path to the project's root directory.
  * @returns {Promise<Array<object>>} A list of search results with code snippets and file paths.
  */
-async function semantic_search({ query, project_root }) {
+export async function semantic_search({ query, project_root }) {
   if (!query) {
     return "Error: The 'query' argument is required for semantic_search.";
   }
@@ -65,7 +65,7 @@ async function semantic_search({ query, project_root }) {
  * Analyzes the codebase to identify potential architectural issues like cyclic dependencies or unstable components.
  * @returns {Promise<Array<object>>} A list of identified architectural concerns with explanations.
  */
-async function find_architectural_issues({}) {
+export async function find_architectural_issues({}) {
   try {
     const issues = await unifiedIntelligenceService.findArchitecturalIssues();
     if (issues.length === 0) {
@@ -77,10 +77,3 @@ async function find_architectural_issues({}) {
     return `Error analyzing architecture: ${error.message}`;
   }
 }
-
-export const coderag = {
-  scan_codebase,
-  calculate_metrics,
-  semantic_search,
-  find_architectural_issues,
-};
