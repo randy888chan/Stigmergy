@@ -32,27 +32,22 @@ import { trackToolUsage } from "../services/model_monitoring.js";
 import trajectoryRecorder from "../services/trajectory_recorder.js";
 
 function getCorePath() {
-  // Priority order for core path resolution:
-  // 1. Global test config (for tests)
-  // 2. Global production config
-  // 3. Environment variable
-  // 4. Default path
-  
-  if (global.StigmergyConfig && global.StigmergyConfig.core_path) {
-    return global.StigmergyConfig.core_path;
-  }
-  
+  // Definitive priority order for core path resolution:
+  // 1. Environment variable (set by test runner or production environment)
+  // 2. Default path relative to the current working directory.
   if (process.env.STIGMERGY_CORE_PATH) {
+    // This is the "Context Bridge" for tests.
+    // It ensures the spawned server uses the temporary test core directory.
     return process.env.STIGMERGY_CORE_PATH;
   }
   
   const defaultPath = path.join(process.cwd(), ".stigmergy-core");
   
-  // Verify the path exists
+  // Verify the path exists in non-test environments
   if (!fs.existsSync(defaultPath)) {
     throw new Error(
       `.stigmergy-core directory not found at ${defaultPath}. ` +
-      `Please run 'npx stigmergy install' or check your STIGMERGY_CORE_PATH environment variable.`
+      `Please run 'npx stigmergy install' or set STIGMERGY_CORE_PATH.`
     );
   }
   
@@ -148,13 +143,19 @@ const getParams = (func) => {
 export function createExecutor(engine, ai, options = {}) {
   const { workingDirectory, config } = options;
 
-  // Create a project-aware wrapper for the file_system toolset
+  // Create a project-aware wrapper for the file_system toolset.
+  // This checks for a test-specific fs provider on the engine and injects it.
+  const fsProvider = engine._test_fs;
   const projectFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
-    acc[key] = (args) => fileSystem[key]({
-      ...args,
-      projectRoot: engine.projectRoot,
-      workingDirectory: workingDirectory, // Pass the sandbox directory
-    });
+    acc[key] = (args) => {
+      const contextualArgs = {
+        ...args,
+        projectRoot: engine.projectRoot,
+        workingDirectory: workingDirectory,
+      };
+      // Pass the injected fs provider. If it's undefined, the tool uses its default.
+      return fileSystem[key](contextualArgs, fsProvider);
+    };
     return acc;
   }, {});
 
