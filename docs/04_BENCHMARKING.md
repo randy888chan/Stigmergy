@@ -255,17 +255,18 @@ The benchmark system validates itself through execution of predefined problems:
 - Testing implementation
 - Full Stack CRUD API (primary validation target)
 
-## Usage
+ ## Usage
 
-To run the benchmark suite:
+    The benchmark and validation system has been integrated directly into the main `bun test` command for simplicity and reliability.
 
-```bash
-# Run the full benchmark suite
-bun node evaluation/runners/benchmark_runner.js
+    To run all tests, including the benchmark simulations and external health checks:
 
-# Run with custom benchmark file and output location
-bun node evaluation/runners/benchmark_runner.js path/to/benchmark.json path/to/results.json
-```
+    ```bash
+    # Ensure your .env.development file has the necessary API keys
+    bun test
+    ```
+
+    The results are now part of the standard test output, providing immediate feedback on the system's core capabilities.
 
 ## Results and Reporting
 
