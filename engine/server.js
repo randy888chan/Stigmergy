@@ -18,6 +18,7 @@ import yaml from 'js-yaml';
 export class Engine {
     constructor(options = {}) {
         this.projectRoot = options.projectRoot || process.cwd();
+        this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
         this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
 
         this.app = new Hono();
@@ -33,6 +34,8 @@ export class Engine {
         this.server = null;
         this._test_streamText = options._test_streamText;
         this._test_createExecutor = options._test_createExecutor;
+        this._test_onEnrichment = options._test_onEnrichment;
+        this._test_fs = options._test_fs; // For injecting memfs in tests
 
         if (!this._test_streamText) {
             this.ai = getAiProviders(config);
@@ -76,7 +79,12 @@ export class Engine {
                 this.broadcastEvent('state_update', newState);
 
                 if (newState.project_status === 'ENRICHMENT_PHASE') {
-                    await this.initiateAutonomousSwarm(newState);
+                    if (this._test_onEnrichment) {
+                        // For tests, allow bypassing the complex swarm with a direct trigger
+                        await this._test_onEnrichment(newState);
+                    } else {
+                        await this.initiateAutonomousSwarm(newState);
+                    }
                 }
             } catch (error) {
                 console.error(chalk.red('[Engine] CRITICAL ERROR in stateChanged handler:'), error);
@@ -146,7 +154,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
             const executorFactory = this._test_createExecutor || createExecutor;
             const executeTool = executorFactory(this, this.ai, { workingDirectory, config });
 
-            const agentPath = path.join(this.projectRoot, '.stigmergy-core', 'agents', `${agentName}.md`);
+            const agentPath = path.join(this.corePath, 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
             const yamlMatch = agentFileContent.match(/```yaml\n([\s\S]*?)\n```/);
 
@@ -473,34 +481,37 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
     async stop() {
         if (!this.server) {
+            console.log(chalk.yellow('[Engine] Stop called, but server was not running.'));
             return;
         }
 
         console.log(chalk.yellow('[Engine] Attempting to stop server...'));
 
+        // Close all active WebSocket connections
         console.log(chalk.yellow(`[Engine] Closing ${this.clients.size} WebSocket clients...`));
         for (const client of this.clients) {
             client.close(1000, 'Server is shutting down');
         }
         this.clients.clear();
 
-        if (typeof Bun !== 'undefined' && this.server.stop) {
-            await this.server.stop(true);
-            console.log(chalk.yellow('[Engine] Server stopped (Bun).'));
-        } else if (this.server.close) {
-            await new Promise((resolve, reject) => {
+        // Use a promise to handle the server closing
+        return new Promise((resolve, reject) => {
+            if (this.server && this.server.close) {
                 this.server.close((err) => {
                     if (err) {
-                        console.error(chalk.red('[Engine] Error stopping server (Node):'), err);
+                        console.error(chalk.red('[Engine] Error stopping server:'), err);
                         return reject(err);
                     }
-                    console.log(chalk.yellow('[Engine] Server stopped (Node).'));
+                    console.log(chalk.yellow('[Engine] Server stopped successfully.'));
+                    this.server = null; // Clear the server instance
                     resolve();
                 });
-            });
-        } else {
-            console.warn(chalk.yellow('[Engine] Server object found, but no stop() or close() method available.'));
-        }
+            } else {
+                console.log(chalk.yellow('[Engine] Server object had no close method.'));
+                this.server = null;
+                resolve();
+            }
+        });
     }
 }
 

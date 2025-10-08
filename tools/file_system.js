@@ -16,6 +16,7 @@ const SAFE_DIRECTORIES = config.security?.allowedDirs || [
   "system-proposals",
 ];
 
+// The `fs` provider is now a separate, injectable parameter.
 export function resolvePath(filePath, projectRoot, workingDirectory, fs = defaultFs) {
   if (!filePath || typeof filePath !== "string") {
     throw new Error("Invalid file path provided");
@@ -52,7 +53,6 @@ export function resolvePath(filePath, projectRoot, workingDirectory, fs = defaul
     }
   }
 
-
   // Check file size limit
   if (config.security?.maxFileSizeMB) {
     let stats;
@@ -73,7 +73,7 @@ export function resolvePath(filePath, projectRoot, workingDirectory, fs = defaul
   return resolved;
 }
 
-export async function readFile({ path: filePath, projectRoot, workingDirectory, fs = defaultFs }) {
+export async function readFile({ path: filePath, projectRoot, workingDirectory }, fs = defaultFs) {
   try {
     const safePath = resolvePath(filePath, projectRoot, workingDirectory, fs);
     return await fs.readFile(safePath, "utf-8");
@@ -82,7 +82,7 @@ export async function readFile({ path: filePath, projectRoot, workingDirectory, 
   }
 }
 
-export async function writeFile({ path: filePath, content, projectRoot, workingDirectory, fs = defaultFs }) {
+export async function writeFile({ path: filePath, content, projectRoot, workingDirectory }, fs = defaultFs) {
     try {
         const safePath = resolvePath(filePath, projectRoot, workingDirectory, fs);
         await fs.ensureDir(path.dirname(safePath));
@@ -93,7 +93,7 @@ export async function writeFile({ path: filePath, content, projectRoot, workingD
     }
 }
 
-export async function listDirectory({ path: dirPath, projectRoot, fs = defaultFs }) {
+export async function listDirectory({ path: dirPath, projectRoot }, fs = defaultFs) {
   try {
     const safePath = resolvePath(dirPath || '.', projectRoot, undefined, fs); // Pass projectRoot, but not workingDirectory
     const files = await fs.readdir(safePath, { withFileTypes: true });
@@ -103,7 +103,7 @@ export async function listDirectory({ path: dirPath, projectRoot, fs = defaultFs
   }
 }
 
-export async function listFiles({ directory, projectRoot, workingDirectory, fs = defaultFs }) {
+export async function listFiles({ directory, projectRoot, workingDirectory }, fs = defaultFs) {
     try {
         // If no directory is provided, list files in the current working directory.
         const targetDirectory = directory || ".";
@@ -115,7 +115,7 @@ export async function listFiles({ directory, projectRoot, workingDirectory, fs =
     }
 }
 
-export async function appendFile({ path: filePath, content, projectRoot, workingDirectory, fs = defaultFs }) {
+export async function appendFile({ path: filePath, content, projectRoot, workingDirectory }, fs = defaultFs) {
     try {
         const safePath = resolvePath(filePath, projectRoot, workingDirectory, fs);
         await fs.ensureDir(path.dirname(safePath));
