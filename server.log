@@ -1,1 +1,2 @@
-$ bun run engine/server.js
+$ concurrently "bun --hot run engine/server.js" "bun run watch:dashboard"
+[1] $ concurrently "tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css -w" "bun build ./dashboard/src/index.js --outdir ./dashboard/public --watch"
