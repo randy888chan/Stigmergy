@@ -281,7 +281,8 @@ Based on all the information above, please create the initial \`plan.md\` file t
         });
 
         this.app.get('/api/files', async (c) => {
-            const files = await fileSystem.listDirectory({ path: '.', projectRoot: this.projectRoot });
+            // The listDirectory tool now expects an absolute path.
+            const files = await fileSystem.listDirectory({ path: this.projectRoot });
             return c.json(files);
         });
 

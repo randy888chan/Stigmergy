@@ -1,71 +1,50 @@
-import { exec } from "node:child_process";
-import { promisify } from "node:util";
+import { simpleGit } from 'simple-git';
+import path from 'path';
 
-const execAsync = promisify(exec);
+// ====================================================================================
+// Note: This file follows the project's convention where tools are "dumb" and
+// operate on the secure, absolute paths provided by the tool_executor.
+// All path resolution and security checks are handled by the centralized executor.
+// ====================================================================================
 
 /**
- * Executes a shell command and returns the output.
- * @param {string} command - The command to execute.
- * @returns {Promise<{stdout: string, stderr: string}>}
+ * Initializes a new Git repository in the specified directory.
+ * @param {object} args - The arguments for the function.
+ * @param {string} args.path - The absolute path to the directory where the repository should be initialized.
+ * @returns {Promise<string>} A message indicating success or failure.
  */
-async function runCommand(command) {
+export async function init({ path: repoPath }) {
   try {
-    const { stdout, stderr } = await execAsync(command);
-    return { stdout, stderr };
+    const git = simpleGit();
+    await git.init(repoPath);
+    return `Git repository initialized successfully at ${repoPath}`;
   } catch (error) {
-    console.error(`Error executing command: ${command}`, error);
-    throw new Error(`Failed to execute command: ${command}. Stderr: ${error.stderr}`);
+    console.error(`Failed to initialize git repository at ${repoPath}:`, error);
+    return `EXECUTION FAILED: ${error.message}`;
   }
 }
 
 /**
- * @module git_tool
- * @description A tool for interacting with Git repositories.
- */
-
-/**
- * Stages all changes and commits them with a given message.
- * @param {object} args - The arguments for the tool.
+ * Commits changes to the Git repository.
+ * @param {object} args - The arguments for the function.
  * @param {string} args.message - The commit message.
- * @returns {Promise<string>} A confirmation message with the commit hash.
+ * @param {string} args.workingDirectory - The absolute path to the directory of the git repo.
+ * @returns {Promise<string>} A message indicating the result of the commit.
  */
-export async function commit({ message }) {
-  if (!message || message.trim() === "") {
-    throw new Error("A non-empty commit message is required.");
+export async function commit({ message, workingDirectory }) {
+  try {
+    const git = simpleGit(workingDirectory);
+    // It's crucial to stage all changes before committing.
+    await git.add('./*');
+    const commitSummary = await git.commit(message);
+
+    if (commitSummary.commit) {
+      return `Successfully committed changes with hash ${commitSummary.commit}. Files changed: ${commitSummary.summary.changes}.`;
+    } else {
+      return 'No changes to commit.';
+    }
+  } catch (error) {
+    console.error(`Failed to commit changes in ${workingDirectory}:`, error);
+    return `EXECUTION FAILED: ${error.message}`;
   }
-
-  // Stage all changes
-  await runCommand("git add .");
-
-  // Commit with the provided message
-  // Using environment variables for the commit message is safer against command injection
-  const { stdout } = await execAsync(`git commit -m "${message.replace(/"/g, '\\"')}"`);
-
-  return `Successfully committed changes: ${stdout.trim()}`;
-}
-
-/**
- * Pushes changes to a remote repository.
- * @param {object} args - The arguments for the tool.
- * @param {string} args.remote - The name of the remote (e.g., 'origin').
- * @param {string} args.branch - The name of the branch (e.g., 'main').
- * @returns {Promise<string>} A confirmation message.
- */
-export async function push({ remote = "origin", branch = "main" }) {
-  if (!remote || !branch) {
-    throw new Error("Both 'remote' and 'branch' are required for push.");
-  }
-  // Basic validation to prevent command injection
-  const validPattern = /^[a-zA-Z0-9_.\-\/]+$/;
-  if (!validPattern.test(remote) || !validPattern.test(branch)) {
-    throw new Error("Invalid remote or branch name contains unsafe characters.");
-  }
-
-  const { stdout, stderr } = await runCommand(`git push ${remote} ${branch}`);
-
-  if (stderr && !stderr.includes("Everything up-to-date")) {
-    return `Push completed with warnings: ${stderr}`;
-  }
-
-  return `Successfully pushed to ${remote}/${branch}.`;
 }

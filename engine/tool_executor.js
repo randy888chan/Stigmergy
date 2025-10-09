@@ -23,6 +23,7 @@ import { createChatProcessor } from "../tools/chat_interface.js";
 import * as continuousExecution from "../tools/continuous_execution.js";
 import { lightweight_archon_query } from "../services/lightweight_archon.js";
 import { query_deepwiki } from "../services/deepwiki_mcp.js";
+import * as git_tool from "../tools/git_tool.js";
 
 // Import core engine services
 import { clearFileCache } from "./llm_adapter.js";
@@ -153,10 +154,12 @@ const getParams = (func) => {
 
     const paramsMatch = match[1].match(/\{([^}]+)\}/);
     if (paramsMatch) {
-        return paramsMatch[1].split(',').map(p => p.split(':')[0].split('=')[0].trim());
+        // Handle destructured parameters, ignoring default values
+        return paramsMatch[1].split(',').map(p => p.split('=')[0].trim());
     }
 
-    return match[1].split(',').map(p => p.trim()).filter(Boolean);
+    // Handle regular parameters, ignoring default values
+    return match[1].split(',').map(p => p.split('=')[0].trim()).filter(Boolean);
 };
 
 export function createExecutor(engine, ai, options = {}) {
@@ -180,6 +183,7 @@ export function createExecutor(engine, ai, options = {}) {
     continuous_execution: continuousExecution,
     lightweight_archon: { query: lightweight_archon_query },
     deepwiki: { query: query_deepwiki },
+    git_tool: git_tool,
     stigmergy: {
       task: async ({ subagent_type, description }) => {
         if (!subagent_type || !description) {
@@ -220,6 +224,9 @@ export function createExecutor(engine, ai, options = {}) {
         const originalPath = args[pathKey] ?? '.';
         // Resolve the path and overwrite the argument before it's used.
         args[pathKey] = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
+      } else if (namespace === 'git_tool' && funcName === 'init') {
+        const originalPath = args.path ?? '.';
+        args.path = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
       }
       // --- END: Centralized Security Check ---
 
@@ -248,7 +255,14 @@ export function createExecutor(engine, ai, options = {}) {
       } else if (namespace === 'file_system') {
           // The "dumb" fs tools now just need the args and the fs provider for tests.
           result = await toolFunction(safeArgs, fsProvider);
-      } else if (['shell', 'stigmergy'].includes(namespace)) {
+      } else if (namespace === 'git_tool' && funcName === 'commit') {
+          const contextualArgs = { ...safeArgs, workingDirectory: workingDirectory };
+          result = await toolFunction(contextualArgs);
+      } else if (namespace === 'shell') {
+          // For the shell tool, we inject the agent's sandbox as the current working directory.
+          const contextualArgs = { ...safeArgs, cwd: workingDirectory };
+          result = await toolFunction(contextualArgs);
+      } else if (['stigmergy'].includes(namespace)) {
           result = await toolFunction(safeArgs);
       } else {
           result = await toolFunction(safeArgs, ai, engineConfig);
