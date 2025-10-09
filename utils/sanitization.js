@@ -17,6 +17,9 @@ const toolSchemas = {
   'shell.run': {
     command: z.string().min(1),
   },
+  'shell.execute': {
+    command: z.string().min(1),
+  },
   'system.updateStatus': {
     newStatus: z.string().min(1),
     message: z.string().optional(),
@@ -57,6 +60,14 @@ const toolSchemas = {
     query: z.string().min(1),
   },
   'coderag.find_architectural_issues': {},
+
+  // Git tools
+  'git_tool.init': {
+      path: z.string().optional(),
+  },
+  'git_tool.commit': {
+      message: z.string().min(1),
+  }
 };
 
 /**
