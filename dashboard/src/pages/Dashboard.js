@@ -12,6 +12,7 @@ const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
 const StateManagement = lazy(() => import('../components/StateManagement.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
+const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 
 const INITIAL_STATE = {
   logs: [],
@@ -65,7 +66,7 @@ const Dashboard = () => {
   return (
     <div className="h-screen w-screen bg-background text-foreground flex flex-col">
       {/* Header */}
-      <header className="flex items-center justify-between p-2 border-b">
+      <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
             <h1 className="text-xl font-bold">Stigmergy</h1>
             <div className="flex items-center gap-2">
@@ -94,11 +95,11 @@ const Dashboard = () => {
         <ResizablePanel defaultSize={50}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={65}>
-                <Card className="h-full w-full rounded-none border-0 border-r border-b">
+                <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
                     <CardHeader>
                         <CardTitle>Code Browser</CardTitle>
                     </CardHeader>
-                    <CardContent className="h-[calc(100%-4rem)] overflow-auto">
+                    <CardContent className="flex-grow overflow-auto">
                         <Suspense fallback={<div>Loading Code...</div>}>
                             {systemState.project_path ? <CodeBrowser activeProject={systemState.project_path} /> : <div className="text-muted-foreground">Set a project to see files.</div>}
                         </Suspense>
@@ -107,14 +108,21 @@ const Dashboard = () => {
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={35}>
-                 <Card className="h-full w-full rounded-none border-0 border-r">
+                 <Card className="h-full w-full rounded-none border-0 border-r flex flex-col">
                     <CardHeader>
                         <CardTitle>Mission Control</CardTitle>
                     </CardHeader>
-                    <CardContent>
-                        <Suspense fallback={<div>Loading Chat...</div>}>
+                    <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
+                       <Suspense fallback={<div>Loading Chat...</div>}>
                             <ChatInterface sendMessage={sendMessage} engineStatus={systemState.project_status} />
                         </Suspense>
+                        <Separator />
+                        <div>
+                            <h3 className="text-sm font-medium mb-2">Document Intelligence</h3>
+                            <Suspense fallback={<div>Loading Uploader...</div>}>
+                                <DocumentUploader />
+                            </Suspense>
+                        </div>
                     </CardContent>
                 </Card>
             </ResizablePanel>
@@ -127,11 +135,11 @@ const Dashboard = () => {
         <ResizablePanel defaultSize={50}>
             <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={65}>
-                    <Card className="h-full w-full rounded-none border-0 border-b">
+                    <Card className="h-full w-full rounded-none border-0 border-b flex flex-col">
                         <CardHeader>
                             <CardTitle>Activity Log</CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[calc(100%-4rem)] overflow-auto">
+                        <CardContent className="flex-grow overflow-auto">
                             <Suspense fallback={<div>Loading Logs...</div>}>
                                 <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
                             </Suspense>
@@ -140,11 +148,11 @@ const Dashboard = () => {
                 </ResizablePanel>
                 <ResizableHandle withHandle />
                 <ResizablePanel defaultSize={35}>
-                    <Card className="h-full w-full rounded-none border-0">
+                    <Card className="h-full w-full rounded-none border-0 flex flex-col">
                         <CardHeader>
                             <CardTitle>System State</CardTitle>
                         </CardHeader>
-                        <CardContent className="h-[calc(100%-4rem)] overflow-auto">
+                        <CardContent className="flex-grow overflow-auto">
                              <Suspense fallback={<div>Loading State...</div>}>
                                 <StateManagement state={systemState} />
                             </Suspense>

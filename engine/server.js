@@ -14,6 +14,7 @@ import { streamText } from 'ai';
 import path from 'path';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
+import tmp from 'tmp';
 
 export class Engine {
     constructor(options = {}) {
@@ -104,8 +105,9 @@ export class Engine {
 
         try {
             // 1. External Research: Trigger the @analyst agent
-            const analystPrompt = `A new project goal has been set: "${state.goal}". Your task is to conduct a thorough analysis and return a research report as your final response.`;
             console.log(chalk.blue('[Engine] Triggering @analyst for external research.'));
+            await this.stateManager.updateStatus({ message: 'Phase 1: Conducting external research...' });
+            const analystPrompt = `A new project goal has been set: "${state.goal}". Your task is to conduct a thorough analysis and return a research report as your final response.`;
             const analystReport = await this.triggerAgent('@analyst', analystPrompt);
             console.log(chalk.green('[Engine] @analyst has completed its research.'));
             await this.stateManager.updateStatus({ message: 'External research complete.' });
@@ -113,12 +115,15 @@ export class Engine {
 
             // 2. Local Indexing: Trigger the CodeRAG indexing process
             console.log(chalk.blue('[Engine] Triggering local codebase indexing via CodeRAG.'));
+            await this.stateManager.updateStatus({ message: 'Phase 2: Indexing local codebase...' });
             await coderag.scan_codebase({ project_root: this.projectRoot });
             console.log(chalk.green('[Engine] Local codebase indexing complete.'));
             await this.stateManager.updateStatus({ message: 'Local codebase indexed.' });
 
 
             // 3. Enriched Handoff: Trigger the @specifier with the combined intelligence
+            console.log(chalk.blue('[Engine] Handing off to @specifier with enriched context.'));
+            await this.stateManager.updateStatus({ message: 'Phase 3: Synthesizing plan...' });
             const specifierPrompt = `
 # Project Goal
 ${state.goal}
@@ -135,7 +140,6 @@ The local codebase has been indexed and is ready for queries.
 # Your Task
 Based on all the information above, please create the initial \`plan.md\` file to achieve the project goal.
 `;
-            console.log(chalk.blue('[Engine] Triggering @specifier with enriched context.'));
             await this.triggerAgent('@specifier', specifierPrompt);
             console.log(chalk.green('[Engine] @specifier has been triggered. The swarm is now fully autonomous.'));
             await this.stateManager.updateStatus({ newStatus: 'PLANNING_PHASE', message: 'Handoff to @specifier complete.' });
@@ -297,6 +301,40 @@ Based on all the information above, please create the initial \`plan.md\` file t
             }
         });
 
+        this.app.post('/api/upload', async (c) => {
+            try {
+                const formData = await c.req.formData();
+                const file = formData.get('file');
+
+                if (!file) {
+                    return c.json({ error: 'No file uploaded.' }, 400);
+                }
+
+                // Create a temporary file to store the upload
+                const tempFile = tmp.fileSync({ postfix: path.extname(file.name) });
+                const fileBuffer = await file.arrayBuffer();
+
+                await fs.writeFile(tempFile.name, Buffer.from(fileBuffer));
+                console.log(chalk.green(`[Engine] File uploaded and saved temporarily to ${tempFile.name}`));
+
+                // Trigger the analyst agent in the background (fire and forget)
+                const analystPrompt = `A new document has been uploaded at \`${tempFile.name}\`. Your task is to process it using the \`document_intelligence.processDocument\` tool and report your findings.`;
+                this.triggerAgent('@analyst', analystPrompt).catch(err => {
+                    console.error(chalk.red('[Engine] Error triggering agent for document upload:'), err);
+                    // Optionally, clean up the temp file on error
+                    tempFile.removeCallback();
+                });
+
+
+                return c.json({ message: 'File uploaded and processing started.', filePath: tempFile.name });
+
+            } catch (error) {
+                console.error(chalk.red('[Engine] File upload failed:'), error);
+                return c.json({ error: 'Failed to process file upload.' }, 500);
+            }
+        });
+
+
         // 3. IDE (MCP) Endpoint
         this.app.post('/mcp', async (c) => {
             const { prompt, project_path } = await c.req.json();
@@ -419,15 +457,15 @@ Based on all the information above, please create the initial \`plan.md\` file t
         // --- THIS MUST BE LAST: THE GENERAL "CATCH-ALL" ROUTES ---
 
         // 5. Serve Static Assets (JS, CSS, images) from the public directory
-        // Construct a reliable path to the 'public' directory, independent of CWD
+        // The "Reliable Path" fix: construct path relative to this file's location.
         const currentFilePath = new URL(import.meta.url).pathname;
         const engineDir = path.dirname(currentFilePath);
-        const projectRootForStatic = path.resolve(engineDir, '..'); // Goes up from /engine to the project root
+        const projectRootForStatic = path.resolve(engineDir, '..'); // Assumes engine is one level down from project root
         const publicPath = path.join(projectRootForStatic, 'dashboard', 'public');
 
         this.app.use('/*', serveStatic({ root: publicPath }));
 
-        // 6. Fallback for Single-Page App: Serve index.html for any other GET request.
+        // 6. Fallback for Single-Page App: Serve index.html for any other GET request
         this.app.get('*', serveStatic({ path: 'index.html', root: publicPath }));
     }
 
