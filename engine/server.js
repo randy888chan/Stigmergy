@@ -108,12 +108,15 @@ export class Engine {
             console.log(chalk.blue('[Engine] Triggering @analyst for external research.'));
             const analystReport = await this.triggerAgent('@analyst', analystPrompt);
             console.log(chalk.green('[Engine] @analyst has completed its research.'));
+            await this.stateManager.updateStatus({ message: 'External research complete.' });
+
 
             // 2. Local Indexing: Trigger the CodeRAG indexing process
             console.log(chalk.blue('[Engine] Triggering local codebase indexing via CodeRAG.'));
-            // Correctly pass the projectRoot to the scan_codebase function
             await coderag.scan_codebase({ project_root: this.projectRoot });
             console.log(chalk.green('[Engine] Local codebase indexing complete.'));
+            await this.stateManager.updateStatus({ message: 'Local codebase indexed.' });
+
 
             // 3. Enriched Handoff: Trigger the @specifier with the combined intelligence
             const specifierPrompt = `
@@ -135,6 +138,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
             console.log(chalk.blue('[Engine] Triggering @specifier with enriched context.'));
             await this.triggerAgent('@specifier', specifierPrompt);
             console.log(chalk.green('[Engine] @specifier has been triggered. The swarm is now fully autonomous.'));
+            await this.stateManager.updateStatus({ newStatus: 'PLANNING_PHASE', message: 'Handoff to @specifier complete.' });
 
         } catch (error) {
             console.error(chalk.red('[Engine] CRITICAL ERROR during intelligence gathering:'), error);
