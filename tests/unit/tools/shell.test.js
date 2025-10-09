@@ -1,37 +1,71 @@
-import { mock, describe, test, expect } from 'bun:test';
-import { execute } from '../../../tools/shell.js';
+import { mock, describe, test, expect, beforeEach } from 'bun:test';
+import { promisify } from 'util';
+
+// Mock the exec function from child_process
+const mockExec = mock((command, options, callback) => {
+  // Default mock implementation
+  callback(null, { stdout: 'default stdout', stderr: '' });
+});
+
+mock.module('child_process', () => ({
+  exec: mockExec,
+}));
+
+// Re-import the module under test AFTER the mock is defined to ensure it gets the mocked dependency.
+const { execute } = await import('../../../tools/shell.js');
 
 describe('Shell Tool', () => {
-  test('should execute shell commands and return output', async () => {
-    // Create a mock for the execPromise function
-    const mockExecPromise = mock(async () => ({ stdout: "mocked output", stderr: "" }));
 
-    const result = await execute({
-      command: 'echo "hello world"',
-      agentConfig: { permitted_shell_commands: ["echo *"] },
-      // Inject the mock directly
-      execPromise: mockExecPromise
+  beforeEach(() => {
+    mockExec.mockClear();
+  });
+
+  test('should execute shell commands and return stdout', async () => {
+    // Arrange: Setup the mock to simulate a successful execution.
+    // The callback's second argument must be an object { stdout, stderr } for promisify(exec) to work correctly.
+    mockExec.mockImplementation((command, options, callback) => {
+      callback(null, { stdout: 'mocked output', stderr: '' });
     });
 
-    expect(result).toBeDefined();
+    // Act
+    const result = await execute({ command: 'echo "hello world"', cwd: '/test' });
+
+    // Assert
     expect(result).toBe('mocked output');
-    expect(mockExecPromise).toHaveBeenCalledWith('echo "hello world"', { timeout: 5000 });
+    const call = mockExec.mock.calls[0];
+    expect(call[0]).toBe('echo "hello world"');
+    expect(call[1]).toEqual({ timeout: 5000, cwd: '/test' });
   });
 
   test('should handle command errors gracefully', async () => {
-    // Create a mock that rejects
-    const mockExecPromise = mock(async () => { throw new Error('Command failed') });
-
-    const result = await execute({
-      command: 'invalid command',
-      agentConfig: { permitted_shell_commands: ["*"] },
-      // Inject the mock directly
-      execPromise: mockExecPromise
+    // Arrange: Setup the mock to simulate an error.
+    const mockError = new Error('Command failed');
+    mockError.stderr = 'Error details';
+    mockExec.mockImplementation((command, options, callback) => {
+      // The first argument (error) being non-null causes promisify to reject.
+      callback(mockError, { stdout: '', stderr: 'Error details' });
     });
 
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('string');
-    expect(result).toContain('EXECUTION FAILED: Command failed');
-    expect(mockExecPromise).toHaveBeenCalledWith('invalid command', { timeout: 5000 });
+    // Act
+    const result = await execute({ command: 'invalid command', cwd: '/test' });
+
+    // Assert
+    expect(result).toContain('EXECUTION FAILED: Error details');
+    const call = mockExec.mock.calls[0];
+    expect(call[0]).toBe('invalid command');
+    expect(call[1]).toEqual({ timeout: 5000, cwd: '/test' });
+  });
+
+  test('should return stderr even on successful exit', async () => {
+    // Arrange: Mock exec to return a non-empty stderr with no error object.
+     mockExec.mockImplementation((command, options, callback) => {
+      callback(null, { stdout: 'main output', stderr: 'warning message' });
+    });
+
+    // Act
+    const result = await execute({ command: 'some command', cwd: '/test' });
+
+    // Assert
+    expect(result).toBe('EXECUTION FINISHED WITH STDERR: warning message');
   });
 });

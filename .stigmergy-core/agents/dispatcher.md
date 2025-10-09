@@ -26,5 +26,4 @@ agent:
     - "file_system.readFile"
     - "file_system.writeFile"
     - "stigmergy.task"
-    - "system.request_human_approval"
 ```
