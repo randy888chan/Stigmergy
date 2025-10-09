@@ -1,12 +1,10 @@
 import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test';
 import { MetricsManager } from '../../../src/coderag/analysis/metrics-manager.js';
-import { Neo4jClient } from '../../../src/coderag/graph/neo4j-client.js';
 
-// Mock the Neo4jClient module
-mock.module('../../../src/coderag/graph/neo4j-client.js', () => ({
-  Neo4jClient: mock(),
-}));
-
+// NOTE: The module-level mock for Neo4jClient was removed from this file.
+// It was causing test pollution in other files (like simple-components.test.ts).
+// This test already uses a dependency injection pattern by passing a mock client
+// instance to the MetricsManager constructor, so the module-level mock was redundant.
 
 describe('MetricsManager', () => {
   let metricsManager: MetricsManager;

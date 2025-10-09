@@ -1,4 +1,4 @@
-import { mock, describe, test, expect, beforeEach } from 'bun:test';
+import { mock, describe, test, expect, beforeEach, afterAll } from 'bun:test';
 
 // Mock dependencies before importing the module under test
 mock.module('../../../engine/swarm_coordinator.js', () => ({
@@ -6,20 +6,24 @@ mock.module('../../../engine/swarm_coordinator.js', () => ({
     executeSwarmTask: mock(),
 }));
 
-mock.module('../../../ai/providers.js', () => ({
-    getAgentModel: mock(),
-}));
+// NOTE: The polluting mock for 'ai/providers.js' has been removed from this file.
+// The tests here are simple existence checks and do not require that module to be mocked.
+// Removing it resolves test pollution issues in other files.
 
 // Import the swarm intelligence tools module after mocking dependencies
-import { 
-    get_failure_patterns, 
-    get_agent_performance_metrics, 
+import {
+    get_failure_patterns,
+    get_agent_performance_metrics,
     get_tool_usage_statistics,
     getBestAgentForTask,
     get_system_health_overview
 } from '../../../tools/swarm_intelligence_tools.js';
 
 beforeEach(() => {
+    // It's better to use afterAll to restore mocks to avoid clearing mocks needed by other tests in the same file.
+});
+
+afterAll(() => {
     mock.restore();
 });
 

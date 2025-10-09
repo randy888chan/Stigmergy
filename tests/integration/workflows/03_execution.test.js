@@ -1,52 +1,74 @@
 import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
-import { Engine } from '../../../engine/server.js';
-import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 import path from 'path';
 import { Volume } from 'memfs';
-import { createFsFromVolume } from 'memfs';
 
-describe('Integration: 03 - Execution (Dependency Injection)', () => {
+// --- MOCKS MUST BE DEFINED BEFORE ANY APPLICATION IMPORTS ---
+const vol = new Volume();
+const memfs = require('memfs').createFsFromVolume(vol);
+
+const mockFsExtra = {
+  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
+  readFile: memfs.promises.readFile,
+  writeFile: memfs.promises.writeFile,
+  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+  writeFileSync: memfs.writeFileSync,
+  existsSync: memfs.existsSync,
+  promises: memfs.promises,
+  default: null,
+};
+mockFsExtra.default = mockFsExtra;
+
+// Mock fs-extra and NATIVE fs to ensure all file ops are in-memory
+mock.module('fs-extra', () => mockFsExtra);
+mock.module('fs', () => memfs);
+mock.module('fs/promises', () => memfs.promises);
+
+// --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
+import { Engine } from '../../../engine/server.js';
+
+// Mock the StateManager
+const mockStateManagerInstance = {
+    initializeProject: mock().mockResolvedValue({}),
+    updateStatus: mock().mockResolvedValue({}),
+    updateState: mock().mockResolvedValue({}),
+    getState: mock().mockResolvedValue({ project_status: 'PLAN_APPROVED' }),
+    get: mock().mockReturnValue({}),
+    on: mock(),
+    emit: mock(),
+};
+
+describe('Integration: 03 - Execution', () => {
     let engine;
-    let mockStateManager;
-    let memfs;
+    let projectRoot;
 
     beforeEach(async () => {
-        // 1. Set up an in-memory filesystem
-        const vol = new Volume();
-        memfs = createFsFromVolume(vol);
-        const projectRoot = '/app';
+        vol.reset();
+        mockStateManagerInstance.updateStatus.mockClear();
+
+        projectRoot = '/test-project-execution';
         const corePath = path.join(projectRoot, '.stigmergy-core');
-        const sandboxPath = path.join(corePath, 'sandboxes', 'dispatcher');
-
-        // Create necessary directories in the virtual FS
         const agentDir = path.join(corePath, 'agents');
-        memfs.mkdirSync(agentDir, { recursive: true });
-        memfs.mkdirSync(path.join(sandboxPath, 'src'), { recursive: true });
+        process.env.STIGMERGY_CORE_PATH = corePath;
 
-        // Create dummy agent and plan files that the engine will "read"
+        mockFsExtra.ensureDirSync(agentDir);
+        mockFsExtra.ensureDirSync(path.join(projectRoot, 'dashboard', 'public'));
+        mockFsExtra.writeFileSync(path.join(projectRoot, 'dashboard', 'public', 'index.html'), '<html></html>');
+        mockFsExtra.ensureDirSync('/app/.ai/monitoring');
+
         const dummyAgentDef = `
 \`\`\`yaml
 agent:
   id: "dispatcher"
-  engine_tools:
-    - "file_system.*"
-    - "system.*"
+  engine_tools: ["file_system.*", "system.*"]
 \`\`\`
 `;
-        memfs.writeFileSync(path.join(agentDir, 'dispatcher.md'), dummyAgentDef);
-        memfs.writeFileSync(path.join(projectRoot, 'plan.md'), '1. Create the output file.');
+        mockFsExtra.writeFileSync(path.join(agentDir, 'dispatcher.md'), dummyAgentDef);
 
-        // 2. Mock the GraphStateManager to start in the correct state
-        mockStateManager = new GraphStateManager();
-        mockStateManager.getState = mock(() => Promise.resolve({ project_status: 'PLAN_APPROVED' }));
-        mockStateManager.updateStatus = mock(() => Promise.resolve());
-
-        // 3. Mock the AI to guide the dispatcher
         const mockAI = async ({ messages }) => {
             const lastMessage = messages[messages.length - 1];
             if (lastMessage.role === 'user') {
                 return {
-                    toolCalls: [{ toolCallId: 'exec-1', toolName: 'file_system.writeFile', args: { path: 'src/final_output.js', content: 'DI Execution Complete' } }],
+                    toolCalls: [{ toolCallId: 'exec-1', toolName: 'file_system.writeFile', args: { path: 'src/final_output.js', content: 'Execution Complete' } }],
                     finishReason: 'tool-calls', text: ''
                 };
             }
@@ -59,36 +81,32 @@ agent:
             return { finishReason: 'stop', text: 'Execution finished.' };
         };
 
-        // 4. Create a complete fs-extra mock that operates on our in-memory volume
-        const fsExtraMock = {
-            ...memfs.promises,
-            ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-        };
-
-        // 5. Instantiate the Engine, injecting the fs-extra mock
         engine = new Engine({
-            stateManager: mockStateManager,
+            stateManager: mockStateManagerInstance,
             projectRoot: projectRoot,
             corePath: corePath,
             _test_streamText: mockAI,
-            _test_fs: fsExtraMock, // This is the dependency injection
+            _test_fs: mockFsExtra,
+            startServer: false,
         });
     });
 
-    test('should execute a plan and create the correct file using injected fs', async () => {
-        // Directly trigger the dispatcher agent
+    afterEach(() => {
+        mock.restore();
+        delete process.env.STIGMERGY_CORE_PATH;
+    });
+
+    test('should execute a plan and create the correct file', async () => {
         await engine.triggerAgent('@dispatcher', 'The plan has been approved. Please proceed.');
 
-        // Verify the final status was set to EXECUTION_COMPLETE
-        const lastStatusUpdate = mockStateManager.updateStatus.mock.calls[0][0];
-        expect(lastStatusUpdate.newStatus).toBe('EXECUTION_COMPLETE');
+        const statusUpdateCall = mockStateManagerInstance.updateStatus.mock.calls.find(call => call[0].newStatus === 'EXECUTION_COMPLETE');
+        expect(statusUpdateCall).toBeDefined();
 
-        // Verify that the file was created correctly in the agent's sandboxed directory
-        const outputFile = '/app/.stigmergy/sandboxes/dispatcher/src/final_output.js';
-        const fileExists = memfs.existsSync(outputFile);
+        const outputFile = path.join(projectRoot, '.stigmergy', 'sandboxes', 'dispatcher', 'src', 'final_output.js');
+        const fileExists = mockFsExtra.existsSync(outputFile);
         expect(fileExists).toBe(true);
 
-        const content = memfs.readFileSync(outputFile, 'utf-8');
-        expect(content).toBe('DI Execution Complete');
+        const content = await mockFsExtra.readFile(outputFile, 'utf-8');
+        expect(content).toBe('Execution Complete');
     });
 });

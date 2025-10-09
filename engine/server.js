@@ -20,6 +20,7 @@ export class Engine {
         this.projectRoot = options.projectRoot || process.cwd();
         this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
         this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
+        this.shouldStartServer = options.startServer !== false; // Defaults to true
 
         this.app = new Hono();
         this.app.use('*', cors());
@@ -436,36 +437,55 @@ Based on all the information above, please create the initial \`plan.md\` file t
     }
 
     async start() {
+        if (!this.shouldStartServer) {
+            console.log(chalk.yellow('[Engine] Server start skipped as per configuration.'));
+            return;
+        }
+
         console.log(chalk.blue("Initializing Stigmergy Engine..."));
         const PORT = Number(process.env.STIGMERGY_PORT) || 3010;
         
         return new Promise((resolve) => {
             if (typeof Bun !== 'undefined') {
                 console.log(chalk.cyan("[Engine] Detected Bun environment. Using Bun.serve."));
-                this.server = Bun.serve({
-                    port: PORT,
-                    fetch: (req, server) => this.app.fetch(req, { server }),
-                    websocket: {
-                        open: (ws) => {
-                            const { events } = ws.data;
-                            events?.onOpen?.(createWebSocketEvent(ws), ws);
+                try {
+                    this.server = Bun.serve({
+                        port: PORT,
+                        fetch: (req, server) => this.app.fetch(req, { server }),
+                        websocket: {
+                            open: (ws) => {
+                                const { events } = ws.data;
+                                events?.onOpen?.(createWebSocketEvent(ws), ws);
+                            },
+                            message: (ws, message) => {
+                                const { events } = ws.data;
+                                events?.onMessage?.(createWebSocketEvent(ws, message), ws);
+                            },
+                            close: (ws, code, reason) => {
+                                const { events } = ws.data;
+                                events?.onClose?.(createWebSocketEvent(ws, code, reason), ws);
+                            },
+                            drain: (ws) => {
+                                const { events } = ws.data;
+                                events?.onDrain?.(createWebSocketEvent(ws), ws);
+                            },
                         },
-                        message: (ws, message) => {
-                            const { events } = ws.data;
-                            events?.onMessage?.(createWebSocketEvent(ws, message), ws);
-                        },
-                        close: (ws, code, reason) => {
-                            const { events } = ws.data;
-                            events?.onClose?.(createWebSocketEvent(ws, code, reason), ws);
-                        },
-                        drain: (ws) => {
-                            const { events } = ws.data;
-                            events?.onDrain?.(createWebSocketEvent(ws), ws);
-                        },
-                    },
-                });
-                console.log(chalk.green(`🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:${PORT}`));
-                resolve();
+                        error: (error) => {
+                            console.error(chalk.red(`[Engine] Bun.serve failed: ${error.message}`));
+                            if (error.code === 'EADDRINUSE') {
+                                console.error(chalk.red(`[Engine] Port ${PORT} is already in use. Please use a different port.`));
+                            }
+                            // In a test environment, we might want to reject the promise
+                            // For now, we log and exit to prevent a hung process
+                            process.exit(1);
+                        }
+                    });
+                    console.log(chalk.green(`🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:${PORT}`));
+                    resolve();
+                } catch (error) {
+                    console.error(chalk.red(`[Engine] Critical error during Bun.serve startup: ${error.message}`));
+                    process.exit(1);
+                }
             } else {
                 console.log(chalk.cyan("[Engine] Detected Node.js environment. Using @hono/node-server."));
                 this.server = serve({
