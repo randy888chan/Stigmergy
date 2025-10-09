@@ -32,6 +32,26 @@ mock.module('simple-git', () => ({
   simpleGit: () => mockSimpleGit,
 }));
 
+// Mock child_process to simulate shell command side-effects in memory
+mock.module('child_process', () => ({
+    exec: (command, options, callback) => {
+        // The promisified version of exec calls the callback with (error, { stdout, stderr })
+        if (command.startsWith('mkdir -p')) {
+            // The shell tool executes from within the agent's sandbox directory.
+            // The `cwd` option passed to exec will be our sandbox path.
+            const dirPath = command.split(' ').pop();
+            const fullPath = path.join(options.cwd, dirPath);
+            memfs.mkdirSync(fullPath, { recursive: true });
+            return callback(null, { stdout: `Created directory: ${fullPath}`, stderr: '' });
+        }
+        if (command.startsWith('git diff')) {
+             return callback(null, { stdout: 'some diff', stderr: '' });
+        }
+        // For other commands, succeed without any side-effects
+        return callback(null, { stdout: '', stderr: '' });
+    },
+}));
+
 
 // --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
 import { Engine } from "../../../engine/server.js";
@@ -67,8 +87,8 @@ agent:
         mockFsExtra.writeFileSync(path.join(agentDir, `${name.toLowerCase()}.md`), content);
     };
 
-    createAgentFile('Genesis', ['"shell.execute"', '"git_tool.init"', '"file_system.writeFile"']);
-    createAgentFile('Committer', ['"shell.execute"', '"git_tool.commit"']);
+    createAgentFile('Genesis', ['shell.execute', 'git_tool.init', 'file_system.writeFile']);
+    createAgentFile('Committer', ['shell.execute', 'git_tool.commit']);
 
     // Mock state manager to avoid automatic triggers
     const mockStateManagerInstance = {

@@ -1,8 +1,6 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 
-const execPromise = promisify(exec);
-
 /**
  * Executes a shell command in a specified directory.
  * @param {object} args - The arguments for the function.
@@ -11,6 +9,10 @@ const execPromise = promisify(exec);
  * @returns {Promise<string>} The stdout of the command or an error message.
  */
 export async function execute({ command, cwd }) {
+  // Promisify is called inside the function to ensure it wraps the mocked version
+  // of `exec` during tests, rather than the real one at module load time.
+  const execPromise = promisify(exec);
+
   if (!command) {
     return "EXECUTION FAILED: No command provided.";
   }
