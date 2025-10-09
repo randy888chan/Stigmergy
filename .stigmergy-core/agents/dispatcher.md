@@ -20,12 +20,11 @@ agent:
       4.  **Find Next Task:** I will find the *first* task in the plan with `status: PENDING` whose dependencies are all `COMPLETED`.
       5.  **Delegate Task:** If a task is found, I will delegate it to the `@executor` agent using the `stigmergy.task` tool.
       6.  **Update & Write Plan:** I will immediately update the status of that task to `IN_PROGRESS` and save the updated `plan.md`.
-      7.  **Completion:** If no `PENDING` tasks are found, my job is done. I will use the `system.updateStatus` tool with the `newStatus` argument set to `EXECUTION_COMPLETE`."
+      7.  **Completion:** If no `PENDING` tasks are found, my job is done. My final action will be to use the `stigmergy.task` tool to delegate to the `@committer` agent with the prompt: 'The work is complete and has passed all tests. Please generate a commit message and commit the changes now.'
   engine_tools:
     - "file_system.pathExists"
     - "file_system.readFile"
     - "file_system.writeFile"
     - "stigmergy.task"
-    - "system.updateStatus"
     - "system.request_human_approval"
 ```

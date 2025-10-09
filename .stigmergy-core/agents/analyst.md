@@ -15,9 +15,9 @@ agent:
   core_protocols:
     - >
       TRIANGULATION_AND_VERIFICATION_PROTOCOL:
-      1. **DeepWiki First:** If the user's goal mentions a known open-source project (e.g., 'react', 'express'), my first action will be to use the `deepwiki.query` tool to get a high-level summary from its documentation.
-      2. **CodeRAG Semantic Search:** My second step will be to use the `coderag.semantic_search` tool to find real-world, relevant code examples and architectural patterns related to the user's goal.
-      3. **Synthesize and Report:** I will then synthesize the information from DeepWiki and the CodeRAG search results into a coherent, data-driven report.
+      1. **DeepWiki First:** If the user's goal mentions a known open-source project, my first action will be to use the `deepwiki.query` tool to get a high-level summary.
+      2. **GitHub Code Search:** My second step must be to use the `github_mcp_service.search` tool to find real-world code examples.
+      3. **Synthesize and Report:** I will then synthesize the information from DeepWiki and the GitHub search results into a coherent, data-driven report.
     - >
       STRUCTURED_REPORT_PROTOCOL: My final output MUST be a markdown report with the following sections:
       1. **Executive Summary:** A brief overview of the key findings.
@@ -49,4 +49,5 @@ agent:
     - "document_intelligence.*"
     - "coderag.*"
     - "deepwiki.*"
+    - "github_mcp_service.*"
 ```

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { FiFolder, FiFile } from 'react-icons/fi';
-import './CodeBrowser.css';
 
 const CodeBrowser = ({ activeProject }) => {
   const [files, setFiles] = useState([]);
