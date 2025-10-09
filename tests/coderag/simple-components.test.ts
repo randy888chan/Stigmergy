@@ -4,28 +4,33 @@ import { Neo4jClient } from '../../src/coderag/graph/neo4j-client.js';
 import { NodeManager } from '../../src/coderag/graph/node-manager.js';
 import { EdgeManager } from '../../src/coderag/graph/edge-manager.js';
 
-// Mock the neo4j-driver dependency
+// Mock the neo4j-driver dependency with a high-fidelity mock
 mock.module('neo4j-driver', () => {
   const mockSession = {
-    run: mock((query, params) => Promise.resolve({ records: [], summary: {} })),
-    close: mock(() => Promise.resolve()),
-    executeWrite: mock(txc => Promise.resolve()),
+    run: (query, params) => Promise.resolve({ records: [], summary: {} }),
+    close: () => Promise.resolve(),
+    executeWrite: txc => Promise.resolve(),
   };
 
   const mockDriver = {
-    session: mock(() => mockSession),
-    close: mock(() => Promise.resolve()),
-    verifyConnectivity: mock(() => Promise.resolve()),
+    session: () => mockSession,
+    close: () => Promise.resolve(),
+    verifyConnectivity: () => Promise.resolve(),
+  };
+
+  // The main export from the 'neo4j-driver' package is an object
+  // that has 'driver' and 'auth' properties.
+  const neo4j = {
+    driver: (uri, auth) => mockDriver,
+    auth: {
+      basic: (user, pass) => ({}),
+    },
   };
 
   return {
-    default: {
-      driver: mock((uri, auth) => mockDriver),
-      auth: {
-        basic: mock((user, pass) => ({})),
-      },
-    },
-    // Provide dummy classes for the named type imports
+    __esModule: true, // To simulate an ES module
+    default: neo4j,
+    // Also provide the named exports for type compatibility
     Driver: class MockDriver {},
     Session: class MockSession {},
     Result: class MockResult {},

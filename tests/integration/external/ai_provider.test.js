@@ -5,14 +5,11 @@ import config from '../../../stigmergy.config.js';
 const LIVE_TEST_TIMEOUT = 60000;
 
 describe('External Service Health Check: AI Provider', () => {
-  test('should connect to OpenRouter and receive a valid model list', async () => {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    const baseURL = process.env.OPENROUTER_BASE_URL;
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const baseURL = process.env.OPENROUTER_BASE_URL;
+  const credentialsArePresent = apiKey && baseURL;
 
-    if (!apiKey) {
-      throw new Error("TEST SKIPPED: OPENROUTER_API_KEY is not set in your .env.development file.");
-    }
-
+  test.if(credentialsArePresent)('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
     try {
       const response = await axios.get(`${baseURL}/models`, {
         headers: {
@@ -31,5 +28,10 @@ describe('External Service Health Check: AI Provider', () => {
       const errorMessage = error.response ? JSON.stringify(error.response.data) : error.message;
       throw new Error(`Failed to connect to OpenRouter. Please check your API key and network connection. Details: ${errorMessage}`);
     }
+  }, LIVE_TEST_TIMEOUT);
+
+  test.if(!credentialsArePresent)('SKIPPED: OpenRouter credentials not found', () => {
+    console.log("\n[Health Check] SKIPPED: OPENROUTER_API_KEY or OPENROUTER_BASE_URL not set. Skipping live AI provider test.");
+    expect(true).toBe(true); // Always pass if skipped
   });
-}, LIVE_TEST_TIMEOUT);
+});

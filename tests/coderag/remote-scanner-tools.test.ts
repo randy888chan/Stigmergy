@@ -1,35 +1,25 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
 import { createRemoteScannerTools, handleRemoteScannerTool } from '../../src/coderag/mcp/tools/remote-scanner-tools.js';
-import { Neo4jClient } from '../../src/coderag/graph/neo4j-client.js';
 import { CodebaseScanner } from '../../src/coderag/scanner/codebase-scanner.js';
 
-// Mock the entire modules
-mock.module('../../src/coderag/graph/neo4j-client.js', () => ({
-  Neo4jClient: mock(),
-}));
+// NOTE: The module-level mock for Neo4jClient was removed to prevent test pollution.
+// The test creates a mock `CodebaseScanner` and a placeholder `mockClient` object,
+// which is sufficient for testing the tool creation and handling logic.
 mock.module('../../src/coderag/scanner/codebase-scanner.js', () => ({
   CodebaseScanner: mock(),
 }));
 
 
 describe('Remote Scanner Tools', () => {
-  let mockClient: Neo4jClient;
+  let mockClient: any;
   let mockScanner: any; // Use 'any' for the mocked instance
 
   beforeEach(() => {
     // Re-import the mocked classes for each test to get fresh mocks
-    const { Neo4jClient: MockNeo4jClient } = require('../../src/coderag/graph/neo4j-client.js');
     const { CodebaseScanner: MockCodebaseScanner } = require('../../src/coderag/scanner/codebase-scanner.js');
 
     // Reset mocks
-    MockNeo4jClient.mockClear();
     MockCodebaseScanner.mockClear();
-
-    mockClient = new MockNeo4jClient({
-      uri: 'bolt://localhost:7687',
-      user: 'neo4j',
-      password: 'test'
-    });
 
     // Create a mock instance for the scanner
     mockScanner = {
@@ -46,6 +36,9 @@ describe('Remote Scanner Tools', () => {
 
     // Make the constructor return our mock instance
     MockCodebaseScanner.mockImplementation(() => mockScanner);
+
+    // The client is just passed through, so a simple mock object is sufficient.
+    mockClient = {};
   });
 
   describe('createRemoteScannerTools', () => {
