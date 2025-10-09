@@ -24083,6 +24083,2315 @@ var init_utils = __esm(() => {
   init_bundle_mjs();
 });
 
+// node_modules/lucide-react/dist/esm/shared/src/utils.js
+var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase(), mergeClasses = (...classes) => classes.filter((className, index, array) => {
+  return Boolean(className) && array.indexOf(className) === index;
+}).join(" ");
+var init_utils2 = () => {};
+
+// node_modules/lucide-react/dist/esm/defaultAttributes.js
+var defaultAttributes;
+var init_defaultAttributes = __esm(() => {
+  defaultAttributes = {
+    xmlns: "http://www.w3.org/2000/svg",
+    width: 24,
+    height: 24,
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: 2,
+    strokeLinecap: "round",
+    strokeLinejoin: "round"
+  };
+});
+
+// node_modules/lucide-react/dist/esm/Icon.js
+var import_react2, Icon;
+var init_Icon = __esm(() => {
+  import_react2 = __toESM(require_react(), 1);
+  init_defaultAttributes();
+  init_utils2();
+  Icon = import_react2.forwardRef(({
+    color = "currentColor",
+    size = 24,
+    strokeWidth = 2,
+    absoluteStrokeWidth,
+    className = "",
+    children,
+    iconNode,
+    ...rest
+  }, ref) => {
+    return import_react2.createElement("svg", {
+      ref,
+      ...defaultAttributes,
+      width: size,
+      height: size,
+      stroke: color,
+      strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
+      className: mergeClasses("lucide", className),
+      ...rest
+    }, [
+      ...iconNode.map(([tag, attrs]) => import_react2.createElement(tag, attrs)),
+      ...Array.isArray(children) ? children : [children]
+    ]);
+  });
+});
+
+// node_modules/lucide-react/dist/esm/createLucideIcon.js
+var import_react3, createLucideIcon = (iconName, iconNode) => {
+  const Component = import_react3.forwardRef(({ className, ...props }, ref) => import_react3.createElement(Icon, {
+    ref,
+    iconNode,
+    className: mergeClasses(`lucide-${toKebabCase(iconName)}`, className),
+    ...props
+  }));
+  Component.displayName = `${iconName}`;
+  return Component;
+};
+var init_createLucideIcon = __esm(() => {
+  import_react3 = __toESM(require_react(), 1);
+  init_utils2();
+  init_Icon();
+});
+
+// node_modules/lucide-react/dist/esm/icons/chevron-down.js
+var ChevronDown;
+var init_chevron_down = __esm(() => {
+  init_createLucideIcon();
+  ChevronDown = createLucideIcon("ChevronDown", [
+    ["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]
+  ]);
+});
+
+// node_modules/lucide-react/dist/esm/icons/grip-vertical.js
+var GripVertical;
+var init_grip_vertical = __esm(() => {
+  init_createLucideIcon();
+  GripVertical = createLucideIcon("GripVertical", [
+    ["circle", { cx: "9", cy: "12", r: "1", key: "1vctgf" }],
+    ["circle", { cx: "9", cy: "5", r: "1", key: "hp0tcf" }],
+    ["circle", { cx: "9", cy: "19", r: "1", key: "fkjjf6" }],
+    ["circle", { cx: "15", cy: "12", r: "1", key: "1tmaij" }],
+    ["circle", { cx: "15", cy: "5", r: "1", key: "19l28e" }],
+    ["circle", { cx: "15", cy: "19", r: "1", key: "f4zoj3" }]
+  ]);
+});
+
+// node_modules/lucide-react/dist/esm/lucide-react.js
+var init_lucide_react = __esm(() => {
+  init_chevron_down();
+  init_grip_vertical();
+});
+
+// node_modules/react-resizable-panels/dist/react-resizable-panels.browser.development.esm.js
+function useUniqueId(idFromParams = null) {
+  const idFromUseId = wrappedUseId();
+  const idRef = import_react4.useRef(idFromParams || idFromUseId || null);
+  if (idRef.current === null) {
+    idRef.current = "" + counter++;
+  }
+  return idFromParams !== null && idFromParams !== undefined ? idFromParams : idRef.current;
+}
+function PanelWithForwardedRef({
+  children,
+  className: classNameFromProps = "",
+  collapsedSize,
+  collapsible,
+  defaultSize,
+  forwardedRef,
+  id: idFromProps,
+  maxSize,
+  minSize,
+  onCollapse,
+  onExpand,
+  onResize,
+  order,
+  style: styleFromProps,
+  tagName: Type = "div",
+  ...rest
+}) {
+  const context = import_react4.useContext(PanelGroupContext);
+  if (context === null) {
+    throw Error(`Panel components must be rendered within a PanelGroup container`);
+  }
+  const {
+    collapsePanel,
+    expandPanel,
+    getPanelSize,
+    getPanelStyle,
+    groupId,
+    isPanelCollapsed,
+    reevaluatePanelConstraints,
+    registerPanel,
+    resizePanel,
+    unregisterPanel
+  } = context;
+  const panelId = useUniqueId(idFromProps);
+  const panelDataRef = import_react4.useRef({
+    callbacks: {
+      onCollapse,
+      onExpand,
+      onResize
+    },
+    constraints: {
+      collapsedSize,
+      collapsible,
+      defaultSize,
+      maxSize,
+      minSize
+    },
+    id: panelId,
+    idIsFromProps: idFromProps !== undefined,
+    order
+  });
+  const devWarningsRef = import_react4.useRef({
+    didLogMissingDefaultSizeWarning: false
+  });
+  {
+    if (!devWarningsRef.current.didLogMissingDefaultSizeWarning)
+      ;
+  }
+  useIsomorphicLayoutEffect(() => {
+    const {
+      callbacks,
+      constraints
+    } = panelDataRef.current;
+    const prevConstraints = {
+      ...constraints
+    };
+    panelDataRef.current.id = panelId;
+    panelDataRef.current.idIsFromProps = idFromProps !== undefined;
+    panelDataRef.current.order = order;
+    callbacks.onCollapse = onCollapse;
+    callbacks.onExpand = onExpand;
+    callbacks.onResize = onResize;
+    constraints.collapsedSize = collapsedSize;
+    constraints.collapsible = collapsible;
+    constraints.defaultSize = defaultSize;
+    constraints.maxSize = maxSize;
+    constraints.minSize = minSize;
+    if (prevConstraints.collapsedSize !== constraints.collapsedSize || prevConstraints.collapsible !== constraints.collapsible || prevConstraints.maxSize !== constraints.maxSize || prevConstraints.minSize !== constraints.minSize) {
+      reevaluatePanelConstraints(panelDataRef.current, prevConstraints);
+    }
+  });
+  useIsomorphicLayoutEffect(() => {
+    const panelData = panelDataRef.current;
+    registerPanel(panelData);
+    return () => {
+      unregisterPanel(panelData);
+    };
+  }, [order, panelId, registerPanel, unregisterPanel]);
+  import_react4.useImperativeHandle(forwardedRef, () => ({
+    collapse: () => {
+      collapsePanel(panelDataRef.current);
+    },
+    expand: (minSize2) => {
+      expandPanel(panelDataRef.current, minSize2);
+    },
+    getId() {
+      return panelId;
+    },
+    getSize() {
+      return getPanelSize(panelDataRef.current);
+    },
+    isCollapsed() {
+      return isPanelCollapsed(panelDataRef.current);
+    },
+    isExpanded() {
+      return !isPanelCollapsed(panelDataRef.current);
+    },
+    resize: (size) => {
+      resizePanel(panelDataRef.current, size);
+    }
+  }), [collapsePanel, expandPanel, getPanelSize, isPanelCollapsed, panelId, resizePanel]);
+  const style = getPanelStyle(panelDataRef.current, defaultSize);
+  return import_react4.createElement(Type, {
+    ...rest,
+    children,
+    className: classNameFromProps,
+    id: panelId,
+    style: {
+      ...style,
+      ...styleFromProps
+    },
+    [DATA_ATTRIBUTES.groupId]: groupId,
+    [DATA_ATTRIBUTES.panel]: "",
+    [DATA_ATTRIBUTES.panelCollapsible]: collapsible || undefined,
+    [DATA_ATTRIBUTES.panelId]: panelId,
+    [DATA_ATTRIBUTES.panelSize]: parseFloat("" + style.flexGrow).toFixed(1)
+  });
+}
+function getNonce() {
+  return nonce;
+}
+function getCursorStyle(state, constraintFlags) {
+  if (constraintFlags) {
+    const horizontalMin = (constraintFlags & EXCEEDED_HORIZONTAL_MIN) !== 0;
+    const horizontalMax = (constraintFlags & EXCEEDED_HORIZONTAL_MAX) !== 0;
+    const verticalMin = (constraintFlags & EXCEEDED_VERTICAL_MIN) !== 0;
+    const verticalMax = (constraintFlags & EXCEEDED_VERTICAL_MAX) !== 0;
+    if (horizontalMin) {
+      if (verticalMin) {
+        return "se-resize";
+      } else if (verticalMax) {
+        return "ne-resize";
+      } else {
+        return "e-resize";
+      }
+    } else if (horizontalMax) {
+      if (verticalMin) {
+        return "sw-resize";
+      } else if (verticalMax) {
+        return "nw-resize";
+      } else {
+        return "w-resize";
+      }
+    } else if (verticalMin) {
+      return "s-resize";
+    } else if (verticalMax) {
+      return "n-resize";
+    }
+  }
+  switch (state) {
+    case "horizontal":
+      return "ew-resize";
+    case "intersection":
+      return "move";
+    case "vertical":
+      return "ns-resize";
+  }
+}
+function resetGlobalCursorStyle() {
+  if (styleElement !== null) {
+    document.head.removeChild(styleElement);
+    currentCursorStyle = null;
+    styleElement = null;
+    prevRuleIndex = -1;
+  }
+}
+function setGlobalCursorStyle(state, constraintFlags) {
+  var _styleElement$sheet$i, _styleElement$sheet2;
+  if (!enabled) {
+    return;
+  }
+  const style = getCursorStyle(state, constraintFlags);
+  if (currentCursorStyle === style) {
+    return;
+  }
+  currentCursorStyle = style;
+  if (styleElement === null) {
+    styleElement = document.createElement("style");
+    const nonce2 = getNonce();
+    if (nonce2) {
+      styleElement.setAttribute("nonce", nonce2);
+    }
+    document.head.appendChild(styleElement);
+  }
+  if (prevRuleIndex >= 0) {
+    var _styleElement$sheet;
+    (_styleElement$sheet = styleElement.sheet) === null || _styleElement$sheet === undefined || _styleElement$sheet.removeRule(prevRuleIndex);
+  }
+  prevRuleIndex = (_styleElement$sheet$i = (_styleElement$sheet2 = styleElement.sheet) === null || _styleElement$sheet2 === undefined ? undefined : _styleElement$sheet2.insertRule(`*{cursor: ${style} !important;}`)) !== null && _styleElement$sheet$i !== undefined ? _styleElement$sheet$i : -1;
+}
+function isKeyDown(event) {
+  return event.type === "keydown";
+}
+function isPointerEvent(event) {
+  return event.type.startsWith("pointer");
+}
+function isMouseEvent(event) {
+  return event.type.startsWith("mouse");
+}
+function getResizeEventCoordinates(event) {
+  if (isPointerEvent(event)) {
+    if (event.isPrimary) {
+      return {
+        x: event.clientX,
+        y: event.clientY
+      };
+    }
+  } else if (isMouseEvent(event)) {
+    return {
+      x: event.clientX,
+      y: event.clientY
+    };
+  }
+  return {
+    x: Infinity,
+    y: Infinity
+  };
+}
+function getInputType() {
+  if (typeof matchMedia === "function") {
+    return matchMedia("(pointer:coarse)").matches ? "coarse" : "fine";
+  }
+}
+function intersects(rectOne, rectTwo, strict) {
+  if (strict) {
+    return rectOne.x < rectTwo.x + rectTwo.width && rectOne.x + rectOne.width > rectTwo.x && rectOne.y < rectTwo.y + rectTwo.height && rectOne.y + rectOne.height > rectTwo.y;
+  } else {
+    return rectOne.x <= rectTwo.x + rectTwo.width && rectOne.x + rectOne.width >= rectTwo.x && rectOne.y <= rectTwo.y + rectTwo.height && rectOne.y + rectOne.height >= rectTwo.y;
+  }
+}
+function compare(a, b) {
+  if (a === b)
+    throw new Error("Cannot compare node with itself");
+  const ancestors = {
+    a: get_ancestors(a),
+    b: get_ancestors(b)
+  };
+  let common_ancestor;
+  while (ancestors.a.at(-1) === ancestors.b.at(-1)) {
+    a = ancestors.a.pop();
+    b = ancestors.b.pop();
+    common_ancestor = a;
+  }
+  assert(common_ancestor, "Stacking order can only be calculated for elements with a common ancestor");
+  const z_indexes = {
+    a: get_z_index(find_stacking_context(ancestors.a)),
+    b: get_z_index(find_stacking_context(ancestors.b))
+  };
+  if (z_indexes.a === z_indexes.b) {
+    const children = common_ancestor.childNodes;
+    const furthest_ancestors = {
+      a: ancestors.a.at(-1),
+      b: ancestors.b.at(-1)
+    };
+    let i = children.length;
+    while (i--) {
+      const child = children[i];
+      if (child === furthest_ancestors.a)
+        return 1;
+      if (child === furthest_ancestors.b)
+        return -1;
+    }
+  }
+  return Math.sign(z_indexes.a - z_indexes.b);
+}
+function is_flex_item(node) {
+  var _get_parent;
+  const display = getComputedStyle((_get_parent = get_parent(node)) !== null && _get_parent !== undefined ? _get_parent : node).display;
+  return display === "flex" || display === "inline-flex";
+}
+function creates_stacking_context(node) {
+  const style = getComputedStyle(node);
+  if (style.position === "fixed")
+    return true;
+  if (style.zIndex !== "auto" && (style.position !== "static" || is_flex_item(node)))
+    return true;
+  if (+style.opacity < 1)
+    return true;
+  if ("transform" in style && style.transform !== "none")
+    return true;
+  if ("webkitTransform" in style && style.webkitTransform !== "none")
+    return true;
+  if ("mixBlendMode" in style && style.mixBlendMode !== "normal")
+    return true;
+  if ("filter" in style && style.filter !== "none")
+    return true;
+  if ("webkitFilter" in style && style.webkitFilter !== "none")
+    return true;
+  if ("isolation" in style && style.isolation === "isolate")
+    return true;
+  if (props.test(style.willChange))
+    return true;
+  if (style.webkitOverflowScrolling === "touch")
+    return true;
+  return false;
+}
+function find_stacking_context(nodes) {
+  let i = nodes.length;
+  while (i--) {
+    const node = nodes[i];
+    assert(node, "Missing node");
+    if (creates_stacking_context(node))
+      return node;
+  }
+  return null;
+}
+function get_z_index(node) {
+  return node && Number(getComputedStyle(node).zIndex) || 0;
+}
+function get_ancestors(node) {
+  const ancestors = [];
+  while (node) {
+    ancestors.push(node);
+    node = get_parent(node);
+  }
+  return ancestors;
+}
+function get_parent(node) {
+  const {
+    parentNode
+  } = node;
+  if (parentNode && parentNode instanceof ShadowRoot) {
+    return parentNode.host;
+  }
+  return parentNode;
+}
+function registerResizeHandle(resizeHandleId, element, direction, hitAreaMargins, setResizeHandlerState) {
+  var _ownerDocumentCounts$;
+  const {
+    ownerDocument
+  } = element;
+  const data = {
+    direction,
+    element,
+    hitAreaMargins,
+    setResizeHandlerState
+  };
+  const count = (_ownerDocumentCounts$ = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$ !== undefined ? _ownerDocumentCounts$ : 0;
+  ownerDocumentCounts.set(ownerDocument, count + 1);
+  registeredResizeHandlers.add(data);
+  updateListeners();
+  return function unregisterResizeHandle() {
+    var _ownerDocumentCounts$2;
+    panelConstraintFlags.delete(resizeHandleId);
+    registeredResizeHandlers.delete(data);
+    const count2 = (_ownerDocumentCounts$2 = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$2 !== undefined ? _ownerDocumentCounts$2 : 1;
+    ownerDocumentCounts.set(ownerDocument, count2 - 1);
+    updateListeners();
+    if (count2 === 1) {
+      ownerDocumentCounts.delete(ownerDocument);
+    }
+    if (intersectingHandles.includes(data)) {
+      const index = intersectingHandles.indexOf(data);
+      if (index >= 0) {
+        intersectingHandles.splice(index, 1);
+      }
+      updateCursor();
+      setResizeHandlerState("up", true, null);
+    }
+  };
+}
+function handlePointerDown(event) {
+  const {
+    target
+  } = event;
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  isPointerDown = true;
+  recalculateIntersectingHandles({
+    target,
+    x,
+    y
+  });
+  updateListeners();
+  if (intersectingHandles.length > 0) {
+    updateResizeHandlerStates("down", event);
+    event.preventDefault();
+    if (!isWithinResizeHandle(target)) {
+      event.stopImmediatePropagation();
+    }
+  }
+}
+function handlePointerMove(event) {
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  if (isPointerDown && event.buttons === 0) {
+    isPointerDown = false;
+    updateResizeHandlerStates("up", event);
+  }
+  if (!isPointerDown) {
+    const {
+      target
+    } = event;
+    recalculateIntersectingHandles({
+      target,
+      x,
+      y
+    });
+  }
+  updateResizeHandlerStates("move", event);
+  updateCursor();
+  if (intersectingHandles.length > 0) {
+    event.preventDefault();
+  }
+}
+function handlePointerUp(event) {
+  const {
+    target
+  } = event;
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  panelConstraintFlags.clear();
+  isPointerDown = false;
+  if (intersectingHandles.length > 0) {
+    event.preventDefault();
+    if (!isWithinResizeHandle(target)) {
+      event.stopImmediatePropagation();
+    }
+  }
+  updateResizeHandlerStates("up", event);
+  recalculateIntersectingHandles({
+    target,
+    x,
+    y
+  });
+  updateCursor();
+  updateListeners();
+}
+function isWithinResizeHandle(element) {
+  let currentElement = element;
+  while (currentElement) {
+    if (currentElement.hasAttribute(DATA_ATTRIBUTES.resizeHandle)) {
+      return true;
+    }
+    currentElement = currentElement.parentElement;
+  }
+  return false;
+}
+function recalculateIntersectingHandles({
+  target,
+  x,
+  y
+}) {
+  intersectingHandles.splice(0);
+  let targetElement = null;
+  if (target instanceof HTMLElement || target instanceof SVGElement) {
+    targetElement = target;
+  }
+  registeredResizeHandlers.forEach((data) => {
+    const {
+      element: dragHandleElement,
+      hitAreaMargins
+    } = data;
+    const dragHandleRect = dragHandleElement.getBoundingClientRect();
+    const {
+      bottom,
+      left,
+      right,
+      top
+    } = dragHandleRect;
+    const margin = isCoarsePointer ? hitAreaMargins.coarse : hitAreaMargins.fine;
+    const eventIntersects = x >= left - margin && x <= right + margin && y >= top - margin && y <= bottom + margin;
+    if (eventIntersects) {
+      if (targetElement !== null && document.contains(targetElement) && dragHandleElement !== targetElement && !dragHandleElement.contains(targetElement) && !targetElement.contains(dragHandleElement) && compare(targetElement, dragHandleElement) > 0) {
+        let currentElement = targetElement;
+        let didIntersect = false;
+        while (currentElement) {
+          if (currentElement.contains(dragHandleElement)) {
+            break;
+          } else if (intersects(currentElement.getBoundingClientRect(), dragHandleRect, true)) {
+            didIntersect = true;
+            break;
+          }
+          currentElement = currentElement.parentElement;
+        }
+        if (didIntersect) {
+          return;
+        }
+      }
+      intersectingHandles.push(data);
+    }
+  });
+}
+function reportConstraintsViolation(resizeHandleId, flag) {
+  panelConstraintFlags.set(resizeHandleId, flag);
+}
+function updateCursor() {
+  let intersectsHorizontal = false;
+  let intersectsVertical = false;
+  intersectingHandles.forEach((data) => {
+    const {
+      direction
+    } = data;
+    if (direction === "horizontal") {
+      intersectsHorizontal = true;
+    } else {
+      intersectsVertical = true;
+    }
+  });
+  let constraintFlags = 0;
+  panelConstraintFlags.forEach((flag) => {
+    constraintFlags |= flag;
+  });
+  if (intersectsHorizontal && intersectsVertical) {
+    setGlobalCursorStyle("intersection", constraintFlags);
+  } else if (intersectsHorizontal) {
+    setGlobalCursorStyle("horizontal", constraintFlags);
+  } else if (intersectsVertical) {
+    setGlobalCursorStyle("vertical", constraintFlags);
+  } else {
+    resetGlobalCursorStyle();
+  }
+}
+function updateListeners() {
+  listenersAbortController.abort();
+  listenersAbortController = new AbortController;
+  const options = {
+    capture: true,
+    signal: listenersAbortController.signal
+  };
+  if (!registeredResizeHandlers.size) {
+    return;
+  }
+  if (isPointerDown) {
+    if (intersectingHandles.length > 0) {
+      ownerDocumentCounts.forEach((count, ownerDocument) => {
+        const {
+          body
+        } = ownerDocument;
+        if (count > 0) {
+          body.addEventListener("contextmenu", handlePointerUp, options);
+          body.addEventListener("pointerleave", handlePointerMove, options);
+          body.addEventListener("pointermove", handlePointerMove, options);
+        }
+      });
+    }
+    window.addEventListener("pointerup", handlePointerUp, options);
+    window.addEventListener("pointercancel", handlePointerUp, options);
+  } else {
+    ownerDocumentCounts.forEach((count, ownerDocument) => {
+      const {
+        body
+      } = ownerDocument;
+      if (count > 0) {
+        body.addEventListener("pointerdown", handlePointerDown, options);
+        body.addEventListener("pointermove", handlePointerMove, options);
+      }
+    });
+  }
+}
+function updateResizeHandlerStates(action, event) {
+  registeredResizeHandlers.forEach((data) => {
+    const {
+      setResizeHandlerState
+    } = data;
+    const isActive = intersectingHandles.includes(data);
+    setResizeHandlerState(action, isActive, event);
+  });
+}
+function useForceUpdate() {
+  const [_, setCount] = import_react4.useState(0);
+  return import_react4.useCallback(() => setCount((prevCount) => prevCount + 1), []);
+}
+function assert(expectedCondition, message) {
+  if (!expectedCondition) {
+    console.error(message);
+    throw Error(message);
+  }
+}
+function fuzzyCompareNumbers(actual, expected, fractionDigits = PRECISION) {
+  if (actual.toFixed(fractionDigits) === expected.toFixed(fractionDigits)) {
+    return 0;
+  } else {
+    return actual > expected ? 1 : -1;
+  }
+}
+function fuzzyNumbersEqual$1(actual, expected, fractionDigits = PRECISION) {
+  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
+}
+function fuzzyNumbersEqual(actual, expected, fractionDigits) {
+  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
+}
+function fuzzyLayoutsEqual(actual, expected, fractionDigits) {
+  if (actual.length !== expected.length) {
+    return false;
+  }
+  for (let index = 0;index < actual.length; index++) {
+    const actualSize = actual[index];
+    const expectedSize = expected[index];
+    if (!fuzzyNumbersEqual(actualSize, expectedSize, fractionDigits)) {
+      return false;
+    }
+  }
+  return true;
+}
+function resizePanel({
+  panelConstraints: panelConstraintsArray,
+  panelIndex,
+  size
+}) {
+  const panelConstraints = panelConstraintsArray[panelIndex];
+  assert(panelConstraints != null, `Panel constraints not found for index ${panelIndex}`);
+  let {
+    collapsedSize = 0,
+    collapsible,
+    maxSize = 100,
+    minSize = 0
+  } = panelConstraints;
+  if (fuzzyCompareNumbers(size, minSize) < 0) {
+    if (collapsible) {
+      const halfwayPoint = (collapsedSize + minSize) / 2;
+      if (fuzzyCompareNumbers(size, halfwayPoint) < 0) {
+        size = collapsedSize;
+      } else {
+        size = minSize;
+      }
+    } else {
+      size = minSize;
+    }
+  }
+  size = Math.min(maxSize, size);
+  size = parseFloat(size.toFixed(PRECISION));
+  return size;
+}
+function adjustLayoutByDelta({
+  delta,
+  initialLayout,
+  panelConstraints: panelConstraintsArray,
+  pivotIndices,
+  prevLayout,
+  trigger
+}) {
+  if (fuzzyNumbersEqual(delta, 0)) {
+    return initialLayout;
+  }
+  const nextLayout = [...initialLayout];
+  const [firstPivotIndex, secondPivotIndex] = pivotIndices;
+  assert(firstPivotIndex != null, "Invalid first pivot index");
+  assert(secondPivotIndex != null, "Invalid second pivot index");
+  let deltaApplied = 0;
+  {
+    if (trigger === "keyboard") {
+      {
+        const index = delta < 0 ? secondPivotIndex : firstPivotIndex;
+        const panelConstraints = panelConstraintsArray[index];
+        assert(panelConstraints, `Panel constraints not found for index ${index}`);
+        const {
+          collapsedSize = 0,
+          collapsible,
+          minSize = 0
+        } = panelConstraints;
+        if (collapsible) {
+          const prevSize = initialLayout[index];
+          assert(prevSize != null, `Previous layout not found for panel index ${index}`);
+          if (fuzzyNumbersEqual(prevSize, collapsedSize)) {
+            const localDelta = minSize - prevSize;
+            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
+              delta = delta < 0 ? 0 - localDelta : localDelta;
+            }
+          }
+        }
+      }
+      {
+        const index = delta < 0 ? firstPivotIndex : secondPivotIndex;
+        const panelConstraints = panelConstraintsArray[index];
+        assert(panelConstraints, `No panel constraints found for index ${index}`);
+        const {
+          collapsedSize = 0,
+          collapsible,
+          minSize = 0
+        } = panelConstraints;
+        if (collapsible) {
+          const prevSize = initialLayout[index];
+          assert(prevSize != null, `Previous layout not found for panel index ${index}`);
+          if (fuzzyNumbersEqual(prevSize, minSize)) {
+            const localDelta = prevSize - collapsedSize;
+            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
+              delta = delta < 0 ? 0 - localDelta : localDelta;
+            }
+          }
+        }
+      }
+    }
+  }
+  {
+    const increment = delta < 0 ? 1 : -1;
+    let index = delta < 0 ? secondPivotIndex : firstPivotIndex;
+    let maxAvailableDelta = 0;
+    while (true) {
+      const prevSize = initialLayout[index];
+      assert(prevSize != null, `Previous layout not found for panel index ${index}`);
+      const maxSafeSize = resizePanel({
+        panelConstraints: panelConstraintsArray,
+        panelIndex: index,
+        size: 100
+      });
+      const delta2 = maxSafeSize - prevSize;
+      maxAvailableDelta += delta2;
+      index += increment;
+      if (index < 0 || index >= panelConstraintsArray.length) {
+        break;
+      }
+    }
+    const minAbsDelta = Math.min(Math.abs(delta), Math.abs(maxAvailableDelta));
+    delta = delta < 0 ? 0 - minAbsDelta : minAbsDelta;
+  }
+  {
+    const pivotIndex = delta < 0 ? firstPivotIndex : secondPivotIndex;
+    let index = pivotIndex;
+    while (index >= 0 && index < panelConstraintsArray.length) {
+      const deltaRemaining = Math.abs(delta) - Math.abs(deltaApplied);
+      const prevSize = initialLayout[index];
+      assert(prevSize != null, `Previous layout not found for panel index ${index}`);
+      const unsafeSize = prevSize - deltaRemaining;
+      const safeSize = resizePanel({
+        panelConstraints: panelConstraintsArray,
+        panelIndex: index,
+        size: unsafeSize
+      });
+      if (!fuzzyNumbersEqual(prevSize, safeSize)) {
+        deltaApplied += prevSize - safeSize;
+        nextLayout[index] = safeSize;
+        if (deltaApplied.toPrecision(3).localeCompare(Math.abs(delta).toPrecision(3), undefined, {
+          numeric: true
+        }) >= 0) {
+          break;
+        }
+      }
+      if (delta < 0) {
+        index--;
+      } else {
+        index++;
+      }
+    }
+  }
+  if (fuzzyLayoutsEqual(prevLayout, nextLayout)) {
+    return prevLayout;
+  }
+  {
+    const pivotIndex = delta < 0 ? secondPivotIndex : firstPivotIndex;
+    const prevSize = initialLayout[pivotIndex];
+    assert(prevSize != null, `Previous layout not found for panel index ${pivotIndex}`);
+    const unsafeSize = prevSize + deltaApplied;
+    const safeSize = resizePanel({
+      panelConstraints: panelConstraintsArray,
+      panelIndex: pivotIndex,
+      size: unsafeSize
+    });
+    nextLayout[pivotIndex] = safeSize;
+    if (!fuzzyNumbersEqual(safeSize, unsafeSize)) {
+      let deltaRemaining = unsafeSize - safeSize;
+      const pivotIndex2 = delta < 0 ? secondPivotIndex : firstPivotIndex;
+      let index = pivotIndex2;
+      while (index >= 0 && index < panelConstraintsArray.length) {
+        const prevSize2 = nextLayout[index];
+        assert(prevSize2 != null, `Previous layout not found for panel index ${index}`);
+        const unsafeSize2 = prevSize2 + deltaRemaining;
+        const safeSize2 = resizePanel({
+          panelConstraints: panelConstraintsArray,
+          panelIndex: index,
+          size: unsafeSize2
+        });
+        if (!fuzzyNumbersEqual(prevSize2, safeSize2)) {
+          deltaRemaining -= safeSize2 - prevSize2;
+          nextLayout[index] = safeSize2;
+        }
+        if (fuzzyNumbersEqual(deltaRemaining, 0)) {
+          break;
+        }
+        if (delta > 0) {
+          index--;
+        } else {
+          index++;
+        }
+      }
+    }
+  }
+  const totalSize = nextLayout.reduce((total, size) => size + total, 0);
+  if (!fuzzyNumbersEqual(totalSize, 100)) {
+    return prevLayout;
+  }
+  return nextLayout;
+}
+function calculateAriaValues({
+  layout,
+  panelsArray,
+  pivotIndices
+}) {
+  let currentMinSize = 0;
+  let currentMaxSize = 100;
+  let totalMinSize = 0;
+  let totalMaxSize = 0;
+  const firstIndex = pivotIndices[0];
+  assert(firstIndex != null, "No pivot index found");
+  panelsArray.forEach((panelData, index) => {
+    const {
+      constraints
+    } = panelData;
+    const {
+      maxSize = 100,
+      minSize = 0
+    } = constraints;
+    if (index === firstIndex) {
+      currentMinSize = minSize;
+      currentMaxSize = maxSize;
+    } else {
+      totalMinSize += minSize;
+      totalMaxSize += maxSize;
+    }
+  });
+  const valueMax = Math.min(currentMaxSize, 100 - totalMinSize);
+  const valueMin = Math.max(currentMinSize, 100 - totalMaxSize);
+  const valueNow = layout[firstIndex];
+  return {
+    valueMax,
+    valueMin,
+    valueNow
+  };
+}
+function getResizeHandleElementsForGroup(groupId, scope = document) {
+  return Array.from(scope.querySelectorAll(`[${DATA_ATTRIBUTES.resizeHandleId}][data-panel-group-id="${groupId}"]`));
+}
+function getResizeHandleElementIndex(groupId, id, scope = document) {
+  const handles = getResizeHandleElementsForGroup(groupId, scope);
+  const index = handles.findIndex((handle) => handle.getAttribute(DATA_ATTRIBUTES.resizeHandleId) === id);
+  return index !== null && index !== undefined ? index : null;
+}
+function determinePivotIndices(groupId, dragHandleId, panelGroupElement) {
+  const index = getResizeHandleElementIndex(groupId, dragHandleId, panelGroupElement);
+  return index != null ? [index, index + 1] : [-1, -1];
+}
+function getPanelGroupElement(id, rootElement = document) {
+  var _dataset;
+  if (rootElement instanceof HTMLElement && (rootElement === null || rootElement === undefined ? undefined : (_dataset = rootElement.dataset) === null || _dataset === undefined ? undefined : _dataset.panelGroupId) == id) {
+    return rootElement;
+  }
+  const element = rootElement.querySelector(`[data-panel-group][data-panel-group-id="${id}"]`);
+  if (element) {
+    return element;
+  }
+  return null;
+}
+function getResizeHandleElement(id, scope = document) {
+  const element = scope.querySelector(`[${DATA_ATTRIBUTES.resizeHandleId}="${id}"]`);
+  if (element) {
+    return element;
+  }
+  return null;
+}
+function getResizeHandlePanelIds(groupId, handleId, panelsArray, scope = document) {
+  var _panelsArray$index$id, _panelsArray$index, _panelsArray$id, _panelsArray;
+  const handle = getResizeHandleElement(handleId, scope);
+  const handles = getResizeHandleElementsForGroup(groupId, scope);
+  const index = handle ? handles.indexOf(handle) : -1;
+  const idBefore = (_panelsArray$index$id = (_panelsArray$index = panelsArray[index]) === null || _panelsArray$index === undefined ? undefined : _panelsArray$index.id) !== null && _panelsArray$index$id !== undefined ? _panelsArray$index$id : null;
+  const idAfter = (_panelsArray$id = (_panelsArray = panelsArray[index + 1]) === null || _panelsArray === undefined ? undefined : _panelsArray.id) !== null && _panelsArray$id !== undefined ? _panelsArray$id : null;
+  return [idBefore, idAfter];
+}
+function useWindowSplitterPanelGroupBehavior({
+  committedValuesRef,
+  eagerValuesRef,
+  groupId,
+  layout,
+  panelDataArray,
+  panelGroupElement,
+  setLayout
+}) {
+  const devWarningsRef = import_react4.useRef({
+    didWarnAboutMissingResizeHandle: false
+  });
+  useIsomorphicLayoutEffect(() => {
+    if (!panelGroupElement) {
+      return;
+    }
+    const resizeHandleElements = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+    for (let index = 0;index < panelDataArray.length - 1; index++) {
+      const {
+        valueMax,
+        valueMin,
+        valueNow
+      } = calculateAriaValues({
+        layout,
+        panelsArray: panelDataArray,
+        pivotIndices: [index, index + 1]
+      });
+      const resizeHandleElement = resizeHandleElements[index];
+      if (resizeHandleElement == null) {
+        {
+          const {
+            didWarnAboutMissingResizeHandle
+          } = devWarningsRef.current;
+          if (!didWarnAboutMissingResizeHandle) {
+            devWarningsRef.current.didWarnAboutMissingResizeHandle = true;
+            console.warn(`WARNING: Missing resize handle for PanelGroup "${groupId}"`);
+          }
+        }
+      } else {
+        const panelData = panelDataArray[index];
+        assert(panelData, `No panel data found for index "${index}"`);
+        resizeHandleElement.setAttribute("aria-controls", panelData.id);
+        resizeHandleElement.setAttribute("aria-valuemax", "" + Math.round(valueMax));
+        resizeHandleElement.setAttribute("aria-valuemin", "" + Math.round(valueMin));
+        resizeHandleElement.setAttribute("aria-valuenow", valueNow != null ? "" + Math.round(valueNow) : "");
+      }
+    }
+    return () => {
+      resizeHandleElements.forEach((resizeHandleElement, index) => {
+        resizeHandleElement.removeAttribute("aria-controls");
+        resizeHandleElement.removeAttribute("aria-valuemax");
+        resizeHandleElement.removeAttribute("aria-valuemin");
+        resizeHandleElement.removeAttribute("aria-valuenow");
+      });
+    };
+  }, [groupId, layout, panelDataArray, panelGroupElement]);
+  import_react4.useEffect(() => {
+    if (!panelGroupElement) {
+      return;
+    }
+    const eagerValues = eagerValuesRef.current;
+    assert(eagerValues, `Eager values not found`);
+    const {
+      panelDataArray: panelDataArray2
+    } = eagerValues;
+    const groupElement = getPanelGroupElement(groupId, panelGroupElement);
+    assert(groupElement != null, `No group found for id "${groupId}"`);
+    const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+    assert(handles, `No resize handles found for group id "${groupId}"`);
+    const cleanupFunctions = handles.map((handle) => {
+      const handleId = handle.getAttribute(DATA_ATTRIBUTES.resizeHandleId);
+      assert(handleId, `Resize handle element has no handle id attribute`);
+      const [idBefore, idAfter] = getResizeHandlePanelIds(groupId, handleId, panelDataArray2, panelGroupElement);
+      if (idBefore == null || idAfter == null) {
+        return () => {};
+      }
+      const onKeyDown = (event) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+        switch (event.key) {
+          case "Enter": {
+            event.preventDefault();
+            const index = panelDataArray2.findIndex((panelData) => panelData.id === idBefore);
+            if (index >= 0) {
+              const panelData = panelDataArray2[index];
+              assert(panelData, `No panel data found for index ${index}`);
+              const size = layout[index];
+              const {
+                collapsedSize = 0,
+                collapsible,
+                minSize = 0
+              } = panelData.constraints;
+              if (size != null && collapsible) {
+                const nextLayout = adjustLayoutByDelta({
+                  delta: fuzzyNumbersEqual(size, collapsedSize) ? minSize - collapsedSize : collapsedSize - size,
+                  initialLayout: layout,
+                  panelConstraints: panelDataArray2.map((panelData2) => panelData2.constraints),
+                  pivotIndices: determinePivotIndices(groupId, handleId, panelGroupElement),
+                  prevLayout: layout,
+                  trigger: "keyboard"
+                });
+                if (layout !== nextLayout) {
+                  setLayout(nextLayout);
+                }
+              }
+            }
+            break;
+          }
+        }
+      };
+      handle.addEventListener("keydown", onKeyDown);
+      return () => {
+        handle.removeEventListener("keydown", onKeyDown);
+      };
+    });
+    return () => {
+      cleanupFunctions.forEach((cleanupFunction) => cleanupFunction());
+    };
+  }, [panelGroupElement, committedValuesRef, eagerValuesRef, groupId, layout, panelDataArray, setLayout]);
+}
+function areEqual(arrayA, arrayB) {
+  if (arrayA.length !== arrayB.length) {
+    return false;
+  }
+  for (let index = 0;index < arrayA.length; index++) {
+    if (arrayA[index] !== arrayB[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+function getResizeEventCursorPosition(direction, event) {
+  const isHorizontal = direction === "horizontal";
+  const {
+    x,
+    y
+  } = getResizeEventCoordinates(event);
+  return isHorizontal ? x : y;
+}
+function calculateDragOffsetPercentage(event, dragHandleId, direction, initialDragState, panelGroupElement) {
+  const isHorizontal = direction === "horizontal";
+  const handleElement = getResizeHandleElement(dragHandleId, panelGroupElement);
+  assert(handleElement, `No resize handle element found for id "${dragHandleId}"`);
+  const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
+  assert(groupId, `Resize handle element has no group id attribute`);
+  let {
+    initialCursorPosition
+  } = initialDragState;
+  const cursorPosition = getResizeEventCursorPosition(direction, event);
+  const groupElement = getPanelGroupElement(groupId, panelGroupElement);
+  assert(groupElement, `No group element found for id "${groupId}"`);
+  const groupRect = groupElement.getBoundingClientRect();
+  const groupSizeInPixels = isHorizontal ? groupRect.width : groupRect.height;
+  const offsetPixels = cursorPosition - initialCursorPosition;
+  const offsetPercentage = offsetPixels / groupSizeInPixels * 100;
+  return offsetPercentage;
+}
+function calculateDeltaPercentage(event, dragHandleId, direction, initialDragState, keyboardResizeBy, panelGroupElement) {
+  if (isKeyDown(event)) {
+    const isHorizontal = direction === "horizontal";
+    let delta = 0;
+    if (event.shiftKey) {
+      delta = 100;
+    } else if (keyboardResizeBy != null) {
+      delta = keyboardResizeBy;
+    } else {
+      delta = 10;
+    }
+    let movement = 0;
+    switch (event.key) {
+      case "ArrowDown":
+        movement = isHorizontal ? 0 : delta;
+        break;
+      case "ArrowLeft":
+        movement = isHorizontal ? -delta : 0;
+        break;
+      case "ArrowRight":
+        movement = isHorizontal ? delta : 0;
+        break;
+      case "ArrowUp":
+        movement = isHorizontal ? 0 : -delta;
+        break;
+      case "End":
+        movement = 100;
+        break;
+      case "Home":
+        movement = -100;
+        break;
+    }
+    return movement;
+  } else {
+    if (initialDragState == null) {
+      return 0;
+    }
+    return calculateDragOffsetPercentage(event, dragHandleId, direction, initialDragState, panelGroupElement);
+  }
+}
+function calculateUnsafeDefaultLayout({
+  panelDataArray
+}) {
+  const layout = Array(panelDataArray.length);
+  const panelConstraintsArray = panelDataArray.map((panelData) => panelData.constraints);
+  let numPanelsWithSizes = 0;
+  let remainingSize = 100;
+  for (let index = 0;index < panelDataArray.length; index++) {
+    const panelConstraints = panelConstraintsArray[index];
+    assert(panelConstraints, `Panel constraints not found for index ${index}`);
+    const {
+      defaultSize
+    } = panelConstraints;
+    if (defaultSize != null) {
+      numPanelsWithSizes++;
+      layout[index] = defaultSize;
+      remainingSize -= defaultSize;
+    }
+  }
+  for (let index = 0;index < panelDataArray.length; index++) {
+    const panelConstraints = panelConstraintsArray[index];
+    assert(panelConstraints, `Panel constraints not found for index ${index}`);
+    const {
+      defaultSize
+    } = panelConstraints;
+    if (defaultSize != null) {
+      continue;
+    }
+    const numRemainingPanels = panelDataArray.length - numPanelsWithSizes;
+    const size = remainingSize / numRemainingPanels;
+    numPanelsWithSizes++;
+    layout[index] = size;
+    remainingSize -= size;
+  }
+  return layout;
+}
+function callPanelCallbacks(panelsArray, layout, panelIdToLastNotifiedSizeMap) {
+  layout.forEach((size, index) => {
+    const panelData = panelsArray[index];
+    assert(panelData, `Panel data not found for index ${index}`);
+    const {
+      callbacks,
+      constraints,
+      id: panelId
+    } = panelData;
+    const {
+      collapsedSize = 0,
+      collapsible
+    } = constraints;
+    const lastNotifiedSize = panelIdToLastNotifiedSizeMap[panelId];
+    if (lastNotifiedSize == null || size !== lastNotifiedSize) {
+      panelIdToLastNotifiedSizeMap[panelId] = size;
+      const {
+        onCollapse,
+        onExpand,
+        onResize
+      } = callbacks;
+      if (onResize) {
+        onResize(size, lastNotifiedSize);
+      }
+      if (collapsible && (onCollapse || onExpand)) {
+        if (onExpand && (lastNotifiedSize == null || fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && !fuzzyNumbersEqual$1(size, collapsedSize)) {
+          onExpand();
+        }
+        if (onCollapse && (lastNotifiedSize == null || !fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && fuzzyNumbersEqual$1(size, collapsedSize)) {
+          onCollapse();
+        }
+      }
+    }
+  });
+}
+function compareLayouts(a, b) {
+  if (a.length !== b.length) {
+    return false;
+  } else {
+    for (let index = 0;index < a.length; index++) {
+      if (a[index] != b[index]) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+function computePanelFlexBoxStyle({
+  defaultSize,
+  dragState,
+  layout,
+  panelData,
+  panelIndex,
+  precision = 3
+}) {
+  const size = layout[panelIndex];
+  let flexGrow;
+  if (size == null) {
+    flexGrow = defaultSize != null ? defaultSize.toPrecision(precision) : "1";
+  } else if (panelData.length === 1) {
+    flexGrow = "1";
+  } else {
+    flexGrow = size.toPrecision(precision);
+  }
+  return {
+    flexBasis: 0,
+    flexGrow,
+    flexShrink: 1,
+    overflow: "hidden",
+    pointerEvents: dragState !== null ? "none" : undefined
+  };
+}
+function debounce(callback, durationMs = 10) {
+  let timeoutId = null;
+  let callable = (...args) => {
+    if (timeoutId !== null) {
+      clearTimeout(timeoutId);
+    }
+    timeoutId = setTimeout(() => {
+      callback(...args);
+    }, durationMs);
+  };
+  return callable;
+}
+function initializeDefaultStorage(storageObject) {
+  try {
+    if (typeof localStorage !== "undefined") {
+      storageObject.getItem = (name) => {
+        return localStorage.getItem(name);
+      };
+      storageObject.setItem = (name, value) => {
+        localStorage.setItem(name, value);
+      };
+    } else {
+      throw new Error("localStorage not supported in this environment");
+    }
+  } catch (error) {
+    console.error(error);
+    storageObject.getItem = () => null;
+    storageObject.setItem = () => {};
+  }
+}
+function getPanelGroupKey(autoSaveId) {
+  return `react-resizable-panels:${autoSaveId}`;
+}
+function getPanelKey(panels) {
+  return panels.map((panel) => {
+    const {
+      constraints,
+      id,
+      idIsFromProps,
+      order
+    } = panel;
+    if (idIsFromProps) {
+      return id;
+    } else {
+      return order ? `${order}:${JSON.stringify(constraints)}` : JSON.stringify(constraints);
+    }
+  }).sort((a, b) => a.localeCompare(b)).join(",");
+}
+function loadSerializedPanelGroupState(autoSaveId, storage) {
+  try {
+    const panelGroupKey = getPanelGroupKey(autoSaveId);
+    const serialized = storage.getItem(panelGroupKey);
+    if (serialized) {
+      const parsed = JSON.parse(serialized);
+      if (typeof parsed === "object" && parsed != null) {
+        return parsed;
+      }
+    }
+  } catch (error) {}
+  return null;
+}
+function loadPanelGroupState(autoSaveId, panels, storage) {
+  var _loadSerializedPanelG, _state$panelKey;
+  const state = (_loadSerializedPanelG = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG !== undefined ? _loadSerializedPanelG : {};
+  const panelKey = getPanelKey(panels);
+  return (_state$panelKey = state[panelKey]) !== null && _state$panelKey !== undefined ? _state$panelKey : null;
+}
+function savePanelGroupState(autoSaveId, panels, panelSizesBeforeCollapse, sizes, storage) {
+  var _loadSerializedPanelG2;
+  const panelGroupKey = getPanelGroupKey(autoSaveId);
+  const panelKey = getPanelKey(panels);
+  const state = (_loadSerializedPanelG2 = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG2 !== undefined ? _loadSerializedPanelG2 : {};
+  state[panelKey] = {
+    expandToSizes: Object.fromEntries(panelSizesBeforeCollapse.entries()),
+    layout: sizes
+  };
+  try {
+    storage.setItem(panelGroupKey, JSON.stringify(state));
+  } catch (error) {
+    console.error(error);
+  }
+}
+function validatePanelConstraints({
+  panelConstraints: panelConstraintsArray,
+  panelId,
+  panelIndex
+}) {
+  {
+    const warnings = [];
+    const panelConstraints = panelConstraintsArray[panelIndex];
+    assert(panelConstraints, `No panel constraints found for index ${panelIndex}`);
+    const {
+      collapsedSize = 0,
+      collapsible = false,
+      defaultSize,
+      maxSize = 100,
+      minSize = 0
+    } = panelConstraints;
+    if (minSize > maxSize) {
+      warnings.push(`min size (${minSize}%) should not be greater than max size (${maxSize}%)`);
+    }
+    if (defaultSize != null) {
+      if (defaultSize < 0) {
+        warnings.push("default size should not be less than 0");
+      } else if (defaultSize < minSize && (!collapsible || defaultSize !== collapsedSize)) {
+        warnings.push("default size should not be less than min size");
+      }
+      if (defaultSize > 100) {
+        warnings.push("default size should not be greater than 100");
+      } else if (defaultSize > maxSize) {
+        warnings.push("default size should not be greater than max size");
+      }
+    }
+    if (collapsedSize > minSize) {
+      warnings.push("collapsed size should not be greater than min size");
+    }
+    if (warnings.length > 0) {
+      const name = panelId != null ? `Panel "${panelId}"` : "Panel";
+      console.warn(`${name} has an invalid configuration:
+
+${warnings.join(`
+`)}`);
+      return false;
+    }
+  }
+  return true;
+}
+function validatePanelGroupLayout({
+  layout: prevLayout,
+  panelConstraints
+}) {
+  const nextLayout = [...prevLayout];
+  const nextLayoutTotalSize = nextLayout.reduce((accumulated, current) => accumulated + current, 0);
+  if (nextLayout.length !== panelConstraints.length) {
+    throw Error(`Invalid ${panelConstraints.length} panel layout: ${nextLayout.map((size) => `${size}%`).join(", ")}`);
+  } else if (!fuzzyNumbersEqual(nextLayoutTotalSize, 100) && nextLayout.length > 0) {
+    {
+      console.warn(`WARNING: Invalid layout total size: ${nextLayout.map((size) => `${size}%`).join(", ")}. Layout normalization will be applied.`);
+    }
+    for (let index = 0;index < panelConstraints.length; index++) {
+      const unsafeSize = nextLayout[index];
+      assert(unsafeSize != null, `No layout data found for index ${index}`);
+      const safeSize = 100 / nextLayoutTotalSize * unsafeSize;
+      nextLayout[index] = safeSize;
+    }
+  }
+  let remainingSize = 0;
+  for (let index = 0;index < panelConstraints.length; index++) {
+    const unsafeSize = nextLayout[index];
+    assert(unsafeSize != null, `No layout data found for index ${index}`);
+    const safeSize = resizePanel({
+      panelConstraints,
+      panelIndex: index,
+      size: unsafeSize
+    });
+    if (unsafeSize != safeSize) {
+      remainingSize += unsafeSize - safeSize;
+      nextLayout[index] = safeSize;
+    }
+  }
+  if (!fuzzyNumbersEqual(remainingSize, 0)) {
+    for (let index = 0;index < panelConstraints.length; index++) {
+      const prevSize = nextLayout[index];
+      assert(prevSize != null, `No layout data found for index ${index}`);
+      const unsafeSize = prevSize + remainingSize;
+      const safeSize = resizePanel({
+        panelConstraints,
+        panelIndex: index,
+        size: unsafeSize
+      });
+      if (prevSize !== safeSize) {
+        remainingSize -= safeSize - prevSize;
+        nextLayout[index] = safeSize;
+        if (fuzzyNumbersEqual(remainingSize, 0)) {
+          break;
+        }
+      }
+    }
+  }
+  return nextLayout;
+}
+function PanelGroupWithForwardedRef({
+  autoSaveId = null,
+  children,
+  className: classNameFromProps = "",
+  direction,
+  forwardedRef,
+  id: idFromProps = null,
+  onLayout = null,
+  keyboardResizeBy = null,
+  storage = defaultStorage,
+  style: styleFromProps,
+  tagName: Type = "div",
+  ...rest
+}) {
+  const groupId = useUniqueId(idFromProps);
+  const panelGroupElementRef = import_react4.useRef(null);
+  const [dragState, setDragState] = import_react4.useState(null);
+  const [layout, setLayout] = import_react4.useState([]);
+  const forceUpdate = useForceUpdate();
+  const panelIdToLastNotifiedSizeMapRef = import_react4.useRef({});
+  const panelSizeBeforeCollapseRef = import_react4.useRef(new Map);
+  const prevDeltaRef = import_react4.useRef(0);
+  const committedValuesRef = import_react4.useRef({
+    autoSaveId,
+    direction,
+    dragState,
+    id: groupId,
+    keyboardResizeBy,
+    onLayout,
+    storage
+  });
+  const eagerValuesRef = import_react4.useRef({
+    layout,
+    panelDataArray: [],
+    panelDataArrayChanged: false
+  });
+  const devWarningsRef = import_react4.useRef({
+    didLogIdAndOrderWarning: false,
+    didLogPanelConstraintsWarning: false,
+    prevPanelIds: []
+  });
+  import_react4.useImperativeHandle(forwardedRef, () => ({
+    getId: () => committedValuesRef.current.id,
+    getLayout: () => {
+      const {
+        layout: layout2
+      } = eagerValuesRef.current;
+      return layout2;
+    },
+    setLayout: (unsafeLayout) => {
+      const {
+        onLayout: onLayout2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      const safeLayout = validatePanelGroupLayout({
+        layout: unsafeLayout,
+        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
+      });
+      if (!areEqual(prevLayout, safeLayout)) {
+        setLayout(safeLayout);
+        eagerValuesRef.current.layout = safeLayout;
+        if (onLayout2) {
+          onLayout2(safeLayout);
+        }
+        callPanelCallbacks(panelDataArray, safeLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    }
+  }), []);
+  useIsomorphicLayoutEffect(() => {
+    committedValuesRef.current.autoSaveId = autoSaveId;
+    committedValuesRef.current.direction = direction;
+    committedValuesRef.current.dragState = dragState;
+    committedValuesRef.current.id = groupId;
+    committedValuesRef.current.onLayout = onLayout;
+    committedValuesRef.current.storage = storage;
+  });
+  useWindowSplitterPanelGroupBehavior({
+    committedValuesRef,
+    eagerValuesRef,
+    groupId,
+    layout,
+    panelDataArray: eagerValuesRef.current.panelDataArray,
+    setLayout,
+    panelGroupElement: panelGroupElementRef.current
+  });
+  import_react4.useEffect(() => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (autoSaveId) {
+      if (layout.length === 0 || layout.length !== panelDataArray.length) {
+        return;
+      }
+      let debouncedSave = debounceMap[autoSaveId];
+      if (debouncedSave == null) {
+        debouncedSave = debounce(savePanelGroupState, LOCAL_STORAGE_DEBOUNCE_INTERVAL);
+        debounceMap[autoSaveId] = debouncedSave;
+      }
+      const clonedPanelDataArray = [...panelDataArray];
+      const clonedPanelSizesBeforeCollapse = new Map(panelSizeBeforeCollapseRef.current);
+      debouncedSave(autoSaveId, clonedPanelDataArray, clonedPanelSizesBeforeCollapse, layout, storage);
+    }
+  }, [autoSaveId, layout, storage]);
+  import_react4.useEffect(() => {
+    {
+      const {
+        panelDataArray
+      } = eagerValuesRef.current;
+      const {
+        didLogIdAndOrderWarning,
+        didLogPanelConstraintsWarning,
+        prevPanelIds
+      } = devWarningsRef.current;
+      if (!didLogIdAndOrderWarning) {
+        const panelIds = panelDataArray.map(({
+          id
+        }) => id);
+        devWarningsRef.current.prevPanelIds = panelIds;
+        const panelsHaveChanged = prevPanelIds.length > 0 && !areEqual(prevPanelIds, panelIds);
+        if (panelsHaveChanged) {
+          if (panelDataArray.find(({
+            idIsFromProps,
+            order
+          }) => !idIsFromProps || order == null)) {
+            devWarningsRef.current.didLogIdAndOrderWarning = true;
+            console.warn(`WARNING: Panel id and order props recommended when panels are dynamically rendered`);
+          }
+        }
+      }
+      if (!didLogPanelConstraintsWarning) {
+        const panelConstraints = panelDataArray.map((panelData) => panelData.constraints);
+        for (let panelIndex = 0;panelIndex < panelConstraints.length; panelIndex++) {
+          const panelData = panelDataArray[panelIndex];
+          assert(panelData, `Panel data not found for index ${panelIndex}`);
+          const isValid = validatePanelConstraints({
+            panelConstraints,
+            panelId: panelData.id,
+            panelIndex
+          });
+          if (!isValid) {
+            devWarningsRef.current.didLogPanelConstraintsWarning = true;
+            break;
+          }
+        }
+      }
+    }
+  });
+  const collapsePanel = import_react4.useCallback((panelData) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (panelData.constraints.collapsible) {
+      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+      const {
+        collapsedSize = 0,
+        panelSize,
+        pivotIndices
+      } = panelDataHelper(panelDataArray, panelData, prevLayout);
+      assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+      if (!fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
+        panelSizeBeforeCollapseRef.current.set(panelData.id, panelSize);
+        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+        const delta = isLastPanel ? panelSize - collapsedSize : collapsedSize - panelSize;
+        const nextLayout = adjustLayoutByDelta({
+          delta,
+          initialLayout: prevLayout,
+          panelConstraints: panelConstraintsArray,
+          pivotIndices,
+          prevLayout,
+          trigger: "imperative-api"
+        });
+        if (!compareLayouts(prevLayout, nextLayout)) {
+          setLayout(nextLayout);
+          eagerValuesRef.current.layout = nextLayout;
+          if (onLayout2) {
+            onLayout2(nextLayout);
+          }
+          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+        }
+      }
+    }
+  }, []);
+  const expandPanel = import_react4.useCallback((panelData, minSizeOverride) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    if (panelData.constraints.collapsible) {
+      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+      const {
+        collapsedSize = 0,
+        panelSize = 0,
+        minSize: minSizeFromProps = 0,
+        pivotIndices
+      } = panelDataHelper(panelDataArray, panelData, prevLayout);
+      const minSize = minSizeOverride !== null && minSizeOverride !== undefined ? minSizeOverride : minSizeFromProps;
+      if (fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
+        const prevPanelSize = panelSizeBeforeCollapseRef.current.get(panelData.id);
+        const baseSize = prevPanelSize != null && prevPanelSize >= minSize ? prevPanelSize : minSize;
+        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+        const delta = isLastPanel ? panelSize - baseSize : baseSize - panelSize;
+        const nextLayout = adjustLayoutByDelta({
+          delta,
+          initialLayout: prevLayout,
+          panelConstraints: panelConstraintsArray,
+          pivotIndices,
+          prevLayout,
+          trigger: "imperative-api"
+        });
+        if (!compareLayouts(prevLayout, nextLayout)) {
+          setLayout(nextLayout);
+          eagerValuesRef.current.layout = nextLayout;
+          if (onLayout2) {
+            onLayout2(nextLayout);
+          }
+          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+        }
+      }
+    }
+  }, []);
+  const getPanelSize = import_react4.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return panelSize;
+  }, []);
+  const getPanelStyle = import_react4.useCallback((panelData, defaultSize) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    const panelIndex = findPanelDataIndex(panelDataArray, panelData);
+    return computePanelFlexBoxStyle({
+      defaultSize,
+      dragState,
+      layout,
+      panelData: panelDataArray,
+      panelIndex
+    });
+  }, [dragState, layout]);
+  const isPanelCollapsed = import_react4.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize = 0,
+      collapsible,
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return collapsible === true && fuzzyNumbersEqual$1(panelSize, collapsedSize);
+  }, []);
+  const isPanelExpanded = import_react4.useCallback((panelData) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize = 0,
+      collapsible,
+      panelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    return !collapsible || fuzzyCompareNumbers(panelSize, collapsedSize) > 0;
+  }, []);
+  const registerPanel = import_react4.useCallback((panelData) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    panelDataArray.push(panelData);
+    panelDataArray.sort((panelA, panelB) => {
+      const orderA = panelA.order;
+      const orderB = panelB.order;
+      if (orderA == null && orderB == null) {
+        return 0;
+      } else if (orderA == null) {
+        return -1;
+      } else if (orderB == null) {
+        return 1;
+      } else {
+        return orderA - orderB;
+      }
+    });
+    eagerValuesRef.current.panelDataArrayChanged = true;
+    forceUpdate();
+  }, [forceUpdate]);
+  useIsomorphicLayoutEffect(() => {
+    if (eagerValuesRef.current.panelDataArrayChanged) {
+      eagerValuesRef.current.panelDataArrayChanged = false;
+      const {
+        autoSaveId: autoSaveId2,
+        onLayout: onLayout2,
+        storage: storage2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      let unsafeLayout = null;
+      if (autoSaveId2) {
+        const state = loadPanelGroupState(autoSaveId2, panelDataArray, storage2);
+        if (state) {
+          panelSizeBeforeCollapseRef.current = new Map(Object.entries(state.expandToSizes));
+          unsafeLayout = state.layout;
+        }
+      }
+      if (unsafeLayout == null) {
+        unsafeLayout = calculateUnsafeDefaultLayout({
+          panelDataArray
+        });
+      }
+      const nextLayout = validatePanelGroupLayout({
+        layout: unsafeLayout,
+        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
+      });
+      if (!areEqual(prevLayout, nextLayout)) {
+        setLayout(nextLayout);
+        eagerValuesRef.current.layout = nextLayout;
+        if (onLayout2) {
+          onLayout2(nextLayout);
+        }
+        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    }
+  });
+  useIsomorphicLayoutEffect(() => {
+    const eagerValues = eagerValuesRef.current;
+    return () => {
+      eagerValues.layout = [];
+    };
+  }, []);
+  const registerResizeHandle2 = import_react4.useCallback((dragHandleId) => {
+    let isRTL = false;
+    const panelGroupElement = panelGroupElementRef.current;
+    if (panelGroupElement) {
+      const style2 = window.getComputedStyle(panelGroupElement, null);
+      if (style2.getPropertyValue("direction") === "rtl") {
+        isRTL = true;
+      }
+    }
+    return function resizeHandler(event) {
+      event.preventDefault();
+      const panelGroupElement2 = panelGroupElementRef.current;
+      if (!panelGroupElement2) {
+        return () => null;
+      }
+      const {
+        direction: direction2,
+        dragState: dragState2,
+        id: groupId2,
+        keyboardResizeBy: keyboardResizeBy2,
+        onLayout: onLayout2
+      } = committedValuesRef.current;
+      const {
+        layout: prevLayout,
+        panelDataArray
+      } = eagerValuesRef.current;
+      const {
+        initialLayout
+      } = dragState2 !== null && dragState2 !== undefined ? dragState2 : {};
+      const pivotIndices = determinePivotIndices(groupId2, dragHandleId, panelGroupElement2);
+      let delta = calculateDeltaPercentage(event, dragHandleId, direction2, dragState2, keyboardResizeBy2, panelGroupElement2);
+      const isHorizontal = direction2 === "horizontal";
+      if (isHorizontal && isRTL) {
+        delta = -delta;
+      }
+      const panelConstraints = panelDataArray.map((panelData) => panelData.constraints);
+      const nextLayout = adjustLayoutByDelta({
+        delta,
+        initialLayout: initialLayout !== null && initialLayout !== undefined ? initialLayout : prevLayout,
+        panelConstraints,
+        pivotIndices,
+        prevLayout,
+        trigger: isKeyDown(event) ? "keyboard" : "mouse-or-touch"
+      });
+      const layoutChanged = !compareLayouts(prevLayout, nextLayout);
+      if (isPointerEvent(event) || isMouseEvent(event)) {
+        if (prevDeltaRef.current != delta) {
+          prevDeltaRef.current = delta;
+          if (!layoutChanged && delta !== 0) {
+            if (isHorizontal) {
+              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_HORIZONTAL_MIN : EXCEEDED_HORIZONTAL_MAX);
+            } else {
+              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_VERTICAL_MIN : EXCEEDED_VERTICAL_MAX);
+            }
+          } else {
+            reportConstraintsViolation(dragHandleId, 0);
+          }
+        }
+      }
+      if (layoutChanged) {
+        setLayout(nextLayout);
+        eagerValuesRef.current.layout = nextLayout;
+        if (onLayout2) {
+          onLayout2(nextLayout);
+        }
+        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+      }
+    };
+  }, []);
+  const resizePanel2 = import_react4.useCallback((panelData, unsafePanelSize) => {
+    const {
+      onLayout: onLayout2
+    } = committedValuesRef.current;
+    const {
+      layout: prevLayout,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
+    const {
+      panelSize,
+      pivotIndices
+    } = panelDataHelper(panelDataArray, panelData, prevLayout);
+    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
+    const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
+    const delta = isLastPanel ? panelSize - unsafePanelSize : unsafePanelSize - panelSize;
+    const nextLayout = adjustLayoutByDelta({
+      delta,
+      initialLayout: prevLayout,
+      panelConstraints: panelConstraintsArray,
+      pivotIndices,
+      prevLayout,
+      trigger: "imperative-api"
+    });
+    if (!compareLayouts(prevLayout, nextLayout)) {
+      setLayout(nextLayout);
+      eagerValuesRef.current.layout = nextLayout;
+      if (onLayout2) {
+        onLayout2(nextLayout);
+      }
+      callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
+    }
+  }, []);
+  const reevaluatePanelConstraints = import_react4.useCallback((panelData, prevConstraints) => {
+    const {
+      layout: layout2,
+      panelDataArray
+    } = eagerValuesRef.current;
+    const {
+      collapsedSize: prevCollapsedSize = 0,
+      collapsible: prevCollapsible
+    } = prevConstraints;
+    const {
+      collapsedSize: nextCollapsedSize = 0,
+      collapsible: nextCollapsible,
+      maxSize: nextMaxSize = 100,
+      minSize: nextMinSize = 0
+    } = panelData.constraints;
+    const {
+      panelSize: prevPanelSize
+    } = panelDataHelper(panelDataArray, panelData, layout2);
+    if (prevPanelSize == null) {
+      return;
+    }
+    if (prevCollapsible && nextCollapsible && fuzzyNumbersEqual$1(prevPanelSize, prevCollapsedSize)) {
+      if (!fuzzyNumbersEqual$1(prevCollapsedSize, nextCollapsedSize)) {
+        resizePanel2(panelData, nextCollapsedSize);
+      }
+    } else if (prevPanelSize < nextMinSize) {
+      resizePanel2(panelData, nextMinSize);
+    } else if (prevPanelSize > nextMaxSize) {
+      resizePanel2(panelData, nextMaxSize);
+    }
+  }, [resizePanel2]);
+  const startDragging = import_react4.useCallback((dragHandleId, event) => {
+    const {
+      direction: direction2
+    } = committedValuesRef.current;
+    const {
+      layout: layout2
+    } = eagerValuesRef.current;
+    if (!panelGroupElementRef.current) {
+      return;
+    }
+    const handleElement = getResizeHandleElement(dragHandleId, panelGroupElementRef.current);
+    assert(handleElement, `Drag handle element not found for id "${dragHandleId}"`);
+    const initialCursorPosition = getResizeEventCursorPosition(direction2, event);
+    setDragState({
+      dragHandleId,
+      dragHandleRect: handleElement.getBoundingClientRect(),
+      initialCursorPosition,
+      initialLayout: layout2
+    });
+  }, []);
+  const stopDragging = import_react4.useCallback(() => {
+    setDragState(null);
+  }, []);
+  const unregisterPanel = import_react4.useCallback((panelData) => {
+    const {
+      panelDataArray
+    } = eagerValuesRef.current;
+    const index = findPanelDataIndex(panelDataArray, panelData);
+    if (index >= 0) {
+      panelDataArray.splice(index, 1);
+      delete panelIdToLastNotifiedSizeMapRef.current[panelData.id];
+      eagerValuesRef.current.panelDataArrayChanged = true;
+      forceUpdate();
+    }
+  }, [forceUpdate]);
+  const context = import_react4.useMemo(() => ({
+    collapsePanel,
+    direction,
+    dragState,
+    expandPanel,
+    getPanelSize,
+    getPanelStyle,
+    groupId,
+    isPanelCollapsed,
+    isPanelExpanded,
+    reevaluatePanelConstraints,
+    registerPanel,
+    registerResizeHandle: registerResizeHandle2,
+    resizePanel: resizePanel2,
+    startDragging,
+    stopDragging,
+    unregisterPanel,
+    panelGroupElement: panelGroupElementRef.current
+  }), [collapsePanel, dragState, direction, expandPanel, getPanelSize, getPanelStyle, groupId, isPanelCollapsed, isPanelExpanded, reevaluatePanelConstraints, registerPanel, registerResizeHandle2, resizePanel2, startDragging, stopDragging, unregisterPanel]);
+  const style = {
+    display: "flex",
+    flexDirection: direction === "horizontal" ? "row" : "column",
+    height: "100%",
+    overflow: "hidden",
+    width: "100%"
+  };
+  return import_react4.createElement(PanelGroupContext.Provider, {
+    value: context
+  }, import_react4.createElement(Type, {
+    ...rest,
+    children,
+    className: classNameFromProps,
+    id: idFromProps,
+    ref: panelGroupElementRef,
+    style: {
+      ...style,
+      ...styleFromProps
+    },
+    [DATA_ATTRIBUTES.group]: "",
+    [DATA_ATTRIBUTES.groupDirection]: direction,
+    [DATA_ATTRIBUTES.groupId]: groupId
+  }));
+}
+function findPanelDataIndex(panelDataArray, panelData) {
+  return panelDataArray.findIndex((prevPanelData) => prevPanelData === panelData || prevPanelData.id === panelData.id);
+}
+function panelDataHelper(panelDataArray, panelData, layout) {
+  const panelIndex = findPanelDataIndex(panelDataArray, panelData);
+  const isLastPanel = panelIndex === panelDataArray.length - 1;
+  const pivotIndices = isLastPanel ? [panelIndex - 1, panelIndex] : [panelIndex, panelIndex + 1];
+  const panelSize = layout[panelIndex];
+  return {
+    ...panelData.constraints,
+    panelSize,
+    pivotIndices
+  };
+}
+function useWindowSplitterResizeHandlerBehavior({
+  disabled,
+  handleId,
+  resizeHandler,
+  panelGroupElement
+}) {
+  import_react4.useEffect(() => {
+    if (disabled || resizeHandler == null || panelGroupElement == null) {
+      return;
+    }
+    const handleElement = getResizeHandleElement(handleId, panelGroupElement);
+    if (handleElement == null) {
+      return;
+    }
+    const onKeyDown = (event) => {
+      if (event.defaultPrevented) {
+        return;
+      }
+      switch (event.key) {
+        case "ArrowDown":
+        case "ArrowLeft":
+        case "ArrowRight":
+        case "ArrowUp":
+        case "End":
+        case "Home": {
+          event.preventDefault();
+          resizeHandler(event);
+          break;
+        }
+        case "F6": {
+          event.preventDefault();
+          const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
+          assert(groupId, `No group element found for id "${groupId}"`);
+          const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
+          const index = getResizeHandleElementIndex(groupId, handleId, panelGroupElement);
+          assert(index !== null, `No resize element found for id "${handleId}"`);
+          const nextIndex = event.shiftKey ? index > 0 ? index - 1 : handles.length - 1 : index + 1 < handles.length ? index + 1 : 0;
+          const nextHandle = handles[nextIndex];
+          nextHandle.focus();
+          break;
+        }
+      }
+    };
+    handleElement.addEventListener("keydown", onKeyDown);
+    return () => {
+      handleElement.removeEventListener("keydown", onKeyDown);
+    };
+  }, [panelGroupElement, disabled, handleId, resizeHandler]);
+}
+function PanelResizeHandle({
+  children = null,
+  className: classNameFromProps = "",
+  disabled = false,
+  hitAreaMargins,
+  id: idFromProps,
+  onBlur,
+  onClick,
+  onDragging,
+  onFocus,
+  onPointerDown,
+  onPointerUp,
+  style: styleFromProps = {},
+  tabIndex = 0,
+  tagName: Type = "div",
+  ...rest
+}) {
+  var _hitAreaMargins$coars, _hitAreaMargins$fine;
+  const elementRef = import_react4.useRef(null);
+  const callbacksRef = import_react4.useRef({
+    onClick,
+    onDragging,
+    onPointerDown,
+    onPointerUp
+  });
+  import_react4.useEffect(() => {
+    callbacksRef.current.onClick = onClick;
+    callbacksRef.current.onDragging = onDragging;
+    callbacksRef.current.onPointerDown = onPointerDown;
+    callbacksRef.current.onPointerUp = onPointerUp;
+  });
+  const panelGroupContext = import_react4.useContext(PanelGroupContext);
+  if (panelGroupContext === null) {
+    throw Error(`PanelResizeHandle components must be rendered within a PanelGroup container`);
+  }
+  const {
+    direction,
+    groupId,
+    registerResizeHandle: registerResizeHandleWithParentGroup,
+    startDragging,
+    stopDragging,
+    panelGroupElement
+  } = panelGroupContext;
+  const resizeHandleId = useUniqueId(idFromProps);
+  const [state, setState] = import_react4.useState("inactive");
+  const [isFocused, setIsFocused] = import_react4.useState(false);
+  const [resizeHandler, setResizeHandler] = import_react4.useState(null);
+  const committedValuesRef = import_react4.useRef({
+    state
+  });
+  useIsomorphicLayoutEffect(() => {
+    committedValuesRef.current.state = state;
+  });
+  import_react4.useEffect(() => {
+    if (disabled) {
+      setResizeHandler(null);
+    } else {
+      const resizeHandler2 = registerResizeHandleWithParentGroup(resizeHandleId);
+      setResizeHandler(() => resizeHandler2);
+    }
+  }, [disabled, resizeHandleId, registerResizeHandleWithParentGroup]);
+  const coarseHitAreaMargins = (_hitAreaMargins$coars = hitAreaMargins === null || hitAreaMargins === undefined ? undefined : hitAreaMargins.coarse) !== null && _hitAreaMargins$coars !== undefined ? _hitAreaMargins$coars : 15;
+  const fineHitAreaMargins = (_hitAreaMargins$fine = hitAreaMargins === null || hitAreaMargins === undefined ? undefined : hitAreaMargins.fine) !== null && _hitAreaMargins$fine !== undefined ? _hitAreaMargins$fine : 5;
+  import_react4.useEffect(() => {
+    if (disabled || resizeHandler == null) {
+      return;
+    }
+    const element = elementRef.current;
+    assert(element, "Element ref not attached");
+    let didMove = false;
+    const setResizeHandlerState = (action, isActive, event) => {
+      if (!isActive) {
+        setState("inactive");
+        return;
+      }
+      switch (action) {
+        case "down": {
+          setState("drag");
+          didMove = false;
+          assert(event, 'Expected event to be defined for "down" action');
+          startDragging(resizeHandleId, event);
+          const {
+            onDragging: onDragging2,
+            onPointerDown: onPointerDown2
+          } = callbacksRef.current;
+          onDragging2 === null || onDragging2 === undefined || onDragging2(true);
+          onPointerDown2 === null || onPointerDown2 === undefined || onPointerDown2();
+          break;
+        }
+        case "move": {
+          const {
+            state: state2
+          } = committedValuesRef.current;
+          didMove = true;
+          if (state2 !== "drag") {
+            setState("hover");
+          }
+          assert(event, 'Expected event to be defined for "move" action');
+          resizeHandler(event);
+          break;
+        }
+        case "up": {
+          setState("hover");
+          stopDragging();
+          const {
+            onClick: onClick2,
+            onDragging: onDragging2,
+            onPointerUp: onPointerUp2
+          } = callbacksRef.current;
+          onDragging2 === null || onDragging2 === undefined || onDragging2(false);
+          onPointerUp2 === null || onPointerUp2 === undefined || onPointerUp2();
+          if (!didMove) {
+            onClick2 === null || onClick2 === undefined || onClick2();
+          }
+          break;
+        }
+      }
+    };
+    return registerResizeHandle(resizeHandleId, element, direction, {
+      coarse: coarseHitAreaMargins,
+      fine: fineHitAreaMargins
+    }, setResizeHandlerState);
+  }, [coarseHitAreaMargins, direction, disabled, fineHitAreaMargins, registerResizeHandleWithParentGroup, resizeHandleId, resizeHandler, startDragging, stopDragging]);
+  useWindowSplitterResizeHandlerBehavior({
+    disabled,
+    handleId: resizeHandleId,
+    resizeHandler,
+    panelGroupElement
+  });
+  const style = {
+    touchAction: "none",
+    userSelect: "none"
+  };
+  return import_react4.createElement(Type, {
+    ...rest,
+    children,
+    className: classNameFromProps,
+    id: idFromProps,
+    onBlur: () => {
+      setIsFocused(false);
+      onBlur === null || onBlur === undefined || onBlur();
+    },
+    onFocus: () => {
+      setIsFocused(true);
+      onFocus === null || onFocus === undefined || onFocus();
+    },
+    ref: elementRef,
+    role: "separator",
+    style: {
+      ...style,
+      ...styleFromProps
+    },
+    tabIndex,
+    [DATA_ATTRIBUTES.groupDirection]: direction,
+    [DATA_ATTRIBUTES.groupId]: groupId,
+    [DATA_ATTRIBUTES.resizeHandle]: "",
+    [DATA_ATTRIBUTES.resizeHandleActive]: state === "drag" ? "pointer" : isFocused ? "keyboard" : undefined,
+    [DATA_ATTRIBUTES.resizeHandleEnabled]: !disabled,
+    [DATA_ATTRIBUTES.resizeHandleId]: resizeHandleId,
+    [DATA_ATTRIBUTES.resizeHandleState]: state
+  });
+}
+var React, import_react4, PanelGroupContext, DATA_ATTRIBUTES, PRECISION = 10, useIsomorphicLayoutEffect, useId, wrappedUseId, counter = 0, Panel, nonce, currentCursorStyle = null, enabled = true, prevRuleIndex = -1, styleElement = null, props, EXCEEDED_HORIZONTAL_MIN = 1, EXCEEDED_HORIZONTAL_MAX = 2, EXCEEDED_VERTICAL_MIN = 4, EXCEEDED_VERTICAL_MAX = 8, isCoarsePointer, intersectingHandles, isPointerDown = false, ownerDocumentCounts, panelConstraintFlags, registeredResizeHandlers, listenersAbortController, LOCAL_STORAGE_DEBOUNCE_INTERVAL = 100, defaultStorage, debounceMap, PanelGroup;
+var init_react_resizable_panels_browser_development_esm = __esm(() => {
+  React = __toESM(require_react(), 1);
+  import_react4 = __toESM(require_react(), 1);
+  PanelGroupContext = import_react4.createContext(null);
+  PanelGroupContext.displayName = "PanelGroupContext";
+  DATA_ATTRIBUTES = {
+    group: "data-panel-group",
+    groupDirection: "data-panel-group-direction",
+    groupId: "data-panel-group-id",
+    panel: "data-panel",
+    panelCollapsible: "data-panel-collapsible",
+    panelId: "data-panel-id",
+    panelSize: "data-panel-size",
+    resizeHandle: "data-resize-handle",
+    resizeHandleActive: "data-resize-handle-active",
+    resizeHandleEnabled: "data-panel-resize-handle-enabled",
+    resizeHandleId: "data-panel-resize-handle-id",
+    resizeHandleState: "data-resize-handle-state"
+  };
+  useIsomorphicLayoutEffect = import_react4.useLayoutEffect;
+  useId = React["useId".toString()];
+  wrappedUseId = typeof useId === "function" ? useId : () => null;
+  Panel = import_react4.forwardRef((props, ref) => import_react4.createElement(PanelWithForwardedRef, {
+    ...props,
+    forwardedRef: ref
+  }));
+  PanelWithForwardedRef.displayName = "Panel";
+  Panel.displayName = "forwardRef(Panel)";
+  props = /\b(?:position|zIndex|opacity|transform|webkitTransform|mixBlendMode|filter|webkitFilter|isolation)\b/;
+  isCoarsePointer = getInputType() === "coarse";
+  intersectingHandles = [];
+  ownerDocumentCounts = new Map;
+  panelConstraintFlags = new Map;
+  registeredResizeHandlers = new Set;
+  listenersAbortController = new AbortController;
+  defaultStorage = {
+    getItem: (name) => {
+      initializeDefaultStorage(defaultStorage);
+      return defaultStorage.getItem(name);
+    },
+    setItem: (name, value) => {
+      initializeDefaultStorage(defaultStorage);
+      defaultStorage.setItem(name, value);
+    }
+  };
+  debounceMap = {};
+  PanelGroup = import_react4.forwardRef((props2, ref) => import_react4.createElement(PanelGroupWithForwardedRef, {
+    ...props2,
+    forwardedRef: ref
+  }));
+  PanelGroupWithForwardedRef.displayName = "PanelGroup";
+  PanelGroup.displayName = "forwardRef(PanelGroup)";
+  PanelResizeHandle.displayName = "PanelResizeHandle";
+});
+
 // node_modules/react/cjs/react-jsx-dev-runtime.development.js
 var require_react_jsx_dev_runtime_development = __commonJS((exports) => {
   var React2 = __toESM(require_react(), 1);
@@ -24972,6 +27281,37 @@ var require_jsx_dev_runtime = __commonJS((exports, module) => {
   }
 });
 
+// dashboard/src/components/ui/resizable.jsx
+var React2, jsx_dev_runtime, ResizablePanelGroup = ({
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime.jsxDEV(PanelGroup, {
+  className: cn("flex h-full w-full data-[panel-group-direction=vertical]:flex-col", className),
+  ...props2
+}, undefined, false, undefined, this), ResizablePanel, ResizableHandle = ({
+  withHandle,
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime.jsxDEV(PanelResizeHandle, {
+  className: cn("relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90", className),
+  ...props2,
+  children: withHandle && /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
+    className: "z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border",
+    children: /* @__PURE__ */ jsx_dev_runtime.jsxDEV(GripVertical, {
+      className: "h-2.5 w-2.5"
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this)
+}, undefined, false, undefined, this);
+var init_resizable = __esm(() => {
+  React2 = __toESM(require_react(), 1);
+  init_lucide_react();
+  init_react_resizable_panels_browser_development_esm();
+  init_utils();
+  jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  ResizablePanel = Panel;
+});
+
 // node_modules/@radix-ui/react-compose-refs/dist/index.mjs
 function setRef(ref, value) {
   if (typeof ref === "function") {
@@ -25003,6 +27343,9 @@ function composeRefs(...refs) {
       };
     }
   };
+}
+function useComposedRefs(...refs) {
+  return React3.useCallback(composeRefs(...refs), refs);
 }
 var React3;
 var init_dist = __esm(() => {
@@ -26000,6 +28343,47 @@ var init_dist2 = __esm(() => {
   SLOTTABLE_IDENTIFIER = Symbol("radix.slottable");
 });
 
+// node_modules/@radix-ui/react-primitive/dist/index.mjs
+var React5, ReactDOM, import_jsx_runtime2, NODES, Primitive;
+var init_dist3 = __esm(() => {
+  React5 = __toESM(require_react(), 1);
+  ReactDOM = __toESM(require_react_dom(), 1);
+  init_dist2();
+  import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
+  NODES = [
+    "a",
+    "button",
+    "div",
+    "form",
+    "h2",
+    "h3",
+    "img",
+    "input",
+    "label",
+    "li",
+    "nav",
+    "ol",
+    "p",
+    "select",
+    "span",
+    "svg",
+    "ul"
+  ];
+  Primitive = NODES.reduce((primitive, node) => {
+    const Slot2 = createSlot(`Primitive.${node}`);
+    const Node2 = React5.forwardRef((props2, forwardedRef) => {
+      const { asChild, ...primitiveProps } = props2;
+      const Comp = asChild ? Slot2 : node;
+      if (typeof window !== "undefined") {
+        window[Symbol.for("radix-ui")] = true;
+      }
+      return /* @__PURE__ */ import_jsx_runtime2.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
+    });
+    Node2.displayName = `Primitive.${node}`;
+    return { ...primitive, [node]: Node2 };
+  }, {});
+});
+
 // dashboard/src/components/ui/input.jsx
 var React8, jsx_dev_runtime3, Input;
 var init_input = __esm(() => {
@@ -26058,7 +28442,7 @@ var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value =
   }, []);
   return cx(base, getVariantClassNames, getCompoundVariantClassNames, props2 === null || props2 === undefined ? undefined : props2.class, props2 === null || props2 === undefined ? undefined : props2.className);
 };
-var init_dist3 = __esm(() => {
+var init_dist4 = __esm(() => {
   init_clsx();
   cx = clsx;
 });
@@ -26068,7 +28452,7 @@ var React9, jsx_dev_runtime4, buttonVariants, Button;
 var init_button = __esm(() => {
   React9 = __toESM(require_react(), 1);
   init_dist2();
-  init_dist3();
+  init_dist4();
   init_utils();
   jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
   buttonVariants = cva("inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", {
@@ -26267,14 +28651,956 @@ var init_lib = __esm(() => {
 });
 
 // node_modules/react-icons/fi/index.mjs
+function FiAlertCircle(props2) {
+  return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "circle", attr: { cx: "12", cy: "12", r: "10" }, child: [] }, { tag: "line", attr: { x1: "12", y1: "8", x2: "12", y2: "12" }, child: [] }, { tag: "line", attr: { x1: "12", y1: "16", x2: "12.01", y2: "16" }, child: [] }] })(props2);
+}
 function FiFile(props2) {
   return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "path", attr: { d: "M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" }, child: [] }, { tag: "polyline", attr: { points: "13 2 13 9 20 9" }, child: [] }] })(props2);
 }
 function FiFolder(props2) {
   return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "path", attr: { d: "M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" }, child: [] }] })(props2);
 }
+function FiLoader(props2) {
+  return GenIcon({ tag: "svg", attr: { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round" }, child: [{ tag: "line", attr: { x1: "12", y1: "2", x2: "12", y2: "6" }, child: [] }, { tag: "line", attr: { x1: "12", y1: "18", x2: "12", y2: "22" }, child: [] }, { tag: "line", attr: { x1: "4.93", y1: "4.93", x2: "7.76", y2: "7.76" }, child: [] }, { tag: "line", attr: { x1: "16.24", y1: "16.24", x2: "19.07", y2: "19.07" }, child: [] }, { tag: "line", attr: { x1: "2", y1: "12", x2: "6", y2: "12" }, child: [] }, { tag: "line", attr: { x1: "18", y1: "12", x2: "22", y2: "12" }, child: [] }, { tag: "line", attr: { x1: "4.93", y1: "19.07", x2: "7.76", y2: "16.24" }, child: [] }, { tag: "line", attr: { x1: "16.24", y1: "7.76", x2: "19.07", y2: "4.93" }, child: [] }] })(props2);
+}
 var init_fi = __esm(() => {
   init_lib();
+});
+
+// node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
+var React13, useLayoutEffect22;
+var init_dist5 = __esm(() => {
+  React13 = __toESM(require_react(), 1);
+  useLayoutEffect22 = globalThis?.document ? React13.useLayoutEffect : () => {};
+});
+
+// node_modules/@radix-ui/react-presence/dist/index.mjs
+function useStateMachine(initialState, machine) {
+  return React14.useReducer((state, event) => {
+    const nextState = machine[state][event];
+    return nextState ?? state;
+  }, initialState);
+}
+function usePresence(present) {
+  const [node, setNode] = React22.useState();
+  const stylesRef = React22.useRef(null);
+  const prevPresentRef = React22.useRef(present);
+  const prevAnimationNameRef = React22.useRef("none");
+  const initialState = present ? "mounted" : "unmounted";
+  const [state, send] = useStateMachine(initialState, {
+    mounted: {
+      UNMOUNT: "unmounted",
+      ANIMATION_OUT: "unmountSuspended"
+    },
+    unmountSuspended: {
+      MOUNT: "mounted",
+      ANIMATION_END: "unmounted"
+    },
+    unmounted: {
+      MOUNT: "mounted"
+    }
+  });
+  React22.useEffect(() => {
+    const currentAnimationName = getAnimationName(stylesRef.current);
+    prevAnimationNameRef.current = state === "mounted" ? currentAnimationName : "none";
+  }, [state]);
+  useLayoutEffect22(() => {
+    const styles = stylesRef.current;
+    const wasPresent = prevPresentRef.current;
+    const hasPresentChanged = wasPresent !== present;
+    if (hasPresentChanged) {
+      const prevAnimationName = prevAnimationNameRef.current;
+      const currentAnimationName = getAnimationName(styles);
+      if (present) {
+        send("MOUNT");
+      } else if (currentAnimationName === "none" || styles?.display === "none") {
+        send("UNMOUNT");
+      } else {
+        const isAnimating = prevAnimationName !== currentAnimationName;
+        if (wasPresent && isAnimating) {
+          send("ANIMATION_OUT");
+        } else {
+          send("UNMOUNT");
+        }
+      }
+      prevPresentRef.current = present;
+    }
+  }, [present, send]);
+  useLayoutEffect22(() => {
+    if (node) {
+      let timeoutId;
+      const ownerWindow = node.ownerDocument.defaultView ?? window;
+      const handleAnimationEnd = (event) => {
+        const currentAnimationName = getAnimationName(stylesRef.current);
+        const isCurrentAnimation = currentAnimationName.includes(CSS.escape(event.animationName));
+        if (event.target === node && isCurrentAnimation) {
+          send("ANIMATION_END");
+          if (!prevPresentRef.current) {
+            const currentFillMode = node.style.animationFillMode;
+            node.style.animationFillMode = "forwards";
+            timeoutId = ownerWindow.setTimeout(() => {
+              if (node.style.animationFillMode === "forwards") {
+                node.style.animationFillMode = currentFillMode;
+              }
+            });
+          }
+        }
+      };
+      const handleAnimationStart = (event) => {
+        if (event.target === node) {
+          prevAnimationNameRef.current = getAnimationName(stylesRef.current);
+        }
+      };
+      node.addEventListener("animationstart", handleAnimationStart);
+      node.addEventListener("animationcancel", handleAnimationEnd);
+      node.addEventListener("animationend", handleAnimationEnd);
+      return () => {
+        ownerWindow.clearTimeout(timeoutId);
+        node.removeEventListener("animationstart", handleAnimationStart);
+        node.removeEventListener("animationcancel", handleAnimationEnd);
+        node.removeEventListener("animationend", handleAnimationEnd);
+      };
+    } else {
+      send("ANIMATION_END");
+    }
+  }, [node, send]);
+  return {
+    isPresent: ["mounted", "unmountSuspended"].includes(state),
+    ref: React22.useCallback((node2) => {
+      stylesRef.current = node2 ? getComputedStyle(node2) : null;
+      setNode(node2);
+    }, [])
+  };
+}
+function getAnimationName(styles) {
+  return styles?.animationName || "none";
+}
+function getElementRef2(element) {
+  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.ref;
+  }
+  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.props.ref;
+  }
+  return element.props.ref || element.ref;
+}
+var React22, React14, Presence = (props2) => {
+  const { present, children } = props2;
+  const presence = usePresence(present);
+  const child = typeof children === "function" ? children({ present: presence.isPresent }) : React22.Children.only(children);
+  const ref = useComposedRefs(presence.ref, getElementRef2(child));
+  const forceMount = typeof children === "function";
+  return forceMount || presence.isPresent ? React22.cloneElement(child, { ref }) : null;
+};
+var init_dist6 = __esm(() => {
+  React22 = __toESM(require_react(), 1);
+  init_dist();
+  init_dist5();
+  React14 = __toESM(require_react(), 1);
+  "use client";
+  Presence.displayName = "Presence";
+});
+
+// node_modules/@radix-ui/react-context/dist/index.mjs
+function createContextScope(scopeName, createContextScopeDeps = []) {
+  let defaultContexts = [];
+  function createContext3(rootComponentName, defaultContext) {
+    const BaseContext = React15.createContext(defaultContext);
+    const index = defaultContexts.length;
+    defaultContexts = [...defaultContexts, defaultContext];
+    const Provider = (props2) => {
+      const { scope, children, ...context } = props2;
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const value = React15.useMemo(() => context, Object.values(context));
+      return /* @__PURE__ */ import_jsx_runtime4.jsx(Context.Provider, { value, children });
+    };
+    Provider.displayName = rootComponentName + "Provider";
+    function useContext22(consumerName, scope) {
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const context = React15.useContext(Context);
+      if (context)
+        return context;
+      if (defaultContext !== undefined)
+        return defaultContext;
+      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+    }
+    return [Provider, useContext22];
+  }
+  const createScope = () => {
+    const scopeContexts = defaultContexts.map((defaultContext) => {
+      return React15.createContext(defaultContext);
+    });
+    return function useScope(scope) {
+      const contexts = scope?.[scopeName] || scopeContexts;
+      return React15.useMemo(() => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }), [scope, contexts]);
+    };
+  };
+  createScope.scopeName = scopeName;
+  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
+}
+function composeContextScopes(...scopes) {
+  const baseScope = scopes[0];
+  if (scopes.length === 1)
+    return baseScope;
+  const createScope = () => {
+    const scopeHooks = scopes.map((createScope2) => ({
+      useScope: createScope2(),
+      scopeName: createScope2.scopeName
+    }));
+    return function useComposedScopes(overrideScopes) {
+      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
+        const scopeProps = useScope(overrideScopes);
+        const currentScope = scopeProps[`__scope${scopeName}`];
+        return { ...nextScopes2, ...currentScope };
+      }, {});
+      return React15.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+    };
+  };
+  createScope.scopeName = baseScope.scopeName;
+  return createScope;
+}
+var React15, import_jsx_runtime4;
+var init_dist7 = __esm(() => {
+  React15 = __toESM(require_react(), 1);
+  import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+});
+
+// node_modules/@radix-ui/react-use-callback-ref/dist/index.mjs
+function useCallbackRef(callback) {
+  const callbackRef = React16.useRef(callback);
+  React16.useEffect(() => {
+    callbackRef.current = callback;
+  });
+  return React16.useMemo(() => (...args) => callbackRef.current?.(...args), []);
+}
+var React16;
+var init_dist8 = __esm(() => {
+  React16 = __toESM(require_react(), 1);
+});
+
+// node_modules/@radix-ui/react-direction/dist/index.mjs
+function useDirection(localDir) {
+  const globalDir = React17.useContext(DirectionContext);
+  return localDir || globalDir || "ltr";
+}
+var React17, import_jsx_runtime5, DirectionContext;
+var init_dist9 = __esm(() => {
+  React17 = __toESM(require_react(), 1);
+  import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+  DirectionContext = React17.createContext(undefined);
+});
+
+// node_modules/@radix-ui/number/dist/index.mjs
+function clamp(value, [min, max]) {
+  return Math.min(max, Math.max(min, value));
+}
+var init_dist10 = () => {};
+
+// node_modules/@radix-ui/primitive/dist/index.mjs
+function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+  return function handleEvent(event) {
+    originalEventHandler?.(event);
+    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+      return ourEventHandler?.(event);
+    }
+  };
+}
+var canUseDOM;
+var init_dist11 = __esm(() => {
+  canUseDOM = !!(typeof window !== "undefined" && window.document && window.document.createElement);
+});
+
+// node_modules/@radix-ui/react-scroll-area/dist/index.mjs
+function useStateMachine2(initialState, machine) {
+  return React18.useReducer((state, event) => {
+    const nextState = machine[state][event];
+    return nextState ?? state;
+  }, initialState);
+}
+function toInt(value) {
+  return value ? parseInt(value, 10) : 0;
+}
+function getThumbRatio(viewportSize, contentSize) {
+  const ratio = viewportSize / contentSize;
+  return isNaN(ratio) ? 0 : ratio;
+}
+function getThumbSize(sizes) {
+  const ratio = getThumbRatio(sizes.viewport, sizes.content);
+  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+  const thumbSize = (sizes.scrollbar.size - scrollbarPadding) * ratio;
+  return Math.max(thumbSize, 18);
+}
+function getScrollPositionFromPointer(pointerPos, pointerOffset, sizes, dir = "ltr") {
+  const thumbSizePx = getThumbSize(sizes);
+  const thumbCenter = thumbSizePx / 2;
+  const offset = pointerOffset || thumbCenter;
+  const thumbOffsetFromEnd = thumbSizePx - offset;
+  const minPointerPos = sizes.scrollbar.paddingStart + offset;
+  const maxPointerPos = sizes.scrollbar.size - sizes.scrollbar.paddingEnd - thumbOffsetFromEnd;
+  const maxScrollPos = sizes.content - sizes.viewport;
+  const scrollRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+  const interpolate = linearScale([minPointerPos, maxPointerPos], scrollRange);
+  return interpolate(pointerPos);
+}
+function getThumbOffsetFromScroll(scrollPos, sizes, dir = "ltr") {
+  const thumbSizePx = getThumbSize(sizes);
+  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+  const scrollbar = sizes.scrollbar.size - scrollbarPadding;
+  const maxScrollPos = sizes.content - sizes.viewport;
+  const maxThumbPos = scrollbar - thumbSizePx;
+  const scrollClampRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+  const scrollWithoutMomentum = clamp(scrollPos, scrollClampRange);
+  const interpolate = linearScale([0, maxScrollPos], [0, maxThumbPos]);
+  return interpolate(scrollWithoutMomentum);
+}
+function linearScale(input, output) {
+  return (value) => {
+    if (input[0] === input[1] || output[0] === output[1])
+      return output[0];
+    const ratio = (output[1] - output[0]) / (input[1] - input[0]);
+    return output[0] + ratio * (value - input[0]);
+  };
+}
+function isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos) {
+  return scrollPos > 0 && scrollPos < maxScrollPos;
+}
+function useDebounceCallback(callback, delay) {
+  const handleCallback = useCallbackRef(callback);
+  const debounceTimerRef = React23.useRef(0);
+  React23.useEffect(() => () => window.clearTimeout(debounceTimerRef.current), []);
+  return React23.useCallback(() => {
+    window.clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = window.setTimeout(handleCallback, delay);
+  }, [handleCallback, delay]);
+}
+function useResizeObserver(element, onResize) {
+  const handleResize = useCallbackRef(onResize);
+  useLayoutEffect22(() => {
+    let rAF = 0;
+    if (element) {
+      const resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(rAF);
+        rAF = window.requestAnimationFrame(handleResize);
+      });
+      resizeObserver.observe(element);
+      return () => {
+        window.cancelAnimationFrame(rAF);
+        resizeObserver.unobserve(element);
+      };
+    }
+  }, [element, handleResize]);
+}
+var React23, React18, import_jsx_runtime6, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
+  let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
+  let rAF = 0;
+  (function loop() {
+    const position = { left: node.scrollLeft, top: node.scrollTop };
+    const isHorizontalScroll = prevPosition.left !== position.left;
+    const isVerticalScroll = prevPosition.top !== position.top;
+    if (isHorizontalScroll || isVerticalScroll)
+      handler();
+    prevPosition = position;
+    rAF = window.requestAnimationFrame(loop);
+  })();
+  return () => window.cancelAnimationFrame(rAF);
+}, Root2, Viewport, Scrollbar, Thumb, Corner;
+var init_dist12 = __esm(() => {
+  React23 = __toESM(require_react(), 1);
+  init_dist3();
+  init_dist6();
+  init_dist7();
+  init_dist();
+  init_dist8();
+  init_dist9();
+  init_dist5();
+  init_dist10();
+  init_dist11();
+  React18 = __toESM(require_react(), 1);
+  import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  [createScrollAreaContext, createScrollAreaScope] = createContextScope(SCROLL_AREA_NAME);
+  [ScrollAreaProvider, useScrollAreaContext] = createScrollAreaContext(SCROLL_AREA_NAME);
+  ScrollArea = React23.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeScrollArea,
+      type = "hover",
+      dir,
+      scrollHideDelay = 600,
+      ...scrollAreaProps
+    } = props2;
+    const [scrollArea, setScrollArea] = React23.useState(null);
+    const [viewport, setViewport] = React23.useState(null);
+    const [content, setContent] = React23.useState(null);
+    const [scrollbarX, setScrollbarX] = React23.useState(null);
+    const [scrollbarY, setScrollbarY] = React23.useState(null);
+    const [cornerWidth, setCornerWidth] = React23.useState(0);
+    const [cornerHeight, setCornerHeight] = React23.useState(0);
+    const [scrollbarXEnabled, setScrollbarXEnabled] = React23.useState(false);
+    const [scrollbarYEnabled, setScrollbarYEnabled] = React23.useState(false);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setScrollArea(node));
+    const direction = useDirection(dir);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaProvider, {
+      scope: __scopeScrollArea,
+      type,
+      dir: direction,
+      scrollHideDelay,
+      scrollArea,
+      viewport,
+      onViewportChange: setViewport,
+      content,
+      onContentChange: setContent,
+      scrollbarX,
+      onScrollbarXChange: setScrollbarX,
+      scrollbarXEnabled,
+      onScrollbarXEnabledChange: setScrollbarXEnabled,
+      scrollbarY,
+      onScrollbarYChange: setScrollbarY,
+      scrollbarYEnabled,
+      onScrollbarYEnabledChange: setScrollbarYEnabled,
+      onCornerWidthChange: setCornerWidth,
+      onCornerHeightChange: setCornerHeight,
+      children: /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, {
+        dir: direction,
+        ...scrollAreaProps,
+        ref: composedRefs,
+        style: {
+          position: "relative",
+          ["--radix-scroll-area-corner-width"]: cornerWidth + "px",
+          ["--radix-scroll-area-corner-height"]: cornerHeight + "px",
+          ...props2.style
+        }
+      })
+    });
+  });
+  ScrollArea.displayName = SCROLL_AREA_NAME;
+  ScrollAreaViewport = React23.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, children, nonce: nonce2, ...viewportProps } = props2;
+    const context = useScrollAreaContext(VIEWPORT_NAME, __scopeScrollArea);
+    const ref = React23.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref, context.onViewportChange);
+    return /* @__PURE__ */ import_jsx_runtime6.jsxs(import_jsx_runtime6.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime6.jsx("style", {
+        dangerouslySetInnerHTML: {
+          __html: `[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}`
+        },
+        nonce: nonce2
+      }),
+      /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, {
+        "data-radix-scroll-area-viewport": "",
+        ...viewportProps,
+        ref: composedRefs,
+        style: {
+          overflowX: context.scrollbarXEnabled ? "scroll" : "hidden",
+          overflowY: context.scrollbarYEnabled ? "scroll" : "hidden",
+          ...props2.style
+        },
+        children: /* @__PURE__ */ import_jsx_runtime6.jsx("div", { ref: context.onContentChange, style: { minWidth: "100%", display: "table" }, children })
+      })
+    ] });
+  });
+  ScrollAreaViewport.displayName = VIEWPORT_NAME;
+  ScrollAreaScrollbar = React23.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const { onScrollbarXEnabledChange, onScrollbarYEnabledChange } = context;
+    const isHorizontal = props2.orientation === "horizontal";
+    React23.useEffect(() => {
+      isHorizontal ? onScrollbarXEnabledChange(true) : onScrollbarYEnabledChange(true);
+      return () => {
+        isHorizontal ? onScrollbarXEnabledChange(false) : onScrollbarYEnabledChange(false);
+      };
+    }, [isHorizontal, onScrollbarXEnabledChange, onScrollbarYEnabledChange]);
+    return context.type === "hover" ? /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarHover, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "scroll" ? /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarScroll, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "auto" ? /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarAuto, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "always" ? /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarVisible, { ...scrollbarProps, ref: forwardedRef }) : null;
+  });
+  ScrollAreaScrollbar.displayName = SCROLLBAR_NAME;
+  ScrollAreaScrollbarHover = React23.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [visible, setVisible] = React23.useState(false);
+    React23.useEffect(() => {
+      const scrollArea = context.scrollArea;
+      let hideTimer = 0;
+      if (scrollArea) {
+        const handlePointerEnter = () => {
+          window.clearTimeout(hideTimer);
+          setVisible(true);
+        };
+        const handlePointerLeave = () => {
+          hideTimer = window.setTimeout(() => setVisible(false), context.scrollHideDelay);
+        };
+        scrollArea.addEventListener("pointerenter", handlePointerEnter);
+        scrollArea.addEventListener("pointerleave", handlePointerLeave);
+        return () => {
+          window.clearTimeout(hideTimer);
+          scrollArea.removeEventListener("pointerenter", handlePointerEnter);
+          scrollArea.removeEventListener("pointerleave", handlePointerLeave);
+        };
+      }
+    }, [context.scrollArea, context.scrollHideDelay]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarAuto, {
+      "data-state": visible ? "visible" : "hidden",
+      ...scrollbarProps,
+      ref: forwardedRef
+    }) });
+  });
+  ScrollAreaScrollbarScroll = React23.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const isHorizontal = props2.orientation === "horizontal";
+    const debounceScrollEnd = useDebounceCallback(() => send("SCROLL_END"), 100);
+    const [state, send] = useStateMachine2("hidden", {
+      hidden: {
+        SCROLL: "scrolling"
+      },
+      scrolling: {
+        SCROLL_END: "idle",
+        POINTER_ENTER: "interacting"
+      },
+      interacting: {
+        SCROLL: "interacting",
+        POINTER_LEAVE: "idle"
+      },
+      idle: {
+        HIDE: "hidden",
+        SCROLL: "scrolling",
+        POINTER_ENTER: "interacting"
+      }
+    });
+    React23.useEffect(() => {
+      if (state === "idle") {
+        const hideTimer = window.setTimeout(() => send("HIDE"), context.scrollHideDelay);
+        return () => window.clearTimeout(hideTimer);
+      }
+    }, [state, context.scrollHideDelay, send]);
+    React23.useEffect(() => {
+      const viewport = context.viewport;
+      const scrollDirection = isHorizontal ? "scrollLeft" : "scrollTop";
+      if (viewport) {
+        let prevScrollPos = viewport[scrollDirection];
+        const handleScroll = () => {
+          const scrollPos = viewport[scrollDirection];
+          const hasScrollInDirectionChanged = prevScrollPos !== scrollPos;
+          if (hasScrollInDirectionChanged) {
+            send("SCROLL");
+            debounceScrollEnd();
+          }
+          prevScrollPos = scrollPos;
+        };
+        viewport.addEventListener("scroll", handleScroll);
+        return () => viewport.removeEventListener("scroll", handleScroll);
+      }
+    }, [context.viewport, isHorizontal, send, debounceScrollEnd]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Presence, { present: forceMount || state !== "hidden", children: /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarVisible, {
+      "data-state": state === "hidden" ? "hidden" : "visible",
+      ...scrollbarProps,
+      ref: forwardedRef,
+      onPointerEnter: composeEventHandlers(props2.onPointerEnter, () => send("POINTER_ENTER")),
+      onPointerLeave: composeEventHandlers(props2.onPointerLeave, () => send("POINTER_LEAVE"))
+    }) });
+  });
+  ScrollAreaScrollbarAuto = React23.forwardRef((props2, forwardedRef) => {
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const { forceMount, ...scrollbarProps } = props2;
+    const [visible, setVisible] = React23.useState(false);
+    const isHorizontal = props2.orientation === "horizontal";
+    const handleResize = useDebounceCallback(() => {
+      if (context.viewport) {
+        const isOverflowX = context.viewport.offsetWidth < context.viewport.scrollWidth;
+        const isOverflowY = context.viewport.offsetHeight < context.viewport.scrollHeight;
+        setVisible(isHorizontal ? isOverflowX : isOverflowY);
+      }
+    }, 10);
+    useResizeObserver(context.viewport, handleResize);
+    useResizeObserver(context.content, handleResize);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarVisible, {
+      "data-state": visible ? "visible" : "hidden",
+      ...scrollbarProps,
+      ref: forwardedRef
+    }) });
+  });
+  ScrollAreaScrollbarVisible = React23.forwardRef((props2, forwardedRef) => {
+    const { orientation = "vertical", ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const thumbRef = React23.useRef(null);
+    const pointerOffsetRef = React23.useRef(0);
+    const [sizes, setSizes] = React23.useState({
+      content: 0,
+      viewport: 0,
+      scrollbar: { size: 0, paddingStart: 0, paddingEnd: 0 }
+    });
+    const thumbRatio = getThumbRatio(sizes.viewport, sizes.content);
+    const commonProps = {
+      ...scrollbarProps,
+      sizes,
+      onSizesChange: setSizes,
+      hasThumb: Boolean(thumbRatio > 0 && thumbRatio < 1),
+      onThumbChange: (thumb) => thumbRef.current = thumb,
+      onThumbPointerUp: () => pointerOffsetRef.current = 0,
+      onThumbPointerDown: (pointerPos) => pointerOffsetRef.current = pointerPos
+    };
+    function getScrollPosition(pointerPos, dir) {
+      return getScrollPositionFromPointer(pointerPos, pointerOffsetRef.current, sizes, dir);
+    }
+    if (orientation === "horizontal") {
+      return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarX, {
+        ...commonProps,
+        ref: forwardedRef,
+        onThumbPositionChange: () => {
+          if (context.viewport && thumbRef.current) {
+            const scrollPos = context.viewport.scrollLeft;
+            const offset = getThumbOffsetFromScroll(scrollPos, sizes, context.dir);
+            thumbRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+          }
+        },
+        onWheelScroll: (scrollPos) => {
+          if (context.viewport)
+            context.viewport.scrollLeft = scrollPos;
+        },
+        onDragScroll: (pointerPos) => {
+          if (context.viewport) {
+            context.viewport.scrollLeft = getScrollPosition(pointerPos, context.dir);
+          }
+        }
+      });
+    }
+    if (orientation === "vertical") {
+      return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarY, {
+        ...commonProps,
+        ref: forwardedRef,
+        onThumbPositionChange: () => {
+          if (context.viewport && thumbRef.current) {
+            const scrollPos = context.viewport.scrollTop;
+            const offset = getThumbOffsetFromScroll(scrollPos, sizes);
+            thumbRef.current.style.transform = `translate3d(0, ${offset}px, 0)`;
+          }
+        },
+        onWheelScroll: (scrollPos) => {
+          if (context.viewport)
+            context.viewport.scrollTop = scrollPos;
+        },
+        onDragScroll: (pointerPos) => {
+          if (context.viewport)
+            context.viewport.scrollTop = getScrollPosition(pointerPos);
+        }
+      });
+    }
+    return null;
+  });
+  ScrollAreaScrollbarX = React23.forwardRef((props2, forwardedRef) => {
+    const { sizes, onSizesChange, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [computedStyle, setComputedStyle] = React23.useState();
+    const ref = React23.useRef(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarXChange);
+    React23.useEffect(() => {
+      if (ref.current)
+        setComputedStyle(getComputedStyle(ref.current));
+    }, [ref]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarImpl, {
+      "data-orientation": "horizontal",
+      ...scrollbarProps,
+      ref: composeRefs2,
+      sizes,
+      style: {
+        bottom: 0,
+        left: context.dir === "rtl" ? "var(--radix-scroll-area-corner-width)" : 0,
+        right: context.dir === "ltr" ? "var(--radix-scroll-area-corner-width)" : 0,
+        ["--radix-scroll-area-thumb-width"]: getThumbSize(sizes) + "px",
+        ...props2.style
+      },
+      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.x),
+      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.x),
+      onWheelScroll: (event, maxScrollPos) => {
+        if (context.viewport) {
+          const scrollPos = context.viewport.scrollLeft + event.deltaX;
+          props2.onWheelScroll(scrollPos);
+          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+            event.preventDefault();
+          }
+        }
+      },
+      onResize: () => {
+        if (ref.current && context.viewport && computedStyle) {
+          onSizesChange({
+            content: context.viewport.scrollWidth,
+            viewport: context.viewport.offsetWidth,
+            scrollbar: {
+              size: ref.current.clientWidth,
+              paddingStart: toInt(computedStyle.paddingLeft),
+              paddingEnd: toInt(computedStyle.paddingRight)
+            }
+          });
+        }
+      }
+    });
+  });
+  ScrollAreaScrollbarY = React23.forwardRef((props2, forwardedRef) => {
+    const { sizes, onSizesChange, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [computedStyle, setComputedStyle] = React23.useState();
+    const ref = React23.useRef(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarYChange);
+    React23.useEffect(() => {
+      if (ref.current)
+        setComputedStyle(getComputedStyle(ref.current));
+    }, [ref]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaScrollbarImpl, {
+      "data-orientation": "vertical",
+      ...scrollbarProps,
+      ref: composeRefs2,
+      sizes,
+      style: {
+        top: 0,
+        right: context.dir === "ltr" ? 0 : undefined,
+        left: context.dir === "rtl" ? 0 : undefined,
+        bottom: "var(--radix-scroll-area-corner-height)",
+        ["--radix-scroll-area-thumb-height"]: getThumbSize(sizes) + "px",
+        ...props2.style
+      },
+      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.y),
+      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.y),
+      onWheelScroll: (event, maxScrollPos) => {
+        if (context.viewport) {
+          const scrollPos = context.viewport.scrollTop + event.deltaY;
+          props2.onWheelScroll(scrollPos);
+          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+            event.preventDefault();
+          }
+        }
+      },
+      onResize: () => {
+        if (ref.current && context.viewport && computedStyle) {
+          onSizesChange({
+            content: context.viewport.scrollHeight,
+            viewport: context.viewport.offsetHeight,
+            scrollbar: {
+              size: ref.current.clientHeight,
+              paddingStart: toInt(computedStyle.paddingTop),
+              paddingEnd: toInt(computedStyle.paddingBottom)
+            }
+          });
+        }
+      }
+    });
+  });
+  [ScrollbarProvider, useScrollbarContext] = createScrollAreaContext(SCROLLBAR_NAME);
+  ScrollAreaScrollbarImpl = React23.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeScrollArea,
+      sizes,
+      hasThumb,
+      onThumbChange,
+      onThumbPointerUp,
+      onThumbPointerDown,
+      onThumbPositionChange,
+      onDragScroll,
+      onWheelScroll,
+      onResize,
+      ...scrollbarProps
+    } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, __scopeScrollArea);
+    const [scrollbar, setScrollbar] = React23.useState(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, (node) => setScrollbar(node));
+    const rectRef = React23.useRef(null);
+    const prevWebkitUserSelectRef = React23.useRef("");
+    const viewport = context.viewport;
+    const maxScrollPos = sizes.content - sizes.viewport;
+    const handleWheelScroll = useCallbackRef(onWheelScroll);
+    const handleThumbPositionChange = useCallbackRef(onThumbPositionChange);
+    const handleResize = useDebounceCallback(onResize, 10);
+    function handleDragScroll(event) {
+      if (rectRef.current) {
+        const x = event.clientX - rectRef.current.left;
+        const y = event.clientY - rectRef.current.top;
+        onDragScroll({ x, y });
+      }
+    }
+    React23.useEffect(() => {
+      const handleWheel = (event) => {
+        const element = event.target;
+        const isScrollbarWheel = scrollbar?.contains(element);
+        if (isScrollbarWheel)
+          handleWheelScroll(event, maxScrollPos);
+      };
+      document.addEventListener("wheel", handleWheel, { passive: false });
+      return () => document.removeEventListener("wheel", handleWheel, { passive: false });
+    }, [viewport, scrollbar, maxScrollPos, handleWheelScroll]);
+    React23.useEffect(handleThumbPositionChange, [sizes, handleThumbPositionChange]);
+    useResizeObserver(scrollbar, handleResize);
+    useResizeObserver(context.content, handleResize);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollbarProvider, {
+      scope: __scopeScrollArea,
+      scrollbar,
+      hasThumb,
+      onThumbChange: useCallbackRef(onThumbChange),
+      onThumbPointerUp: useCallbackRef(onThumbPointerUp),
+      onThumbPositionChange: handleThumbPositionChange,
+      onThumbPointerDown: useCallbackRef(onThumbPointerDown),
+      children: /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, {
+        ...scrollbarProps,
+        ref: composeRefs2,
+        style: { position: "absolute", ...scrollbarProps.style },
+        onPointerDown: composeEventHandlers(props2.onPointerDown, (event) => {
+          const mainPointer = 0;
+          if (event.button === mainPointer) {
+            const element = event.target;
+            element.setPointerCapture(event.pointerId);
+            rectRef.current = scrollbar.getBoundingClientRect();
+            prevWebkitUserSelectRef.current = document.body.style.webkitUserSelect;
+            document.body.style.webkitUserSelect = "none";
+            if (context.viewport)
+              context.viewport.style.scrollBehavior = "auto";
+            handleDragScroll(event);
+          }
+        }),
+        onPointerMove: composeEventHandlers(props2.onPointerMove, handleDragScroll),
+        onPointerUp: composeEventHandlers(props2.onPointerUp, (event) => {
+          const element = event.target;
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+          document.body.style.webkitUserSelect = prevWebkitUserSelectRef.current;
+          if (context.viewport)
+            context.viewport.style.scrollBehavior = "";
+          rectRef.current = null;
+        })
+      })
+    });
+  });
+  ScrollAreaThumb = React23.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...thumbProps } = props2;
+    const scrollbarContext = useScrollbarContext(THUMB_NAME, props2.__scopeScrollArea);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Presence, { present: forceMount || scrollbarContext.hasThumb, children: /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaThumbImpl, { ref: forwardedRef, ...thumbProps }) });
+  });
+  ScrollAreaThumbImpl = React23.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, style, ...thumbProps } = props2;
+    const scrollAreaContext = useScrollAreaContext(THUMB_NAME, __scopeScrollArea);
+    const scrollbarContext = useScrollbarContext(THUMB_NAME, __scopeScrollArea);
+    const { onThumbPositionChange } = scrollbarContext;
+    const composedRef = useComposedRefs(forwardedRef, (node) => scrollbarContext.onThumbChange(node));
+    const removeUnlinkedScrollListenerRef = React23.useRef(undefined);
+    const debounceScrollEnd = useDebounceCallback(() => {
+      if (removeUnlinkedScrollListenerRef.current) {
+        removeUnlinkedScrollListenerRef.current();
+        removeUnlinkedScrollListenerRef.current = undefined;
+      }
+    }, 100);
+    React23.useEffect(() => {
+      const viewport = scrollAreaContext.viewport;
+      if (viewport) {
+        const handleScroll = () => {
+          debounceScrollEnd();
+          if (!removeUnlinkedScrollListenerRef.current) {
+            const listener = addUnlinkedScrollListener(viewport, onThumbPositionChange);
+            removeUnlinkedScrollListenerRef.current = listener;
+            onThumbPositionChange();
+          }
+        };
+        onThumbPositionChange();
+        viewport.addEventListener("scroll", handleScroll);
+        return () => viewport.removeEventListener("scroll", handleScroll);
+      }
+    }, [scrollAreaContext.viewport, debounceScrollEnd, onThumbPositionChange]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, {
+      "data-state": scrollbarContext.hasThumb ? "visible" : "hidden",
+      ...thumbProps,
+      ref: composedRef,
+      style: {
+        width: "var(--radix-scroll-area-thumb-width)",
+        height: "var(--radix-scroll-area-thumb-height)",
+        ...style
+      },
+      onPointerDownCapture: composeEventHandlers(props2.onPointerDownCapture, (event) => {
+        const thumb = event.target;
+        const thumbRect = thumb.getBoundingClientRect();
+        const x = event.clientX - thumbRect.left;
+        const y = event.clientY - thumbRect.top;
+        scrollbarContext.onThumbPointerDown({ x, y });
+      }),
+      onPointerUp: composeEventHandlers(props2.onPointerUp, scrollbarContext.onThumbPointerUp)
+    });
+  });
+  ScrollAreaThumb.displayName = THUMB_NAME;
+  ScrollAreaCorner = React23.forwardRef((props2, forwardedRef) => {
+    const context = useScrollAreaContext(CORNER_NAME, props2.__scopeScrollArea);
+    const hasBothScrollbarsVisible = Boolean(context.scrollbarX && context.scrollbarY);
+    const hasCorner = context.type !== "scroll" && hasBothScrollbarsVisible;
+    return hasCorner ? /* @__PURE__ */ import_jsx_runtime6.jsx(ScrollAreaCornerImpl, { ...props2, ref: forwardedRef }) : null;
+  });
+  ScrollAreaCorner.displayName = CORNER_NAME;
+  ScrollAreaCornerImpl = React23.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, ...cornerProps } = props2;
+    const context = useScrollAreaContext(CORNER_NAME, __scopeScrollArea);
+    const [width, setWidth] = React23.useState(0);
+    const [height, setHeight] = React23.useState(0);
+    const hasSize = Boolean(width && height);
+    useResizeObserver(context.scrollbarX, () => {
+      const height2 = context.scrollbarX?.offsetHeight || 0;
+      context.onCornerHeightChange(height2);
+      setHeight(height2);
+    });
+    useResizeObserver(context.scrollbarY, () => {
+      const width2 = context.scrollbarY?.offsetWidth || 0;
+      context.onCornerWidthChange(width2);
+      setWidth(width2);
+    });
+    return hasSize ? /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, {
+      ...cornerProps,
+      ref: forwardedRef,
+      style: {
+        width,
+        height,
+        position: "absolute",
+        right: context.dir === "ltr" ? 0 : undefined,
+        left: context.dir === "rtl" ? 0 : undefined,
+        bottom: 0,
+        ...props2.style
+      }
+    }) : null;
+  });
+  Root2 = ScrollArea;
+  Viewport = ScrollAreaViewport;
+  Scrollbar = ScrollAreaScrollbar;
+  Thumb = ScrollAreaThumb;
+  Corner = ScrollAreaCorner;
+});
+
+// dashboard/src/components/ui/scroll-area.jsx
+var React19, jsx_dev_runtime6, ScrollArea2, ScrollBar;
+var init_scroll_area = __esm(() => {
+  React19 = __toESM(require_react(), 1);
+  init_dist12();
+  init_utils();
+  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  ScrollArea2 = React19.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Root2, {
+    ref,
+    className: cn("relative overflow-hidden", className),
+    ...props2,
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Viewport, {
+        className: "h-full w-full rounded-[inherit]",
+        children
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(ScrollBar, {}, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Corner, {}, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this));
+  ScrollArea2.displayName = Root2.displayName;
+  ScrollBar = React19.forwardRef(({ className, orientation = "vertical", ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Scrollbar, {
+    ref,
+    orientation,
+    className: cn("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
+    ...props2,
+    children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Thumb, {
+      className: "relative flex-1 rounded-full bg-border"
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this));
+  ScrollBar.displayName = Scrollbar.displayName;
 });
 
 // dashboard/src/components/CodeBrowser.js
@@ -26282,19 +29608,23 @@ var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react7, jsx_dev_runtime6, CodeBrowser = ({ activeProject }) => {
+var import_react7, jsx_dev_runtime7, CodeBrowser = ({ activeProject }) => {
   const [files, setFiles] = import_react7.useState([]);
   const [selectedFile, setSelectedFile] = import_react7.useState(null);
   const [fileContent, setFileContent] = import_react7.useState("");
+  const [fileLoading, setFileLoading] = import_react7.useState(false);
+  const [listLoading, setListLoading] = import_react7.useState(false);
   const [error, setError] = import_react7.useState(null);
-  const [isLoading, setIsLoading] = import_react7.useState(false);
   import_react7.useEffect(() => {
     if (!activeProject) {
       setFiles([]);
+      setSelectedFile(null);
+      setFileContent("");
+      setError(null);
       return;
     }
     const fetchFiles = async () => {
-      setIsLoading(true);
+      setListLoading(true);
       setError(null);
       try {
         const response = await fetch("/api/files");
@@ -26304,9 +29634,11 @@ var import_react7, jsx_dev_runtime6, CodeBrowser = ({ activeProject }) => {
         const data = await response.json();
         if (Array.isArray(data)) {
           data.sort((a, b) => {
-            if (a.type === "folder" && b.type !== "folder")
+            const aIsFolder = a.name.endsWith("/");
+            const bIsFolder = b.name.endsWith("/");
+            if (aIsFolder && !bIsFolder)
               return -1;
-            if (a.type !== "folder" && b.type === "folder")
+            if (!aIsFolder && bIsFolder)
               return 1;
             return a.name.localeCompare(b.name);
           });
@@ -26314,25 +29646,23 @@ var import_react7, jsx_dev_runtime6, CodeBrowser = ({ activeProject }) => {
         } else if (data.error) {
           throw new Error(data.error);
         } else {
-          console.error("API did not return a valid array:", data);
           setFiles([]);
         }
       } catch (e) {
-        console.error("Failed to fetch files:", e);
-        setError(e.message);
+        setError(`Failed to fetch files: ${e.message}`);
         setFiles([]);
       } finally {
-        setIsLoading(false);
+        setListLoading(false);
       }
     };
     fetchFiles();
   }, [activeProject]);
   const handleFileSelect = async (file) => {
-    if (file.type === "folder")
+    if (file.name.endsWith("/"))
       return;
-    setSelectedFile(file.name);
-    setFileContent("Loading...");
-    setError(null);
+    setSelectedFile(file);
+    setFileLoading(true);
+    setFileContent("");
     try {
       const response = await fetch(`/api/file-content?path=${encodeURIComponent(file.name)}`);
       if (!response.ok) {
@@ -26342,154 +29672,111 @@ var import_react7, jsx_dev_runtime6, CodeBrowser = ({ activeProject }) => {
       const data = await response.json();
       setFileContent(data.content);
     } catch (e) {
-      console.error("Failed to fetch file content:", e);
       setFileContent(`Error loading file: ${e.message}`);
+    } finally {
+      setFileLoading(false);
     }
   };
-  const renderFileTree = (items) => {
-    return items.map((item) => {
-      if (item.type === "folder") {
-        return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-          className: "tree-item",
-          children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-            className: "tree-folder",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(FiFolder, {
-                className: "folder-icon"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
-                className: "item-name",
-                children: item.name
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        }, item.name, false, undefined, this);
-      } else {
-        return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-          className: `tree-item tree-file ${selectedFile === item.name ? "selected" : ""}`,
-          onClick: () => handleFileSelect(item),
-          children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-            className: "tree-file-content",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(FiFile, {
-                className: "file-icon"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
-                className: "item-name",
-                children: item.name
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        }, item.name, false, undefined, this);
-      }
-    });
-  };
-  const renderContent = () => {
-    if (!activeProject) {
-      return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("p", {
-        className: "info-message",
-        children: "Please set an active project to browse files."
-      }, undefined, false, undefined, this);
-    }
-    if (isLoading) {
-      return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("p", {
-        className: "info-message",
-        children: "Loading files..."
-      }, undefined, false, undefined, this);
-    }
-    if (error) {
-      return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("p", {
-        className: "error-message",
-        children: [
-          "Error: ",
-          error
-        ]
-      }, undefined, true, undefined, this);
-    }
-    if (files.length === 0) {
-      return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("p", {
-        className: "info-message",
-        children: "No files found in the project root."
-      }, undefined, false, undefined, this);
-    }
-    return renderFileTree(files);
-  };
-  return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-    className: "code-browser-container",
+  return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ResizablePanelGroup, {
+    direction: "horizontal",
+    className: "h-full w-full",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("h2", {
-        children: "Code Browser"
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-        className: "code-browser-content",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-            className: "file-tree",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("h3", {
-                children: "File Structure"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-                className: "tree-root",
-                children: renderContent()
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-            className: "file-viewer",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("h3", {
-                children: "File Content"
-              }, undefined, false, undefined, this),
-              selectedFile ? /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-                className: "file-content",
+      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ResizablePanel, {
+        defaultSize: 30,
+        minSize: 20,
+        children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollArea2, {
+          className: "h-full p-2",
+          children: [
+            listLoading && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+              className: "flex items-center gap-2 p-2 text-muted-foreground",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(FiLoader, {
+                  className: "animate-spin"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("span", {
+                  children: "Loading tree..."
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            error && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+              className: "flex items-center gap-2 p-2 text-destructive",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("span", {
+                  children: error
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            !listLoading && !error && files.map((item) => {
+              const isFolder = item.name.endsWith("/");
+              const isSelected = selectedFile?.name === item.name;
+              return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Button, {
+                variant: "ghost",
+                className: cn("w-full justify-start gap-2 px-2", isFolder ? "font-semibold" : "font-normal", isSelected && "bg-accent"),
+                onClick: () => handleFileSelect(item),
+                disabled: isFolder,
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-                    className: "file-header",
-                    children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
-                      className: "file-path",
-                      children: selectedFile
-                    }, undefined, false, undefined, this)
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("pre", {
-                    className: "file-content-text",
-                    children: fileContent
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-                    className: "file-actions",
-                    children: [
-                      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("button", {
-                        className: "file-action-button",
-                        children: "Edit"
-                      }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("button", {
-                        className: "file-action-button",
-                        children: "Save"
-                      }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("button", {
-                        className: "file-action-button",
-                        children: "Download"
-                      }, undefined, false, undefined, this)
-                    ]
-                  }, undefined, true, undefined, this)
+                  isFolder ? /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                  item.name
                 ]
-              }, undefined, true, undefined, this) : /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
-                className: "no-file-selected",
-                children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("p", {
+              }, item.name, true, undefined, this);
+            })
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ResizableHandle, {
+        withHandle: true
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ResizablePanel, {
+        defaultSize: 70,
+        minSize: 30,
+        children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+          className: "flex flex-col h-full",
+          children: [
+            selectedFile && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+              className: "p-2 border-b text-sm text-muted-foreground",
+              children: selectedFile.name
+            }, undefined, false, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollArea2, {
+              className: "h-full",
+              children: [
+                fileLoading && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+                  className: "flex items-center gap-2 p-4 text-muted-foreground",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(FiLoader, {
+                      className: "animate-spin"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("span", {
+                      children: "Loading content..."
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                !fileLoading && fileContent && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("pre", {
+                  className: "text-sm p-4 font-mono",
+                  children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("code", {
+                    children: fileContent
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this),
+                !selectedFile && !fileLoading && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+                  className: "flex items-center justify-center h-full text-muted-foreground",
                   children: "Select a file to view its content."
                 }, undefined, false, undefined, this)
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        ]
-      }, undefined, true, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
 }, CodeBrowser_default;
 var init_CodeBrowser = __esm(() => {
   import_react7 = __toESM(require_react(), 1);
   init_fi();
-  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+  init_resizable();
+  init_scroll_area();
+  init_button();
+  init_utils();
+  jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
   CodeBrowser_default = CodeBrowser;
 });
 
@@ -26498,7 +29785,7 @@ var exports_ActivityLog = {};
 __export(exports_ActivityLog, {
   default: () => ActivityLog_default
 });
-var import_react8, jsx_dev_runtime7, ActivityLog = ({ logs, agentActivity }) => {
+var import_react8, jsx_dev_runtime8, ActivityLog = ({ logs, agentActivity }) => {
   const combinedFeed = [
     ...logs.map((log) => ({ ...log, source: "log" })),
     ...agentActivity.map((act) => ({ ...act, source: "activity" }))
@@ -26518,14 +29805,14 @@ var import_react8, jsx_dev_runtime7, ActivityLog = ({ logs, agentActivity }) => 
         return `[${item.type || "UNKNOWN"}] ${JSON.stringify(item)}`;
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
     className: "activity-log-container",
-    children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("ul", {
+    children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("ul", {
       id: "activity-log",
-      children: combinedFeed.length > 0 ? combinedFeed.map((item, index) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("li", {
+      children: combinedFeed.length > 0 ? combinedFeed.map((item, index) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("li", {
         className: `log-entry log-${item.source}`,
         children: item.source === "log" ? item.message : formatActivity(item)
-      }, index, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("li", {
+      }, index, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("li", {
         children: "No activity yet."
       }, undefined, false, undefined, this)
     }, undefined, false, undefined, this)
@@ -26533,8 +29820,941 @@ var import_react8, jsx_dev_runtime7, ActivityLog = ({ logs, agentActivity }) => 
 }, ActivityLog_default;
 var init_ActivityLog = __esm(() => {
   import_react8 = __toESM(require_react(), 1);
-  jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
   ActivityLog_default = ActivityLog;
+});
+
+// node_modules/@radix-ui/react-collection/dist/index.mjs
+function createCollection(name) {
+  const PROVIDER_NAME = name + "CollectionProvider";
+  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME);
+  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map });
+  const CollectionProvider = (props2) => {
+    const { scope, children } = props2;
+    const ref = import_react9.default.useRef(null);
+    const itemMap = import_react9.default.useRef(/* @__PURE__ */ new Map).current;
+    return /* @__PURE__ */ import_jsx_runtime7.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
+  };
+  CollectionProvider.displayName = PROVIDER_NAME;
+  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
+  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
+  const CollectionSlot = import_react9.default.forwardRef((props2, forwardedRef) => {
+    const { scope, children } = props2;
+    const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
+    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
+    return /* @__PURE__ */ import_jsx_runtime7.jsx(CollectionSlotImpl, { ref: composedRefs, children });
+  });
+  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
+  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
+  const ITEM_DATA_ATTR = "data-radix-collection-item";
+  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
+  const CollectionItemSlot = import_react9.default.forwardRef((props2, forwardedRef) => {
+    const { scope, children, ...itemData } = props2;
+    const ref = import_react9.default.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const context = useCollectionContext(ITEM_SLOT_NAME, scope);
+    import_react9.default.useEffect(() => {
+      context.itemMap.set(ref, { ref, ...itemData });
+      return () => void context.itemMap.delete(ref);
+    });
+    return /* @__PURE__ */ import_jsx_runtime7.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
+  });
+  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
+  function useCollection(scope) {
+    const context = useCollectionContext(name + "CollectionConsumer", scope);
+    const getItems = import_react9.default.useCallback(() => {
+      const collectionNode = context.collectionRef.current;
+      if (!collectionNode)
+        return [];
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
+      const items = Array.from(context.itemMap.values());
+      const orderedItems = items.sort((a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current));
+      return orderedItems;
+    }, [context.collectionRef, context.itemMap]);
+    return getItems;
+  }
+  return [
+    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
+    useCollection,
+    createCollectionScope
+  ];
+}
+function at(array, index) {
+  if ("at" in Array.prototype) {
+    return Array.prototype.at.call(array, index);
+  }
+  const actualIndex = toSafeIndex(array, index);
+  return actualIndex === -1 ? undefined : array[actualIndex];
+}
+function toSafeIndex(array, index) {
+  const length = array.length;
+  const relativeIndex = toSafeInteger(index);
+  const actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
+  return actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+}
+function toSafeInteger(number) {
+  return number !== number || number === 0 ? 0 : Math.trunc(number);
+}
+var import_react9, import_jsx_runtime7, import_react10, import_jsx_runtime8, __instanciated, OrderedDict;
+var init_dist13 = __esm(() => {
+  import_react9 = __toESM(require_react(), 1);
+  init_dist7();
+  init_dist();
+  init_dist2();
+  import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+  import_react10 = __toESM(require_react(), 1);
+  import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  __instanciated = /* @__PURE__ */ new WeakMap;
+  OrderedDict = class _OrderedDict extends Map {
+    #keys;
+    constructor(entries) {
+      super(entries);
+      this.#keys = [...super.keys()];
+      __instanciated.set(this, true);
+    }
+    set(key, value) {
+      if (__instanciated.get(this)) {
+        if (this.has(key)) {
+          this.#keys[this.#keys.indexOf(key)] = key;
+        } else {
+          this.#keys.push(key);
+        }
+      }
+      super.set(key, value);
+      return this;
+    }
+    insert(index, key, value) {
+      const has = this.has(key);
+      const length = this.#keys.length;
+      const relativeIndex = toSafeInteger(index);
+      let actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
+      const safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+      if (safeIndex === this.size || has && safeIndex === this.size - 1 || safeIndex === -1) {
+        this.set(key, value);
+        return this;
+      }
+      const size = this.size + (has ? 0 : 1);
+      if (relativeIndex < 0) {
+        actualIndex++;
+      }
+      const keys = [...this.#keys];
+      let nextValue;
+      let shouldSkip = false;
+      for (let i = actualIndex;i < size; i++) {
+        if (actualIndex === i) {
+          let nextKey = keys[i];
+          if (keys[i] === key) {
+            nextKey = keys[i + 1];
+          }
+          if (has) {
+            this.delete(key);
+          }
+          nextValue = this.get(nextKey);
+          this.set(key, value);
+        } else {
+          if (!shouldSkip && keys[i - 1] === key) {
+            shouldSkip = true;
+          }
+          const currentKey = keys[shouldSkip ? i : i - 1];
+          const currentValue = nextValue;
+          nextValue = this.get(currentKey);
+          this.delete(currentKey);
+          this.set(currentKey, currentValue);
+        }
+      }
+      return this;
+    }
+    with(index, key, value) {
+      const copy = new _OrderedDict(this);
+      copy.insert(index, key, value);
+      return copy;
+    }
+    before(key) {
+      const index = this.#keys.indexOf(key) - 1;
+      if (index < 0) {
+        return;
+      }
+      return this.entryAt(index);
+    }
+    setBefore(key, newKey, value) {
+      const index = this.#keys.indexOf(key);
+      if (index === -1) {
+        return this;
+      }
+      return this.insert(index, newKey, value);
+    }
+    after(key) {
+      let index = this.#keys.indexOf(key);
+      index = index === -1 || index === this.size - 1 ? -1 : index + 1;
+      if (index === -1) {
+        return;
+      }
+      return this.entryAt(index);
+    }
+    setAfter(key, newKey, value) {
+      const index = this.#keys.indexOf(key);
+      if (index === -1) {
+        return this;
+      }
+      return this.insert(index + 1, newKey, value);
+    }
+    first() {
+      return this.entryAt(0);
+    }
+    last() {
+      return this.entryAt(-1);
+    }
+    clear() {
+      this.#keys = [];
+      return super.clear();
+    }
+    delete(key) {
+      const deleted = super.delete(key);
+      if (deleted) {
+        this.#keys.splice(this.#keys.indexOf(key), 1);
+      }
+      return deleted;
+    }
+    deleteAt(index) {
+      const key = this.keyAt(index);
+      if (key !== undefined) {
+        return this.delete(key);
+      }
+      return false;
+    }
+    at(index) {
+      const key = at(this.#keys, index);
+      if (key !== undefined) {
+        return this.get(key);
+      }
+    }
+    entryAt(index) {
+      const key = at(this.#keys, index);
+      if (key !== undefined) {
+        return [key, this.get(key)];
+      }
+    }
+    indexOf(key) {
+      return this.#keys.indexOf(key);
+    }
+    keyAt(index) {
+      return at(this.#keys, index);
+    }
+    from(key, offset) {
+      const index = this.indexOf(key);
+      if (index === -1) {
+        return;
+      }
+      let dest = index + offset;
+      if (dest < 0)
+        dest = 0;
+      if (dest >= this.size)
+        dest = this.size - 1;
+      return this.at(dest);
+    }
+    keyFrom(key, offset) {
+      const index = this.indexOf(key);
+      if (index === -1) {
+        return;
+      }
+      let dest = index + offset;
+      if (dest < 0)
+        dest = 0;
+      if (dest >= this.size)
+        dest = this.size - 1;
+      return this.keyAt(dest);
+    }
+    find(predicate, thisArg) {
+      let index = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
+          return entry;
+        }
+        index++;
+      }
+      return;
+    }
+    findIndex(predicate, thisArg) {
+      let index = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
+          return index;
+        }
+        index++;
+      }
+      return -1;
+    }
+    filter(predicate, thisArg) {
+      const entries = [];
+      let index = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
+          entries.push(entry);
+        }
+        index++;
+      }
+      return new _OrderedDict(entries);
+    }
+    map(callbackfn, thisArg) {
+      const entries = [];
+      let index = 0;
+      for (const entry of this) {
+        entries.push([entry[0], Reflect.apply(callbackfn, thisArg, [entry, index, this])]);
+        index++;
+      }
+      return new _OrderedDict(entries);
+    }
+    reduce(...args) {
+      const [callbackfn, initialValue] = args;
+      let index = 0;
+      let accumulator = initialValue ?? this.at(0);
+      for (const entry of this) {
+        if (index === 0 && args.length === 1) {
+          accumulator = entry;
+        } else {
+          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index, this]);
+        }
+        index++;
+      }
+      return accumulator;
+    }
+    reduceRight(...args) {
+      const [callbackfn, initialValue] = args;
+      let accumulator = initialValue ?? this.at(-1);
+      for (let index = this.size - 1;index >= 0; index--) {
+        const entry = this.at(index);
+        if (index === this.size - 1 && args.length === 1) {
+          accumulator = entry;
+        } else {
+          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index, this]);
+        }
+      }
+      return accumulator;
+    }
+    toSorted(compareFn) {
+      const entries = [...this.entries()].sort(compareFn);
+      return new _OrderedDict(entries);
+    }
+    toReversed() {
+      const reversed = new _OrderedDict;
+      for (let index = this.size - 1;index >= 0; index--) {
+        const key = this.keyAt(index);
+        const element = this.get(key);
+        reversed.set(key, element);
+      }
+      return reversed;
+    }
+    toSpliced(...args) {
+      const entries = [...this.entries()];
+      entries.splice(...args);
+      return new _OrderedDict(entries);
+    }
+    slice(start, end) {
+      const result = new _OrderedDict;
+      let stop = this.size - 1;
+      if (start === undefined) {
+        return result;
+      }
+      if (start < 0) {
+        start = start + this.size;
+      }
+      if (end !== undefined && end > 0) {
+        stop = end - 1;
+      }
+      for (let index = start;index <= stop; index++) {
+        const key = this.keyAt(index);
+        const element = this.get(key);
+        result.set(key, element);
+      }
+      return result;
+    }
+    every(predicate, thisArg) {
+      let index = 0;
+      for (const entry of this) {
+        if (!Reflect.apply(predicate, thisArg, [entry, index, this])) {
+          return false;
+        }
+        index++;
+      }
+      return true;
+    }
+    some(predicate, thisArg) {
+      let index = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
+          return true;
+        }
+        index++;
+      }
+      return false;
+    }
+  };
+});
+
+// node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
+function useControllableState({
+  prop,
+  defaultProp,
+  onChange = () => {},
+  caller
+}) {
+  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
+    defaultProp,
+    onChange
+  });
+  const isControlled = prop !== undefined;
+  const value = isControlled ? prop : uncontrolledProp;
+  if (true) {
+    const isControlledRef = React26.useRef(prop !== undefined);
+    React26.useEffect(() => {
+      const wasControlled = isControlledRef.current;
+      if (wasControlled !== isControlled) {
+        const from = wasControlled ? "controlled" : "uncontrolled";
+        const to = isControlled ? "controlled" : "uncontrolled";
+        console.warn(`${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`);
+      }
+      isControlledRef.current = isControlled;
+    }, [isControlled, caller]);
+  }
+  const setValue = React26.useCallback((nextValue) => {
+    if (isControlled) {
+      const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
+      if (value2 !== prop) {
+        onChangeRef.current?.(value2);
+      }
+    } else {
+      setUncontrolledProp(nextValue);
+    }
+  }, [isControlled, prop, setUncontrolledProp, onChangeRef]);
+  return [value, setValue];
+}
+function useUncontrolledState({
+  defaultProp,
+  onChange
+}) {
+  const [value, setValue] = React26.useState(defaultProp);
+  const prevValueRef = React26.useRef(value);
+  const onChangeRef = React26.useRef(onChange);
+  useInsertionEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  React26.useEffect(() => {
+    if (prevValueRef.current !== value) {
+      onChangeRef.current?.(value);
+      prevValueRef.current = value;
+    }
+  }, [value, prevValueRef]);
+  return [value, setValue, onChangeRef];
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+var React26, React27, useInsertionEffect, SYNC_STATE;
+var init_dist14 = __esm(() => {
+  React26 = __toESM(require_react(), 1);
+  init_dist5();
+  React27 = __toESM(require_react(), 1);
+  useInsertionEffect = React26[" useInsertionEffect ".trim().toString()] || useLayoutEffect22;
+  SYNC_STATE = Symbol("RADIX:SYNC_STATE");
+});
+
+// node_modules/@radix-ui/react-id/dist/index.mjs
+function useId2(deterministicId) {
+  const [id, setId] = React28.useState(useReactId());
+  useLayoutEffect22(() => {
+    if (!deterministicId)
+      setId((reactId) => reactId ?? String(count++));
+  }, [deterministicId]);
+  return deterministicId || (id ? `radix-${id}` : "");
+}
+var React28, useReactId, count = 0;
+var init_dist15 = __esm(() => {
+  React28 = __toESM(require_react(), 1);
+  init_dist5();
+  useReactId = React28[" useId ".trim().toString()] || (() => {
+    return;
+  });
+});
+
+// node_modules/@radix-ui/react-collapsible/dist/index.mjs
+function getState(open) {
+  return open ? "open" : "closed";
+}
+var React30, import_jsx_runtime9, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root3, Trigger, Content;
+var init_dist16 = __esm(() => {
+  React30 = __toESM(require_react(), 1);
+  init_dist11();
+  init_dist7();
+  init_dist14();
+  init_dist5();
+  init_dist();
+  init_dist3();
+  init_dist6();
+  init_dist15();
+  import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
+  [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
+  Collapsible = React30.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeCollapsible,
+      open: openProp,
+      defaultOpen,
+      disabled,
+      onOpenChange,
+      ...collapsibleProps
+    } = props2;
+    const [open, setOpen] = useControllableState({
+      prop: openProp,
+      defaultProp: defaultOpen ?? false,
+      onChange: onOpenChange,
+      caller: COLLAPSIBLE_NAME
+    });
+    return /* @__PURE__ */ import_jsx_runtime9.jsx(CollapsibleProvider, {
+      scope: __scopeCollapsible,
+      disabled,
+      contentId: useId2(),
+      open,
+      onOpenToggle: React30.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+      children: /* @__PURE__ */ import_jsx_runtime9.jsx(Primitive.div, {
+        "data-state": getState(open),
+        "data-disabled": disabled ? "" : undefined,
+        ...collapsibleProps,
+        ref: forwardedRef
+      })
+    });
+  });
+  Collapsible.displayName = COLLAPSIBLE_NAME;
+  CollapsibleTrigger = React30.forwardRef((props2, forwardedRef) => {
+    const { __scopeCollapsible, ...triggerProps } = props2;
+    const context = useCollapsibleContext(TRIGGER_NAME, __scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime9.jsx(Primitive.button, {
+      type: "button",
+      "aria-controls": context.contentId,
+      "aria-expanded": context.open || false,
+      "data-state": getState(context.open),
+      "data-disabled": context.disabled ? "" : undefined,
+      disabled: context.disabled,
+      ...triggerProps,
+      ref: forwardedRef,
+      onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
+    });
+  });
+  CollapsibleTrigger.displayName = TRIGGER_NAME;
+  CollapsibleContent = React30.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...contentProps } = props2;
+    const context = useCollapsibleContext(CONTENT_NAME, props2.__scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime9.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime9.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
+  });
+  CollapsibleContent.displayName = CONTENT_NAME;
+  CollapsibleContentImpl = React30.forwardRef((props2, forwardedRef) => {
+    const { __scopeCollapsible, present, children, ...contentProps } = props2;
+    const context = useCollapsibleContext(CONTENT_NAME, __scopeCollapsible);
+    const [isPresent, setIsPresent] = React30.useState(present);
+    const ref = React30.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const heightRef = React30.useRef(0);
+    const height = heightRef.current;
+    const widthRef = React30.useRef(0);
+    const width = widthRef.current;
+    const isOpen = context.open || isPresent;
+    const isMountAnimationPreventedRef = React30.useRef(isOpen);
+    const originalStylesRef = React30.useRef(undefined);
+    React30.useEffect(() => {
+      const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
+      return () => cancelAnimationFrame(rAF);
+    }, []);
+    useLayoutEffect22(() => {
+      const node = ref.current;
+      if (node) {
+        originalStylesRef.current = originalStylesRef.current || {
+          transitionDuration: node.style.transitionDuration,
+          animationName: node.style.animationName
+        };
+        node.style.transitionDuration = "0s";
+        node.style.animationName = "none";
+        const rect = node.getBoundingClientRect();
+        heightRef.current = rect.height;
+        widthRef.current = rect.width;
+        if (!isMountAnimationPreventedRef.current) {
+          node.style.transitionDuration = originalStylesRef.current.transitionDuration;
+          node.style.animationName = originalStylesRef.current.animationName;
+        }
+        setIsPresent(present);
+      }
+    }, [context.open, present]);
+    return /* @__PURE__ */ import_jsx_runtime9.jsx(Primitive.div, {
+      "data-state": getState(context.open),
+      "data-disabled": context.disabled ? "" : undefined,
+      id: context.contentId,
+      hidden: !isOpen,
+      ...contentProps,
+      ref: composedRefs,
+      style: {
+        [`--radix-collapsible-content-height`]: height ? `${height}px` : undefined,
+        [`--radix-collapsible-content-width`]: width ? `${width}px` : undefined,
+        ...props2.style
+      },
+      children: isOpen && children
+    });
+  });
+  Root3 = Collapsible;
+  Trigger = CollapsibleTrigger;
+  Content = CollapsibleContent;
+});
+
+// node_modules/@radix-ui/react-accordion/dist/index.mjs
+function getState2(open) {
+  return open ? "open" : "closed";
+}
+var import_react11, import_jsx_runtime10, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection, useCollection, createCollectionScope, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME2 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME2 = "AccordionContent", AccordionContent, Root22, Item, Header, Trigger2, Content2;
+var init_dist17 = __esm(() => {
+  import_react11 = __toESM(require_react(), 1);
+  init_dist7();
+  init_dist13();
+  init_dist();
+  init_dist11();
+  init_dist14();
+  init_dist3();
+  init_dist16();
+  init_dist16();
+  init_dist15();
+  init_dist9();
+  import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  ACCORDION_KEYS = ["Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"];
+  [Collection, useCollection, createCollectionScope] = createCollection(ACCORDION_NAME);
+  [createAccordionContext, createAccordionScope] = createContextScope(ACCORDION_NAME, [
+    createCollectionScope,
+    createCollapsibleScope
+  ]);
+  useCollapsibleScope = createCollapsibleScope();
+  Accordion = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { type, ...accordionProps } = props2;
+    const singleProps = accordionProps;
+    const multipleProps = accordionProps;
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Collection.Provider, { scope: props2.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
+  });
+  Accordion.displayName = ACCORDION_NAME;
+  [AccordionValueProvider, useAccordionValueContext] = createAccordionContext(ACCORDION_NAME);
+  [AccordionCollapsibleProvider, useAccordionCollapsibleContext] = createAccordionContext(ACCORDION_NAME, { collapsible: false });
+  AccordionImplSingle = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const {
+      value: valueProp,
+      defaultValue,
+      onValueChange = () => {},
+      collapsible = false,
+      ...accordionSingleProps
+    } = props2;
+    const [value, setValue] = useControllableState({
+      prop: valueProp,
+      defaultProp: defaultValue ?? "",
+      onChange: onValueChange,
+      caller: ACCORDION_NAME
+    });
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionValueProvider, {
+      scope: props2.__scopeAccordion,
+      value: import_react11.default.useMemo(() => value ? [value] : [], [value]),
+      onItemOpen: setValue,
+      onItemClose: import_react11.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
+    });
+  });
+  AccordionImplMultiple = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const {
+      value: valueProp,
+      defaultValue,
+      onValueChange = () => {},
+      ...accordionMultipleProps
+    } = props2;
+    const [value, setValue] = useControllableState({
+      prop: valueProp,
+      defaultProp: defaultValue ?? [],
+      onChange: onValueChange,
+      caller: ACCORDION_NAME
+    });
+    const handleItemOpen = import_react11.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
+    const handleItemClose = import_react11.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionValueProvider, {
+      scope: props2.__scopeAccordion,
+      value,
+      onItemOpen: handleItemOpen,
+      onItemClose: handleItemClose,
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
+    });
+  });
+  [AccordionImplProvider, useAccordionContext] = createAccordionContext(ACCORDION_NAME);
+  AccordionImpl = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { __scopeAccordion, disabled, dir, orientation = "vertical", ...accordionProps } = props2;
+    const accordionRef = import_react11.default.useRef(null);
+    const composedRefs = useComposedRefs(accordionRef, forwardedRef);
+    const getItems = useCollection(__scopeAccordion);
+    const direction = useDirection(dir);
+    const isDirectionLTR = direction === "ltr";
+    const handleKeyDown = composeEventHandlers(props2.onKeyDown, (event) => {
+      if (!ACCORDION_KEYS.includes(event.key))
+        return;
+      const target = event.target;
+      const triggerCollection = getItems().filter((item) => !item.ref.current?.disabled);
+      const triggerIndex = triggerCollection.findIndex((item) => item.ref.current === target);
+      const triggerCount = triggerCollection.length;
+      if (triggerIndex === -1)
+        return;
+      event.preventDefault();
+      let nextIndex = triggerIndex;
+      const homeIndex = 0;
+      const endIndex = triggerCount - 1;
+      const moveNext = () => {
+        nextIndex = triggerIndex + 1;
+        if (nextIndex > endIndex) {
+          nextIndex = homeIndex;
+        }
+      };
+      const movePrev = () => {
+        nextIndex = triggerIndex - 1;
+        if (nextIndex < homeIndex) {
+          nextIndex = endIndex;
+        }
+      };
+      switch (event.key) {
+        case "Home":
+          nextIndex = homeIndex;
+          break;
+        case "End":
+          nextIndex = endIndex;
+          break;
+        case "ArrowRight":
+          if (orientation === "horizontal") {
+            if (isDirectionLTR) {
+              moveNext();
+            } else {
+              movePrev();
+            }
+          }
+          break;
+        case "ArrowDown":
+          if (orientation === "vertical") {
+            moveNext();
+          }
+          break;
+        case "ArrowLeft":
+          if (orientation === "horizontal") {
+            if (isDirectionLTR) {
+              movePrev();
+            } else {
+              moveNext();
+            }
+          }
+          break;
+        case "ArrowUp":
+          if (orientation === "vertical") {
+            movePrev();
+          }
+          break;
+      }
+      const clampedIndex = nextIndex % triggerCount;
+      triggerCollection[clampedIndex].ref.current?.focus();
+    });
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionImplProvider, {
+      scope: __scopeAccordion,
+      disabled,
+      direction: dir,
+      orientation,
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(Collection.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+        ...accordionProps,
+        "data-orientation": orientation,
+        ref: composedRefs,
+        onKeyDown: disabled ? undefined : handleKeyDown
+      }) })
+    });
+  });
+  [AccordionItemProvider, useAccordionItemContext] = createAccordionContext(ITEM_NAME);
+  AccordionItem = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { __scopeAccordion, value, ...accordionItemProps } = props2;
+    const accordionContext = useAccordionContext(ITEM_NAME, __scopeAccordion);
+    const valueContext = useAccordionValueContext(ITEM_NAME, __scopeAccordion);
+    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
+    const triggerId = useId2();
+    const open = value && valueContext.value.includes(value) || false;
+    const disabled = accordionContext.disabled || props2.disabled;
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(AccordionItemProvider, {
+      scope: __scopeAccordion,
+      open,
+      disabled,
+      triggerId,
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(Root3, {
+        "data-orientation": accordionContext.orientation,
+        "data-state": getState2(open),
+        ...collapsibleScope,
+        ...accordionItemProps,
+        ref: forwardedRef,
+        disabled,
+        open,
+        onOpenChange: (open2) => {
+          if (open2) {
+            valueContext.onItemOpen(value);
+          } else {
+            valueContext.onItemClose(value);
+          }
+        }
+      })
+    });
+  });
+  AccordionItem.displayName = ITEM_NAME;
+  AccordionHeader = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { __scopeAccordion, ...headerProps } = props2;
+    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
+    const itemContext = useAccordionItemContext(HEADER_NAME, __scopeAccordion);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.h3, {
+      "data-orientation": accordionContext.orientation,
+      "data-state": getState2(itemContext.open),
+      "data-disabled": itemContext.disabled ? "" : undefined,
+      ...headerProps,
+      ref: forwardedRef
+    });
+  });
+  AccordionHeader.displayName = HEADER_NAME;
+  AccordionTrigger = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { __scopeAccordion, ...triggerProps } = props2;
+    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
+    const itemContext = useAccordionItemContext(TRIGGER_NAME2, __scopeAccordion);
+    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME2, __scopeAccordion);
+    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Collection.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime10.jsx(Trigger, {
+      "aria-disabled": itemContext.open && !collapsibleContext.collapsible || undefined,
+      "data-orientation": accordionContext.orientation,
+      id: itemContext.triggerId,
+      ...collapsibleScope,
+      ...triggerProps,
+      ref: forwardedRef
+    }) });
+  });
+  AccordionTrigger.displayName = TRIGGER_NAME2;
+  AccordionContent = import_react11.default.forwardRef((props2, forwardedRef) => {
+    const { __scopeAccordion, ...contentProps } = props2;
+    const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
+    const itemContext = useAccordionItemContext(CONTENT_NAME2, __scopeAccordion);
+    const collapsibleScope = useCollapsibleScope(__scopeAccordion);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Content, {
+      role: "region",
+      "aria-labelledby": itemContext.triggerId,
+      "data-orientation": accordionContext.orientation,
+      ...collapsibleScope,
+      ...contentProps,
+      ref: forwardedRef,
+      style: {
+        ["--radix-accordion-content-height"]: "var(--radix-collapsible-content-height)",
+        ["--radix-accordion-content-width"]: "var(--radix-collapsible-content-width)",
+        ...props2.style
+      }
+    });
+  });
+  AccordionContent.displayName = CONTENT_NAME2;
+  Root22 = Accordion;
+  Item = AccordionItem;
+  Header = AccordionHeader;
+  Trigger2 = AccordionTrigger;
+  Content2 = AccordionContent;
+});
+
+// dashboard/src/components/ui/accordion.jsx
+var React32, jsx_dev_runtime9, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
+var init_accordion = __esm(() => {
+  React32 = __toESM(require_react(), 1);
+  init_dist17();
+  init_lucide_react();
+  init_utils();
+  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  Accordion2 = Root22;
+  AccordionItem2 = React32.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Item, {
+    ref,
+    className: cn("border-b", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  AccordionItem2.displayName = "AccordionItem";
+  AccordionTrigger2 = React32.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Header, {
+    className: "flex",
+    children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Trigger2, {
+      ref,
+      className: cn("flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180", className),
+      ...props2,
+      children: [
+        children,
+        /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(ChevronDown, {
+          className: "h-4 w-4 shrink-0 transition-transform duration-200"
+        }, undefined, false, undefined, this)
+      ]
+    }, undefined, true, undefined, this)
+  }, undefined, false, undefined, this));
+  AccordionTrigger2.displayName = Trigger2.displayName;
+  AccordionContent2 = React32.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Content2, {
+    ref,
+    className: "overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
+    ...props2,
+    children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
+      className: cn("pb-4 pt-0", className),
+      children
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this));
+  AccordionContent2.displayName = Content2.displayName;
+});
+
+// dashboard/src/components/ui/table.jsx
+var React33, jsx_dev_runtime10, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
+var init_table = __esm(() => {
+  React33 = __toESM(require_react(), 1);
+  init_utils();
+  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
+  Table = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("table", {
+    ref,
+    className: cn("w-full caption-bottom text-sm", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  Table.displayName = "Table";
+  TableHeader = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("thead", {
+    ref,
+    className: cn("[&_tr]:border-b", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableHeader.displayName = "TableHeader";
+  TableBody = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("tbody", {
+    ref,
+    className: cn("[&_tr:last-child]:border-0", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableBody.displayName = "TableBody";
+  TableFooter = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("tfoot", {
+    ref,
+    className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableFooter.displayName = "TableFooter";
+  TableRow = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("tr", {
+    ref,
+    className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableRow.displayName = "TableRow";
+  TableHead = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("th", {
+    ref,
+    className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableHead.displayName = "TableHead";
+  TableCell = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("td", {
+    ref,
+    className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableCell.displayName = "TableCell";
+  TableCaption = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("caption", {
+    ref,
+    className: cn("mt-4 text-sm text-muted-foreground", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  TableCaption.displayName = "TableCaption";
 });
 
 // dashboard/src/components/StateManagement.js
@@ -26542,323 +30762,249 @@ var exports_StateManagement = {};
 __export(exports_StateManagement, {
   default: () => StateManagement_default
 });
-var import_react9, jsx_dev_runtime8, StateManagement = ({ state }) => {
-  const [expandedSections, setExpandedSections] = import_react9.useState({
-    project: true,
-    tasks: false,
-    history: false,
-    performance: false
-  });
-  const toggleSection = (section) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section]
-    }));
-  };
-  const formatValue = (value) => {
+var import_react12, jsx_dev_runtime11, StateManagement = ({ state }) => {
+  if (!state) {
+    return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+      className: "p-4 text-muted-foreground",
+      children: "No state data available"
+    }, undefined, false, undefined, this);
+  }
+  const renderValue = (value) => {
     if (typeof value === "object" && value !== null) {
-      return JSON.stringify(value, null, 2);
-    }
-    return String(value);
-  };
-  const renderObject = (obj, path = "") => {
-    if (typeof obj !== "object" || obj === null) {
-      return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-        className: "state-value",
-        children: formatValue(obj)
+      return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("pre", {
+        className: "text-xs p-2 bg-muted rounded-md overflow-x-auto",
+        children: JSON.stringify(value, null, 2)
       }, undefined, false, undefined, this);
     }
-    return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-      className: "state-object",
-      children: Object.entries(obj).map(([key, value]) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-property",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-            className: "state-key",
-            children: [
-              key,
-              ":"
-            ]
-          }, undefined, true, undefined, this),
-          typeof value === "object" && value !== null ? /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-nested",
-            children: renderObject(value, `${path}.${key}`)
-          }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-            className: "state-value",
-            children: formatValue(value)
-          }, undefined, false, undefined, this)
-        ]
-      }, `${path}.${key}`, true, undefined, this))
+    return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+      className: "text-sm",
+      children: String(value)
     }, undefined, false, undefined, this);
   };
-  if (!state) {
-    return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-      className: "state-management-container",
-      children: [
-        /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h2", {
-          children: "State Management"
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
-          children: "No state data available"
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this);
-  }
-  return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-    className: "state-management-container",
+  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+    className: "flex flex-col h-full",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-section",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-header",
-            onClick: () => toggleSection("project"),
-            children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h3", {
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ScrollArea2, {
+        className: "flex-grow",
+        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Accordion2, {
+          type: "multiple",
+          defaultValue: ["project"],
+          className: "w-full p-2",
+          children: [
+            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionItem2, {
+              value: "project",
               children: [
-                "Project Information ",
-                expandedSections.project ? "▼" : "▶"
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionTrigger2, {
+                  children: "Project Information"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionContent2, {
+                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Table, {
+                    children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableBody, {
+                      children: [
+                        /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-medium",
+                              children: "Project Name"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: state.project_name || "N/A"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this),
+                        /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-medium",
+                              children: "Status"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: state.project_status || "N/A"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this),
+                        /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-medium",
+                              children: "Goal"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: state.goal || "N/A"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this),
+                        /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-medium",
+                              children: "Fallback Mode"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: state.fallback_mode ? "Yes" : "No"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this),
+                        state.fallback_mode && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-medium",
+                              children: "Fallback Reason"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: state.fallback_reason
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      ]
+                    }, undefined, true, undefined, this)
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionItem2, {
+              value: "tasks",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionTrigger2, {
+                  children: [
+                    "Tasks (",
+                    state.project_manifest?.tasks?.length || 0,
+                    ")"
+                  ]
+                }, undefined, true, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionContent2, {
+                  children: state.project_manifest?.tasks?.length > 0 ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Table, {
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHeader, {
+                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "ID"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Description"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Status"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Agent"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableBody, {
+                        children: state.project_manifest.tasks.map((task) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              className: "font-mono",
+                              children: task.id
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: task.description
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: task.status
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: task.assigned_agent || "Unassigned"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, task.id, true, undefined, this))
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("p", {
+                    className: "p-4 text-muted-foreground",
+                    children: "No tasks available"
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionItem2, {
+              value: "history",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionTrigger2, {
+                  children: [
+                    "History (",
+                    state.history?.length || 0,
+                    ")"
+                  ]
+                }, undefined, true, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionContent2, {
+                  children: state.history?.length > 0 ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Table, {
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHeader, {
+                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Timestamp"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Agent"
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableHead, {
+                              children: "Message"
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableBody, {
+                        children: state.history.slice().reverse().map((entry, index) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableRow, {
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: new Date(entry.timestamp).toLocaleString()
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: entry.agent_id
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(TableCell, {
+                              children: entry.message
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, index, true, undefined, this))
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("p", {
+                    className: "p-4 text-muted-foreground",
+                    children: "No history available"
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionItem2, {
+              value: "performance",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionTrigger2, {
+                  children: "Performance Data"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(AccordionContent2, {
+                  children: state.performance ? renderValue(state.performance) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("p", {
+                    className: "p-4 text-muted-foreground",
+                    children: "No performance data available"
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this)
-          }, undefined, false, undefined, this),
-          expandedSections.project && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-content",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                className: "state-property",
-                children: [
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-key",
-                    children: "Project Name:"
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-value",
-                    children: state.project_name
-                  }, undefined, false, undefined, this)
-                ]
-              }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                className: "state-property",
-                children: [
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-key",
-                    children: "Project Status:"
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-value",
-                    children: state.project_status
-                  }, undefined, false, undefined, this)
-                ]
-              }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                className: "state-property",
-                children: [
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-key",
-                    children: "Fallback Mode:"
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-value",
-                    children: state.fallback_mode ? "Yes" : "No"
-                  }, undefined, false, undefined, this)
-                ]
-              }, undefined, true, undefined, this),
-              state.fallback_mode && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                className: "state-property",
-                children: [
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-key",
-                    children: "Fallback Reason:"
-                  }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                    className: "state-value",
-                    children: state.fallback_reason
-                  }, undefined, false, undefined, this)
-                ]
-              }, undefined, true, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-section",
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+        className: "p-2 border-t flex items-center gap-2",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-header",
-            onClick: () => toggleSection("tasks"),
-            children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h3", {
-              children: [
-                "Tasks (",
-                state.project_manifest?.tasks?.length || 0,
-                ") ",
-                expandedSections.tasks ? "▼" : "▶"
-              ]
-            }, undefined, true, undefined, this)
-          }, undefined, false, undefined, this),
-          expandedSections.tasks && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-content",
-            children: state.project_manifest?.tasks?.length > 0 ? state.project_manifest.tasks.map((task, index) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-              className: "task-item",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "ID:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: task.id
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Description:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: task.description
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Status:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: task.status
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Assigned Agent:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: task.assigned_agent || "Unassigned"
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              ]
-            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
-              children: "No tasks available"
-            }, undefined, false, undefined, this)
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-section",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-header",
-            onClick: () => toggleSection("history"),
-            children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h3", {
-              children: [
-                "History (",
-                state.history?.length || 0,
-                ") ",
-                expandedSections.history ? "▼" : "▶"
-              ]
-            }, undefined, true, undefined, this)
-          }, undefined, false, undefined, this),
-          expandedSections.history && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-content",
-            children: state.history?.length > 0 ? state.history.slice().reverse().map((entry, index) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-              className: "history-item",
-              children: [
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Timestamp:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: new Date(entry.timestamp).toLocaleString()
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Agent:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: entry.agent_id
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-                  className: "state-property",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-key",
-                      children: "Message:"
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
-                      className: "state-value",
-                      children: entry.message
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              ]
-            }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
-              children: "No history available"
-            }, undefined, false, undefined, this)
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-section",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-header",
-            onClick: () => toggleSection("performance"),
-            children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h3", {
-              children: [
-                "Performance Data ",
-                expandedSections.performance ? "▼" : "▶"
-              ]
-            }, undefined, true, undefined, this)
-          }, undefined, false, undefined, this),
-          expandedSections.performance && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-            className: "state-section-content",
-            children: state.performance ? renderObject(state.performance) : /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
-              children: "No performance data available"
-            }, undefined, false, undefined, this)
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-        className: "state-actions",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("button", {
-            className: "state-action-button",
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+            variant: "outline",
+            size: "sm",
             children: "Export State"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("button", {
-            className: "state-action-button",
-            children: "Reset State"
-          }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("button", {
-            className: "state-action-button",
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+            variant: "outline",
+            size: "sm",
             children: "Save Snapshot"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+            variant: "destructive",
+            size: "sm",
+            children: "Reset State"
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this)
@@ -26866,8 +31012,12 @@ var import_react9, jsx_dev_runtime8, StateManagement = ({ state }) => {
   }, undefined, true, undefined, this);
 }, StateManagement_default;
 var init_StateManagement = __esm(() => {
-  import_react9 = __toESM(require_react(), 1);
-  jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
+  import_react12 = __toESM(require_react(), 1);
+  init_accordion();
+  init_table();
+  init_button();
+  init_scroll_area();
+  jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
   StateManagement_default = StateManagement;
 });
 
@@ -26876,47 +31026,43 @@ var exports_ChatInterface = {};
 __export(exports_ChatInterface, {
   default: () => ChatInterface_default
 });
-var import_react10, jsx_dev_runtime9, ChatInterface = ({ sendMessage, engineStatus }) => {
-  const [message, setMessage] = import_react10.useState("");
+var import_react13, jsx_dev_runtime12, BUSY_STATUSES, ChatInterface = ({ sendMessage, engineStatus, activeProject }) => {
+  const [goal, setGoal] = import_react13.useState("");
   const handleSend = (e) => {
     e.preventDefault();
-    if (message.trim()) {
-      sendMessage({ type: "user_message", payload: { message } });
-      setMessage("");
+    if (goal.trim() && activeProject) {
+      sendMessage({ type: "start_mission", payload: { goal, project_path: activeProject } });
+      setGoal("");
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
-    className: "chat-interface-container",
+  const isBusy = BUSY_STATUSES.includes(engineStatus);
+  const canSubmit = goal.trim() && activeProject && !isBusy;
+  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
+    className: "flex flex-col h-full",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
-        className: "chat-messages"
+      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
+        className: "flex-grow overflow-y-auto p-1",
+        children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
+          className: "text-center text-sm text-muted-foreground pt-4",
+          children: "Define a new mission for the selected project."
+        }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("form", {
+      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("form", {
         onSubmit: handleSend,
-        className: "chat-form",
+        className: "flex items-center gap-2 p-1",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("input", {
+          /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Input, {
             type: "text",
-            className: "chat-input",
-            value: message,
-            onChange: (e) => setMessage(e.target.value),
-            placeholder: "Type your message...",
-            disabled: engineStatus !== "Running"
+            value: goal,
+            onChange: (e) => setGoal(e.target.value),
+            placeholder: !activeProject ? "Set a project first..." : "Enter your mission objective...",
+            disabled: !activeProject || isBusy,
+            className: "flex-grow"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("button", {
+          /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Button, {
             type: "submit",
-            className: "chat-submit",
-            disabled: engineStatus !== "Running",
-            children: "Send"
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
-        className: "status",
-        children: [
-          "Engine Status: ",
-          /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("strong", {
-            children: engineStatus
+            disabled: !canSubmit,
+            children: isBusy ? "Engine Busy" : "Start Mission"
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this)
@@ -26924,8 +31070,19 @@ var import_react10, jsx_dev_runtime9, ChatInterface = ({ sendMessage, engineStat
   }, undefined, true, undefined, this);
 }, ChatInterface_default;
 var init_ChatInterface = __esm(() => {
-  import_react10 = __toESM(require_react(), 1);
-  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
+  import_react13 = __toESM(require_react(), 1);
+  init_input();
+  init_button();
+  jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
+  BUSY_STATUSES = [
+    "ENRICHMENT_PHASE",
+    "PLANNING_PHASE",
+    "CODING_PHASE",
+    "TESTING_PHASE",
+    "DEBUGGING_PHASE",
+    "EXECUTING",
+    "Running"
+  ];
   ChatInterface_default = ChatInterface;
 });
 
@@ -26934,10 +31091,10 @@ var exports_DocumentUploader = {};
 __export(exports_DocumentUploader, {
   default: () => DocumentUploader_default
 });
-var import_react11, jsx_dev_runtime10, DocumentUploader = () => {
-  const [selectedFile, setSelectedFile] = import_react11.useState(null);
-  const [isLoading, setIsLoading] = import_react11.useState(false);
-  const [message, setMessage] = import_react11.useState("");
+var import_react14, jsx_dev_runtime13, DocumentUploader = () => {
+  const [selectedFile, setSelectedFile] = import_react14.useState(null);
+  const [isLoading, setIsLoading] = import_react14.useState(false);
+  const [message, setMessage] = import_react14.useState("");
   const handleFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
     setMessage("");
@@ -26969,22 +31126,22 @@ var import_react11, jsx_dev_runtime10, DocumentUploader = () => {
       setIsLoading(false);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("div", {
     className: "space-y-2",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Input, {
+      /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Input, {
         type: "file",
         onChange: handleFileChange,
         disabled: isLoading,
         className: "text-sm"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
+      /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Button, {
         onClick: handleUpload,
         disabled: !selectedFile || isLoading,
         className: "w-full",
         children: isLoading ? "Uploading..." : "Upload and Process"
       }, undefined, false, undefined, this),
-      message && /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("p", {
+      message && /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("p", {
         className: cn("text-sm text-center", message.startsWith("Error") ? "text-destructive" : "text-muted-foreground"),
         children: message
       }, undefined, false, undefined, this)
@@ -26992,23 +31149,23 @@ var import_react11, jsx_dev_runtime10, DocumentUploader = () => {
   }, undefined, true, undefined, this);
 }, DocumentUploader_default;
 var init_DocumentUploader = __esm(() => {
-  import_react11 = __toESM(require_react(), 1);
+  import_react14 = __toESM(require_react(), 1);
   init_input();
   init_button();
   init_utils();
-  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
   DocumentUploader_default = DocumentUploader;
 });
 
 // dashboard/src/index.js
-var import_react14 = __toESM(require_react(), 1);
+var import_react17 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react13 = __toESM(require_react(), 1);
+var import_react16 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react12 = __toESM(require_react(), 1);
+var import_react15 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
@@ -27058,2373 +31215,14 @@ var useWebSocket_default = useWebSocket;
 
 // dashboard/src/pages/Dashboard.js
 init_utils();
-
-// dashboard/src/components/ui/resizable.jsx
-var React2 = __toESM(require_react(), 1);
-
-// node_modules/lucide-react/dist/esm/createLucideIcon.js
-var import_react3 = __toESM(require_react(), 1);
-
-// node_modules/lucide-react/dist/esm/shared/src/utils.js
-var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-var mergeClasses = (...classes) => classes.filter((className, index, array) => {
-  return Boolean(className) && array.indexOf(className) === index;
-}).join(" ");
-
-// node_modules/lucide-react/dist/esm/Icon.js
-var import_react2 = __toESM(require_react(), 1);
-
-// node_modules/lucide-react/dist/esm/defaultAttributes.js
-var defaultAttributes = {
-  xmlns: "http://www.w3.org/2000/svg",
-  width: 24,
-  height: 24,
-  viewBox: "0 0 24 24",
-  fill: "none",
-  stroke: "currentColor",
-  strokeWidth: 2,
-  strokeLinecap: "round",
-  strokeLinejoin: "round"
-};
-
-// node_modules/lucide-react/dist/esm/Icon.js
-var Icon = import_react2.forwardRef(({
-  color = "currentColor",
-  size = 24,
-  strokeWidth = 2,
-  absoluteStrokeWidth,
-  className = "",
-  children,
-  iconNode,
-  ...rest
-}, ref) => {
-  return import_react2.createElement("svg", {
-    ref,
-    ...defaultAttributes,
-    width: size,
-    height: size,
-    stroke: color,
-    strokeWidth: absoluteStrokeWidth ? Number(strokeWidth) * 24 / Number(size) : strokeWidth,
-    className: mergeClasses("lucide", className),
-    ...rest
-  }, [
-    ...iconNode.map(([tag, attrs]) => import_react2.createElement(tag, attrs)),
-    ...Array.isArray(children) ? children : [children]
-  ]);
-});
-
-// node_modules/lucide-react/dist/esm/createLucideIcon.js
-var createLucideIcon = (iconName, iconNode) => {
-  const Component = import_react3.forwardRef(({ className, ...props }, ref) => import_react3.createElement(Icon, {
-    ref,
-    iconNode,
-    className: mergeClasses(`lucide-${toKebabCase(iconName)}`, className),
-    ...props
-  }));
-  Component.displayName = `${iconName}`;
-  return Component;
-};
-
-// node_modules/lucide-react/dist/esm/icons/grip-vertical.js
-var GripVertical = createLucideIcon("GripVertical", [
-  ["circle", { cx: "9", cy: "12", r: "1", key: "1vctgf" }],
-  ["circle", { cx: "9", cy: "5", r: "1", key: "hp0tcf" }],
-  ["circle", { cx: "9", cy: "19", r: "1", key: "fkjjf6" }],
-  ["circle", { cx: "15", cy: "12", r: "1", key: "1tmaij" }],
-  ["circle", { cx: "15", cy: "5", r: "1", key: "19l28e" }],
-  ["circle", { cx: "15", cy: "19", r: "1", key: "f4zoj3" }]
-]);
-// node_modules/react-resizable-panels/dist/react-resizable-panels.browser.development.esm.js
-var React = __toESM(require_react(), 1);
-var import_react4 = __toESM(require_react(), 1);
-var PanelGroupContext = import_react4.createContext(null);
-PanelGroupContext.displayName = "PanelGroupContext";
-var DATA_ATTRIBUTES = {
-  group: "data-panel-group",
-  groupDirection: "data-panel-group-direction",
-  groupId: "data-panel-group-id",
-  panel: "data-panel",
-  panelCollapsible: "data-panel-collapsible",
-  panelId: "data-panel-id",
-  panelSize: "data-panel-size",
-  resizeHandle: "data-resize-handle",
-  resizeHandleActive: "data-resize-handle-active",
-  resizeHandleEnabled: "data-panel-resize-handle-enabled",
-  resizeHandleId: "data-panel-resize-handle-id",
-  resizeHandleState: "data-resize-handle-state"
-};
-var PRECISION = 10;
-var useIsomorphicLayoutEffect = import_react4.useLayoutEffect;
-var useId = React["useId".toString()];
-var wrappedUseId = typeof useId === "function" ? useId : () => null;
-var counter = 0;
-function useUniqueId(idFromParams = null) {
-  const idFromUseId = wrappedUseId();
-  const idRef = import_react4.useRef(idFromParams || idFromUseId || null);
-  if (idRef.current === null) {
-    idRef.current = "" + counter++;
-  }
-  return idFromParams !== null && idFromParams !== undefined ? idFromParams : idRef.current;
-}
-function PanelWithForwardedRef({
-  children,
-  className: classNameFromProps = "",
-  collapsedSize,
-  collapsible,
-  defaultSize,
-  forwardedRef,
-  id: idFromProps,
-  maxSize,
-  minSize,
-  onCollapse,
-  onExpand,
-  onResize,
-  order,
-  style: styleFromProps,
-  tagName: Type = "div",
-  ...rest
-}) {
-  const context = import_react4.useContext(PanelGroupContext);
-  if (context === null) {
-    throw Error(`Panel components must be rendered within a PanelGroup container`);
-  }
-  const {
-    collapsePanel,
-    expandPanel,
-    getPanelSize,
-    getPanelStyle,
-    groupId,
-    isPanelCollapsed,
-    reevaluatePanelConstraints,
-    registerPanel,
-    resizePanel,
-    unregisterPanel
-  } = context;
-  const panelId = useUniqueId(idFromProps);
-  const panelDataRef = import_react4.useRef({
-    callbacks: {
-      onCollapse,
-      onExpand,
-      onResize
-    },
-    constraints: {
-      collapsedSize,
-      collapsible,
-      defaultSize,
-      maxSize,
-      minSize
-    },
-    id: panelId,
-    idIsFromProps: idFromProps !== undefined,
-    order
-  });
-  const devWarningsRef = import_react4.useRef({
-    didLogMissingDefaultSizeWarning: false
-  });
-  {
-    if (!devWarningsRef.current.didLogMissingDefaultSizeWarning)
-      ;
-  }
-  useIsomorphicLayoutEffect(() => {
-    const {
-      callbacks,
-      constraints
-    } = panelDataRef.current;
-    const prevConstraints = {
-      ...constraints
-    };
-    panelDataRef.current.id = panelId;
-    panelDataRef.current.idIsFromProps = idFromProps !== undefined;
-    panelDataRef.current.order = order;
-    callbacks.onCollapse = onCollapse;
-    callbacks.onExpand = onExpand;
-    callbacks.onResize = onResize;
-    constraints.collapsedSize = collapsedSize;
-    constraints.collapsible = collapsible;
-    constraints.defaultSize = defaultSize;
-    constraints.maxSize = maxSize;
-    constraints.minSize = minSize;
-    if (prevConstraints.collapsedSize !== constraints.collapsedSize || prevConstraints.collapsible !== constraints.collapsible || prevConstraints.maxSize !== constraints.maxSize || prevConstraints.minSize !== constraints.minSize) {
-      reevaluatePanelConstraints(panelDataRef.current, prevConstraints);
-    }
-  });
-  useIsomorphicLayoutEffect(() => {
-    const panelData = panelDataRef.current;
-    registerPanel(panelData);
-    return () => {
-      unregisterPanel(panelData);
-    };
-  }, [order, panelId, registerPanel, unregisterPanel]);
-  import_react4.useImperativeHandle(forwardedRef, () => ({
-    collapse: () => {
-      collapsePanel(panelDataRef.current);
-    },
-    expand: (minSize2) => {
-      expandPanel(panelDataRef.current, minSize2);
-    },
-    getId() {
-      return panelId;
-    },
-    getSize() {
-      return getPanelSize(panelDataRef.current);
-    },
-    isCollapsed() {
-      return isPanelCollapsed(panelDataRef.current);
-    },
-    isExpanded() {
-      return !isPanelCollapsed(panelDataRef.current);
-    },
-    resize: (size) => {
-      resizePanel(panelDataRef.current, size);
-    }
-  }), [collapsePanel, expandPanel, getPanelSize, isPanelCollapsed, panelId, resizePanel]);
-  const style = getPanelStyle(panelDataRef.current, defaultSize);
-  return import_react4.createElement(Type, {
-    ...rest,
-    children,
-    className: classNameFromProps,
-    id: panelId,
-    style: {
-      ...style,
-      ...styleFromProps
-    },
-    [DATA_ATTRIBUTES.groupId]: groupId,
-    [DATA_ATTRIBUTES.panel]: "",
-    [DATA_ATTRIBUTES.panelCollapsible]: collapsible || undefined,
-    [DATA_ATTRIBUTES.panelId]: panelId,
-    [DATA_ATTRIBUTES.panelSize]: parseFloat("" + style.flexGrow).toFixed(1)
-  });
-}
-var Panel = import_react4.forwardRef((props, ref) => import_react4.createElement(PanelWithForwardedRef, {
-  ...props,
-  forwardedRef: ref
-}));
-PanelWithForwardedRef.displayName = "Panel";
-Panel.displayName = "forwardRef(Panel)";
-var nonce;
-function getNonce() {
-  return nonce;
-}
-var currentCursorStyle = null;
-var enabled = true;
-var prevRuleIndex = -1;
-var styleElement = null;
-function getCursorStyle(state, constraintFlags) {
-  if (constraintFlags) {
-    const horizontalMin = (constraintFlags & EXCEEDED_HORIZONTAL_MIN) !== 0;
-    const horizontalMax = (constraintFlags & EXCEEDED_HORIZONTAL_MAX) !== 0;
-    const verticalMin = (constraintFlags & EXCEEDED_VERTICAL_MIN) !== 0;
-    const verticalMax = (constraintFlags & EXCEEDED_VERTICAL_MAX) !== 0;
-    if (horizontalMin) {
-      if (verticalMin) {
-        return "se-resize";
-      } else if (verticalMax) {
-        return "ne-resize";
-      } else {
-        return "e-resize";
-      }
-    } else if (horizontalMax) {
-      if (verticalMin) {
-        return "sw-resize";
-      } else if (verticalMax) {
-        return "nw-resize";
-      } else {
-        return "w-resize";
-      }
-    } else if (verticalMin) {
-      return "s-resize";
-    } else if (verticalMax) {
-      return "n-resize";
-    }
-  }
-  switch (state) {
-    case "horizontal":
-      return "ew-resize";
-    case "intersection":
-      return "move";
-    case "vertical":
-      return "ns-resize";
-  }
-}
-function resetGlobalCursorStyle() {
-  if (styleElement !== null) {
-    document.head.removeChild(styleElement);
-    currentCursorStyle = null;
-    styleElement = null;
-    prevRuleIndex = -1;
-  }
-}
-function setGlobalCursorStyle(state, constraintFlags) {
-  var _styleElement$sheet$i, _styleElement$sheet2;
-  if (!enabled) {
-    return;
-  }
-  const style = getCursorStyle(state, constraintFlags);
-  if (currentCursorStyle === style) {
-    return;
-  }
-  currentCursorStyle = style;
-  if (styleElement === null) {
-    styleElement = document.createElement("style");
-    const nonce2 = getNonce();
-    if (nonce2) {
-      styleElement.setAttribute("nonce", nonce2);
-    }
-    document.head.appendChild(styleElement);
-  }
-  if (prevRuleIndex >= 0) {
-    var _styleElement$sheet;
-    (_styleElement$sheet = styleElement.sheet) === null || _styleElement$sheet === undefined || _styleElement$sheet.removeRule(prevRuleIndex);
-  }
-  prevRuleIndex = (_styleElement$sheet$i = (_styleElement$sheet2 = styleElement.sheet) === null || _styleElement$sheet2 === undefined ? undefined : _styleElement$sheet2.insertRule(`*{cursor: ${style} !important;}`)) !== null && _styleElement$sheet$i !== undefined ? _styleElement$sheet$i : -1;
-}
-function isKeyDown(event) {
-  return event.type === "keydown";
-}
-function isPointerEvent(event) {
-  return event.type.startsWith("pointer");
-}
-function isMouseEvent(event) {
-  return event.type.startsWith("mouse");
-}
-function getResizeEventCoordinates(event) {
-  if (isPointerEvent(event)) {
-    if (event.isPrimary) {
-      return {
-        x: event.clientX,
-        y: event.clientY
-      };
-    }
-  } else if (isMouseEvent(event)) {
-    return {
-      x: event.clientX,
-      y: event.clientY
-    };
-  }
-  return {
-    x: Infinity,
-    y: Infinity
-  };
-}
-function getInputType() {
-  if (typeof matchMedia === "function") {
-    return matchMedia("(pointer:coarse)").matches ? "coarse" : "fine";
-  }
-}
-function intersects(rectOne, rectTwo, strict) {
-  if (strict) {
-    return rectOne.x < rectTwo.x + rectTwo.width && rectOne.x + rectOne.width > rectTwo.x && rectOne.y < rectTwo.y + rectTwo.height && rectOne.y + rectOne.height > rectTwo.y;
-  } else {
-    return rectOne.x <= rectTwo.x + rectTwo.width && rectOne.x + rectOne.width >= rectTwo.x && rectOne.y <= rectTwo.y + rectTwo.height && rectOne.y + rectOne.height >= rectTwo.y;
-  }
-}
-function compare(a, b) {
-  if (a === b)
-    throw new Error("Cannot compare node with itself");
-  const ancestors = {
-    a: get_ancestors(a),
-    b: get_ancestors(b)
-  };
-  let common_ancestor;
-  while (ancestors.a.at(-1) === ancestors.b.at(-1)) {
-    a = ancestors.a.pop();
-    b = ancestors.b.pop();
-    common_ancestor = a;
-  }
-  assert(common_ancestor, "Stacking order can only be calculated for elements with a common ancestor");
-  const z_indexes = {
-    a: get_z_index(find_stacking_context(ancestors.a)),
-    b: get_z_index(find_stacking_context(ancestors.b))
-  };
-  if (z_indexes.a === z_indexes.b) {
-    const children = common_ancestor.childNodes;
-    const furthest_ancestors = {
-      a: ancestors.a.at(-1),
-      b: ancestors.b.at(-1)
-    };
-    let i = children.length;
-    while (i--) {
-      const child = children[i];
-      if (child === furthest_ancestors.a)
-        return 1;
-      if (child === furthest_ancestors.b)
-        return -1;
-    }
-  }
-  return Math.sign(z_indexes.a - z_indexes.b);
-}
-var props = /\b(?:position|zIndex|opacity|transform|webkitTransform|mixBlendMode|filter|webkitFilter|isolation)\b/;
-function is_flex_item(node) {
-  var _get_parent;
-  const display = getComputedStyle((_get_parent = get_parent(node)) !== null && _get_parent !== undefined ? _get_parent : node).display;
-  return display === "flex" || display === "inline-flex";
-}
-function creates_stacking_context(node) {
-  const style = getComputedStyle(node);
-  if (style.position === "fixed")
-    return true;
-  if (style.zIndex !== "auto" && (style.position !== "static" || is_flex_item(node)))
-    return true;
-  if (+style.opacity < 1)
-    return true;
-  if ("transform" in style && style.transform !== "none")
-    return true;
-  if ("webkitTransform" in style && style.webkitTransform !== "none")
-    return true;
-  if ("mixBlendMode" in style && style.mixBlendMode !== "normal")
-    return true;
-  if ("filter" in style && style.filter !== "none")
-    return true;
-  if ("webkitFilter" in style && style.webkitFilter !== "none")
-    return true;
-  if ("isolation" in style && style.isolation === "isolate")
-    return true;
-  if (props.test(style.willChange))
-    return true;
-  if (style.webkitOverflowScrolling === "touch")
-    return true;
-  return false;
-}
-function find_stacking_context(nodes) {
-  let i = nodes.length;
-  while (i--) {
-    const node = nodes[i];
-    assert(node, "Missing node");
-    if (creates_stacking_context(node))
-      return node;
-  }
-  return null;
-}
-function get_z_index(node) {
-  return node && Number(getComputedStyle(node).zIndex) || 0;
-}
-function get_ancestors(node) {
-  const ancestors = [];
-  while (node) {
-    ancestors.push(node);
-    node = get_parent(node);
-  }
-  return ancestors;
-}
-function get_parent(node) {
-  const {
-    parentNode
-  } = node;
-  if (parentNode && parentNode instanceof ShadowRoot) {
-    return parentNode.host;
-  }
-  return parentNode;
-}
-var EXCEEDED_HORIZONTAL_MIN = 1;
-var EXCEEDED_HORIZONTAL_MAX = 2;
-var EXCEEDED_VERTICAL_MIN = 4;
-var EXCEEDED_VERTICAL_MAX = 8;
-var isCoarsePointer = getInputType() === "coarse";
-var intersectingHandles = [];
-var isPointerDown = false;
-var ownerDocumentCounts = new Map;
-var panelConstraintFlags = new Map;
-var registeredResizeHandlers = new Set;
-function registerResizeHandle(resizeHandleId, element, direction, hitAreaMargins, setResizeHandlerState) {
-  var _ownerDocumentCounts$;
-  const {
-    ownerDocument
-  } = element;
-  const data = {
-    direction,
-    element,
-    hitAreaMargins,
-    setResizeHandlerState
-  };
-  const count = (_ownerDocumentCounts$ = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$ !== undefined ? _ownerDocumentCounts$ : 0;
-  ownerDocumentCounts.set(ownerDocument, count + 1);
-  registeredResizeHandlers.add(data);
-  updateListeners();
-  return function unregisterResizeHandle() {
-    var _ownerDocumentCounts$2;
-    panelConstraintFlags.delete(resizeHandleId);
-    registeredResizeHandlers.delete(data);
-    const count2 = (_ownerDocumentCounts$2 = ownerDocumentCounts.get(ownerDocument)) !== null && _ownerDocumentCounts$2 !== undefined ? _ownerDocumentCounts$2 : 1;
-    ownerDocumentCounts.set(ownerDocument, count2 - 1);
-    updateListeners();
-    if (count2 === 1) {
-      ownerDocumentCounts.delete(ownerDocument);
-    }
-    if (intersectingHandles.includes(data)) {
-      const index = intersectingHandles.indexOf(data);
-      if (index >= 0) {
-        intersectingHandles.splice(index, 1);
-      }
-      updateCursor();
-      setResizeHandlerState("up", true, null);
-    }
-  };
-}
-function handlePointerDown(event) {
-  const {
-    target
-  } = event;
-  const {
-    x,
-    y
-  } = getResizeEventCoordinates(event);
-  isPointerDown = true;
-  recalculateIntersectingHandles({
-    target,
-    x,
-    y
-  });
-  updateListeners();
-  if (intersectingHandles.length > 0) {
-    updateResizeHandlerStates("down", event);
-    event.preventDefault();
-    if (!isWithinResizeHandle(target)) {
-      event.stopImmediatePropagation();
-    }
-  }
-}
-function handlePointerMove(event) {
-  const {
-    x,
-    y
-  } = getResizeEventCoordinates(event);
-  if (isPointerDown && event.buttons === 0) {
-    isPointerDown = false;
-    updateResizeHandlerStates("up", event);
-  }
-  if (!isPointerDown) {
-    const {
-      target
-    } = event;
-    recalculateIntersectingHandles({
-      target,
-      x,
-      y
-    });
-  }
-  updateResizeHandlerStates("move", event);
-  updateCursor();
-  if (intersectingHandles.length > 0) {
-    event.preventDefault();
-  }
-}
-function handlePointerUp(event) {
-  const {
-    target
-  } = event;
-  const {
-    x,
-    y
-  } = getResizeEventCoordinates(event);
-  panelConstraintFlags.clear();
-  isPointerDown = false;
-  if (intersectingHandles.length > 0) {
-    event.preventDefault();
-    if (!isWithinResizeHandle(target)) {
-      event.stopImmediatePropagation();
-    }
-  }
-  updateResizeHandlerStates("up", event);
-  recalculateIntersectingHandles({
-    target,
-    x,
-    y
-  });
-  updateCursor();
-  updateListeners();
-}
-function isWithinResizeHandle(element) {
-  let currentElement = element;
-  while (currentElement) {
-    if (currentElement.hasAttribute(DATA_ATTRIBUTES.resizeHandle)) {
-      return true;
-    }
-    currentElement = currentElement.parentElement;
-  }
-  return false;
-}
-function recalculateIntersectingHandles({
-  target,
-  x,
-  y
-}) {
-  intersectingHandles.splice(0);
-  let targetElement = null;
-  if (target instanceof HTMLElement || target instanceof SVGElement) {
-    targetElement = target;
-  }
-  registeredResizeHandlers.forEach((data) => {
-    const {
-      element: dragHandleElement,
-      hitAreaMargins
-    } = data;
-    const dragHandleRect = dragHandleElement.getBoundingClientRect();
-    const {
-      bottom,
-      left,
-      right,
-      top
-    } = dragHandleRect;
-    const margin = isCoarsePointer ? hitAreaMargins.coarse : hitAreaMargins.fine;
-    const eventIntersects = x >= left - margin && x <= right + margin && y >= top - margin && y <= bottom + margin;
-    if (eventIntersects) {
-      if (targetElement !== null && document.contains(targetElement) && dragHandleElement !== targetElement && !dragHandleElement.contains(targetElement) && !targetElement.contains(dragHandleElement) && compare(targetElement, dragHandleElement) > 0) {
-        let currentElement = targetElement;
-        let didIntersect = false;
-        while (currentElement) {
-          if (currentElement.contains(dragHandleElement)) {
-            break;
-          } else if (intersects(currentElement.getBoundingClientRect(), dragHandleRect, true)) {
-            didIntersect = true;
-            break;
-          }
-          currentElement = currentElement.parentElement;
-        }
-        if (didIntersect) {
-          return;
-        }
-      }
-      intersectingHandles.push(data);
-    }
-  });
-}
-function reportConstraintsViolation(resizeHandleId, flag) {
-  panelConstraintFlags.set(resizeHandleId, flag);
-}
-function updateCursor() {
-  let intersectsHorizontal = false;
-  let intersectsVertical = false;
-  intersectingHandles.forEach((data) => {
-    const {
-      direction
-    } = data;
-    if (direction === "horizontal") {
-      intersectsHorizontal = true;
-    } else {
-      intersectsVertical = true;
-    }
-  });
-  let constraintFlags = 0;
-  panelConstraintFlags.forEach((flag) => {
-    constraintFlags |= flag;
-  });
-  if (intersectsHorizontal && intersectsVertical) {
-    setGlobalCursorStyle("intersection", constraintFlags);
-  } else if (intersectsHorizontal) {
-    setGlobalCursorStyle("horizontal", constraintFlags);
-  } else if (intersectsVertical) {
-    setGlobalCursorStyle("vertical", constraintFlags);
-  } else {
-    resetGlobalCursorStyle();
-  }
-}
-var listenersAbortController = new AbortController;
-function updateListeners() {
-  listenersAbortController.abort();
-  listenersAbortController = new AbortController;
-  const options = {
-    capture: true,
-    signal: listenersAbortController.signal
-  };
-  if (!registeredResizeHandlers.size) {
-    return;
-  }
-  if (isPointerDown) {
-    if (intersectingHandles.length > 0) {
-      ownerDocumentCounts.forEach((count, ownerDocument) => {
-        const {
-          body
-        } = ownerDocument;
-        if (count > 0) {
-          body.addEventListener("contextmenu", handlePointerUp, options);
-          body.addEventListener("pointerleave", handlePointerMove, options);
-          body.addEventListener("pointermove", handlePointerMove, options);
-        }
-      });
-    }
-    window.addEventListener("pointerup", handlePointerUp, options);
-    window.addEventListener("pointercancel", handlePointerUp, options);
-  } else {
-    ownerDocumentCounts.forEach((count, ownerDocument) => {
-      const {
-        body
-      } = ownerDocument;
-      if (count > 0) {
-        body.addEventListener("pointerdown", handlePointerDown, options);
-        body.addEventListener("pointermove", handlePointerMove, options);
-      }
-    });
-  }
-}
-function updateResizeHandlerStates(action, event) {
-  registeredResizeHandlers.forEach((data) => {
-    const {
-      setResizeHandlerState
-    } = data;
-    const isActive = intersectingHandles.includes(data);
-    setResizeHandlerState(action, isActive, event);
-  });
-}
-function useForceUpdate() {
-  const [_, setCount] = import_react4.useState(0);
-  return import_react4.useCallback(() => setCount((prevCount) => prevCount + 1), []);
-}
-function assert(expectedCondition, message) {
-  if (!expectedCondition) {
-    console.error(message);
-    throw Error(message);
-  }
-}
-function fuzzyCompareNumbers(actual, expected, fractionDigits = PRECISION) {
-  if (actual.toFixed(fractionDigits) === expected.toFixed(fractionDigits)) {
-    return 0;
-  } else {
-    return actual > expected ? 1 : -1;
-  }
-}
-function fuzzyNumbersEqual$1(actual, expected, fractionDigits = PRECISION) {
-  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
-}
-function fuzzyNumbersEqual(actual, expected, fractionDigits) {
-  return fuzzyCompareNumbers(actual, expected, fractionDigits) === 0;
-}
-function fuzzyLayoutsEqual(actual, expected, fractionDigits) {
-  if (actual.length !== expected.length) {
-    return false;
-  }
-  for (let index = 0;index < actual.length; index++) {
-    const actualSize = actual[index];
-    const expectedSize = expected[index];
-    if (!fuzzyNumbersEqual(actualSize, expectedSize, fractionDigits)) {
-      return false;
-    }
-  }
-  return true;
-}
-function resizePanel({
-  panelConstraints: panelConstraintsArray,
-  panelIndex,
-  size
-}) {
-  const panelConstraints = panelConstraintsArray[panelIndex];
-  assert(panelConstraints != null, `Panel constraints not found for index ${panelIndex}`);
-  let {
-    collapsedSize = 0,
-    collapsible,
-    maxSize = 100,
-    minSize = 0
-  } = panelConstraints;
-  if (fuzzyCompareNumbers(size, minSize) < 0) {
-    if (collapsible) {
-      const halfwayPoint = (collapsedSize + minSize) / 2;
-      if (fuzzyCompareNumbers(size, halfwayPoint) < 0) {
-        size = collapsedSize;
-      } else {
-        size = minSize;
-      }
-    } else {
-      size = minSize;
-    }
-  }
-  size = Math.min(maxSize, size);
-  size = parseFloat(size.toFixed(PRECISION));
-  return size;
-}
-function adjustLayoutByDelta({
-  delta,
-  initialLayout,
-  panelConstraints: panelConstraintsArray,
-  pivotIndices,
-  prevLayout,
-  trigger
-}) {
-  if (fuzzyNumbersEqual(delta, 0)) {
-    return initialLayout;
-  }
-  const nextLayout = [...initialLayout];
-  const [firstPivotIndex, secondPivotIndex] = pivotIndices;
-  assert(firstPivotIndex != null, "Invalid first pivot index");
-  assert(secondPivotIndex != null, "Invalid second pivot index");
-  let deltaApplied = 0;
-  {
-    if (trigger === "keyboard") {
-      {
-        const index = delta < 0 ? secondPivotIndex : firstPivotIndex;
-        const panelConstraints = panelConstraintsArray[index];
-        assert(panelConstraints, `Panel constraints not found for index ${index}`);
-        const {
-          collapsedSize = 0,
-          collapsible,
-          minSize = 0
-        } = panelConstraints;
-        if (collapsible) {
-          const prevSize = initialLayout[index];
-          assert(prevSize != null, `Previous layout not found for panel index ${index}`);
-          if (fuzzyNumbersEqual(prevSize, collapsedSize)) {
-            const localDelta = minSize - prevSize;
-            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
-              delta = delta < 0 ? 0 - localDelta : localDelta;
-            }
-          }
-        }
-      }
-      {
-        const index = delta < 0 ? firstPivotIndex : secondPivotIndex;
-        const panelConstraints = panelConstraintsArray[index];
-        assert(panelConstraints, `No panel constraints found for index ${index}`);
-        const {
-          collapsedSize = 0,
-          collapsible,
-          minSize = 0
-        } = panelConstraints;
-        if (collapsible) {
-          const prevSize = initialLayout[index];
-          assert(prevSize != null, `Previous layout not found for panel index ${index}`);
-          if (fuzzyNumbersEqual(prevSize, minSize)) {
-            const localDelta = prevSize - collapsedSize;
-            if (fuzzyCompareNumbers(localDelta, Math.abs(delta)) > 0) {
-              delta = delta < 0 ? 0 - localDelta : localDelta;
-            }
-          }
-        }
-      }
-    }
-  }
-  {
-    const increment = delta < 0 ? 1 : -1;
-    let index = delta < 0 ? secondPivotIndex : firstPivotIndex;
-    let maxAvailableDelta = 0;
-    while (true) {
-      const prevSize = initialLayout[index];
-      assert(prevSize != null, `Previous layout not found for panel index ${index}`);
-      const maxSafeSize = resizePanel({
-        panelConstraints: panelConstraintsArray,
-        panelIndex: index,
-        size: 100
-      });
-      const delta2 = maxSafeSize - prevSize;
-      maxAvailableDelta += delta2;
-      index += increment;
-      if (index < 0 || index >= panelConstraintsArray.length) {
-        break;
-      }
-    }
-    const minAbsDelta = Math.min(Math.abs(delta), Math.abs(maxAvailableDelta));
-    delta = delta < 0 ? 0 - minAbsDelta : minAbsDelta;
-  }
-  {
-    const pivotIndex = delta < 0 ? firstPivotIndex : secondPivotIndex;
-    let index = pivotIndex;
-    while (index >= 0 && index < panelConstraintsArray.length) {
-      const deltaRemaining = Math.abs(delta) - Math.abs(deltaApplied);
-      const prevSize = initialLayout[index];
-      assert(prevSize != null, `Previous layout not found for panel index ${index}`);
-      const unsafeSize = prevSize - deltaRemaining;
-      const safeSize = resizePanel({
-        panelConstraints: panelConstraintsArray,
-        panelIndex: index,
-        size: unsafeSize
-      });
-      if (!fuzzyNumbersEqual(prevSize, safeSize)) {
-        deltaApplied += prevSize - safeSize;
-        nextLayout[index] = safeSize;
-        if (deltaApplied.toPrecision(3).localeCompare(Math.abs(delta).toPrecision(3), undefined, {
-          numeric: true
-        }) >= 0) {
-          break;
-        }
-      }
-      if (delta < 0) {
-        index--;
-      } else {
-        index++;
-      }
-    }
-  }
-  if (fuzzyLayoutsEqual(prevLayout, nextLayout)) {
-    return prevLayout;
-  }
-  {
-    const pivotIndex = delta < 0 ? secondPivotIndex : firstPivotIndex;
-    const prevSize = initialLayout[pivotIndex];
-    assert(prevSize != null, `Previous layout not found for panel index ${pivotIndex}`);
-    const unsafeSize = prevSize + deltaApplied;
-    const safeSize = resizePanel({
-      panelConstraints: panelConstraintsArray,
-      panelIndex: pivotIndex,
-      size: unsafeSize
-    });
-    nextLayout[pivotIndex] = safeSize;
-    if (!fuzzyNumbersEqual(safeSize, unsafeSize)) {
-      let deltaRemaining = unsafeSize - safeSize;
-      const pivotIndex2 = delta < 0 ? secondPivotIndex : firstPivotIndex;
-      let index = pivotIndex2;
-      while (index >= 0 && index < panelConstraintsArray.length) {
-        const prevSize2 = nextLayout[index];
-        assert(prevSize2 != null, `Previous layout not found for panel index ${index}`);
-        const unsafeSize2 = prevSize2 + deltaRemaining;
-        const safeSize2 = resizePanel({
-          panelConstraints: panelConstraintsArray,
-          panelIndex: index,
-          size: unsafeSize2
-        });
-        if (!fuzzyNumbersEqual(prevSize2, safeSize2)) {
-          deltaRemaining -= safeSize2 - prevSize2;
-          nextLayout[index] = safeSize2;
-        }
-        if (fuzzyNumbersEqual(deltaRemaining, 0)) {
-          break;
-        }
-        if (delta > 0) {
-          index--;
-        } else {
-          index++;
-        }
-      }
-    }
-  }
-  const totalSize = nextLayout.reduce((total, size) => size + total, 0);
-  if (!fuzzyNumbersEqual(totalSize, 100)) {
-    return prevLayout;
-  }
-  return nextLayout;
-}
-function calculateAriaValues({
-  layout,
-  panelsArray,
-  pivotIndices
-}) {
-  let currentMinSize = 0;
-  let currentMaxSize = 100;
-  let totalMinSize = 0;
-  let totalMaxSize = 0;
-  const firstIndex = pivotIndices[0];
-  assert(firstIndex != null, "No pivot index found");
-  panelsArray.forEach((panelData, index) => {
-    const {
-      constraints
-    } = panelData;
-    const {
-      maxSize = 100,
-      minSize = 0
-    } = constraints;
-    if (index === firstIndex) {
-      currentMinSize = minSize;
-      currentMaxSize = maxSize;
-    } else {
-      totalMinSize += minSize;
-      totalMaxSize += maxSize;
-    }
-  });
-  const valueMax = Math.min(currentMaxSize, 100 - totalMinSize);
-  const valueMin = Math.max(currentMinSize, 100 - totalMaxSize);
-  const valueNow = layout[firstIndex];
-  return {
-    valueMax,
-    valueMin,
-    valueNow
-  };
-}
-function getResizeHandleElementsForGroup(groupId, scope = document) {
-  return Array.from(scope.querySelectorAll(`[${DATA_ATTRIBUTES.resizeHandleId}][data-panel-group-id="${groupId}"]`));
-}
-function getResizeHandleElementIndex(groupId, id, scope = document) {
-  const handles = getResizeHandleElementsForGroup(groupId, scope);
-  const index = handles.findIndex((handle) => handle.getAttribute(DATA_ATTRIBUTES.resizeHandleId) === id);
-  return index !== null && index !== undefined ? index : null;
-}
-function determinePivotIndices(groupId, dragHandleId, panelGroupElement) {
-  const index = getResizeHandleElementIndex(groupId, dragHandleId, panelGroupElement);
-  return index != null ? [index, index + 1] : [-1, -1];
-}
-function getPanelGroupElement(id, rootElement = document) {
-  var _dataset;
-  if (rootElement instanceof HTMLElement && (rootElement === null || rootElement === undefined ? undefined : (_dataset = rootElement.dataset) === null || _dataset === undefined ? undefined : _dataset.panelGroupId) == id) {
-    return rootElement;
-  }
-  const element = rootElement.querySelector(`[data-panel-group][data-panel-group-id="${id}"]`);
-  if (element) {
-    return element;
-  }
-  return null;
-}
-function getResizeHandleElement(id, scope = document) {
-  const element = scope.querySelector(`[${DATA_ATTRIBUTES.resizeHandleId}="${id}"]`);
-  if (element) {
-    return element;
-  }
-  return null;
-}
-function getResizeHandlePanelIds(groupId, handleId, panelsArray, scope = document) {
-  var _panelsArray$index$id, _panelsArray$index, _panelsArray$id, _panelsArray;
-  const handle = getResizeHandleElement(handleId, scope);
-  const handles = getResizeHandleElementsForGroup(groupId, scope);
-  const index = handle ? handles.indexOf(handle) : -1;
-  const idBefore = (_panelsArray$index$id = (_panelsArray$index = panelsArray[index]) === null || _panelsArray$index === undefined ? undefined : _panelsArray$index.id) !== null && _panelsArray$index$id !== undefined ? _panelsArray$index$id : null;
-  const idAfter = (_panelsArray$id = (_panelsArray = panelsArray[index + 1]) === null || _panelsArray === undefined ? undefined : _panelsArray.id) !== null && _panelsArray$id !== undefined ? _panelsArray$id : null;
-  return [idBefore, idAfter];
-}
-function useWindowSplitterPanelGroupBehavior({
-  committedValuesRef,
-  eagerValuesRef,
-  groupId,
-  layout,
-  panelDataArray,
-  panelGroupElement,
-  setLayout
-}) {
-  const devWarningsRef = import_react4.useRef({
-    didWarnAboutMissingResizeHandle: false
-  });
-  useIsomorphicLayoutEffect(() => {
-    if (!panelGroupElement) {
-      return;
-    }
-    const resizeHandleElements = getResizeHandleElementsForGroup(groupId, panelGroupElement);
-    for (let index = 0;index < panelDataArray.length - 1; index++) {
-      const {
-        valueMax,
-        valueMin,
-        valueNow
-      } = calculateAriaValues({
-        layout,
-        panelsArray: panelDataArray,
-        pivotIndices: [index, index + 1]
-      });
-      const resizeHandleElement = resizeHandleElements[index];
-      if (resizeHandleElement == null) {
-        {
-          const {
-            didWarnAboutMissingResizeHandle
-          } = devWarningsRef.current;
-          if (!didWarnAboutMissingResizeHandle) {
-            devWarningsRef.current.didWarnAboutMissingResizeHandle = true;
-            console.warn(`WARNING: Missing resize handle for PanelGroup "${groupId}"`);
-          }
-        }
-      } else {
-        const panelData = panelDataArray[index];
-        assert(panelData, `No panel data found for index "${index}"`);
-        resizeHandleElement.setAttribute("aria-controls", panelData.id);
-        resizeHandleElement.setAttribute("aria-valuemax", "" + Math.round(valueMax));
-        resizeHandleElement.setAttribute("aria-valuemin", "" + Math.round(valueMin));
-        resizeHandleElement.setAttribute("aria-valuenow", valueNow != null ? "" + Math.round(valueNow) : "");
-      }
-    }
-    return () => {
-      resizeHandleElements.forEach((resizeHandleElement, index) => {
-        resizeHandleElement.removeAttribute("aria-controls");
-        resizeHandleElement.removeAttribute("aria-valuemax");
-        resizeHandleElement.removeAttribute("aria-valuemin");
-        resizeHandleElement.removeAttribute("aria-valuenow");
-      });
-    };
-  }, [groupId, layout, panelDataArray, panelGroupElement]);
-  import_react4.useEffect(() => {
-    if (!panelGroupElement) {
-      return;
-    }
-    const eagerValues = eagerValuesRef.current;
-    assert(eagerValues, `Eager values not found`);
-    const {
-      panelDataArray: panelDataArray2
-    } = eagerValues;
-    const groupElement = getPanelGroupElement(groupId, panelGroupElement);
-    assert(groupElement != null, `No group found for id "${groupId}"`);
-    const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
-    assert(handles, `No resize handles found for group id "${groupId}"`);
-    const cleanupFunctions = handles.map((handle) => {
-      const handleId = handle.getAttribute(DATA_ATTRIBUTES.resizeHandleId);
-      assert(handleId, `Resize handle element has no handle id attribute`);
-      const [idBefore, idAfter] = getResizeHandlePanelIds(groupId, handleId, panelDataArray2, panelGroupElement);
-      if (idBefore == null || idAfter == null) {
-        return () => {};
-      }
-      const onKeyDown = (event) => {
-        if (event.defaultPrevented) {
-          return;
-        }
-        switch (event.key) {
-          case "Enter": {
-            event.preventDefault();
-            const index = panelDataArray2.findIndex((panelData) => panelData.id === idBefore);
-            if (index >= 0) {
-              const panelData = panelDataArray2[index];
-              assert(panelData, `No panel data found for index ${index}`);
-              const size = layout[index];
-              const {
-                collapsedSize = 0,
-                collapsible,
-                minSize = 0
-              } = panelData.constraints;
-              if (size != null && collapsible) {
-                const nextLayout = adjustLayoutByDelta({
-                  delta: fuzzyNumbersEqual(size, collapsedSize) ? minSize - collapsedSize : collapsedSize - size,
-                  initialLayout: layout,
-                  panelConstraints: panelDataArray2.map((panelData2) => panelData2.constraints),
-                  pivotIndices: determinePivotIndices(groupId, handleId, panelGroupElement),
-                  prevLayout: layout,
-                  trigger: "keyboard"
-                });
-                if (layout !== nextLayout) {
-                  setLayout(nextLayout);
-                }
-              }
-            }
-            break;
-          }
-        }
-      };
-      handle.addEventListener("keydown", onKeyDown);
-      return () => {
-        handle.removeEventListener("keydown", onKeyDown);
-      };
-    });
-    return () => {
-      cleanupFunctions.forEach((cleanupFunction) => cleanupFunction());
-    };
-  }, [panelGroupElement, committedValuesRef, eagerValuesRef, groupId, layout, panelDataArray, setLayout]);
-}
-function areEqual(arrayA, arrayB) {
-  if (arrayA.length !== arrayB.length) {
-    return false;
-  }
-  for (let index = 0;index < arrayA.length; index++) {
-    if (arrayA[index] !== arrayB[index]) {
-      return false;
-    }
-  }
-  return true;
-}
-function getResizeEventCursorPosition(direction, event) {
-  const isHorizontal = direction === "horizontal";
-  const {
-    x,
-    y
-  } = getResizeEventCoordinates(event);
-  return isHorizontal ? x : y;
-}
-function calculateDragOffsetPercentage(event, dragHandleId, direction, initialDragState, panelGroupElement) {
-  const isHorizontal = direction === "horizontal";
-  const handleElement = getResizeHandleElement(dragHandleId, panelGroupElement);
-  assert(handleElement, `No resize handle element found for id "${dragHandleId}"`);
-  const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
-  assert(groupId, `Resize handle element has no group id attribute`);
-  let {
-    initialCursorPosition
-  } = initialDragState;
-  const cursorPosition = getResizeEventCursorPosition(direction, event);
-  const groupElement = getPanelGroupElement(groupId, panelGroupElement);
-  assert(groupElement, `No group element found for id "${groupId}"`);
-  const groupRect = groupElement.getBoundingClientRect();
-  const groupSizeInPixels = isHorizontal ? groupRect.width : groupRect.height;
-  const offsetPixels = cursorPosition - initialCursorPosition;
-  const offsetPercentage = offsetPixels / groupSizeInPixels * 100;
-  return offsetPercentage;
-}
-function calculateDeltaPercentage(event, dragHandleId, direction, initialDragState, keyboardResizeBy, panelGroupElement) {
-  if (isKeyDown(event)) {
-    const isHorizontal = direction === "horizontal";
-    let delta = 0;
-    if (event.shiftKey) {
-      delta = 100;
-    } else if (keyboardResizeBy != null) {
-      delta = keyboardResizeBy;
-    } else {
-      delta = 10;
-    }
-    let movement = 0;
-    switch (event.key) {
-      case "ArrowDown":
-        movement = isHorizontal ? 0 : delta;
-        break;
-      case "ArrowLeft":
-        movement = isHorizontal ? -delta : 0;
-        break;
-      case "ArrowRight":
-        movement = isHorizontal ? delta : 0;
-        break;
-      case "ArrowUp":
-        movement = isHorizontal ? 0 : -delta;
-        break;
-      case "End":
-        movement = 100;
-        break;
-      case "Home":
-        movement = -100;
-        break;
-    }
-    return movement;
-  } else {
-    if (initialDragState == null) {
-      return 0;
-    }
-    return calculateDragOffsetPercentage(event, dragHandleId, direction, initialDragState, panelGroupElement);
-  }
-}
-function calculateUnsafeDefaultLayout({
-  panelDataArray
-}) {
-  const layout = Array(panelDataArray.length);
-  const panelConstraintsArray = panelDataArray.map((panelData) => panelData.constraints);
-  let numPanelsWithSizes = 0;
-  let remainingSize = 100;
-  for (let index = 0;index < panelDataArray.length; index++) {
-    const panelConstraints = panelConstraintsArray[index];
-    assert(panelConstraints, `Panel constraints not found for index ${index}`);
-    const {
-      defaultSize
-    } = panelConstraints;
-    if (defaultSize != null) {
-      numPanelsWithSizes++;
-      layout[index] = defaultSize;
-      remainingSize -= defaultSize;
-    }
-  }
-  for (let index = 0;index < panelDataArray.length; index++) {
-    const panelConstraints = panelConstraintsArray[index];
-    assert(panelConstraints, `Panel constraints not found for index ${index}`);
-    const {
-      defaultSize
-    } = panelConstraints;
-    if (defaultSize != null) {
-      continue;
-    }
-    const numRemainingPanels = panelDataArray.length - numPanelsWithSizes;
-    const size = remainingSize / numRemainingPanels;
-    numPanelsWithSizes++;
-    layout[index] = size;
-    remainingSize -= size;
-  }
-  return layout;
-}
-function callPanelCallbacks(panelsArray, layout, panelIdToLastNotifiedSizeMap) {
-  layout.forEach((size, index) => {
-    const panelData = panelsArray[index];
-    assert(panelData, `Panel data not found for index ${index}`);
-    const {
-      callbacks,
-      constraints,
-      id: panelId
-    } = panelData;
-    const {
-      collapsedSize = 0,
-      collapsible
-    } = constraints;
-    const lastNotifiedSize = panelIdToLastNotifiedSizeMap[panelId];
-    if (lastNotifiedSize == null || size !== lastNotifiedSize) {
-      panelIdToLastNotifiedSizeMap[panelId] = size;
-      const {
-        onCollapse,
-        onExpand,
-        onResize
-      } = callbacks;
-      if (onResize) {
-        onResize(size, lastNotifiedSize);
-      }
-      if (collapsible && (onCollapse || onExpand)) {
-        if (onExpand && (lastNotifiedSize == null || fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && !fuzzyNumbersEqual$1(size, collapsedSize)) {
-          onExpand();
-        }
-        if (onCollapse && (lastNotifiedSize == null || !fuzzyNumbersEqual$1(lastNotifiedSize, collapsedSize)) && fuzzyNumbersEqual$1(size, collapsedSize)) {
-          onCollapse();
-        }
-      }
-    }
-  });
-}
-function compareLayouts(a, b) {
-  if (a.length !== b.length) {
-    return false;
-  } else {
-    for (let index = 0;index < a.length; index++) {
-      if (a[index] != b[index]) {
-        return false;
-      }
-    }
-  }
-  return true;
-}
-function computePanelFlexBoxStyle({
-  defaultSize,
-  dragState,
-  layout,
-  panelData,
-  panelIndex,
-  precision = 3
-}) {
-  const size = layout[panelIndex];
-  let flexGrow;
-  if (size == null) {
-    flexGrow = defaultSize != null ? defaultSize.toPrecision(precision) : "1";
-  } else if (panelData.length === 1) {
-    flexGrow = "1";
-  } else {
-    flexGrow = size.toPrecision(precision);
-  }
-  return {
-    flexBasis: 0,
-    flexGrow,
-    flexShrink: 1,
-    overflow: "hidden",
-    pointerEvents: dragState !== null ? "none" : undefined
-  };
-}
-function debounce(callback, durationMs = 10) {
-  let timeoutId = null;
-  let callable = (...args) => {
-    if (timeoutId !== null) {
-      clearTimeout(timeoutId);
-    }
-    timeoutId = setTimeout(() => {
-      callback(...args);
-    }, durationMs);
-  };
-  return callable;
-}
-function initializeDefaultStorage(storageObject) {
-  try {
-    if (typeof localStorage !== "undefined") {
-      storageObject.getItem = (name) => {
-        return localStorage.getItem(name);
-      };
-      storageObject.setItem = (name, value) => {
-        localStorage.setItem(name, value);
-      };
-    } else {
-      throw new Error("localStorage not supported in this environment");
-    }
-  } catch (error) {
-    console.error(error);
-    storageObject.getItem = () => null;
-    storageObject.setItem = () => {};
-  }
-}
-function getPanelGroupKey(autoSaveId) {
-  return `react-resizable-panels:${autoSaveId}`;
-}
-function getPanelKey(panels) {
-  return panels.map((panel) => {
-    const {
-      constraints,
-      id,
-      idIsFromProps,
-      order
-    } = panel;
-    if (idIsFromProps) {
-      return id;
-    } else {
-      return order ? `${order}:${JSON.stringify(constraints)}` : JSON.stringify(constraints);
-    }
-  }).sort((a, b) => a.localeCompare(b)).join(",");
-}
-function loadSerializedPanelGroupState(autoSaveId, storage) {
-  try {
-    const panelGroupKey = getPanelGroupKey(autoSaveId);
-    const serialized = storage.getItem(panelGroupKey);
-    if (serialized) {
-      const parsed = JSON.parse(serialized);
-      if (typeof parsed === "object" && parsed != null) {
-        return parsed;
-      }
-    }
-  } catch (error) {}
-  return null;
-}
-function loadPanelGroupState(autoSaveId, panels, storage) {
-  var _loadSerializedPanelG, _state$panelKey;
-  const state = (_loadSerializedPanelG = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG !== undefined ? _loadSerializedPanelG : {};
-  const panelKey = getPanelKey(panels);
-  return (_state$panelKey = state[panelKey]) !== null && _state$panelKey !== undefined ? _state$panelKey : null;
-}
-function savePanelGroupState(autoSaveId, panels, panelSizesBeforeCollapse, sizes, storage) {
-  var _loadSerializedPanelG2;
-  const panelGroupKey = getPanelGroupKey(autoSaveId);
-  const panelKey = getPanelKey(panels);
-  const state = (_loadSerializedPanelG2 = loadSerializedPanelGroupState(autoSaveId, storage)) !== null && _loadSerializedPanelG2 !== undefined ? _loadSerializedPanelG2 : {};
-  state[panelKey] = {
-    expandToSizes: Object.fromEntries(panelSizesBeforeCollapse.entries()),
-    layout: sizes
-  };
-  try {
-    storage.setItem(panelGroupKey, JSON.stringify(state));
-  } catch (error) {
-    console.error(error);
-  }
-}
-function validatePanelConstraints({
-  panelConstraints: panelConstraintsArray,
-  panelId,
-  panelIndex
-}) {
-  {
-    const warnings = [];
-    const panelConstraints = panelConstraintsArray[panelIndex];
-    assert(panelConstraints, `No panel constraints found for index ${panelIndex}`);
-    const {
-      collapsedSize = 0,
-      collapsible = false,
-      defaultSize,
-      maxSize = 100,
-      minSize = 0
-    } = panelConstraints;
-    if (minSize > maxSize) {
-      warnings.push(`min size (${minSize}%) should not be greater than max size (${maxSize}%)`);
-    }
-    if (defaultSize != null) {
-      if (defaultSize < 0) {
-        warnings.push("default size should not be less than 0");
-      } else if (defaultSize < minSize && (!collapsible || defaultSize !== collapsedSize)) {
-        warnings.push("default size should not be less than min size");
-      }
-      if (defaultSize > 100) {
-        warnings.push("default size should not be greater than 100");
-      } else if (defaultSize > maxSize) {
-        warnings.push("default size should not be greater than max size");
-      }
-    }
-    if (collapsedSize > minSize) {
-      warnings.push("collapsed size should not be greater than min size");
-    }
-    if (warnings.length > 0) {
-      const name = panelId != null ? `Panel "${panelId}"` : "Panel";
-      console.warn(`${name} has an invalid configuration:
-
-${warnings.join(`
-`)}`);
-      return false;
-    }
-  }
-  return true;
-}
-function validatePanelGroupLayout({
-  layout: prevLayout,
-  panelConstraints
-}) {
-  const nextLayout = [...prevLayout];
-  const nextLayoutTotalSize = nextLayout.reduce((accumulated, current) => accumulated + current, 0);
-  if (nextLayout.length !== panelConstraints.length) {
-    throw Error(`Invalid ${panelConstraints.length} panel layout: ${nextLayout.map((size) => `${size}%`).join(", ")}`);
-  } else if (!fuzzyNumbersEqual(nextLayoutTotalSize, 100) && nextLayout.length > 0) {
-    {
-      console.warn(`WARNING: Invalid layout total size: ${nextLayout.map((size) => `${size}%`).join(", ")}. Layout normalization will be applied.`);
-    }
-    for (let index = 0;index < panelConstraints.length; index++) {
-      const unsafeSize = nextLayout[index];
-      assert(unsafeSize != null, `No layout data found for index ${index}`);
-      const safeSize = 100 / nextLayoutTotalSize * unsafeSize;
-      nextLayout[index] = safeSize;
-    }
-  }
-  let remainingSize = 0;
-  for (let index = 0;index < panelConstraints.length; index++) {
-    const unsafeSize = nextLayout[index];
-    assert(unsafeSize != null, `No layout data found for index ${index}`);
-    const safeSize = resizePanel({
-      panelConstraints,
-      panelIndex: index,
-      size: unsafeSize
-    });
-    if (unsafeSize != safeSize) {
-      remainingSize += unsafeSize - safeSize;
-      nextLayout[index] = safeSize;
-    }
-  }
-  if (!fuzzyNumbersEqual(remainingSize, 0)) {
-    for (let index = 0;index < panelConstraints.length; index++) {
-      const prevSize = nextLayout[index];
-      assert(prevSize != null, `No layout data found for index ${index}`);
-      const unsafeSize = prevSize + remainingSize;
-      const safeSize = resizePanel({
-        panelConstraints,
-        panelIndex: index,
-        size: unsafeSize
-      });
-      if (prevSize !== safeSize) {
-        remainingSize -= safeSize - prevSize;
-        nextLayout[index] = safeSize;
-        if (fuzzyNumbersEqual(remainingSize, 0)) {
-          break;
-        }
-      }
-    }
-  }
-  return nextLayout;
-}
-var LOCAL_STORAGE_DEBOUNCE_INTERVAL = 100;
-var defaultStorage = {
-  getItem: (name) => {
-    initializeDefaultStorage(defaultStorage);
-    return defaultStorage.getItem(name);
-  },
-  setItem: (name, value) => {
-    initializeDefaultStorage(defaultStorage);
-    defaultStorage.setItem(name, value);
-  }
-};
-var debounceMap = {};
-function PanelGroupWithForwardedRef({
-  autoSaveId = null,
-  children,
-  className: classNameFromProps = "",
-  direction,
-  forwardedRef,
-  id: idFromProps = null,
-  onLayout = null,
-  keyboardResizeBy = null,
-  storage = defaultStorage,
-  style: styleFromProps,
-  tagName: Type = "div",
-  ...rest
-}) {
-  const groupId = useUniqueId(idFromProps);
-  const panelGroupElementRef = import_react4.useRef(null);
-  const [dragState, setDragState] = import_react4.useState(null);
-  const [layout, setLayout] = import_react4.useState([]);
-  const forceUpdate = useForceUpdate();
-  const panelIdToLastNotifiedSizeMapRef = import_react4.useRef({});
-  const panelSizeBeforeCollapseRef = import_react4.useRef(new Map);
-  const prevDeltaRef = import_react4.useRef(0);
-  const committedValuesRef = import_react4.useRef({
-    autoSaveId,
-    direction,
-    dragState,
-    id: groupId,
-    keyboardResizeBy,
-    onLayout,
-    storage
-  });
-  const eagerValuesRef = import_react4.useRef({
-    layout,
-    panelDataArray: [],
-    panelDataArrayChanged: false
-  });
-  const devWarningsRef = import_react4.useRef({
-    didLogIdAndOrderWarning: false,
-    didLogPanelConstraintsWarning: false,
-    prevPanelIds: []
-  });
-  import_react4.useImperativeHandle(forwardedRef, () => ({
-    getId: () => committedValuesRef.current.id,
-    getLayout: () => {
-      const {
-        layout: layout2
-      } = eagerValuesRef.current;
-      return layout2;
-    },
-    setLayout: (unsafeLayout) => {
-      const {
-        onLayout: onLayout2
-      } = committedValuesRef.current;
-      const {
-        layout: prevLayout,
-        panelDataArray
-      } = eagerValuesRef.current;
-      const safeLayout = validatePanelGroupLayout({
-        layout: unsafeLayout,
-        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
-      });
-      if (!areEqual(prevLayout, safeLayout)) {
-        setLayout(safeLayout);
-        eagerValuesRef.current.layout = safeLayout;
-        if (onLayout2) {
-          onLayout2(safeLayout);
-        }
-        callPanelCallbacks(panelDataArray, safeLayout, panelIdToLastNotifiedSizeMapRef.current);
-      }
-    }
-  }), []);
-  useIsomorphicLayoutEffect(() => {
-    committedValuesRef.current.autoSaveId = autoSaveId;
-    committedValuesRef.current.direction = direction;
-    committedValuesRef.current.dragState = dragState;
-    committedValuesRef.current.id = groupId;
-    committedValuesRef.current.onLayout = onLayout;
-    committedValuesRef.current.storage = storage;
-  });
-  useWindowSplitterPanelGroupBehavior({
-    committedValuesRef,
-    eagerValuesRef,
-    groupId,
-    layout,
-    panelDataArray: eagerValuesRef.current.panelDataArray,
-    setLayout,
-    panelGroupElement: panelGroupElementRef.current
-  });
-  import_react4.useEffect(() => {
-    const {
-      panelDataArray
-    } = eagerValuesRef.current;
-    if (autoSaveId) {
-      if (layout.length === 0 || layout.length !== panelDataArray.length) {
-        return;
-      }
-      let debouncedSave = debounceMap[autoSaveId];
-      if (debouncedSave == null) {
-        debouncedSave = debounce(savePanelGroupState, LOCAL_STORAGE_DEBOUNCE_INTERVAL);
-        debounceMap[autoSaveId] = debouncedSave;
-      }
-      const clonedPanelDataArray = [...panelDataArray];
-      const clonedPanelSizesBeforeCollapse = new Map(panelSizeBeforeCollapseRef.current);
-      debouncedSave(autoSaveId, clonedPanelDataArray, clonedPanelSizesBeforeCollapse, layout, storage);
-    }
-  }, [autoSaveId, layout, storage]);
-  import_react4.useEffect(() => {
-    {
-      const {
-        panelDataArray
-      } = eagerValuesRef.current;
-      const {
-        didLogIdAndOrderWarning,
-        didLogPanelConstraintsWarning,
-        prevPanelIds
-      } = devWarningsRef.current;
-      if (!didLogIdAndOrderWarning) {
-        const panelIds = panelDataArray.map(({
-          id
-        }) => id);
-        devWarningsRef.current.prevPanelIds = panelIds;
-        const panelsHaveChanged = prevPanelIds.length > 0 && !areEqual(prevPanelIds, panelIds);
-        if (panelsHaveChanged) {
-          if (panelDataArray.find(({
-            idIsFromProps,
-            order
-          }) => !idIsFromProps || order == null)) {
-            devWarningsRef.current.didLogIdAndOrderWarning = true;
-            console.warn(`WARNING: Panel id and order props recommended when panels are dynamically rendered`);
-          }
-        }
-      }
-      if (!didLogPanelConstraintsWarning) {
-        const panelConstraints = panelDataArray.map((panelData) => panelData.constraints);
-        for (let panelIndex = 0;panelIndex < panelConstraints.length; panelIndex++) {
-          const panelData = panelDataArray[panelIndex];
-          assert(panelData, `Panel data not found for index ${panelIndex}`);
-          const isValid = validatePanelConstraints({
-            panelConstraints,
-            panelId: panelData.id,
-            panelIndex
-          });
-          if (!isValid) {
-            devWarningsRef.current.didLogPanelConstraintsWarning = true;
-            break;
-          }
-        }
-      }
-    }
-  });
-  const collapsePanel = import_react4.useCallback((panelData) => {
-    const {
-      onLayout: onLayout2
-    } = committedValuesRef.current;
-    const {
-      layout: prevLayout,
-      panelDataArray
-    } = eagerValuesRef.current;
-    if (panelData.constraints.collapsible) {
-      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
-      const {
-        collapsedSize = 0,
-        panelSize,
-        pivotIndices
-      } = panelDataHelper(panelDataArray, panelData, prevLayout);
-      assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
-      if (!fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
-        panelSizeBeforeCollapseRef.current.set(panelData.id, panelSize);
-        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
-        const delta = isLastPanel ? panelSize - collapsedSize : collapsedSize - panelSize;
-        const nextLayout = adjustLayoutByDelta({
-          delta,
-          initialLayout: prevLayout,
-          panelConstraints: panelConstraintsArray,
-          pivotIndices,
-          prevLayout,
-          trigger: "imperative-api"
-        });
-        if (!compareLayouts(prevLayout, nextLayout)) {
-          setLayout(nextLayout);
-          eagerValuesRef.current.layout = nextLayout;
-          if (onLayout2) {
-            onLayout2(nextLayout);
-          }
-          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
-        }
-      }
-    }
-  }, []);
-  const expandPanel = import_react4.useCallback((panelData, minSizeOverride) => {
-    const {
-      onLayout: onLayout2
-    } = committedValuesRef.current;
-    const {
-      layout: prevLayout,
-      panelDataArray
-    } = eagerValuesRef.current;
-    if (panelData.constraints.collapsible) {
-      const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
-      const {
-        collapsedSize = 0,
-        panelSize = 0,
-        minSize: minSizeFromProps = 0,
-        pivotIndices
-      } = panelDataHelper(panelDataArray, panelData, prevLayout);
-      const minSize = minSizeOverride !== null && minSizeOverride !== undefined ? minSizeOverride : minSizeFromProps;
-      if (fuzzyNumbersEqual$1(panelSize, collapsedSize)) {
-        const prevPanelSize = panelSizeBeforeCollapseRef.current.get(panelData.id);
-        const baseSize = prevPanelSize != null && prevPanelSize >= minSize ? prevPanelSize : minSize;
-        const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
-        const delta = isLastPanel ? panelSize - baseSize : baseSize - panelSize;
-        const nextLayout = adjustLayoutByDelta({
-          delta,
-          initialLayout: prevLayout,
-          panelConstraints: panelConstraintsArray,
-          pivotIndices,
-          prevLayout,
-          trigger: "imperative-api"
-        });
-        if (!compareLayouts(prevLayout, nextLayout)) {
-          setLayout(nextLayout);
-          eagerValuesRef.current.layout = nextLayout;
-          if (onLayout2) {
-            onLayout2(nextLayout);
-          }
-          callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
-        }
-      }
-    }
-  }, []);
-  const getPanelSize = import_react4.useCallback((panelData) => {
-    const {
-      layout: layout2,
-      panelDataArray
-    } = eagerValuesRef.current;
-    const {
-      panelSize
-    } = panelDataHelper(panelDataArray, panelData, layout2);
-    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
-    return panelSize;
-  }, []);
-  const getPanelStyle = import_react4.useCallback((panelData, defaultSize) => {
-    const {
-      panelDataArray
-    } = eagerValuesRef.current;
-    const panelIndex = findPanelDataIndex(panelDataArray, panelData);
-    return computePanelFlexBoxStyle({
-      defaultSize,
-      dragState,
-      layout,
-      panelData: panelDataArray,
-      panelIndex
-    });
-  }, [dragState, layout]);
-  const isPanelCollapsed = import_react4.useCallback((panelData) => {
-    const {
-      layout: layout2,
-      panelDataArray
-    } = eagerValuesRef.current;
-    const {
-      collapsedSize = 0,
-      collapsible,
-      panelSize
-    } = panelDataHelper(panelDataArray, panelData, layout2);
-    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
-    return collapsible === true && fuzzyNumbersEqual$1(panelSize, collapsedSize);
-  }, []);
-  const isPanelExpanded = import_react4.useCallback((panelData) => {
-    const {
-      layout: layout2,
-      panelDataArray
-    } = eagerValuesRef.current;
-    const {
-      collapsedSize = 0,
-      collapsible,
-      panelSize
-    } = panelDataHelper(panelDataArray, panelData, layout2);
-    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
-    return !collapsible || fuzzyCompareNumbers(panelSize, collapsedSize) > 0;
-  }, []);
-  const registerPanel = import_react4.useCallback((panelData) => {
-    const {
-      panelDataArray
-    } = eagerValuesRef.current;
-    panelDataArray.push(panelData);
-    panelDataArray.sort((panelA, panelB) => {
-      const orderA = panelA.order;
-      const orderB = panelB.order;
-      if (orderA == null && orderB == null) {
-        return 0;
-      } else if (orderA == null) {
-        return -1;
-      } else if (orderB == null) {
-        return 1;
-      } else {
-        return orderA - orderB;
-      }
-    });
-    eagerValuesRef.current.panelDataArrayChanged = true;
-    forceUpdate();
-  }, [forceUpdate]);
-  useIsomorphicLayoutEffect(() => {
-    if (eagerValuesRef.current.panelDataArrayChanged) {
-      eagerValuesRef.current.panelDataArrayChanged = false;
-      const {
-        autoSaveId: autoSaveId2,
-        onLayout: onLayout2,
-        storage: storage2
-      } = committedValuesRef.current;
-      const {
-        layout: prevLayout,
-        panelDataArray
-      } = eagerValuesRef.current;
-      let unsafeLayout = null;
-      if (autoSaveId2) {
-        const state = loadPanelGroupState(autoSaveId2, panelDataArray, storage2);
-        if (state) {
-          panelSizeBeforeCollapseRef.current = new Map(Object.entries(state.expandToSizes));
-          unsafeLayout = state.layout;
-        }
-      }
-      if (unsafeLayout == null) {
-        unsafeLayout = calculateUnsafeDefaultLayout({
-          panelDataArray
-        });
-      }
-      const nextLayout = validatePanelGroupLayout({
-        layout: unsafeLayout,
-        panelConstraints: panelDataArray.map((panelData) => panelData.constraints)
-      });
-      if (!areEqual(prevLayout, nextLayout)) {
-        setLayout(nextLayout);
-        eagerValuesRef.current.layout = nextLayout;
-        if (onLayout2) {
-          onLayout2(nextLayout);
-        }
-        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
-      }
-    }
-  });
-  useIsomorphicLayoutEffect(() => {
-    const eagerValues = eagerValuesRef.current;
-    return () => {
-      eagerValues.layout = [];
-    };
-  }, []);
-  const registerResizeHandle2 = import_react4.useCallback((dragHandleId) => {
-    let isRTL = false;
-    const panelGroupElement = panelGroupElementRef.current;
-    if (panelGroupElement) {
-      const style2 = window.getComputedStyle(panelGroupElement, null);
-      if (style2.getPropertyValue("direction") === "rtl") {
-        isRTL = true;
-      }
-    }
-    return function resizeHandler(event) {
-      event.preventDefault();
-      const panelGroupElement2 = panelGroupElementRef.current;
-      if (!panelGroupElement2) {
-        return () => null;
-      }
-      const {
-        direction: direction2,
-        dragState: dragState2,
-        id: groupId2,
-        keyboardResizeBy: keyboardResizeBy2,
-        onLayout: onLayout2
-      } = committedValuesRef.current;
-      const {
-        layout: prevLayout,
-        panelDataArray
-      } = eagerValuesRef.current;
-      const {
-        initialLayout
-      } = dragState2 !== null && dragState2 !== undefined ? dragState2 : {};
-      const pivotIndices = determinePivotIndices(groupId2, dragHandleId, panelGroupElement2);
-      let delta = calculateDeltaPercentage(event, dragHandleId, direction2, dragState2, keyboardResizeBy2, panelGroupElement2);
-      const isHorizontal = direction2 === "horizontal";
-      if (isHorizontal && isRTL) {
-        delta = -delta;
-      }
-      const panelConstraints = panelDataArray.map((panelData) => panelData.constraints);
-      const nextLayout = adjustLayoutByDelta({
-        delta,
-        initialLayout: initialLayout !== null && initialLayout !== undefined ? initialLayout : prevLayout,
-        panelConstraints,
-        pivotIndices,
-        prevLayout,
-        trigger: isKeyDown(event) ? "keyboard" : "mouse-or-touch"
-      });
-      const layoutChanged = !compareLayouts(prevLayout, nextLayout);
-      if (isPointerEvent(event) || isMouseEvent(event)) {
-        if (prevDeltaRef.current != delta) {
-          prevDeltaRef.current = delta;
-          if (!layoutChanged && delta !== 0) {
-            if (isHorizontal) {
-              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_HORIZONTAL_MIN : EXCEEDED_HORIZONTAL_MAX);
-            } else {
-              reportConstraintsViolation(dragHandleId, delta < 0 ? EXCEEDED_VERTICAL_MIN : EXCEEDED_VERTICAL_MAX);
-            }
-          } else {
-            reportConstraintsViolation(dragHandleId, 0);
-          }
-        }
-      }
-      if (layoutChanged) {
-        setLayout(nextLayout);
-        eagerValuesRef.current.layout = nextLayout;
-        if (onLayout2) {
-          onLayout2(nextLayout);
-        }
-        callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
-      }
-    };
-  }, []);
-  const resizePanel2 = import_react4.useCallback((panelData, unsafePanelSize) => {
-    const {
-      onLayout: onLayout2
-    } = committedValuesRef.current;
-    const {
-      layout: prevLayout,
-      panelDataArray
-    } = eagerValuesRef.current;
-    const panelConstraintsArray = panelDataArray.map((panelData2) => panelData2.constraints);
-    const {
-      panelSize,
-      pivotIndices
-    } = panelDataHelper(panelDataArray, panelData, prevLayout);
-    assert(panelSize != null, `Panel size not found for panel "${panelData.id}"`);
-    const isLastPanel = findPanelDataIndex(panelDataArray, panelData) === panelDataArray.length - 1;
-    const delta = isLastPanel ? panelSize - unsafePanelSize : unsafePanelSize - panelSize;
-    const nextLayout = adjustLayoutByDelta({
-      delta,
-      initialLayout: prevLayout,
-      panelConstraints: panelConstraintsArray,
-      pivotIndices,
-      prevLayout,
-      trigger: "imperative-api"
-    });
-    if (!compareLayouts(prevLayout, nextLayout)) {
-      setLayout(nextLayout);
-      eagerValuesRef.current.layout = nextLayout;
-      if (onLayout2) {
-        onLayout2(nextLayout);
-      }
-      callPanelCallbacks(panelDataArray, nextLayout, panelIdToLastNotifiedSizeMapRef.current);
-    }
-  }, []);
-  const reevaluatePanelConstraints = import_react4.useCallback((panelData, prevConstraints) => {
-    const {
-      layout: layout2,
-      panelDataArray
-    } = eagerValuesRef.current;
-    const {
-      collapsedSize: prevCollapsedSize = 0,
-      collapsible: prevCollapsible
-    } = prevConstraints;
-    const {
-      collapsedSize: nextCollapsedSize = 0,
-      collapsible: nextCollapsible,
-      maxSize: nextMaxSize = 100,
-      minSize: nextMinSize = 0
-    } = panelData.constraints;
-    const {
-      panelSize: prevPanelSize
-    } = panelDataHelper(panelDataArray, panelData, layout2);
-    if (prevPanelSize == null) {
-      return;
-    }
-    if (prevCollapsible && nextCollapsible && fuzzyNumbersEqual$1(prevPanelSize, prevCollapsedSize)) {
-      if (!fuzzyNumbersEqual$1(prevCollapsedSize, nextCollapsedSize)) {
-        resizePanel2(panelData, nextCollapsedSize);
-      }
-    } else if (prevPanelSize < nextMinSize) {
-      resizePanel2(panelData, nextMinSize);
-    } else if (prevPanelSize > nextMaxSize) {
-      resizePanel2(panelData, nextMaxSize);
-    }
-  }, [resizePanel2]);
-  const startDragging = import_react4.useCallback((dragHandleId, event) => {
-    const {
-      direction: direction2
-    } = committedValuesRef.current;
-    const {
-      layout: layout2
-    } = eagerValuesRef.current;
-    if (!panelGroupElementRef.current) {
-      return;
-    }
-    const handleElement = getResizeHandleElement(dragHandleId, panelGroupElementRef.current);
-    assert(handleElement, `Drag handle element not found for id "${dragHandleId}"`);
-    const initialCursorPosition = getResizeEventCursorPosition(direction2, event);
-    setDragState({
-      dragHandleId,
-      dragHandleRect: handleElement.getBoundingClientRect(),
-      initialCursorPosition,
-      initialLayout: layout2
-    });
-  }, []);
-  const stopDragging = import_react4.useCallback(() => {
-    setDragState(null);
-  }, []);
-  const unregisterPanel = import_react4.useCallback((panelData) => {
-    const {
-      panelDataArray
-    } = eagerValuesRef.current;
-    const index = findPanelDataIndex(panelDataArray, panelData);
-    if (index >= 0) {
-      panelDataArray.splice(index, 1);
-      delete panelIdToLastNotifiedSizeMapRef.current[panelData.id];
-      eagerValuesRef.current.panelDataArrayChanged = true;
-      forceUpdate();
-    }
-  }, [forceUpdate]);
-  const context = import_react4.useMemo(() => ({
-    collapsePanel,
-    direction,
-    dragState,
-    expandPanel,
-    getPanelSize,
-    getPanelStyle,
-    groupId,
-    isPanelCollapsed,
-    isPanelExpanded,
-    reevaluatePanelConstraints,
-    registerPanel,
-    registerResizeHandle: registerResizeHandle2,
-    resizePanel: resizePanel2,
-    startDragging,
-    stopDragging,
-    unregisterPanel,
-    panelGroupElement: panelGroupElementRef.current
-  }), [collapsePanel, dragState, direction, expandPanel, getPanelSize, getPanelStyle, groupId, isPanelCollapsed, isPanelExpanded, reevaluatePanelConstraints, registerPanel, registerResizeHandle2, resizePanel2, startDragging, stopDragging, unregisterPanel]);
-  const style = {
-    display: "flex",
-    flexDirection: direction === "horizontal" ? "row" : "column",
-    height: "100%",
-    overflow: "hidden",
-    width: "100%"
-  };
-  return import_react4.createElement(PanelGroupContext.Provider, {
-    value: context
-  }, import_react4.createElement(Type, {
-    ...rest,
-    children,
-    className: classNameFromProps,
-    id: idFromProps,
-    ref: panelGroupElementRef,
-    style: {
-      ...style,
-      ...styleFromProps
-    },
-    [DATA_ATTRIBUTES.group]: "",
-    [DATA_ATTRIBUTES.groupDirection]: direction,
-    [DATA_ATTRIBUTES.groupId]: groupId
-  }));
-}
-var PanelGroup = import_react4.forwardRef((props2, ref) => import_react4.createElement(PanelGroupWithForwardedRef, {
-  ...props2,
-  forwardedRef: ref
-}));
-PanelGroupWithForwardedRef.displayName = "PanelGroup";
-PanelGroup.displayName = "forwardRef(PanelGroup)";
-function findPanelDataIndex(panelDataArray, panelData) {
-  return panelDataArray.findIndex((prevPanelData) => prevPanelData === panelData || prevPanelData.id === panelData.id);
-}
-function panelDataHelper(panelDataArray, panelData, layout) {
-  const panelIndex = findPanelDataIndex(panelDataArray, panelData);
-  const isLastPanel = panelIndex === panelDataArray.length - 1;
-  const pivotIndices = isLastPanel ? [panelIndex - 1, panelIndex] : [panelIndex, panelIndex + 1];
-  const panelSize = layout[panelIndex];
-  return {
-    ...panelData.constraints,
-    panelSize,
-    pivotIndices
-  };
-}
-function useWindowSplitterResizeHandlerBehavior({
-  disabled,
-  handleId,
-  resizeHandler,
-  panelGroupElement
-}) {
-  import_react4.useEffect(() => {
-    if (disabled || resizeHandler == null || panelGroupElement == null) {
-      return;
-    }
-    const handleElement = getResizeHandleElement(handleId, panelGroupElement);
-    if (handleElement == null) {
-      return;
-    }
-    const onKeyDown = (event) => {
-      if (event.defaultPrevented) {
-        return;
-      }
-      switch (event.key) {
-        case "ArrowDown":
-        case "ArrowLeft":
-        case "ArrowRight":
-        case "ArrowUp":
-        case "End":
-        case "Home": {
-          event.preventDefault();
-          resizeHandler(event);
-          break;
-        }
-        case "F6": {
-          event.preventDefault();
-          const groupId = handleElement.getAttribute(DATA_ATTRIBUTES.groupId);
-          assert(groupId, `No group element found for id "${groupId}"`);
-          const handles = getResizeHandleElementsForGroup(groupId, panelGroupElement);
-          const index = getResizeHandleElementIndex(groupId, handleId, panelGroupElement);
-          assert(index !== null, `No resize element found for id "${handleId}"`);
-          const nextIndex = event.shiftKey ? index > 0 ? index - 1 : handles.length - 1 : index + 1 < handles.length ? index + 1 : 0;
-          const nextHandle = handles[nextIndex];
-          nextHandle.focus();
-          break;
-        }
-      }
-    };
-    handleElement.addEventListener("keydown", onKeyDown);
-    return () => {
-      handleElement.removeEventListener("keydown", onKeyDown);
-    };
-  }, [panelGroupElement, disabled, handleId, resizeHandler]);
-}
-function PanelResizeHandle({
-  children = null,
-  className: classNameFromProps = "",
-  disabled = false,
-  hitAreaMargins,
-  id: idFromProps,
-  onBlur,
-  onClick,
-  onDragging,
-  onFocus,
-  onPointerDown,
-  onPointerUp,
-  style: styleFromProps = {},
-  tabIndex = 0,
-  tagName: Type = "div",
-  ...rest
-}) {
-  var _hitAreaMargins$coars, _hitAreaMargins$fine;
-  const elementRef = import_react4.useRef(null);
-  const callbacksRef = import_react4.useRef({
-    onClick,
-    onDragging,
-    onPointerDown,
-    onPointerUp
-  });
-  import_react4.useEffect(() => {
-    callbacksRef.current.onClick = onClick;
-    callbacksRef.current.onDragging = onDragging;
-    callbacksRef.current.onPointerDown = onPointerDown;
-    callbacksRef.current.onPointerUp = onPointerUp;
-  });
-  const panelGroupContext = import_react4.useContext(PanelGroupContext);
-  if (panelGroupContext === null) {
-    throw Error(`PanelResizeHandle components must be rendered within a PanelGroup container`);
-  }
-  const {
-    direction,
-    groupId,
-    registerResizeHandle: registerResizeHandleWithParentGroup,
-    startDragging,
-    stopDragging,
-    panelGroupElement
-  } = panelGroupContext;
-  const resizeHandleId = useUniqueId(idFromProps);
-  const [state, setState] = import_react4.useState("inactive");
-  const [isFocused, setIsFocused] = import_react4.useState(false);
-  const [resizeHandler, setResizeHandler] = import_react4.useState(null);
-  const committedValuesRef = import_react4.useRef({
-    state
-  });
-  useIsomorphicLayoutEffect(() => {
-    committedValuesRef.current.state = state;
-  });
-  import_react4.useEffect(() => {
-    if (disabled) {
-      setResizeHandler(null);
-    } else {
-      const resizeHandler2 = registerResizeHandleWithParentGroup(resizeHandleId);
-      setResizeHandler(() => resizeHandler2);
-    }
-  }, [disabled, resizeHandleId, registerResizeHandleWithParentGroup]);
-  const coarseHitAreaMargins = (_hitAreaMargins$coars = hitAreaMargins === null || hitAreaMargins === undefined ? undefined : hitAreaMargins.coarse) !== null && _hitAreaMargins$coars !== undefined ? _hitAreaMargins$coars : 15;
-  const fineHitAreaMargins = (_hitAreaMargins$fine = hitAreaMargins === null || hitAreaMargins === undefined ? undefined : hitAreaMargins.fine) !== null && _hitAreaMargins$fine !== undefined ? _hitAreaMargins$fine : 5;
-  import_react4.useEffect(() => {
-    if (disabled || resizeHandler == null) {
-      return;
-    }
-    const element = elementRef.current;
-    assert(element, "Element ref not attached");
-    let didMove = false;
-    const setResizeHandlerState = (action, isActive, event) => {
-      if (!isActive) {
-        setState("inactive");
-        return;
-      }
-      switch (action) {
-        case "down": {
-          setState("drag");
-          didMove = false;
-          assert(event, 'Expected event to be defined for "down" action');
-          startDragging(resizeHandleId, event);
-          const {
-            onDragging: onDragging2,
-            onPointerDown: onPointerDown2
-          } = callbacksRef.current;
-          onDragging2 === null || onDragging2 === undefined || onDragging2(true);
-          onPointerDown2 === null || onPointerDown2 === undefined || onPointerDown2();
-          break;
-        }
-        case "move": {
-          const {
-            state: state2
-          } = committedValuesRef.current;
-          didMove = true;
-          if (state2 !== "drag") {
-            setState("hover");
-          }
-          assert(event, 'Expected event to be defined for "move" action');
-          resizeHandler(event);
-          break;
-        }
-        case "up": {
-          setState("hover");
-          stopDragging();
-          const {
-            onClick: onClick2,
-            onDragging: onDragging2,
-            onPointerUp: onPointerUp2
-          } = callbacksRef.current;
-          onDragging2 === null || onDragging2 === undefined || onDragging2(false);
-          onPointerUp2 === null || onPointerUp2 === undefined || onPointerUp2();
-          if (!didMove) {
-            onClick2 === null || onClick2 === undefined || onClick2();
-          }
-          break;
-        }
-      }
-    };
-    return registerResizeHandle(resizeHandleId, element, direction, {
-      coarse: coarseHitAreaMargins,
-      fine: fineHitAreaMargins
-    }, setResizeHandlerState);
-  }, [coarseHitAreaMargins, direction, disabled, fineHitAreaMargins, registerResizeHandleWithParentGroup, resizeHandleId, resizeHandler, startDragging, stopDragging]);
-  useWindowSplitterResizeHandlerBehavior({
-    disabled,
-    handleId: resizeHandleId,
-    resizeHandler,
-    panelGroupElement
-  });
-  const style = {
-    touchAction: "none",
-    userSelect: "none"
-  };
-  return import_react4.createElement(Type, {
-    ...rest,
-    children,
-    className: classNameFromProps,
-    id: idFromProps,
-    onBlur: () => {
-      setIsFocused(false);
-      onBlur === null || onBlur === undefined || onBlur();
-    },
-    onFocus: () => {
-      setIsFocused(true);
-      onFocus === null || onFocus === undefined || onFocus();
-    },
-    ref: elementRef,
-    role: "separator",
-    style: {
-      ...style,
-      ...styleFromProps
-    },
-    tabIndex,
-    [DATA_ATTRIBUTES.groupDirection]: direction,
-    [DATA_ATTRIBUTES.groupId]: groupId,
-    [DATA_ATTRIBUTES.resizeHandle]: "",
-    [DATA_ATTRIBUTES.resizeHandleActive]: state === "drag" ? "pointer" : isFocused ? "keyboard" : undefined,
-    [DATA_ATTRIBUTES.resizeHandleEnabled]: !disabled,
-    [DATA_ATTRIBUTES.resizeHandleId]: resizeHandleId,
-    [DATA_ATTRIBUTES.resizeHandleState]: state
-  });
-}
-PanelResizeHandle.displayName = "PanelResizeHandle";
-
-// dashboard/src/components/ui/resizable.jsx
-init_utils();
-var jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
-"use client";
-var ResizablePanelGroup = ({
-  className,
-  ...props2
-}) => /* @__PURE__ */ jsx_dev_runtime.jsxDEV(PanelGroup, {
-  className: cn("flex h-full w-full data-[panel-group-direction=vertical]:flex-col", className),
-  ...props2
-}, undefined, false, undefined, this);
-var ResizablePanel = Panel;
-var ResizableHandle = ({
-  withHandle,
-  className,
-  ...props2
-}) => /* @__PURE__ */ jsx_dev_runtime.jsxDEV(PanelResizeHandle, {
-  className: cn("relative flex w-px items-center justify-center bg-border after:absolute after:inset-y-0 after:left-1/2 after:w-1 after:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring focus-visible:ring-offset-1 data-[panel-group-direction=vertical]:h-px data-[panel-group-direction=vertical]:w-full data-[panel-group-direction=vertical]:after:left-0 data-[panel-group-direction=vertical]:after:h-1 data-[panel-group-direction=vertical]:after:w-full data-[panel-group-direction=vertical]:after:-translate-y-1/2 data-[panel-group-direction=vertical]:after:translate-x-0 [&[data-panel-group-direction=vertical]>div]:rotate-90", className),
-  ...props2,
-  children: withHandle && /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
-    className: "z-10 flex h-4 w-3 items-center justify-center rounded-sm border bg-border",
-    children: /* @__PURE__ */ jsx_dev_runtime.jsxDEV(GripVertical, {
-      className: "h-2.5 w-2.5"
-    }, undefined, false, undefined, this)
-  }, undefined, false, undefined, this)
-}, undefined, false, undefined, this);
+init_resizable();
 
 // dashboard/src/components/ui/separator.jsx
 var React7 = __toESM(require_react(), 1);
 
 // node_modules/@radix-ui/react-separator/dist/index.mjs
 var React6 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-primitive/dist/index.mjs
-var React5 = __toESM(require_react(), 1);
-var ReactDOM = __toESM(require_react_dom(), 1);
-init_dist2();
-var import_jsx_runtime2 = __toESM(require_jsx_runtime(), 1);
-var NODES = [
-  "a",
-  "button",
-  "div",
-  "form",
-  "h2",
-  "h3",
-  "img",
-  "input",
-  "label",
-  "li",
-  "nav",
-  "ol",
-  "p",
-  "select",
-  "span",
-  "svg",
-  "ul"
-];
-var Primitive = NODES.reduce((primitive, node) => {
-  const Slot2 = createSlot(`Primitive.${node}`);
-  const Node = React5.forwardRef((props2, forwardedRef) => {
-    const { asChild, ...primitiveProps } = props2;
-    const Comp = asChild ? Slot2 : node;
-    if (typeof window !== "undefined") {
-      window[Symbol.for("radix-ui")] = true;
-    }
-    return /* @__PURE__ */ import_jsx_runtime2.jsx(Comp, { ...primitiveProps, ref: forwardedRef });
-  });
-  Node.displayName = `Primitive.${node}`;
-  return { ...primitive, [node]: Node };
-}, {});
-
-// node_modules/@radix-ui/react-separator/dist/index.mjs
+init_dist3();
 var import_jsx_runtime3 = __toESM(require_jsx_runtime(), 1);
 var NAME = "Separator";
 var DEFAULT_ORIENTATION = "horizontal";
@@ -29506,12 +31304,12 @@ var CardFooter = React10.forwardRef(({ className, ...props2 }, ref) => /* @__PUR
 CardFooter.displayName = "CardFooter";
 
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
-var CodeBrowser2 = import_react12.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var ActivityLog2 = import_react12.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var StateManagement2 = import_react12.lazy(() => Promise.resolve().then(() => (init_StateManagement(), exports_StateManagement)));
-var ChatInterface2 = import_react12.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var DocumentUploader2 = import_react12.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
+var jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
+var CodeBrowser2 = import_react15.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var ActivityLog2 = import_react15.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var StateManagement2 = import_react15.lazy(() => Promise.resolve().then(() => (init_StateManagement(), exports_StateManagement)));
+var ChatInterface2 = import_react15.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var DocumentUploader2 = import_react15.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -29521,9 +31319,9 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react12.useState(INITIAL_STATE);
-  const [projectPathInput, setProjectPathInput] = import_react12.useState("");
-  import_react12.useEffect(() => {
+  const [systemState, setSystemState] = import_react15.useState(INITIAL_STATE);
+  const [projectPathInput, setProjectPathInput] = import_react15.useState("");
+  import_react15.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -29556,23 +31354,23 @@ var Dashboard = () => {
       sendMessage({ type: "set_project", payload: { path: projectPathInput } });
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-    className: "h-screen w-screen bg-background text-foreground flex flex-col",
+  return /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+    className: "dark h-screen w-screen bg-background text-foreground flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("header", {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("header", {
         className: "flex items-center justify-between p-4 border-b",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
             className: "flex items-center gap-4",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("h1", {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("h1", {
                 className: "text-xl font-bold",
                 children: "Stigmergy"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
                 className: "flex items-center gap-2",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Input, {
+                  /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Input, {
                     type: "text",
                     placeholder: "Absolute path to your project...",
                     value: projectPathInput,
@@ -29580,7 +31378,7 @@ var Dashboard = () => {
                     onKeyDown: (e) => e.key === "Enter" && handleSetProject(),
                     className: "w-[350px]"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                  /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Button, {
                     onClick: handleSetProject,
                     children: "Set Active Project"
                   }, undefined, false, undefined, this)
@@ -29588,29 +31386,29 @@ var Dashboard = () => {
               }, undefined, true, undefined, this)
             ]
           }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
             className: "flex items-center gap-4 text-sm",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("span", {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("b", {
+                  /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("b", {
                     children: "Active Project:"
                   }, undefined, false, undefined, this),
                   " ",
                   systemState.project_path || "None"
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Separator2, {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Separator2, {
                 orientation: "vertical",
                 className: "h-6"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("span", {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("b", {
+                  /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("b", {
                     children: "Status:"
                   }, undefined, false, undefined, this),
                   " ",
-                  /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("span", {
                     className: "font-mono p-1 bg-muted rounded-md",
                     children: systemState.project_status || "Idle"
                   }, undefined, false, undefined, this)
@@ -29620,35 +31418,36 @@ var Dashboard = () => {
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanelGroup, {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanelGroup, {
         direction: "horizontal",
         className: "flex-grow",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
             defaultSize: 50,
-            children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanelGroup, {
+            children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanelGroup, {
               direction: "vertical",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
                   defaultSize: 65,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
+                  children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
                     className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
                           children: "Code Browser"
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
-                        className: "flex-grow overflow-auto",
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(import_react12.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
+                        className: "flex-grow overflow-auto p-0",
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(import_react15.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+                            className: "p-4",
                             children: "Loading Code..."
                           }, undefined, false, undefined, this),
-                          children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CodeBrowser2, {
+                          children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CodeBrowser2, {
                             activeProject: systemState.project_path
-                          }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-                            className: "text-muted-foreground",
+                          }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+                            className: "text-muted-foreground p-4",
                             children: "Set a project to see files."
                           }, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
@@ -29656,79 +31455,98 @@ var Dashboard = () => {
                     ]
                   }, undefined, true, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizableHandle, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizableHandle, {
                   withHandle: true
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
                   defaultSize: 35,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
-                    className: "h-full w-full rounded-none border-0 border-r flex flex-col",
+                  children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanelGroup, {
+                    direction: "vertical",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
-                          children: "Mission Control"
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
-                        className: "flex-grow overflow-y-auto p-4 space-y-4",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(import_react12.Suspense, {
-                            fallback: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-                              children: "Loading Chat..."
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
+                        defaultSize: 60,
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
+                          className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
+                                children: "Agent Chat"
+                              }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this),
-                            children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ChatInterface2, {
-                              sendMessage,
-                              engineStatus: systemState.project_status
+                            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
+                              className: "flex-grow p-2",
+                              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(import_react15.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+                                  className: "p-4",
+                                  children: "Loading Chat..."
+                                }, undefined, false, undefined, this),
+                                children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ChatInterface2, {
+                                  sendMessage,
+                                  engineStatus: systemState.project_status,
+                                  activeProject: systemState.project_path
+                                }, undefined, false, undefined, this)
+                              }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Separator2, {}, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-                            children: [
-                              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("h3", {
-                                className: "text-sm font-medium mb-2",
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizableHandle, {
+                        withHandle: true
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
+                        defaultSize: 40,
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
+                          className: "h-full w-full rounded-none border-0 border-r flex flex-col",
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
                                 children: "Document Intelligence"
-                              }, undefined, false, undefined, this),
-                              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(import_react12.Suspense, {
-                                fallback: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
+                              className: "flex-grow overflow-y-auto p-4 space-y-4",
+                              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(import_react15.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+                                  className: "p-4",
                                   children: "Loading Uploader..."
                                 }, undefined, false, undefined, this),
-                                children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
+                                children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
                               }, undefined, false, undefined, this)
-                            ]
-                          }, undefined, true, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this)
                     ]
                   }, undefined, true, undefined, this)
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizableHandle, {
+          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizableHandle, {
             withHandle: true
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
             defaultSize: 50,
-            children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanelGroup, {
+            children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanelGroup, {
               direction: "vertical",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
                   defaultSize: 65,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
+                  children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
                     className: "h-full w-full rounded-none border-0 border-b flex flex-col",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
                           children: "Activity Log"
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
                         className: "flex-grow overflow-auto",
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(import_react12.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(import_react15.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
                             children: "Loading Logs..."
                           }, undefined, false, undefined, this),
-                          children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ActivityLog2, {
+                          children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ActivityLog2, {
                             logs: systemState.logs,
                             agentActivity: systemState.agentActivity
                           }, undefined, false, undefined, this)
@@ -29737,26 +31555,26 @@ var Dashboard = () => {
                     ]
                   }, undefined, true, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizableHandle, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizableHandle, {
                   withHandle: true
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ResizablePanel, {
                   defaultSize: 35,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
+                  children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
                     className: "h-full w-full rounded-none border-0 flex flex-col",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
                           children: "System State"
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
+                      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
                         className: "flex-grow overflow-auto",
-                        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(import_react12.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(import_react15.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
                             children: "Loading State..."
                           }, undefined, false, undefined, this),
-                          children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(StateManagement2, {
+                          children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(StateManagement2, {
                             state: systemState
                           }, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
@@ -29775,15 +31593,15 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/index.js
-var jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime13.jsxDEV(import_react14.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime16.jsxDEV(import_react17.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(App_default, {}, undefined, false, undefined, this)
 }, undefined, false, undefined, this));

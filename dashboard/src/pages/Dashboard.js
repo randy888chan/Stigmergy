@@ -64,7 +64,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="h-screen w-screen bg-background text-foreground flex flex-col">
+    <div className="dark h-screen w-screen bg-background text-foreground flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center gap-4">
@@ -91,7 +91,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <ResizablePanelGroup direction="horizontal" className="flex-grow">
 
-        {/* Left Panel: Code Browser and Chat */}
+        {/* Left Panel: Code Browser and Controls */}
         <ResizablePanel defaultSize={50}>
           <ResizablePanelGroup direction="vertical">
             <ResizablePanel defaultSize={65}>
@@ -99,32 +99,42 @@ const Dashboard = () => {
                     <CardHeader>
                         <CardTitle>Code Browser</CardTitle>
                     </CardHeader>
-                    <CardContent className="flex-grow overflow-auto">
-                        <Suspense fallback={<div>Loading Code...</div>}>
-                            {systemState.project_path ? <CodeBrowser activeProject={systemState.project_path} /> : <div className="text-muted-foreground">Set a project to see files.</div>}
+                    <CardContent className="flex-grow overflow-auto p-0">
+                        <Suspense fallback={<div className="p-4">Loading Code...</div>}>
+                            {systemState.project_path ? <CodeBrowser activeProject={systemState.project_path} /> : <div className="text-muted-foreground p-4">Set a project to see files.</div>}
                         </Suspense>
                     </CardContent>
                 </Card>
             </ResizablePanel>
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={35}>
-                 <Card className="h-full w-full rounded-none border-0 border-r flex flex-col">
-                    <CardHeader>
-                        <CardTitle>Mission Control</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
-                       <Suspense fallback={<div>Loading Chat...</div>}>
-                            <ChatInterface sendMessage={sendMessage} engineStatus={systemState.project_status} />
-                        </Suspense>
-                        <Separator />
-                        <div>
-                            <h3 className="text-sm font-medium mb-2">Document Intelligence</h3>
-                            <Suspense fallback={<div>Loading Uploader...</div>}>
-                                <DocumentUploader />
-                            </Suspense>
-                        </div>
-                    </CardContent>
-                </Card>
+                <ResizablePanelGroup direction="vertical">
+                    <ResizablePanel defaultSize={60}>
+                        <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
+                            <CardHeader>
+                                <CardTitle>Agent Chat</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex-grow p-2">
+                               <Suspense fallback={<div className="p-4">Loading Chat...</div>}>
+                                    <ChatInterface sendMessage={sendMessage} engineStatus={systemState.project_status} activeProject={systemState.project_path} />
+                                </Suspense>
+                            </CardContent>
+                        </Card>
+                    </ResizablePanel>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={40}>
+                         <Card className="h-full w-full rounded-none border-0 border-r flex flex-col">
+                            <CardHeader>
+                                <CardTitle>Document Intelligence</CardTitle>
+                            </CardHeader>
+                            <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
+                                <Suspense fallback={<div className="p-4">Loading Uploader...</div>}>
+                                    <DocumentUploader />
+                                </Suspense>
+                            </CardContent>
+                        </Card>
+                    </ResizablePanel>
+                </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
