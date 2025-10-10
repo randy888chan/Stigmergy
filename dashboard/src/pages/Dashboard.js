@@ -188,7 +188,7 @@ const Dashboard = () => {
                     <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
                         <CardHeader>
                             <CardTitle>Agent Chat</CardTitle>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="flex-grow p-2">
                            <Suspense fallback={<div className="p-4">Loading Chat...</div>}>
                                 <ChatInterface sendMessage={sendMessage} engineStatus={systemState.project_status} activeProject={systemState.project_path} />
@@ -201,7 +201,7 @@ const Dashboard = () => {
                      <Card className="h-full w-full rounded-none border-0 border-r flex flex-col">
                         <CardHeader>
                             <CardTitle>Document Intelligence</CardTitle>
-                        </Header>
+                        </CardHeader>
                         <CardContent className="flex-grow overflow-y-auto p-4 space-y-4">
                             <Suspense fallback={<div className="p-4">Loading Uploader...</div>}>
                                 <DocumentUploader />
@@ -218,7 +218,7 @@ const Dashboard = () => {
                         <Card className="h-full w-full rounded-none border-0 border-b flex flex-col">
                             <CardHeader>
                                 <CardTitle>Activity Log</CardTitle>
-                            </Header>
+                            </CardHeader>
                             <CardContent className="flex-grow overflow-auto">
                                 <Suspense fallback={<div>Loading Logs...</div>}>
                                     <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
@@ -231,11 +231,11 @@ const Dashboard = () => {
                         <Card className="h-full w-full rounded-none border-0 flex flex-col">
                             <CardHeader>
                                 <CardTitle>System State</CardTitle>
-                            </Header>
+                            </CardHeader>
                             <CardContent className="flex-grow overflow-auto">
                                  <Suspense fallback={<div>Loading State...</div>}>
                                     <StateManagement state={systemState} />
-                                </Suspense>
+                                 </Suspense>
                             </CardContent>
                         </Card>
                     </ResizablePanel>
