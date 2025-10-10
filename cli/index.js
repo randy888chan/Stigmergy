@@ -299,7 +299,7 @@ Type "help" within the interactive mode to see available commands.
 
 program
   .command("run")
-  .description("Run a new mission with a specified goal.")
+  .description("Run a new mission with a specified goal or start an interactive chat session.")
   .option('-g, --goal <goal>', 'The high-level goal for the mission')
   .action(async (options) => {
     const runPath = path.resolve(__dirname, './commands/run.js');
@@ -309,11 +309,12 @@ program
   })
   .addHelpText('after', `
 Examples:
+  $ stigmergy run
   $ stigmergy run --goal "Fix the authentication bug"
   $ stigmergy run -g "Implement feature X"
 
-This command sends a goal to the running Stigmergy service
-and streams the mission status back to the terminal.
+If a goal is provided, this command sends the goal to the running Stigmergy service and streams the mission status.
+If no goal is provided, it starts an interactive chat session with the service.
   `);
 
 // Override the default help command to add examples
