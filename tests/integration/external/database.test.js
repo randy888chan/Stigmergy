@@ -9,7 +9,7 @@ describe('External Service Health Check: Neo4j Database', () => {
   const password = process.env.NEO4J_PASSWORD;
   const credentialsArePresent = uri && user && password;
 
-  test.if(credentialsArePresent)('LIVE: should connect to the configured Neo4j database successfully', async () => {
+  test('LIVE: should connect to the configured Neo4j database successfully', async () => {
     let driver;
     try {
       driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
@@ -27,9 +27,4 @@ describe('External Service Health Check: Neo4j Database', () => {
       }
     }
   }, LIVE_TEST_TIMEOUT);
-
-  test.if(!credentialsArePresent)('SKIPPED: Neo4j credentials not found', () => {
-    console.log("\n[Health Check] SKIPPED: NEO4J_URI, NEO4J_USER, or NEO4J_PASSWORD not set. Skipping live DB test.");
-    expect(true).toBe(true); // Always pass if skipped
-  });
 });

@@ -9,7 +9,7 @@ describe('External Service Health Check: AI Provider', () => {
   const baseURL = process.env.OPENROUTER_BASE_URL;
   const credentialsArePresent = apiKey && baseURL;
 
-  test.if(credentialsArePresent)('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
+  test('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
     try {
       const response = await axios.get(`${baseURL}/models`, {
         headers: {
@@ -29,9 +29,4 @@ describe('External Service Health Check: AI Provider', () => {
       throw new Error(`Failed to connect to OpenRouter. Please check your API key and network connection. Details: ${errorMessage}`);
     }
   }, LIVE_TEST_TIMEOUT);
-
-  test.if(!credentialsArePresent)('SKIPPED: OpenRouter credentials not found', () => {
-    console.log("\n[Health Check] SKIPPED: OPENROUTER_API_KEY or OPENROUTER_BASE_URL not set. Skipping live AI provider test.");
-    expect(true).toBe(true); // Always pass if skipped
-  });
 });
