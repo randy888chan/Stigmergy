@@ -14,23 +14,13 @@ Stigmergy is designed to be a tool you run on your own machine. It is not a clou
 *   **CLI as the "Source of Truth":** The command line is the primary interface for initiating, monitoring, and managing tasks. This ensures maximum compatibility, scriptability, and transparent control.
 *   **Dashboard for Observability:** A real-time web dashboard provides a visual, read-only "Command & Control" view of the agent swarm's activity, allowing you to monitor their thoughts, actions, and progress.
 
-## Core Capabilities
-
-*   **Autonomous Multi-Agent Swarm:** Specialized agents for planning (`@specifier`), execution (`@executor`), quality assurance (`@qa`), and debugging (`@debugger`) work together to achieve high-level goals.
-*   **Deep Code Intelligence (CodeRAG):** The system builds a Neo4j knowledge graph of your codebase, allowing agents to perform deep, structural, and semantic analysis before writing a single line of code.
-*   **"Review and Refine" Quality Gates:** Critical documents, like implementation plans, are automatically peer-reviewed by other agents to ensure quality and robustness before execution begins.
-*   **Live Web Analysis (Chrome DevTools):** The `@ux-expert` and `@debugger` agents can launch a live Chrome browser to inspect and debug web applications in real-time.
-*   **Universal IDE Integration:** A simple, robust CLI command (`stigmergy run`) allows for easy integration with any modern IDE, including VS Code (via `continue.dev`), Qoder, and Cursor.
-
----
-
 ## Getting Started: A Step-by-Step Guide
 
 ### Step 1: Installation & Setup
 
 1.  **Clone the Repository:**
     ```bash
-    git clone https://github.com/randy888chan/stigmergy.git
+    git clone https://github.com/your-repo/stigmergy.git
     cd stigmergy
     ```
 
@@ -49,7 +39,7 @@ Stigmergy is designed to be a tool you run on your own machine. It is not a clou
         ```bash
         cp .env.example .env.development
         ```
-    *   Open `.env.development` and add your API keys (e.g., `OPENROUTER_API_KEY`) and your local Neo4j database credentials.
+    *   Open `.env.development` and add your API keys (e.g., `OPENROUTER_API_KEY`).
 
 ### Step 2: Start the Stigmergy Service
 
@@ -76,7 +66,7 @@ This is the primary way to interact with Stigmergy.
 
 2.  **Launch the Mission:** Use the `stigmergy run` command with a high-level goal.
     ```bash
-    stigmergy run --goal "Fix the bug described in issue #247 where the login button is disabled incorrectly."
+    stigmergy run --goal "Refactor the authentication module to use JWT instead of session cookies."
     ```
     or for an interactive chat session:
     ```bash
@@ -84,22 +74,3 @@ This is the primary way to interact with Stigmergy.
     ```
 
 Stigmergy will now set the active project context, and the autonomous swarm will begin its work. You can monitor its progress in the terminal and on the dashboard.
-
-### Step 4 (Optional): IDE Integration (`continue.dev`)
-
-You can integrate Stigmergy directly into VS Code for a seamless workflow.
-
-1.  **Install `continue.dev`:** Install the extension from the VS Code Marketplace.
-2.  **Configure Your Global Settings:** Open the `continue.dev` global `config.yaml` file (use the command `Continue: Edit config.yaml`) and add the Stigmergy model:
-    ```yaml
-    models:
-      # ... your other models
-      - title: Stigmergy
-        provider: openai-compatible
-        model: stigmergy-mcp
-        apiBase: http://localhost:3010/mcp
-        apiKey: EMPTY
-    ```
-3.  **Use in any Project:** Now, in any of your projects, you can open the `continue.dev` panel, select "Stigmergy" from the model dropdown, and give it a command. It will connect to your running service.
-
----
