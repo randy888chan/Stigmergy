@@ -74,3 +74,21 @@ This is the primary way to interact with Stigmergy.
     ```
 
 Stigmergy will now set the active project context, and the autonomous swarm will begin its work. You can monitor its progress in the terminal and on the dashboard.
+
+## Development with Docker (Recommended)
+
+To ensure a consistent and reproducible development environment, we recommend using Docker. This avoids local setup issues.
+
+1.  **Prerequisites:** Make sure you have Docker and Docker Compose installed.
+
+2.  **Environment Setup:** Copy the `.env.example` file to `.env.development` and fill in your API keys.
+    ```bash
+    cp .env.example .env.development
+    ```
+
+3.  **Build and Run:** Use Docker Compose to build the development container and start the service.
+    ```bash
+    docker-compose up --build stigmergy-dev
+    ```
+
+Your development server will be available at `http://localhost:3010`. Any changes you make to the source code on your local machine will trigger an automatic restart inside the container.

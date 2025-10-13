@@ -2,14 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
-const agents = [
-  { name: '@dispatcher', successRate: '95%', tasks: 120, avgTime: '2.5m' },
-  { name: '@executor', successRate: '88%', tasks: 115, avgTime: '4.1m' },
-  { name: '@debugger', successRate: '60%', tasks: 25, avgTime: '7.8m' },
-  { name: '@metis', successRate: '99%', tasks: 10, avgTime: '1.2m' },
-];
+const AgentPerformanceMonitor = ({ healthData }) => {
+  const agents = healthData?.metrics?.performance?.metrics?.agents || [];
 
-const AgentPerformanceMonitor = () => {
   return (
     <Card>
       <CardHeader>
@@ -26,14 +21,22 @@ const AgentPerformanceMonitor = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {agents.map((agent) => (
-              <TableRow key={agent.name}>
-                <TableCell>{agent.name}</TableCell>
-                <TableCell>{agent.successRate}</TableCell>
-                <TableCell>{agent.tasks}</TableCell>
-                <TableCell>{agent.avgTime}</TableCell>
+            {agents.length > 0 ? (
+              agents.map((agent) => (
+                <TableRow key={agent.name}>
+                  <TableCell>{agent.name}</TableCell>
+                  <TableCell>{agent.successRate}</TableCell>
+                  <TableCell>{agent.tasks}</TableCell>
+                  <TableCell>{agent.avgTime}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan="4" className="text-center">
+                  No agent performance data available.
+                </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </CardContent>
