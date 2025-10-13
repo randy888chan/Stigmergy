@@ -14,6 +14,10 @@ const StateManagement = lazy(() => import('../components/StateManagement.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
 const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 const FileViewer = lazy(() => import('../components/FileViewer.js'));
+const AgentPerformanceMonitor = lazy(() => import('../components/AgentPerformanceMonitor.js'));
+const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'));
+const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
+
 
 const INITIAL_STATE = {
   logs: [],
@@ -143,7 +147,7 @@ const Dashboard = () => {
           </div>
         </ResizablePanel>
         <ResizableHandle withHandle />
-        <ResizablePanel defaultSize={90}>
+        <ResizablePanel defaultSize={65}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
             <ResizablePanel defaultSize={50}>
               <ResizablePanelGroup direction="vertical">
@@ -242,6 +246,35 @@ const Dashboard = () => {
                 </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={25}>
+            <Card className="h-full w-full rounded-none border-0 border-t flex flex-col">
+                <CardHeader>
+                    <CardTitle>System Health Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow overflow-auto p-2">
+                    <ResizablePanelGroup direction="horizontal">
+                        <ResizablePanel>
+                            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                                <AgentPerformanceMonitor />
+                            </Suspense>
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel>
+                            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                                <ToolHealthMonitor />
+                            </Suspense>
+                        </ResizablePanel>
+                        <ResizableHandle withHandle />
+                        <ResizablePanel>
+                            <Suspense fallback={<div className="p-4">Loading...</div>}>
+                                <SystemHealthAlerts />
+                            </Suspense>
+                        </ResizablePanel>
+                    </ResizablePanelGroup>
+                </CardContent>
+            </Card>
         </ResizablePanel>
       </ResizablePanelGroup>
     </div>

@@ -1,2 +1,6 @@
 $ concurrently "bun --hot run engine/server.js" "bun run watch:dashboard"
 [1] $ concurrently "tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css -w" "bun build ./dashboard/src/index.js --outdir ./dashboard/public --watch"
+[1] [1] Bundled 1535 modules in 243ms
+[1] [1]
+[1] [1]   index.js  1.29 MB  (entry point)
+[1] [1]
