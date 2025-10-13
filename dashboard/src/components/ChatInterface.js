@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useChat } from 'ai/react';
 import { Input } from './ui/input.jsx';
 import { Button } from './ui/button.jsx';
+import { ScrollArea } from './ui/scroll-area.jsx';
 
 // These are the states where the engine is actively working and cannot accept new goals.
 const BUSY_STATUSES = [
@@ -13,40 +15,62 @@ const BUSY_STATUSES = [
   'Running', // A general busy state
 ];
 
-const ChatInterface = ({ sendMessage, engineStatus, activeProject }) => {
-  const [goal, setGoal] = useState('');
+const ChatInterface = ({ engineStatus, activeProject }) => {
+  const { messages, input, handleInputChange, handleSubmit } = useChat({
+    // The Vercel AI SDK `useChat` hook defaults to `/api/chat`.
+    // We pass the active project path in the body of the request.
+    body: {
+      project_path: activeProject,
+    },
+    // Only enable the hook if a project is selected.
+    // While there's no 'enabled' flag, UI controls will prevent submission.
+  });
 
-  const handleSend = (e) => {
+  const isBusy = BUSY_STATUSES.includes(engineStatus);
+  const canSubmit = input.trim() && activeProject && !isBusy;
+
+  // We wrap the default handleSubmit to respect our custom canSubmit logic.
+  const handleFormSubmit = (e) => {
     e.preventDefault();
-    if (goal.trim() && activeProject) {
-      // Send a 'start_mission' event, which is what the engine expects for new goals.
-      sendMessage({ type: 'start_mission', payload: { goal, project_path: activeProject } });
-      setGoal('');
+    if (canSubmit) {
+      handleSubmit(e);
     }
   };
 
-  const isBusy = BUSY_STATUSES.includes(engineStatus);
-  const canSubmit = goal.trim() && activeProject && !isBusy;
-
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-y-auto p-1">
-        {/* Placeholder for future chat messages */}
-        <div className="text-center text-sm text-muted-foreground pt-4">
-          Define a new mission for the selected project.
+      <ScrollArea className="flex-grow p-1">
+        <div className="space-y-4 p-3">
+          {messages.length > 0 ? (
+            messages.map(m => (
+              <div key={m.id} className="flex">
+                <div className={`p-3 rounded-lg max-w-xs lg:max-w-md ${
+                  m.role === 'user'
+                    ? 'ml-auto bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                }`}>
+                  <p className="text-sm whitespace-pre-wrap">{m.content}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-sm text-muted-foreground pt-4">
+              Define a new mission for the selected project.
+            </div>
+          )}
         </div>
-      </div>
-      <form onSubmit={handleSend} className="flex items-center gap-2 p-1">
+      </ScrollArea>
+      <form onSubmit={handleFormSubmit} className="flex items-center gap-2 p-1 border-t">
         <Input
           type="text"
-          value={goal}
-          onChange={(e) => setGoal(e.target.value)}
-          placeholder={!activeProject ? "Set a project first..." : "Enter your mission objective..."}
+          value={input}
+          onChange={handleInputChange}
+          placeholder={!activeProject ? "Set a project first..." : isBusy ? "Engine is busy..." : "Enter your mission objective..."}
           disabled={!activeProject || isBusy}
           className="flex-grow"
         />
         <Button type="submit" disabled={!canSubmit}>
-          {isBusy ? 'Engine Busy' : 'Start Mission'}
+          {isBusy ? 'Busy' : 'Send'}
         </Button>
       </form>
     </div>

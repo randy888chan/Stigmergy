@@ -10,18 +10,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.
 // Lazy-load components
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
-const StateManagement = lazy(() => import('../components/StateManagement.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
 const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const AgentPerformanceMonitor = lazy(() => import('../components/AgentPerformanceMonitor.js'));
 const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
+const ThoughtProcessVisualizer = lazy(() => import('../components/ThoughtProcessVisualizer.js'));
 
 
 const INITIAL_STATE = {
   logs: [],
   agentActivity: [],
+  thoughts: [],
   project_status: 'Idle',
   project_path: '',
   goal: '',
@@ -75,6 +76,9 @@ const Dashboard = () => {
         case 'log':
              setSystemState(prevState => ({ ...prevState, logs: [...prevState.logs.slice(-100), payload] }));
              break;
+        case 'agent_thought':
+            setSystemState(prevState => ({ ...prevState, thoughts: [...prevState.thoughts.slice(-100), payload] }));
+            break;
         case 'agent_start':
         case 'tool_start':
         case 'tool_end':
@@ -222,30 +226,16 @@ const Dashboard = () => {
             <ResizableHandle withHandle />
             <ResizablePanel defaultSize={25}>
                 <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={65}>
-                        <Card className="h-full w-full rounded-none border-0 border-b flex flex-col">
-                            <CardHeader>
-                                <CardTitle>Activity Log</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-grow overflow-auto">
-                                <Suspense fallback={<div>Loading Logs...</div>}>
-                                    <ActivityLog logs={systemState.logs} agentActivity={systemState.agentActivity} />
-                                </Suspense>
-                            </CardContent>
-                        </Card>
+                    <ResizablePanel defaultSize={60}>
+                        <Suspense fallback={<div className="p-4">Loading Activity Feed...</div>}>
+                            <ActivityLog agentActivity={systemState.agentActivity} />
+                        </Suspense>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={35}>
-                        <Card className="h-full w-full rounded-none border-0 flex flex-col">
-                            <CardHeader>
-                                <CardTitle>System State</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-grow overflow-auto">
-                                 <Suspense fallback={<div>Loading State...</div>}>
-                                    <StateManagement state={systemState} />
-                                 </Suspense>
-                            </CardContent>
-                        </Card>
+                    <ResizablePanel defaultSize={40}>
+                         <Suspense fallback={<div className="p-4">Loading Thoughts...</div>}>
+                            <ThoughtProcessVisualizer thoughts={systemState.thoughts} />
+                         </Suspense>
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </ResizablePanel>

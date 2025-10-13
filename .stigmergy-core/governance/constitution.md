@@ -17,6 +17,11 @@ Leverage existing patterns, references, and proven solutions when possible. The 
 ### 5. Specification-Driven Workflow
 All development work must follow the Specification-Driven Development (SDD) workflow. Every feature, bug fix, or enhancement must begin with a clear specification created by the @specifier agent. Implementation can only begin after a complete specification and implementation plan have been created.
 
+### 6. Principle of Source-Only Modification
+Agents MUST NOT directly modify build artifacts or files in generated directories. All file modifications must target the original source files.
+- **Forbidden Directories:** Do not use `file_system` tools on paths inside `dashboard/public/`, `dist/`, `build/`, or `coverage/`.
+- **Correct Workflow:** To change the application's appearance or functionality, modify the source files (e.g., in `src/` or `dashboard/src/`). After making changes to dashboard source files, use the `build.rebuild_dashboard` tool to apply the changes.
+
 ## Agent Protocols
 
 ### Constitutional Compliance Protocol

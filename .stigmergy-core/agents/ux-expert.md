@@ -26,4 +26,5 @@ agent:
   engine_tools:
     - "chrome_devtools_tool.*"
     - "superdesign.*"
+    - "build.*"
 ```
