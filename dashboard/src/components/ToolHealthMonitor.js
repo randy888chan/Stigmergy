@@ -2,15 +2,9 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
-const tools = [
-  { name: 'file_system.readFile', frequency: 250, successRate: '99%' },
-  { name: 'file_system.writeFile', frequency: 150, successRate: '97%' },
-  { name: 'shell.execute', frequency: 80, successRate: '92%' },
-  { name: 'qwen_integration.reviewCode', frequency: 45, successRate: '85%' },
-  { name: 'guardian.propose_change', frequency: 10, successRate: '100%' },
-];
+const ToolHealthMonitor = ({ healthData }) => {
+  const tools = healthData?.metrics?.performance?.metrics?.tools || [];
 
-const ToolHealthMonitor = () => {
   return (
     <Card>
       <CardHeader>
@@ -26,13 +20,21 @@ const ToolHealthMonitor = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tools.map((tool) => (
-              <TableRow key={tool.name}>
-                <TableCell>{tool.name}</TableCell>
-                <TableCell>{tool.frequency}</TableCell>
-                <TableCell>{tool.successRate}</TableCell>
+            {tools.length > 0 ? (
+              tools.map((tool) => (
+                <TableRow key={tool.name}>
+                  <TableCell>{tool.name}</TableCell>
+                  <TableCell>{tool.frequency}</TableCell>
+                  <TableCell>{tool.successRate}</TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan="3" className="text-center">
+                  No tool health data available.
+                </TableCell>
               </TableRow>
-            ))}
+            )}
           </TableBody>
         </Table>
       </CardContent>

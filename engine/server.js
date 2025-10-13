@@ -46,6 +46,15 @@ export class Engine {
         // Setup routes and listeners
         this.setupRoutes();
         this.setupStateListener();
+
+        // Add this block:
+        this.healthCheckInterval = setInterval(async () => {
+            if (this.clients.size > 0) {
+                const { get_system_health_overview } = await import('../tools/swarm_intelligence_tools.js');
+                const healthData = await get_system_health_overview();
+                this.broadcastEvent('system_health_update', healthData);
+            }
+        }, 30000); // Broadcast every 30 seconds
     }
 
     async setActiveProject(projectPath) {
@@ -559,6 +568,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
         }
         this.clients.clear();
 
+        clearInterval(this.healthCheckInterval);
         // Use a promise to handle the server closing
         return new Promise((resolve, reject) => {
             if (this.server && this.server.close) {

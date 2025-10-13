@@ -36,6 +36,7 @@ const INITIAL_STATE = {
 const Dashboard = () => {
   const { data, sendMessage } = useWebSocket('ws://localhost:3010/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [healthData, setHealthData] = useState(null);
   const [projectPathInput, setProjectPathInput] = useState('');
 
   const fetchFiles = async () => {
@@ -79,6 +80,9 @@ const Dashboard = () => {
         case 'tool_end':
             setSystemState(prevState => ({ ...prevState, agentActivity: [...prevState.agentActivity.slice(-100), { type, ...payload }] }));
             break;
+        case 'system_health_update':
+          setHealthData(payload);
+          break;
         default:
           break;
       }
@@ -257,19 +261,19 @@ const Dashboard = () => {
                     <ResizablePanelGroup direction="horizontal">
                         <ResizablePanel>
                             <Suspense fallback={<div className="p-4">Loading...</div>}>
-                                <AgentPerformanceMonitor />
+                                <AgentPerformanceMonitor healthData={healthData} />
                             </Suspense>
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel>
                             <Suspense fallback={<div className="p-4">Loading...</div>}>
-                                <ToolHealthMonitor />
+                                <ToolHealthMonitor healthData={healthData} />
                             </Suspense>
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel>
                             <Suspense fallback={<div className="p-4">Loading...</div>}>
-                                <SystemHealthAlerts />
+                                <SystemHealthAlerts healthData={healthData} />
                             </Suspense>
                         </ResizablePanel>
                     </ResizablePanelGroup>

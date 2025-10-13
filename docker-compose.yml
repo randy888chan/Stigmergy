@@ -1,17 +1,31 @@
 version: '3.8'
 services:
+  # This is our new development service
+  stigmergy-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: stigmergy_dev
+    ports:
+      - "3010:3010"
+    volumes:
+      # Mount the entire project directory into the container
+      # This enables hot-reloading when you change files locally
+      - .:/usr/src/app
+      # Use a named volume for node_modules to prevent local modules from overwriting container modules
+      - node_modules:/usr/src/app/node_modules
+    # Use the development environment file
+    env_file:
+      - .env.development
+
+  # The existing production services remain unchanged
   stigmergy:
     build: .
     container_name: stigmergy_app
     ports:
-      - "3010:3010"
-    environment:
-      - NODE_ENV=production
-      # Pass your API keys and Neo4j credentials from a .env.production file
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=your_secure_password
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - "3011:3010" # Use a different host port to avoid conflicts with dev
+    env_file:
+      - .env.production
     depends_on:
       - neo4j
 
@@ -28,3 +42,4 @@ services:
 
 volumes:
   neo4j_data:
+  node_modules: # Define the named volume for node_modules

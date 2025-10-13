@@ -28901,7 +28901,8 @@ var exports_AgentPerformanceMonitor = {};
 __export(exports_AgentPerformanceMonitor, {
   default: () => AgentPerformanceMonitor_default
 });
-var import_react16, jsx_dev_runtime15, agents, AgentPerformanceMonitor = () => {
+var import_react16, jsx_dev_runtime15, AgentPerformanceMonitor = ({ healthData }) => {
+  const agents = healthData?.metrics?.performance?.metrics?.agents || [];
   return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Card, {
     children: [
       /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(CardHeader, {
@@ -28931,7 +28932,7 @@ var import_react16, jsx_dev_runtime15, agents, AgentPerformanceMonitor = () => {
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
             /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableBody, {
-              children: agents.map((agent) => /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
+              children: agents.length > 0 ? agents.map((agent) => /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
                 children: [
                   /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
                     children: agent.name
@@ -28946,7 +28947,13 @@ var import_react16, jsx_dev_runtime15, agents, AgentPerformanceMonitor = () => {
                     children: agent.avgTime
                   }, undefined, false, undefined, this)
                 ]
-              }, agent.name, true, undefined, this))
+              }, agent.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
+                children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
+                  colSpan: "4",
+                  className: "text-center",
+                  children: "No agent performance data available."
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
             }, undefined, false, undefined, this)
           ]
         }, undefined, true, undefined, this)
@@ -28959,12 +28966,6 @@ var init_AgentPerformanceMonitor = __esm(() => {
   init_card();
   init_table();
   jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
-  agents = [
-    { name: "@dispatcher", successRate: "95%", tasks: 120, avgTime: "2.5m" },
-    { name: "@executor", successRate: "88%", tasks: 115, avgTime: "4.1m" },
-    { name: "@debugger", successRate: "60%", tasks: 25, avgTime: "7.8m" },
-    { name: "@metis", successRate: "99%", tasks: 10, avgTime: "1.2m" }
-  ];
   AgentPerformanceMonitor_default = AgentPerformanceMonitor;
 });
 
@@ -28973,7 +28974,8 @@ var exports_ToolHealthMonitor = {};
 __export(exports_ToolHealthMonitor, {
   default: () => ToolHealthMonitor_default
 });
-var import_react17, jsx_dev_runtime16, tools, ToolHealthMonitor = () => {
+var import_react17, jsx_dev_runtime16, ToolHealthMonitor = ({ healthData }) => {
+  const tools = healthData?.metrics?.performance?.metrics?.tools || [];
   return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Card, {
     children: [
       /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(CardHeader, {
@@ -29000,7 +29002,7 @@ var import_react17, jsx_dev_runtime16, tools, ToolHealthMonitor = () => {
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
             /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableBody, {
-              children: tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableRow, {
+              children: tools.length > 0 ? tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableRow, {
                 children: [
                   /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableCell, {
                     children: tool.name
@@ -29012,7 +29014,13 @@ var import_react17, jsx_dev_runtime16, tools, ToolHealthMonitor = () => {
                     children: tool.successRate
                   }, undefined, false, undefined, this)
                 ]
-              }, tool.name, true, undefined, this))
+              }, tool.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableRow, {
+                children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(TableCell, {
+                  colSpan: "3",
+                  className: "text-center",
+                  children: "No tool health data available."
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
             }, undefined, false, undefined, this)
           ]
         }, undefined, true, undefined, this)
@@ -29025,13 +29033,6 @@ var init_ToolHealthMonitor = __esm(() => {
   init_card();
   init_table();
   jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
-  tools = [
-    { name: "file_system.readFile", frequency: 250, successRate: "99%" },
-    { name: "file_system.writeFile", frequency: 150, successRate: "97%" },
-    { name: "shell.execute", frequency: 80, successRate: "92%" },
-    { name: "qwen_integration.reviewCode", frequency: 45, successRate: "85%" },
-    { name: "guardian.propose_change", frequency: 10, successRate: "100%" }
-  ];
   ToolHealthMonitor_default = ToolHealthMonitor;
 });
 
@@ -29079,7 +29080,8 @@ var exports_SystemHealthAlerts = {};
 __export(exports_SystemHealthAlerts, {
   default: () => SystemHealthAlerts_default
 });
-var import_react18, jsx_dev_runtime18, alerts, SystemHealthAlerts = () => {
+var import_react18, jsx_dev_runtime18, SystemHealthAlerts = ({ healthData }) => {
+  const alerts = healthData?.alerts || [];
   return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Card, {
     children: [
       /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardHeader, {
@@ -29089,7 +29091,7 @@ var import_react18, jsx_dev_runtime18, alerts, SystemHealthAlerts = () => {
       }, undefined, false, undefined, this),
       /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardContent, {
         className: "grid gap-4",
-        children: alerts.map((alert, index) => /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Alert, {
+        children: alerts.length > 0 ? alerts.map((alert, index) => /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Alert, {
           children: [
             /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Terminal, {
               className: "h-4 w-4"
@@ -29101,7 +29103,10 @@ var import_react18, jsx_dev_runtime18, alerts, SystemHealthAlerts = () => {
               children: alert.description
             }, undefined, false, undefined, this)
           ]
-        }, index, true, undefined, this))
+        }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
+          className: "text-center text-muted-foreground",
+          children: "No system health alerts."
+        }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
@@ -29112,16 +29117,6 @@ var init_SystemHealthAlerts = __esm(() => {
   init_alert();
   init_lucide_react();
   jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
-  alerts = [
-    {
-      title: "Low Success Rate: @debugger",
-      description: "Recommendation: Enhance @debugger's protocol to include an automated code review step using `qwen_integration.reviewCode` before attempting a fix."
-    },
-    {
-      title: "High Failure Rate: shell.execute",
-      description: "Analysis: Failures correlated with long-running processes. Recommendation: Update `shell.execute` documentation to enforce backgrounding of services."
-    }
-  ];
   SystemHealthAlerts_default = SystemHealthAlerts;
 });
 
@@ -31505,6 +31500,7 @@ var INITIAL_STATE = {
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
   const [systemState, setSystemState] = import_react19.useState(INITIAL_STATE);
+  const [healthData, setHealthData] = import_react19.useState(null);
   const [projectPathInput, setProjectPathInput] = import_react19.useState("");
   const fetchFiles = async () => {
     setSystemState((prevState) => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
@@ -31545,6 +31541,9 @@ var Dashboard = () => {
         case "tool_start":
         case "tool_end":
           setSystemState((prevState) => ({ ...prevState, agentActivity: [...prevState.agentActivity.slice(-100), { type, ...payload }] }));
+          break;
+        case "system_health_update":
+          setHealthData(payload);
           break;
         default:
           break;
@@ -31877,7 +31876,9 @@ var Dashboard = () => {
                           className: "p-4",
                           children: "Loading..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(AgentPerformanceMonitor2, {}, undefined, false, undefined, this)
+                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(AgentPerformanceMonitor2, {
+                          healthData
+                        }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
                     /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(ResizableHandle, {
@@ -31889,7 +31890,9 @@ var Dashboard = () => {
                           className: "p-4",
                           children: "Loading..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(ToolHealthMonitor2, {}, undefined, false, undefined, this)
+                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(ToolHealthMonitor2, {
+                          healthData
+                        }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
                     /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(ResizableHandle, {
@@ -31901,7 +31904,9 @@ var Dashboard = () => {
                           className: "p-4",
                           children: "Loading..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(SystemHealthAlerts2, {}, undefined, false, undefined, this)
+                        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(SystemHealthAlerts2, {
+                          healthData
+                        }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this)
                   ]
