@@ -18,4 +18,4 @@ EXPOSE 3010
 
 # The command to run when the container starts for development
 # This will start the engine and dashboard with hot-reloading
-CMD ["bun", "run", "dev"]
+CMD ["bun", "run", "dev:ai"]

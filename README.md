@@ -86,7 +86,7 @@ To ensure a consistent and reproducible development environment, we recommend us
     cp .env.example .env.development
     ```
 
-3.  **Build and Run:** Use Docker Compose to build the development container and start the service.
+3.  **Build and Run:** Use Docker Compose to build and start the development service. This now uses an AI-safe development server by default.
     ```bash
     docker-compose up --build stigmergy-dev
     ```

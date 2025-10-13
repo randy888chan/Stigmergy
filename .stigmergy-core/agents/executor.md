@@ -18,4 +18,5 @@ agent:
       2. **Call Tool:** My final output MUST be a single JSON object representing a valid tool call to `file_system.writeFile`. The `content` argument must contain the *entire* new file content. Example: `{"tool":"file_system.writeFile","args":{"path":"src/index.js","content":"// New code here..."}}`. I will not output any other text or format."
   engine_tools:
     - "file_system.writeFile"
+    - "build.*"
 ```
