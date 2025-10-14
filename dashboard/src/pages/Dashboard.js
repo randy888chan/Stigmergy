@@ -3,11 +3,10 @@ import useWebSocket from '../hooks/useWebSocket.js';
 import { cn } from "../lib/utils.js";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
 import { Separator } from "../components/ui/separator.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Button } from "../components/ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
 
 // Lazy-load components
+const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
@@ -38,8 +37,6 @@ const Dashboard = () => {
   const { data, sendMessage } = useWebSocket('ws://localhost:3010/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
   const [healthData, setHealthData] = useState(null);
-  const [projectPathInput, setProjectPathInput] = useState('');
-
   const fetchFiles = async () => {
     setSystemState(prevState => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -93,9 +90,9 @@ const Dashboard = () => {
     }
   }, [data]);
 
-  const handleSetProject = () => {
-    if (projectPathInput) {
-      sendMessage({ type: 'set_project', payload: { path: projectPathInput } });
+  const handleProjectSelect = (selectedPath) => {
+    if (selectedPath) {
+      sendMessage({ type: 'set_project', payload: { path: selectedPath } });
     }
   };
 
@@ -135,17 +132,9 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-4 border-b h-full">
             <div className="flex items-center gap-4">
                 <h1 className="text-xl font-bold">Stigmergy</h1>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="text"
-                        placeholder="Absolute path to your project..."
-                        value={projectPathInput}
-                        onChange={(e) => setProjectPathInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSetProject()}
-                        className="w-[350px]"
-                    />
-                    <Button onClick={handleSetProject}>Set Active Project</Button>
-                </div>
+                <Suspense fallback={<div className="p-4">Loading Project Selector...</div>}>
+                    <ProjectSelector onProjectSelect={handleProjectSelect} />
+                </Suspense>
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <span><b>Active Project:</b> {systemState.project_path || 'None'}</span>
@@ -240,11 +229,6 @@ const Dashboard = () => {
                 </ResizablePanelGroup>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20}>
-                <Suspense fallback={<div className="p-4">Loading Mission Plan...</div>}>
-                    <MissionPlanner />
-                </Suspense>
-            </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
