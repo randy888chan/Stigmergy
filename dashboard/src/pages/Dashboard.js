@@ -3,9 +3,8 @@ import useWebSocket from '../hooks/useWebSocket.js';
 import { cn } from "../lib/utils.js";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
 import { Separator } from "../components/ui/separator.jsx";
-import { Input } from "../components/ui/input.jsx";
-import { Button } from "../components/ui/button.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
+import ProjectSelector from '../components/ProjectSelector.js';
 
 // Lazy-load components
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
@@ -135,17 +134,7 @@ const Dashboard = () => {
           <div className="flex items-center justify-between p-4 border-b h-full">
             <div className="flex items-center gap-4">
                 <h1 className="text-xl font-bold">Stigmergy</h1>
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="text"
-                        placeholder="Absolute path to your project..."
-                        value={projectPathInput}
-                        onChange={(e) => setProjectPathInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSetProject()}
-                        className="w-[350px]"
-                    />
-                    <Button onClick={handleSetProject}>Set Active Project</Button>
-                </div>
+                <ProjectSelector onProjectSelect={(path) => sendMessage({ type: 'set_project', payload: { path } })} />
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <span><b>Active Project:</b> {systemState.project_path || 'None'}</span>
@@ -238,12 +227,6 @@ const Dashboard = () => {
                         </Suspense>
                     </ResizablePanel>
                 </ResizablePanelGroup>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20}>
-                <Suspense fallback={<div className="p-4">Loading Mission Plan...</div>}>
-                    <MissionPlanner />
-                </Suspense>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>

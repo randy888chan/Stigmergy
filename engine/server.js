@@ -311,6 +311,34 @@ Based on all the information above, please create the initial \`plan.md\` file t
             }
         });
 
+        this.app.get('/api/projects', async (c) => {
+            const { basePath } = c.req.query();
+
+            if (!basePath) {
+                return c.json({ error: 'basePath is required' }, 400);
+            }
+
+            // Security: Basic path traversal check
+            if (basePath.includes('..')) {
+                return c.json({ error: 'Invalid basePath' }, 400);
+            }
+
+            try {
+                const dirents = await fs.readdir(basePath, { withFileTypes: true });
+                const directories = dirents
+                    .filter(dirent => dirent.isDirectory())
+                    .map(dirent => dirent.name);
+                return c.json(directories);
+            } catch (error) {
+                // Handle cases like path not existing
+                if (error.code === 'ENOENT') {
+                    return c.json({ error: `Directory not found: ${basePath}` }, 404);
+                }
+                console.error(chalk.red(`[Engine] Error reading projects directory: ${error.message}`));
+                return c.json({ error: 'Failed to list projects.' }, 500);
+            }
+        });
+
         this.app.get('/api/mission-plan', async (c) => {
             const planPath = path.join(this.projectRoot, 'plan.md');
             try {
