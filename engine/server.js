@@ -311,6 +311,24 @@ Based on all the information above, please create the initial \`plan.md\` file t
             }
         });
 
+        this.app.get('/api/mission-plan', async (c) => {
+            const planPath = path.join(this.projectRoot, 'plan.md');
+            try {
+                const fileContent = await fs.readFile(planPath, 'utf-8');
+                const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/);
+                if (!yamlMatch || !yamlMatch[1]) {
+                    return c.json({ tasks: [], message: 'Could not parse YAML from plan.md.' }, 500);
+                }
+                const planData = yaml.load(yamlMatch[1]);
+                return c.json(planData);
+            } catch (error) {
+                if (error.code === 'ENOENT') {
+                    return c.json({ tasks: [], message: 'Plan not yet created.' });
+                }
+                return c.json({ error: `Failed to read or parse mission plan: ${error.message}` }, 500);
+            }
+        });
+
         this.app.post('/api/upload', async (c) => {
             try {
                 const formData = await c.req.formData();
