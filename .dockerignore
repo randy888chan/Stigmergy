@@ -1,0 +1,24 @@
+# Git version control
+.git
+.gitignore
+
+# Node.js dependencies (installed inside the container)
+node_modules
+
+# IDE and OS-specific files
+.vscode
+.idea
+.DS_Store
+
+# Logs and temporary files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local environment files (should be managed by docker-compose)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
