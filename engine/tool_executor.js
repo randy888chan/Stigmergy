@@ -76,6 +76,20 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
   }
 
   if (!workingDirectory) {
+    // --- ADD THIS NEW BLOCK ---
+    if (config.security?.generatedPaths) {
+      const projectScope = projectRoot || process.cwd();
+      const resolved = path.resolve(projectScope, filePath);
+      const relativeToProject = path.relative(projectScope, resolved);
+
+      const isGenerated = config.security.generatedPaths.some(p => relativeToProject.startsWith(p));
+      if (isGenerated) {
+        // Throw a specific, educational error that reinforces the Constitution.
+        throw new Error(`Security violation: Path "${filePath}" is inside a protected 'generated' directory. Per the Constitution, agents must only edit SOURCE files and then use the 'build.rebuild_dashboard' tool.`);
+      }
+    }
+    // --- END OF NEW BLOCK ---
+
     const relative = path.relative(projectScope, resolved);
     const isSafe = relative === '' || SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
     if (!isSafe) {

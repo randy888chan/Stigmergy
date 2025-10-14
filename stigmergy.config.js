@@ -25,6 +25,13 @@ const config = {
       "specs"
     ],
     maxFileSizeMB: 1,
+    // Add this new section:
+    generatedPaths: [
+      "dashboard/public",
+      "dist",
+      "build",
+      "coverage"
+    ]
   },
   features: {
     neo4j: "auto", // Options: 'required', 'auto', 'memory'
