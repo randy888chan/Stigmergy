@@ -1,5 +1,5 @@
 import React from 'react';
-import { useChat } from 'ai/react';
+import { useChat } from '@ai-sdk/react';
 import { Input } from './ui/input.jsx';
 import { Button } from './ui/button.jsx';
 import { ScrollArea } from './ui/scroll-area.jsx';

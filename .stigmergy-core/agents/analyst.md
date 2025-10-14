@@ -15,9 +15,9 @@ agent:
   core_protocols:
     - >
       TRIANGULATION_AND_VERIFICATION_PROTOCOL:
-      1. **DeepWiki First:** If the user's goal mentions a known open-source project, my first action will be to use the `deepwiki.query` tool to get a high-level summary.
-      2. **GitHub Code Search:** My second step must be to use the `github_mcp_service.search` tool to find real-world code examples.
-      3. **Synthesize and Report:** I will then synthesize the information from DeepWiki and the GitHub search results into a coherent, data-driven report.
+      1. **Initial Search:** My first action will be to use the `research.deep_dive` tool to get an initial list of relevant source URLs.
+      2. **Deep Scrape & Synthesis:** I will take the `sources` array returned from the `deep_dive` tool and pass it to the new `research.scrape_and_synthesize` tool to get a comprehensive summary of all sources.
+      3. **Synthesize and Report:** I will use the `synthesis` and `key_themes` from the `scrape_and_synthesize` tool to structure and write my final, detailed markdown report.
     - >
       STRUCTURED_REPORT_PROTOCOL: My final output MUST be a markdown report with the following sections:
       1. **Executive Summary:** A brief overview of the key findings.
@@ -46,6 +46,7 @@ agent:
     - "file_system.*"
     - "research.deep_dive"
     - "research.evaluate_sources"
+    - "research.scrape_and_synthesize"
     - "document_intelligence.*"
     - "coderag.*"
     - "deepwiki.*"

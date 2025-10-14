@@ -16,7 +16,7 @@ const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const AgentPerformanceMonitor = lazy(() => import('../components/AgentPerformanceMonitor.js'));
 const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
-const ThoughtProcessVisualizer = lazy(() => import('../components/ThoughtProcessVisualizer.js'));
+const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
 
 
 const INITIAL_STATE = {
@@ -157,7 +157,7 @@ const Dashboard = () => {
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={65}>
           <ResizablePanelGroup direction="horizontal" className="h-full">
-            <ResizablePanel defaultSize={50}>
+            <ResizablePanel defaultSize={40}>
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={50}>
                     <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
@@ -194,7 +194,7 @@ const Dashboard = () => {
               </ResizablePanelGroup>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25}>
+            <ResizablePanel defaultSize={20}>
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={60}>
                     <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
@@ -224,20 +224,26 @@ const Dashboard = () => {
               </ResizablePanelGroup>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25}>
+            <ResizablePanel defaultSize={20}>
                 <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={60}>
+                    <ResizablePanel defaultSize={50}>
+                         <Suspense fallback={<div className="p-4">Loading Mission Plan...</div>}>
+                            <MissionPlanner />
+                         </Suspense>
+                    </ResizablePanel>
+                    <ResizableHandle withHandle />
+                    <ResizablePanel defaultSize={50}>
                         <Suspense fallback={<div className="p-4">Loading Activity Feed...</div>}>
                             <ActivityLog agentActivity={systemState.agentActivity} />
                         </Suspense>
                     </ResizablePanel>
-                    <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={40}>
-                         <Suspense fallback={<div className="p-4">Loading Thoughts...</div>}>
-                            <ThoughtProcessVisualizer thoughts={systemState.thoughts} />
-                         </Suspense>
-                    </ResizablePanel>
                 </ResizablePanelGroup>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel defaultSize={20}>
+                <Suspense fallback={<div className="p-4">Loading Mission Plan...</div>}>
+                    <MissionPlanner />
+                </Suspense>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>

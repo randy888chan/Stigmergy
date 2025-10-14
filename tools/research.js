@@ -212,3 +212,50 @@ export async function evaluate_sources({ urls }, ai, config) {
 
   return results;
 }
+
+export async function scrape_and_synthesize({ urls }, ai, config) {
+  console.log(chalk.blue(`[Research] Scraping ${urls.length} URLs for synthesis.`));
+  const firecrawl = getFirecrawlClient();
+  const { getModelForTier, generateObject } = ai;
+
+  try {
+    const scrapeResults = await Promise.all(
+      urls.map(url => firecrawl.scrape({ url, pageOptions: { onlyMainContent: true } }))
+    );
+
+    const allContent = scrapeResults
+      .map((result, index) => `--- Source: ${urls[index]} ---\n\n${result.markdown}`)
+      .join("\n\n");
+
+    if (allContent.trim() === "") {
+      console.log(chalk.yellow("[Research] All scraped content was empty. Nothing to synthesize."));
+      return {
+        synthesis: "No content could be scraped from the provided URLs.",
+        key_themes: [],
+      };
+    }
+
+    const { client, modelName } = getModelForTier('reasoning_tier', null, config);
+
+    const { object } = await defaultGenerateObject({
+      model: client(modelName),
+      system: "You are a world-class research analyst. Your task is to synthesize information from multiple sources into a coherent and insightful summary.",
+      prompt: `Based on the following content scraped from multiple sources, please provide a detailed synthesis of the key findings, identify the main themes, and extract any actionable insights.`,
+      schema: z.object({
+        synthesis: z.string().describe("A detailed synthesis of the key findings from all sources."),
+        key_themes: z.array(z.string()).describe("The main themes identified across the documents."),
+      }),
+    });
+
+    return object;
+
+  } catch (error) {
+    console.error(chalk.red(`[Research Tool] Scrape and synthesize failed:`), error.message);
+    // Return a structured error to avoid crashing the agent
+    return {
+      error: `An error occurred during the scrape and synthesis process: ${error.message}`,
+      synthesis: "",
+      key_themes: [],
+    };
+  }
+}
