@@ -81,4 +81,15 @@ export default (engine) => ({
       return { success: false, error: error.message, report: error.stdout || error.stderr };
     }
   },
+
+  update_objective: async ({ agent, task, thought }) => {
+    if (!agent || !task) {
+      throw new Error("The 'agent' and 'task' arguments are required for system.update_objective.");
+    }
+    const payload = { agent, task, thought: thought || "Executing..." };
+    engine.broadcastEvent('objective_update', payload);
+    const confirmation = `Objective updated for agent ${agent}.`;
+    console.log(`[System Tool] ${confirmation}`);
+    return confirmation;
+  },
 });

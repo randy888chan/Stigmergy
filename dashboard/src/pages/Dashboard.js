@@ -4,6 +4,7 @@ import { cn } from "../lib/utils.js";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
 import { Separator } from "../components/ui/separator.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
+import CurrentObjective from '../components/CurrentObjective.js';
 
 // Lazy-load components
 const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
@@ -36,6 +37,7 @@ const INITIAL_STATE = {
 const Dashboard = () => {
   const { data, sendMessage } = useWebSocket('ws://localhost:3010/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [currentObjective, setCurrentObjective] = useState(null);
   const [healthData, setHealthData] = useState(null);
   const fetchFiles = async () => {
     setSystemState(prevState => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
@@ -83,6 +85,9 @@ const Dashboard = () => {
             break;
         case 'system_health_update':
           setHealthData(payload);
+          break;
+        case 'objective_update':
+          setCurrentObjective(payload);
           break;
         default:
           break;
@@ -216,8 +221,8 @@ const Dashboard = () => {
             <ResizablePanel defaultSize={20}>
                 <ResizablePanelGroup direction="vertical">
                     <ResizablePanel defaultSize={50}>
-                         <Suspense fallback={<div className="p-4">Loading Mission Plan...</div>}>
-                            <MissionPlanner />
+                         <Suspense fallback={<div className="p-4">Loading Objective...</div>}>
+                            <CurrentObjective objective={currentObjective} />
                          </Suspense>
                     </ResizablePanel>
                     <ResizableHandle withHandle />
