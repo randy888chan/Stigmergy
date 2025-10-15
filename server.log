@@ -3,8 +3,8 @@ $ tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o 
 
 Rebuilding...
 
-Done in 443ms.
-Bundled 1734 modules in 195ms
+Done in 417ms.
+Bundled 1734 modules in 138ms
 
   index.js  2.1 MB  (entry point)
 
@@ -17,3 +17,12 @@ warn: wildcard sideEffects are not supported yet, which means this package will 
          ^
 warn: wildcard sideEffects are not supported yet, which means this package will be deoptimized
    at /app/node_modules/use-sidecar/package.json:41:5
+🔧 Loading environment configuration for: development
+   ❌ Environment file not found. Looked for: .env.development, .env.development, .env
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+GraphStateManager: Setting up stateChanged event listener
+Initializing Stigmergy Engine...
+[Engine] Detected Bun environment. Using Bun.serve.
+🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:3010
+GraphStateManager: Neo4j credentials not set. State will not be persisted.
+GraphStateManager: Running in memory-only mode. State changes will not persist between sessions.

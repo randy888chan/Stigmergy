@@ -32065,79 +32065,103 @@ __export(exports_ProjectSelector, {
   default: () => ProjectSelector_default
 });
 var import_react11, import_path_browserify, jsx_dev_runtime7, ProjectSelector = ({ onProjectSelect }) => {
-  const [basePath, setBasePath] = import_react11.useState("~");
+  const [basePath, setBasePath] = import_react11.useState("~/Projects/");
   const [projects, setProjects] = import_react11.useState([]);
   const [isLoading, setIsLoading] = import_react11.useState(false);
   const [error, setError] = import_react11.useState("");
-  const [selectedProject, setSelectedProject] = import_react11.useState(null);
   const fetchProjects = import_react11.useCallback(async () => {
     if (!basePath) {
-      setError("Please provide a base path.");
+      setError("Please enter a base path to search for projects.");
       return;
     }
     setIsLoading(true);
     setError("");
     setProjects([]);
-    setSelectedProject(null);
     try {
       const response = await fetch(`/api/projects?basePath=${encodeURIComponent(basePath)}`);
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || `Error: ${response.status}`);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `Failed to fetch projects: ${response.statusText}`);
       }
       const data = await response.json();
       setProjects(data);
+      if (data.length === 0) {
+        setError("No projects found in the specified directory.");
+      }
     } catch (err) {
       setError(err.message);
     } finally {
       setIsLoading(false);
     }
   }, [basePath]);
-  const handleSelectChange = (projectName) => {
-    if (projectName) {
-      const fullPath = import_path_browserify.default.join(basePath, projectName);
-      setSelectedProject(fullPath);
-      if (onProjectSelect) {
-        onProjectSelect(fullPath);
-      }
+  const handleProjectSelection = (selectedProjectName) => {
+    if (selectedProjectName && onProjectSelect) {
+      const fullProjectPath = import_path_browserify.default.join(basePath, selectedProjectName);
+      onProjectSelect(fullProjectPath);
     }
   };
   return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
-    className: "flex items-center gap-2",
+    className: "p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 flex items-center gap-4",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Input, {
-        type: "text",
-        placeholder: "Base path for projects...",
-        value: basePath,
-        onChange: (e) => setBasePath(e.target.value),
-        onKeyDown: (e) => e.key === "Enter" && fetchProjects(),
-        className: "w-[250px]"
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Button, {
-        onClick: fetchProjects,
-        disabled: isLoading,
-        children: isLoading ? "Loading..." : "Find Projects"
-      }, undefined, false, undefined, this),
-      error && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("p", {
-        className: "text-sm text-red-500",
-        children: error
-      }, undefined, false, undefined, this),
-      projects.length > 0 && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Select2, {
-        onValueChange: handleSelectChange,
-        disabled: !projects.length,
+      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+        className: "flex flex-col gap-2",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectTrigger2, {
-            className: "w-[280px]",
-            children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectValue2, {
-              placeholder: "Select a project"
-            }, undefined, false, undefined, this)
+          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("label", {
+            htmlFor: "basePathInput",
+            className: "text-sm font-medium text-gray-700 dark:text-gray-300",
+            children: "Project Base Path"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectContent2, {
-            children: projects.map((project) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectItem2, {
-              value: project,
-              children: project
-            }, project, false, undefined, this))
+          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+            className: "flex items-center gap-2",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Input, {
+                id: "basePathInput",
+                type: "text",
+                placeholder: "e.g., /Users/user/dev",
+                value: basePath,
+                onChange: (e) => setBasePath(e.target.value),
+                onKeyDown: (e) => e.key === "Enter" && fetchProjects(),
+                className: "w-72"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Button, {
+                onClick: fetchProjects,
+                disabled: isLoading,
+                children: isLoading ? "Searching..." : "Find Projects"
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          error && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("p", {
+            className: "text-sm text-red-600 mt-1",
+            children: error
           }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      projects.length > 0 && /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+        className: "flex flex-col gap-2",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("label", {
+            htmlFor: "projectSelect",
+            className: "text-sm font-medium text-gray-700 dark:text-gray-300",
+            children: "Select Project"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Select2, {
+            onValueChange: handleProjectSelection,
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectTrigger2, {
+                id: "projectSelect",
+                className: "w-72",
+                children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectValue2, {
+                  placeholder: "Click to see projects..."
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectContent2, {
+                children: projects.map((project) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectItem2, {
+                  value: project,
+                  children: project
+                }, project, false, undefined, this))
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this)
     ]
@@ -55333,8 +55357,8 @@ var Dashboard = () => {
                   }, undefined, false, undefined, this),
                   /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react27.Suspense, {
                     fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
-                      className: "p-4",
-                      children: "Loading Project Selector..."
+                      className: "p-2 text-sm text-muted-foreground",
+                      children: "Loading Project Manager..."
                     }, undefined, false, undefined, this),
                     children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ProjectSelector2, {
                       onProjectSelect: handleProjectSelect
@@ -55346,30 +55370,25 @@ var Dashboard = () => {
                 className: "flex items-center gap-4 text-sm",
                 children: [
                   /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("span", {
-                    children: [
-                      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("b", {
-                        children: "Active Project:"
-                      }, undefined, false, undefined, this),
-                      " ",
-                      systemState.project_path || "None"
-                    ]
-                  }, undefined, true, undefined, this),
+                    className: "text-muted-foreground",
+                    children: "Active Project:"
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("span", {
+                    className: "font-mono bg-muted px-2 py-1 rounded-md",
+                    children: systemState.project_path || "Not Selected"
+                  }, undefined, false, undefined, this),
                   /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Separator2, {
                     orientation: "vertical",
                     className: "h-6"
                   }, undefined, false, undefined, this),
                   /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("span", {
-                    children: [
-                      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("b", {
-                        children: "Status:"
-                      }, undefined, false, undefined, this),
-                      " ",
-                      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("span", {
-                        className: "font-mono p-1 bg-muted rounded-md",
-                        children: systemState.project_status || "Idle"
-                      }, undefined, false, undefined, this)
-                    ]
-                  }, undefined, true, undefined, this)
+                    className: "text-muted-foreground",
+                    children: "Status:"
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("span", {
+                    className: "font-mono bg-muted px-2 py-1 rounded-md",
+                    children: systemState.project_status || "Idle"
+                  }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             ]
