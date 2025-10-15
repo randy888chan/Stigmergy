@@ -9,7 +9,7 @@ describe('External Service Health Check: AI Provider', () => {
   const baseURL = process.env.OPENROUTER_BASE_URL;
   const credentialsArePresent = apiKey && baseURL;
 
-  test('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
+  test.if(credentialsArePresent)('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
     try {
       const response = await axios.get(`${baseURL}/models`, {
         headers: {
