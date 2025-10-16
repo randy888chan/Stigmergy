@@ -26,9 +26,20 @@ const GovernanceDashboard = () => {
   }, []);
 
   const handleDecision = async (proposalId, decision) => {
-    // This will be implemented in a future step
-    console.log(`Decision: ${decision} for proposal ${proposalId}`);
-  };
+    try {
+        const response = await fetch(`/api/proposals/${proposalId}/${decision}`, {
+            method: 'POST',
+        });
+        const result = await response.json();
+        if (!response.ok) {
+            throw new Error(result.error || 'API call failed');
+        }
+        // Refresh the list of proposals after a decision is made
+        fetchProposals();
+    } catch (error) {
+        console.error(`Failed to ${decision} proposal:`, error);
+    }
+};
 
   if (isLoading) return <p>Loading proposals...</p>;
 
