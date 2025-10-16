@@ -53379,15 +53379,64 @@ var init_GovernanceDashboard = __esm(() => {
   GovernanceDashboard_default = GovernanceDashboard;
 });
 
+// dashboard/src/components/ThoughtStream.js
+var exports_ThoughtStream = {};
+__export(exports_ThoughtStream, {
+  default: () => ThoughtStream_default
+});
+var import_react30, jsx_dev_runtime24, ThoughtStream = ({ thoughts }) => {
+  return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+    className: "h-full w-full flex flex-col",
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+          children: "Live Thought Stream"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+        className: "flex-grow overflow-hidden",
+        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ScrollArea2, {
+          className: "h-full w-full pr-4",
+          children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+            className: "space-y-3",
+            children: thoughts.length > 0 ? thoughts.map((thought, index2) => /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+              className: "text-sm text-muted-foreground",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                  className: "font-mono text-xs mr-2",
+                  children: new Date(thought.timestamp).toLocaleTimeString()
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                  children: thought.thought
+                }, undefined, false, undefined, this)
+              ]
+            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
+              className: "text-sm text-muted-foreground",
+              children: "Waiting for agent thoughts..."
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}, ThoughtStream_default;
+var init_ThoughtStream = __esm(() => {
+  import_react30 = __toESM(require_react(), 1);
+  init_card();
+  init_scroll_area();
+  jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
+  ThoughtStream_default = ThoughtStream;
+});
+
 // dashboard/src/index.js
-var import_react32 = __toESM(require_react(), 1);
+var import_react33 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react31 = __toESM(require_react(), 1);
+var import_react32 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react30 = __toESM(require_react(), 1);
+var import_react31 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
@@ -53397,7 +53446,9 @@ var useWebSocket = (url) => {
   const [loading, setLoading] = import_react.useState(true);
   const ws = import_react.useRef(null);
   import_react.useEffect(() => {
-    const wsUrl = url || process.env.REACT_APP_WEBSOCKET_URL || "ws://localhost:3010/ws";
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = window.location.host;
+    const wsUrl = url || `${protocol}//${host}/ws`;
     ws.current = new WebSocket(wsUrl);
     ws.current.onopen = () => {
       console.log(`WebSocket connection opened to ${url}`);
@@ -55812,18 +55863,19 @@ var CurrentObjective = ({ objective }) => {
 var CurrentObjective_default = CurrentObjective;
 
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react30.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var CodeBrowser2 = import_react30.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var ActivityLog2 = import_react30.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react30.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var DocumentUploader2 = import_react30.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
-var FileViewer2 = import_react30.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
-var AgentPerformanceMonitor2 = import_react30.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
-var ToolHealthMonitor2 = import_react30.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SystemHealthAlerts2 = import_react30.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
-var MissionPlanner2 = import_react30.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
-var GovernanceDashboard2 = import_react30.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
+var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
+var ProjectSelector2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var CodeBrowser2 = import_react31.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var ActivityLog2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var DocumentUploader2 = import_react31.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
+var FileViewer2 = import_react31.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+var AgentPerformanceMonitor2 = import_react31.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
+var ToolHealthMonitor2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SystemHealthAlerts2 = import_react31.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
+var MissionPlanner2 = import_react31.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
+var GovernanceDashboard2 = import_react31.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
+var ThoughtStream2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ThoughtStream(), exports_ThoughtStream)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -55840,9 +55892,10 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react30.useState(INITIAL_STATE);
-  const [currentObjective, setCurrentObjective] = import_react30.useState(null);
-  const [healthData, setHealthData] = import_react30.useState(null);
+  const [systemState, setSystemState] = import_react31.useState(INITIAL_STATE);
+  const [thoughtStream, setThoughtStream] = import_react31.useState([]);
+  const [currentObjective, setCurrentObjective] = import_react31.useState(null);
+  const [healthData, setHealthData] = import_react31.useState(null);
   const fetchFiles = async () => {
     setSystemState((prevState) => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -55858,7 +55911,7 @@ var Dashboard = () => {
       setSystemState((prevState) => ({ ...prevState, files: [], filesError: error40.message, isFileListLoading: false }));
     }
   };
-  import_react30.useEffect(() => {
+  import_react31.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -55891,6 +55944,9 @@ var Dashboard = () => {
           break;
         case "objective_update":
           setCurrentObjective(payload);
+          break;
+        case "thought_stream":
+          setThoughtStream((prevStream) => [payload, ...prevStream].slice(0, 50));
           break;
         default:
           break;
@@ -55931,60 +55987,60 @@ var Dashboard = () => {
       }));
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
     className: "dark h-screen w-screen bg-background text-foreground",
-    children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+    children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
       direction: "vertical",
       className: "h-full w-full",
       children: [
-        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
           defaultSize: 10,
           minSize: 10,
           maxSize: 10,
-          children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
             className: "flex items-center justify-between p-4 border-b h-full",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                 className: "flex items-center gap-4",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("h1", {
+                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("h1", {
                     className: "text-xl font-bold",
                     children: "Stigmergy"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                    fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                    fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                       className: "p-4",
                       children: "Loading Project Selector..."
                     }, undefined, false, undefined, this),
-                    children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ProjectSelector2, {
+                    children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ProjectSelector2, {
                       onProjectSelect: handleProjectSelect
                     }, undefined, false, undefined, this)
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                 className: "flex items-center gap-4 text-sm",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("b", {
+                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("b", {
                         children: "Active Project:"
                       }, undefined, false, undefined, this),
                       " ",
                       systemState.project_path || "None"
                     ]
                   }, undefined, true, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Separator2, {
+                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Separator2, {
                     orientation: "vertical",
                     className: "h-6"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("b", {
+                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("b", {
                         children: "Status:"
                       }, undefined, false, undefined, this),
                       " ",
-                      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
                         className: "font-mono p-1 bg-muted rounded-md",
                         children: systemState.project_status || "Idle"
                       }, undefined, false, undefined, this)
@@ -55995,44 +56051,44 @@ var Dashboard = () => {
             ]
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
           withHandle: true
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
           defaultSize: 65,
-          children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
             direction: "horizontal",
             className: "h-full",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                 defaultSize: 40,
-                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                   direction: "vertical",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
                         className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
                         children: [
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
                               children: "Code Browser"
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
                             className: "flex-grow overflow-auto p-0",
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading Code..."
                               }, undefined, false, undefined, this),
-                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CodeBrowser2, {
+                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
                                 files: systemState.files,
                                 onFileSelect: handleFileSelect,
                                 selectedFile: systemState.selectedFile,
                                 isLoading: systemState.isFileListLoading,
                                 error: systemState.filesError
-                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "text-muted-foreground p-4",
                                 children: "Set a project to see files."
                               }, undefined, false, undefined, this)
@@ -56041,17 +56097,17 @@ var Dashboard = () => {
                         ]
                       }, undefined, true, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                           className: "p-4",
                           children: "Loading Viewer..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(FileViewer2, {
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(FileViewer2, {
                           filePath: systemState.selectedFile,
                           content: systemState.fileContent,
                           isLoading: systemState.isFileContentLoading
@@ -56061,32 +56117,32 @@ var Dashboard = () => {
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                 withHandle: true
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                 defaultSize: 20,
-                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                   direction: "vertical",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 60,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
                         className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
                         children: [
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
                               children: "Agent Chat"
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
                             className: "flex-grow p-2",
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading Chat..."
                               }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ChatInterface2, {
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ChatInterface2, {
                                 sendMessage,
                                 engineStatus: systemState.project_status,
                                 activeProject: systemState.project_path
@@ -56096,27 +56152,27 @@ var Dashboard = () => {
                         ]
                       }, undefined, true, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 40,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
                         className: "h-full w-full rounded-none border-0 border-r flex flex-col",
                         children: [
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
                               children: "Document Intelligence"
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
                             className: "flex-grow overflow-y-auto p-4 space-y-4",
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading Uploader..."
                               }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this)
                         ]
@@ -56125,119 +56181,142 @@ var Dashboard = () => {
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                 withHandle: true
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                 defaultSize: 20,
-                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                   direction: "vertical",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                           className: "p-4",
                           children: "Loading Objective..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CurrentObjective_default, {
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CurrentObjective_default, {
                           objective: currentObjective
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
                       defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading Activity Feed..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ActivityLog2, {
-                          agentActivity: systemState.agentActivity
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
+                        direction: "vertical",
+                        children: [
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                            defaultSize: 50,
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                                className: "p-4",
+                                children: "Loading Thought Stream..."
+                              }, undefined, false, undefined, this),
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ThoughtStream2, {
+                                thoughts: thoughtStream
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          }, undefined, false, undefined, this),
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
+                            withHandle: true
+                          }, undefined, false, undefined, this),
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                            defaultSize: 50,
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                                className: "p-4",
+                                children: "Loading Activity Feed..."
+                              }, undefined, false, undefined, this),
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ActivityLog2, {
+                                agentActivity: systemState.agentActivity
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          }, undefined, false, undefined, this)
+                        ]
+                      }, undefined, true, undefined, this)
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                 withHandle: true
               }, undefined, false, undefined, this)
             ]
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
           withHandle: true
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
+        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
           defaultSize: 25,
-          children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
             className: "h-full w-full rounded-none border-0 border-t flex flex-col",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
-                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
                   children: "System Health Overview"
                 }, undefined, false, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
                 className: "flex-grow overflow-auto p-2",
-                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                   direction: "horizontal",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                           className: "p-4",
                           children: "Loading..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(AgentPerformanceMonitor2, {
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(AgentPerformanceMonitor2, {
                           healthData
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                           className: "p-4",
                           children: "Loading Governance..."
                         }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanelGroup, {
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                         direction: "vertical",
                         children: [
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading..."
                               }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ToolHealthMonitor2, {
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ToolHealthMonitor2, {
                                 healthData
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizableHandle, {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                             withHandle: true
                           }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ResizablePanel, {
-                            children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react30.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading..."
                               }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(SystemHealthAlerts2, {
+                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(SystemHealthAlerts2, {
                                 healthData
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this)
@@ -56258,15 +56337,15 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/index.js
-var jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime26.jsxDEV(import_react32.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react33.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(App_default, {}, undefined, false, undefined, this)
 }, undefined, false, undefined, this));

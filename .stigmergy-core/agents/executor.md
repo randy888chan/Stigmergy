@@ -15,8 +15,11 @@ agent:
   core_protocols:
     - >
       DIRECT_IMPLEMENTATION_PROTOCOL: "My final output MUST be a tool call to file_system.writeFile. If this tool call fails for any reason, I will immediately delegate to the @debugger agent using stigmergy.task. My prompt will include the original task, the code I generated, and the exact error message I received. I will not attempt to fix the error myself."
+    - >
+      THINK_OUT_LOUD_PROTOCOL: "Before I take any significant action (like calling another tool or generating a large piece of code), I MUST first use the `system.stream_thought` tool to broadcast my intention and my reasoning. This provides real-time transparency into my decision-making process."
   engine_tools:
     - "file_system.writeFile"
     - "build.*"
     - "stigmergy.task"
+    - "system.stream_thought"
 ```
