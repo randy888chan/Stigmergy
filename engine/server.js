@@ -356,6 +356,89 @@ Based on all the information above, please create the initial \`plan.md\` file t
             }
         });
 
+        this.app.get('/api/proposals', async (c) => {
+            const proposalsDir = path.join(this.corePath, 'proposals');
+            try {
+                const proposalFiles = await fs.readdir(proposalsDir);
+                const jsonFiles = proposalFiles.filter(f => f.endsWith('.json'));
+
+                const proposals = await Promise.all(
+                    jsonFiles.map(async (file) => {
+                        const filePath = path.join(proposalsDir, file);
+                        const content = await fs.readJson(filePath);
+                        return content;
+                    })
+                );
+
+                return c.json(proposals.filter(p => p.status === 'pending').sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+            } catch (error) {
+                if (error.code === 'ENOENT') {
+                    // If the directory doesn't exist, it means no proposals have been made yet.
+                    return c.json([]);
+                }
+                console.error('[Engine] Error reading proposals:', error);
+                return c.json({ error: 'Failed to retrieve proposals.' }, 500);
+            }
+        });
+
+        this.app.post('/api/proposals/:id/approve', async (c) => {
+            const { id } = c.req.param();
+            const proposalsDir = path.join(this.corePath, 'proposals');
+            const proposalPath = path.join(proposalsDir, `${id}.json`);
+
+            try {
+                const proposal = await fs.readJson(proposalPath);
+
+                if (proposal.status !== 'pending') {
+                    return c.json({ error: `Proposal ${id} is not pending.` }, 409);
+                }
+
+                // This is where we trigger the @guardian to apply the change.
+                // The prompt is very specific and gives the guardian all context.
+                const guardianPrompt = `
+A human operator has APPROVED the following system improvement proposal.
+You MUST now apply it.
+
+**Proposal ID:** ${proposal.id}
+**Reason for Change:** ${proposal.reason}
+
+**Action:**
+You are cleared to apply the change. Use the \`file_system.writeFile\` tool to apply the new content to the specified file.
+
+**PROPOSED CHANGE DETAILS:**
+---
+**FILE_PATH:** ${proposal.file_path}
+---
+**NEW_CONTENT:**
+\`\`\`
+${proposal.new_content}
+\`\`\`
+---
+Execute the file write operation now. Upon success, respond with a confirmation message.
+                `;
+
+                // Fire-and-forget the agent trigger
+                this.triggerAgent('@guardian', guardianPrompt).catch(err => {
+                    console.error(chalk.red(`[Engine] Background @guardian trigger failed for proposal ${id}:`), err);
+                });
+
+                // Immediately update the proposal status and respond to the user.
+                proposal.status = 'approved';
+                await fs.writeJson(proposalPath, proposal, { spaces: 2 });
+
+                this.broadcastEvent('proposal_updated', proposal);
+
+                return c.json({ message: `Proposal ${id} approved and sent to @guardian for execution.` });
+
+            } catch (error) {
+                if (error.code === 'ENOENT') {
+                    return c.json({ error: `Proposal ${id} not found.` }, 404);
+                }
+                console.error(`[Engine] Error approving proposal ${id}:`, error);
+                return c.json({ error: 'Failed to approve proposal.' }, 500);
+            }
+        });
+
         this.app.post('/api/upload', async (c) => {
             try {
                 const formData = await c.req.formData();
