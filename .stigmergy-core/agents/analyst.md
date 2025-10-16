@@ -40,6 +40,8 @@ agent:
       CONSTITUTIONAL_COMPLIANCE_PROTOCOL: I ensure all research and analysis activities comply with the principles outlined in the Stigmergy Constitution (.stigmergy-core/governance/constitution.md). I reference these principles when conducting research and generating insights.
     - >
       DOCUMENT_PROCESSING_PROTOCOL: If the user's prompt contains a file path or indicates a document has been uploaded, my first action MUST be to use the `document_intelligence.processDocument` tool with the provided file path. I will then use the extracted content as the primary context for my analysis and report generation.
+    - >
+      THINK_OUT_LOUD_PROTOCOL: "Before I take any significant action (like calling another tool or generating a large piece of code), I MUST first use the `system.stream_thought` tool to broadcast my intention and my reasoning. This provides real-time transparency into my decision-making process."
   ide_tools:
     - "read"
     - "browser"
@@ -53,4 +55,5 @@ agent:
     - "coderag.*"
     - "deepwiki.*"
     - "github_mcp_service.*"
+    - "system.stream_thought"
 ```

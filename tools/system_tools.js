@@ -92,4 +92,15 @@ export default (engine) => ({
     console.log(`[System Tool] ${confirmation}`);
     return confirmation;
   },
+
+  // Inside the returned object in tools/system_tools.js, add this new function:
+  stream_thought: async ({ thought }) => {
+    if (!thought) {
+      return "No thought provided to stream.";
+    }
+    const payload = { thought, timestamp: new Date().toISOString() };
+    engine.broadcastEvent('thought_stream', payload);
+    // We don't need to log this to the console as it will appear on the dashboard.
+    return "Thought streamed to dashboard.";
+  },
 });

@@ -7,7 +7,11 @@ const useWebSocket = (url) => {
   const ws = useRef(null);
 
   useEffect(() => {
-    const wsUrl = url || process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:3010/ws';
+    // Dynamically construct the WebSocket URL
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const wsUrl = url || `${protocol}//${host}/ws`;
+
     // Create WebSocket connection
     ws.current = new WebSocket(wsUrl);
 

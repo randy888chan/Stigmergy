@@ -18,6 +18,7 @@ const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
 const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
+const ThoughtStream = lazy(() => import('../components/ThoughtStream.js'));
 
 
 const INITIAL_STATE = {
@@ -38,6 +39,7 @@ const INITIAL_STATE = {
 const Dashboard = () => {
   const { data, sendMessage } = useWebSocket('ws://localhost:3010/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [thoughtStream, setThoughtStream] = useState([]);
   const [currentObjective, setCurrentObjective] = useState(null);
   const [healthData, setHealthData] = useState(null);
   const fetchFiles = async () => {
@@ -89,6 +91,9 @@ const Dashboard = () => {
           break;
         case 'objective_update':
           setCurrentObjective(payload);
+          break;
+        case 'thought_stream':
+          setThoughtStream(prevStream => [payload, ...prevStream].slice(0, 50));
           break;
         default:
           break;
@@ -228,9 +233,19 @@ const Dashboard = () => {
                     </ResizablePanel>
                     <ResizableHandle withHandle />
                     <ResizablePanel defaultSize={50}>
-                        <Suspense fallback={<div className="p-4">Loading Activity Feed...</div>}>
-                            <ActivityLog agentActivity={systemState.agentActivity} />
-                        </Suspense>
+                        <ResizablePanelGroup direction="vertical">
+                            <ResizablePanel defaultSize={50}>
+                                <Suspense fallback={<div className="p-4">Loading Thought Stream...</div>}>
+                                    <ThoughtStream thoughts={thoughtStream} />
+                                </Suspense>
+                            </ResizablePanel>
+                            <ResizableHandle withHandle />
+                            <ResizablePanel defaultSize={50}>
+                                <Suspense fallback={<div className="p-4">Loading Activity Feed...</div>}>
+                                    <ActivityLog agentActivity={systemState.agentActivity} />
+                                </Suspense>
+                            </ResizablePanel>
+                        </ResizablePanelGroup>
                     </ResizablePanel>
                 </ResizablePanelGroup>
             </ResizablePanel>
