@@ -17,6 +17,7 @@ const AgentPerformanceMonitor = lazy(() => import('../components/AgentPerformanc
 const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
 const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
+const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 
 
 const INITIAL_STATE = {
@@ -251,15 +252,25 @@ const Dashboard = () => {
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel>
-                            <Suspense fallback={<div className="p-4">Loading...</div>}>
-                                <ToolHealthMonitor healthData={healthData} />
+                           <Suspense fallback={<div className="p-4">Loading Governance...</div>}>
+                                <GovernanceDashboard />
                             </Suspense>
                         </ResizablePanel>
                         <ResizableHandle withHandle />
                         <ResizablePanel>
-                            <Suspense fallback={<div className="p-4">Loading...</div>}>
-                                <SystemHealthAlerts healthData={healthData} />
-                            </Suspense>
+                             <ResizablePanelGroup direction="vertical">
+                                <ResizablePanel>
+                                    <Suspense fallback={<div className="p-4">Loading...</div>}>
+                                        <ToolHealthMonitor healthData={healthData} />
+                                    </Suspense>
+                                </ResizablePanel>
+                                <ResizableHandle withHandle />
+                                <ResizablePanel>
+                                    <Suspense fallback={<div className="p-4">Loading...</div>}>
+                                        <SystemHealthAlerts healthData={healthData} />
+                                    </Suspense>
+                                </ResizablePanel>
+                             </ResizablePanelGroup>
                         </ResizablePanel>
                     </ResizablePanelGroup>
                 </CardContent>
