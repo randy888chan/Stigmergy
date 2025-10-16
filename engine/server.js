@@ -356,6 +356,25 @@ Based on all the information above, please create the initial \`plan.md\` file t
             }
         });
 
+        // API for CodeRAG Search
+        this.app.get('/api/coderag/search', async (c) => {
+            const { query } = c.req.query();
+            if (!query) return c.json({ error: 'Query is required' }, 400);
+            try {
+                const results = await coderag.semantic_search({ query, project_root: this.projectRoot });
+                return c.json(results);
+            } catch (error) {
+                return c.json({ error: error.message }, 500);
+            }
+        });
+
+        // API for getting node details (as a placeholder for future expansion)
+        this.app.get('/api/coderag/node/:id', async (c) => {
+            const { id } = c.req.param();
+            // Placeholder: In a real implementation, you'd fetch node details here.
+            return c.json({ id, details: `Details for node ${id} would be here.` });
+        });
+
         this.app.get('/api/proposals', async (c) => {
             const proposalsDir = path.join(this.corePath, 'proposals');
             try {
@@ -436,6 +455,32 @@ Execute the file write operation now. Upon success, respond with a confirmation 
                 }
                 console.error(`[Engine] Error approving proposal ${id}:`, error);
                 return c.json({ error: 'Failed to approve proposal.' }, 500);
+            }
+        });
+
+        this.app.post('/api/proposals/:id/reject', async (c) => {
+            const { id } = c.req.param();
+            const proposalsDir = path.join(this.corePath, 'proposals');
+            const proposalPath = path.join(proposalsDir, `${id}.json`);
+
+            try {
+                const proposal = await fs.readJson(proposalPath);
+
+                if (proposal.status !== 'pending') {
+                    return c.json({ error: `Proposal ${id} is not pending.` }, 409);
+                }
+
+                proposal.status = 'rejected';
+                await fs.writeJson(proposalPath, proposal, { spaces: 2 });
+
+                this.broadcastEvent('proposal_updated', proposal);
+                return c.json({ message: `Proposal ${id} rejected.` });
+            } catch (error) {
+                if (error.code === 'ENOENT') {
+                    return c.json({ error: `Proposal ${id} not found.` }, 404);
+                }
+                console.error(`[Engine] Error rejecting proposal ${id}:`, error);
+                return c.json({ error: 'Failed to reject proposal.' }, 500);
             }
         });
 
