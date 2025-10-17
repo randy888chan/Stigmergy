@@ -52427,7 +52427,7 @@ var import_react20, jsx_dev_runtime14, BUSY_STATUSES, ChatInterface = ({ engineS
     }
   });
   const isBusy = BUSY_STATUSES.includes(engineStatus);
-  const canSubmit = input.trim() && activeProject && !isBusy;
+  const canSubmit = (input || "").trim() && activeProject && !isBusy;
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (canSubmit) {
@@ -55919,79 +55919,6 @@ var import_react5 = __toESM(require_react(), 1);
 init_card();
 init_badge();
 var jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
-var CurrentObjective = ({ objective }) => {
-  if (!objective) {
-    return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Card, {
-      children: [
-        /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardHeader, {
-          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardTitle, {
-            children: "Current Objective"
-          }, undefined, false, undefined, this)
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardContent, {
-          children: /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
-            className: "text-sm text-muted-foreground",
-            children: "Waiting for a new mission to begin..."
-          }, undefined, false, undefined, this)
-        }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this);
-  }
-  const { agent, task, thought } = objective;
-  return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Card, {
-    className: "bg-secondary",
-    children: [
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardHeader, {
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardTitle, {
-            className: "flex items-center justify-between",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("span", {
-                children: "Current Objective"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Badge, {
-                children: agent || "@system"
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardDescription, {
-            children: "The agent swarm is currently focused on the following task:"
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(CardContent, {
-        className: "space-y-4",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h4", {
-                className: "font-semibold text-sm mb-1",
-                children: "Task:"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
-                className: "text-sm text-foreground bg-background/50 p-3 rounded-md",
-                children: task
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("div", {
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("h4", {
-                className: "font-semibold text-sm mb-1",
-                children: "Thought:"
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime5.jsxDEV("p", {
-                className: "text-sm text-muted-foreground italic p-3 rounded-md",
-                children: thought
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        ]
-      }, undefined, true, undefined, this)
-    ]
-  }, undefined, true, undefined, this);
-};
-var CurrentObjective_default = CurrentObjective;
 
 // dashboard/src/pages/Dashboard.js
 var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
@@ -56200,33 +56127,26 @@ var Dashboard = () => {
                       defaultSize: 50,
                       children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
                         className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
-                              children: "Code Browser"
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                            className: "flex-grow overflow-auto p-0",
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Code..."
-                              }, undefined, false, undefined, this),
-                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
-                                files: systemState.files,
-                                onFileSelect: handleFileSelect,
-                                selectedFile: systemState.selectedFile,
-                                isLoading: systemState.isFileListLoading,
-                                error: systemState.filesError
-                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "text-muted-foreground p-4",
-                                children: "Set a project to see files."
-                              }, undefined, false, undefined, this)
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
+                          className: "flex-grow overflow-auto p-0",
+                          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                            fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                              className: "p-4",
+                              children: "Loading Code..."
+                            }, undefined, false, undefined, this),
+                            children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
+                              files: systemState.files,
+                              onFileSelect: handleFileSelect,
+                              selectedFile: systemState.selectedFile,
+                              isLoading: systemState.isFileListLoading,
+                              error: systemState.filesError
+                            }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                              className: "text-muted-foreground p-4",
+                              children: "Set a project to see files."
                             }, undefined, false, undefined, this)
                           }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
                     /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                       withHandle: true
@@ -56252,7 +56172,7 @@ var Dashboard = () => {
                 withHandle: true
               }, undefined, false, undefined, this),
               /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                defaultSize: 20,
+                defaultSize: 60,
                 children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
                   direction: "vertical",
                   children: [
@@ -56308,127 +56228,6 @@ var Dashboard = () => {
                           }, undefined, false, undefined, this)
                         ]
                       }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                withHandle: true
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                defaultSize: 20,
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                  direction: "vertical",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading Objective..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CurrentObjective_default, {
-                          objective: currentObjective
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                        direction: "vertical",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                            defaultSize: 50,
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Thought Stream..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ThoughtStream2, {
-                                thoughts: thoughtStream
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                            withHandle: true
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                            defaultSize: 50,
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Activity Feed..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ActivityLog2, {
-                                agentActivity: systemState.agentActivity
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                withHandle: true
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                defaultSize: 25,
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                  direction: "vertical",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
-                        className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
-                              children: "Code Intelligence Browser"
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                            className: "flex-grow overflow-auto p-0",
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Code..."
-                              }, undefined, false, undefined, this),
-                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
-                                files: systemState.files,
-                                onFileSelect: handleFileSelect,
-                                selectedFile: systemState.selectedFile,
-                                isLoading: systemState.isFileListLoading,
-                                error: systemState.filesError
-                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "text-muted-foreground p-4",
-                                children: "Set a project to see files."
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading Viewer..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(FileViewer2, {
-                          filePath: systemState.selectedFile,
-                          content: systemState.fileContent,
-                          isLoading: systemState.isFileContentLoading
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
