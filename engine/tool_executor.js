@@ -279,7 +279,7 @@ export function createExecutor(engine, ai, options = {}) {
       } else if (['stigmergy'].includes(namespace)) {
           result = await toolFunction(safeArgs);
       } else {
-          result = await toolFunction(safeArgs, ai, engineConfig);
+          result = await toolFunction(safeArgs, agentId, ai, engineConfig);
       }
       
       if (toolName.startsWith("file_system.write")) {
