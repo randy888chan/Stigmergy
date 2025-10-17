@@ -33190,7 +33190,11 @@ var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading, error }) => {
+var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
+  const [searchQuery, setSearchQuery] = import_react15.useState("");
+  const [searchResults, setSearchResults] = import_react15.useState([]);
+  const [isSearchLoading, setIsSearchLoading] = import_react15.useState(false);
+  const [searchError, setSearchError] = import_react15.useState("");
   const handleFileClick = (file) => {
     if (file.type === "folder")
       return;
@@ -33198,43 +33202,157 @@ var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, sel
       onFileSelect(file.name);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ScrollArea2, {
-    className: "h-full w-full p-2",
+  const handleSearch = async () => {
+    if (!searchQuery.trim())
+      return;
+    setIsSearchLoading(true);
+    setSearchError("");
+    setSearchResults([]);
+    try {
+      const response = await fetch(`/api/coderag/search?query=${encodeURIComponent(searchQuery)}`);
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || "Search failed");
+      }
+      const data = await response.json();
+      setSearchResults(data);
+    } catch (err) {
+      setSearchError(err.message);
+    } finally {
+      setIsSearchLoading(false);
+    }
+  };
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchResults([]);
+    setSearchError("");
+  };
+  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
+    className: "h-full flex flex-col",
     children: [
-      isLoading && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-        className: "flex items-center gap-2 p-2 text-muted-foreground",
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
         children: [
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
-            className: "animate-spin"
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
+            children: "Code Intelligence"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
-            children: "Loading tree..."
-          }, undefined, false, undefined, this)
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+            className: "flex w-full items-center space-x-2 pt-2",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Input, {
+                type: "text",
+                placeholder: "Semantic search (e.g., 'user auth logic')",
+                value: searchQuery,
+                onChange: (e) => setSearchQuery(e.target.value),
+                onKeyDown: (e) => e.key === "Enter" && handleSearch()
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                onClick: handleSearch,
+                disabled: isSearchLoading,
+                children: isSearchLoading ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                  className: "animate-spin"
+                }, undefined, false, undefined, this) : "Search"
+              }, undefined, false, undefined, this),
+              searchResults.length > 0 && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                variant: "outline",
+                size: "sm",
+                onClick: clearSearch,
+                children: "Clear"
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      error && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
-        className: "flex items-center gap-2 p-2 text-destructive",
-        children: [
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
-            children: error
-          }, undefined, false, undefined, this)
-        ]
-      }, undefined, true, undefined, this),
-      !isLoading && !error && files.map((item) => {
-        const isFolder = item.type === "folder";
-        const isSelected = selectedFile === item.name;
-        return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
-          variant: "ghost",
-          className: cn("w-full justify-start gap-2 px-2", isFolder ? "font-semibold" : "font-normal", isSelected && "bg-accent"),
-          onClick: () => handleFileClick(item),
-          disabled: isFolder,
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
+        className: "flex-grow p-0",
+        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ScrollArea2, {
+          className: "h-full w-full p-2",
           children: [
-            isFolder ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFile, {}, undefined, false, undefined, this),
-            item.name
+            isSearchLoading && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+              className: "flex items-center gap-2 p-2 text-muted-foreground",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                  className: "animate-spin"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                  children: "Searching..."
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            searchError && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+              className: "flex items-center gap-2 p-2 text-destructive",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                  children: searchError
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            searchResults.length > 0 ? searchResults.map((result, index2) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+              variant: "ghost",
+              className: cn("w-full justify-start gap-2 px-2 text-left h-auto py-2", selectedFile === result.node.source_file && "bg-accent"),
+              onClick: () => onFileSelect(result.node.source_file),
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                  className: "flex flex-col",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      className: "font-semibold",
+                      children: [
+                        result.node.name,
+                        " (",
+                        result.node.type,
+                        ")"
+                      ]
+                    }, undefined, true, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      className: "text-xs text-muted-foreground",
+                      children: result.node.source_file
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this)
+              ]
+            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(jsx_dev_runtime11.Fragment, {
+              children: [
+                isTreeLoading && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                  className: "flex items-center gap-2 p-2 text-muted-foreground",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                      className: "animate-spin"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      children: "Loading tree..."
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                treeError && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                  className: "flex items-center gap-2 p-2 text-destructive",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      children: treeError
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                !isTreeLoading && !treeError && files.map((item) => {
+                  const isFolder = item.type === "folder";
+                  const isSelected = selectedFile === item.name;
+                  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                    variant: "ghost",
+                    className: cn("w-full justify-start gap-2 px-2", isFolder ? "font-semibold" : "font-normal", isSelected && "bg-accent"),
+                    onClick: () => handleFileClick(item),
+                    disabled: isFolder,
+                    children: [
+                      isFolder ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                      item.name
+                    ]
+                  }, item.name, true, undefined, this);
+                })
+              ]
+            }, undefined, true, undefined, this)
           ]
-        }, item.name, true, undefined, this);
-      })
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
 }, CodeBrowser_default;
@@ -33243,6 +33361,8 @@ var init_CodeBrowser = __esm(() => {
   init_fi();
   init_scroll_area();
   init_button();
+  init_input();
+  init_card();
   init_utils();
   jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
   CodeBrowser_default = CodeBrowser;
@@ -53294,7 +53414,18 @@ var import_react29, jsx_dev_runtime23, GovernanceDashboard = () => {
     return () => clearInterval(interval);
   }, []);
   const handleDecision = async (proposalId, decision) => {
-    console.log(`Decision: ${decision} for proposal ${proposalId}`);
+    try {
+      const response = await fetch(`/api/proposals/${proposalId}/${decision}`, {
+        method: "POST"
+      });
+      const result = await response.json();
+      if (!response.ok) {
+        throw new Error(result.error || "API call failed");
+      }
+      fetchProposals();
+    } catch (error40) {
+      console.error(`Failed to ${decision} proposal:`, error40);
+    }
   };
   if (isLoading)
     return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("p", {
@@ -53429,7 +53560,7 @@ var init_ThoughtStream = __esm(() => {
 });
 
 // dashboard/src/index.js
-var import_react33 = __toESM(require_react(), 1);
+var import_react34 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
@@ -56244,6 +56375,63 @@ var Dashboard = () => {
               }, undefined, false, undefined, this),
               /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
                 withHandle: true
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                defaultSize: 25,
+                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
+                  direction: "vertical",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                      defaultSize: 50,
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
+                        className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
+                        children: [
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
+                              children: "Code Intelligence Browser"
+                            }, undefined, false, undefined, this)
+                          }, undefined, false, undefined, this),
+                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
+                            className: "flex-grow overflow-auto p-0",
+                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                                className: "p-4",
+                                children: "Loading Code..."
+                              }, undefined, false, undefined, this),
+                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
+                                files: systemState.files,
+                                onFileSelect: handleFileSelect,
+                                selectedFile: systemState.selectedFile,
+                                isLoading: systemState.isFileListLoading,
+                                error: systemState.filesError
+                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                                className: "text-muted-foreground p-4",
+                                children: "Set a project to see files."
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          }, undefined, false, undefined, this)
+                        ]
+                      }, undefined, true, undefined, this)
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
+                      withHandle: true
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
+                      defaultSize: 50,
+                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
+                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+                          className: "p-4",
+                          children: "Loading Viewer..."
+                        }, undefined, false, undefined, this),
+                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(FileViewer2, {
+                          filePath: systemState.selectedFile,
+                          content: systemState.fileContent,
+                          isLoading: systemState.isFileContentLoading
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this)
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this)
               }, undefined, false, undefined, this)
             ]
           }, undefined, true, undefined, this)
@@ -56343,9 +56531,63 @@ function App() {
 }
 var App_default = App;
 
-// dashboard/src/index.js
+// dashboard/src/components/ErrorBoundary.js
+var import_react33 = __toESM(require_react(), 1);
 var jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
+
+class ErrorBoundary extends import_react33.default.Component {
+  constructor(props2) {
+    super(props2);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error40) {
+    return { hasError: true };
+  }
+  componentDidCatch(error40, errorInfo) {
+    console.error("Uncaught error in React component tree:", error40, errorInfo);
+    this.setState({ error: error40, errorInfo });
+  }
+  render() {
+    if (this.state.hasError) {
+      return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+        style: { padding: "20px", color: "white", backgroundColor: "#400000", height: "100vh", fontFamily: "monospace", overflow: "auto" },
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("h1", {
+            children: "Application Error Caught"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+            children: "The application failed to render. This is the error that was previously silent."
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("hr", {}, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("details", {
+            open: true,
+            style: { whiteSpace: "pre-wrap" },
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("summary", {
+                style: { fontWeight: "bold", cursor: "pointer" },
+                children: "Error Details"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("h3", {
+                children: this.state.error && this.state.error.toString()
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                children: this.state.errorInfo && this.state.errorInfo.componentStack
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this);
+    }
+    return this.props.children;
+  }
+}
+var ErrorBoundary_default = ErrorBoundary;
+
+// dashboard/src/index.js
+var jsx_dev_runtime28 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react33.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react34.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ErrorBoundary_default, {
+    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(App_default, {}, undefined, false, undefined, this)
+  }, undefined, false, undefined, this)
 }, undefined, false, undefined, this));

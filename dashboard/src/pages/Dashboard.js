@@ -161,9 +161,6 @@ const Dashboard = () => {
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={50}>
                     <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
-                        <CardHeader>
-                            <CardTitle>Code Browser</CardTitle>
-                        </CardHeader>
                         <CardContent className="flex-grow overflow-auto p-0">
                             <Suspense fallback={<div className="p-4">Loading Code...</div>}>
                                 {systemState.project_path ? (
@@ -194,7 +191,7 @@ const Dashboard = () => {
               </ResizablePanelGroup>
             </ResizablePanel>
             <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20}>
+            <ResizablePanel defaultSize={60}>
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={60}>
                     <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
@@ -222,69 +219,6 @@ const Dashboard = () => {
                     </Card>
                 </ResizablePanel>
               </ResizablePanelGroup>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={20}>
-                <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={50}>
-                         <Suspense fallback={<div className="p-4">Loading Objective...</div>}>
-                            <CurrentObjective objective={currentObjective} />
-                         </Suspense>
-                    </ResizablePanel>
-                    <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={50}>
-                        <ResizablePanelGroup direction="vertical">
-                            <ResizablePanel defaultSize={50}>
-                                <Suspense fallback={<div className="p-4">Loading Thought Stream...</div>}>
-                                    <ThoughtStream thoughts={thoughtStream} />
-                                </Suspense>
-                            </ResizablePanel>
-                            <ResizableHandle withHandle />
-                            <ResizablePanel defaultSize={50}>
-                                <Suspense fallback={<div className="p-4">Loading Activity Feed...</div>}>
-                                    <ActivityLog agentActivity={systemState.agentActivity} />
-                                </Suspense>
-                            </ResizablePanel>
-                        </ResizablePanelGroup>
-                    </ResizablePanel>
-                </ResizablePanelGroup>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-            <ResizablePanel defaultSize={25}>
-                <ResizablePanelGroup direction="vertical">
-                    <ResizablePanel defaultSize={50}>
-                        <Card className="h-full w-full rounded-none border-0 border-r border-b flex flex-col">
-                            <CardHeader>
-                                <CardTitle>Code Intelligence Browser</CardTitle>
-                            </CardHeader>
-                            <CardContent className="flex-grow overflow-auto p-0">
-                                <Suspense fallback={<div className="p-4">Loading Code...</div>}>
-                                    {systemState.project_path ? (
-                                        <CodeBrowser
-                                            files={systemState.files}
-                                            onFileSelect={handleFileSelect}
-                                            selectedFile={systemState.selectedFile}
-                                            isLoading={systemState.isFileListLoading}
-                                            error={systemState.filesError}
-                                        />
-                                    ) : (
-                                        <div className="text-muted-foreground p-4">Set a project to see files.</div>
-                                    )}
-                                </Suspense>
-                            </CardContent>
-                        </Card>
-                    </ResizablePanel>
-                    <ResizableHandle withHandle />
-                    <ResizablePanel defaultSize={50}>
-                       <Suspense fallback={<div className="p-4">Loading Viewer...</div>}>
-                            <FileViewer
-                                filePath={systemState.selectedFile}
-                                content={systemState.fileContent}
-                                isLoading={systemState.isFileContentLoading}
-                            />
-                       </Suspense>
-                    </ResizablePanel>
-                </ResizablePanelGroup>
             </ResizablePanel>
           </ResizablePanelGroup>
         </ResizablePanel>
