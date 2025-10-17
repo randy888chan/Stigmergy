@@ -29,3 +29,4 @@ agent:
     - "stigmergy.task"
     - "system.updateStatus"
     - "coderag.*"
+    - "shell.execute"

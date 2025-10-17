@@ -92,3 +92,13 @@ To ensure a consistent and reproducible development environment, we recommend us
     ```
 
 Your development server will be available at `http://localhost:3010`. Any changes you make to the source code on your local machine will trigger an automatic restart inside the container.
+
+## 🆘 Troubleshooting: Hard Reset Protocol
+
+If the development environment enters a corrupted state (e.g., silent rendering failures), you can perform a hard reset to purge all caches and volumes.
+
+**Run the following command:**
+```bash
+bun run dev:reset
+```
+This will stop and remove all Docker containers and volumes, then build and start a fresh environment.
