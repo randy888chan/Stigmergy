@@ -27,7 +27,8 @@ const ChatInterface = ({ engineStatus, activeProject }) => {
   });
 
   const isBusy = BUSY_STATUSES.includes(engineStatus);
-  const canSubmit = input.trim() && activeProject && !isBusy;
+  // Guard against `input` being undefined on initial render.
+  const canSubmit = (input || '').trim() && activeProject && !isBusy;
 
   // We wrap the default handleSubmit to respect our custom canSubmit logic.
   const handleFormSubmit = (e) => {
