@@ -17,9 +17,16 @@ agent:
       DIRECT_IMPLEMENTATION_PROTOCOL: "My final output MUST be a tool call to file_system.writeFile. If this tool call fails for any reason, I will immediately delegate to the @debugger agent using stigmergy.task. My prompt will include the original task, the code I generated, and the exact error message I received. I will not attempt to fix the error myself."
     - >
       THINK_OUT_LOUD_PROTOCOL: "Before I take any significant action (like calling another tool or generating a large piece of code), I MUST first use the `system.stream_thought` tool to broadcast my intention and my reasoning. This provides real-time transparency into my decision-making process."
+    - >
+      META_TASK_PROMOTION_PROTOCOL: "If my task is to modify a core project configuration file (like package.json, stigmergy.config.js, .github/workflows/*, or any file in the project root), I MUST follow this specific workflow:
+      1.  **Announce Intent:** I will use `system.stream_thought` to explain that I am modifying a core project file in my sandbox.
+      2.  **Write to Sandbox:** I will use `file_system.writeFile` to create or modify the file *in my sandbox*.
+      3.  **Promote to Project:** I will immediately use the `system.promote_from_sandbox` tool, providing the relative `filePath` of the file I just modified. This securely copies my changes to the main project directory.
+      4.  **Confirm:** I will confirm that the promotion was successful before proceeding to any final steps like requesting a review."
   engine_tools:
     - "file_system.writeFile"
     - "build.*"
     - "stigmergy.task"
     - "system.stream_thought"
+    - "system.promote_from_sandbox"
 ```

@@ -1,3 +1,6 @@
+import path from 'path';
+import fs from 'fs-extra';
+
 /**
  * Creates the toolset for system-level control, accessible to trusted agents.
  * @param {import('../engine/server.js').Engine} engine - The main engine instance.
@@ -125,4 +128,34 @@ export default (engine) => ({
 
     return "Hard environment reset initiated. The server is restarting.";
   },
+// Inside the returned object in tools/system_tools.js, add this new function:
+promote_from_sandbox: async ({ filePath }, agentId) => {
+    if (!filePath) {
+        throw new Error("The 'filePath' argument is required for system.promote_from_sandbox.");
+    }
+    if (!agentId) {
+        throw new Error("The 'agentId' is required for this tool and must be provided by the executor.");
+    }
+
+    const projectRoot = engine.projectRoot;
+    const sandboxPath = path.join(projectRoot, '.stigmergy-core', 'sandboxes', agentId, filePath);
+    const destinationPath = path.join(projectRoot, filePath);
+
+    // Security check: ensure the source exists and the destination is within the project
+    if (!await fs.pathExists(sandboxPath)) {
+        return `EXECUTION FAILED: Source file does not exist in the sandbox: ${sandboxPath}`;
+    }
+    if (!destinationPath.startsWith(projectRoot)) {
+        return `EXECUTION FAILED: Security violation. Attempted to promote file outside of project root.`;
+    }
+
+    try {
+        await fs.copy(sandboxPath, destinationPath, { overwrite: true });
+        const message = `Successfully promoted '${filePath}' from sandbox to project root.`;
+        console.log(`[System Tool] ${message}`);
+        return message;
+    } catch (error) {
+        return `EXECUTION FAILED: Failed to promote file: ${error.message}`;
+    }
+},
 });
