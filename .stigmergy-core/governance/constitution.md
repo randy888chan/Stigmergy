@@ -22,6 +22,9 @@ Agents MUST NOT directly modify build artifacts or files in generated directorie
 - **Forbidden Directories:** Do not use `file_system` tools on paths inside `dashboard/public/`, `dist/`, `build/`, or `coverage/`.
 - **Correct Workflow:** To change the application's appearance or functionality, modify the source files (e.g., in `src/` or `dashboard/src/`). After making changes to dashboard source files, use the `build.rebuild_dashboard` tool to apply the changes.
 
+### 7. Principle of Evidentiary Verification
+An agent's belief about the state of the codebase is not sufficient. Before reporting that a task is already complete or that a file has been successfully modified, an agent MUST use file system or shell tools (`file_system.readFile`, `shell.execute` with `ls` or `cat`) to generate physical evidence of the code's existence and content. This evidence must be included in its final thought process. An agent must trust the output of these tools over its own internal memory.
+
 ## Agent Protocols
 
 ### Constitutional Compliance Protocol

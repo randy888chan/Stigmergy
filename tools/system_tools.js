@@ -103,4 +103,26 @@ export default (engine) => ({
     // We don't need to log this to the console as it will appear on the dashboard.
     return "Thought streamed to dashboard.";
   },
+
+  hard_reset_environment: async ({ reason }) => {
+    console.warn(`[System Tool] Executing hard environment reset. Reason: ${reason}`);
+    engine.broadcastEvent('system_alert', {
+      level: 'critical',
+      message: `Performing a hard environment reset due to: ${reason}. The system will restart in a clean state.`
+    });
+
+    // We need to give the broadcast a moment to send before shutting down.
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // This command will stop the current process and restart everything.
+    // We don't need to await it as the process will terminate.
+    const { exec } = await import('child_process');
+    exec('bun run dev:reset', (err) => {
+      if (err) {
+        console.error("Failed to execute hard reset script:", err);
+      }
+    });
+
+    return "Hard environment reset initiated. The server is restarting.";
+  },
 });
