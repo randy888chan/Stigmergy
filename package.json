@@ -31,6 +31,7 @@
     "dev:ai": "bun run build:dashboard && bun --hot run engine/server.js",
   "dev:reset": "docker-compose down -v && docker-compose up --build stigmergy-dev",
     "test": "bun test",
+    "test:e2e": "python jules-scratch/verification/verify_code_intelligence.py",
     "test:watch": "bun test --watch",
     "build": "bun run build:dashboard && bun run build:agents",
     "build:dashboard": "tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css && bun build ./dashboard/src/index.js --outdir ./dashboard/public",
