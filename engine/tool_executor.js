@@ -92,8 +92,11 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
 
     const relative = path.relative(projectScope, resolved);
     const isSafe = relative === '' || SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
-    if (!isSafe) {
-      const rootDir = relative.split(path.sep)[0] || relative;
+    const rootDir = relative.split(path.sep)[0] || relative;
+
+    // Allow .stigmergy-core to bypass the SAFE_DIRECTORIES check,
+    // as it will be handled by the more specific Guardian Protocol check later.
+    if (!isSafe && rootDir !== '.stigmergy-core') {
       throw new Error(`Access restricted to ${rootDir} directory`);
     }
   }
@@ -231,18 +234,28 @@ export function createExecutor(engine, ai, options = {}) {
         throw new Error(`Tool '${toolName}' not found.`);
       }
 
-      // --- START: Centralized Security Check ---
+      // --- START: Centralized Security Check & Guardian Protocol ---
       const fsProvider = engine._test_fs; // For testing with memfs
       if (namespace === 'file_system') {
         const pathKey = args.path !== undefined ? 'path' : 'directory';
         const originalPath = args[pathKey] ?? '.';
-        // Resolve the path and overwrite the argument before it's used.
-        args[pathKey] = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
+        const resolvedPath = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
+        args[pathKey] = resolvedPath; // Overwrite the argument with the resolved, secure path.
+
+        // Guardian Protocol: Prevent unauthorized writes to .stigmergy-core
+        if (funcName === 'writeFile' || funcName === 'appendFile') {
+          const corePath = getCorePath();
+          if (resolvedPath.startsWith(corePath)) {
+            if (agentId !== '@guardian' && agentId !== '@metis') {
+              throw new OperationalError(`Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '${agentId}' is not authorized.`);
+            }
+          }
+        }
       } else if (namespace === 'git_tool' && funcName === 'init') {
         const originalPath = args.path ?? '.';
         args.path = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
       }
-      // --- END: Centralized Security Check ---
+      // --- END: Centralized Security Check & Guardian Protocol ---
 
       const permittedTools = agentConfig.engine_tools || [];
       const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
