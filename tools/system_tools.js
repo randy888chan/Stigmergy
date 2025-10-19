@@ -158,4 +158,26 @@ promote_from_sandbox: async ({ filePath }, agentId) => {
         return `EXECUTION FAILED: Failed to promote file: ${error.message}`;
     }
 },
+analyze_task_execution_strategy: async ({ task_description }) => {
+    if (!task_description) {
+      throw new Error("The 'task_description' argument is required for system.analyze_task_execution_strategy.");
+    }
+
+    const lowerCaseDescription = task_description.toLowerCase();
+    let executor;
+    let reasoning;
+
+    if (/\b(algorithm|complex logic|data structure|optimization)\b/.test(lowerCaseDescription)) {
+      executor = '@qwen-executor';
+      reasoning = 'Task involves complex algorithms or logic, best suited for Qwen model.';
+    } else if (/\b(crud|api|database|user interface|ui component)\b/.test(lowerCaseDescription)) {
+      executor = '@gemini-executor';
+      reasoning = 'Task involves standard web development patterns (CRUD, API, UI), suitable for Gemini model.';
+    } else {
+      executor = '@executor';
+      reasoning = 'Default internal executor for general tasks.';
+    }
+
+    return { executor, reasoning };
+  },
 });
