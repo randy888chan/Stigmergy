@@ -1,0 +1,16 @@
+{
+  "name": "team-server",
+  "version": "1.0.0",
+  "description": "A centralized server for managing shared team state in Stigmergy.",
+  "main": "index.js",
+  "scripts": {
+    "start": "bun run index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "hono": "^4.9.8",
+    "@hono/node-server": "^1.19.5"
+  }
+}

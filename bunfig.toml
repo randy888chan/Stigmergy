@@ -6,8 +6,7 @@
 # import it directly if they need a DOM environment.
 preload = ["./tests/setup-globals.js"]
 
-# These point to the scripts that run once before and after the entire test suite.
-setup = "./tests/setup.js"
+# These point to the scripts that run once after the entire test suite.
 teardown = "./tests/teardown.js"
 
 # Directory pattern to search for tests - limit to our new tests directory
