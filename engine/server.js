@@ -727,8 +727,16 @@ Execute the file write operation now. Upon success, respond with a confirmation 
     }
 
     async stop() {
+        clearInterval(this.healthCheckInterval);
+
+        // [CRITICAL FIX] Remove listeners to allow graceful shutdown
+        if (this.stateManager) {
+            this.stateManager.off('stateChanged');
+            this.stateManager.off('triggerAgent');
+        }
+
         if (!this.server) {
-            console.log(chalk.yellow('[Engine] Stop called, but server was not running.'));
+            // console.log(chalk.yellow('[Engine] Stop called, but server was not running (expected in tests).'));
             return;
         }
 
@@ -741,7 +749,6 @@ Execute the file write operation now. Upon success, respond with a confirmation 
         }
         this.clients.clear();
 
-        clearInterval(this.healthCheckInterval);
         // Use a promise to handle the server closing
         return new Promise((resolve, reject) => {
             if (this.server && this.server.close) {

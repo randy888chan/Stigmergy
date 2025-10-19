@@ -95,6 +95,7 @@ agent:
         initializeProject: mock().mockResolvedValue({}),
         updateStatus: mock().mockResolvedValue({}),
         on: mock(),
+        off: mock(),
     };
 
     engine = new Engine({

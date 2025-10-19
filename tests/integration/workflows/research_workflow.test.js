@@ -46,6 +46,7 @@ const mockStateManagerInstance = {
     updateState: mock().mockResolvedValue({}),
     getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
     on: mock(),
+    off: mock(),
     emit: mock(),
 };
 
