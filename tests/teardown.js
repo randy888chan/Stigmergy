@@ -12,5 +12,8 @@ export default async function teardown() {
   } catch (error) {
     console.error('Error during global teardown:', error);
     // Don't throw here as it shouldn't fail the test suite
+  } finally {
+    // Force exit to prevent hanging processes
+    process.exit(0);
   }
 }

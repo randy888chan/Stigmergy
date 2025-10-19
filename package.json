@@ -4,11 +4,7 @@
   "description": "Stigmergy: The Autonomous AI Development System with Universal MCP Integration for seamless IDE coordination.",
   "type": "module",
   "main": "engine/server.js",
-  "bin": {
-    "stigmergy": "cli/index.js"
-  },
   "files": [
-    "cli/",
     "dashboard/public/",
     "docs/",
     "engine/",
@@ -29,7 +25,7 @@
     "start:mock": "USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js",
     "dev": "concurrently \"bun --hot run engine/server.js\" \"bun run watch:dashboard\"",
     "dev:ai": "bun run build:dashboard && bun --hot run engine/server.js",
-  "dev:reset": "docker-compose down -v && docker-compose up --build stigmergy-dev",
+    "dev:reset": "docker-compose down -v && docker-compose up --build stigmergy-dev",
     "test": "bun test",
     "test:e2e": "python jules-scratch/verification/verify_code_intelligence.py",
     "test:watch": "bun test --watch",
@@ -43,7 +39,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",
-    "@ai-sdk/openai": "^2.0.23",
+    "@ai-sdk/openai": "^2.0.52",
     "@ai-sdk/react": "^2.0.70",
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
@@ -61,7 +57,7 @@
     "@xterm/addon-fit": "^0.10.0",
     "ai": "^5.0.70",
     "axios": "^1.12.2",
-    "chalk": "^5.3.0",
+    "chalk": "^5.6.2",
     "chrome-devtools-mcp": "^0.4.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -74,7 +70,7 @@
     "lucide-react": "^0.395.0",
     "mammoth": "^1.6.0",
     "multer": "^2.0.2",
-    "neo4j-driver": "^5.25.0",
+    "neo4j-driver": "^6.0.0",
     "node-cache": "^5.1.2",
     "open": "^10.2.0",
     "openai": "^5.3.0",
@@ -92,7 +88,7 @@
     "tmp": "^0.2.3",
     "uuid": "13.0.0",
     "ws": "^8.18.3",
-    "zod": "^3.22.4"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^19.0.2",
@@ -112,7 +108,7 @@
     "husky": "^9.0.11",
     "identity-obj-proxy": "^3.0.0",
     "lint-staged": "^15.2.2",
-    "memfs": "^4.39.0",
+    "memfs": "^4.49.0",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
     "process": "^0.11.10",

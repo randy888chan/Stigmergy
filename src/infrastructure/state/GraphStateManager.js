@@ -4,11 +4,13 @@ import { EventEmitter } from "events";
 import config from "../../../stigmergy.config.js";
 import path from "path";
 import fs from "fs-extra";
+import { FileStorageAdapter } from "./FileStorageAdapter.js";
 
 export class GraphStateManager extends EventEmitter {
-  constructor(projectRoot) {
+  constructor(projectRoot, storageAdapter) {
     super();
     this.projectRoot = projectRoot || process.cwd();
+    this.storageAdapter = storageAdapter || new FileStorageAdapter();
     this.driver = null;
     this.connectionStatus = "UNINITIALIZED";
     this.connectionTested = false;
@@ -16,33 +18,26 @@ export class GraphStateManager extends EventEmitter {
     this.projectConfig = null;
     this.initializeDriver();
     
-    // Subscribe to our own state changes to write to file in fallback mode
-    console.log("GraphStateManager: Setting up stateChanged event listener");
     this.on("stateChanged", (newState) => {
-      console.log("GraphStateManager: stateChanged event received");
-      this.writeStateToFile(newState);
+      if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
+        this.storageAdapter.updateState(this.projectRoot, newState);
+      }
     });
   }
 
   async initializeDriver() {
-    // Check for project-specific configuration first
     this.projectConfig = await this.getProjectConfig();
     
-    // Use project-specific Neo4j configuration if available
     const neo4jUri = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.uri) || process.env.NEO4J_URI;
     const neo4jUser = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.user) || process.env.NEO4J_USER;
     const neo4jPassword = (this.projectConfig && this.projectConfig.neo4j && this.projectConfig.neo4j.password) || process.env.NEO4J_PASSWORD;
     
     if (neo4jUri && neo4jUser && neo4jPassword) {
       try {
-        // For Aura connections, don't add additional encryption config as it's already in the URI
         const isAura = neo4jUri.includes('neo4j+s://') || neo4jUri.includes('neo4j+ssc://');
         
-        // Only add driver config for non-Aura connections
         let driverConfig = {};
         if (!isAura) {
-          // Add encryption configuration for non-Aura connections if needed
-          // This is just a placeholder - actual config would depend on the Neo4j setup
         }
         
         this.driver = neo4j.driver(
@@ -67,7 +62,6 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async testConnection() {
-    // Only test connection once to avoid repeated failures
     if (this.connectionTested) {
       return this.connectionStatus === 'INITIALIZED' ? 
         { status: 'ok', message: 'Neo4j connection successful' } : 
@@ -95,7 +89,6 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async getState(projectName = "default") {
-    // Check for project-specific configuration
     const projectConfig = await this.getProjectConfig();
     
     const defaultState = {
@@ -107,20 +100,17 @@ export class GraphStateManager extends EventEmitter {
         project_config: projectConfig
     };
 
-    // If we've already determined that Neo4j is not available, use memory state
     if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
-        console.warn("GraphStateManager: Operating in fallback mode - state will not persist between sessions.");
-        // Store state in memory for this session
         if (!this.memoryState) {
-            this.memoryState = { 
-              ...defaultState, 
-              fallback_mode: true,
-              fallback_reason: this.connectionStatus === 'REQUIRED_MISSING' 
-                ? 'Neo4j credentials required but not configured' 
-                : 'Neo4j connection unavailable',
-              persistence_warning: 'State will not persist between sessions'
-            };
-            console.log("GraphStateManager: Initialized memoryState:", JSON.stringify(this.memoryState, null, 2));
+          const fileState = await this.storageAdapter.getState(this.projectRoot);
+          this.memoryState = fileState || {
+            ...defaultState,
+            fallback_mode: true,
+            fallback_reason: this.connectionStatus === 'REQUIRED_MISSING'
+              ? 'Neo4j credentials required but not configured'
+              : 'Neo4j connection unavailable',
+            persistence_warning: 'State will be persisted to file.'
+          };
         }
         return this.memoryState;
     }
@@ -138,7 +128,6 @@ export class GraphStateManager extends EventEmitter {
 
       const projectNode = result.records[0].get('p').properties;
       
-      // Parse properties that are stored as JSON strings
       if (projectNode.project_manifest && typeof projectNode.project_manifest === 'string') {
           projectNode.project_manifest = JSON.parse(projectNode.project_manifest);
       }
@@ -149,17 +138,15 @@ export class GraphStateManager extends EventEmitter {
       return { ...defaultState, ...projectNode };
     } catch (error) {
       console.error("GraphStateManager: Error getting state from Neo4j:", error.message);
-      // Mark connection as failed to avoid repeated attempts
       this.connectionStatus = "CONNECTION_FAILED";
-      // Fallback to memory state if Neo4j is not available
       if (!this.memoryState) {
-        this.memoryState = { 
+        const fileState = await this.storageAdapter.getState(this.projectRoot);
+        this.memoryState = fileState || {
           ...defaultState, 
           fallback_mode: true,
           fallback_reason: 'Neo4j query failed',
-          persistence_warning: 'State will not persist between sessions'
+          persistence_warning: 'State will be persisted to file.'
         };
-        console.log("GraphStateManager: Initialized memoryState due to Neo4j error:", JSON.stringify(this.memoryState, null, 2));
       }
       return this.memoryState;
     } finally {
@@ -168,19 +155,11 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async updateState(event) {
-    console.log(`GraphStateManager: updateState called with event:`, JSON.stringify(event, null, 2));
-    console.log(`GraphStateManager: connectionStatus = ${this.connectionStatus}`);
-    // If we've already determined that Neo4j is not available, use memory state
     if (this.connectionStatus !== 'INITIALIZED' || this.connectionStatus === "CONNECTION_FAILED") {
-        console.warn(`GraphStateManager: Operating in fallback mode. State update for event '${event.type || 'unknown'}' will be stored in memory only.`);
-        
-        // Ensure memory state is initialized before applying the update.
         if (!this.memoryState) {
-          // This will initialize memoryState with defaults
           await this.getState(event.project_name || 'default');
         }
 
-        // Now that memoryState is guaranteed to exist, apply the event.
         const projectName = event.project_name || this.memoryState.project_name || 'default';
         Object.assign(this.memoryState, {
           ...event,
@@ -189,8 +168,6 @@ export class GraphStateManager extends EventEmitter {
           fallback_mode: true
         });
         
-        console.debug(`GraphStateManager: Updated memory state for project ${projectName}`, this.memoryState);
-        console.log(`GraphStateManager: Emitting stateChanged event`);
         this.emit("stateChanged", this.memoryState);
         return this.memoryState;
     }
@@ -198,12 +175,10 @@ export class GraphStateManager extends EventEmitter {
     const session = this.driver.session();
     const projectName = event.project_name || 'default';
     
-    // Create a copy of the event to avoid mutating the original
     const propertiesToSet = { ...event };
     delete propertiesToSet.type;
     propertiesToSet.name = projectName;
     
-    // Stringify complex objects for storage
     if (propertiesToSet.project_manifest) {
         propertiesToSet.project_manifest = JSON.stringify(propertiesToSet.project_manifest, null, 2);
     }
@@ -219,21 +194,19 @@ export class GraphStateManager extends EventEmitter {
       );
       
       const newState = await this.getState(projectName);
-      console.log(`GraphStateManager: Emitting stateChanged event`);
       this.emit("stateChanged", newState);
       return newState;
     } catch (error) {
       console.error("GraphStateManager: Error updating state in Neo4j:", error.message);
-      // Mark connection as failed to avoid repeated attempts
       this.connectionStatus = "CONNECTION_FAILED";
-      // Fallback to memory state if Neo4j is not available
       if (!this.memoryState) {
-        this.memoryState = { 
+        const fileState = await this.storageAdapter.getState(this.projectRoot);
+        this.memoryState = fileState || {
           ...event, 
           project_name: projectName,
           fallback_mode: true,
           fallback_reason: 'Neo4j update failed',
-          persistence_warning: 'State will not persist between sessions'
+          persistence_warning: 'State will be persisted to file.'
         };
       } else {
         Object.assign(this.memoryState, event, { 
@@ -242,7 +215,6 @@ export class GraphStateManager extends EventEmitter {
           last_updated: new Date().toISOString()
         });
       }
-      console.log(`GraphStateManager: Emitting stateChanged event`);
       this.emit("stateChanged", this.memoryState);
       return this.memoryState;
     } finally {
@@ -267,71 +239,33 @@ export class GraphStateManager extends EventEmitter {
     return this.updateState(event);
   }
 
-  // Write state to file when in fallback mode
-  async writeStateToFile(state) {
-    console.log(`GraphStateManager: writeStateToFile called with state:`, JSON.stringify(state, null, 2));
-    // Only write to file if we're in fallback mode
-    if (state.fallback_mode) {
-      try {
-        // Determine the state file path based on the current working directory
-        const stateDir = path.join(this.projectRoot, '.stigmergy', 'state');
-        const stateFile = path.join(stateDir, 'current.json');
-        
-        console.log(`GraphStateManager: Attempting to write state to file: ${stateFile}`);
-        console.log(`GraphStateManager: Current working directory: ${this.projectRoot}`);
-        
-        // Ensure the directory exists
-        await fs.mkdir(stateDir, { recursive: true });
-        
-        // Write the state to the file
-        await fs.writeJson(stateFile, state, { spaces: 2 });
-        console.log(`GraphStateManager: State written to file: ${stateFile}`);
-      } catch (error) {
-        console.error("GraphStateManager: Error writing state to file:", error.message);
-        console.error("GraphStateManager: Error stack:", error.stack);
-      }
-    } else {
-      console.log("GraphStateManager: Not in fallback mode, not writing state to file");
-    }
-  }
-
   async getProjectConfig() {
-    // If we've already loaded the project config, return it
     if (this.projectConfig) {
       return this.projectConfig;
     }
     
-    // Try to load project-specific configuration
     try {
-      // First check for .stigmergy/config.js (new structure)
       let configPath = path.join(this.projectRoot, '.stigmergy', 'config.js');
       
-      // If not found, check for .stigmergy-core/config.js (legacy structure)
       if (!fs.existsSync(configPath)) {
         configPath = path.join(this.projectRoot, '.stigmergy-core', 'config.js');
       }
       
-      // If still not found, check for .stigmergy/config.json
       if (!fs.existsSync(configPath)) {
         configPath = path.join(this.projectRoot, '.stigmergy', 'config.json');
       }
       
-      // If still not found, check for .stigmergy-core/config.json
       if (!fs.existsSync(configPath)) {
         configPath = path.join(this.projectRoot, '.stigmergy-core', 'config.json');
       }
       
-      // If we found a config file, load it
       if (fs.existsSync(configPath)) {
-        // For .js files, we need to import them dynamically
         if (configPath.endsWith('.js')) {
-          // Use dynamic import for ESM compatibility
           const projectConfigModule = await import(`file://${configPath}`);
           const projectConfig = projectConfigModule.default || projectConfigModule;
           this.projectConfig = projectConfig;
           return this.projectConfig;
         } 
-        // For .json files, we can read them directly
         else if (configPath.endsWith('.json')) {
           const projectConfig = fs.readJsonSync(configPath);
           this.projectConfig = projectConfig;
@@ -342,7 +276,6 @@ export class GraphStateManager extends EventEmitter {
       console.warn("GraphStateManager: Failed to load project-specific configuration:", error.message);
     }
     
-    // Return null if no project-specific configuration found
     return null;
   }
 

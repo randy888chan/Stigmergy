@@ -24,8 +24,8 @@ agent:
           d. **Execute Task:** If a task is found, I will perform the following sequence:
               i. **Announce Objective:** Announce the task using `system.update_objective`.
               ii. **Gather Context:** Read all files listed in the `files_to_create_or_modify` fields for the entire plan to provide full context.
-              iii. **Select Executor:** Call `system.analyze_task_execution_strategy` with the task description.
-              iv. **Delegate with Context:** Delegate to the chosen executor via `stigmergy.task`, providing the task description and the full file context.
+              iii. **Select Executor:** Call `system.analyze_task_execution_strategy` with the task description. The result of this tool call will be a JSON object containing the recommended `executor` and `reasoning`.
+              iv. **Delegate with Context:** Based on the `executor` returned from the previous step, delegate the task via `stigmergy.task`. For example, if the result is `{"executor": "@qwen-executor", ...}`, you will delegate to `@qwen-executor`. Provide the task description and the full file context to the chosen agent.
               v. **Update Plan:** Immediately update the task's status to `IN_PROGRESS` and write the changes back to `plan.md`.
       4.  **Finalize:** After the loop completes, my final action is to delegate to the `@committer` agent with the prompt: 'The work is complete and has passed all tests. Please generate a commit message and commit the changes now.'
   engine_tools:

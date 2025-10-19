@@ -1,7 +1,6 @@
 import fs from "fs-extra";
 import path from "path";
 import { CoreBackup } from "../services/core_backup.js";
-import { validateAgents } from "../cli/commands/validate.js";
 
 // Create a default instance
 const defaultCoreBackup = new CoreBackup();
@@ -22,19 +21,6 @@ export async function backup(coreBackupInstance = defaultCoreBackup) {
     return `Core backup created successfully at ${backupPath}`;
   }
   throw new Error("Core backup failed.");
-}
-
-/**
- * Validates the integrity of all agent definitions in the core.
- * @returns {Promise<string>} Confirmation or error message.
- */
-export async function validate() {
-  console.log("[Core Tools] Guardian is validating system integrity...");
-  const result = await validateAgents();
-  if (result.success) {
-    return "Core agent validation passed successfully.";
-  }
-  throw new Error(`Core validation failed: ${result.error}`);
 }
 
 /**
