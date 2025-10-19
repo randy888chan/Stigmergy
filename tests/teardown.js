@@ -14,6 +14,6 @@ export default async function teardown() {
     // Don't throw here as it shouldn't fail the test suite
   } finally {
     // Force exit to prevent hanging processes
-    process.exit(0);
+    // process.exit(0);
   }
 }
