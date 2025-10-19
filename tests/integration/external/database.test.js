@@ -9,7 +9,7 @@ describe('External Service Health Check: Neo4j Database', () => {
   const password = process.env.NEO4J_PASSWORD;
   const credentialsArePresent = uri && user && password;
 
-  test('LIVE: should connect to the configured Neo4j database successfully', async () => {
+  test.if(credentialsArePresent)('LIVE: should connect to the configured Neo4j database successfully', async () => {
     let driver;
     try {
       driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
