@@ -48,6 +48,7 @@ const mockStateManagerInstance = {
     on: mock(),
     off: mock(),
     emit: mock(),
+    closeDriver: mock(),
 };
 
 const executeMock = mock();

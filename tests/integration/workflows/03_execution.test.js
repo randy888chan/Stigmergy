@@ -34,7 +34,9 @@ const mockStateManagerInstance = {
     getState: mock().mockResolvedValue({ project_status: 'PLAN_APPROVED' }),
     get: mock().mockReturnValue({}),
     on: mock(),
+    off: mock(),
     emit: mock(),
+    closeDriver: mock(),
 };
 
 describe('Integration: 03 - Execution', () => {

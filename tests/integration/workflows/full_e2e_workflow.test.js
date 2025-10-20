@@ -36,6 +36,7 @@ const mockStateManagerInstance = {
     on: mock(),
     off: mock(), // Add the missing 'off' method to the mock
     emit: mock(),
+    closeDriver: mock(),
 };
 
 const mockStreamText = mock();

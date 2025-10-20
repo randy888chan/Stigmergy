@@ -733,6 +733,7 @@ Execute the file write operation now. Upon success, respond with a confirmation 
         if (this.stateManager) {
             this.stateManager.off('stateChanged');
             this.stateManager.off('triggerAgent');
+            await this.stateManager.closeDriver(); // [FIX] Explicitly close the database connection
         }
 
         if (!this.server) {

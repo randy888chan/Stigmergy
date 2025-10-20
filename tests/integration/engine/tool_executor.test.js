@@ -41,21 +41,35 @@ const { createExecutor } = await import('../../../engine/tool_executor.js');
 describe('Tool Executor: Guardian Protocol', () => {
   let mockEngine;
   let mockAiProvider;
-  const cwd = process.cwd();
+  const projectRoot = '/test-project'; // Use a consistent mock root
+  const corePath = path.join(projectRoot, '.stigmergy-core');
+  const agentDir = path.join(corePath, 'agents');
+
 
   beforeEach(() => {
     vol.reset();
+    mockFs.ensureDirSync(agentDir); // Ensure the directory exists in memfs
 
-    vol.fromJSON({
-        [path.join(cwd, '.stigmergy-core/agents/@guardian.md')]: '```yaml\nagent:\n  engine_tools:\n    - "file_system.*"\n```',
-        [path.join(cwd, '.stigmergy-core/agents/@executor.md')]: '```yaml\nagent:\n  engine_tools:\n    - "file_system.*"\n```',
-        [path.join(cwd, '.stigmergy-core/agents/@metis.md')]: '```yaml\nagent:\n  engine_tools:\n    - "file_system.*"\n```',
-        [path.join(cwd, 'src/some_file.txt')]: 'hello'
-    });
+    // Create mock agent files within the isolated project root
+    const createAgentFile = (name) => {
+        const content = `\`\`\`yaml\nagent:\n  engine_tools:\n    - "file_system.*"\n\`\`\``;
+        const filePath = path.join(agentDir, `${name}.md`);
+        mockFs.writeFileSync(filePath, content);
+    };
+
+    createAgentFile('@guardian');
+    createAgentFile('@executor');
+    createAgentFile('@metis');
+
+    // Create a dummy source file
+    const srcDir = path.join(projectRoot, 'src');
+    mockFs.ensureDirSync(srcDir);
+    mockFs.writeFileSync(path.join(srcDir, 'some_file.txt'), 'hello');
 
     mockEngine = {
       broadcastEvent: mock(() => {}),
-      projectRoot: cwd,
+      projectRoot: projectRoot,
+      corePath: corePath, // Pass corePath explicitly
       _test_fs: mockFs,
     };
 
@@ -66,11 +80,6 @@ describe('Tool Executor: Guardian Protocol', () => {
 
   afterEach(() => {
     mock.restore();
-  });
-
-  // Force exit to prevent hangs in the test runner
-  afterAll(() => {
-    process.exit(0);
   });
 
   test('should throw OperationalError when a non-guardian agent writes to .stigmergy-core', async () => {

@@ -37,6 +37,7 @@ const mockStateManagerInstance = {
     on: mock(),
     off: mock(),
     emit: mock(),
+    closeDriver: mock(),
 };
 
 const executeMock = mock().mockResolvedValue(JSON.stringify({ success: true }));
