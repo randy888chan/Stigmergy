@@ -44,16 +44,15 @@ describe('Engine: Agent and Coderag Tool Integration', () => {
 
   beforeEach(() => {
     vol.reset(); // Clear the in-memory file system
-    // Clear the new module-level mocks
     mockCoderagTool.semantic_search.mockClear();
     mockCoderagTool.calculate_metrics.mockClear();
     mockCoderagTool.find_architectural_issues.mockClear();
 
-    // --- Create mock agent & trajectory directories in-memory ---
-    const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
-    const trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
+    // Use a consistent mock project root for isolation
+    const projectRoot = '/test-project';
+    const corePath = path.join(projectRoot, '.stigmergy-core');
+    const agentDir = path.join(corePath, 'agents');
     mockFs.ensureDirSync(agentDir);
-    mockFs.ensureDirSync(trajectoryDir);
 
     const mockDebuggerAgent = `
 \`\`\`yaml
@@ -68,12 +67,12 @@ agent:
 
     const mockEngine = {
       broadcastEvent: mock(),
-      projectRoot: process.cwd(),
+      projectRoot: projectRoot,
+      corePath: corePath, // Be explicit about the core path
       getAgent: mock(),
       triggerAgent: mock(),
     };
 
-    // The executor now gets the mocked coderag tool automatically via module mocking
     executor = createExecutor(mockEngine, {}, {});
   });
 

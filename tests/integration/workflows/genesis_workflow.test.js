@@ -96,6 +96,7 @@ agent:
         updateStatus: mock().mockResolvedValue({}),
         on: mock(),
         off: mock(),
+        closeDriver: mock(),
     };
 
     engine = new Engine({
