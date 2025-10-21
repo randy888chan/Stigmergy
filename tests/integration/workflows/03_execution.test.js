@@ -93,7 +93,10 @@ agent:
         });
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        if (engine) {
+            await engine.stop();
+        }
         mock.restore();
         delete process.env.STIGMERGY_CORE_PATH;
     });

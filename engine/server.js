@@ -43,6 +43,10 @@ export class Engine {
             this.ai = getAiProviders(config);
         }
 
+        // Bind listeners to `this`
+        this.stateChangedListener = this._onStateChanged.bind(this);
+        this.triggerAgentListener = this._onTriggerAgent.bind(this);
+
         // Setup routes and listeners
         this.setupRoutes();
         this.setupStateListener();
@@ -68,8 +72,8 @@ export class Engine {
 
         // Re-initialize the GraphStateManager with the new project root
         if (this.stateManager) {
-             this.stateManager.off('stateChanged');
-             this.stateManager.off('triggerAgent');
+             this.stateManager.off('stateChanged', this.stateChangedListener);
+             this.stateManager.off('triggerAgent', this.triggerAgentListener);
         }
         this.stateManager = new GraphStateManager(this.projectRoot);
         this.setupStateListener();
@@ -84,29 +88,34 @@ export class Engine {
     }
     
     setupStateListener() {
-        this.stateManager.on('stateChanged', async (newState) => {
-            try {
-                console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
-                this.broadcastEvent('state_update', newState);
+        // Now use the bound listeners
+        this.stateManager.on('stateChanged', this.stateChangedListener);
+        this.stateManager.on('triggerAgent', this.triggerAgentListener);
+    }
 
-                if (newState.project_status === 'ENRICHMENT_PHASE') {
-                    if (this._test_onEnrichment) {
-                        // For tests, allow bypassing the complex swarm with a direct trigger
-                        await this._test_onEnrichment(newState);
-                    } else {
-                        await this.initiateAutonomousSwarm(newState);
-                    }
+    // New private method for handling state changes
+    async _onStateChanged(newState) {
+        try {
+            console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
+            this.broadcastEvent('state_update', newState);
+
+            if (newState.project_status === 'ENRICHMENT_PHASE') {
+                if (this._test_onEnrichment) {
+                    await this._test_onEnrichment(newState);
+                } else {
+                    await this.initiateAutonomousSwarm(newState);
                 }
-            } catch (error) {
-                console.error(chalk.red('[Engine] CRITICAL ERROR in stateChanged handler:'), error);
-                await this.stateManager.updateStatus({ newStatus: 'ERROR', message: `Critical error in state handler: ${error.message}` });
             }
-        });
+        } catch (error) {
+            console.error(chalk.red('[Engine] CRITICAL ERROR in stateChanged handler:'), error);
+            await this.stateManager.updateStatus({ newStatus: 'ERROR', message: `Critical error in state handler: ${error.message}` });
+        }
+    }
 
-        this.stateManager.on('triggerAgent', async ({ agentId, prompt }) => {
-            console.log(chalk.green(`[Engine] Received triggerAgent event for ${agentId}`));
-            await this.triggerAgent(agentId, prompt);
-        });
+    // New private method for handling agent triggers
+    async _onTriggerAgent({ agentId, prompt }) {
+        console.log(chalk.green(`[Engine] Received triggerAgent event for ${agentId}`));
+        await this.triggerAgent(agentId, prompt);
     }
 
     async initiateAutonomousSwarm(state) {
@@ -731,8 +740,8 @@ Execute the file write operation now. Upon success, respond with a confirmation 
 
         // [CRITICAL FIX] Remove listeners to allow graceful shutdown
         if (this.stateManager) {
-            this.stateManager.off('stateChanged');
-            this.stateManager.off('triggerAgent');
+            this.stateManager.off('stateChanged', this.stateChangedListener);
+            this.stateManager.off('triggerAgent', this.triggerAgentListener);
             await this.stateManager.closeDriver(); // [FIX] Explicitly close the database connection
         }
 

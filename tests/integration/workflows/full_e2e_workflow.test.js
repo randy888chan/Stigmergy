@@ -34,7 +34,7 @@ const mockStateManagerInstance = {
     getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
     get: mock().mockReturnValue({}),
     on: mock(),
-    off: mock(), // Add the missing 'off' method to the mock
+    off: mock(),
     emit: mock(),
     closeDriver: mock(),
 };

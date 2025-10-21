@@ -1,5 +1,6 @@
 import { test, expect, describe } from 'bun:test';
 import neo4j from 'neo4j-driver';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
 const LIVE_TEST_TIMEOUT = 30000;
 
@@ -11,12 +12,15 @@ describe('External Service Health Check: Neo4j Database', () => {
 
   test.if(credentialsArePresent)('LIVE: should connect to the configured Neo4j database successfully', async () => {
     let driver;
+    let stateManager;
     try {
       driver = neo4j.driver(uri, neo4j.auth.basic(user, password), {
         connectionTimeout: 5000, // 5-second timeout
       });
       await driver.verifyConnectivity();
       console.log(`\n[Live Health Check] Successfully connected to Neo4j database.`);
+      stateManager = new GraphStateManager();
+      await stateManager.testConnection();
       expect(true).toBe(true); // If we reach here, the connection is a success
     } catch (error) {
       // This will now properly fail the test if connection fails with credentials
@@ -24,6 +28,9 @@ describe('External Service Health Check: Neo4j Database', () => {
     } finally {
       if (driver) {
         await driver.close();
+      }
+      if (stateManager) {
+        await stateManager.closeDriver();
       }
     }
   }, LIVE_TEST_TIMEOUT);
