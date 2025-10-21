@@ -61,13 +61,17 @@ agent:
         stateManager: mockStateManagerInstance,
         broadcastEvent: broadcastSpy,
         projectRoot: process.cwd(),
+        stop: mock(async () => {}),
     };
 
     // The executor is now created directly, mirroring the real engine flow
     executeTool = createExecutor(mockEngine, {}, {});
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+      if (mockEngine && typeof mockEngine.stop === 'function') {
+          await mockEngine.stop();
+      }
       mock.restore();
   });
 

@@ -41,6 +41,7 @@ const { createExecutor } = await import('../../../engine/tool_executor.js');
 describe('Tool Executor: Guardian Protocol', () => {
   let mockEngine;
   let mockAiProvider;
+  const cwd = '/app';
   const projectRoot = '/test-project'; // Use a consistent mock root
   const corePath = path.join(projectRoot, '.stigmergy-core');
   const agentDir = path.join(corePath, 'agents');
@@ -71,6 +72,7 @@ describe('Tool Executor: Guardian Protocol', () => {
       projectRoot: projectRoot,
       corePath: corePath, // Pass corePath explicitly
       _test_fs: mockFs,
+      stop: mock(async () => {}),
     };
 
     mockAiProvider = {
@@ -78,7 +80,10 @@ describe('Tool Executor: Guardian Protocol', () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (mockEngine && typeof mockEngine.stop === 'function') {
+        await mockEngine.stop();
+    }
     mock.restore();
   });
 

@@ -71,12 +71,16 @@ agent:
       corePath: corePath, // Be explicit about the core path
       getAgent: mock(),
       triggerAgent: mock(),
+      stop: mock(async () => {}),
     };
 
     executor = createExecutor(mockEngine, {}, {});
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (executor && executor.engine && typeof executor.engine.stop === 'function') {
+      await executor.engine.stop();
+    }
     mock.restore();
   });
 
