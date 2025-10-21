@@ -32,6 +32,24 @@ mock.module('simple-git', () => ({
   simpleGit: () => mockSimpleGit,
 }));
 
+// Mock the config service to prevent it from requiring API keys in a test
+mock.module('../../../services/config_service.js', () => ({
+    configService: {
+        getConfig: () => ({
+            ai_providers: { openrouter: { api_key: 'mock-key-is-set' } },
+            tiers: { reasoning_tier: { provider: 'openrouter', model: 'mock-model' } }
+        })
+    }
+}));
+
+// Mock the unified intelligence service to prevent nested import issues
+mock.module('../../../services/unified_intelligence.js', () => ({
+    unifiedIntelligenceService: {
+        initialize: mock().mockResolvedValue(undefined),
+        scanCodebase: mock().mockResolvedValue({}),
+    }
+}));
+
 // Mock child_process to simulate shell command side-effects in memory
 mock.module('child_process', () => ({
     exec: (command, options, callback) => {
@@ -54,7 +72,6 @@ mock.module('child_process', () => ({
 
 
 // --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
-import { Engine } from "../../../engine/server.js";
 
 let engine;
 let projectRoot;
@@ -63,6 +80,10 @@ let originalEnv;
 const mockStreamText = mock();
 
 beforeEach(async () => {
+    // Dynamically import Engine after all mocks are set up
+    const { Engine } = await import("../../../engine/server.js");
+    global.Engine = Engine; // Make it available to the test scope if needed, or assign to a let variable
+
     vol.reset();
     mockStreamText.mockClear();
     mockSimpleGit.init.mockClear();
@@ -99,7 +120,7 @@ agent:
         closeDriver: mock(),
     };
 
-    engine = new Engine({
+    engine = new global.Engine({
         _test_streamText: mockStreamText,
         _test_fs: mockFsExtra,
         stateManager: mockStateManagerInstance,
