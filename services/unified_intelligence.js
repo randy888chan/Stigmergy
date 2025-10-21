@@ -1,4 +1,4 @@
-import { loadEnv } from '../utils/env_loader.js';
+import { configService } from './config_service.js';
 
 // Dynamically import from the merged coderag source
 import { Neo4jClient } from '../src/coderag/graph/neo4j-client.ts';
@@ -20,7 +20,7 @@ class UnifiedIntelligenceService {
       return;
     }
 
-    const env = await loadEnv();
+    const env = process.env;
 
     if (!env.NEO4J_URI || !env.NEO4J_USER || !env.NEO4J_PASSWORD) {
       console.warn("NEO4J credentials not found. UnifiedIntelligenceService will operate in a disabled state.");

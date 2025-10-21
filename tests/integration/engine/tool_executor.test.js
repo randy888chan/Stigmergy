@@ -34,11 +34,26 @@ mock.module('fs-extra', () => ({ ...mockFs, default: mockFs }));
 
 
 // Dynamically import the module under test AFTER mocks are set up.
+mock.module('../../../services/config_service.js', () => ({
+  configService: {
+    getConfig: () => ({
+      security: {
+        allowedDirs: ["src", "public", "docs", "tests", "scripts", ".ai", "services", "engine", "stories", "system-proposals"],
+        maxFileSizeMB: 1,
+        generatedPaths: ["dashboard/public", "dist", "build", "coverage"]
+      },
+      model_tiers: {
+        reasoning_tier: { provider: "openrouter", model_name: "mock-model" }
+      }
+    })
+  }
+}));
 const { createExecutor } = await import('../../../engine/tool_executor.js');
 
 // --- END TOP-LEVEL MOCK SETUP ---
 
 describe('Tool Executor: Guardian Protocol', () => {
+  process.env.OPENROUTER_API_KEY = "sk-or-v1-abc-123-mock-key";
   let mockEngine;
   let mockAiProvider;
   const cwd = '/app';
@@ -49,7 +64,7 @@ describe('Tool Executor: Guardian Protocol', () => {
 
   beforeEach(() => {
     vol.reset();
-    mockFs.ensureDirSync(agentDir); // Ensure the directory exists in memfs
+    mockFs.ensureDirSync(agentDir, { recursive: true }); // Ensure the directory exists in memfs
 
     // Create mock agent files within the isolated project root
     const createAgentFile = (name) => {
@@ -67,13 +82,11 @@ describe('Tool Executor: Guardian Protocol', () => {
     mockFs.ensureDirSync(srcDir);
     mockFs.writeFileSync(path.join(srcDir, 'some_file.txt'), 'hello');
 
-    mockEngine = {
-      broadcastEvent: mock(() => {}),
-      projectRoot: projectRoot,
-      corePath: corePath, // Pass corePath explicitly
-      _test_fs: mockFs,
-      stop: mock(async () => {}),
-    };
+    const Engine = (await import('../../../engine/server.js')).Engine;
+    // We can now use a real engine instance, ensuring its resources are managed.
+    mockEngine = new Engine({ projectRoot, startServer: false, _test_fs: mockFs });
+    // Spy on the real stop method to ensure it's called, but allow it to execute.
+    spyOn(mockEngine, 'stop');
 
     mockAiProvider = {
       getModelForTier: mock(() => 'mock-model'),

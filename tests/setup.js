@@ -4,6 +4,8 @@ import { join } from 'path';
 
 // Create a temporary copy of the .stigmergy-core directory for tests
 export default async function setup() {
+  // Set a mock API key to satisfy the config service during tests
+  process.env.OPENROUTER_API_KEY = "sk-or-v1-abc-123-mock-key";
   const fixturesDir = join(process.cwd(), 'fixtures');
   const tempCoreDir = join(process.cwd(), '.stigmergy-core-test');
   const sourceCoreDir = join(process.cwd(), '.stigmergy-core');
