@@ -9,7 +9,7 @@ import { createExecutor } from "./tool_executor.js";
 import * as fileSystem from '../tools/file_system.js';
 import * as coderag from '../tools/coderag_tool.js';
 import { getAiProviders } from '../ai/providers.js';
-import config from '../stigmergy.config.js';
+import { configService } from '../services/config_service.js';
 import { streamText } from 'ai';
 import path from 'path';
 import fs from 'fs-extra';
@@ -39,8 +39,10 @@ export class Engine {
         this._test_onEnrichment = options._test_onEnrichment;
         this._test_fs = options._test_fs; // For injecting memfs in tests
 
+        this.config = configService.getConfig();
+
         if (!this._test_streamText) {
-            this.ai = getAiProviders(config);
+            this.ai = getAiProviders(this.config);
         }
 
         // Bind listeners to `this`
@@ -179,7 +181,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
             console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
             const executorFactory = this._test_createExecutor || createExecutor;
-            const executeTool = executorFactory(this, this.ai, { workingDirectory, config });
+            const executeTool = executorFactory(this, this.ai, { workingDirectory, config: this.config });
 
             const agentPath = path.join(this.corePath, 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
@@ -528,11 +530,11 @@ Execute the file write operation now. Upon success, respond with a confirmation 
 
 
         // 3. IDE (MCP) Endpoint
-        this.app.post('/mcp', async (c) => {
-            const { prompt, project_path } = await c.req.json();
+        this.app.get('/mcp', async (c) => {
+            const { goal: prompt, project_path } = c.req.query();
 
             if (!prompt || !project_path) {
-                return c.json({ error: 'Prompt and project_path are required.' }, 400);
+                return c.json({ error: 'goal and project_path query parameters are required.' }, 400);
             }
 
             console.log(chalk.cyan(`[MCP] Received prompt for project: ${project_path}`));
