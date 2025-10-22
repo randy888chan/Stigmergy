@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterAll, mock, spyOn } from "bun:tes
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { SystemValidator } from "../../src/bootstrap/system_validator.js";
+let SystemValidator;
 
 // Mock dependencies that are not the focus of this test
 const mockVerifyBackup = mock();
@@ -23,10 +23,12 @@ mock.module("../../engine/neo4j_validator.js", () => ({
 describe("SystemValidator", () => {
   let validator;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     mockVerifyBackup.mockReset();
     mockNeo4jValidate.mockReset();
     mock.restore(); // Restore all spies before each test
+    // Dynamically import to ensure mocks and env vars are set
+    SystemValidator = (await import("../../src/bootstrap/system_validator.js")).SystemValidator;
     validator = new SystemValidator();
   });
 
