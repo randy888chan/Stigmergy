@@ -2,120 +2,132 @@ import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { Volume } from 'memfs';
 import path from 'path';
 
-// --- Mock the entire coderag tool module ---
-const mockCoderagTool = {
-  semantic_search: mock(async ({ query, project_root }) => []),
-  calculate_metrics: mock(async () => '{"metrics": "mocked"}'),
-  find_architectural_issues: mock(async () => []),
-};
-mock.module('../../../tools/coderag_tool.js', () => mockCoderagTool);
-
-import { createExecutor } from '../../../engine/tool_executor.js';
-
-// --- 1. Setup In-Memory File System & Mock ---
+// --- 1. Definitive, Robust Mock for fs and fs-extra ---
 const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-const mockFs = {
-  // Add all necessary methods that might be called by the executor or services.
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  appendFile: memfs.promises.appendFile,
+// Use require to handle CJS/ESM interop issues with memfs in Bun tests
+const { createFsFromVolume } = require('memfs');
+const memfs = createFsFromVolume(vol);
+
+// fs-extra mock should be promise-based at the top level
+const mockFsExtra = {
+  ...memfs.promises,
   ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
   ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  statSync: memfs.statSync,
-  mkdirSync: memfs.mkdirSync,
-  writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync,
-  promises: memfs.promises,
+  writeJson: (file, obj, options) => memfs.promises.writeFile(file, JSON.stringify(obj, null, options?.spaces)),
+  pathExists: (p) => Promise.resolve(memfs.existsSync(p)),
+  pathExistsSync: memfs.existsSync,
+  // For dependencies that might expect the whole object
+  default: {
+    ...memfs.promises,
+    ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
+    ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+    writeJson: (file, obj, options) => memfs.promises.writeFile(file, JSON.stringify(obj, null, options?.spaces)),
+    pathExists: (p) => Promise.resolve(memfs.existsSync(p)),
+    pathExistsSync: memfs.existsSync,
+  }
 };
-mockFs.default = mockFs;
+mock.module('fs-extra', () => mockFsExtra);
+// native fs mock is callback-based
+mock.module('fs', () => memfs);
 
-// --- 2. Mock the fs-extra module for the entire test file ---
-mock.module('fs-extra', () => mockFs);
 
-// --- 3. Mock the context to prevent the singleton from throwing errors ---
-mock.module('../../../engine/context.js', () => ({
-  getContext: () => ({ project_root: process.cwd() }),
+// --- 2. Mock for the Coderag Tool Module ---
+const mockSemanticSearch = mock(async (params) => []);
+const mockCalculateMetrics = mock(async (params) => ({}));
+const mockFindArchitecturalIssues = mock(async (params) => []);
+mock.module('../../../tools/coderag_tool.js', () => ({
+  semantic_search: mockSemanticSearch,
+  calculate_metrics: mockCalculateMetrics,
+  find_architectural_issues: mockFindArchitecturalIssues,
+}));
+
+// --- 3. Mock other dependencies ---
+mock.module('../../../services/config_service.js', () => ({
+  configService: {
+    getConfig: () => ({
+      security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
+    }),
+  },
+}));
+
+// DEFINITIVE FIX #1: Mock the monitoring service to prevent secondary errors
+mock.module('../../../services/model_monitoring.js', () => ({
+    trackToolUsage: mock(async () => {})
 }));
 
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
-  let executor;
+  let execute;
+  const projectRoot = '/test-project';
+  const corePath = path.join(projectRoot, '.stigmergy-core');
 
-  beforeEach(() => {
-    vol.reset(); // Clear the in-memory file system
-    mockCoderagTool.semantic_search.mockClear();
-    mockCoderagTool.calculate_metrics.mockClear();
-    mockCoderagTool.find_architectural_issues.mockClear();
+  beforeEach(async () => {
+    vol.reset();
+    mockSemanticSearch.mockClear();
+    mockCalculateMetrics.mockClear();
+    mockFindArchitecturalIssues.mockClear();
 
-    // Use a consistent mock project root for isolation
-    const projectRoot = '/test-project';
-    const corePath = path.join(projectRoot, '.stigmergy-core');
-    const agentDir = path.join(corePath, 'agents');
-    mockFs.ensureDirSync(agentDir);
+    process.env.STIGMERGY_CORE_PATH = corePath;
 
-    const mockDebuggerAgent = `
+    // Use the mocked fs-extra, which is promise-based
+    await mockFsExtra.ensureDir(path.join(corePath, 'agents'));
+
+    const mockDebuggerAgentContent = `
 \`\`\`yaml
 agent:
   id: "debugger"
-  engine_tools:
-    - "file_system.*"
-    - "coderag.*"
+  engine_tools: ["coderag.*"]
 \`\`\`
 `;
-    mockFs.writeFileSync(path.join(agentDir, 'debugger.md'), mockDebuggerAgent);
+    await mockFsExtra.writeFile(path.join(corePath, 'agents', 'debugger.md'), mockDebuggerAgentContent);
 
     const mockEngine = {
       broadcastEvent: mock(),
       projectRoot: projectRoot,
-      corePath: corePath, // Be explicit about the core path
-      getAgent: mock(),
-      triggerAgent: mock(),
-      stop: mock(async () => {}),
+      _test_fs: mockFsExtra, // Pass the promise-based mock for path resolution
     };
 
-    executor = createExecutor(mockEngine, {}, {});
+    // Dynamically import here to ensure mocks are applied
+    const toolExecutorModule = await import('../../../engine/tool_executor.js');
+    const executorInstance = toolExecutorModule.createExecutor(mockEngine, {}, {});
+    execute = executorInstance.execute;
   });
 
-  afterEach(async () => {
-    if (executor && executor.engine && typeof executor.engine.stop === 'function') {
-      await executor.engine.stop();
-    }
+  afterEach(() => {
+    delete process.env.STIGMERGY_CORE_PATH;
     mock.restore();
   });
 
   test('should call coderag.semantic_search', async () => {
     const fakeResults = [{ file: 'src/app.js', snippet: 'function main() {}' }];
-    mockCoderagTool.semantic_search.mockResolvedValue(fakeResults);
+    mockSemanticSearch.mockResolvedValue(fakeResults);
 
-    const result = await executor.execute('coderag.semantic_search', { query: 'main function' }, 'debugger');
+    const result = await execute('coderag.semantic_search', { query: 'main function' }, 'debugger');
 
     expect(JSON.parse(result)).toEqual(fakeResults);
-    expect(mockCoderagTool.semantic_search).toHaveBeenCalledTimes(1);
-    expect(mockCoderagTool.semantic_search).toHaveBeenCalledWith(
-      expect.objectContaining({ query: 'main function' })
+    expect(mockSemanticSearch).toHaveBeenCalledTimes(1);
+    expect(mockSemanticSearch).toHaveBeenCalledWith(
+      expect.objectContaining({ query: 'main function', project_root: projectRoot })
     );
   });
 
   test('should call coderag.calculate_metrics', async () => {
     const fakeMetrics = { cyclomaticComplexity: 15, maintainability: 85 };
-    // The mock now directly returns the stringified JSON the tool is expected to return
-    mockCoderagTool.calculate_metrics.mockResolvedValue(`Metrics calculation complete: ${JSON.stringify(fakeMetrics)}`);
+    mockCalculateMetrics.mockResolvedValue(fakeMetrics);
 
-    const result = await executor.execute('coderag.calculate_metrics', {}, 'debugger');
+    const result = await execute('coderag.calculate_metrics', {}, 'debugger');
 
-    const toolOutput = JSON.parse(result);
-    expect(toolOutput).toContain('{"cyclomaticComplexity":15,"maintainability":85}');
-    expect(mockCoderagTool.calculate_metrics).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(result)).toEqual(fakeMetrics);
+    expect(mockCalculateMetrics).toHaveBeenCalledTimes(1);
   });
 
   test('should call coderag.find_architectural_issues', async () => {
     const fakeIssues = [{ type: 'Cyclic Dependency', files: ['a.js', 'b.js'] }];
-    mockCoderagTool.find_architectural_issues.mockResolvedValue(fakeIssues);
+    mockFindArchitecturalIssues.mockResolvedValue(fakeIssues);
 
-    const result = await executor.execute('coderag.find_architectural_issues', {}, 'debugger');
+    const result = await execute('coderag.find_architectural_issues', {}, 'debugger');
 
     expect(JSON.parse(result)).toEqual(fakeIssues);
-    expect(mockCoderagTool.find_architectural_issues).toHaveBeenCalledTimes(1);
+    expect(mockFindArchitecturalIssues).toHaveBeenCalledTimes(1);
   });
 });

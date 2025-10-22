@@ -1,146 +1,125 @@
-import { test, expect, describe, beforeEach, afterEach, mock } from 'bun:test';
-import path from 'path';
+import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
+// Do NOT import Engine or createExecutor statically
+import { getTestStateManager } from '../../global_state.js';
 import { Volume } from 'memfs';
+import path from 'path';
 
-// --- MOCKS MUST BE DEFINED BEFORE ANY APPLICATION IMPORTS ---
+// --- Definitive FS Mock ---
 const vol = new Volume();
 const memfs = require('memfs').createFsFromVolume(vol);
+const mockFs = { ...memfs };
+mockFs.promises = memfs.promises;
+mock.module('fs', () => mockFs);
+mock.module('fs-extra', () => mockFs);
 
-const mockFsExtra = {
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync,
-  promises: memfs.promises,
+
+// --- Other Mocks ---
+const mockStreamText = mock(async () => ({ text: 'Test response', toolCalls: [], finishReason: 'stop' }));
+mock.module('ai', () => ({ streamText: mockStreamText }));
+
+const mockConfigService = {
+  getConfig: () => ({ model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } } }),
 };
-
-// Mock fs-extra and NATIVE fs to ensure all file ops are in-memory
-// The `{ default: mock, ...mock }` structure handles both default and named imports.
-mock.module('fs-extra', () => ({ default: mockFsExtra, ...mockFsExtra }));
-mock.module('fs', () => ({ default: memfs, ...memfs }));
-mock.module('fs/promises', () => ({ default: memfs.promises, ...memfs.promises }));
-
-// Mock the config service to prevent it from requiring API keys in a test
-mock.module('../../../services/config_service.js', () => ({
-    configService: {
-        getConfig: () => ({
-            // Provide a minimal valid config for the test
-            ai_providers: {
-                google: null,
-                openrouter: { api_key: 'mock-key-is-set' } // Satisfy the validator
-            },
-            tiers: {
-                reasoning_tier: { provider: 'openrouter', model: 'mock-model' }
-            }
-        })
-    }
-}));
+mock.module('../../../services/config_service.js', () => ({ configService: mockConfigService }));
 
 
-// Mock the entire service that's causing the nested import issue
-mock.module('../../../services/unified_intelligence.js', () => ({
-    unifiedIntelligenceService: {
-        initialize: mock().mockResolvedValue(undefined),
-        scanCodebase: mock().mockResolvedValue({}),
-        // Add other methods used by the application if any
-    }
-}));
+describe('Execution Workflow: @dispatcher and @executor', () => {
+  let engine;
+  let stateManager;
+  let Engine, createExecutor; // To be populated by dynamic import
+  const projectRoot = '/test-project-exec';
 
-// --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
-// We will import Engine dynamically inside beforeEach after mocks are set up.
+  beforeAll(async () => {
+    stateManager = getTestStateManager();
+    await memfs.promises.mkdir(projectRoot, { recursive: true });
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
+    await memfs.promises.mkdir(process.env.STIGMERGY_CORE_PATH, { recursive: true });
+  });
 
-// Mock the StateManager
-const mockStateManagerInstance = {
-    initializeProject: mock().mockResolvedValue({}),
-    updateStatus: mock().mockResolvedValue({}),
-    updateState: mock().mockResolvedValue({}),
-    getState: mock().mockResolvedValue({ project_status: 'PLAN_APPROVED' }),
-    get: mock().mockReturnValue({}),
-    on: mock(),
-    off: mock(),
-    emit: mock(),
-    closeDriver: mock(),
-};
+  afterAll(async () => {
+    await memfs.promises.rm(projectRoot, { recursive: true, force: true });
+    delete process.env.STIGMERGY_CORE_PATH;
+  });
 
-describe('Integration: 03 - Execution', () => {
-    let engine;
-    let projectRoot;
-    let Engine; // To store the dynamically imported class
+  beforeEach(async () => {
+    // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+    Engine = (await import('../../../engine/server.js')).Engine;
+    createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
-    beforeEach(async () => {
-        vol.reset();
-        mockStateManagerInstance.updateStatus.mockClear();
+    vol.reset();
+    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+    await memfs.promises.mkdir(agentDir, { recursive: true });
 
-        // Dynamically import Engine after all mocks are set up
-        Engine = (await import('../../../engine/server.js')).Engine;
-
-        projectRoot = '/test-project-execution';
-        const corePath = path.join(projectRoot, '.stigmergy-core');
-        const agentDir = path.join(corePath, 'agents');
-        process.env.STIGMERGY_CORE_PATH = corePath;
-
-        mockFsExtra.ensureDirSync(agentDir);
-        mockFsExtra.ensureDirSync(path.join(projectRoot, 'dashboard', 'public'));
-        mockFsExtra.writeFileSync(path.join(projectRoot, 'dashboard', 'public', 'index.html'), '<html></html>');
-        mockFsExtra.ensureDirSync('/app/.ai/monitoring');
-
-        const dummyAgentDef = `
-\`\`\`yaml
+    const dispatcherContent = `
 agent:
-  id: "dispatcher"
-  engine_tools: ["file_system.*", "system.*"]
-\`\`\`
+  id: "@dispatcher"
+  engine_tools: ["file_system.*"]
 `;
-        mockFsExtra.writeFileSync(path.join(agentDir, 'dispatcher.md'), dummyAgentDef);
+    await memfs.promises.writeFile(path.join(agentDir, '@dispatcher.md'), dispatcherContent);
+    const executorContent = `
+agent:
+  id: "@executor"
+  engine_tools: ["file_system.*"]
+`;
+    await memfs.promises.writeFile(path.join(agentDir, '@executor.md'), executorContent);
 
-        const mockAI = async ({ messages }) => {
-            const lastMessage = messages[messages.length - 1];
-            if (lastMessage.role === 'user') {
-                return {
-                    toolCalls: [{ toolCallId: 'exec-1', toolName: 'file_system.writeFile', args: { path: 'src/final_output.js', content: 'Execution Complete' } }],
-                    finishReason: 'tool-calls', text: ''
-                };
-            }
-            if (lastMessage.role === 'tool' && lastMessage.tool_name === 'file_system.writeFile') {
-                return {
-                    toolCalls: [{ toolCallId: 'exec-2', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }],
-                    finishReason: 'tool-calls', text: ''
-                };
-            }
-            return { finishReason: 'stop', text: 'Execution finished.' };
-        };
-
-        engine = new Engine({
-            stateManager: mockStateManagerInstance,
-            projectRoot: projectRoot,
-            corePath: corePath,
-            _test_streamText: mockAI,
-            _test_fs: mockFsExtra,
-            startServer: false,
-        });
+    engine = new Engine({
+      projectRoot,
+      stateManager,
+      startServer: false,
+      _test_streamText: mockStreamText,
+      _test_createExecutor: (eng, ai, opts) => createExecutor(eng, ai, { ...opts, _test_fs: memfs }),
     });
 
-    afterEach(async () => {
-        if (engine) {
-            await engine.stop();
+    await engine.stateManager.updateStatus({ newStatus: 'AWAITING_USER_INPUT' });
+  });
+
+  afterEach(async () => {
+    if (engine) {
+      await engine.stop();
+    }
+    mockStreamText.mockClear();
+    mock.restore();
+  });
+
+  test('Dispatcher should read plan and delegate to executor', async () => {
+    const dispatcherReadPlanResponse = { text: "Reading plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: path.join(projectRoot, 'plan.md') }, toolCallId: '1' }], finishReason: 'tool-calls' };
+    const dispatcherDelegateResponse = { text: "Delegating to executor.", toolCalls: [], finishReason: 'stop' };
+
+    mockStreamText
+        .mockResolvedValueOnce(dispatcherReadPlanResponse)
+        .mockResolvedValueOnce(dispatcherDelegateResponse);
+
+    const executorWriteFileResponse = { text: "Writing file.", toolCalls: [{ toolName: 'file_system.writeFile', args: { path: path.join(projectRoot, 'src/example.js'), content: 'console.log("hello");' }, toolCallId: '2' }], finishReason: 'tool-calls' };
+    const executorFinalResponse = { text: "Done.", toolCalls: [], finishReason: 'stop' };
+
+    const mockTriggerAgent = mock(async (agentId, prompt) => {
+        if (agentId === '@executor') {
+            mockStreamText
+                .mockResolvedValueOnce(executorWriteFileResponse)
+                .mockResolvedValueOnce(executorFinalResponse);
+            return await Engine.prototype.triggerAgent.call(engine, agentId, prompt);
         }
-        mock.restore();
-        delete process.env.STIGMERGY_CORE_PATH;
+        // For the dispatcher, call the original method directly
+        return await Engine.prototype.triggerAgent.call(engine, agentId, prompt);
     });
+    engine.triggerAgent = mockTriggerAgent;
 
-    test('should execute a plan and create the correct file', async () => {
-        await engine.triggerAgent('@dispatcher', 'The plan has been approved. Please proceed.');
+    const planContent = `
+tasks:
+  - id: "1"
+    agent: "@executor"
+    files_to_create_or_modify: ["src/example.js"]
+`;
+    await memfs.promises.writeFile(path.join(projectRoot, 'plan.md'), planContent);
+    await memfs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
 
-        const statusUpdateCall = mockStateManagerInstance.updateStatus.mock.calls.find(call => call[0].newStatus === 'EXECUTION_COMPLETE');
-        expect(statusUpdateCall).toBeDefined();
+    await engine.triggerAgent('@dispatcher', 'Proceed with the plan.');
 
-        const outputFile = path.join(projectRoot, '.stigmergy', 'sandboxes', 'dispatcher', 'src', 'final_output.js');
-        const fileExists = mockFsExtra.existsSync(outputFile);
-        expect(fileExists).toBe(true);
+    const finalState = await engine.stateManager.getState();
+    expect(finalState.project_status).toBe('PLAN_EXECUTED');
 
-        const content = await mockFsExtra.readFile(outputFile, 'utf-8');
-        expect(content).toBe('Execution Complete');
-    });
+    const fileExists = await memfs.promises.exists(path.join(projectRoot, 'src/example.js'));
+    expect(fileExists).toBe(true);
+  });
 });

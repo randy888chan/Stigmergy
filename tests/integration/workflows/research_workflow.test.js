@@ -39,17 +39,7 @@ mock.module('fs-extra', () => mockFsExtra);
 mock.module('fs', () => memfs);
 mock.module('fs/promises', () => memfs.promises);
 
-// Create a mock instance for the StateManager
-const mockStateManagerInstance = {
-    initializeProject: mock().mockResolvedValue({}),
-    updateStatus: mock().mockResolvedValue({}),
-    updateState: mock().mockResolvedValue({}),
-    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
-    on: mock(),
-    off: mock(),
-    emit: mock(),
-    closeDriver: mock(),
-};
+let GraphStateManager;
 
 const executeMock = mock();
 const mockStreamText = mock();
@@ -87,7 +77,6 @@ agent:
     engine = new Stigmergy({
         _test_streamText: mockStreamText,
         _test_createExecutor: testExecutorFactory, // Inject the factory
-        stateManager: mockStateManagerInstance,
         projectRoot: projectRoot,
     });
 });

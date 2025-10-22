@@ -24,20 +24,8 @@ mock.module('fs', () => memfs);
 mock.module('fs/promises', () => memfs.promises);
 
 // --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
-import { Engine as Stigmergy } from "../../../engine/server.js";
-
-// Mock the StateManager
-const mockStateManagerInstance = {
-    initializeProject: mock().mockResolvedValue({}),
-    updateStatus: mock().mockResolvedValue({}),
-    updateState: mock().mockResolvedValue({}),
-    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
-    get: mock().mockReturnValue({}),
-    on: mock(),
-    off: mock(),
-    emit: mock(),
-    closeDriver: mock(),
-};
+let Stigmergy;
+let GraphStateManager;
 
 const mockStreamText = mock();
 
@@ -49,7 +37,9 @@ let writeFileSpy;
 beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
-    mockStateManagerInstance.updateStatus.mockClear();
+
+    // Dynamically import after mocks
+    Stigmergy = (await import("../../../engine/server.js")).Engine;
 
     projectRoot = path.resolve('/test-project');
     const corePath = path.join(projectRoot, '.stigmergy-core');
@@ -82,7 +72,6 @@ agent:
     engine = new Stigmergy({
         _test_streamText: mockStreamText,
         _test_fs: mockFsExtra,
-        stateManager: mockStateManagerInstance,
         projectRoot: projectRoot,
         corePath: corePath,
         startServer: false,
@@ -103,6 +92,11 @@ afterEach(async () => {
 test("Isolation Test: Manually-triggered workflow should execute correctly", async () => {
     const filePath = "hello.txt";
     const fileContent = "Hello, world!";
+
+    const stateManager = getTestStateManager();
+    spyOn(stateManager, 'updateStatus').mockResolvedValue({});
+    engine.stateManager = stateManager;
+
 
     // --- ISOLATION TEST: Manually trigger each agent in sequence ---
 
@@ -129,6 +123,6 @@ test("Isolation Test: Manually-triggered workflow should execute correctly", asy
     expect(writeFileSpy).toHaveBeenCalledWith(expectedPath, fileContent);
 
     // Verify the final status was updated
-    const statusUpdateCall = mockStateManagerInstance.updateStatus.mock.calls.find(call => call[0].newStatus === 'EXECUTION_COMPLETE');
+    const statusUpdateCall = stateManager.updateStatus.mock.calls.find(call => call[0].newStatus === 'EXECUTION_COMPLETE');
     expect(statusUpdateCall).toBeDefined();
 });
