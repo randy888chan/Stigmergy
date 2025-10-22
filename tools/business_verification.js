@@ -1,9 +1,8 @@
 import fs from "fs-extra";
 import path from "path";
-import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 
-export async function generate_financial_projections({ business_plan_content, ai, generateObject = defaultGenerateObject, config }) {
+export async function generate_financial_projections({ business_plan_content, ai, generateObject, config }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),
@@ -26,7 +25,7 @@ export async function generate_financial_projections({ business_plan_content, ai
   return object;
 }
 
-export async function perform_business_valuation({ business_plan_content, ai, generateObject = defaultGenerateObject, config }) {
+export async function perform_business_valuation({ business_plan_content, ai, generateObject, config }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),

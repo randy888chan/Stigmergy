@@ -1,7 +1,6 @@
 // Enhanced QA Tools for Stigmergy with TDD Enforcement and Static Analysis
 import * as fs from 'fs-extra';
 import path from 'path';
-import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 import { exec } from "child_process";
 import { promisify } from "util";
@@ -361,7 +360,7 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
 
 // Legacy QA tools for backward compatibility
 
-export async function verify_requirements({ requirements, code, ai, generateObject = defaultGenerateObject, config }) {
+export async function verify_requirements({ requirements, code, ai, generateObject, config }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),
@@ -373,7 +372,7 @@ Code: ${code}`,
   return object;
 }
 
-export async function verify_architecture({ architecture_blueprint, code, ai, generateObject = defaultGenerateObject, config }) {
+export async function verify_architecture({ architecture_blueprint, code, ai, generateObject, config }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),
