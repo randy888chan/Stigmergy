@@ -10,6 +10,7 @@ let Engine;
 let createExecutor;
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
+  let engine;
   let execute;
   const projectRoot = '/test-project';
 
@@ -55,7 +56,7 @@ agent:
     await mockFs.promises.writeFile(path.join(process.env.STIGMERGY_CORE_PATH, 'agents', 'debugger.md'), mockDebuggerAgentContent);
 
     const stateManager = new GraphStateManager(projectRoot);
-    const mockEngine = new Engine({
+    engine = new Engine({
       broadcastEvent: mock(),
       projectRoot: projectRoot,
       stateManager,
@@ -63,11 +64,14 @@ agent:
       _test_fs: mockFs,
     });
 
-    const executorInstance = await createExecutor(mockEngine, {}, {}, mockFs);
+    const executorInstance = await createExecutor(engine, {}, {}, mockFs);
     execute = executorInstance.execute;
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    if (engine) {
+      await engine.stop();
+    }
     delete process.env.STIGMERGY_CORE_PATH;
     mock.restore();
   });

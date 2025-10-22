@@ -35,9 +35,6 @@ import { trackToolUsage } from "../services/model_monitoring.js";
 
 // ====================================================================================
 // START: Centralized Path Resolution & Security Logic
-// This logic was moved from `tools/file_system.js` to make the `tool_executor` the
-// single security guard for all file system operations, enforcing the Single
-// Responsibility Principle.
 // ====================================================================================
 
 const SAFE_DIRECTORIES = config.security?.allowedDirs || [
@@ -76,7 +73,6 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
   }
 
   if (!workingDirectory) {
-    // --- ADD THIS NEW BLOCK ---
     if (config.security?.generatedPaths) {
       const projectScope = projectRoot || process.cwd();
       const resolved = path.resolve(projectScope, filePath);
@@ -84,18 +80,14 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
 
       const isGenerated = config.security.generatedPaths.some(p => relativeToProject.startsWith(p));
       if (isGenerated) {
-        // Throw a specific, educational error that reinforces the Constitution.
         throw new Error(`Security violation: Path "${filePath}" is inside a protected 'generated' directory. Per the Constitution, agents must only edit SOURCE files and then use the 'build.rebuild_dashboard' tool.`);
       }
     }
-    // --- END OF NEW BLOCK ---
 
     const relative = path.relative(projectScope, resolved);
     const isSafe = relative === '' || SAFE_DIRECTORIES.some(dir => relative.startsWith(dir + path.sep) || relative === dir);
     const rootDir = relative.split(path.sep)[0] || relative;
 
-    // Allow .stigmergy-core to bypass the SAFE_DIRECTORIES check,
-    // as it will be handled by the more specific Guardian Protocol check later.
     if (!isSafe && rootDir !== '.stigmergy-core') {
       throw new Error(`Access restricted to ${rootDir} directory`);
     }
@@ -124,31 +116,10 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
 // END: Centralized Path Resolution & Security Logic
 // ====================================================================================
 
-
-async function getCorePath() {
-  if (process.env.STIGMERGY_CORE_PATH) {
-    return process.env.STIGMERGY_CORE_PATH;
-  }
-  
-  const defaultPath = path.join(process.cwd(), ".stigmergy-core");
-  
-  try {
-    await fs.access(defaultPath);
-  } catch (error) {
-    throw new Error(
-      `.stigmergy-core directory not found at ${defaultPath}. ` +
-      `Please run 'npx stigmergy install' or set STIGMERGY_CORE_PATH.`
-    );
-  }
-  
-  return defaultPath;
-}
-
 let agentManifest = null;
 
-async function getManifest() {
+async function getManifest(corePath) {
   if (agentManifest) return agentManifest;
-  const corePath = await getCorePath();
   const manifestPath = path.join(corePath, "system_docs", "02_Agent_Manifest.md");
   const fileContent = await fs.readFile(manifestPath, "utf8");
   const yamlMatch = fileContent.match(/```yaml\s*([\s\S]*?)```/);
@@ -174,31 +145,33 @@ const getParams = (func) => {
 
     const paramsMatch = match[1].match(/\{([^}]+)\}/);
     if (paramsMatch) {
-        // Handle destructured parameters, ignoring default values
         return paramsMatch[1].split(',').map(p => p.split('=')[0].trim());
     }
-
-    // Handle regular parameters, ignoring default values
     return match[1].split(',').map(p => p.split('=')[0].trim()).filter(Boolean);
 };
 
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
   const { workingDirectory, config: engineConfig } = options;
+  const corePath = engine.corePath; // DEFINITIVE FIX: Get corePath from the engine instance.
 
-  // Dynamically import to break circular dependency
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
   const { default: createSystemTools } = await import("../tools/system_tools.js");
   const { default: trajectoryRecorder } = await import("../services/trajectory_recorder.js");
 
+  const injectedFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
+    acc[key] = (args) => fileSystem[key](args, fsProvider);
+    return acc;
+  }, {});
+
   const toolbelt = {
-    file_system: fileSystem, // Using the "dumb" tools directly now
+    file_system: injectedFileSystem,
     shell,
     research,
     coderag: coderag,
     swarm_intelligence: swarmIntelligence,
     qa: qaTools,
     business_verification: businessVerification,
-    guardian: createGuardianTools(engine),
+    guardian: createGuardianTools(engine, fsProvider),
     core: privilegedCoreTools,
     system: createSystemTools(engine),
     superdesign: superdesignIntegration,
@@ -231,7 +204,6 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
     
     try {
-      const corePath = await getCorePath();
       const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
       const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
       const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
@@ -243,16 +215,13 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
         throw new Error(`Tool '${toolName}' not found.`);
       }
 
-      // --- START: Centralized Security Check & Guardian Protocol ---
       if (namespace === 'file_system') {
         const pathKey = args.path !== undefined ? 'path' : 'directory';
         const originalPath = args[pathKey] ?? '.';
         const resolvedPath = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
-        args[pathKey] = resolvedPath; // Overwrite the argument with the resolved, secure path.
+        args[pathKey] = resolvedPath;
 
-        // Guardian Protocol: Prevent unauthorized writes to .stigmergy-core
         if (funcName === 'writeFile' || funcName === 'appendFile') {
-          const corePath = getCorePath();
           if (resolvedPath.startsWith(corePath)) {
             if (agentId !== '@guardian' && agentId !== '@metis') {
               throw new OperationalError(`Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '${agentId}' is not authorized.`);
@@ -263,7 +232,6 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
         const originalPath = args.path ?? '.';
         args.path = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
       }
-      // --- END: Centralized Security Check & Guardian Protocol ---
 
       const permittedTools = agentConfig.engine_tools || [];
       const isSystemOrDispatcher = agentId === 'system' || agentId === 'dispatcher';
@@ -287,20 +255,14 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       if (namespace === 'coderag') {
           const contextualArgs = { ...safeArgs, project_root: engine.projectRoot };
           result = await toolFunction(contextualArgs);
-      } else if (namespace === 'file_system') {
-          // The "dumb" fs tools now just need the args and the fs provider for tests.
-          result = await toolFunction(safeArgs, fsProvider);
       } else if (namespace === 'git_tool' && funcName === 'commit') {
           const contextualArgs = { ...safeArgs, workingDirectory: workingDirectory };
           result = await toolFunction(contextualArgs);
       } else if (namespace === 'shell') {
-          // For the shell tool, we inject the agent's sandbox as the current working directory.
           const contextualArgs = { ...safeArgs, cwd: workingDirectory };
           result = await toolFunction(contextualArgs);
-      } else if (['stigmergy'].includes(namespace)) {
-          result = await toolFunction(safeArgs);
       } else {
-          result = await toolFunction(safeArgs, agentId, ai, engineConfig);
+          result = await toolFunction(safeArgs);
       }
       
       if (toolName.startsWith("file_system.write")) {
