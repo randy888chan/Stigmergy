@@ -1,12 +1,13 @@
 import path from 'path';
-import fs from 'fs-extra';
+import fsDefault from 'fs-extra';
 
 /**
  * Creates the toolset for the guardian agent, which requires access to the main engine.
  * @param {import('../engine/server.js').Engine} engine - The main engine instance.
+ * @param {Object} fs - The filesystem provider (real or mock).
  * @returns {Object} The guardian toolset.
  */
-export default (engine) => ({
+export default (engine, fs = fsDefault) => ({
   /**
    * Proposes a change to a core system file. Instead of triggering an agent directly,
    * it saves the proposal to a file for human review via the Governance dashboard.

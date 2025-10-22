@@ -3,18 +3,21 @@ import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
+const mockStreamText = mock();
 let Engine;
-let createExecutor;
 
 describe('Human Handoff Workflow', () => {
-  let executeTool;
-  let mockEngine;
+  let engine;
   let broadcastSpy;
+  let projectRoot;
 
   beforeEach(async () => {
     vol.reset();
+    mockStreamText.mockClear();
+
     mock.module('fs', () => mockFs);
     mock.module('fs-extra', () => mockFs);
+    mock.module('ai', () => ({ streamText: mockStreamText }));
     mock.module('../../../services/config_service.js', () => ({
         configService: {
             getConfig: () => ({
@@ -25,9 +28,9 @@ describe('Human Handoff Workflow', () => {
     }));
 
     Engine = (await import('../../../engine/server.js')).Engine;
-    createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
-    process.env.STIGMERGY_CORE_PATH = path.join(process.cwd(), '.stigmergy-core');
+    projectRoot = path.resolve('/test-handoff-project');
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
     await mockFs.ensureDir(agentDir);
 
@@ -42,31 +45,41 @@ agent:
     await mockFs.promises.writeFile(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
 
     broadcastSpy = mock(() => {});
-    const stateManager = new GraphStateManager(process.cwd());
-    mockEngine = new Engine({
+    const stateManager = new GraphStateManager(projectRoot);
+    engine = new Engine({
+        _test_streamText: mockStreamText,
+        _test_fs: mockFs,
         broadcastEvent: broadcastSpy,
-        projectRoot: process.cwd(),
+        projectRoot,
         corePath: process.env.STIGMERGY_CORE_PATH,
         stateManager,
         startServer: false,
     });
-
-    executeTool = await createExecutor(mockEngine, {}, {}, mockFs);
   });
 
   afterEach(async () => {
-      if (mockEngine) {
-          await mockEngine.stop();
+      if (engine) {
+          await engine.stop();
       }
       mock.restore();
       delete process.env.STIGMERGY_CORE_PATH;
   });
 
-  test('Dispatcher should be able to call the request_human_approval tool', async () => {
-    await executeTool.execute(
-      'system.request_human_approval',
-      { message: 'Approve plan?', data: { content: 'plan details' } },
-      'dispatcher'
+  test('Dispatcher agent should call the request_human_approval tool', async () => {
+    const toolCall = {
+        toolCallId: '1',
+        toolName: 'system.request_human_approval',
+        args: { message: 'Approve plan?', data: { content: 'plan details' } }
+    };
+
+    // This multi-turn mock is crucial for the test to pass.
+    mockStreamText
+        .mockResolvedValueOnce({ text: 'I need to ask for approval.', toolCalls: [toolCall], finishReason: 'tool-calls' })
+        .mockResolvedValueOnce({ text: 'Handoff complete.', finishReason: 'stop' });
+
+    await engine.triggerAgent(
+      'dispatcher',
+      'Please request approval for the plan.'
     );
 
     expect(broadcastSpy).toHaveBeenCalledWith(

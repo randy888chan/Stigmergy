@@ -1,76 +1,73 @@
 import { Volume } from 'memfs';
 import { promisify } from 'util';
 
+// This is the definitive, high-fidelity mock for the `fs-extra` library.
+// The root cause of previous failures was an incomplete mock that did not
+// correctly replicate `fs-extra`'s dual promise/callback API for all methods.
+// This version fixes that by ensuring every mocked function behaves as expected.
+
 // The single, shared in-memory volume for all tests
 export const vol = new Volume();
 
-// Create a basic fs object from the volume.
+// 1. Create the base, callback-style filesystem from the in-memory volume.
 const memfs = require('memfs').createFsFromVolume(vol);
 
-// --- START: Definitive Fix for Callback Compatibility ---
-// Some dependencies expect callback-based fs methods. We need to wrap the
-// promise-based methods from memfs to provide this, while also preserving
-// the original promise-based behavior for other parts of the code.
-
-const originalMkdir = memfs.mkdir;
-memfs.mkdir = (path, options, callback) => {
-    let cb = callback;
-    let opts = options;
-    if (typeof options === 'function') {
-        cb = options;
-        opts = undefined;
+// 2. A robust helper to wrap a promise-returning function so it also accepts a callback.
+// This is the core of the `fs-extra` compatibility.
+const promisifyWithCallback = (fn) => (...args) => {
+    const cb = typeof args[args.length - 1] === 'function' ? args.pop() : null;
+    const promise = fn(...args);
+    if (cb) {
+        promise.then(res => cb(null, res)).catch(err => cb(err));
+    } else {
+        return promise;
     }
-    // If no callback is provided, return the original promise.
-    if (typeof cb !== 'function') {
-        return originalMkdir.call(memfs, path, opts);
-    }
-    // Otherwise, execute with the callback.
-    originalMkdir.call(memfs, path, opts)
-        .then(res => cb(null, res))
-        .catch(err => cb(err));
 };
 
-const originalAppendFile = memfs.appendFile;
-memfs.appendFile = (path, data, options, callback) => {
-    let cb = callback;
-    let opts = options;
-    if (typeof options === 'function') {
-        cb = options;
-        opts = undefined;
-    }
-    if (typeof cb !== 'function') {
-        return originalAppendFile.call(memfs, path, data, opts);
-    }
-    originalAppendFile.call(memfs, path, data, opts)
-        .then(res => cb(null, res))
-        .catch(err => cb(err));
+// 3. Create the mock object, starting with all the synchronous methods from memfs.
+const mockFs = { ...memfs };
+
+// 4. Manually build the `.promises` API by promisifying the base callback methods.
+mockFs.promises = {
+  access: promisify(memfs.access).bind(memfs),
+  appendFile: promisify(memfs.appendFile).bind(memfs),
+  copyFile: promisify(memfs.copyFile).bind(memfs),
+  lstat: promisify(memfs.lstat).bind(memfs),
+  mkdir: promisify(memfs.mkdir).bind(memfs),
+  open: promisify(memfs.open).bind(memfs),
+  readdir: promisify(memfs.readdir).bind(memfs),
+  readFile: promisify(memfs.readFile).bind(memfs),
+  realpath: promisify(memfs.realpath).bind(memfs),
+  rename: promisify(memfs.rename).bind(memfs),
+  rm: promisify(memfs.rm).bind(memfs),
+  rmdir: promisify(memfs.rmdir).bind(memfs),
+  stat: promisify(memfs.stat).bind(memfs),
+  unlink: promisify(memfs.unlink).bind(memfs),
+  writeFile: promisify(memfs.writeFile).bind(memfs),
+  exists: promisify(memfs.exists).bind(memfs), // exists is a special case
 };
-// --- END: Definitive Fix ---
 
-
-// --- Create a comprehensive mock that includes fs-extra methods ---
-const mockFs = {
-  ...memfs,
-  promises: memfs.promises,
-};
-
-// Manually implement the most common fs-extra methods
-mockFs.ensureDir = promisify(memfs.mkdir);
-mockFs.ensureDirSync = memfs.mkdirSync;
-mockFs.pathExists = promisify(memfs.exists).bind(memfs);
-mockFs.writeJson = async (file, obj, options) => {
+// 5. DEFINITIVE FIX: Re-implement the top-level functions to support both promises and callbacks.
+// The previous mock was missing this for standard methods like `writeFile`.
+mockFs.readFile = promisifyWithCallback(mockFs.promises.readFile);
+mockFs.writeFile = promisifyWithCallback(mockFs.promises.writeFile);
+mockFs.appendFile = promisifyWithCallback(mockFs.promises.appendFile);
+mockFs.copy = promisifyWithCallback(mockFs.promises.copyFile);
+mockFs.remove = promisifyWithCallback(mockFs.promises.rm);
+mockFs.readdir = promisifyWithCallback(mockFs.promises.readdir);
+mockFs.ensureDir = promisifyWithCallback((path, options) => mockFs.promises.mkdir(path, { recursive: true, ...options }));
+mockFs.pathExists = promisifyWithCallback(mockFs.promises.exists);
+mockFs.writeJson = promisifyWithCallback(async (file, obj, options) => {
   const content = JSON.stringify(obj, null, options?.spaces);
   await mockFs.promises.writeFile(file, content, 'utf8');
-};
-mockFs.readJson = async (file, options) => {
+});
+mockFs.readJson = promisifyWithCallback(async (file) => {
   const content = await mockFs.promises.readFile(file, 'utf8');
   return JSON.parse(content);
-};
-mockFs.copy = promisify(memfs.copyFile).bind(memfs);
-mockFs.remove = promisify(memfs.rm).bind(memfs);
+});
 
 
-// --- Final Export ---
+// 6. Final Export Structure: Supports `import fs from 'fs-extra'` and `import { promises } from 'fs-extra'`.
 const definitiveMock = {
   ...mockFs,
   default: mockFs,

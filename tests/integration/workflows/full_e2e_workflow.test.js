@@ -1,4 +1,4 @@
-import { spyOn, mock, test, expect, beforeEach, afterEach } from "bun:test";
+import { spyOn, mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
@@ -58,6 +58,7 @@ agent:
             _test_streamText: mockStreamText,
             _test_fs: mockFs,
             projectRoot: projectRoot,
+            corePath: process.env.STIGMERGY_CORE_PATH,
             stateManager,
             startServer: false,
         });

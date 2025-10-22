@@ -60,10 +60,11 @@ agent:
     const stateManager = new GraphStateManager(projectRoot);
     engine = new Engine({
       projectRoot,
+      corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager,
       startServer: false,
       _test_streamText: mockStreamText,
-      _test_createExecutor: (eng, ai, opts) => createExecutor(eng, ai, { ...opts, _test_fs: mockFs }),
+      _test_fs: mockFs,
     });
 
     await engine.stateManager.updateStatus({ newStatus: 'AWAITING_USER_INPUT' });
@@ -79,29 +80,31 @@ agent:
   });
 
   test('Dispatcher should read plan and delegate to executor', async () => {
-    const dispatcherReadPlanResponse = { text: "Reading plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: 'plan.md' }, toolCallId: '1' }], finishReason: 'tool-calls' };
-    const dispatcherDelegateResponse = { text: "Delegating to executor.", toolCalls: [{toolName: 'stigmergy.task', args: { subagent_type: '@executor', description: 'Execute task 1' }, toolCallId: '2'}], finishReason: 'tool-calls' };
-    const dispatcherFinalResponse = { text: "Done.", toolCalls: [], finishReason: 'stop' };
+    // This is the realistic, multi-turn conversation that the dispatcher agent follows.
+    const dispatcherMockSequence = [
+        // 1. First, the dispatcher reads the plan file.
+        { text: "Okay, I will read the plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: 'plan.md' }, toolCallId: '1' }], finishReason: 'tool-calls' },
+        // 2. After reading, it delegates the task to the executor.
+        { text: "The plan is clear. I will delegate the task to the @executor agent.", toolCalls: [{toolName: 'stigmergy.task', args: { subagent_type: '@executor', description: 'Execute task 1' }, toolCallId: '2'}], finishReason: 'tool-calls' },
+        // 3. Finally, it confirms completion.
+        { text: "Delegation complete. My job is done.", toolCalls: [], finishReason: 'stop' }
+    ];
 
+    // This is the realistic, multi-turn conversation for the executor agent.
+    const executorMockSequence = [
+        // 1. The executor receives the task and writes the file.
+        { text: "I have received the task. I will write the file.", toolCalls: [{ toolName: 'file_system.writeFile', args: { path: 'src/example.js', content: 'console.log("hello");' }, toolCallId: '3' }], finishReason: 'tool-calls' },
+        // 2. After writing, it confirms completion.
+        { text: "File written successfully.", toolCalls: [], finishReason: 'stop' }
+    ];
+
+    // The mock must account for the full conversation, including the handoff.
     mockStreamText
-        .mockResolvedValueOnce(dispatcherReadPlanResponse)
-        .mockResolvedValueOnce(dispatcherDelegateResponse)
-        .mockResolvedValueOnce(dispatcherFinalResponse);
-
-    const executorWriteFileResponse = { text: "Writing file.", toolCalls: [{ toolName: 'file_system.writeFile', args: { path: 'src/example.js', content: 'console.log("hello");' }, toolCallId: '3' }], finishReason: 'tool-calls' };
-    const executorFinalResponse = { text: "Done.", toolCalls: [], finishReason: 'stop' };
-
-    const originalTriggerAgent = Engine.prototype.triggerAgent;
-    const mockTriggerAgent = mock(async (agentId, prompt) => {
-        if (agentId === '@executor') {
-            mockStreamText
-                .mockResolvedValueOnce(executorWriteFileResponse)
-                .mockResolvedValueOnce(executorFinalResponse);
-        }
-        return await originalTriggerAgent.call(engine, agentId, prompt);
-    });
-    engine.triggerAgent = mockTriggerAgent;
-
+        .mockResolvedValueOnce(dispatcherMockSequence[0])
+        .mockResolvedValueOnce(dispatcherMockSequence[1])
+        .mockResolvedValueOnce(dispatcherMockSequence[2])
+        .mockResolvedValueOnce(executorMockSequence[0])
+        .mockResolvedValueOnce(executorMockSequence[1]);
 
     const planContent = `
 tasks:
