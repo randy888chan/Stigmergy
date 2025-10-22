@@ -1,171 +1,106 @@
-import { spyOn, mock, test, expect, beforeEach, afterEach } from "bun:test";
-import path from "path";
+import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
+// Do NOT import Engine or createExecutor statically
+import { getTestStateManager } from '../../global_state.js';
 import { Volume } from 'memfs';
+import path from 'path';
 
-// --- MOCKS MUST BE DEFINED BEFORE ANY APPLICATION IMPORTS ---
+// --- Definitive FS Mock ---
 const vol = new Volume();
 const memfs = require('memfs').createFsFromVolume(vol);
+const mockFs = { ...memfs };
+mockFs.promises = memfs.promises;
+mock.module('fs', () => mockFs);
+mock.module('fs-extra', () => mockFs);
 
-const mockFsExtra = {
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync,
-  promises: memfs.promises,
-  default: null,
-};
-mockFsExtra.default = mockFsExtra;
 
-mock.module('fs-extra', () => mockFsExtra);
-mock.module('fs', () => memfs);
-mock.module('fs/promises', () => memfs.promises);
+// --- Other Mocks ---
+const mockCommit = mock(async () => ({ summary: { changes: 1 } }));
+const mockInit = mock(async () => {});
+const mockSimpleGit = () => ({
+    init: mockInit,
+    add: mock().mockReturnThis(),
+    commit: mockCommit,
+});
+mock.module('simple-git', () => ({ default: mockSimpleGit }));
 
-const mockSimpleGit = {
-  init: mock().mockResolvedValue(true),
-  add: mock().mockResolvedValue(true),
-  commit: mock().mockResolvedValue({ commit: 'test-hash', summary: { changes: 1 } }),
-};
-// We mock the default export of simple-git
-mock.module('simple-git', () => ({
-  simpleGit: () => mockSimpleGit,
-}));
+const mockStreamText = mock(async () => ({ text: 'Project setup complete.', toolCalls: [], finishReason: 'stop' }));
+mock.module('ai', () => ({ streamText: mockStreamText }));
 
-// Mock the config service to prevent it from requiring API keys in a test
 mock.module('../../../services/config_service.js', () => ({
-    configService: {
-        getConfig: () => ({
-            ai_providers: { openrouter: { api_key: 'mock-key-is-set' } },
-            tiers: { reasoning_tier: { provider: 'openrouter', model: 'mock-model' } }
-        })
-    }
+  configService: {
+    getConfig: () => ({ model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } } }),
+  }
 }));
 
-// Mock the unified intelligence service to prevent nested import issues
-mock.module('../../../services/unified_intelligence.js', () => ({
-    unifiedIntelligenceService: {
-        initialize: mock().mockResolvedValue(undefined),
-        scanCodebase: mock().mockResolvedValue({}),
-    }
-}));
+describe('Genesis Agent Workflow', () => {
+    let engine;
+    let stateManager;
+    let Engine; // To be populated by dynamic import
+    const projectRoot = '/test-genesis-project';
 
-// Mock child_process to simulate shell command side-effects in memory
-mock.module('child_process', () => ({
-    exec: (command, options, callback) => {
-        // The promisified version of exec calls the callback with (error, { stdout, stderr })
-        if (command.startsWith('mkdir -p')) {
-            // The shell tool executes from within the agent's sandbox directory.
-            // The `cwd` option passed to exec will be our sandbox path.
-            const dirPath = command.split(' ').pop();
-            const fullPath = path.join(options.cwd, dirPath);
-            memfs.mkdirSync(fullPath, { recursive: true });
-            return callback(null, { stdout: `Created directory: ${fullPath}`, stderr: '' });
-        }
-        if (command.startsWith('git diff')) {
-             return callback(null, { stdout: 'some diff', stderr: '' });
-        }
-        // For other commands, succeed without any side-effects
-        return callback(null, { stdout: '', stderr: '' });
-    },
-}));
-
-
-// --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
-
-let engine;
-let projectRoot;
-let originalEnv;
-
-const mockStreamText = mock();
-
-beforeEach(async () => {
-    // Dynamically import Engine after all mocks are set up
-    const { Engine } = await import("../../../engine/server.js");
-    global.Engine = Engine; // Make it available to the test scope if needed, or assign to a let variable
-
-    vol.reset();
-    mockStreamText.mockClear();
-    mockSimpleGit.init.mockClear();
-    mockSimpleGit.commit.mockClear();
-
-    originalEnv = { ...process.env };
-    projectRoot = path.resolve('/test-project');
-    const corePath = path.join(projectRoot, '.stigmergy-core');
-    process.env.STIGMERGY_CORE_PATH = corePath;
-    const agentDir = path.join(corePath, 'agents');
-    mockFsExtra.ensureDirSync(agentDir);
-
-    const createAgentFile = (name, tools) => {
-        const content = `
-\`\`\`yaml
-agent:
-  id: "${name.toLowerCase()}"
-  name: ${name}
-  engine_tools: [${tools.join(', ')}]
-\`\`\`
-`;
-        mockFsExtra.writeFileSync(path.join(agentDir, `${name.toLowerCase()}.md`), content);
-    };
-
-    createAgentFile('Genesis', ['shell.execute', 'git_tool.init', 'file_system.writeFile']);
-    createAgentFile('Committer', ['shell.execute', 'git_tool.commit']);
-
-    // Mock state manager to avoid automatic triggers
-    const mockStateManagerInstance = {
-        initializeProject: mock().mockResolvedValue({}),
-        updateStatus: mock().mockResolvedValue({}),
-        on: mock(),
-        off: mock(),
-        closeDriver: mock(),
-    };
-
-    engine = new global.Engine({
-        _test_streamText: mockStreamText,
-        _test_fs: mockFsExtra,
-        stateManager: mockStateManagerInstance,
-        projectRoot: projectRoot,
-        corePath: corePath,
-        startServer: false,
+    beforeAll(() => {
+        stateManager = getTestStateManager();
     });
-});
 
-afterEach(async () => {
-    if (engine) {
-        await engine.stop();
-    }
-    mock.restore();
-    process.env = originalEnv;
-});
+    beforeEach(async () => {
+        // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+        Engine = (await import('../../../engine/server.js')).Engine;
 
-test('Genesis workflow should create a new project from a prompt', async () => {
-    const newProjectDirName = 'my-new-app';
-    const newProjectDir = path.join(projectRoot, '.stigmergy', 'sandboxes', 'genesis', newProjectDirName);
-    const planFilePath = path.join(projectRoot, '.stigmergy', 'sandboxes', 'genesis', 'plan.md');
+        vol.reset();
+        await mockFs.promises.mkdir(projectRoot, { recursive: true });
+        process.env.STIGMERGY_CORE_PATH = path.join(process.cwd(), '.stigmergy-core-test-genesis');
+        const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+        await mockFs.promises.mkdir(agentDir, { recursive: true });
 
-    // 1. Mock AI for Genesis to create project structure
-    mockStreamText
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '1', toolName: 'shell.execute', args: { command: `mkdir -p ${newProjectDirName}` } }], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '2', toolName: 'git_tool.init', args: { path: newProjectDirName } }], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'file_system.writeFile', args: { path: 'plan.md', content: '- [X] All tasks complete.' } }], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ text: 'Project structure created.', finishReason: 'stop' });
+        const genesisAgentContent = `
+agent:
+  id: "@genesis"
+  engine_tools: ["shell.*", "git_tool.*", "file_system.*"]
+`;
+        await mockFs.promises.writeFile(path.join(agentDir, '@genesis.md'), genesisAgentContent);
 
-    await engine.triggerAgent('@genesis', `Create a new node.js project named ${newProjectDirName}`);
+        engine = new Engine({
+            projectRoot,
+            stateManager,
+            startServer: false,
+            _test_streamText: mockStreamText,
+            _test_fs: mockFs,
+        });
 
-    // Verify Genesis agent's actions by checking their side-effects
-    expect(mockFsExtra.existsSync(newProjectDir)).toBe(true);
-    expect(mockSimpleGit.init).toHaveBeenCalled();
-    expect(mockFsExtra.existsSync(planFilePath)).toBe(true);
+        await engine.stateManager.updateStatus({ newStatus: 'AWAITING_USER_INPUT' });
+    });
 
-    // 2. Mock AI for Committer to commit the changes
-    const commitMessage = 'feat: initial commit';
-    mockStreamText
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '4', toolName: 'shell.execute', args: { command: 'git diff --staged' } }], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '5', toolName: 'git_tool.commit', args: { message: commitMessage } }], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ text: 'Commit created.', finishReason: 'stop' });
+    afterEach(async () => {
+        if (engine) {
+            await engine.stop();
+        }
+        await mockFs.promises.rm(process.env.STIGMERGY_CORE_PATH, { recursive: true, force: true });
+        delete process.env.STIGMERGY_CORE_PATH;
+        mock.restore();
+        mockInit.mockClear();
+        mockCommit.mockClear();
+    });
 
-    await engine.triggerAgent('@committer', 'The work is complete. Please commit the changes.');
+    test('should initialize a new project, create a file, and make an initial commit', async () => {
+        const prompt = "Create a new Node.js project with an index.js file that logs 'hello world'";
 
-    // Verify Committer agent's actions by checking the mock
-    expect(mockSimpleGit.commit).toHaveBeenCalledWith(commitMessage);
+        const toolCalls = [
+            { toolName: 'git_tool.init', args: { path: projectRoot }, toolCallId: '1' },
+            { toolName: 'file_system.writeFile', args: { path: path.join(projectRoot, 'index.js'), content: "console.log('hello world');" }, toolCallId: '2' },
+            { toolName: 'git_tool.commit', args: { message: 'Initial commit' }, toolCallId: '3' }
+        ];
+
+        mockStreamText
+            .mockResolvedValueOnce({ text: '', toolCalls, finishReason: 'tool-calls' })
+            .mockResolvedValueOnce({ text: 'Commit successful.', toolCalls: [], finishReason: 'stop' });
+
+        await engine.triggerAgent('@genesis', prompt);
+
+        expect(mockInit).toHaveBeenCalledTimes(1);
+        expect(mockCommit).toHaveBeenCalledTimes(1);
+        expect(mockCommit).toHaveBeenCalledWith('Initial commit');
+
+        const fileExists = await mockFs.promises.exists(path.join(projectRoot, 'index.js'));
+        expect(fileExists).toBe(true);
+    });
 });

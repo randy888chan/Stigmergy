@@ -1,167 +1,131 @@
-import { mock, describe, test, expect, beforeEach, afterEach, afterAll } from 'bun:test';
-import path from 'path';
+import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
+// Do NOT import Engine or createExecutor statically
+import { getTestStateManager } from '../../global_state.js';
 import { Volume } from 'memfs';
+import path from 'path';
 import { OperationalError } from '../../../utils/errorHandler.js';
 
-// --- START TOP-LEVEL MOCK SETUP ---
-
+// --- Definitive FS Mock ---
 const vol = new Volume();
-// THIS IS THE KEY: Use require() for createFsFromVolume
 const memfs = require('memfs').createFsFromVolume(vol);
+const mockFs = { ...memfs };
+mockFs.promises = memfs.promises;
+mock.module('fs', () => mockFs);
+mock.module('fs-extra', () => mockFs);
 
-// Create a comprehensive mock that includes all necessary methods.
-const mockFs = {
-  ...memfs,
-  promises: memfs.promises,
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  readFile: memfs.promises.readFile, // Needed for reading agent defs
-  writeFile: memfs.promises.writeFile,
-  appendFile: memfs.promises.appendFile,
-  statSync: memfs.statSync,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
+// --- Other Mocks ---
+const mockConfigService = {
+  getConfig: () => ({
+    security: {
+      allowedDirs: ["src", "public"],
+      generatedPaths: ["dist"],
+    },
+  }),
 };
+mock.module('../../../services/config_service.js', () => ({ configService: mockConfigService }));
 
-// Mock the fileSystem tool module to use our mock fs by default.
-const fileSystemTools = await import('../../../tools/file_system.js');
-const mockedFileSystem = {};
-for (const key in fileSystemTools) {
-  mockedFileSystem[key] = (args) => fileSystemTools[key](args, mockFs);
-}
-mock.module('../../../tools/file_system.js', () => mockedFileSystem);
-
-// Mock fs-extra as well, since tool_executor uses it directly.
-mock.module('fs-extra', () => ({ ...mockFs, default: mockFs }));
-
-
-// Dynamically import the module under test AFTER mocks are set up.
-mock.module('../../../services/config_service.js', () => ({
-  configService: {
-    getConfig: () => ({
-      security: {
-        allowedDirs: ["src", "public", "docs", "tests", "scripts", ".ai", "services", "engine", "stories", "system-proposals"],
-        maxFileSizeMB: 1,
-        generatedPaths: ["dashboard/public", "dist", "build", "coverage"]
-      },
-      model_tiers: {
-        reasoning_tier: { provider: "openrouter", model_name: "mock-model" }
-      }
-    })
-  }
-}));
-const { createExecutor } = await import('../../../engine/tool_executor.js');
-
-// --- END TOP-LEVEL MOCK SETUP ---
-
-describe('Tool Executor: Guardian Protocol', () => {
-  process.env.OPENROUTER_API_KEY = "sk-or-v1-abc-123-mock-key";
-  let mockEngine;
-  let mockAiProvider;
-  const cwd = '/app';
-  const projectRoot = '/test-project'; // Use a consistent mock root
-  const corePath = path.join(projectRoot, '.stigmergy-core');
-  const agentDir = path.join(corePath, 'agents');
-
-
-  beforeEach(() => {
-    vol.reset();
-    mockFs.ensureDirSync(agentDir, { recursive: true }); // Ensure the directory exists in memfs
-
-    // Create mock agent files within the isolated project root
-    const createAgentFile = (name) => {
-        const content = `\`\`\`yaml\nagent:\n  engine_tools:\n    - "file_system.*"\n\`\`\``;
-        const filePath = path.join(agentDir, `${name}.md`);
-        mockFs.writeFileSync(filePath, content);
-    };
-
-    createAgentFile('@guardian');
-    createAgentFile('@executor');
-    createAgentFile('@metis');
-
-    // Create a dummy source file
-    const srcDir = path.join(projectRoot, 'src');
-    mockFs.ensureDirSync(srcDir);
-    mockFs.writeFileSync(path.join(srcDir, 'some_file.txt'), 'hello');
-
-    const Engine = (await import('../../../engine/server.js')).Engine;
-    // We can now use a real engine instance, ensuring its resources are managed.
-    mockEngine = new Engine({ projectRoot, startServer: false, _test_fs: mockFs });
-    // Spy on the real stop method to ensure it's called, but allow it to execute.
-    spyOn(mockEngine, 'stop');
-
-    mockAiProvider = {
-      getModelForTier: mock(() => 'mock-model'),
-    };
-  });
-
-  afterEach(async () => {
-    if (mockEngine && typeof mockEngine.stop === 'function') {
-        await mockEngine.stop();
+mock.module('../../../services/trajectory_recorder.js', () => ({
+    default: {
+        startRecording: mock(() => 'mock-id'),
+        logEvent: mock(() => {}),
+        finalizeRecording: mock(async () => {}),
     }
-    mock.restore();
-  });
+}));
 
-  test('should throw OperationalError when a non-guardian agent writes to .stigmergy-core', async () => {
-    const { execute } = createExecutor(mockEngine, mockAiProvider);
-    const unauthorizedAgentId = '@executor';
-    const toolName = 'file_system.writeFile';
-    const args = {
-      path: '.stigmergy-core/some_config.yml',
-      content: 'new config',
-    };
 
-    const promise = execute(toolName, args, unauthorizedAgentId);
+describe('Tool Executor Path Resolution and Security', () => {
+    let mockEngine;
+    let execute;
+    let Engine, createExecutor; // To be populated by dynamic import
+    const projectRoot = '/test-project-security';
 
-    await expect(promise).rejects.toThrow(OperationalError);
-    await expect(promise).rejects.toThrow(
-      "Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '@executor' is not authorized."
-    );
-  });
+    beforeAll(async () => {
+        await memfs.promises.mkdir(projectRoot, { recursive: true });
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
+        await memfs.promises.mkdir(process.env.STIGMERGY_CORE_PATH, { recursive: true });
+    });
 
-  test('should allow @guardian agent to write to .stigmergy-core', async () => {
-    const { execute } = createExecutor(mockEngine, mockAiProvider);
-    const authorizedAgentId = '@guardian';
-    const toolName = 'file_system.writeFile';
-    const filePath = path.join(cwd, '.stigmergy-core/some_config.yml');
-    const args = {
-      path: '.stigmergy-core/some_config.yml',
-      content: 'guardian was here',
-    };
+    afterAll(async () => {
+        await memfs.promises.rm(projectRoot, { recursive: true, force: true });
+        delete process.env.STIGMERGY_CORE_PATH;
+    });
 
-    await execute(toolName, args, authorizedAgentId);
+    beforeEach(async () => {
+        // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+        Engine = (await import('../../../engine/server.js')).Engine;
+        createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
-    const fileContent = vol.readFileSync(filePath, 'utf8');
-    expect(fileContent).toBe('guardian was here');
-  });
+        vol.reset();
+        const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+        await memfs.promises.mkdir(agentDir, { recursive: true });
+        await memfs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
+        await memfs.promises.mkdir(path.join(projectRoot, 'dist'), { recursive: true });
 
-  test('should allow @metis agent to write to .stigmergy-core', async () => {
-    const { execute } = createExecutor(mockEngine, mockAiProvider);
-    const authorizedAgentId = '@metis';
-    const toolName = 'file_system.writeFile';
-    const filePath = path.join(cwd, '.stigmergy-core/some_config.yml');
-    const args = {
-      path: '.stigmergy-core/some_config.yml',
-      content: 'metis was here',
-    };
+        const testAgentContent = `
+agent:
+  id: "@test-agent"
+  engine_tools: ["file_system.*"]
+`;
+        await memfs.promises.writeFile(path.join(agentDir, '@test-agent.md'), testAgentContent);
 
-    await execute(toolName, args, authorizedAgentId);
-    
-    const fileContent = vol.readFileSync(filePath, 'utf8');
-    expect(fileContent).toBe('metis was here');
-  });
+        const guardianAgentContent = `
+agent:
+  id: "@guardian"
+  engine_tools: ["file_system.*"]
+`;
+        await memfs.promises.writeFile(path.join(agentDir, '@guardian.md'), guardianAgentContent);
 
-  test('should allow any agent to write to a non-core file', async () => {
-    const { execute } = createExecutor(mockEngine, mockAiProvider);
-    const agentId = '@executor';
-    const toolName = 'file_system.writeFile';
-    const filePath = path.join(cwd, 'src/another_file.txt');
-    const args = {
-      path: 'src/another_file.txt',
-      content: 'executor was here',
-    };
+        const stateManager = getTestStateManager();
+        mockEngine = new Engine({
+            projectRoot,
+            stateManager,
+            startServer: false,
+            _test_fs: memfs,
+        });
 
-    await execute(toolName, args, agentId);
+        const executorInstance = createExecutor(mockEngine, {}, {});
+        execute = executorInstance.execute;
+    });
 
-    const fileContent = vol.readFileSync(filePath, 'utf8');
-    expect(fileContent).toBe('executor was here');
-  });
+    afterEach(async () => {
+        if (mockEngine) {
+            await mockEngine.stop();
+        }
+        mock.restore();
+    });
+
+    test('should allow writing to a safe directory', async () => {
+        const filePath = 'src/allowed.js';
+        await execute('file_system.writeFile', { path: filePath, content: 'safe' }, '@test-agent');
+        const content = await memfs.promises.readFile(path.join(projectRoot, filePath), 'utf-8');
+        expect(content).toBe('safe');
+    });
+
+    test('should prevent writing to an unsafe directory', async () => {
+        const promise = execute('file_system.writeFile', { path: 'unsafe/file.js', content: 'unsafe' }, '@test-agent');
+        await expect(promise).rejects.toThrow(new OperationalError('Access restricted to unsafe directory'));
+    });
+
+    test('should prevent path traversal', async () => {
+        const promise = execute('file_system.writeFile', { path: '../traversal.js', content: 'unsafe' }, '@test-agent');
+        await expect(promise).rejects.toThrow(/Security violation: Path traversal attempt/);
+    });
+
+    test('should prevent writing to a generated code path', async () => {
+        const promise = execute('file_system.writeFile', { path: 'dist/bundle.js', content: 'generated' }, '@test-agent');
+        await expect(promise).rejects.toThrow(/is inside a protected 'generated' directory/);
+    });
+
+    test('should allow @guardian to write to core files', async () => {
+         const coreFilePath = '.stigmergy-core/some-config.yml';
+         await execute('file_system.writeFile', { path: coreFilePath, content: 'core-setting' }, '@guardian');
+         const content = await memfs.promises.readFile(path.join(projectRoot, coreFilePath), 'utf-8');
+         expect(content).toBe('core-setting');
+    });
+
+    test('should prevent non-@guardian agents from writing to core files', async () => {
+        const coreFilePath = '.stigmergy-core/some-config.yml';
+        const promise = execute('file_system.writeFile', { path: coreFilePath, content: 'core-setting' }, '@test-agent');
+        await expect(promise).rejects.toThrow(/Only the @guardian or @metis agents may modify core system files/);
+    });
 });

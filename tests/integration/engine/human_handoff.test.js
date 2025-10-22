@@ -22,21 +22,14 @@ mockFs.default = mockFs;
 mock.module('fs-extra', () => mockFs);
 
 // --- 3. Mock the StateManager ---
-const mockStateManagerInstance = {
-    initializeProject: mock().mockResolvedValue({}),
-    updateStatus: mock().mockResolvedValue({}),
-    updateState: mock().mockResolvedValue({}),
-    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
-    on: mock(),
-    emit: mock(),
-};
+let GraphStateManager;
 
 describe('Human Handoff Workflow', () => {
   let executeTool;
   let mockEngine;
   let broadcastSpy;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vol.reset(); // Clear the in-memory file system
 
     // --- 4. Create mock agent & trajectory directories in-memory ---
@@ -57,8 +50,8 @@ agent:
 
     // --- 5. Setup mock engine and executor ---
     broadcastSpy = mock(() => {});
+
     mockEngine = {
-        stateManager: mockStateManagerInstance,
         broadcastEvent: broadcastSpy,
         projectRoot: process.cwd(),
         stop: mock(async () => {}),

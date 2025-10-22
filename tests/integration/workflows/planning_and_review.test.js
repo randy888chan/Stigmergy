@@ -24,21 +24,10 @@ mock.module('fs', () => memfs);
 mock.module('fs/promises', () => memfs.promises);
 
 // --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
-import { Engine as Stigmergy } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
+let Stigmergy;
+let realCreateExecutor;
+let GraphStateManager;
 
-// Mock the StateManager
-const mockStateManagerInstance = {
-    initializeProject: mock().mockResolvedValue({}),
-    updateStatus: mock().mockResolvedValue({}),
-    updateState: mock().mockResolvedValue({}),
-    getState: mock().mockResolvedValue({ project_manifest: { tasks: [] } }),
-    get: mock().mockReturnValue({}),
-    on: mock(),
-    off: mock(),
-    emit: mock(),
-    closeDriver: mock(),
-};
 
 const executeMock = mock().mockResolvedValue(JSON.stringify({ success: true }));
 const mockStreamText = mock();
@@ -51,6 +40,9 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
         vol.reset();
         mockStreamText.mockClear();
         executeMock.mockClear();
+
+        Stigmergy = (await import("../../../engine/server.js")).Engine;
+        realCreateExecutor = (await import("../../../engine/tool_executor.js")).createExecutor;
 
         projectRoot = path.resolve('/test-project-planning');
         const corePath = path.join(projectRoot, '.stigmergy-core');
@@ -89,7 +81,6 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
             _test_streamText: mockStreamText,
             _test_createExecutor: testExecutorFactory,
             _test_fs: mockFsExtra,
-            stateManager: mockStateManagerInstance,
             projectRoot: projectRoot,
             corePath: corePath,
             startServer: false, // Prevent port conflicts

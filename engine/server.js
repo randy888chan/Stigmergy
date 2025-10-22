@@ -20,7 +20,12 @@ export class Engine {
     constructor(options = {}) {
         this.projectRoot = options.projectRoot || process.cwd();
         this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
+
+        // --- Definitive Fix: Dependency Injection for State Manager ---
+        this.isExternalStateManager = !!options.stateManager;
         this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
+        // --- End of Fix ---
+
         this.shouldStartServer = options.startServer !== false; // Defaults to true
 
         this.app = new Hono();
@@ -744,7 +749,12 @@ Execute the file write operation now. Upon success, respond with a confirmation 
         if (this.stateManager) {
             this.stateManager.off('stateChanged', this.stateChangedListener);
             this.stateManager.off('triggerAgent', this.triggerAgentListener);
-            await this.stateManager.closeDriver(); // [FIX] Explicitly close the database connection
+
+            // --- Definitive Fix: Only close the driver if the Engine created it ---
+            if (!this.isExternalStateManager) {
+                await this.stateManager.closeDriver();
+            }
+            // --- End of Fix ---
         }
 
         if (!this.server) {
