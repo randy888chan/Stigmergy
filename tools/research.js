@@ -1,5 +1,4 @@
 import FirecrawlApp from "@mendable/firecrawl-js";
-import { generateObject as defaultGenerateObject } from "ai";
 import { z } from "zod";
 import "dotenv/config.js";
 import chalk from "chalk";
@@ -58,8 +57,14 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
         .map((item) => `Source: ${item.url}\n        \n${item.markdown || item.content}`)
         .join("\n        \n---\n        \n");
 
-      const { client, modelName } = getModelForTier('b_tier', null, config);
-      const { object } = await defaultGenerateObject({
+      const { client, modelName, provider } = getModelForTier('b_tier', null, config);
+      let generateObject;
+      if (provider === 'google') {
+        ({ generateObject } = await import('@ai-sdk/google'));
+      } else {
+        ({ generateObject } = await import('@ai-sdk/openai'));
+      }
+      const { object } = await generateObject({
         model: client(modelName),
         system: await getResearchPrompt(),
         prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
@@ -91,8 +96,14 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
   );
   try {
     const client = getFirecrawlClient();
-    const { client: client1, modelName: modelName1 } = getModelForTier('b_tier', null, config);
-    const serpGen = await defaultGenerateObject({
+    const { client: client1, modelName: modelName1, provider } = getModelForTier('b_tier', null, config);
+    let generateObject;
+    if (provider === 'google') {
+      ({ generateObject } = await import('@ai-sdk/google'));
+    } else {
+      ({ generateObject } = await import('@ai-sdk/openai'));
+    }
+    const serpGen = await generateObject({
       model: client1(modelName1),
       system: await getResearchPrompt(),
       prompt: `You are a research analyst. Based on the primary research goal and the existing learnings, generate a single, highly effective search query to find the next piece of critical information.
@@ -120,7 +131,7 @@ export async function deep_dive({ query, learnings = [], axios = defaultAxios },
       .join("\n\n---\n\n");
 
     const { client: synthesisClient, modelName: synthesisModelName } = getModelForTier('b_tier', null, config);
-    const synthesis = await defaultGenerateObject({
+    const synthesis = await generateObject({
       model: synthesisClient(synthesisModelName),
       system: await getResearchPrompt(),
       prompt: `Synthesize the key learnings from the following research content. Extract the most critical insights. Additionally, propose 3-5 new, more specific search queries based on what you've just learned.
@@ -235,9 +246,15 @@ export async function scrape_and_synthesize({ urls }, ai, config) {
       };
     }
 
-    const { client, modelName } = getModelForTier('reasoning_tier', null, config);
+    const { client, modelName, provider } = getModelForTier('reasoning_tier', null, config);
+    let generateObject;
+    if (provider === 'google') {
+        ({ generateObject } = await import('@ai-sdk/google'));
+    } else {
+        ({ generateObject } = await import('@ai-sdk/openai'));
+    }
 
-    const { object } = await defaultGenerateObject({
+    const { object } = await generateObject({
       model: client(modelName),
       system: "You are a world-class research analyst. Your task is to synthesize information from multiple sources into a coherent and insightful summary.",
       prompt: `Based on the following content scraped from multiple sources, please provide a detailed synthesis of the key findings, identify the main themes, and extract any actionable insights.`,

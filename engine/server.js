@@ -186,7 +186,8 @@ Based on all the information above, please create the initial \`plan.md\` file t
             console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
             const executorFactory = this._test_createExecutor || createExecutor;
-            const executeTool = executorFactory(this, this.ai, { workingDirectory, config: this.config });
+            const fsProvider = this._test_fs || fs;
+            const executeTool = executorFactory(this, this.ai, { workingDirectory, config: this.config }, fsProvider);
 
             const agentPath = path.join(this.corePath, 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');

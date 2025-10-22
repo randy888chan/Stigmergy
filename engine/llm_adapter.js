@@ -1,9 +1,14 @@
-import { generateObject, generateText as vercelGenerateText } from 'ai';
-
 export async function generateStructuredOutput(prompt, schema, ai, tier = 'utility_tier', config) {
   // CORRECT PATTERN: Get both client and modelName, then create the model instance.
-  const { client, modelName } = ai.getModelForTier(tier, null, config);
+  const { client, modelName, provider } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
+
+  let generateObject;
+  if (provider === 'google') {
+    ({ generateObject } = await import('@ai-sdk/google'));
+  } else {
+    ({ generateObject } = await import('@ai-sdk/openai'));
+  }
 
   const { object } = await generateObject({
     model: model,
@@ -15,11 +20,18 @@ export async function generateStructuredOutput(prompt, schema, ai, tier = 'utili
 
 export async function generateText(prompt, ai, tier = 'utility_tier', config) {
   // CORRECT PATTERN: Get both client and modelName, then create the model instance.
-  const { client, modelName } = ai.getModelForTier(tier, null, config);
+  const { client, modelName, provider } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
 
+  let generateText;
+  if (provider === 'google') {
+    ({ generateText } = await import('@ai-sdk/google'));
+  } else {
+    ({ generateText } = await import('@ai-sdk/openai'));
+  }
+
   // We use generateText from 'ai' for this now.
-  const { text } = await vercelGenerateText({
+  const { text } = await generateText({
     model: model,
     prompt: prompt,
   });

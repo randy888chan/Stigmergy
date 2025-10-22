@@ -179,7 +179,7 @@ const getParams = (func) => {
     return match[1].split(',').map(p => p.split('=')[0].trim()).filter(Boolean);
 };
 
-export function createExecutor(engine, ai, options = {}) {
+export function createExecutor(engine, ai, options = {}, fsProvider = fs) {
   const { workingDirectory, config: engineConfig } = options;
 
   const toolbelt = {
@@ -224,7 +224,7 @@ export function createExecutor(engine, ai, options = {}) {
     
     try {
       const agentDefPath = path.join(getCorePath(), "agents", `${agentId}.md`);
-      const agentFileContent = await fs.readFile(agentDefPath, "utf8");
+      const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
       const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
       if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
       const agentConfig = yaml.load(yamlMatch[1]).agent;
@@ -235,7 +235,6 @@ export function createExecutor(engine, ai, options = {}) {
       }
 
       // --- START: Centralized Security Check & Guardian Protocol ---
-      const fsProvider = engine._test_fs; // For testing with memfs
       if (namespace === 'file_system') {
         const pathKey = args.path !== undefined ? 'path' : 'directory';
         const originalPath = args[pathKey] ?? '.';

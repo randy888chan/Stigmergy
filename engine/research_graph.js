@@ -2,7 +2,6 @@ import { END, StateGraph } from "@langchain/langgraph";
 import * as research from "../tools/research.js";
 import { createGraphStore } from "../src/infrastructure/graph_db/graphStore.js";
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
-import { generateText } from "ai";
 
 import config from "../stigmergy.config.js"; // Import config
 
@@ -29,9 +28,16 @@ const researchNode = async (state) => {
 
 const createReflectionNode = (aiProviders) => async (state) => {
   const { getModelForTier } = aiProviders;
-  const { client, modelName } = getModelForTier("reflection_tier", null, config);
+  const { client, modelName, provider } = getModelForTier("reflection_tier", null, config);
   const model = client(modelName);
   const prompt = `You are a researcher. You have been given a topic and some initial research. Your job is to reflect on the research and determine if it is complete. If it is complete, respond with "true". Otherwise, respond with a list of new questions to research.\n\nTopic: ${state.topic}\nInitial Learning: ${state.initial_learning}\n`;
+
+  let generateText;
+  if (provider === 'google') {
+    ({ generateText } = await import('@ai-sdk/google'));
+  } else {
+    ({ generateText } = await import('@ai-sdk/openai'));
+  }
 
   const { text: response } = await generateText({
     model,
