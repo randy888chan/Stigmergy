@@ -1,109 +1,97 @@
-import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
-// Do NOT import Engine or createExecutor statically
-import { getTestStateManager } from '../../global_state.js';
-import { Volume } from 'memfs';
+import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import { OperationalError } from '../../../utils/errorHandler.js';
-
-// --- Definitive FS Mock ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-const mockFs = { ...memfs };
-mockFs.promises = memfs.promises;
-mock.module('fs', () => mockFs);
-mock.module('fs-extra', () => mockFs);
-
-// --- Other Mocks ---
-const mockConfigService = {
-  getConfig: () => ({
-    security: {
-      allowedDirs: ["src", "public"],
-      generatedPaths: ["dist"],
-    },
-  }),
-};
-mock.module('../../../services/config_service.js', () => ({ configService: mockConfigService }));
-
-mock.module('../../../services/trajectory_recorder.js', () => ({
-    default: {
-        startRecording: mock(() => 'mock-id'),
-        logEvent: mock(() => {}),
-        finalizeRecording: mock(async () => {}),
-    }
-}));
-
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
 describe('Tool Executor Path Resolution and Security', () => {
     let mockEngine;
     let execute;
-    let Engine, createExecutor; // To be populated by dynamic import
+    let Engine, createExecutor;
     const projectRoot = '/test-project-security';
 
-    beforeAll(async () => {
-        await memfs.promises.mkdir(projectRoot, { recursive: true });
-        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
-        await memfs.promises.mkdir(process.env.STIGMERGY_CORE_PATH, { recursive: true });
-    });
-
-    afterAll(async () => {
-        await memfs.promises.rm(projectRoot, { recursive: true, force: true });
-        delete process.env.STIGMERGY_CORE_PATH;
-    });
-
     beforeEach(async () => {
-        // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+        vol.reset(); // PRISTINE STATE: Reset filesystem
+
+        // Mock modules for isolation
+        mock.module('fs', () => mockFs);
+        mock.module('fs-extra', () => mockFs);
+        // Mocks for services called by the Engine
+        mock.module('../../../services/config_service.js', () => ({
+            configService: {
+                getConfig: () => ({
+                    security: {
+                        allowedDirs: ["src", "public"],
+                        generatedPaths: ["dist"],
+                    },
+                    model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                    providers: { mock_provider: { api_key: 'mock-key' } }
+                }),
+            },
+        }));
+        mock.module('../../../services/trajectory_recorder.js', () => ({ default: { startRecording: mock(), logEvent: mock(), finalizeRecording: mock() } }));
+        mock.module('../../../services/model_monitoring.js', () => ({ trackToolUsage: mock(), appendLog: mock() }));
+
+        // Dynamically import AFTER mocks are set up
         Engine = (await import('../../../engine/server.js')).Engine;
         createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
-        vol.reset();
+        // Setup mock project structure in the pristine filesystem
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
         const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
-        await memfs.promises.mkdir(agentDir, { recursive: true });
-        await memfs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
-        await memfs.promises.mkdir(path.join(projectRoot, 'dist'), { recursive: true });
+        await mockFs.promises.mkdir(agentDir, { recursive: true });
+        await mockFs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
+        await mockFs.promises.mkdir(path.join(projectRoot, 'dist'), { recursive: true });
 
         const testAgentContent = `
+\`\`\`yaml
 agent:
   id: "@test-agent"
   engine_tools: ["file_system.*"]
+\`\`\`
 `;
-        await memfs.promises.writeFile(path.join(agentDir, '@test-agent.md'), testAgentContent);
+        await mockFs.promises.writeFile(path.join(agentDir, '@test-agent.md'), testAgentContent);
 
         const guardianAgentContent = `
+\`\`\`yaml
 agent:
   id: "@guardian"
   engine_tools: ["file_system.*"]
+\`\`\`
 `;
-        await memfs.promises.writeFile(path.join(agentDir, '@guardian.md'), guardianAgentContent);
+        await mockFs.promises.writeFile(path.join(agentDir, '@guardian.md'), guardianAgentContent);
 
-        const stateManager = getTestStateManager();
+        // PRISTINE STATE: Create a new Engine for each test
+        const stateManager = new GraphStateManager(projectRoot); // Each test gets a new state manager
         mockEngine = new Engine({
             projectRoot,
             stateManager,
             startServer: false,
-            _test_fs: memfs,
+            _test_fs: mockFs,
         });
 
-        const executorInstance = createExecutor(mockEngine, {}, {});
+        const executorInstance = await createExecutor(mockEngine, {}, {}, mockFs);
         execute = executorInstance.execute;
     });
 
     afterEach(async () => {
         if (mockEngine) {
-            await mockEngine.stop();
+            await mockEngine.stop(); // PRISTINE STATE: Stop the engine
         }
-        mock.restore();
+        mock.restore(); // PRISTINE STATE: Restore mocks
+        delete process.env.STIGMERGY_CORE_PATH;
     });
 
     test('should allow writing to a safe directory', async () => {
         const filePath = 'src/allowed.js';
         await execute('file_system.writeFile', { path: filePath, content: 'safe' }, '@test-agent');
-        const content = await memfs.promises.readFile(path.join(projectRoot, filePath), 'utf-8');
+        const content = await mockFs.promises.readFile(path.join(projectRoot, filePath), 'utf-8');
         expect(content).toBe('safe');
     });
 
     test('should prevent writing to an unsafe directory', async () => {
         const promise = execute('file_system.writeFile', { path: 'unsafe/file.js', content: 'unsafe' }, '@test-agent');
-        await expect(promise).rejects.toThrow(new OperationalError('Access restricted to unsafe directory'));
+        await expect(promise).rejects.toThrow(/Access restricted to unsafe directory/);
     });
 
     test('should prevent path traversal', async () => {
@@ -119,7 +107,7 @@ agent:
     test('should allow @guardian to write to core files', async () => {
          const coreFilePath = '.stigmergy-core/some-config.yml';
          await execute('file_system.writeFile', { path: coreFilePath, content: 'core-setting' }, '@guardian');
-         const content = await memfs.promises.readFile(path.join(projectRoot, coreFilePath), 'utf-8');
+         const content = await mockFs.promises.readFile(path.join(projectRoot, coreFilePath), 'utf-8');
          expect(content).toBe('core-setting');
     });
 

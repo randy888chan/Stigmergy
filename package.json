@@ -39,7 +39,7 @@
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",
-    "@ai-sdk/openai": "^2.0.52",
+    "@ai-sdk/openai": "^2.0.53",
     "@ai-sdk/react": "^2.0.70",
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
@@ -62,7 +62,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "commander": "^12.0.0",
-    "glob": "^10.3.10",
+    "glob": "^11.0.3",
     "hono": "^4.9.8",
     "inquirer": "^12.9.4",
     "js-yaml": "^4.1.0",

@@ -1,129 +1,99 @@
-import { mock, spyOn, test, expect, beforeEach, afterEach } from "bun:test";
-import { Engine as Stigmergy } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
+import { mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
-import { Volume } from 'memfs';
-
-// --- Create a self-contained, in-memory file system for this test ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-
-const mockFsExtra = {
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  copy: memfs.promises.copyFile,
-  remove: (p) => memfs.promises.rm(p, { recursive: true, force: true }),
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeFileSync: memfs.writeFileSync,
-  readFileSync: memfs.readFileSync,
-  readJson: async (file, options) => {
-    const data = await memfs.promises.readFile(file, options);
-    return JSON.parse(data.toString());
-  },
-  pathExists: async (pathStr) => {
-    try {
-      await memfs.promises.access(pathStr);
-      return true;
-    } catch {
-      return false;
-    }
-  },
-  promises: memfs.promises
-};
-mockFsExtra.default = mockFsExtra;
-
-// Mock fs-extra for our direct usage
-mock.module('fs-extra', () => mockFsExtra);
-// ALSO MOCK NATIVE FS for libraries like @hono/node-server/serve-static
-mock.module('fs', () => memfs);
-mock.module('fs/promises', () => memfs.promises);
-
-let GraphStateManager;
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
 const executeMock = mock();
 const mockStreamText = mock();
 let engine;
+let Engine, realCreateExecutor;
 
-beforeEach(async () => {
-    vol.reset();
-    mockStreamText.mockClear();
-    executeMock.mockClear();
+describe("Research Workflow", () => {
+    beforeEach(async () => {
+        vol.reset();
+        mockStreamText.mockClear();
+        executeMock.mockClear();
 
-    const projectRoot = path.join(process.cwd(), 'test-project-research');
-    const agentDir = path.join(projectRoot, '.stigmergy-core', 'agents');
-    const trajectoryDir = path.join(projectRoot, '.stigmergy', 'trajectories');
-    const dashboardDir = path.join(projectRoot, 'dashboard', 'public');
-    mockFsExtra.ensureDirSync(agentDir);
-    mockFsExtra.ensureDirSync(trajectoryDir);
-    mockFsExtra.ensureDirSync(dashboardDir);
+        mock.module('fs', () => mockFs);
+        mock.module('fs-extra', () => mockFs);
+        mock.module('ai', () => ({ streamText: mockStreamText }));
+        mock.module('../../../services/config_service.js', () => ({
+            configService: {
+                getConfig: () => ({
+                    model_tiers: { reasoning_tier: { provider: 'mock_provider', model_name: 'mock-model' } },
+                    providers: { mock_provider: { api_key: 'mock-key' } }
+                }),
+            },
+        }));
 
-    const analystAgentContent = `
-\`\`\`yaml
-agent:
-  id: "analyst"
-  engine_tools: ["research.*"]
-\`\`\`
-`;
-    mockFsExtra.writeFileSync(path.join(agentDir, 'analyst.md'), analystAgentContent);
+        Engine = (await import("../../../engine/server.js")).Engine;
+        realCreateExecutor = (await import("../../../engine/tool_executor.js")).createExecutor;
 
-    // Dependency injection for the tool executor
-    const testExecutorFactory = (engine, ai, options) => {
-        const executor = realCreateExecutor(engine, ai, options);
-        executor.execute = executeMock; // Use the persistent mock
-        return executor;
-    };
+        const projectRoot = path.join(process.cwd(), 'test-project-research');
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
+        const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+        await mockFs.ensureDir(agentDir);
 
-    engine = new Stigmergy({
-        _test_streamText: mockStreamText,
-        _test_createExecutor: testExecutorFactory, // Inject the factory
-        projectRoot: projectRoot,
-    });
-});
+        const analystAgentContent = `
+    \`\`\`yaml
+    agent:
+      id: "analyst"
+      engine_tools: ["research.*"]
+    \`\`\`
+    `;
+        await mockFs.promises.writeFile(path.join(agentDir, 'analyst.md'), analystAgentContent);
 
-afterEach(async () => {
-    if (engine) {
-        await engine.stop();
-    }
-    mock.restore();
-});
+        const testExecutorFactory = async (engine, ai, options) => {
+            const executor = await realCreateExecutor(engine, ai, options, mockFs);
+            executor.execute = executeMock;
+            return executor;
+        };
 
-test("Research workflow triggers deep_dive, evaluate_sources, and reports with confidence", async () => {
-    const researchTopic = "What is the impact of AI on software development?";
-
-    // This mock chain simulates a multi-turn conversation where the agent performs research.
-    mockStreamText
-        // Turn 1: Initial prompt -> deep_dive
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '1', toolName: 'research.deep_dive', args: { query: 'impact of AI on SWE' } }], finishReason: 'tool-calls' })
-        // Turn 2: Gets result of first deep_dive -> another deep_dive
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '2', toolName: 'research.deep_dive', args: { query: 'AI in software testing' } }], finishReason: 'tool-calls' })
-        // Turn 3: Gets result of second deep_dive -> evaluate_sources
-        .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'research.evaluate_sources', args: { urls: ['http://a.com', 'http://b.com'] } }], finishReason: 'tool-calls' })
-        // Turn 4: Gets result of evaluation -> generates final report
-        .mockResolvedValueOnce({ text: "Final Report...\n\n**Confidence Score:** High...", finishReason: 'stop' });
-
-    // The mock implementation for the tool calls themselves.
-    executeMock.mockImplementation(async (toolName, args) => {
-        if (toolName === 'research.deep_dive') {
-            return JSON.stringify({ new_learnings: `Learnings from ${args.query}`, sources: ['http://a.com', 'http://b.com'] });
-        }
-        if (toolName === 'research.evaluate_sources') {
-            return JSON.stringify([{ url: 'http://a.com', credibility_score: 9, justification: 'Good.' }]);
-        }
-        return JSON.stringify({});
+        const stateManager = new GraphStateManager(projectRoot);
+        engine = new Engine({
+            _test_streamText: mockStreamText,
+            _test_createExecutor: testExecutorFactory,
+            projectRoot: projectRoot,
+            stateManager,
+            startServer: false,
+        });
     });
 
-    // We only need to trigger the agent once with the initial prompt.
-    // The agent will then loop internally based on the mockStreamText responses.
-    await engine.triggerAgent("@analyst", researchTopic);
+    afterEach(async () => {
+        if (engine) {
+            await engine.stop();
+        }
+        mock.restore();
+        delete process.env.STIGMERGY_CORE_PATH;
+    });
 
-    // Verify the tool calls were made as expected.
-    const deepDiveCalls = executeMock.mock.calls.filter(call => call[0] === 'research.deep_dive');
-    expect(deepDiveCalls.length).toBe(2);
+    test("triggers deep_dive, evaluate_sources, and reports with confidence", async () => {
+        const researchTopic = "What is the impact of AI on software development?";
 
-    const evaluateSourcesCalls = executeMock.mock.calls.filter(call => call[0] === 'research.evaluate_sources');
-    expect(evaluateSourcesCalls.length).toBe(1);
+        mockStreamText
+            .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '1', toolName: 'research.deep_dive', args: { query: 'impact of AI on SWE' } }], finishReason: 'tool-calls' })
+            .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '2', toolName: 'research.deep_dive', args: { query: 'AI in software testing' } }], finishReason: 'tool-calls' })
+            .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'research.evaluate_sources', args: { urls: ['http://a.com', 'http://b.com'] } }], finishReason: 'tool-calls' })
+            .mockResolvedValueOnce({ text: "Final Report...\n\n**Confidence Score:** High...", finishReason: 'stop' });
 
-    // The agent should have gone through 4 turns (3 tool calls + 1 final text response).
-    expect(mockStreamText).toHaveBeenCalledTimes(4);
+        executeMock.mockImplementation(async (toolName, args) => {
+            if (toolName === 'research.deep_dive') {
+                return JSON.stringify({ new_learnings: `Learnings from ${args.query}`, sources: ['http://a.com', 'http://b.com'] });
+            }
+            if (toolName === 'research.evaluate_sources') {
+                return JSON.stringify([{ url: 'http://a.com', credibility_score: 9, justification: 'Good.' }]);
+            }
+            return JSON.stringify({});
+        });
+
+        await engine.triggerAgent("@analyst", researchTopic);
+
+        const deepDiveCalls = executeMock.mock.calls.filter(call => call[0] === 'research.deep_dive');
+        expect(deepDiveCalls.length).toBe(2);
+
+        const evaluateSourcesCalls = executeMock.mock.calls.filter(call => call[0] === 'research.evaluate_sources');
+        expect(evaluateSourcesCalls.length).toBe(1);
+
+        expect(mockStreamText).toHaveBeenCalledTimes(4);
+    });
 });

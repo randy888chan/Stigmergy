@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import fs from "fs-extra";
+import { promises as fs } from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { sanitizeToolCall } from "../utils/sanitization.js";
@@ -13,9 +13,9 @@ import * as coderag from "../tools/coderag_tool.js";
 import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
 import * as qaTools from "../tools/qa_tools.js";
 import * as businessVerification from "../tools/business_verification.js";
-import createGuardianTools from "../tools/guardian_tool.js";
+// import createGuardianTools from "../tools/guardian_tool.js"; // Defer import
 import * as privilegedCoreTools from "../tools/core_tools.js";
-import createSystemTools from "../tools/system_tools.js";
+// import createSystemTools from "../tools/system_tools.js"; // Defer import
 import * as superdesignIntegration from "../tools/superdesign_integration.js";
 import * as qwenIntegration from "../tools/qwen_integration.js";
 import * as documentIntelligence from "../tools/document_intelligence.js";
@@ -31,7 +31,7 @@ import ErrorHandler, { OperationalError } from "../utils/errorHandler.js";
 import { trackToolUsage } from "../services/model_monitoring.js";
 
 // Import trajectory recorder
-import trajectoryRecorder from "../services/trajectory_recorder.js";
+// import trajectoryRecorder from "../services/trajectory_recorder.js"; // Defer import
 
 // ====================================================================================
 // START: Centralized Path Resolution & Security Logic
@@ -125,14 +125,16 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
 // ====================================================================================
 
 
-function getCorePath() {
+async function getCorePath() {
   if (process.env.STIGMERGY_CORE_PATH) {
     return process.env.STIGMERGY_CORE_PATH;
   }
   
   const defaultPath = path.join(process.cwd(), ".stigmergy-core");
   
-  if (!fs.existsSync(defaultPath)) {
+  try {
+    await fs.access(defaultPath);
+  } catch (error) {
     throw new Error(
       `.stigmergy-core directory not found at ${defaultPath}. ` +
       `Please run 'npx stigmergy install' or set STIGMERGY_CORE_PATH.`
@@ -146,7 +148,8 @@ let agentManifest = null;
 
 async function getManifest() {
   if (agentManifest) return agentManifest;
-  const manifestPath = path.join(getCorePath(), "system_docs", "02_Agent_Manifest.md");
+  const corePath = await getCorePath();
+  const manifestPath = path.join(corePath, "system_docs", "02_Agent_Manifest.md");
   const fileContent = await fs.readFile(manifestPath, "utf8");
   const yamlMatch = fileContent.match(/```yaml\s*([\s\S]*?)```/);
   if (!yamlMatch) {
@@ -179,8 +182,13 @@ const getParams = (func) => {
     return match[1].split(',').map(p => p.split('=')[0].trim()).filter(Boolean);
 };
 
-export function createExecutor(engine, ai, options = {}, fsProvider = fs) {
+export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
   const { workingDirectory, config: engineConfig } = options;
+
+  // Dynamically import to break circular dependency
+  const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
+  const { default: createSystemTools } = await import("../tools/system_tools.js");
+  const { default: trajectoryRecorder } = await import("../services/trajectory_recorder.js");
 
   const toolbelt = {
     file_system: fileSystem, // Using the "dumb" tools directly now
@@ -223,7 +231,8 @@ export function createExecutor(engine, ai, options = {}, fsProvider = fs) {
     const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
     
     try {
-      const agentDefPath = path.join(getCorePath(), "agents", `${agentId}.md`);
+      const corePath = await getCorePath();
+      const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
       const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
       const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
       if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);

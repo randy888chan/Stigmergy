@@ -1,65 +1,17 @@
 import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
-import { Volume } from 'memfs';
 import path from 'path';
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
-// --- 1. Definitive, Robust Mock for fs and fs-extra ---
-const vol = new Volume();
-// Use require to handle CJS/ESM interop issues with memfs in Bun tests
-const { createFsFromVolume } = require('memfs');
-const memfs = createFsFromVolume(vol);
-
-// fs-extra mock should be promise-based at the top level
-const mockFsExtra = {
-  ...memfs.promises,
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeJson: (file, obj, options) => memfs.promises.writeFile(file, JSON.stringify(obj, null, options?.spaces)),
-  pathExists: (p) => Promise.resolve(memfs.existsSync(p)),
-  pathExistsSync: memfs.existsSync,
-  // For dependencies that might expect the whole object
-  default: {
-    ...memfs.promises,
-    ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-    ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-    writeJson: (file, obj, options) => memfs.promises.writeFile(file, JSON.stringify(obj, null, options?.spaces)),
-    pathExists: (p) => Promise.resolve(memfs.existsSync(p)),
-    pathExistsSync: memfs.existsSync,
-  }
-};
-mock.module('fs-extra', () => mockFsExtra);
-// native fs mock is callback-based
-mock.module('fs', () => memfs);
-
-
-// --- 2. Mock for the Coderag Tool Module ---
 const mockSemanticSearch = mock(async (params) => []);
 const mockCalculateMetrics = mock(async (params) => ({}));
 const mockFindArchitecturalIssues = mock(async (params) => []);
-mock.module('../../../tools/coderag_tool.js', () => ({
-  semantic_search: mockSemanticSearch,
-  calculate_metrics: mockCalculateMetrics,
-  find_architectural_issues: mockFindArchitecturalIssues,
-}));
-
-// --- 3. Mock other dependencies ---
-mock.module('../../../services/config_service.js', () => ({
-  configService: {
-    getConfig: () => ({
-      security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
-    }),
-  },
-}));
-
-// DEFINITIVE FIX #1: Mock the monitoring service to prevent secondary errors
-mock.module('../../../services/model_monitoring.js', () => ({
-    trackToolUsage: mock(async () => {})
-}));
-
+let Engine;
+let createExecutor;
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
   let execute;
   const projectRoot = '/test-project';
-  const corePath = path.join(projectRoot, '.stigmergy-core');
 
   beforeEach(async () => {
     vol.reset();
@@ -67,10 +19,31 @@ describe('Engine: Agent and Coderag Tool Integration', () => {
     mockCalculateMetrics.mockClear();
     mockFindArchitecturalIssues.mockClear();
 
-    process.env.STIGMERGY_CORE_PATH = corePath;
+    mock.module('fs', () => mockFs);
+    mock.module('fs-extra', () => mockFs);
+    mock.module('../../../tools/coderag_tool.js', () => ({
+      semantic_search: mockSemanticSearch,
+      calculate_metrics: mockCalculateMetrics,
+      find_architectural_issues: mockFindArchitecturalIssues,
+    }));
+    mock.module('../../../services/config_service.js', () => ({
+        configService: {
+            getConfig: () => ({
+                security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
+                model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                providers: { mock_provider: { api_key: 'mock-key' } }
+            }),
+        },
+    }));
+    mock.module('../../../services/model_monitoring.js', () => ({
+        trackToolUsage: mock(async () => {})
+    }));
 
-    // Use the mocked fs-extra, which is promise-based
-    await mockFsExtra.ensureDir(path.join(corePath, 'agents'));
+    Engine = (await import('../../../engine/server.js')).Engine;
+    createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
+
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
+    await mockFs.ensureDir(path.join(process.env.STIGMERGY_CORE_PATH, 'agents'));
 
     const mockDebuggerAgentContent = `
 \`\`\`yaml
@@ -79,17 +52,18 @@ agent:
   engine_tools: ["coderag.*"]
 \`\`\`
 `;
-    await mockFsExtra.writeFile(path.join(corePath, 'agents', 'debugger.md'), mockDebuggerAgentContent);
+    await mockFs.promises.writeFile(path.join(process.env.STIGMERGY_CORE_PATH, 'agents', 'debugger.md'), mockDebuggerAgentContent);
 
-    const mockEngine = {
+    const stateManager = new GraphStateManager(projectRoot);
+    const mockEngine = new Engine({
       broadcastEvent: mock(),
       projectRoot: projectRoot,
-      _test_fs: mockFsExtra, // Pass the promise-based mock for path resolution
-    };
+      stateManager,
+      startServer: false,
+      _test_fs: mockFs,
+    });
 
-    // Dynamically import here to ensure mocks are applied
-    const toolExecutorModule = await import('../../../engine/tool_executor.js');
-    const executorInstance = toolExecutorModule.createExecutor(mockEngine, {}, {});
+    const executorInstance = await createExecutor(mockEngine, {}, {}, mockFs);
     execute = executorInstance.execute;
   });
 

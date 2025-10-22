@@ -1,74 +1,69 @@
-import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
-// Do NOT import Engine or createExecutor statically
-import { getTestStateManager } from '../../global_state.js';
-import { Volume } from 'memfs';
+import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
-// --- Definitive FS Mock ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-const mockFs = { ...memfs };
-mockFs.promises = memfs.promises;
-mock.module('fs', () => mockFs);
-mock.module('fs-extra', () => mockFs);
-
-
-// --- Other Mocks ---
 const mockStreamText = mock(async () => ({ text: 'Test response', toolCalls: [], finishReason: 'stop' }));
-mock.module('ai', () => ({ streamText: mockStreamText }));
-
-const mockConfigService = {
-  getConfig: () => ({ model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } } }),
-};
-mock.module('../../../services/config_service.js', () => ({ configService: mockConfigService }));
-
 
 describe('Execution Workflow: @dispatcher and @executor', () => {
   let engine;
-  let stateManager;
-  let Engine, createExecutor; // To be populated by dynamic import
+  let Engine, createExecutor;
   const projectRoot = '/test-project-exec';
 
-  beforeAll(async () => {
-    stateManager = getTestStateManager();
-    await memfs.promises.mkdir(projectRoot, { recursive: true });
-    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
-    await memfs.promises.mkdir(process.env.STIGMERGY_CORE_PATH, { recursive: true });
-  });
-
-  afterAll(async () => {
-    await memfs.promises.rm(projectRoot, { recursive: true, force: true });
-    delete process.env.STIGMERGY_CORE_PATH;
-  });
-
   beforeEach(async () => {
-    // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+    vol.reset(); // PRISTINE STATE: Reset filesystem
+
+    // Mock modules for isolation
+    mock.module('fs', () => mockFs);
+    mock.module('fs-extra', () => mockFs);
+    mock.module('ai', () => ({ streamText: mockStreamText }));
+    mock.module('../../../services/config_service.js', () => ({
+        configService: {
+            getConfig: () => ({
+                model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                providers: { mock_provider: { api_key: 'mock-key' } }
+            }),
+        },
+    }));
+    mock.module('../../../services/model_monitoring.js', () => ({
+        trackToolUsage: mock(async () => {}),
+        appendLog: mock(async () => {}),
+    }));
+
+    // Dynamically import AFTER mocks are set up
     Engine = (await import('../../../engine/server.js')).Engine;
     createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
-    vol.reset();
+    // Setup mock project structure in the pristine filesystem
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
-    await memfs.promises.mkdir(agentDir, { recursive: true });
+    await mockFs.promises.mkdir(agentDir, { recursive: true });
 
     const dispatcherContent = `
+\`\`\`yaml
 agent:
   id: "@dispatcher"
-  engine_tools: ["file_system.*"]
+  engine_tools: ["file_system.*", "stigmergy.task"]
+\`\`\`
 `;
-    await memfs.promises.writeFile(path.join(agentDir, '@dispatcher.md'), dispatcherContent);
+    await mockFs.promises.writeFile(path.join(agentDir, '@dispatcher.md'), dispatcherContent);
     const executorContent = `
+\`\`\`yaml
 agent:
   id: "@executor"
   engine_tools: ["file_system.*"]
+\`\`\`
 `;
-    await memfs.promises.writeFile(path.join(agentDir, '@executor.md'), executorContent);
+    await mockFs.promises.writeFile(path.join(agentDir, '@executor.md'), executorContent);
 
+    // PRISTINE STATE: Create a new Engine for each test
+    const stateManager = new GraphStateManager(projectRoot);
     engine = new Engine({
       projectRoot,
       stateManager,
       startServer: false,
       _test_streamText: mockStreamText,
-      _test_createExecutor: (eng, ai, opts) => createExecutor(eng, ai, { ...opts, _test_fs: memfs }),
+      _test_createExecutor: (eng, ai, opts) => createExecutor(eng, ai, { ...opts, _test_fs: mockFs }),
     });
 
     await engine.stateManager.updateStatus({ newStatus: 'AWAITING_USER_INPUT' });
@@ -76,50 +71,54 @@ agent:
 
   afterEach(async () => {
     if (engine) {
-      await engine.stop();
+      await engine.stop(); // PRISTINE STATE: Stop the engine
     }
     mockStreamText.mockClear();
-    mock.restore();
+    mock.restore(); // PRISTINE STATE: Restore mocks
+    delete process.env.STIGMERGY_CORE_PATH;
   });
 
   test('Dispatcher should read plan and delegate to executor', async () => {
-    const dispatcherReadPlanResponse = { text: "Reading plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: path.join(projectRoot, 'plan.md') }, toolCallId: '1' }], finishReason: 'tool-calls' };
-    const dispatcherDelegateResponse = { text: "Delegating to executor.", toolCalls: [], finishReason: 'stop' };
+    const dispatcherReadPlanResponse = { text: "Reading plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: 'plan.md' }, toolCallId: '1' }], finishReason: 'tool-calls' };
+    const dispatcherDelegateResponse = { text: "Delegating to executor.", toolCalls: [{toolName: 'stigmergy.task', args: { subagent_type: '@executor', description: 'Execute task 1' }, toolCallId: '2'}], finishReason: 'tool-calls' };
+    const dispatcherFinalResponse = { text: "Done.", toolCalls: [], finishReason: 'stop' };
 
     mockStreamText
         .mockResolvedValueOnce(dispatcherReadPlanResponse)
-        .mockResolvedValueOnce(dispatcherDelegateResponse);
+        .mockResolvedValueOnce(dispatcherDelegateResponse)
+        .mockResolvedValueOnce(dispatcherFinalResponse);
 
-    const executorWriteFileResponse = { text: "Writing file.", toolCalls: [{ toolName: 'file_system.writeFile', args: { path: path.join(projectRoot, 'src/example.js'), content: 'console.log("hello");' }, toolCallId: '2' }], finishReason: 'tool-calls' };
+    const executorWriteFileResponse = { text: "Writing file.", toolCalls: [{ toolName: 'file_system.writeFile', args: { path: 'src/example.js', content: 'console.log("hello");' }, toolCallId: '3' }], finishReason: 'tool-calls' };
     const executorFinalResponse = { text: "Done.", toolCalls: [], finishReason: 'stop' };
 
+    const originalTriggerAgent = Engine.prototype.triggerAgent;
     const mockTriggerAgent = mock(async (agentId, prompt) => {
         if (agentId === '@executor') {
             mockStreamText
                 .mockResolvedValueOnce(executorWriteFileResponse)
                 .mockResolvedValueOnce(executorFinalResponse);
-            return await Engine.prototype.triggerAgent.call(engine, agentId, prompt);
         }
-        // For the dispatcher, call the original method directly
-        return await Engine.prototype.triggerAgent.call(engine, agentId, prompt);
+        return await originalTriggerAgent.call(engine, agentId, prompt);
     });
     engine.triggerAgent = mockTriggerAgent;
+
 
     const planContent = `
 tasks:
   - id: "1"
     agent: "@executor"
+    description: "Execute task 1"
     files_to_create_or_modify: ["src/example.js"]
 `;
-    await memfs.promises.writeFile(path.join(projectRoot, 'plan.md'), planContent);
-    await memfs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
+    await mockFs.promises.writeFile(path.join(projectRoot, 'plan.md'), planContent);
+    await mockFs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
 
     await engine.triggerAgent('@dispatcher', 'Proceed with the plan.');
 
     const finalState = await engine.stateManager.getState();
     expect(finalState.project_status).toBe('PLAN_EXECUTED');
 
-    const fileExists = await memfs.promises.exists(path.join(projectRoot, 'src/example.js'));
+    const fileExists = await mockFs.pathExists(path.join(projectRoot, '.stigmergy/sandboxes/executor/src/example.js'));
     expect(fileExists).toBe(true);
   });
 });
