@@ -1,28 +1,10 @@
 import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import { Engine } from '../../../engine/server.js';
-import { createExecutor } from '../../../engine/tool_executor.js'; // Import the executor
 import path from 'path';
-import { Volume } from 'memfs';
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
-// --- 1. Setup In-Memory File System & Mock ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-const mockFs = {
-  // Add all necessary fs-extra methods
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync,
-  promises: memfs.promises,
-};
-mockFs.default = mockFs;
-
-// --- 2. Mock the fs-extra module for the entire test file ---
-mock.module('fs-extra', () => mockFs);
-
-// --- 3. Mock the StateManager ---
-let GraphStateManager;
+let Engine;
+let createExecutor;
 
 describe('Human Handoff Workflow', () => {
   let executeTool;
@@ -30,13 +12,24 @@ describe('Human Handoff Workflow', () => {
   let broadcastSpy;
 
   beforeEach(async () => {
-    vol.reset(); // Clear the in-memory file system
+    vol.reset();
+    mock.module('fs', () => mockFs);
+    mock.module('fs-extra', () => mockFs);
+    mock.module('../../../services/config_service.js', () => ({
+        configService: {
+            getConfig: () => ({
+                model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                providers: { mock_provider: { api_key: 'mock-key' } }
+            }),
+        },
+    }));
 
-    // --- 4. Create mock agent & trajectory directories in-memory ---
-    const agentDir = path.join(process.cwd(), '.stigmergy-core', 'agents');
-    const trajectoryDir = path.join(process.cwd(), '.stigmergy', 'trajectories');
-    mockFs.ensureDirSync(agentDir);
-    mockFs.ensureDirSync(trajectoryDir); // For clean test output
+    Engine = (await import('../../../engine/server.js')).Engine;
+    createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
+
+    process.env.STIGMERGY_CORE_PATH = path.join(process.cwd(), '.stigmergy-core');
+    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+    await mockFs.ensureDir(agentDir);
 
     const mockDispatcherAgent = `
 \`\`\`yaml
@@ -46,37 +39,36 @@ agent:
     - "system.request_human_approval"
 \`\`\`
 `;
-    mockFs.writeFileSync(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
+    await mockFs.promises.writeFile(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
 
-    // --- 5. Setup mock engine and executor ---
     broadcastSpy = mock(() => {});
-
-    mockEngine = {
+    const stateManager = new GraphStateManager(process.cwd());
+    mockEngine = new Engine({
         broadcastEvent: broadcastSpy,
         projectRoot: process.cwd(),
-        stop: mock(async () => {}),
-    };
+        corePath: process.env.STIGMERGY_CORE_PATH,
+        stateManager,
+        startServer: false,
+    });
 
-    // The executor is now created directly, mirroring the real engine flow
-    executeTool = createExecutor(mockEngine, {}, {});
+    executeTool = await createExecutor(mockEngine, {}, {}, mockFs);
   });
 
   afterEach(async () => {
-      if (mockEngine && typeof mockEngine.stop === 'function') {
+      if (mockEngine) {
           await mockEngine.stop();
       }
       mock.restore();
+      delete process.env.STIGMERGY_CORE_PATH;
   });
 
   test('Dispatcher should be able to call the request_human_approval tool', async () => {
-    // Simulate a tool call from the @dispatcher agent.
     await executeTool.execute(
       'system.request_human_approval',
       { message: 'Approve plan?', data: { content: 'plan details' } },
       'dispatcher'
     );
 
-    // Assert that the broadcast event was called with the correct payload.
     expect(broadcastSpy).toHaveBeenCalledWith(
       'human_approval_request',
       { message: 'Approve plan?', data: { content: 'plan details' } }

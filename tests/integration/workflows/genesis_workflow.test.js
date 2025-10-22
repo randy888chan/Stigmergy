@@ -1,64 +1,57 @@
-import { test, describe, expect, mock, beforeAll, afterAll, beforeEach, afterEach } from 'bun:test';
-// Do NOT import Engine or createExecutor statically
-import { getTestStateManager } from '../../global_state.js';
-import { Volume } from 'memfs';
+import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
-// --- Definitive FS Mock ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-const mockFs = { ...memfs };
-mockFs.promises = memfs.promises;
-mock.module('fs', () => mockFs);
-mock.module('fs-extra', () => mockFs);
-
-
-// --- Other Mocks ---
 const mockCommit = mock(async () => ({ summary: { changes: 1 } }));
 const mockInit = mock(async () => {});
-const mockSimpleGit = () => ({
-    init: mockInit,
-    add: mock().mockReturnThis(),
-    commit: mockCommit,
-});
-mock.module('simple-git', () => ({ default: mockSimpleGit }));
-
 const mockStreamText = mock(async () => ({ text: 'Project setup complete.', toolCalls: [], finishReason: 'stop' }));
-mock.module('ai', () => ({ streamText: mockStreamText }));
-
-mock.module('../../../services/config_service.js', () => ({
-  configService: {
-    getConfig: () => ({ model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } } }),
-  }
-}));
+let Engine;
 
 describe('Genesis Agent Workflow', () => {
     let engine;
-    let stateManager;
-    let Engine; // To be populated by dynamic import
     const projectRoot = '/test-genesis-project';
 
-    beforeAll(() => {
-        stateManager = getTestStateManager();
-    });
-
     beforeEach(async () => {
-        // DEFINITIVE FIX: Dynamically import modules AFTER mocks are set up.
+        vol.reset();
+        mockInit.mockClear();
+        mockCommit.mockClear();
+        mockStreamText.mockClear();
+
+        mock.module('fs', () => mockFs);
+        mock.module('fs-extra', () => mockFs);
+        const mockSimpleGit = () => ({
+            init: mockInit,
+            add: mock().mockReturnThis(),
+            commit: mockCommit,
+        });
+        mock.module('simple-git', () => ({ default: mockSimpleGit }));
+        mock.module('ai', () => ({ streamText: mockStreamText }));
+        mock.module('../../../services/config_service.js', () => ({
+            configService: {
+                getConfig: () => ({
+                    model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                    providers: { mock_provider: { api_key: 'mock-key' } }
+                }),
+            },
+        }));
+
         Engine = (await import('../../../engine/server.js')).Engine;
 
-        vol.reset();
-        await mockFs.promises.mkdir(projectRoot, { recursive: true });
-        process.env.STIGMERGY_CORE_PATH = path.join(process.cwd(), '.stigmergy-core-test-genesis');
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
         const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
-        await mockFs.promises.mkdir(agentDir, { recursive: true });
+        await mockFs.ensureDir(agentDir);
 
         const genesisAgentContent = `
+\`\`\`yaml
 agent:
   id: "@genesis"
   engine_tools: ["shell.*", "git_tool.*", "file_system.*"]
+\`\`\`
 `;
         await mockFs.promises.writeFile(path.join(agentDir, '@genesis.md'), genesisAgentContent);
 
+        const stateManager = new GraphStateManager(projectRoot);
         engine = new Engine({
             projectRoot,
             stateManager,
@@ -74,19 +67,16 @@ agent:
         if (engine) {
             await engine.stop();
         }
-        await mockFs.promises.rm(process.env.STIGMERGY_CORE_PATH, { recursive: true, force: true });
-        delete process.env.STIGMERGY_CORE_PATH;
         mock.restore();
-        mockInit.mockClear();
-        mockCommit.mockClear();
+        delete process.env.STIGMERGY_CORE_PATH;
     });
 
     test('should initialize a new project, create a file, and make an initial commit', async () => {
         const prompt = "Create a new Node.js project with an index.js file that logs 'hello world'";
 
         const toolCalls = [
-            { toolName: 'git_tool.init', args: { path: projectRoot }, toolCallId: '1' },
-            { toolName: 'file_system.writeFile', args: { path: path.join(projectRoot, 'index.js'), content: "console.log('hello world');" }, toolCallId: '2' },
+            { toolName: 'git_tool.init', args: { path: '.' }, toolCallId: '1' },
+            { toolName: 'file_system.writeFile', args: { path: 'index.js', content: "console.log('hello world');" }, toolCallId: '2' },
             { toolName: 'git_tool.commit', args: { message: 'Initial commit' }, toolCallId: '3' }
         ];
 
@@ -98,9 +88,9 @@ agent:
 
         expect(mockInit).toHaveBeenCalledTimes(1);
         expect(mockCommit).toHaveBeenCalledTimes(1);
-        expect(mockCommit).toHaveBeenCalledWith('Initial commit');
+        expect(mockCommit).toHaveBeenCalledWith(expect.objectContaining({ message: 'Initial commit'}));
 
-        const fileExists = await mockFs.promises.exists(path.join(projectRoot, 'index.js'));
+        const fileExists = await mockFs.pathExists(path.join(projectRoot, '.stigmergy/sandboxes/genesis/index.js'));
         expect(fileExists).toBe(true);
     });
 });

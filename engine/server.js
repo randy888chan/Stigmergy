@@ -187,7 +187,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
             const executorFactory = this._test_createExecutor || createExecutor;
             const fsProvider = this._test_fs || fs;
-            const executeTool = executorFactory(this, this.ai, { workingDirectory, config: this.config }, fsProvider);
+            const executeTool = await executorFactory(this, this.ai, { workingDirectory, config: this.config }, fsProvider);
 
             const agentPath = path.join(this.corePath, 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');

@@ -1,37 +1,12 @@
 import { spyOn, mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
-import { Volume } from 'memfs';
+import mockFs, { vol } from '../../mocks/fs.js';
+import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
 
-// --- MOCKS MUST BE DEFINED BEFORE ANY APPLICATION IMPORTS ---
-const vol = new Volume();
-const memfs = require('memfs').createFsFromVolume(vol);
-
-const mockFsExtra = {
-  ensureDir: (p) => memfs.promises.mkdir(p, { recursive: true }),
-  readFile: memfs.promises.readFile,
-  writeFile: memfs.promises.writeFile,
-  ensureDirSync: (p) => memfs.mkdirSync(p, { recursive: true }),
-  writeFileSync: memfs.writeFileSync,
-  existsSync: memfs.existsSync,
-  promises: memfs.promises,
-  default: null,
-};
-mockFsExtra.default = mockFsExtra;
-
-// Mock fs-extra and NATIVE fs to ensure all file ops are in-memory
-mock.module('fs-extra', () => mockFsExtra);
-mock.module('fs', () => memfs);
-mock.module('fs/promises', () => memfs.promises);
-
-// --- APPLICATION IMPORTS NOW COME AFTER MOCKS ---
 let Stigmergy;
 let realCreateExecutor;
-let GraphStateManager;
-
-
 const executeMock = mock().mockResolvedValue(JSON.stringify({ success: true }));
 const mockStreamText = mock();
-
 let engine;
 let projectRoot;
 
@@ -41,19 +16,27 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
         mockStreamText.mockClear();
         executeMock.mockClear();
 
+        mock.module('fs', () => mockFs);
+        mock.module('fs-extra', () => mockFs);
+        mock.module('ai', () => ({ streamText: mockStreamText }));
+        mock.module('../../../services/config_service.js', () => ({
+            configService: {
+                getConfig: () => ({
+                    model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
+                    providers: { mock_provider: { api_key: 'mock-key' } }
+                }),
+            },
+        }));
+
         Stigmergy = (await import("../../../engine/server.js")).Engine;
         realCreateExecutor = (await import("../../../engine/tool_executor.js")).createExecutor;
 
         projectRoot = path.resolve('/test-project-planning');
-        const corePath = path.join(projectRoot, '.stigmergy-core');
-        process.env.STIGMERGY_CORE_PATH = corePath;
-        const agentDir = path.join(corePath, 'agents');
-        mockFsExtra.ensureDirSync(agentDir);
-        mockFsExtra.ensureDirSync(path.join(projectRoot, 'dashboard', 'public'));
-        mockFsExtra.writeFileSync(path.join(projectRoot, 'dashboard', 'public', 'index.html'), '<html></html>');
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
+        const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+        await mockFs.ensureDir(agentDir);
 
-
-        const createAgentFile = (name) => {
+        const createAgentFile = async (name) => {
             const content = `
     \`\`\`yaml
     agent:
@@ -65,25 +48,26 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
       engine_tools: ["stigmergy.task"]
     \`\`\`
     `;
-            mockFsExtra.writeFileSync(path.join(agentDir, `${name.toLowerCase()}.md`), content);
+            await mockFs.promises.writeFile(path.join(agentDir, `${name.toLowerCase()}.md`), content);
         };
 
-        createAgentFile('Specifier');
-        createAgentFile('QA');
+        await createAgentFile('Specifier');
+        await createAgentFile('QA');
 
-        const testExecutorFactory = (engine, ai, options) => {
-            const executor = realCreateExecutor(engine, ai, options);
+        const testExecutorFactory = async (engine, ai, options) => {
+            const executor = await realCreateExecutor(engine, ai, options, mockFs);
             executor.execute = executeMock;
             return executor;
         };
 
+        const stateManager = new GraphStateManager(projectRoot);
         engine = new Stigmergy({
             _test_streamText: mockStreamText,
             _test_createExecutor: testExecutorFactory,
-            _test_fs: mockFsExtra,
+            _test_fs: mockFs,
             projectRoot: projectRoot,
-            corePath: corePath,
-            startServer: false, // Prevent port conflicts
+            stateManager,
+            startServer: false,
         });
     });
 
@@ -117,7 +101,7 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
             expect.objectContaining({
                 subagent_type: '@qa'
             }),
-            'specifier'
+            '@specifier'
         );
     });
 });
