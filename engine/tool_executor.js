@@ -227,6 +227,33 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
     
     try {
+      const criticalTools = ['file_system.writeFile', 'shell.execute'];
+      if (criticalTools.includes(toolName)) {
+        const auditPrompt = `Audit the following action for constitutional compliance:\n\n- Agent: ${agentId}\n- Tool: ${toolName}\n- Arguments: ${JSON.stringify(args, null, 2)}`;
+
+        console.log(chalk.yellow.bold(`[ConstitutionalAudit] Invoking @auditor for critical tool: ${toolName}`));
+
+        const auditResultText = await engine.triggerAgent('auditor', auditPrompt);
+
+        try {
+          const auditResult = typeof auditResultText === 'string' ? JSON.parse(auditResultText) : auditResultText;
+          if (auditResult.compliant === false) {
+            console.error(chalk.red.bold(`[ConstitutionalAudit] Action blocked by @auditor: ${auditResult.reason}`));
+            throw new OperationalError(`Action blocked by @auditor: ${auditResult.reason}`);
+          }
+           if (auditResult.compliant !== true) {
+            throw new Error(`Invalid response format from auditor: ${auditResultText}`);
+          }
+          console.log(chalk.green.bold(`[ConstitutionalAudit] Action approved by @auditor.`));
+        } catch (e) {
+            if (e instanceof OperationalError) {
+                throw e; // Re-throw the specific operational error
+            }
+            console.error(chalk.red.bold(`[ConstitutionalAudit] Failed to parse @auditor response: ${auditResultText}`), e);
+            throw new OperationalError(`[ConstitutionalAudit] Internal error: Could not get a valid compliance verdict from the @auditor agent.`);
+        }
+      }
+
       const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
       const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
       const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
