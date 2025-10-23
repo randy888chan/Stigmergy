@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import ora from 'ora';
 import inquirer from 'inquirer';
 import EventSource from 'eventsource';
+import WebSocket from 'ws';
 
 export const command = 'run';
 export const desc = 'Run a new mission with a specified goal or start an interactive chat session.';
@@ -15,9 +16,48 @@ export const builder = {
 };
 
 const startInteractiveChat = async () => {
+  console.log(chalk.blue('Connecting to Stigmergy Engine for interactive chat...'));
+  const ws = new WebSocket('ws://localhost:3010/ws');
   const ui = new inquirer.ui.BottomBar();
-  ui.log.write(chalk.blue('Interactive chat requires a WebSocket connection. Use `stigmergy run --goal "your goal"` to run a mission.'));
-  process.exit(0);
+  let promptActive = false;
+
+  const prompt = async () => {
+    if (promptActive) return;
+    promptActive = true;
+    const { message } = await inquirer.prompt([{
+      type: 'input',
+      name: 'message',
+      message: 'You:',
+    }]);
+    if (ws.readyState === WebSocket.OPEN) {
+      ws.send(message);
+    }
+    promptActive = false;
+    // Only prompt again if the connection is still open.
+    if (ws.readyState === WebSocket.OPEN) {
+       prompt();
+    }
+  };
+
+  ws.on('open', () => {
+    ui.log.write(chalk.green('Connected! Type your message and press Enter.'));
+    prompt();
+  });
+
+  ws.on('message', (data) => {
+    ui.log.write(chalk.cyan('Stigmergy: ') + data.toString());
+  });
+
+  ws.on('error', (error) => {
+    ui.log.write(chalk.red(`WebSocket error: ${error.message}`));
+    console.log(chalk.red('Could not connect to the Stigmergy Engine. Is it running?'));
+    process.exit(1);
+  });
+
+  ws.on('close', () => {
+    ui.log.write(chalk.yellow('Connection closed.'));
+    process.exit(0);
+  });
 };
 
 export const handler = async (argv) => {
