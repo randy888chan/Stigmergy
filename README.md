@@ -10,13 +10,15 @@ It empowers a swarm of specialized AI agents to autonomously analyze, plan, and 
 
 Stigmergy is designed to be a tool you run on your own machine. It is not a cloud service. This ensures maximum privacy, security, and control over your codebase.
 
-*   **Global Service, Local Execution:** You run the Stigmergy engine as a single, persistent background service. This "factory" is then commanded to work on any of your local project repositories.
+*   **Global Service, Local Execution:** You run the Stigmergy engine as a single, persistent Docker container. This "factory" is then commanded to work on any of your local project repositories.
 *   **CLI as the "Source of Truth":** The command line is the primary interface for initiating, monitoring, and managing tasks. This ensures maximum compatibility, scriptability, and transparent control.
 *   **Dashboard for Observability:** A real-time web dashboard provides a visual, read-only "Command & Control" view of the agent swarm's activity, allowing you to monitor their thoughts, actions, and progress.
 
-## Getting Started: A Step-by-Step Guide
+## Getting Started: The Docker-First Workflow
 
-### Step 1: Installation & Setup
+Using Docker is the recommended way to run Stigmergy, as it guarantees a consistent and isolated environment.
+
+### Step 1: Clone and Configure the Engine
 
 1.  **Clone the Repository:**
     ```bash
@@ -24,38 +26,35 @@ Stigmergy is designed to be a tool you run on your own machine. It is not a clou
     cd stigmergy
     ```
 
-2.  **Install Dependencies:** Stigmergy uses `bun` as its runtime.
-    ```bash
-    bun install
-    ```
-
-3.  **Link the CLI:** This makes the `stigmergy` command available everywhere on your system.
-    ```bash
-    npm link
-    ```
-
-4.  **Configure Your Environment:**
+2.  **Configure Your Environment:**
     *   Copy the example environment file:
         ```bash
         cp .env.example .env.development
         ```
     *   Open `.env.development` and add your API keys (e.g., `OPENROUTER_API_KEY`).
 
-### Step 2: Start the Stigmergy Service
+### Step 2: Build and Run the Engine with Docker
 
-The Stigmergy engine runs as a background service. You only need to do this once.
-
-*   **Start the Service:**
+1.  **Launch with Docker Compose:** This single command builds the Stigmergy engine image and starts the service container.
     ```bash
-    stigmergy start-service
+    docker-compose up --build
     ```
-*   **Check the Status:**
-    ```bash
-    stigmergy service-status
-    ```
-    You should see a green "online" status. Your Stigmergy "factory" is now running and listening for commands. You can also access the real-time dashboard at `http://localhost:3010`.
+    The Stigmergy "factory" is now running and listening for commands. You can access the real-time dashboard at `http://localhost:3010`.
 
-### Step 3: Run Your First Mission (CLI Workflow)
+### Step 3: Link the CLI Tool
+
+To easily command the Stigmergy engine from any terminal, you need to link the CLI package.
+
+1.  **Navigate to the CLI package:**
+    ```bash
+    cd packages/stigmergy-cli
+    ```
+2.  **Link the package:** This makes the `stigmergy` command globally available.
+    ```bash
+    npm link
+    ```
+
+### Step 4: Run Your First Mission
 
 This is the primary way to interact with Stigmergy.
 
@@ -75,30 +74,12 @@ This is the primary way to interact with Stigmergy.
 
 Stigmergy will now set the active project context, and the autonomous swarm will begin its work. You can monitor its progress in the terminal and on the dashboard.
 
-## Development with Docker (Recommended)
-
-To ensure a consistent and reproducible development environment, we recommend using Docker. This avoids local setup issues.
-
-1.  **Prerequisites:** Make sure you have Docker and Docker Compose installed.
-
-2.  **Environment Setup:** Copy the `.env.example` file to `.env.development` and fill in your API keys.
-    ```bash
-    cp .env.example .env.development
-    ```
-
-3.  **Build and Run:** Use Docker Compose to build and start the development service. This now uses an AI-safe development server by default.
-    ```bash
-    docker-compose up --build stigmergy-dev
-    ```
-
-Your development server will be available at `http://localhost:3010`. Any changes you make to the source code on your local machine will trigger an automatic restart inside the container.
-
 ## 🆘 Troubleshooting: Hard Reset Protocol
 
-If the development environment enters a corrupted state (e.g., silent rendering failures), you can perform a hard reset to purge all caches and volumes.
+If the Docker environment enters a corrupted state, you can perform a hard reset to purge all caches and volumes.
 
-**Run the following command:**
+**Run the following command from the `stigmergy` project root:**
 ```bash
-bun run dev:reset
+docker-compose down -v
 ```
-This will stop and remove all Docker containers and volumes, then build and start a fresh environment.
+This will stop and remove all Docker containers, networks, and volumes, allowing you to start fresh with `docker-compose up --build`.
