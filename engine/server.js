@@ -5,6 +5,8 @@ import { upgradeWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
 import chalk from 'chalk';
 import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
+import { FileStorageAdapter } from '../src/infrastructure/state/FileStorageAdapter.js';
+import { HttpStorageAdapter } from '../src/infrastructure/state/HttpStorageAdapter.js';
 import { createExecutor } from "./tool_executor.js";
 import * as fileSystem from '../tools/file_system.js';
 import * as coderag from '../tools/coderag_tool.js';
@@ -21,10 +23,23 @@ export class Engine {
     constructor(options = {}) {
         this.projectRoot = options.projectRoot || process.cwd();
         this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
+        this.config = configService.getConfig();
 
         // --- Definitive Fix: Dependency Injection for State Manager ---
         this.isExternalStateManager = !!options.stateManager;
-        this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
+        if (options.stateManager) {
+            this.stateManager = options.stateManager;
+        } else {
+            const collaborationMode = this.config.collaboration?.mode || 'single-player';
+            const serverUrl = this.config.collaboration?.server_url;
+            console.log(chalk.blue(`[Engine] Initializing in ${collaborationMode} mode.`));
+
+            const storageAdapter = collaborationMode === 'team'
+                ? new HttpStorageAdapter(serverUrl)
+                : new FileStorageAdapter();
+
+            this.stateManager = new GraphStateManager(this.projectRoot, storageAdapter);
+        }
         // --- End of Fix ---
 
         this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;

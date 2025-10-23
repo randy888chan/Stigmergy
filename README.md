@@ -74,6 +74,38 @@ This is the primary way to interact with Stigmergy.
 
 Stigmergy will now set the active project context, and the autonomous swarm will begin its work. You can monitor its progress in the terminal and on the dashboard.
 
+## 🚀 Advanced Usage: Team Mode
+
+Stigmergy can operate in "Team Mode," where multiple developers can connect their local engines to a single, shared project state. This is managed by a central `team-server`.
+
+### How it Works
+
+*   The **Team Server** acts as the central source of truth for the project's mission plan and status.
+*   Each developer's local **Stigmergy Engine** connects to this server, syncing state instead of managing it locally.
+
+### Running in Team Mode
+
+1.  **Start the Team Server:**
+    Use Docker Compose to start both the main engine and the team server.
+    ```bash
+    # Make sure you've already run `docker-compose up --build` at least once
+    docker-compose up team-server
+    ```
+    The team server will be running on `http://localhost:3012`.
+
+2.  **Configure Your Local Engine for Team Mode:**
+    *   Open `stigmergy.config.js` in the main Stigmergy project.
+    *   Modify the `collaboration` object to enable team mode:
+        ```javascript
+        collaboration: {
+          mode: 'team', // 'single-player' or 'team'
+          server_url: 'http://localhost:3012' // URL of your running team server
+        }
+        ```
+    *   Restart your main Stigmergy engine (`docker-compose restart stigmergy`) for the changes to take effect.
+
+Now, when you run missions, your engine will coordinate with the central team server.
+
 ## 🆘 Troubleshooting: Hard Reset Protocol
 
 If the Docker environment enters a corrupted state, you can perform a hard reset to purge all caches and volumes.
