@@ -51,6 +51,7 @@ agent:
         await createAgentFile('Specifier');
         await createAgentFile('QA');
         await createAgentFile('Dispatcher');
+        await createAgentFile('Auditor');
 
         const stateManager = new GraphStateManager(projectRoot);
         const mockUnifiedIntelligenceService = {};
@@ -94,6 +95,7 @@ agent:
             .mockResolvedValueOnce({ text: 'Plan created.', finishReason: 'stop' }) // Specifier
             .mockResolvedValueOnce({ text: 'Plan approved.', finishReason: 'stop' }) // QA
             .mockResolvedValueOnce({ toolCalls: dispatcherToolCalls, finishReason: 'tool-calls' }) // Dispatcher
+            .mockResolvedValueOnce({ text: '{"compliant": true, "reason": "Constitutional."}', toolCalls: [], finishReason: 'stop' }) // Auditor
             .mockResolvedValueOnce({ text: 'All tasks are complete.', finishReason: 'stop' }); // Final response
 
         // Correct agent IDs must be used
