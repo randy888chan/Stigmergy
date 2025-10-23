@@ -16,6 +16,7 @@
     "chalk": "^5.3.0",
     "ora": "^8.0.1",
     "inquirer": "^9.2.20",
-    "eventsource": "^2.0.2"
+    "eventsource": "^2.0.2",
+    "ws": "^8.17.0"
   }
 }
