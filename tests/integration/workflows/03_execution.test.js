@@ -69,6 +69,14 @@ agent:
 \`\`\`
 `;
     await mockFs.promises.writeFile(path.join(agentDir, 'executor.md'), executorContent);
+    const auditorContent = `
+\`\`\`yaml
+agent:
+  id: "@auditor"
+  engine_tools: []
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, 'auditor.md'), auditorContent);
 
     const mockUnifiedIntelligenceService = {
         initialize: mock(async () => {}),
@@ -113,13 +121,14 @@ agent:
     const dispatcherFinishes = { text: "All done.", toolCalls: [], finishReason: 'stop' };
 
     mockStreamText
-      .mockResolvedValueOnce(dispatcherReadsPlan)
-      .mockResolvedValueOnce(dispatcherReadsFile)
-      .mockResolvedValueOnce(dispatcherDelegates)
-      .mockResolvedValueOnce(executorWritesFile)
-      .mockResolvedValueOnce(executorFinishes)
-      .mockResolvedValueOnce(dispatcherUpdatesStatus)
-      .mockResolvedValueOnce(dispatcherFinishes);
+      .mockResolvedValueOnce(dispatcherReadsPlan) // dispatcher reads plan
+      .mockResolvedValueOnce(dispatcherReadsFile) // dispatcher reads file
+      .mockResolvedValueOnce(dispatcherDelegates) // dispatcher delegates to executor
+      .mockResolvedValueOnce(executorWritesFile)   // executor calls writeFile
+      .mockResolvedValueOnce({ text: '{"compliant": true, "reason": "Constitutional."}', toolCalls: [], finishReason: 'stop' }) // auditor approves
+      .mockResolvedValueOnce(executorFinishes)   // executor finishes
+      .mockResolvedValueOnce(dispatcherUpdatesStatus) // dispatcher calls updateStatus
+      .mockResolvedValueOnce(dispatcherFinishes);   // dispatcher finishes
 
     const planContent = `
 tasks:
