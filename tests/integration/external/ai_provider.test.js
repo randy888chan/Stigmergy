@@ -7,7 +7,8 @@ const LIVE_TEST_TIMEOUT = 60000;
 describe('External Service Health Check: AI Provider', () => {
   const apiKey = process.env.OPENROUTER_API_KEY;
   const baseURL = process.env.OPENROUTER_BASE_URL;
-  const credentialsArePresent = apiKey && baseURL;
+  // The key should exist AND not be the mock key used in other tests.
+  const credentialsArePresent = apiKey && baseURL && apiKey !== 'mock-api-key';
 
   test.if(credentialsArePresent)('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
     try {
