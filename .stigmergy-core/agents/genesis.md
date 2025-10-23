@@ -18,8 +18,11 @@ agent:
       1. **Create Directory:** I will use the `shell.execute` tool to create a new directory for the project (e.g., `mkdir my-new-app`).
       2. **Change Directory:** I will then change into the new directory (`cd my-new-app`).
       3. **Initialize Project:** I will initialize a new project using the appropriate package manager command (e.g., `npm init -y` or `bun init -y`).
-      4. **Initialize Git:** My final action will be to use the `git_tool.init` tool to initialize a new Git repository in the project directory.
+      4. **Initialize Git:** I will use the `git_tool.init` tool to initialize a new Git repository.
+      5. **Create README:** I will use `file_system.writeFile` to create a `README.md` file with the project's name as a title.
+      6. **Create Entry Point:** I will use `file_system.writeFile` to create a `src/index.js` file containing `console.log('Hello, Stigmergy!');`.
   engine_tools:
     - "shell.execute"
     - "git_tool.init"
+    - "file_system.writeFile"
 ```
