@@ -25,22 +25,14 @@ export class Engine {
         this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
         this.config = configService.getConfig();
 
-        // --- Definitive Fix: Dependency Injection for State Manager ---
-        this.isExternalStateManager = !!options.stateManager;
-        if (options.stateManager) {
-            this.stateManager = options.stateManager;
-        } else {
-            const collaborationMode = this.config.collaboration?.mode || 'single-player';
-            const serverUrl = this.config.collaboration?.server_url;
-            console.log(chalk.blue(`[Engine] Initializing in ${collaborationMode} mode.`));
+        // State Manager will be initialized asynchronously
+        this.stateManager = null;
 
-            const storageAdapter = collaborationMode === 'team'
-                ? new HttpStorageAdapter(serverUrl)
-                : new FileStorageAdapter();
+        // Bind listeners to `this` FIRST to avoid race conditions.
+        this.stateChangedListener = this._onStateChanged.bind(this);
+        this.triggerAgentListener = this._onTriggerAgent.bind(this);
 
-            this.stateManager = new GraphStateManager(this.projectRoot, storageAdapter);
-        }
-        // --- End of Fix ---
+        this.stateManagerInitializationPromise = this._initializeStateManager(options);
 
         this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
         this._test_executorFactory = options._test_executorFactory;
@@ -53,11 +45,12 @@ export class Engine {
 
         // Middleware to make stateManager available to all routes
         this.app.use('*', (c, next) => {
-            c.set('stateManager', this.stateManager);
+            c.set('stateManager', this); // Pass the whole engine instance
             return next();
         });
 
         this.clients = new Set();
+        this.pendingApprovals = new Map(); // For Human Handoff
         this.server = null;
         this._test_streamText = options._test_streamText || (() => Promise.resolve({ toolCalls: [], finishReason: 'stop', text: '' }));
         this._test_onEnrichment = options._test_onEnrichment;
@@ -73,13 +66,9 @@ export class Engine {
             this.ai = getAiProviders(this.config);
         }
 
-        // Bind listeners to `this`
-        this.stateChangedListener = this._onStateChanged.bind(this);
-        this.triggerAgentListener = this._onTriggerAgent.bind(this);
-
         // Setup routes and listeners
         this.setupRoutes();
-        this.setupStateListener();
+        // this.setupStateListener(); // This will be called after state manager is initialized
 
         // Initialize tool executor
         this.toolExecutorPromise = this.initializeToolExecutor();
@@ -94,6 +83,45 @@ export class Engine {
         }, 30000); // Broadcast every 30 seconds
     }
 
+    async _initializeStateManager(options) {
+        // --- Definitive Fix: Dependency Injection for State Manager ---
+        this.isExternalStateManager = !!options.stateManager;
+        if (options.stateManager) {
+            this.stateManager = options.stateManager;
+        } else {
+            let collaborationMode = this.config.collaboration?.mode || 'single-player';
+            const serverUrl = this.config.collaboration?.server_url;
+            console.log(chalk.blue(`[Engine] Attempting to initialize in ${collaborationMode} mode.`));
+
+            let storageAdapter;
+
+            if (collaborationMode === 'team') {
+                try {
+                    const healthCheckUrl = new URL('/health', serverUrl).toString();
+                    console.log(chalk.blue(`[Engine] Pinging team server at ${healthCheckUrl}...`));
+                    const response = await fetch(healthCheckUrl, { timeout: 3000 });
+                    if (!response.ok) {
+                        throw new Error(`Health check failed with status: ${response.status}`);
+                    }
+                    console.log(chalk.green('[Engine] Team server is healthy. Connecting...'));
+                    storageAdapter = new HttpStorageAdapter(serverUrl);
+                } catch (error) {
+                    console.warn(chalk.yellow(`[Engine] WARN: Team server health check failed: ${error.message}`));
+                    console.warn(chalk.yellow('[Engine] Falling back to "single-player" mode.'));
+                    collaborationMode = 'single-player';
+                    storageAdapter = new FileStorageAdapter();
+                }
+            } else {
+                storageAdapter = new FileStorageAdapter();
+            }
+
+            this.stateManager = new GraphStateManager(this.projectRoot, storageAdapter);
+        }
+        // --- End of Fix ---
+        this.setupStateListener();
+    }
+
+
     async initializeToolExecutor() {
         const executorFactory = this._test_executorFactory || createExecutor;
         const fsProvider = this._test_fs || fs;
@@ -101,6 +129,7 @@ export class Engine {
     }
 
     async setActiveProject(projectPath) {
+        await this.stateManagerInitializationPromise;
         console.log(chalk.blue(`[Engine] Setting active project to: ${projectPath}`));
         if (!projectPath || typeof projectPath !== 'string') {
             console.error(chalk.red('[Engine] Invalid project path provided.'));
@@ -114,19 +143,26 @@ export class Engine {
              this.stateManager.off('stateChanged', this.stateChangedListener);
              this.stateManager.off('triggerAgent', this.triggerAgentListener);
         }
-        this.stateManager = new GraphStateManager(this.projectRoot);
-        this.setupStateListener();
+        // Re-run the initialization for the new path
+        this.stateManagerInitializationPromise = this._initializeStateManager({});
+        await this.stateManagerInitializationPromise;
+
 
         console.log(chalk.green(`[Engine] Project context switched. New root: ${this.projectRoot}`));
         this.broadcastEvent('project_switched', { path: this.projectRoot });
     }
 
     async executeGoal(prompt) {
+        await this.stateManagerInitializationPromise;
         console.log(chalk.cyan(`[Engine] Received new goal for project ${this.projectRoot}: "${prompt}"`));
         await this.stateManager.initializeProject(prompt);
     }
     
     setupStateListener() {
+        if (!this.stateManager) {
+            console.error(chalk.red('[Engine] CRITICAL: setupStateListener called before state manager was initialized.'));
+            return;
+        }
         // Now use the bound listeners
         this.stateManager.on('stateChanged', this.stateChangedListener);
         this.stateManager.on('triggerAgent', this.triggerAgentListener);
@@ -134,6 +170,7 @@ export class Engine {
 
     // New private method for handling state changes
     async _onStateChanged(newState) {
+        await this.stateManagerInitializationPromise;
         try {
             console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
             this.broadcastEvent('state_update', newState);
@@ -153,11 +190,13 @@ export class Engine {
 
     // New private method for handling agent triggers
     async _onTriggerAgent({ agentId, prompt }) {
+        await this.stateManagerInitializationPromise;
         console.log(chalk.green(`[Engine] Received triggerAgent event for ${agentId}`));
         await this.triggerAgent(agentId, prompt);
     }
 
     async initiateAutonomousSwarm(state) {
+        await this.stateManagerInitializationPromise;
         console.log(chalk.cyan('[Engine] Intelligence Gathering Phase Initiated.'));
 
         try {
@@ -209,6 +248,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
     async triggerAgent(agentId, prompt) {
         await this.toolExecutorPromise; // Wait for the executor to be initialized
+        await this.stateManagerInitializationPromise;
         console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
         const agentName = agentId.replace('@', '');
         let lastTextResponse = null;
@@ -330,9 +370,10 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
         // 2. Dashboard API Endpoints
         this.app.get('/api/state', async (c) => {
-            const stateManager = c.get('stateManager');
-            if (stateManager) {
-                const state = await stateManager.getState();
+            const engine = c.get('stateManager'); // Now the engine instance
+            await engine.stateManagerInitializationPromise; // Ensure state manager is ready
+            if (engine && engine.stateManager) {
+                const state = await engine.stateManager.getState();
                 return c.json(state);
             }
             return c.json({ error: 'StateManager not available' }, 500);
@@ -671,6 +712,16 @@ Execute the file write operation now. Upon success, respond with a confirmation 
                             await this.executeGoal(data.payload.prompt);
                         } else if (data.type === 'set_project') {
                             await this.setActiveProject(data.payload.path);
+                        } else if (data.type === 'human_approval_response') {
+                            const { requestId, decision } = data.payload;
+                            if (this.pendingApprovals.has(requestId)) {
+                                const resolve = this.pendingApprovals.get(requestId);
+                                resolve(decision); // Resolve the promise the agent is waiting for
+                                this.pendingApprovals.delete(requestId);
+                                console.log(chalk.green(`[Engine] Human decision '${decision}' received for request ${requestId}. Resuming agent.`));
+                            } else {
+                                console.warn(chalk.yellow(`[Engine] Received a human approval response for an unknown or expired request ID: ${requestId}`));
+                            }
                         }
                     } catch (error) {
                          console.error(chalk.red('[WebSocket] Error processing message:'), error);
@@ -717,7 +768,7 @@ Execute the file write operation now. Upon success, respond with a confirmation 
             console.log(chalk.yellow('[Engine] Server start skipped as per configuration.'));
             return;
         }
-
+        await this.stateManagerInitializationPromise;
         console.log(chalk.blue("Initializing Stigmergy Engine..."));
         const PORT = Number(process.env.STIGMERGY_PORT) || 3010;
         
@@ -836,17 +887,25 @@ function createWebSocketEvent(ws, data, code, reason) {
 }
 
 if (import.meta.main) {
-    const stateManager = new GraphStateManager();
-    const engineOptions = { stateManager, unifiedIntelligenceService };
+    // Top-level await is available in ES modules
+    const startServer = async () => {
+        // No need for external state manager at the top level
+        const engineOptions = { unifiedIntelligenceService };
 
-    if (process.env.USE_MOCK_AI === 'true') {
-        console.log(chalk.yellow('--- [NOTICE] ---'));
-        console.log(chalk.yellow('Running with USE_MOCK_AI=true. AI provider initialization will be skipped.'));
-        console.log(chalk.yellow('This is for local testing and requires a mock function to be injected during tests.'));
-        console.log(chalk.yellow('--- [NOTICE] ---'));
-        engineOptions._test_streamText = true;
-    }
+        if (process.env.USE_MOCK_AI === 'true') {
+            console.log(chalk.yellow('--- [NOTICE] ---'));
+            console.log(chalk.yellow('Running with USE_MOCK_AI=true. AI provider initialization will be skipped.'));
+            console.log(chalk.yellow('This is for local testing and requires a mock function to be injected during tests.'));
+            console.log(chalk.yellow('--- [NOTICE] ---'));
+            engineOptions._test_streamText = true;
+        }
 
-    const engine = new Engine(engineOptions);
-    engine.start();
+        const engine = new Engine(engineOptions);
+        await engine.start();
+    };
+
+    startServer().catch(error => {
+        console.error(chalk.red(`[Engine] Failed to start: ${error.message}`));
+        process.exit(1);
+    });
 }

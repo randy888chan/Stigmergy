@@ -24,20 +24,32 @@ export default (engine) => ({
   },
 
   /**
-   * Sends a structured request for human approval to the dashboard.
-   * This is the new tool for the dispatcher's "Human Handoff" protocol.
+   * Sends a structured request for human approval to the dashboard and waits for a response.
+   * This tool pauses the agent's execution until the user responds via the UI.
    * @param {object} args
    * @param {string} args.message - The question for the user (e.g., "Please approve this business plan.").
    * @param {object} args.data - The data to be reviewed (e.g., the content of the business plan).
-   * @returns {Promise<string>} Confirmation message.
+   * @returns {Promise<string>} The user's decision ('approved' or 'rejected').
    */
   request_human_approval: async ({ message, data }) => {
     if (!message || !data) {
       throw new Error("The 'message' and 'data' arguments are required for system.request_human_approval.");
     }
-    console.log(`[System Tool] Requesting human approval: ${message}`);
-    engine.broadcastEvent('human_approval_request', { message, data });
-    return "Request for human approval has been sent to the dashboard.";
+
+    const requestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+    console.log(`[System Tool] Requesting human approval (ID: ${requestId}): ${message}`);
+
+    const approvalPromise = new Promise((resolve) => {
+      engine.pendingApprovals.set(requestId, resolve);
+    });
+
+    engine.broadcastEvent('human_approval_request', { requestId, message, data });
+
+    // The agent's execution will pause here until the promise is resolved.
+    const decision = await approvalPromise;
+
+    return `Human operator responded with: '${decision}'. You may now proceed.`;
   },
 
   /**

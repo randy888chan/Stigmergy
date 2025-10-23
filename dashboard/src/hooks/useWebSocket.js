@@ -24,6 +24,8 @@ const useWebSocket = (url) => {
       try {
         const jsonData = JSON.parse(event.data);
         setData(jsonData);
+        // Dispatch a global event for testing purposes
+        window.dispatchEvent(new MessageEvent('message', { data: event.data }));
       } catch (err) {
         console.error('Error parsing WebSocket message:', err);
         setError('Error parsing WebSocket message');
