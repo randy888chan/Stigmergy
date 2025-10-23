@@ -1,28 +1,37 @@
 import { test, describe, expect, mock, beforeEach, afterEach, spyOn } from 'bun:test';
 import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
-import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
-import { createExecutor as realCreateExecutor } from '../../../engine/tool_executor.js';
-import { Engine } from '../../../engine/server.js';
 
 const mockStreamText = mock();
 
 describe('Execution Workflow: @dispatcher and @executor', () => {
   let engine;
   const projectRoot = '/test-project-exec';
+  let GraphStateManager, Engine, realCreateExecutor;
 
   beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    // Prevent dotenv from reading actual .env files
+    mock.module('dotenv', () => ({ config: mock() }));
+
+    // Set mock env vars BEFORE any application code is imported
+    process.env.OPENROUTER_API_KEY = 'mock-api-key';
+    process.env.OPENROUTER_BASE_URL = 'http://localhost:3000';
+
     mock.module('fs', () => mockFs);
     mock.module('fs-extra', () => mockFs);
     mock.module('ai', () => ({ streamText: mockStreamText }));
+
+    // Mock services that are instantiated on import
     mock.module('../../../services/config_service.js', () => ({
         configService: {
             getConfig: () => ({
-                model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
-                providers: { mock_provider: { api_key: 'mock-key' } }
+                model_tiers: {
+                    reasoning_tier: { provider: 'mock', model_name: 'mock-model' },
+                    execution_tier: { provider: 'mock', model_name: 'mock-model' },
+                },
             }),
         },
     }));
@@ -30,6 +39,14 @@ describe('Execution Workflow: @dispatcher and @executor', () => {
         trackToolUsage: mock(async () => {}),
         appendLog: mock(async () => {}),
     }));
+
+    // Dynamically import modules AFTER mocks are in place
+    const stateManagerModule = await import('../../../src/infrastructure/state/GraphStateManager.js');
+    GraphStateManager = stateManagerModule.GraphStateManager;
+    const toolExecutorModule = await import('../../../engine/tool_executor.js');
+    realCreateExecutor = toolExecutorModule.createExecutor;
+    const engineModule = await import('../../../engine/server.js');
+    Engine = engineModule.Engine;
 
     // Setup mock project structure in the pristine filesystem
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
@@ -53,7 +70,6 @@ agent:
 `;
     await mockFs.promises.writeFile(path.join(agentDir, 'executor.md'), executorContent);
 
-    // --- DEFINITIVE FIX: The "Golden Pattern" for Mock-Aware Sub-agent Testing ---
     const mockUnifiedIntelligenceService = {
         initialize: mock(async () => {}),
         calculateMetrics: mock(async () => ({})),
