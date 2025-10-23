@@ -28,8 +28,9 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
 
         Engine = (await import("../../../engine/server.js")).Engine;
 
-        projectRoot = path.resolve('/app/test-project-planning');
-        process.env.STIGMERGY_CORE_PATH = path.resolve('/app/.stigmergy-core');
+        // Corrected Pathing: .stigmergy-core MUST be inside the project root for the engine to find it.
+        projectRoot = '/app/test-project-planning';
+        process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
         const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
         await mockFs.ensureDir(agentDir);
 
@@ -42,7 +43,7 @@ agent:
   engine_tools: [${tools.join(', ')}]
 \`\`\`
 `;
-            await mockFs.promises.writeFile(path.join(agentDir, `@${name.toLowerCase()}.md`), content);
+            await mockFs.promises.writeFile(path.join(agentDir, `${name.toLowerCase()}.md`), content);
         };
 
         await createAgentFile('specifier', ['"stigmergy.task"']);

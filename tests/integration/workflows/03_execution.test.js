@@ -1,4 +1,4 @@
-import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
+import { test, describe, expect, mock, beforeEach, afterEach, spyOn } from 'bun:test';
 import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
@@ -46,15 +46,15 @@ agent:
   engine_tools: ["file_system.*", "stigmergy.task"]
 \`\`\`
 `;
-    await mockFs.promises.writeFile(path.join(agentDir, '@dispatcher.md'), dispatcherContent);
+    await mockFs.promises.writeFile(path.join(agentDir, 'dispatcher.md'), dispatcherContent);
     const executorContent = `
 \`\`\`yaml
 agent:
   id: "@executor"
-  engine_tools: ["file_system.*"]
+  engine_tools: ["file_system.*", "stigmergy.task"]
 \`\`\`
 `;
-    await mockFs.promises.writeFile(path.join(agentDir, '@executor.md'), executorContent);
+    await mockFs.promises.writeFile(path.join(agentDir, 'executor.md'), executorContent);
 
     // PRISTINE STATE: Create a new Engine for each test
     const stateManager = new GraphStateManager(projectRoot);
@@ -84,10 +84,14 @@ agent:
     const dispatcherMockSequence = [
         // 1. First, the dispatcher reads the plan file.
         { text: "Okay, I will read the plan.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: 'plan.md' }, toolCallId: '1' }], finishReason: 'tool-calls' },
-        // 2. After reading, it delegates the task to the executor.
-        { text: "The plan is clear. I will delegate the task to the @executor agent.", toolCalls: [{toolName: 'stigmergy.task', args: { subagent_type: '@executor', description: 'Execute task 1' }, toolCallId: '2'}], finishReason: 'tool-calls' },
-        // 3. Finally, it confirms completion.
-        { text: "Delegation complete. My job is done.", toolCalls: [], finishReason: 'stop' }
+        // 2. Per the protocol, it must gather context on ALL files in the plan before delegating.
+        { text: "Now I will read the files to gather context.", toolCalls: [{ toolName: 'file_system.readFile', args: { path: 'src/example.js' }, toolCallId: '2' }], finishReason: 'tool-calls' },
+        // 3. After reading, it delegates the task to the executor.
+        { text: "The plan is clear. I will delegate the task to the @executor agent.", toolCalls: [{toolName: 'stigmergy.task', args: { subagent_type: '@executor', description: 'Execute task 1' }, toolCallId: '3'}], finishReason: 'tool-calls' },
+        // 4. Finally, it confirms completion by updating the status.
+        { text: "Delegation complete. My job is done.", toolCalls: [{toolName: 'system.updateStatus', args: { newStatus: 'PLAN_EXECUTED' }, toolCallId: '4'}], finishReason: 'tool-calls' },
+        // 5. A final message after the last tool call.
+        { text: "All done.", toolCalls: [], finishReason: 'stop' }
     ];
 
     // This is the realistic, multi-turn conversation for the executor agent.
@@ -98,13 +102,29 @@ agent:
         { text: "File written successfully.", toolCalls: [], finishReason: 'stop' }
     ];
 
-    // The mock must account for the full conversation, including the handoff.
-    mockStreamText
-        .mockResolvedValueOnce(dispatcherMockSequence[0])
-        .mockResolvedValueOnce(dispatcherMockSequence[1])
-        .mockResolvedValueOnce(dispatcherMockSequence[2])
-        .mockResolvedValueOnce(executorMockSequence[0])
-        .mockResolvedValueOnce(executorMockSequence[1]);
+    // Use a stateful mock to handle different agent prompts
+    mockStreamText.mockImplementation(async ({ messages }) => {
+        const lastMessage = messages[messages.length - 1].content;
+        if (lastMessage.includes('Proceed with the plan')) {
+            return dispatcherMockSequence[0];
+        } else if (lastMessage.includes('plan.md')) { // Tool result for reading the plan
+            return dispatcherMockSequence[1];
+        } else if (lastMessage.includes('src/example.js')) { // Tool result for reading the file
+            return dispatcherMockSequence[2];
+        } else if (lastMessage.includes('Execute task 1')) { // Prompt for the executor
+            return executorMockSequence[0];
+        }
+        return executorMockSequence[1]; // Default final response
+    });
+
+    // Wait for the engine's real tool executor to be created
+    await engine.toolExecutorPromise;
+
+    // Spy on the *actual* tool executor and call the original implementation
+    const originalTask = engine.toolExecutor.toolbelt.stigmergy.task;
+    const stigmergyTaskSpy = spyOn(engine.toolExecutor.toolbelt.stigmergy, 'task').mockImplementation(async (...args) => {
+        return originalTask(...args);
+    });
 
     const planContent = `
 tasks:
@@ -113,8 +133,10 @@ tasks:
     description: "Execute task 1"
     files_to_create_or_modify: ["src/example.js"]
 `;
-    await mockFs.promises.writeFile(path.join(projectRoot, 'plan.md'), planContent);
-    await mockFs.promises.mkdir(path.join(projectRoot, 'src'), { recursive: true });
+    // The plan must exist inside the agent's sandbox for it to be found.
+    const dispatcherSandbox = path.join(projectRoot, '.stigmergy/sandboxes/dispatcher');
+    await mockFs.promises.mkdir(dispatcherSandbox, { recursive: true });
+    await mockFs.promises.writeFile(path.join(dispatcherSandbox, 'plan.md'), planContent);
 
     await engine.triggerAgent('@dispatcher', 'Proceed with the plan.');
 

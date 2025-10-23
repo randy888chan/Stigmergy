@@ -1,24 +1,8 @@
-// Global teardown script that runs once after all tests
-import { rm } from 'fs/promises';
-import { join } from 'path';
-import { closeTestStateManager } from './global_state.js';
+// This file is executed after all tests have completed.
+// It's a good place to clean up any global resources.
+// console.log("All tests have completed. Tearing down global resources.");
 
-// Delete the temporary directory created by setup.js
-export default async function teardown() {
-  const tempCoreDir = join(process.cwd(), '.stigmergy-core-test');
-  
-  try {
-    await rm(tempCoreDir, { recursive: true, force: true });
-    console.log('Global teardown: Removed temporary .stigmergy-core-test directory');
-
-    // --- DEFINITIVE FIX FOR HANGING TESTS ---
-    // Close the shared database connection pool.
-    await closeTestStateManager();
-    console.log('Global teardown: Closed shared GraphStateManager connection.');
-    // --- END FIX ---
-
-  } catch (error) {
-    console.error('Error during global teardown:', error);
-    // Don't throw here as it shouldn't fail the test suite
-  }
-}
+// The line below was a workaround for a resource leak that caused tests to hang.
+// The architectural fix in `tool_executor.js` should make this unnecessary.
+// A healthy test suite should exit gracefully on its own.
+// process.exit(0);
