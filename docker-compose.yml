@@ -14,6 +14,16 @@ services:
       - node_modules:/usr/src/app/node_modules
     env_file:
       - .env.development
+  team-server:
+    build:
+      context: ./packages/team-server
+    container_name: stigmergy_team_server
+    ports:
+      - "3012:3012"
+    volumes:
+      - ./packages/team-server:/usr/src/app
+      - team_server_node_modules:/usr/src/app/node_modules
 
 volumes:
   node_modules:
+  team_server_node_modules:

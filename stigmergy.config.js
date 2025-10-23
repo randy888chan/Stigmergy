@@ -95,6 +95,10 @@ const config = {
       use_cases: ["code_snippet_generation", "test_case_generation", "code_formatting"]
     },
   },
+  collaboration: {
+    mode: 'single-player', // 'single-player' or 'team'
+    server_url: 'http://localhost:3012'
+  }
 };
 
 export default config;
