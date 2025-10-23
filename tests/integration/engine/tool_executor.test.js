@@ -3,7 +3,7 @@ import path from 'path';
 import { OperationalError } from '../../../utils/errorHandler.js';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
-import { Engine } from '../../../engine/server.js';
+// import { Engine } from '../../../engine/server.js'; // Deferred import
 import { createExecutor } from '../../../engine/tool_executor.js';
 
 describe('Tool Executor Path Resolution and Security', () => {
@@ -58,6 +58,18 @@ agent:
 `;
         await mockFs.promises.writeFile(path.join(agentDir, '@guardian.md'), guardianAgentContent);
 
+        const auditorAgentContent = `
+\`\`\`yaml
+agent:
+  id: "auditor"
+  engine_tools: ["file_system.readFile"]
+\`\`\`
+`;
+        await mockFs.promises.writeFile(path.join(agentDir, 'auditor.md'), auditorAgentContent);
+
+        // DYNAMIC IMPORT: Import Engine *after* its dependencies have been mocked.
+        const { Engine } = await import('../../../engine/server.js');
+
         // PRISTINE STATE: Create a new Engine for each test
         const stateManager = new GraphStateManager(projectRoot); // Each test gets a new state manager
         const mockUnifiedIntelligenceService = {}; // An empty mock is sufficient as this test focuses on path security, not Coderag tools.
@@ -69,6 +81,9 @@ agent:
             _test_fs: mockFs,
             _test_unifiedIntelligenceService: mockUnifiedIntelligenceService, // Inject mock
         });
+
+        // Mock the triggerAgent to always return a compliant audit
+        mockEngine.triggerAgent = mock(() => Promise.resolve(JSON.stringify({ compliant: true })));
 
         // DEFINITIVE FIX: Align the test's executor creation with the new dependency-injected signature.
         // The executor now requires the engine's config and the intelligence service to be passed in its options.
@@ -122,5 +137,19 @@ agent:
         const coreFilePath = '.stigmergy-core/some-config.yml';
         const promise = execute('file_system.writeFile', { path: coreFilePath, content: 'core-setting' }, '@test-agent');
         await expect(promise).rejects.toThrow(/Only the @guardian or @metis agents may modify core system files/);
+    });
+
+    test('should block a tool call if the @auditor deems it non-compliant', async () => {
+        // Override the default mock to return a non-compliant response for this specific test
+        mockEngine.triggerAgent = mock(() => Promise.resolve(JSON.stringify({
+            compliant: false,
+            reason: "Violation of test principle."
+        })));
+
+        const filePath = 'src/should-be-blocked.js';
+        const promise = execute('file_system.writeFile', { path: filePath, content: 'blocked' }, '@test-agent');
+
+        await expect(promise).rejects.toThrow(OperationalError);
+        await expect(promise).rejects.toThrow(/Action blocked by @auditor: Violation of test principle./);
     });
 });

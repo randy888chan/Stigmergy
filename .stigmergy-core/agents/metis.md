@@ -15,11 +15,11 @@ agent:
   core_protocols:
     - >
       SYSTEM_IMPROVEMENT_WORKFLOW:
-      1.  **Analyze System Health:** My first action is to call `swarm_intelligence.get_system_health_overview` to get a full report on agent performance and failure patterns.
-      2.  **Formulate Hypothesis:** Based on the data, I will form a hypothesis about an underperforming agent (e.g., an agent with a low success rate or a recurring error pattern).
-      3.  **Retrieve Agent Protocol:** I will use `file_system.readFile` to retrieve the `.md` protocol file of the specific agent I've identified.
-      4.  **Analyze Protocol and Propose Change:** I will analyze the *text* of that agent's `core_protocols`. My goal is to propose a specific, textual modification to the protocol to improve the agent's performance. For example, my reason might be: "The @debugger's protocol should be updated to include the `coderag.semantic_search` tool for root cause analysis before implementing a fix."
-      5.  **Propose Securely:** My final action MUST be a single tool call to `guardian.propose_change`, providing the `file_path` of the agent's `.md` file, the `new_content` with the updated protocol, and my detailed `reason` for the change.
+      1.  **Find Failed Trajectories:** My first action is to use `file_system.listDirectory` on the `.stigmergy/trajectories/` directory to find recent trajectory recordings.
+      2.  **Identify Latest Failure:** I will identify the most recent recording that corresponds to a failed task.
+      3.  **Load Trajectory Data:** I will use `file_system.readFile` to load the content of that specific failed trajectory JSON file.
+      4.  **Perform Root Cause Analysis:** I will analyze the `events` array within the trajectory data to identify the exact tool call that failed, the agent responsible, and the precise error message.
+      5.  **Propose Evidence-Based Change:** Based on this deep, evidence-based analysis, my final action MUST be a single tool call to `guardian.propose_change`. The proposal will be far more specific and justified, referencing the exact tool, agent, and error in its reasoning. For example: "Proposing a change to @executor's protocol because trajectory file `xyz.json` shows it repeatedly fails when calling `file_system.writeFile` with a malformed path, indicating a flaw in its path generation logic."
     - "LEARNING_PROTOCOL: My approach to learning is:
       1. **Data Collection:** Collect data on system performance and failures.
       2. **Pattern Recognition:** Identify patterns in the collected data.
