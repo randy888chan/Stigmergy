@@ -2,11 +2,12 @@ import { mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from "../../../engine/server.js";
+import { createExecutor as realCreateExecutor } from '../../../engine/tool_executor.js';
 
 const executeMock = mock();
 const mockStreamText = mock();
 let engine;
-let Engine, realCreateExecutor;
 
 describe("Research Workflow", () => {
     beforeEach(async () => {
@@ -26,9 +27,6 @@ describe("Research Workflow", () => {
             },
         }));
 
-        Engine = (await import("../../../engine/server.js")).Engine;
-        realCreateExecutor = (await import("../../../engine/tool_executor.js")).createExecutor;
-
         const projectRoot = path.join(process.cwd(), 'test-project-research');
         process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
         const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
@@ -43,19 +41,23 @@ describe("Research Workflow", () => {
     `;
         await mockFs.promises.writeFile(path.join(agentDir, 'analyst.md'), analystAgentContent);
 
+        const mockUnifiedIntelligenceService = {};
         const testExecutorFactory = async (engine, ai, options) => {
-            const executor = await realCreateExecutor(engine, ai, options, mockFs);
+            const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
+            const executor = await realCreateExecutor(engine, ai, finalOptions, mockFs);
             executor.execute = executeMock;
             return executor;
         };
 
         const stateManager = new GraphStateManager(projectRoot);
         engine = new Engine({
-            _test_streamText: mockStreamText,
-            _test_createExecutor: testExecutorFactory,
-            projectRoot: projectRoot,
+            projectRoot,
             stateManager,
             startServer: false,
+            _test_fs: mockFs,
+            _test_streamText: mockStreamText,
+            _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+            _test_executorFactory: testExecutorFactory,
         });
     });
 

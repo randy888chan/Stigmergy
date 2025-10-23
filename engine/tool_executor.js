@@ -37,20 +37,21 @@ import { trackToolUsage } from "../services/model_monitoring.js";
 // START: Centralized Path Resolution & Security Logic
 // ====================================================================================
 
-const SAFE_DIRECTORIES = config.security?.allowedDirs || [
-  "src",
-  "public",
-  "docs",
-  "tests",
-  "scripts",
-  ".ai",
-  "services",
-  "engine",
-  "stories",
-  "system-proposals",
-];
-
 function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
+  // DEFINITIVE FIX: Move SAFE_DIRECTORIES inside the function to avoid TDZ error in tests.
+  const SAFE_DIRECTORIES = config.security?.allowedDirs || [
+    "src",
+    "public",
+    "docs",
+    "tests",
+    "scripts",
+    ".ai",
+    "services",
+    "engine",
+    "stories",
+    "system-proposals",
+  ];
+
   if (!filePath || typeof filePath !== "string") {
     throw new Error("Invalid file path provided");
   }
@@ -151,7 +152,7 @@ const getParams = (func) => {
 };
 
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
-  const { config: engineConfig } = options;
+  const { config: engineConfig, unifiedIntelligenceService } = options;
   const corePath = engine.corePath; // DEFINITIVE FIX: Get corePath from the engine instance.
 
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
@@ -168,7 +169,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     file_system: injectedFileSystem,
     shell,
     research,
-    coderag: createCoderagTools(engine),
+    coderag: createCoderagTools(engine, { unifiedIntelligenceService }),
     swarm_intelligence: swarmIntelligence,
     qa: qaTools,
     business_verification: businessVerification,
@@ -189,12 +190,18 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           throw new OperationalError("The 'subagent_type' and 'description' arguments are required for stigmergy.task");
         }
 
-        // The creator of the resource is responsible for cleaning it up.
+        // --- DEFINITIVE FIX: The Mock-Aware Executor Factory ---
+        // When a sub-agent is created, it MUST inherit all test-specific mocks
+        // and factories from the parent engine that is running the test.
         const subAgentEngine = new engine.constructor({
             projectRoot: engine.projectRoot,
             corePath: engine.corePath,
             startServer: false,
+            // Pass down all test-related properties
             _test_fs: engine._test_fs,
+            _test_streamText: engine._test_streamText,
+            _test_unifiedIntelligenceService: engine._test_unifiedIntelligenceService,
+            _test_executorFactory: engine._test_executorFactory, // Pass the factory itself
         });
 
         let result;

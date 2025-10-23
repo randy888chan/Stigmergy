@@ -15,6 +15,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import tmp from 'tmp';
+import { unifiedIntelligenceService } from '../services/unified_intelligence.js';
 
 export class Engine {
     constructor(options = {}) {
@@ -25,6 +26,10 @@ export class Engine {
         this.isExternalStateManager = !!options.stateManager;
         this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
         // --- End of Fix ---
+
+        this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
+        this._test_executorFactory = options._test_executorFactory;
+        this.unifiedIntelligenceService = this._test_unifiedIntelligenceService || options.unifiedIntelligenceService || unifiedIntelligenceService;
 
         this.shouldStartServer = options.startServer !== false; // Defaults to true
 
@@ -39,8 +44,7 @@ export class Engine {
 
         this.clients = new Set();
         this.server = null;
-        this._test_streamText = options._test_streamText;
-        this._test_createExecutor = options._test_createExecutor;
+        this._test_streamText = options._test_streamText || (() => Promise.resolve({ toolCalls: [], finishReason: 'stop', text: '' }));
         this._test_onEnrichment = options._test_onEnrichment;
         this._test_fs = options._test_fs; // For injecting memfs in tests
 
@@ -76,9 +80,9 @@ export class Engine {
     }
 
     async initializeToolExecutor() {
-        const executorFactory = this._test_createExecutor || createExecutor;
+        const executorFactory = this._test_executorFactory || createExecutor;
         const fsProvider = this._test_fs || fs;
-        this.toolExecutor = await executorFactory(this, this.ai, { config: this.config }, fsProvider);
+        this.toolExecutor = await executorFactory(this, this.ai, { config: this.config, unifiedIntelligenceService: this.unifiedIntelligenceService }, fsProvider);
     }
 
     async setActiveProject(projectPath) {
@@ -818,7 +822,7 @@ function createWebSocketEvent(ws, data, code, reason) {
 
 if (import.meta.main) {
     const stateManager = new GraphStateManager();
-    const engineOptions = { stateManager };
+    const engineOptions = { stateManager, unifiedIntelligenceService };
 
     if (process.env.USE_MOCK_AI === 'true') {
         console.log(chalk.yellow('--- [NOTICE] ---'));

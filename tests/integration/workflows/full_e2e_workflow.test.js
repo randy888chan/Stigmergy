@@ -2,8 +2,9 @@ import { spyOn, mock, test, expect, beforeEach, afterEach, describe } from "bun:
 import path from "path";
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from "../../../engine/server.js";
+import { createExecutor as realCreateExecutor } from '../../../engine/tool_executor.js';
 
-let Stigmergy;
 const mockStreamText = mock();
 
 describe("Full E2E Workflow (Isolated)", () => {
@@ -26,8 +27,6 @@ describe("Full E2E Workflow (Isolated)", () => {
                 }),
             },
         }));
-
-        Stigmergy = (await import("../../../engine/server.js")).Engine;
 
         projectRoot = path.resolve('/test-project');
         process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
@@ -54,13 +53,21 @@ agent:
         await createAgentFile('Dispatcher');
 
         const stateManager = new GraphStateManager(projectRoot);
-        engine = new Stigmergy({
-            _test_streamText: mockStreamText,
-            _test_fs: mockFs,
-            projectRoot: projectRoot,
+        const mockUnifiedIntelligenceService = {};
+        const testExecutorFactory = async (engineInstance, ai, options, fs) => {
+            const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
+            return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
+        };
+
+        engine = new Engine({
+            projectRoot,
             corePath: process.env.STIGMERGY_CORE_PATH,
             stateManager,
             startServer: false,
+            _test_fs: mockFs,
+            _test_streamText: mockStreamText,
+            _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+            _test_executorFactory: testExecutorFactory,
         });
 
         writeFileSpy = spyOn(mockFs.promises, 'writeFile');
