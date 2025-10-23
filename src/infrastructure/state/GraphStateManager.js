@@ -223,6 +223,19 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async updateStatus({ newStatus, message = '' }) {
+    if (this.connectionStatus !== 'INITIALIZED' && this.connectionStatus !== 'CONNECTION_FAILED') {
+        if (!this.memoryState) {
+          await this.getState(); // Ensure memoryState is initialized
+        }
+        this.memoryState.project_status = newStatus;
+        if (message) {
+          this.memoryState.message = message;
+        }
+        this.memoryState.last_updated = new Date().toISOString();
+        this.emit("stateChanged", this.memoryState);
+        return this.memoryState;
+    }
+
     const event = {
       type: 'STATUS_UPDATE',
       project_status: newStatus,

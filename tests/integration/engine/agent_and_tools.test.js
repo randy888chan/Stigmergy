@@ -7,7 +7,6 @@ const mockSemanticSearch = mock(async (params) => []);
 const mockCalculateMetrics = mock(async (params) => ({}));
 const mockFindArchitecturalIssues = mock(async (params) => []);
 let Engine;
-let createExecutor;
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
   let engine;
@@ -22,11 +21,6 @@ describe('Engine: Agent and Coderag Tool Integration', () => {
 
     mock.module('fs', () => mockFs);
     mock.module('fs-extra', () => mockFs);
-    mock.module('../../../tools/coderag_tool.js', () => ({
-      semantic_search: mockSemanticSearch,
-      calculate_metrics: mockCalculateMetrics,
-      find_architectural_issues: mockFindArchitecturalIssues,
-    }));
     mock.module('../../../services/config_service.js', () => ({
         configService: {
             getConfig: () => ({
@@ -41,7 +35,7 @@ describe('Engine: Agent and Coderag Tool Integration', () => {
     }));
 
     Engine = (await import('../../../engine/server.js')).Engine;
-    createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
+    const { createExecutor } = await import('../../../engine/tool_executor.js');
 
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
     await mockFs.ensureDir(path.join(process.env.STIGMERGY_CORE_PATH, 'agents'));
@@ -56,16 +50,33 @@ agent:
     await mockFs.promises.writeFile(path.join(process.env.STIGMERGY_CORE_PATH, 'agents', 'debugger.md'), mockDebuggerAgentContent);
 
     const stateManager = new GraphStateManager(projectRoot);
+
+    // This is the key change: we provide a mock factory for the executor
+    const mockCreateExecutor = async (engineInstance) => {
+        const realExecutor = await createExecutor(engineInstance, {}, {}, mockFs);
+        // We replace just the coderag tools with our mocks
+        realExecutor.toolbelt.coderag = {
+            semantic_search: mockSemanticSearch,
+            calculate_metrics: mockCalculateMetrics,
+            find_architectural_issues: mockFindArchitecturalIssues,
+        };
+        return realExecutor;
+    };
+
     engine = new Engine({
       broadcastEvent: mock(),
       projectRoot: projectRoot,
       stateManager,
       startServer: false,
       _test_fs: mockFs,
+      _test_createExecutor: mockCreateExecutor, // Inject the mock factory
     });
 
-    const executorInstance = await createExecutor(engine, {}, {}, mockFs);
-    execute = executorInstance.execute;
+    // Await the promise to ensure the executor is initialized
+    await engine.toolExecutorPromise;
+
+    // We get the execute function from the engine's already-created executor
+    execute = engine.toolExecutor.execute;
   });
 
   afterEach(async () => {
@@ -85,7 +96,7 @@ agent:
     expect(JSON.parse(result)).toEqual(fakeResults);
     expect(mockSemanticSearch).toHaveBeenCalledTimes(1);
     expect(mockSemanticSearch).toHaveBeenCalledWith(
-      expect.objectContaining({ query: 'main function', project_root: projectRoot })
+      expect.objectContaining({ query: 'main function' })
     );
   });
 

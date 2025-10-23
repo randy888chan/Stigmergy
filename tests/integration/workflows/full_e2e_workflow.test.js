@@ -38,7 +38,7 @@ describe("Full E2E Workflow (Isolated)", () => {
             const content = `
 \`\`\`yaml
 agent:
-  id: "${name.toLowerCase()}"
+  id: "@${name.toLowerCase()}"
   name: ${name}
   core_protocols:
     - role: system
@@ -78,28 +78,30 @@ agent:
         const filePath = "hello.txt";
         const fileContent = "Hello, world!";
 
-        spyOn(engine.stateManager, 'updateStatus').mockResolvedValue({});
-
-        // 1. Mock AI for Specifier -> returns plan
-        mockStreamText.mockResolvedValueOnce({ text: 'Here is the plan.', finishReason: 'stop' });
-        await engine.triggerAgent('@specifier', "Create a plan.");
-
-        // 2. Mock AI for QA -> returns approval
-        mockStreamText.mockResolvedValueOnce({ text: 'LGTM.', finishReason: 'stop' });
-        await engine.triggerAgent('@qa', "Review the plan.");
-
-        // 3. Mock AI for Dispatcher -> writes file and updates status
+        // The mock sequence must now include the final status update.
+        const dispatcherToolCalls = [
+            { toolCallId: '1', toolName: 'file_system.writeFile', args: { path: filePath, content: fileContent } },
+            { toolCallId: '2', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }
+        ];
         mockStreamText
-            .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '3', toolName: 'file_system.writeFile', args: { path: filePath, content: fileContent } }], finishReason: 'tool-calls' })
-            .mockResolvedValueOnce({ toolCalls: [{ toolCallId: '4', toolName: 'system.updateStatus', args: { newStatus: 'EXECUTION_COMPLETE' } }], finishReason: 'tool-calls' })
-            .mockResolvedValueOnce({ text: 'Done.', finishReason: 'stop' });
+            .mockResolvedValueOnce({ text: 'Plan created.', finishReason: 'stop' }) // Specifier
+            .mockResolvedValueOnce({ text: 'Plan approved.', finishReason: 'stop' }) // QA
+            .mockResolvedValueOnce({ toolCalls: dispatcherToolCalls, finishReason: 'tool-calls' }) // Dispatcher
+            .mockResolvedValueOnce({ text: 'All tasks are complete.', finishReason: 'stop' }); // Final response
 
+        // Correct agent IDs must be used
+        await engine.triggerAgent('@specifier', "Create a plan.");
+        await engine.triggerAgent('@qa', "Review the plan.");
         await engine.triggerAgent('@dispatcher', 'The plan is approved. Please write the file.');
 
+        // The path is now resolved inside the executor, so we check the sandboxed path.
         const expectedPath = path.join(projectRoot, '.stigmergy', 'sandboxes', 'dispatcher', filePath);
-        expect(writeFileSpy).toHaveBeenCalledWith(expectedPath, fileContent);
 
-        const statusUpdateCall = engine.stateManager.updateStatus.mock.calls.find(call => call[0].newStatus === 'EXECUTION_COMPLETE');
-        expect(statusUpdateCall).toBeDefined();
+        // More robust check: verify the file content directly.
+        const actualContent = await mockFs.promises.readFile(expectedPath, 'utf-8');
+        expect(actualContent).toBe(fileContent);
+
+        const finalState = await engine.stateManager.getState();
+        expect(finalState.project_status).toBe('EXECUTION_COMPLETE');
     });
 });

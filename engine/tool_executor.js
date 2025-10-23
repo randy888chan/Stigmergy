@@ -9,7 +9,7 @@ import config from "../stigmergy.config.js";
 import * as fileSystem from "../tools/file_system.js";
 import * as shell from "../tools/shell.js";
 import * as research from "../tools/research.js";
-import * as coderag from "../tools/coderag_tool.js";
+// import * as coderag from "../tools/coderag_tool.js"; // Defer import
 import * as swarmIntelligence from "../tools/swarm_intelligence_tools.js";
 import * as qaTools from "../tools/qa_tools.js";
 import * as businessVerification from "../tools/business_verification.js";
@@ -151,11 +151,12 @@ const getParams = (func) => {
 };
 
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
-  const { workingDirectory, config: engineConfig } = options;
+  const { config: engineConfig } = options;
   const corePath = engine.corePath; // DEFINITIVE FIX: Get corePath from the engine instance.
 
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
   const { default: createSystemTools } = await import("../tools/system_tools.js");
+  const { default: createCoderagTools } = await import("../tools/coderag_tool.js");
   const { default: trajectoryRecorder } = await import("../services/trajectory_recorder.js");
 
   const injectedFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
@@ -167,7 +168,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     file_system: injectedFileSystem,
     shell,
     research,
-    coderag: coderag,
+    coderag: createCoderagTools(engine),
     swarm_intelligence: swarmIntelligence,
     qa: qaTools,
     business_verification: businessVerification,
@@ -187,7 +188,22 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
         if (!subagent_type || !description) {
           throw new OperationalError("The 'subagent_type' and 'description' arguments are required for stigmergy.task");
         }
-        const result = await engine.triggerAgent(subagent_type, description);
+
+        // The creator of the resource is responsible for cleaning it up.
+        const subAgentEngine = new engine.constructor({
+            projectRoot: engine.projectRoot,
+            corePath: engine.corePath,
+            startServer: false,
+            _test_fs: engine._test_fs,
+        });
+
+        let result;
+        try {
+            result = await subAgentEngine.triggerAgent(subagent_type, description);
+        } finally {
+            await subAgentEngine.stop();
+        }
+
         return result || `Task successfully delegated to ${subagent_type}, which returned no final message.`;
       },
     },
@@ -197,7 +213,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       // ... (implementation unchanged)
   };
 
-  const execute = async (toolName, args, agentId) => {
+  const execute = async (toolName, args, agentId, workingDirectory) => {
     engine.broadcastEvent('tool_start', { tool: toolName, args });
     const startTime = Date.now();
     
@@ -252,10 +268,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       const toolFunction = toolbelt[namespace][funcName];
 
       let result;
-      if (namespace === 'coderag') {
-          const contextualArgs = { ...safeArgs, project_root: engine.projectRoot };
-          result = await toolFunction(contextualArgs);
-      } else if (namespace === 'git_tool' && funcName === 'commit') {
+      if (namespace === 'git_tool' && funcName === 'commit') {
           const contextualArgs = { ...safeArgs, workingDirectory: workingDirectory };
           result = await toolFunction(contextualArgs);
       } else if (namespace === 'shell') {
@@ -300,5 +313,6 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     }
   };
 
-  return { execute, getTools };
+  // Expose toolbelt for testing purposes
+  return { execute, getTools, toolbelt };
 }

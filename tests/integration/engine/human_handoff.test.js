@@ -37,9 +37,9 @@ describe('Human Handoff Workflow', () => {
     const mockDispatcherAgent = `
 \`\`\`yaml
 agent:
-  id: "dispatcher"
+  id: "@dispatcher"
   engine_tools:
-    - "system.request_human_approval"
+    - "system.*"
 \`\`\`
 `;
     await mockFs.promises.writeFile(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
@@ -78,7 +78,7 @@ agent:
         .mockResolvedValueOnce({ text: 'Handoff complete.', finishReason: 'stop' });
 
     await engine.triggerAgent(
-      'dispatcher',
+      '@dispatcher',
       'Please request approval for the plan.'
     );
 

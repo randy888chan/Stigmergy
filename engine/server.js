@@ -44,6 +44,10 @@ export class Engine {
         this._test_onEnrichment = options._test_onEnrichment;
         this._test_fs = options._test_fs; // For injecting memfs in tests
 
+        if (options.broadcastEvent) {
+            this.broadcastEvent = options.broadcastEvent;
+        }
+
         this.config = configService.getConfig();
 
         if (!this._test_streamText) {
@@ -58,6 +62,9 @@ export class Engine {
         this.setupRoutes();
         this.setupStateListener();
 
+        // Initialize tool executor
+        this.toolExecutorPromise = this.initializeToolExecutor();
+
         // Add this block:
         this.healthCheckInterval = setInterval(async () => {
             if (this.clients.size > 0) {
@@ -66,6 +73,12 @@ export class Engine {
                 this.broadcastEvent('system_health_update', healthData);
             }
         }, 30000); // Broadcast every 30 seconds
+    }
+
+    async initializeToolExecutor() {
+        const executorFactory = this._test_createExecutor || createExecutor;
+        const fsProvider = this._test_fs || fs;
+        this.toolExecutor = await executorFactory(this, this.ai, { config: this.config }, fsProvider);
     }
 
     async setActiveProject(projectPath) {
@@ -176,6 +189,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
     }
 
     async triggerAgent(agentId, prompt) {
+        await this.toolExecutorPromise; // Wait for the executor to be initialized
         console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
         const agentName = agentId.replace('@', '');
         let lastTextResponse = null;
@@ -185,9 +199,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
             await fs.ensureDir(workingDirectory);
             console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
-            const executorFactory = this._test_createExecutor || createExecutor;
-            const fsProvider = this._test_fs || fs;
-            const executeTool = await executorFactory(this, this.ai, { workingDirectory, config: this.config }, fsProvider);
+            const executeTool = this.toolExecutor;
 
             const agentPath = path.join(this.corePath, 'agents', `${agentName}.md`);
             const agentFileContent = await fs.readFile(agentPath, 'utf-8');
@@ -256,7 +268,8 @@ Based on all the information above, please create the initial \`plan.md\` file t
                     const toolResults = [];
                     for (const toolCall of toolCalls) {
                         console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args: ${JSON.stringify(toolCall.args, null, 2)}`));
-                        const result = await executeTool.execute(toolCall.toolName, toolCall.args, agentName);
+                        // Pass the agent's specific working directory to the executor
+                        const result = await executeTool.execute(toolCall.toolName, toolCall.args, agentName, workingDirectory);
                         
                         if (result && result.project_status) {
                             this.broadcastEvent('state_update', result);
