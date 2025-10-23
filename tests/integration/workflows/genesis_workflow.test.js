@@ -2,6 +2,8 @@ import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from '../../../engine/server.js';
+import { createExecutor as realCreateExecutor } from '../../../engine/tool_executor.js';
 
 // High-fidelity mocks for git operations
 const mockCommit = mock(async () => ({ commit: 'mock-commit-hash', summary: { changes: 1 } })); // Accept any args
@@ -9,7 +11,6 @@ const mockInit = mock(async () => {});
 const mockAdd = mock(async () => {});
 
 const mockStreamText = mock();
-let Engine;
 
 describe('Genesis Agent Workflow', () => {
     let engine;
@@ -45,8 +46,6 @@ describe('Genesis Agent Workflow', () => {
             },
         }));
 
-        Engine = (await import('../../../engine/server.js')).Engine;
-
         projectRoot = path.resolve('/test-genesis-project');
         process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
         const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
@@ -62,6 +61,12 @@ agent:
         await mockFs.promises.writeFile(path.join(agentDir, 'genesis.md'), genesisAgentContent);
 
         const stateManager = new GraphStateManager(projectRoot);
+        const mockUnifiedIntelligenceService = {};
+        const testExecutorFactory = async (engineInstance, ai, options, fs) => {
+            const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
+            return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
+        };
+
         engine = new Engine({
             projectRoot,
             corePath: process.env.STIGMERGY_CORE_PATH,
@@ -69,6 +74,8 @@ agent:
             startServer: false,
             _test_streamText: mockStreamText,
             _test_fs: mockFs,
+            _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+            _test_executorFactory: testExecutorFactory,
         });
 
         await engine.stateManager.updateStatus({ newStatus: 'AWAITING_USER_INPUT' });

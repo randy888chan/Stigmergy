@@ -3,11 +3,12 @@ import path from 'path';
 import { OperationalError } from '../../../utils/errorHandler.js';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from '../../../engine/server.js';
+import { createExecutor } from '../../../engine/tool_executor.js';
 
 describe('Tool Executor Path Resolution and Security', () => {
     let mockEngine;
     let execute;
-    let Engine, createExecutor;
     const projectRoot = '/test-project-security';
 
     beforeEach(async () => {
@@ -31,10 +32,6 @@ describe('Tool Executor Path Resolution and Security', () => {
         }));
         mock.module('../../../services/trajectory_recorder.js', () => ({ default: { startRecording: mock(), logEvent: mock(), finalizeRecording: mock() } }));
         mock.module('../../../services/model_monitoring.js', () => ({ trackToolUsage: mock(), appendLog: mock() }));
-
-        // Dynamically import AFTER mocks are set up
-        Engine = (await import('../../../engine/server.js')).Engine;
-        createExecutor = (await import('../../../engine/tool_executor.js')).createExecutor;
 
         // Setup mock project structure in the pristine filesystem
         process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
@@ -63,14 +60,24 @@ agent:
 
         // PRISTINE STATE: Create a new Engine for each test
         const stateManager = new GraphStateManager(projectRoot); // Each test gets a new state manager
+        const mockUnifiedIntelligenceService = {}; // An empty mock is sufficient as this test focuses on path security, not Coderag tools.
+
         mockEngine = new Engine({
             projectRoot,
             stateManager,
             startServer: false,
             _test_fs: mockFs,
+            _test_unifiedIntelligenceService: mockUnifiedIntelligenceService, // Inject mock
         });
 
-        const executorInstance = await createExecutor(mockEngine, {}, {}, mockFs);
+        // DEFINITIVE FIX: Align the test's executor creation with the new dependency-injected signature.
+        // The executor now requires the engine's config and the intelligence service to be passed in its options.
+        const executorInstance = await createExecutor(
+            mockEngine,
+            {}, // mock ai
+            { config: mockEngine.config, unifiedIntelligenceService: mockEngine.unifiedIntelligenceService },
+            mockFs
+        );
         execute = executorInstance.execute;
     });
 

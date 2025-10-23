@@ -2,11 +2,12 @@ import { test, describe, expect, mock, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from '../../../engine/server.js';
+import { createExecutor as realCreateExecutor } from '../../../engine/tool_executor.js';
 
 const mockSemanticSearch = mock(async (params) => []);
 const mockCalculateMetrics = mock(async (params) => ({}));
 const mockFindArchitecturalIssues = mock(async (params) => []);
-let Engine;
 
 describe('Engine: Agent and Coderag Tool Integration', () => {
   let engine;
@@ -34,9 +35,6 @@ describe('Engine: Agent and Coderag Tool Integration', () => {
         trackToolUsage: mock(async () => {})
     }));
 
-    Engine = (await import('../../../engine/server.js')).Engine;
-    const { createExecutor } = await import('../../../engine/tool_executor.js');
-
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
     await mockFs.ensureDir(path.join(process.env.STIGMERGY_CORE_PATH, 'agents'));
 
@@ -51,16 +49,20 @@ agent:
 
     const stateManager = new GraphStateManager(projectRoot);
 
-    // This is the key change: we provide a mock factory for the executor
-    const mockCreateExecutor = async (engineInstance) => {
-        const realExecutor = await createExecutor(engineInstance, {}, {}, mockFs);
-        // We replace just the coderag tools with our mocks
-        realExecutor.toolbelt.coderag = {
-            semantic_search: mockSemanticSearch,
-            calculate_metrics: mockCalculateMetrics,
-            find_architectural_issues: mockFindArchitecturalIssues,
-        };
-        return realExecutor;
+    // --- DEFINITIVE FIX: The "Golden Pattern" for Agent & Tool Integration ---
+
+    // 1. Mock the specific service methods this test focuses on.
+    const mockUnifiedIntelligenceService = {
+        semanticSearch: mockSemanticSearch,
+        calculateMetrics: mockCalculateMetrics,
+        findArchitecturalIssues: mockFindArchitecturalIssues,
+    };
+
+    // 2. Create the factory that injects the mocked service.
+    const testExecutorFactory = async (engineInstance, ai, options, fs) => {
+        const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
+        const executor = await realCreateExecutor(engineInstance, ai, finalOptions, fs);
+        return executor;
     };
 
     engine = new Engine({
@@ -69,13 +71,14 @@ agent:
       stateManager,
       startServer: false,
       _test_fs: mockFs,
-      _test_createExecutor: mockCreateExecutor, // Inject the mock factory
+      _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+      _test_executorFactory: testExecutorFactory,
     });
 
-    // Await the promise to ensure the executor is initialized
+    // 3. Await the promise to ensure the executor is initialized.
     await engine.toolExecutorPromise;
 
-    // We get the execute function from the engine's already-created executor
+    // 4. Get the `execute` function from the engine's fully-formed executor.
     execute = engine.toolExecutor.execute;
   });
 
@@ -91,7 +94,7 @@ agent:
     const fakeResults = [{ file: 'src/app.js', snippet: 'function main() {}' }];
     mockSemanticSearch.mockResolvedValue(fakeResults);
 
-    const result = await execute('coderag.semantic_search', { query: 'main function' }, 'debugger');
+    const result = await execute('coderag.semantic_search', { query: 'main function', project_root: projectRoot }, 'debugger');
 
     expect(JSON.parse(result)).toEqual(fakeResults);
     expect(mockSemanticSearch).toHaveBeenCalledTimes(1);

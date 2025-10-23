@@ -1,12 +1,10 @@
-import { unifiedIntelligenceService } from '../services/unified_intelligence.js';
-
 /**
  * Creates a unified tool for interacting with the CodeRAG intelligence service.
  * This tool provides a single, powerful interface for agents to perform
  * advanced code analysis, search, and metric calculation.
  * The project_root context is passed in by the tool executor.
  */
-export default (engine) => ({
+export default (engine, { unifiedIntelligenceService }) => ({
   /**
    * Performs a comprehensive scan of the entire codebase to build or update the intelligence index.
    * @param {object} args An object containing the project_root.
@@ -32,7 +30,7 @@ export default (engine) => ({
   calculate_metrics: async () => {
     try {
       const metrics = await unifiedIntelligenceService.calculateMetrics();
-      return `Metrics calculation complete: ${JSON.stringify(metrics)}`;
+      return metrics;
     } catch (error) {
       console.error("Error calculating metrics:", error);
       return `Error calculating metrics: ${error.message}`;

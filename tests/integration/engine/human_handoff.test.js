@@ -2,9 +2,9 @@ import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import path from 'path';
 import mockFs, { vol } from '../../mocks/fs.js';
 import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
+import { Engine } from '../../../engine/server.js';
 
 const mockStreamText = mock();
-let Engine;
 
 describe('Human Handoff Workflow', () => {
   let engine;
@@ -27,8 +27,6 @@ describe('Human Handoff Workflow', () => {
         },
     }));
 
-    Engine = (await import('../../../engine/server.js')).Engine;
-
     projectRoot = path.resolve('/test-handoff-project');
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
@@ -46,14 +44,26 @@ agent:
 
     broadcastSpy = mock(() => {});
     const stateManager = new GraphStateManager(projectRoot);
+
+    // DEFINITIVE FIX: Align with the new dependency-injected architecture
+    const mockUnifiedIntelligenceService = {};
+    const { createExecutor: realCreateExecutor } = await import('../../../engine/tool_executor.js');
+
+    const testExecutorFactory = async (engineInstance, ai, options, fs) => {
+        const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
+        return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
+    };
+
     engine = new Engine({
-        _test_streamText: mockStreamText,
-        _test_fs: mockFs,
-        broadcastEvent: broadcastSpy,
         projectRoot,
         corePath: process.env.STIGMERGY_CORE_PATH,
         stateManager,
         startServer: false,
+        broadcastEvent: broadcastSpy,
+        _test_fs: mockFs,
+        _test_streamText: mockStreamText,
+        _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+        _test_executorFactory: testExecutorFactory,
     });
   });
 
