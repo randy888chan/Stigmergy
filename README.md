@@ -6,7 +6,32 @@ It empowers a swarm of specialized AI agents to autonomously analyze, plan, and 
 
 ---
 
-## Core Philosophy: A Local-First, CLI-Driven Workflow
+## User Installation
+
+For users who want to use Stigmergy without setting up a development environment, follow these simple steps.
+
+### Step 1: Install the CLI
+
+Open your terminal and run the following command to install the Stigmergy command-line tool globally:
+
+```bash
+npm install -g stigmergy-cli
+```
+
+### Step 2: Run the Core Engine
+
+Run the following command to download and start the pre-built Stigmergy Core Engine Docker container. This will also expose the dashboard on `http://localhost:3010`.
+
+```bash
+docker run -d -p 3010:3010 -v /var/run/docker.sock:/var/run/docker.sock --name stigmergy-engine stigmergyai/stigmergy-core:latest
+```
+*(Note: The Docker image path `stigmergyai/stigmergy-core:latest` is a placeholder for the official image.)*
+
+You are now ready to run your first mission! Navigate to any local project directory and use the `stigmergy run` command.
+
+---
+
+## Getting Started: The Docker-First Workflow (For Developers)
 
 Stigmergy is designed to be a tool you run on your own machine. It is not a cloud service. This ensures maximum privacy, security, and control over your codebase.
 
