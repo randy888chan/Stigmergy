@@ -1,2 +1,0 @@
-$ bun run build:dashboard && bun --hot run engine/server.js
-$ tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css && bun build ./dashboard/src/index.js --outdir ./dashboard/public

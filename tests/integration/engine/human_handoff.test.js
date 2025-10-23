@@ -85,16 +85,37 @@ agent:
     // This multi-turn mock is crucial for the test to pass.
     mockStreamText
         .mockResolvedValueOnce({ text: 'I need to ask for approval.', toolCalls: [toolCall], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ text: 'Handoff complete.', finishReason: 'stop' });
+        .mockResolvedValueOnce({ text: 'Approval received: approved. Handoff complete.', finishReason: 'stop' });
 
-    await engine.triggerAgent(
+    // Don't await the triggerAgent call directly, as it will now pause.
+    const agentPromise = engine.triggerAgent(
       '@dispatcher',
       'Please request approval for the plan.'
     );
 
-    expect(broadcastSpy).toHaveBeenCalledWith(
-      'human_approval_request',
-      { message: 'Approve plan?', data: { content: 'plan details' } }
-    );
+    // Give the agent a moment to run and hit the pause point.
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // 1. Verify that the broadcast was called, indicating the agent is waiting.
+    const approvalRequestCall = broadcastSpy.mock.calls.find(call => call[0] === 'human_approval_request');
+    expect(approvalRequestCall).toBeDefined(); // Ensure the event was broadcast.
+    const payload = approvalRequestCall[1];
+    expect(payload.message).toBe('Approve plan?');
+    expect(payload.data).toEqual({ content: 'plan details' });
+
+    // 2. Simulate the user's response.
+    const requestId = payload.requestId;
+    expect(requestId).toBeDefined();
+
+    const resolver = engine.pendingApprovals.get(requestId);
+    expect(resolver).toBeDefined();
+    resolver('approved'); // Simulate the user clicking "Approve"
+
+    // 3. Now, await the agent's completion.
+    await agentPromise;
+
+    // 4. Verify the agent received the response and finished.
+    // The second mockResolvedValueOnce ensures the agent gets the "approved" message.
+    expect(mockStreamText.mock.calls.length).toBe(2);
   });
 });

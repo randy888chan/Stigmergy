@@ -4,6 +4,9 @@ import { cn } from "../lib/utils.js";
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
 import { Separator } from "../components/ui/separator.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog.jsx";
+import { Button } from "../components/ui/button.jsx";
+import { ScrollArea } from "../components/ui/scroll-area.jsx";
 import CurrentObjective from '../components/CurrentObjective.js';
 
 // Lazy-load components
@@ -42,6 +45,7 @@ const Dashboard = () => {
   const [thoughtStream, setThoughtStream] = useState([]);
   const [currentObjective, setCurrentObjective] = useState(null);
   const [healthData, setHealthData] = useState(null);
+  const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
   const fetchFiles = async () => {
     setSystemState(prevState => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -95,11 +99,26 @@ const Dashboard = () => {
         case 'thought_stream':
           setThoughtStream(prevStream => [payload, ...prevStream].slice(0, 50));
           break;
+        case 'human_approval_request':
+          setHumanApprovalRequest(payload);
+          break;
         default:
           break;
       }
     }
   }, [data]);
+
+  const handleApprovalResponse = (decision) => {
+    if (!humanApprovalRequest) return;
+    sendMessage({
+      type: 'human_approval_response',
+      payload: {
+        requestId: humanApprovalRequest.requestId,
+        decision,
+      }
+    });
+    setHumanApprovalRequest(null); // Close the dialog after responding
+  };
 
   const handleProjectSelect = (selectedPath) => {
     if (selectedPath) {
@@ -138,6 +157,39 @@ const Dashboard = () => {
 
   return (
     <div className="dark h-screen w-screen bg-background text-foreground">
+        {/* Human Handoff Modal */}
+        <Suspense fallback={<></>}>
+            <Dialog open={!!humanApprovalRequest} onOpenChange={(isOpen) => !isOpen && setHumanApprovalRequest(null)}>
+                <DialogContent className="sm:max-w-[600px]">
+                    <DialogHeader>
+                        <DialogTitle>Human Approval Required</DialogTitle>
+                        <DialogDescription>
+                            An agent has paused its execution and requires your input to proceed.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <p className="text-sm font-medium">{humanApprovalRequest?.message}</p>
+                        {humanApprovalRequest?.data && (
+                             <ScrollArea className="h-72 w-full rounded-md border p-4">
+                                <pre className="text-xs whitespace-pre-wrap">
+                                    {JSON.stringify(humanApprovalRequest.data, null, 2)}
+                                </pre>
+                            </ScrollArea>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button variant="destructive" onClick={() => handleApprovalResponse('rejected')}>
+                            Reject
+                        </Button>
+                        <Button variant="default" onClick={() => handleApprovalResponse('approved')}>
+                            Approve
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </Suspense>
+
+
       <ResizablePanelGroup direction="vertical" className="h-full w-full">
         <ResizablePanel defaultSize={10} minSize={10} maxSize={10}>
           <div className="flex items-center justify-between p-4 border-b h-full">

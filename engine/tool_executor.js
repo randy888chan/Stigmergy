@@ -4,6 +4,7 @@ import path from "path";
 import yaml from "js-yaml";
 import { sanitizeToolCall } from "../utils/sanitization.js";
 import config from "../stigmergy.config.js";
+import { cachedQuery } from "../utils/queryCache.js";
 
 // Import all tool namespaces
 import * as fileSystem from "../tools/file_system.js";
@@ -151,6 +152,8 @@ const getParams = (func) => {
     return match[1].split(',').map(p => p.split('=')[0].trim()).filter(Boolean);
 };
 
+const agentConfigCache = new Map();
+
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
   const { config: engineConfig, unifiedIntelligenceService } = options;
   const corePath = engine.corePath; // DEFINITIVE FIX: Get corePath from the engine instance.
@@ -161,15 +164,25 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
   const { default: trajectoryRecorder } = await import("../services/trajectory_recorder.js");
 
   const injectedFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
-    acc[key] = (args) => fileSystem[key](args, fsProvider);
+    if (key === 'readFile') {
+        // Cache readFile calls to prevent redundant reads within a single agent execution loop
+        acc[key] = cachedQuery('readFile', (args) => fileSystem[key](args, fsProvider));
+    } else {
+        acc[key] = (args) => fileSystem[key](args, fsProvider);
+    }
     return acc;
   }, {});
+
+  const coderagTools = createCoderagTools(engine, { unifiedIntelligenceService });
+  // Cache semantic_search calls to prevent redundant searches within a single agent execution loop
+  coderagTools.semantic_search = cachedQuery('semantic_search', coderagTools.semantic_search);
+
 
   const toolbelt = {
     file_system: injectedFileSystem,
     shell,
     research,
-    coderag: createCoderagTools(engine, { unifiedIntelligenceService }),
+    coderag: coderagTools,
     swarm_intelligence: swarmIntelligence,
     qa: qaTools,
     business_verification: businessVerification,
@@ -254,11 +267,18 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
         }
       }
 
-      const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
-      const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
-      const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
-      if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
-      const agentConfig = yaml.load(yamlMatch[1]).agent;
+      let agentConfig;
+      if (agentConfigCache.has(agentId)) {
+        agentConfig = agentConfigCache.get(agentId);
+      } else {
+        const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
+        const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
+        const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
+        if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
+        const parsedConfig = yaml.load(yamlMatch[1]).agent;
+        agentConfigCache.set(agentId, parsedConfig);
+        agentConfig = parsedConfig;
+      }
 
       const [namespace, funcName] = toolName.split(".");
       if (!toolbelt[namespace] || typeof toolbelt[namespace][funcName] !== 'function') {
