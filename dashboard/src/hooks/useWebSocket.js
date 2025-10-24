@@ -7,16 +7,25 @@ const useWebSocket = (url) => {
   const ws = useRef(null);
 
   useEffect(() => {
+    // Retrieve the token from localStorage
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      setError('No auth token found');
+      setLoading(false);
+      return;
+    }
+
     // Dynamically construct the WebSocket URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    const wsUrl = url || `${protocol}//${host}/ws`;
+    // Append the token as a query parameter
+    const wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
 
     // Create WebSocket connection
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
-      console.log(`WebSocket connection opened to ${url}`);
+      console.log(`WebSocket connection opened`);
       setLoading(false);
     };
 
@@ -48,7 +57,7 @@ const useWebSocket = (url) => {
         ws.current.close();
       }
     };
-  }, []);
+  }, [url]);
 
   const sendMessage = (message) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
