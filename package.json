@@ -43,6 +43,7 @@
     "@ai-sdk/react": "^2.0.70",
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
+    "@dopplerhq/node-sdk": "^1.2.0",
     "@hono/node-server": "^1.19.5",
     "@hono/node-ws": "^1.2.0",
     "@langchain/langgraph": "^0.0.11",

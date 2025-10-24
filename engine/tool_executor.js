@@ -197,10 +197,16 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     deepwiki: { query: query_deepwiki },
     git_tool: git_tool,
     stigmergy: {
-      task: async ({ subagent_type, description }) => {
+      task: async ({ subagent_type, description }, sourceAgentId) => {
         if (!subagent_type || !description) {
           throw new OperationalError("The 'subagent_type' and 'description' arguments are required for stigmergy.task");
         }
+
+        // Broadcast the delegation event for the frontend visualizer
+        engine.broadcastEvent('agent_delegation', {
+          sourceAgentId: sourceAgentId,
+          targetAgentId: subagent_type,
+        });
 
         // --- DEFINITIVE FIX: The Mock-Aware Executor Factory ---
         // When a sub-agent is created, it MUST inherit all test-specific mocks
@@ -386,6 +392,8 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       } else if (namespace === 'shell') {
           const contextualArgs = { ...safeArgs, cwd: workingDirectory };
           result = await toolFunction(contextualArgs);
+      } else if (namespace === 'stigmergy' && funcName === 'task') {
+          result = await toolFunction(safeArgs, agentId);
       } else {
           result = await toolFunction(safeArgs);
       }

@@ -23,6 +23,7 @@ const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 const ThoughtStream = lazy(() => import('../components/ThoughtStream.js'));
 const ExecutiveSummary = lazy(() => import('../components/ExecutiveSummary.js'));
+const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
 
 
 const INITIAL_STATE = {
@@ -209,9 +210,26 @@ const Dashboard = () => {
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={25} minSize={20}>
-            <Suspense fallback={<div className="p-4">Loading Executive Summary...</div>}>
-                <ExecutiveSummary />
-            </Suspense>
+          <ResizablePanelGroup direction="horizontal">
+            <ResizablePanel>
+              <Suspense fallback={<div className="p-4">Loading Executive Summary...</div>}>
+                  <ExecutiveSummary />
+              </Suspense>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+            <ResizablePanel>
+              <Suspense fallback={<div className="p-4">Loading Swarm Visualizer...</div>}>
+                <Card className="h-full w-full rounded-none border-0 border-l">
+                  <CardHeader>
+                    <CardTitle>Live Swarm Delegation</CardTitle>
+                  </CardHeader>
+                  <CardContent className="h-[calc(100%-4rem)] w-full p-0">
+                    <SwarmVisualizer />
+                  </CardContent>
+                </Card>
+              </Suspense>
+            </ResizablePanel>
+          </ResizablePanelGroup>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={65}>
