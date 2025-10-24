@@ -221,4 +221,32 @@ analyze_task_execution_strategy: async ({ task_description }) => {
         await session.close();
     }
   },
+
+  update_proposal_status: async ({ proposal_id, new_status, reason }) => {
+    if (!proposal_id || !new_status) {
+      throw new Error("The 'proposal_id' and 'new_status' arguments are required for system.update_proposal_status.");
+    }
+
+    const proposalsDir = path.join(engine.corePath, 'proposals');
+    const proposalPath = path.join(proposalsDir, `${proposal_id}.json`);
+
+    try {
+      const proposal = await fs.readJson(proposalPath);
+      proposal.status = new_status;
+      if (reason) {
+        proposal.status_reason = reason;
+      }
+      await fs.writeJson(proposalPath, proposal, { spaces: 2 });
+
+      engine.broadcastEvent('proposal_updated', proposal);
+      const message = `Successfully updated proposal ${proposal_id} to status ${new_status}.`;
+      console.log(`[System Tool] ${message}`);
+      return message;
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return `EXECUTION FAILED: Proposal with ID ${proposal_id} not found.`;
+      }
+      return `EXECUTION FAILED: Failed to update proposal: ${error.message}`;
+    }
+  },
 });

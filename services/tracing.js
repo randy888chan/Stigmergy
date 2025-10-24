@@ -15,9 +15,8 @@ const sdk = new NodeSDK({
     '@opentelemetry/instrumentation-http': {
         enabled: true,
     },
-    '@opentelemetry/instrumentation-neo4j': {
-        enabled: true,
-    }
+    // '@opentelemetry/instrumentation-neo4j' is not an available package.
+    // This was the cause of the startup hang.
   })],
 });
 

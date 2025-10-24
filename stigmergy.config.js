@@ -102,6 +102,12 @@ const config = {
     server_url: 'http://localhost:3012'
   },
   max_session_cost: 2.00, // Default max cost in USD for a single mission
+
+  // (Optional) GitHub configuration for issue creation
+  github: {
+    owner: 'your-github-username',
+    repo: 'your-repo-name',
+  },
 };
 
 export default config;
