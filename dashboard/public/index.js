@@ -24201,6 +24201,16 @@ var init_terminal = __esm(() => {
   ]);
 });
 
+// node_modules/lucide-react/dist/esm/icons/x.js
+var X;
+var init_x = __esm(() => {
+  init_createLucideIcon();
+  X = createLucideIcon("X", [
+    ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
+    ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
+  ]);
+});
+
 // node_modules/lucide-react/dist/esm/lucide-react.js
 var init_lucide_react = __esm(() => {
   init_check();
@@ -24208,6 +24218,7 @@ var init_lucide_react = __esm(() => {
   init_chevron_up();
   init_grip_vertical();
   init_terminal();
+  init_x();
 });
 
 // node_modules/react/cjs/react-jsx-dev-runtime.development.js
@@ -26219,6 +26230,1768 @@ var init_card = __esm(() => {
   CardFooter.displayName = "CardFooter";
 });
 
+// node_modules/@radix-ui/primitive/dist/index.mjs
+function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
+  return function handleEvent(event) {
+    originalEventHandler?.(event);
+    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
+      return ourEventHandler?.(event);
+    }
+  };
+}
+var canUseDOM;
+var init_dist4 = __esm(() => {
+  canUseDOM = !!(typeof window !== "undefined" && window.document && window.document.createElement);
+});
+
+// node_modules/@radix-ui/react-context/dist/index.mjs
+function createContext22(rootComponentName, defaultContext) {
+  const Context = React9.createContext(defaultContext);
+  const Provider = (props2) => {
+    const { children, ...context } = props2;
+    const value = React9.useMemo(() => context, Object.values(context));
+    return /* @__PURE__ */ import_jsx_runtime4.jsx(Context.Provider, { value, children });
+  };
+  Provider.displayName = rootComponentName + "Provider";
+  function useContext22(consumerName) {
+    const context = React9.useContext(Context);
+    if (context)
+      return context;
+    if (defaultContext !== undefined)
+      return defaultContext;
+    throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+  }
+  return [Provider, useContext22];
+}
+function createContextScope(scopeName, createContextScopeDeps = []) {
+  let defaultContexts = [];
+  function createContext3(rootComponentName, defaultContext) {
+    const BaseContext = React9.createContext(defaultContext);
+    const index = defaultContexts.length;
+    defaultContexts = [...defaultContexts, defaultContext];
+    const Provider = (props2) => {
+      const { scope, children, ...context } = props2;
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const value = React9.useMemo(() => context, Object.values(context));
+      return /* @__PURE__ */ import_jsx_runtime4.jsx(Context.Provider, { value, children });
+    };
+    Provider.displayName = rootComponentName + "Provider";
+    function useContext22(consumerName, scope) {
+      const Context = scope?.[scopeName]?.[index] || BaseContext;
+      const context = React9.useContext(Context);
+      if (context)
+        return context;
+      if (defaultContext !== undefined)
+        return defaultContext;
+      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
+    }
+    return [Provider, useContext22];
+  }
+  const createScope = () => {
+    const scopeContexts = defaultContexts.map((defaultContext) => {
+      return React9.createContext(defaultContext);
+    });
+    return function useScope(scope) {
+      const contexts = scope?.[scopeName] || scopeContexts;
+      return React9.useMemo(() => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }), [scope, contexts]);
+    };
+  };
+  createScope.scopeName = scopeName;
+  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
+}
+function composeContextScopes(...scopes) {
+  const baseScope = scopes[0];
+  if (scopes.length === 1)
+    return baseScope;
+  const createScope = () => {
+    const scopeHooks = scopes.map((createScope2) => ({
+      useScope: createScope2(),
+      scopeName: createScope2.scopeName
+    }));
+    return function useComposedScopes(overrideScopes) {
+      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
+        const scopeProps = useScope(overrideScopes);
+        const currentScope = scopeProps[`__scope${scopeName}`];
+        return { ...nextScopes2, ...currentScope };
+      }, {});
+      return React9.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
+    };
+  };
+  createScope.scopeName = baseScope.scopeName;
+  return createScope;
+}
+var React9, import_jsx_runtime4;
+var init_dist5 = __esm(() => {
+  React9 = __toESM(require_react(), 1);
+  import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+});
+
+// node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
+var React10, useLayoutEffect22;
+var init_dist6 = __esm(() => {
+  React10 = __toESM(require_react(), 1);
+  useLayoutEffect22 = globalThis?.document ? React10.useLayoutEffect : () => {};
+});
+
+// node_modules/@radix-ui/react-id/dist/index.mjs
+function useId2(deterministicId) {
+  const [id, setId] = React11.useState(useReactId());
+  useLayoutEffect22(() => {
+    if (!deterministicId)
+      setId((reactId) => reactId ?? String(count++));
+  }, [deterministicId]);
+  return deterministicId || (id ? `radix-${id}` : "");
+}
+var React11, useReactId, count = 0;
+var init_dist7 = __esm(() => {
+  React11 = __toESM(require_react(), 1);
+  init_dist6();
+  useReactId = React11[" useId ".trim().toString()] || (() => {
+    return;
+  });
+});
+
+// node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
+function useControllableState({
+  prop,
+  defaultProp,
+  onChange = () => {},
+  caller
+}) {
+  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
+    defaultProp,
+    onChange
+  });
+  const isControlled = prop !== undefined;
+  const value = isControlled ? prop : uncontrolledProp;
+  if (true) {
+    const isControlledRef = React12.useRef(prop !== undefined);
+    React12.useEffect(() => {
+      const wasControlled = isControlledRef.current;
+      if (wasControlled !== isControlled) {
+        const from = wasControlled ? "controlled" : "uncontrolled";
+        const to = isControlled ? "controlled" : "uncontrolled";
+        console.warn(`${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`);
+      }
+      isControlledRef.current = isControlled;
+    }, [isControlled, caller]);
+  }
+  const setValue = React12.useCallback((nextValue) => {
+    if (isControlled) {
+      const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
+      if (value2 !== prop) {
+        onChangeRef.current?.(value2);
+      }
+    } else {
+      setUncontrolledProp(nextValue);
+    }
+  }, [isControlled, prop, setUncontrolledProp, onChangeRef]);
+  return [value, setValue];
+}
+function useUncontrolledState({
+  defaultProp,
+  onChange
+}) {
+  const [value, setValue] = React12.useState(defaultProp);
+  const prevValueRef = React12.useRef(value);
+  const onChangeRef = React12.useRef(onChange);
+  useInsertionEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+  React12.useEffect(() => {
+    if (prevValueRef.current !== value) {
+      onChangeRef.current?.(value);
+      prevValueRef.current = value;
+    }
+  }, [value, prevValueRef]);
+  return [value, setValue, onChangeRef];
+}
+function isFunction(value) {
+  return typeof value === "function";
+}
+var React12, React22, useInsertionEffect, SYNC_STATE;
+var init_dist8 = __esm(() => {
+  React12 = __toESM(require_react(), 1);
+  init_dist6();
+  React22 = __toESM(require_react(), 1);
+  useInsertionEffect = React12[" useInsertionEffect ".trim().toString()] || useLayoutEffect22;
+  SYNC_STATE = Symbol("RADIX:SYNC_STATE");
+});
+
+// node_modules/@radix-ui/react-use-callback-ref/dist/index.mjs
+function useCallbackRef(callback) {
+  const callbackRef = React13.useRef(callback);
+  React13.useEffect(() => {
+    callbackRef.current = callback;
+  });
+  return React13.useMemo(() => (...args) => callbackRef.current?.(...args), []);
+}
+var React13;
+var init_dist9 = __esm(() => {
+  React13 = __toESM(require_react(), 1);
+});
+
+// node_modules/@radix-ui/react-use-escape-keydown/dist/index.mjs
+function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
+  const onEscapeKeyDown = useCallbackRef(onEscapeKeyDownProp);
+  React14.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onEscapeKeyDown(event);
+      }
+    };
+    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [onEscapeKeyDown, ownerDocument]);
+}
+var React14;
+var init_dist10 = __esm(() => {
+  React14 = __toESM(require_react(), 1);
+  init_dist9();
+});
+
+// node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
+function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
+  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside);
+  const isPointerInsideReactTreeRef = React15.useRef(false);
+  const handleClickRef = React15.useRef(() => {});
+  React15.useEffect(() => {
+    const handlePointerDown2 = (event) => {
+      if (event.target && !isPointerInsideReactTreeRef.current) {
+        let handleAndDispatchPointerDownOutsideEvent2 = function() {
+          handleAndDispatchCustomEvent(POINTER_DOWN_OUTSIDE, handlePointerDownOutside, eventDetail, { discrete: true });
+        };
+        var handleAndDispatchPointerDownOutsideEvent = handleAndDispatchPointerDownOutsideEvent2;
+        const eventDetail = { originalEvent: event };
+        if (event.pointerType === "touch") {
+          ownerDocument.removeEventListener("click", handleClickRef.current);
+          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
+          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
+        } else {
+          handleAndDispatchPointerDownOutsideEvent2();
+        }
+      } else {
+        ownerDocument.removeEventListener("click", handleClickRef.current);
+      }
+      isPointerInsideReactTreeRef.current = false;
+    };
+    const timerId = window.setTimeout(() => {
+      ownerDocument.addEventListener("pointerdown", handlePointerDown2);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      ownerDocument.removeEventListener("pointerdown", handlePointerDown2);
+      ownerDocument.removeEventListener("click", handleClickRef.current);
+    };
+  }, [ownerDocument, handlePointerDownOutside]);
+  return {
+    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
+  };
+}
+function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
+  const handleFocusOutside = useCallbackRef(onFocusOutside);
+  const isFocusInsideReactTreeRef = React15.useRef(false);
+  React15.useEffect(() => {
+    const handleFocus = (event) => {
+      if (event.target && !isFocusInsideReactTreeRef.current) {
+        const eventDetail = { originalEvent: event };
+        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
+          discrete: false
+        });
+      }
+    };
+    ownerDocument.addEventListener("focusin", handleFocus);
+    return () => ownerDocument.removeEventListener("focusin", handleFocus);
+  }, [ownerDocument, handleFocusOutside]);
+  return {
+    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
+    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
+  };
+}
+function dispatchUpdate() {
+  const event = new CustomEvent(CONTEXT_UPDATE);
+  document.dispatchEvent(event);
+}
+function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
+  const target = detail.originalEvent.target;
+  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
+  if (handler)
+    target.addEventListener(name, handler, { once: true });
+  if (discrete) {
+    dispatchDiscreteCustomEvent(target, event);
+  } else {
+    target.dispatchEvent(event);
+  }
+}
+var React15, import_jsx_runtime5, DISMISSABLE_LAYER_NAME = "DismissableLayer", CONTEXT_UPDATE = "dismissableLayer.update", POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside", FOCUS_OUTSIDE = "dismissableLayer.focusOutside", originalBodyPointerEvents, DismissableLayerContext, DismissableLayer, BRANCH_NAME = "DismissableLayerBranch", DismissableLayerBranch;
+var init_dist11 = __esm(() => {
+  React15 = __toESM(require_react(), 1);
+  init_dist4();
+  init_dist3();
+  init_dist();
+  init_dist9();
+  init_dist10();
+  import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  DismissableLayerContext = React15.createContext({
+    layers: /* @__PURE__ */ new Set,
+    layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set,
+    branches: /* @__PURE__ */ new Set
+  });
+  DismissableLayer = React15.forwardRef((props2, forwardedRef) => {
+    const {
+      disableOutsidePointerEvents = false,
+      onEscapeKeyDown,
+      onPointerDownOutside,
+      onFocusOutside,
+      onInteractOutside,
+      onDismiss,
+      ...layerProps
+    } = props2;
+    const context = React15.useContext(DismissableLayerContext);
+    const [node, setNode] = React15.useState(null);
+    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
+    const [, force] = React15.useState({});
+    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
+    const layers = Array.from(context.layers);
+    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
+    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
+    const index = node ? layers.indexOf(node) : -1;
+    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
+    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
+    const pointerDownOutside = usePointerDownOutside((event) => {
+      const target = event.target;
+      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (!isPointerEventsEnabled || isPointerDownOnBranch)
+        return;
+      onPointerDownOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented)
+        onDismiss?.();
+    }, ownerDocument);
+    const focusOutside = useFocusOutside((event) => {
+      const target = event.target;
+      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
+      if (isFocusInBranch)
+        return;
+      onFocusOutside?.(event);
+      onInteractOutside?.(event);
+      if (!event.defaultPrevented)
+        onDismiss?.();
+    }, ownerDocument);
+    useEscapeKeydown((event) => {
+      const isHighestLayer = index === context.layers.size - 1;
+      if (!isHighestLayer)
+        return;
+      onEscapeKeyDown?.(event);
+      if (!event.defaultPrevented && onDismiss) {
+        event.preventDefault();
+        onDismiss();
+      }
+    }, ownerDocument);
+    React15.useEffect(() => {
+      if (!node)
+        return;
+      if (disableOutsidePointerEvents) {
+        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
+          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
+          ownerDocument.body.style.pointerEvents = "none";
+        }
+        context.layersWithOutsidePointerEventsDisabled.add(node);
+      }
+      context.layers.add(node);
+      dispatchUpdate();
+      return () => {
+        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
+          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+        }
+      };
+    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
+    React15.useEffect(() => {
+      return () => {
+        if (!node)
+          return;
+        context.layers.delete(node);
+        context.layersWithOutsidePointerEventsDisabled.delete(node);
+        dispatchUpdate();
+      };
+    }, [node, context]);
+    React15.useEffect(() => {
+      const handleUpdate = () => force({});
+      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
+      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
+    }, []);
+    return /* @__PURE__ */ import_jsx_runtime5.jsx(Primitive.div, {
+      ...layerProps,
+      ref: composedRefs,
+      style: {
+        pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : undefined,
+        ...props2.style
+      },
+      onFocusCapture: composeEventHandlers(props2.onFocusCapture, focusOutside.onFocusCapture),
+      onBlurCapture: composeEventHandlers(props2.onBlurCapture, focusOutside.onBlurCapture),
+      onPointerDownCapture: composeEventHandlers(props2.onPointerDownCapture, pointerDownOutside.onPointerDownCapture)
+    });
+  });
+  DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
+  DismissableLayerBranch = React15.forwardRef((props2, forwardedRef) => {
+    const context = React15.useContext(DismissableLayerContext);
+    const ref = React15.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    React15.useEffect(() => {
+      const node = ref.current;
+      if (node) {
+        context.branches.add(node);
+        return () => {
+          context.branches.delete(node);
+        };
+      }
+    }, [context.branches]);
+    return /* @__PURE__ */ import_jsx_runtime5.jsx(Primitive.div, { ...props2, ref: composedRefs });
+  });
+  DismissableLayerBranch.displayName = BRANCH_NAME;
+});
+
+// node_modules/@radix-ui/react-focus-scope/dist/index.mjs
+function focusFirst(candidates, { select = false } = {}) {
+  const previouslyFocusedElement = document.activeElement;
+  for (const candidate of candidates) {
+    focus(candidate, { select });
+    if (document.activeElement !== previouslyFocusedElement)
+      return;
+  }
+}
+function getTabbableEdges(container) {
+  const candidates = getTabbableCandidates(container);
+  const first = findVisible(candidates, container);
+  const last = findVisible(candidates.reverse(), container);
+  return [first, last];
+}
+function getTabbableCandidates(container) {
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
+      if (node.disabled || node.hidden || isHiddenInput)
+        return NodeFilter.FILTER_SKIP;
+      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  while (walker.nextNode())
+    nodes.push(walker.currentNode);
+  return nodes;
+}
+function findVisible(elements, container) {
+  for (const element of elements) {
+    if (!isHidden(element, { upTo: container }))
+      return element;
+  }
+}
+function isHidden(node, { upTo }) {
+  if (getComputedStyle(node).visibility === "hidden")
+    return true;
+  while (node) {
+    if (upTo !== undefined && node === upTo)
+      return false;
+    if (getComputedStyle(node).display === "none")
+      return true;
+    node = node.parentElement;
+  }
+  return false;
+}
+function isSelectableInput(element) {
+  return element instanceof HTMLInputElement && "select" in element;
+}
+function focus(element, { select = false } = {}) {
+  if (element && element.focus) {
+    const previouslyFocusedElement = document.activeElement;
+    element.focus({ preventScroll: true });
+    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
+      element.select();
+  }
+}
+function createFocusScopesStack() {
+  let stack = [];
+  return {
+    add(focusScope) {
+      const activeFocusScope = stack[0];
+      if (focusScope !== activeFocusScope) {
+        activeFocusScope?.pause();
+      }
+      stack = arrayRemove(stack, focusScope);
+      stack.unshift(focusScope);
+    },
+    remove(focusScope) {
+      stack = arrayRemove(stack, focusScope);
+      stack[0]?.resume();
+    }
+  };
+}
+function arrayRemove(array, item) {
+  const updatedArray = [...array];
+  const index = updatedArray.indexOf(item);
+  if (index !== -1) {
+    updatedArray.splice(index, 1);
+  }
+  return updatedArray;
+}
+function removeLinks(items) {
+  return items.filter((item) => item.tagName !== "A");
+}
+var React16, import_jsx_runtime6, AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount", AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount", EVENT_OPTIONS, FOCUS_SCOPE_NAME = "FocusScope", FocusScope, focusScopesStack;
+var init_dist12 = __esm(() => {
+  React16 = __toESM(require_react(), 1);
+  init_dist();
+  init_dist3();
+  init_dist9();
+  import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  EVENT_OPTIONS = { bubbles: false, cancelable: true };
+  FocusScope = React16.forwardRef((props2, forwardedRef) => {
+    const {
+      loop = false,
+      trapped = false,
+      onMountAutoFocus: onMountAutoFocusProp,
+      onUnmountAutoFocus: onUnmountAutoFocusProp,
+      ...scopeProps
+    } = props2;
+    const [container, setContainer] = React16.useState(null);
+    const onMountAutoFocus = useCallbackRef(onMountAutoFocusProp);
+    const onUnmountAutoFocus = useCallbackRef(onUnmountAutoFocusProp);
+    const lastFocusedElementRef = React16.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
+    const focusScope = React16.useRef({
+      paused: false,
+      pause() {
+        this.paused = true;
+      },
+      resume() {
+        this.paused = false;
+      }
+    }).current;
+    React16.useEffect(() => {
+      if (trapped) {
+        let handleFocusIn2 = function(event) {
+          if (focusScope.paused || !container)
+            return;
+          const target = event.target;
+          if (container.contains(target)) {
+            lastFocusedElementRef.current = target;
+          } else {
+            focus(lastFocusedElementRef.current, { select: true });
+          }
+        }, handleFocusOut2 = function(event) {
+          if (focusScope.paused || !container)
+            return;
+          const relatedTarget = event.relatedTarget;
+          if (relatedTarget === null)
+            return;
+          if (!container.contains(relatedTarget)) {
+            focus(lastFocusedElementRef.current, { select: true });
+          }
+        }, handleMutations2 = function(mutations) {
+          const focusedElement = document.activeElement;
+          if (focusedElement !== document.body)
+            return;
+          for (const mutation of mutations) {
+            if (mutation.removedNodes.length > 0)
+              focus(container);
+          }
+        };
+        var handleFocusIn = handleFocusIn2, handleFocusOut = handleFocusOut2, handleMutations = handleMutations2;
+        document.addEventListener("focusin", handleFocusIn2);
+        document.addEventListener("focusout", handleFocusOut2);
+        const mutationObserver = new MutationObserver(handleMutations2);
+        if (container)
+          mutationObserver.observe(container, { childList: true, subtree: true });
+        return () => {
+          document.removeEventListener("focusin", handleFocusIn2);
+          document.removeEventListener("focusout", handleFocusOut2);
+          mutationObserver.disconnect();
+        };
+      }
+    }, [trapped, container, focusScope.paused]);
+    React16.useEffect(() => {
+      if (container) {
+        focusScopesStack.add(focusScope);
+        const previouslyFocusedElement = document.activeElement;
+        const hasFocusedCandidate = container.contains(previouslyFocusedElement);
+        if (!hasFocusedCandidate) {
+          const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
+          container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+          container.dispatchEvent(mountEvent);
+          if (!mountEvent.defaultPrevented) {
+            focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
+            if (document.activeElement === previouslyFocusedElement) {
+              focus(container);
+            }
+          }
+        }
+        return () => {
+          container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+          setTimeout(() => {
+            const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
+            container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+            container.dispatchEvent(unmountEvent);
+            if (!unmountEvent.defaultPrevented) {
+              focus(previouslyFocusedElement ?? document.body, { select: true });
+            }
+            container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+            focusScopesStack.remove(focusScope);
+          }, 0);
+        };
+      }
+    }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
+    const handleKeyDown = React16.useCallback((event) => {
+      if (!loop && !trapped)
+        return;
+      if (focusScope.paused)
+        return;
+      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
+      const focusedElement = document.activeElement;
+      if (isTabKey && focusedElement) {
+        const container2 = event.currentTarget;
+        const [first, last] = getTabbableEdges(container2);
+        const hasTabbableElementsInside = first && last;
+        if (!hasTabbableElementsInside) {
+          if (focusedElement === container2)
+            event.preventDefault();
+        } else {
+          if (!event.shiftKey && focusedElement === last) {
+            event.preventDefault();
+            if (loop)
+              focus(first, { select: true });
+          } else if (event.shiftKey && focusedElement === first) {
+            event.preventDefault();
+            if (loop)
+              focus(last, { select: true });
+          }
+        }
+      }
+    }, [loop, trapped, focusScope.paused]);
+    return /* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
+  });
+  FocusScope.displayName = FOCUS_SCOPE_NAME;
+  focusScopesStack = createFocusScopesStack();
+});
+
+// node_modules/@radix-ui/react-portal/dist/index.mjs
+var React17, import_react_dom, import_jsx_runtime7, PORTAL_NAME = "Portal", Portal;
+var init_dist13 = __esm(() => {
+  React17 = __toESM(require_react(), 1);
+  import_react_dom = __toESM(require_react_dom(), 1);
+  init_dist3();
+  init_dist6();
+  import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  Portal = React17.forwardRef((props2, forwardedRef) => {
+    const { container: containerProp, ...portalProps } = props2;
+    const [mounted, setMounted] = React17.useState(false);
+    useLayoutEffect22(() => setMounted(true), []);
+    const container = containerProp || mounted && globalThis?.document?.body;
+    return container ? import_react_dom.default.createPortal(/* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
+  });
+  Portal.displayName = PORTAL_NAME;
+});
+
+// node_modules/@radix-ui/react-presence/dist/index.mjs
+function useStateMachine(initialState, machine) {
+  return React18.useReducer((state, event) => {
+    const nextState = machine[state][event];
+    return nextState ?? state;
+  }, initialState);
+}
+function usePresence(present) {
+  const [node, setNode] = React23.useState();
+  const stylesRef = React23.useRef(null);
+  const prevPresentRef = React23.useRef(present);
+  const prevAnimationNameRef = React23.useRef("none");
+  const initialState = present ? "mounted" : "unmounted";
+  const [state, send] = useStateMachine(initialState, {
+    mounted: {
+      UNMOUNT: "unmounted",
+      ANIMATION_OUT: "unmountSuspended"
+    },
+    unmountSuspended: {
+      MOUNT: "mounted",
+      ANIMATION_END: "unmounted"
+    },
+    unmounted: {
+      MOUNT: "mounted"
+    }
+  });
+  React23.useEffect(() => {
+    const currentAnimationName = getAnimationName(stylesRef.current);
+    prevAnimationNameRef.current = state === "mounted" ? currentAnimationName : "none";
+  }, [state]);
+  useLayoutEffect22(() => {
+    const styles = stylesRef.current;
+    const wasPresent = prevPresentRef.current;
+    const hasPresentChanged = wasPresent !== present;
+    if (hasPresentChanged) {
+      const prevAnimationName = prevAnimationNameRef.current;
+      const currentAnimationName = getAnimationName(styles);
+      if (present) {
+        send("MOUNT");
+      } else if (currentAnimationName === "none" || styles?.display === "none") {
+        send("UNMOUNT");
+      } else {
+        const isAnimating = prevAnimationName !== currentAnimationName;
+        if (wasPresent && isAnimating) {
+          send("ANIMATION_OUT");
+        } else {
+          send("UNMOUNT");
+        }
+      }
+      prevPresentRef.current = present;
+    }
+  }, [present, send]);
+  useLayoutEffect22(() => {
+    if (node) {
+      let timeoutId;
+      const ownerWindow = node.ownerDocument.defaultView ?? window;
+      const handleAnimationEnd = (event) => {
+        const currentAnimationName = getAnimationName(stylesRef.current);
+        const isCurrentAnimation = currentAnimationName.includes(CSS.escape(event.animationName));
+        if (event.target === node && isCurrentAnimation) {
+          send("ANIMATION_END");
+          if (!prevPresentRef.current) {
+            const currentFillMode = node.style.animationFillMode;
+            node.style.animationFillMode = "forwards";
+            timeoutId = ownerWindow.setTimeout(() => {
+              if (node.style.animationFillMode === "forwards") {
+                node.style.animationFillMode = currentFillMode;
+              }
+            });
+          }
+        }
+      };
+      const handleAnimationStart = (event) => {
+        if (event.target === node) {
+          prevAnimationNameRef.current = getAnimationName(stylesRef.current);
+        }
+      };
+      node.addEventListener("animationstart", handleAnimationStart);
+      node.addEventListener("animationcancel", handleAnimationEnd);
+      node.addEventListener("animationend", handleAnimationEnd);
+      return () => {
+        ownerWindow.clearTimeout(timeoutId);
+        node.removeEventListener("animationstart", handleAnimationStart);
+        node.removeEventListener("animationcancel", handleAnimationEnd);
+        node.removeEventListener("animationend", handleAnimationEnd);
+      };
+    } else {
+      send("ANIMATION_END");
+    }
+  }, [node, send]);
+  return {
+    isPresent: ["mounted", "unmountSuspended"].includes(state),
+    ref: React23.useCallback((node2) => {
+      stylesRef.current = node2 ? getComputedStyle(node2) : null;
+      setNode(node2);
+    }, [])
+  };
+}
+function getAnimationName(styles) {
+  return styles?.animationName || "none";
+}
+function getElementRef2(element) {
+  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
+  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.ref;
+  }
+  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
+  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
+  if (mayWarn) {
+    return element.props.ref;
+  }
+  return element.props.ref || element.ref;
+}
+var React23, React18, Presence = (props2) => {
+  const { present, children } = props2;
+  const presence = usePresence(present);
+  const child = typeof children === "function" ? children({ present: presence.isPresent }) : React23.Children.only(children);
+  const ref = useComposedRefs(presence.ref, getElementRef2(child));
+  const forceMount = typeof children === "function";
+  return forceMount || presence.isPresent ? React23.cloneElement(child, { ref }) : null;
+};
+var init_dist14 = __esm(() => {
+  React23 = __toESM(require_react(), 1);
+  init_dist();
+  init_dist6();
+  React18 = __toESM(require_react(), 1);
+  "use client";
+  Presence.displayName = "Presence";
+});
+
+// node_modules/@radix-ui/react-focus-guards/dist/index.mjs
+function useFocusGuards() {
+  React19.useEffect(() => {
+    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
+    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
+    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
+    count2++;
+    return () => {
+      if (count2 === 1) {
+        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
+      }
+      count2--;
+    };
+  }, []);
+}
+function createFocusGuard() {
+  const element = document.createElement("span");
+  element.setAttribute("data-radix-focus-guard", "");
+  element.tabIndex = 0;
+  element.style.outline = "none";
+  element.style.opacity = "0";
+  element.style.position = "fixed";
+  element.style.pointerEvents = "none";
+  return element;
+}
+var React19, count2 = 0;
+var init_dist15 = __esm(() => {
+  React19 = __toESM(require_react(), 1);
+  "use client";
+});
+
+// node_modules/tslib/tslib.es6.mjs
+function __rest(s, e) {
+  var t = {};
+  for (var p in s)
+    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+    for (var i = 0, p = Object.getOwnPropertySymbols(s);i < p.length; i++) {
+      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+        t[p[i]] = s[p[i]];
+    }
+  return t;
+}
+function __spreadArray(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar;i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar)
+          ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+}
+var __assign = function() {
+  __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length;i < n; i++) {
+      s = arguments[i];
+      for (var p in s)
+        if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
+var init_tslib_es6 = () => {};
+
+// node_modules/react-remove-scroll-bar/dist/es2015/constants.js
+var zeroRightClassName = "right-scroll-bar-position", fullWidthClassName = "width-before-scroll-bar", noScrollbarsClassName = "with-scroll-bars-hidden", removedBarSizeVariable = "--removed-body-scroll-bar-size";
+
+// node_modules/use-callback-ref/dist/es2015/assignRef.js
+function assignRef(ref, value) {
+  if (typeof ref === "function") {
+    ref(value);
+  } else if (ref) {
+    ref.current = value;
+  }
+  return ref;
+}
+
+// node_modules/use-callback-ref/dist/es2015/useRef.js
+function useCallbackRef2(initialValue, callback) {
+  var ref = import_react5.useState(function() {
+    return {
+      value: initialValue,
+      callback,
+      facade: {
+        get current() {
+          return ref.value;
+        },
+        set current(value) {
+          var last = ref.value;
+          if (last !== value) {
+            ref.value = value;
+            ref.callback(value, last);
+          }
+        }
+      }
+    };
+  })[0];
+  ref.callback = callback;
+  return ref.facade;
+}
+var import_react5;
+var init_useRef = __esm(() => {
+  import_react5 = __toESM(require_react(), 1);
+});
+
+// node_modules/use-callback-ref/dist/es2015/useMergeRef.js
+function useMergeRefs(refs, defaultValue) {
+  var callbackRef = useCallbackRef2(defaultValue || null, function(newValue) {
+    return refs.forEach(function(ref) {
+      return assignRef(ref, newValue);
+    });
+  });
+  useIsomorphicLayoutEffect2(function() {
+    var oldValue = currentValues.get(callbackRef);
+    if (oldValue) {
+      var prevRefs_1 = new Set(oldValue);
+      var nextRefs_1 = new Set(refs);
+      var current_1 = callbackRef.current;
+      prevRefs_1.forEach(function(ref) {
+        if (!nextRefs_1.has(ref)) {
+          assignRef(ref, null);
+        }
+      });
+      nextRefs_1.forEach(function(ref) {
+        if (!prevRefs_1.has(ref)) {
+          assignRef(ref, current_1);
+        }
+      });
+    }
+    currentValues.set(callbackRef, refs);
+  }, [refs]);
+  return callbackRef;
+}
+var React20, useIsomorphicLayoutEffect2, currentValues;
+var init_useMergeRef = __esm(() => {
+  React20 = __toESM(require_react(), 1);
+  init_useRef();
+  useIsomorphicLayoutEffect2 = typeof window !== "undefined" ? React20.useLayoutEffect : React20.useEffect;
+  currentValues = new WeakMap;
+});
+
+// node_modules/use-callback-ref/dist/es2015/index.js
+var init_es2015 = __esm(() => {
+  init_useMergeRef();
+});
+// node_modules/use-sidecar/dist/es2015/env.js
+var init_env = () => {};
+
+// node_modules/use-sidecar/dist/es2015/hook.js
+var import_react6, cache;
+var init_hook = __esm(() => {
+  import_react6 = __toESM(require_react(), 1);
+  init_env();
+  cache = new WeakMap;
+});
+
+// node_modules/use-sidecar/dist/es2015/hoc.js
+var React21;
+var init_hoc = __esm(() => {
+  React21 = __toESM(require_react(), 1);
+  init_hook();
+});
+
+// node_modules/use-sidecar/dist/es2015/config.js
+var init_config = () => {};
+
+// node_modules/use-sidecar/dist/es2015/medium.js
+function ItoI(a) {
+  return a;
+}
+function innerCreateMedium(defaults, middleware) {
+  if (middleware === undefined) {
+    middleware = ItoI;
+  }
+  var buffer = [];
+  var assigned = false;
+  var medium = {
+    read: function() {
+      if (assigned) {
+        throw new Error("Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.");
+      }
+      if (buffer.length) {
+        return buffer[buffer.length - 1];
+      }
+      return defaults;
+    },
+    useMedium: function(data) {
+      var item = middleware(data, assigned);
+      buffer.push(item);
+      return function() {
+        buffer = buffer.filter(function(x) {
+          return x !== item;
+        });
+      };
+    },
+    assignSyncMedium: function(cb) {
+      assigned = true;
+      while (buffer.length) {
+        var cbs = buffer;
+        buffer = [];
+        cbs.forEach(cb);
+      }
+      buffer = {
+        push: function(x) {
+          return cb(x);
+        },
+        filter: function() {
+          return buffer;
+        }
+      };
+    },
+    assignMedium: function(cb) {
+      assigned = true;
+      var pendingQueue = [];
+      if (buffer.length) {
+        var cbs = buffer;
+        buffer = [];
+        cbs.forEach(cb);
+        pendingQueue = buffer;
+      }
+      var executeQueue = function() {
+        var cbs2 = pendingQueue;
+        pendingQueue = [];
+        cbs2.forEach(cb);
+      };
+      var cycle = function() {
+        return Promise.resolve().then(executeQueue);
+      };
+      cycle();
+      buffer = {
+        push: function(x) {
+          pendingQueue.push(x);
+          cycle();
+        },
+        filter: function(filter) {
+          pendingQueue = pendingQueue.filter(filter);
+          return buffer;
+        }
+      };
+    }
+  };
+  return medium;
+}
+function createSidecarMedium(options) {
+  if (options === undefined) {
+    options = {};
+  }
+  var medium = innerCreateMedium(null);
+  medium.options = __assign({ async: true, ssr: false }, options);
+  return medium;
+}
+var init_medium = __esm(() => {
+  init_tslib_es6();
+});
+
+// node_modules/use-sidecar/dist/es2015/renderProp.js
+var React24, import_react7;
+var init_renderProp = __esm(() => {
+  React24 = __toESM(require_react(), 1);
+  import_react7 = __toESM(require_react(), 1);
+});
+
+// node_modules/use-sidecar/dist/es2015/exports.js
+function exportSidecar(medium, exported) {
+  medium.useMedium(exported);
+  return SideCar;
+}
+var React26, SideCar = function(_a) {
+  var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
+  if (!sideCar) {
+    throw new Error("Sidecar: please provide `sideCar` property to import the right car");
+  }
+  var Target = sideCar.read();
+  if (!Target) {
+    throw new Error("Sidecar medium not found");
+  }
+  return React26.createElement(Target, __assign({}, rest));
+};
+var init_exports = __esm(() => {
+  init_tslib_es6();
+  React26 = __toESM(require_react(), 1);
+  SideCar.isSideCarExport = true;
+});
+
+// node_modules/use-sidecar/dist/es2015/index.js
+var init_es20152 = __esm(() => {
+  init_hoc();
+  init_hook();
+  init_config();
+  init_medium();
+  init_renderProp();
+  init_exports();
+});
+
+// node_modules/react-remove-scroll/dist/es2015/medium.js
+var effectCar;
+var init_medium2 = __esm(() => {
+  init_es20152();
+  effectCar = createSidecarMedium();
+});
+
+// node_modules/react-remove-scroll/dist/es2015/UI.js
+var React27, nothing = function() {
+  return;
+}, RemoveScroll;
+var init_UI = __esm(() => {
+  init_tslib_es6();
+  React27 = __toESM(require_react(), 1);
+  init_es2015();
+  init_medium2();
+  RemoveScroll = React27.forwardRef(function(props2, parentRef) {
+    var ref = React27.useRef(null);
+    var _a = React27.useState({
+      onScrollCapture: nothing,
+      onWheelCapture: nothing,
+      onTouchMoveCapture: nothing
+    }), callbacks = _a[0], setCallbacks = _a[1];
+    var { forwardProps, children, className, removeScrollBar, enabled: enabled2, shards, sideCar, noRelative, noIsolation, inert, allowPinchZoom, as: _b } = props2, Container = _b === undefined ? "div" : _b, gapMode = props2.gapMode, rest = __rest(props2, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
+    var SideCar2 = sideCar;
+    var containerRef = useMergeRefs([ref, parentRef]);
+    var containerProps = __assign(__assign({}, rest), callbacks);
+    return React27.createElement(React27.Fragment, null, enabled2 && React27.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React27.cloneElement(React27.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React27.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
+  });
+  RemoveScroll.defaultProps = {
+    enabled: true,
+    removeScrollBar: true,
+    inert: false
+  };
+  RemoveScroll.classNames = {
+    fullWidth: fullWidthClassName,
+    zeroRight: zeroRightClassName
+  };
+});
+
+// node_modules/get-nonce/dist/es2015/index.js
+var currentNonce, getNonce2 = function() {
+  if (currentNonce) {
+    return currentNonce;
+  }
+  if (typeof __webpack_nonce__ !== "undefined") {
+    return __webpack_nonce__;
+  }
+  return;
+};
+
+// node_modules/react-style-singleton/dist/es2015/singleton.js
+function makeStyleTag() {
+  if (!document)
+    return null;
+  var tag = document.createElement("style");
+  tag.type = "text/css";
+  var nonce2 = getNonce2();
+  if (nonce2) {
+    tag.setAttribute("nonce", nonce2);
+  }
+  return tag;
+}
+function injectStyles(tag, css) {
+  if (tag.styleSheet) {
+    tag.styleSheet.cssText = css;
+  } else {
+    tag.appendChild(document.createTextNode(css));
+  }
+}
+function insertStyleTag(tag) {
+  var head = document.head || document.getElementsByTagName("head")[0];
+  head.appendChild(tag);
+}
+var stylesheetSingleton = function() {
+  var counter2 = 0;
+  var stylesheet = null;
+  return {
+    add: function(style) {
+      if (counter2 == 0) {
+        if (stylesheet = makeStyleTag()) {
+          injectStyles(stylesheet, style);
+          insertStyleTag(stylesheet);
+        }
+      }
+      counter2++;
+    },
+    remove: function() {
+      counter2--;
+      if (!counter2 && stylesheet) {
+        stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
+        stylesheet = null;
+      }
+    }
+  };
+};
+var init_singleton = () => {};
+
+// node_modules/react-style-singleton/dist/es2015/hook.js
+var React28, styleHookSingleton = function() {
+  var sheet = stylesheetSingleton();
+  return function(styles, isDynamic) {
+    React28.useEffect(function() {
+      sheet.add(styles);
+      return function() {
+        sheet.remove();
+      };
+    }, [styles && isDynamic]);
+  };
+};
+var init_hook2 = __esm(() => {
+  React28 = __toESM(require_react(), 1);
+  init_singleton();
+});
+
+// node_modules/react-style-singleton/dist/es2015/component.js
+var styleSingleton = function() {
+  var useStyle = styleHookSingleton();
+  var Sheet = function(_a) {
+    var { styles, dynamic } = _a;
+    useStyle(styles, dynamic);
+    return null;
+  };
+  return Sheet;
+};
+var init_component = __esm(() => {
+  init_hook2();
+});
+
+// node_modules/react-style-singleton/dist/es2015/index.js
+var init_es20153 = __esm(() => {
+  init_component();
+  init_singleton();
+  init_hook2();
+});
+
+// node_modules/react-remove-scroll-bar/dist/es2015/utils.js
+var zeroGap, parse = function(x) {
+  return parseInt(x || "", 10) || 0;
+}, getOffset = function(gapMode) {
+  var cs = window.getComputedStyle(document.body);
+  var left = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
+  var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
+  var right = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
+  return [parse(left), parse(top), parse(right)];
+}, getGapWidth = function(gapMode) {
+  if (gapMode === undefined) {
+    gapMode = "margin";
+  }
+  if (typeof window === "undefined") {
+    return zeroGap;
+  }
+  var offsets = getOffset(gapMode);
+  var documentWidth = document.documentElement.clientWidth;
+  var windowWidth = window.innerWidth;
+  return {
+    left: offsets[0],
+    top: offsets[1],
+    right: offsets[2],
+    gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0])
+  };
+};
+var init_utils3 = __esm(() => {
+  zeroGap = {
+    left: 0,
+    top: 0,
+    right: 0,
+    gap: 0
+  };
+});
+
+// node_modules/react-remove-scroll-bar/dist/es2015/component.js
+var React29, Style, lockAttribute = "data-scroll-locked", getStyles = function(_a, allowRelative, gapMode, important) {
+  var { left, top, right, gap } = _a;
+  if (gapMode === undefined) {
+    gapMode = "margin";
+  }
+  return `
+  .`.concat(noScrollbarsClassName, ` {
+   overflow: hidden `).concat(important, `;
+   padding-right: `).concat(gap, "px ").concat(important, `;
+  }
+  body[`).concat(lockAttribute, `] {
+    overflow: hidden `).concat(important, `;
+    overscroll-behavior: contain;
+    `).concat([
+    allowRelative && "position: relative ".concat(important, ";"),
+    gapMode === "margin" && `
+    padding-left: `.concat(left, `px;
+    padding-top: `).concat(top, `px;
+    padding-right: `).concat(right, `px;
+    margin-left:0;
+    margin-top:0;
+    margin-right: `).concat(gap, "px ").concat(important, `;
+    `),
+    gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
+  ].filter(Boolean).join(""), `
+  }
+
+  .`).concat(zeroRightClassName, ` {
+    right: `).concat(gap, "px ").concat(important, `;
+  }
+
+  .`).concat(fullWidthClassName, ` {
+    margin-right: `).concat(gap, "px ").concat(important, `;
+  }
+
+  .`).concat(zeroRightClassName, " .").concat(zeroRightClassName, ` {
+    right: 0 `).concat(important, `;
+  }
+
+  .`).concat(fullWidthClassName, " .").concat(fullWidthClassName, ` {
+    margin-right: 0 `).concat(important, `;
+  }
+
+  body[`).concat(lockAttribute, `] {
+    `).concat(removedBarSizeVariable, ": ").concat(gap, `px;
+  }
+`);
+}, getCurrentUseCounter = function() {
+  var counter2 = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
+  return isFinite(counter2) ? counter2 : 0;
+}, useLockAttribute = function() {
+  React29.useEffect(function() {
+    document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
+    return function() {
+      var newCounter = getCurrentUseCounter() - 1;
+      if (newCounter <= 0) {
+        document.body.removeAttribute(lockAttribute);
+      } else {
+        document.body.setAttribute(lockAttribute, newCounter.toString());
+      }
+    };
+  }, []);
+}, RemoveScrollBar = function(_a) {
+  var { noRelative, noImportant, gapMode: _b } = _a, gapMode = _b === undefined ? "margin" : _b;
+  useLockAttribute();
+  var gap = React29.useMemo(function() {
+    return getGapWidth(gapMode);
+  }, [gapMode]);
+  return React29.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
+};
+var init_component2 = __esm(() => {
+  React29 = __toESM(require_react(), 1);
+  init_es20153();
+  init_utils3();
+  Style = styleSingleton();
+});
+
+// node_modules/react-remove-scroll-bar/dist/es2015/index.js
+var init_es20154 = __esm(() => {
+  init_component2();
+  init_utils3();
+});
+
+// node_modules/react-remove-scroll/dist/es2015/aggresiveCapture.js
+var passiveSupported = false, options, nonPassive;
+var init_aggresiveCapture = __esm(() => {
+  if (typeof window !== "undefined") {
+    try {
+      options = Object.defineProperty({}, "passive", {
+        get: function() {
+          passiveSupported = true;
+          return true;
+        }
+      });
+      window.addEventListener("test", options, options);
+      window.removeEventListener("test", options, options);
+    } catch (err) {
+      passiveSupported = false;
+    }
+  }
+  nonPassive = passiveSupported ? { passive: false } : false;
+});
+
+// node_modules/react-remove-scroll/dist/es2015/handleScroll.js
+var alwaysContainsScroll = function(node) {
+  return node.tagName === "TEXTAREA";
+}, elementCanBeScrolled = function(node, overflow) {
+  if (!(node instanceof Element)) {
+    return false;
+  }
+  var styles = window.getComputedStyle(node);
+  return styles[overflow] !== "hidden" && !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === "visible");
+}, elementCouldBeVScrolled = function(node) {
+  return elementCanBeScrolled(node, "overflowY");
+}, elementCouldBeHScrolled = function(node) {
+  return elementCanBeScrolled(node, "overflowX");
+}, locationCouldBeScrolled = function(axis, node) {
+  var ownerDocument = node.ownerDocument;
+  var current = node;
+  do {
+    if (typeof ShadowRoot !== "undefined" && current instanceof ShadowRoot) {
+      current = current.host;
+    }
+    var isScrollable = elementCouldBeScrolled(axis, current);
+    if (isScrollable) {
+      var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
+      if (scrollHeight > clientHeight) {
+        return true;
+      }
+    }
+    current = current.parentNode;
+  } while (current && current !== ownerDocument.body);
+  return false;
+}, getVScrollVariables = function(_a) {
+  var { scrollTop, scrollHeight, clientHeight } = _a;
+  return [
+    scrollTop,
+    scrollHeight,
+    clientHeight
+  ];
+}, getHScrollVariables = function(_a) {
+  var { scrollLeft, scrollWidth, clientWidth } = _a;
+  return [
+    scrollLeft,
+    scrollWidth,
+    clientWidth
+  ];
+}, elementCouldBeScrolled = function(axis, node) {
+  return axis === "v" ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
+}, getScrollVariables = function(axis, node) {
+  return axis === "v" ? getVScrollVariables(node) : getHScrollVariables(node);
+}, getDirectionFactor = function(axis, direction) {
+  return axis === "h" && direction === "rtl" ? -1 : 1;
+}, handleScroll = function(axis, endTarget, event, sourceDelta, noOverscroll) {
+  var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
+  var delta = directionFactor * sourceDelta;
+  var target = event.target;
+  var targetInLock = endTarget.contains(target);
+  var shouldCancelScroll = false;
+  var isDeltaPositive = delta > 0;
+  var availableScroll = 0;
+  var availableScrollTop = 0;
+  do {
+    if (!target) {
+      break;
+    }
+    var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
+    var elementScroll = scroll_1 - capacity - directionFactor * position;
+    if (position || elementScroll) {
+      if (elementCouldBeScrolled(axis, target)) {
+        availableScroll += elementScroll;
+        availableScrollTop += position;
+      }
+    }
+    var parent_1 = target.parentNode;
+    target = parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1;
+  } while (!targetInLock && target !== document.body || targetInLock && (endTarget.contains(target) || endTarget === target));
+  if (isDeltaPositive && (noOverscroll && Math.abs(availableScroll) < 1 || !noOverscroll && delta > availableScroll)) {
+    shouldCancelScroll = true;
+  } else if (!isDeltaPositive && (noOverscroll && Math.abs(availableScrollTop) < 1 || !noOverscroll && -delta > availableScrollTop)) {
+    shouldCancelScroll = true;
+  }
+  return shouldCancelScroll;
+};
+
+// node_modules/react-remove-scroll/dist/es2015/SideEffect.js
+function RemoveScrollSideCar(props2) {
+  var shouldPreventQueue = React30.useRef([]);
+  var touchStartRef = React30.useRef([0, 0]);
+  var activeAxis = React30.useRef();
+  var id = React30.useState(idCounter++)[0];
+  var Style2 = React30.useState(styleSingleton)[0];
+  var lastProps = React30.useRef(props2);
+  React30.useEffect(function() {
+    lastProps.current = props2;
+  }, [props2]);
+  React30.useEffect(function() {
+    if (props2.inert) {
+      document.body.classList.add("block-interactivity-".concat(id));
+      var allow_1 = __spreadArray([props2.lockRef.current], (props2.shards || []).map(extractRef), true).filter(Boolean);
+      allow_1.forEach(function(el) {
+        return el.classList.add("allow-interactivity-".concat(id));
+      });
+      return function() {
+        document.body.classList.remove("block-interactivity-".concat(id));
+        allow_1.forEach(function(el) {
+          return el.classList.remove("allow-interactivity-".concat(id));
+        });
+      };
+    }
+    return;
+  }, [props2.inert, props2.lockRef.current, props2.shards]);
+  var shouldCancelEvent = React30.useCallback(function(event, parent) {
+    if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
+      return !lastProps.current.allowPinchZoom;
+    }
+    var touch = getTouchXY(event);
+    var touchStart = touchStartRef.current;
+    var deltaX = "deltaX" in event ? event.deltaX : touchStart[0] - touch[0];
+    var deltaY = "deltaY" in event ? event.deltaY : touchStart[1] - touch[1];
+    var currentAxis;
+    var target = event.target;
+    var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? "h" : "v";
+    if ("touches" in event && moveDirection === "h" && target.type === "range") {
+      return false;
+    }
+    var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+    if (!canBeScrolledInMainDirection) {
+      return true;
+    }
+    if (canBeScrolledInMainDirection) {
+      currentAxis = moveDirection;
+    } else {
+      currentAxis = moveDirection === "v" ? "h" : "v";
+      canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+    }
+    if (!canBeScrolledInMainDirection) {
+      return false;
+    }
+    if (!activeAxis.current && "changedTouches" in event && (deltaX || deltaY)) {
+      activeAxis.current = currentAxis;
+    }
+    if (!currentAxis) {
+      return true;
+    }
+    var cancelingAxis = activeAxis.current || currentAxis;
+    return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY, true);
+  }, []);
+  var shouldPrevent = React30.useCallback(function(_event) {
+    var event = _event;
+    if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
+      return;
+    }
+    var delta = "deltaY" in event ? getDeltaXY(event) : getTouchXY(event);
+    var sourceEvent = shouldPreventQueue.current.filter(function(e) {
+      return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta);
+    })[0];
+    if (sourceEvent && sourceEvent.should) {
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (!sourceEvent) {
+      var shardNodes = (lastProps.current.shards || []).map(extractRef).filter(Boolean).filter(function(node) {
+        return node.contains(event.target);
+      });
+      var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
+      if (shouldStop) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      }
+    }
+  }, []);
+  var shouldCancel = React30.useCallback(function(name, delta, target, should) {
+    var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
+    shouldPreventQueue.current.push(event);
+    setTimeout(function() {
+      shouldPreventQueue.current = shouldPreventQueue.current.filter(function(e) {
+        return e !== event;
+      });
+    }, 1);
+  }, []);
+  var scrollTouchStart = React30.useCallback(function(event) {
+    touchStartRef.current = getTouchXY(event);
+    activeAxis.current = undefined;
+  }, []);
+  var scrollWheel = React30.useCallback(function(event) {
+    shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props2.lockRef.current));
+  }, []);
+  var scrollTouchMove = React30.useCallback(function(event) {
+    shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props2.lockRef.current));
+  }, []);
+  React30.useEffect(function() {
+    lockStack.push(Style2);
+    props2.setCallbacks({
+      onScrollCapture: scrollWheel,
+      onWheelCapture: scrollWheel,
+      onTouchMoveCapture: scrollTouchMove
+    });
+    document.addEventListener("wheel", shouldPrevent, nonPassive);
+    document.addEventListener("touchmove", shouldPrevent, nonPassive);
+    document.addEventListener("touchstart", scrollTouchStart, nonPassive);
+    return function() {
+      lockStack = lockStack.filter(function(inst) {
+        return inst !== Style2;
+      });
+      document.removeEventListener("wheel", shouldPrevent, nonPassive);
+      document.removeEventListener("touchmove", shouldPrevent, nonPassive);
+      document.removeEventListener("touchstart", scrollTouchStart, nonPassive);
+    };
+  }, []);
+  var { removeScrollBar, inert } = props2;
+  return React30.createElement(React30.Fragment, null, inert ? React30.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React30.createElement(RemoveScrollBar, { noRelative: props2.noRelative, gapMode: props2.gapMode }) : null);
+}
+function getOutermostShadowParent(node) {
+  var shadowParent = null;
+  while (node !== null) {
+    if (node instanceof ShadowRoot) {
+      shadowParent = node.host;
+      node = node.host;
+    }
+    node = node.parentNode;
+  }
+  return shadowParent;
+}
+var React30, getTouchXY = function(event) {
+  return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
+}, getDeltaXY = function(event) {
+  return [event.deltaX, event.deltaY];
+}, extractRef = function(ref) {
+  return ref && "current" in ref ? ref.current : ref;
+}, deltaCompare = function(x, y) {
+  return x[0] === y[0] && x[1] === y[1];
+}, generateStyle = function(id) {
+  return `
+  .block-interactivity-`.concat(id, ` {pointer-events: none;}
+  .allow-interactivity-`).concat(id, ` {pointer-events: all;}
+`);
+}, idCounter = 0, lockStack;
+var init_SideEffect = __esm(() => {
+  init_tslib_es6();
+  React30 = __toESM(require_react(), 1);
+  init_es20154();
+  init_es20153();
+  init_aggresiveCapture();
+  lockStack = [];
+});
+
+// node_modules/react-remove-scroll/dist/es2015/sidecar.js
+var sidecar_default;
+var init_sidecar = __esm(() => {
+  init_es20152();
+  init_SideEffect();
+  init_medium2();
+  sidecar_default = exportSidecar(effectCar, RemoveScrollSideCar);
+});
+
+// node_modules/react-remove-scroll/dist/es2015/Combination.js
+var React31, ReactRemoveScroll, Combination_default;
+var init_Combination = __esm(() => {
+  init_tslib_es6();
+  React31 = __toESM(require_react(), 1);
+  init_UI();
+  init_sidecar();
+  ReactRemoveScroll = React31.forwardRef(function(props2, ref) {
+    return React31.createElement(RemoveScroll, __assign({}, props2, { ref, sideCar: sidecar_default }));
+  });
+  ReactRemoveScroll.classNames = RemoveScroll.classNames;
+  Combination_default = ReactRemoveScroll;
+});
+
+// node_modules/react-remove-scroll/dist/es2015/index.js
+var init_es20155 = __esm(() => {
+  init_Combination();
+});
+
+// node_modules/aria-hidden/dist/es2015/index.js
+var getDefaultParent = function(originalTarget) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
+  return sampleTarget.ownerDocument.body;
+}, counterMap, uncontrolledNodes, markerMap, lockCount = 0, unwrapHost = function(node) {
+  return node && (node.host || unwrapHost(node.parentNode));
+}, correctTargets = function(parent, targets) {
+  return targets.map(function(target) {
+    if (parent.contains(target)) {
+      return target;
+    }
+    var correctedTarget = unwrapHost(target);
+    if (correctedTarget && parent.contains(correctedTarget)) {
+      return correctedTarget;
+    }
+    console.error("aria-hidden", target, "in not contained inside", parent, ". Doing nothing");
+    return null;
+  }).filter(function(x) {
+    return Boolean(x);
+  });
+}, applyAttributeToOthers = function(originalTarget, parentNode, markerName, controlAttribute) {
+  var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+  if (!markerMap[markerName]) {
+    markerMap[markerName] = new WeakMap;
+  }
+  var markerCounter = markerMap[markerName];
+  var hiddenNodes = [];
+  var elementsToKeep = new Set;
+  var elementsToStop = new Set(targets);
+  var keep = function(el) {
+    if (!el || elementsToKeep.has(el)) {
+      return;
+    }
+    elementsToKeep.add(el);
+    keep(el.parentNode);
+  };
+  targets.forEach(keep);
+  var deep = function(parent) {
+    if (!parent || elementsToStop.has(parent)) {
+      return;
+    }
+    Array.prototype.forEach.call(parent.children, function(node) {
+      if (elementsToKeep.has(node)) {
+        deep(node);
+      } else {
+        try {
+          var attr = node.getAttribute(controlAttribute);
+          var alreadyHidden = attr !== null && attr !== "false";
+          var counterValue = (counterMap.get(node) || 0) + 1;
+          var markerValue = (markerCounter.get(node) || 0) + 1;
+          counterMap.set(node, counterValue);
+          markerCounter.set(node, markerValue);
+          hiddenNodes.push(node);
+          if (counterValue === 1 && alreadyHidden) {
+            uncontrolledNodes.set(node, true);
+          }
+          if (markerValue === 1) {
+            node.setAttribute(markerName, "true");
+          }
+          if (!alreadyHidden) {
+            node.setAttribute(controlAttribute, "true");
+          }
+        } catch (e) {
+          console.error("aria-hidden: cannot operate on ", node, e);
+        }
+      }
+    });
+  };
+  deep(parentNode);
+  elementsToKeep.clear();
+  lockCount++;
+  return function() {
+    hiddenNodes.forEach(function(node) {
+      var counterValue = counterMap.get(node) - 1;
+      var markerValue = markerCounter.get(node) - 1;
+      counterMap.set(node, counterValue);
+      markerCounter.set(node, markerValue);
+      if (!counterValue) {
+        if (!uncontrolledNodes.has(node)) {
+          node.removeAttribute(controlAttribute);
+        }
+        uncontrolledNodes.delete(node);
+      }
+      if (!markerValue) {
+        node.removeAttribute(markerName);
+      }
+    });
+    lockCount--;
+    if (!lockCount) {
+      counterMap = new WeakMap;
+      counterMap = new WeakMap;
+      uncontrolledNodes = new WeakMap;
+      markerMap = {};
+    }
+  };
+}, hideOthers = function(originalTarget, parentNode, markerName) {
+  if (markerName === undefined) {
+    markerName = "data-aria-hidden";
+  }
+  var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+  var activeParentNode = parentNode || getDefaultParent(originalTarget);
+  if (!activeParentNode) {
+    return function() {
+      return null;
+    };
+  }
+  targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
+  return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
+};
+var init_es20156 = __esm(() => {
+  counterMap = new WeakMap;
+  uncontrolledNodes = new WeakMap;
+  markerMap = {};
+});
+
 // node_modules/class-variance-authority/dist/index.mjs
 var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value, cx, cva = (base, config) => (props2) => {
   var _config_compoundVariants;
@@ -26260,52 +28033,19 @@ var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value =
   }, []);
   return cx(base, getVariantClassNames, getCompoundVariantClassNames, props2 === null || props2 === undefined ? undefined : props2.class, props2 === null || props2 === undefined ? undefined : props2.className);
 };
-var init_dist4 = __esm(() => {
+var init_dist16 = __esm(() => {
   init_clsx();
   cx = clsx;
 });
 
-// dashboard/src/components/ui/badge.jsx
-function Badge({
-  className,
-  variant,
-  ...props2
-}) {
-  return /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-    className: cn(badgeVariants({ variant }), className),
-    ...props2
-  }, undefined, false, undefined, this);
-}
-var React9, jsx_dev_runtime4, badgeVariants;
-var init_badge = __esm(() => {
-  React9 = __toESM(require_react(), 1);
-  init_dist4();
-  init_utils();
-  jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
-  badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
-    variants: {
-      variant: {
-        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
-        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
-        outline: "text-foreground",
-        success: "border-transparent bg-green-500 text-white hover:bg-green-500/80"
-      }
-    },
-    defaultVariants: {
-      variant: "default"
-    }
-  });
-});
-
 // dashboard/src/components/ui/button.jsx
-var React11, jsx_dev_runtime6, buttonVariants, Button;
+var React34, jsx_dev_runtime5, buttonVariants, Button;
 var init_button = __esm(() => {
-  React11 = __toESM(require_react(), 1);
+  React34 = __toESM(require_react(), 1);
   init_dist2();
-  init_dist4();
+  init_dist16();
   init_utils();
-  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
   buttonVariants = cva("inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", {
     variants: {
       variant: {
@@ -26328,9 +28068,9 @@ var init_button = __esm(() => {
       size: "default"
     }
   });
-  Button = React11.forwardRef(({ className, variant, size, asChild = false, ...props2 }, ref) => {
+  Button = React34.forwardRef(({ className, variant, size, asChild = false, ...props2 }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Comp, {
+    return /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Comp, {
       className: cn(buttonVariants({ variant, size, className })),
       ref,
       ...props2
@@ -26339,14 +28079,754 @@ var init_button = __esm(() => {
   Button.displayName = "Button";
 });
 
-// dashboard/src/components/ui/input.jsx
-var React12, jsx_dev_runtime7, Input;
-var init_input = __esm(() => {
-  React12 = __toESM(require_react(), 1);
+// node_modules/@radix-ui/react-direction/dist/index.mjs
+function useDirection(localDir) {
+  const globalDir = React35.useContext(DirectionContext);
+  return localDir || globalDir || "ltr";
+}
+var React35, import_jsx_runtime9, DirectionContext;
+var init_dist17 = __esm(() => {
+  React35 = __toESM(require_react(), 1);
+  import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
+  DirectionContext = React35.createContext(undefined);
+});
+
+// node_modules/@radix-ui/number/dist/index.mjs
+function clamp(value, [min, max]) {
+  return Math.min(max, Math.max(min, value));
+}
+var init_dist18 = () => {};
+
+// node_modules/@radix-ui/react-scroll-area/dist/index.mjs
+function useStateMachine2(initialState, machine) {
+  return React36.useReducer((state, event) => {
+    const nextState = machine[state][event];
+    return nextState ?? state;
+  }, initialState);
+}
+function toInt(value) {
+  return value ? parseInt(value, 10) : 0;
+}
+function getThumbRatio(viewportSize, contentSize) {
+  const ratio = viewportSize / contentSize;
+  return isNaN(ratio) ? 0 : ratio;
+}
+function getThumbSize(sizes) {
+  const ratio = getThumbRatio(sizes.viewport, sizes.content);
+  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+  const thumbSize = (sizes.scrollbar.size - scrollbarPadding) * ratio;
+  return Math.max(thumbSize, 18);
+}
+function getScrollPositionFromPointer(pointerPos, pointerOffset, sizes, dir = "ltr") {
+  const thumbSizePx = getThumbSize(sizes);
+  const thumbCenter = thumbSizePx / 2;
+  const offset = pointerOffset || thumbCenter;
+  const thumbOffsetFromEnd = thumbSizePx - offset;
+  const minPointerPos = sizes.scrollbar.paddingStart + offset;
+  const maxPointerPos = sizes.scrollbar.size - sizes.scrollbar.paddingEnd - thumbOffsetFromEnd;
+  const maxScrollPos = sizes.content - sizes.viewport;
+  const scrollRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+  const interpolate = linearScale([minPointerPos, maxPointerPos], scrollRange);
+  return interpolate(pointerPos);
+}
+function getThumbOffsetFromScroll(scrollPos, sizes, dir = "ltr") {
+  const thumbSizePx = getThumbSize(sizes);
+  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
+  const scrollbar = sizes.scrollbar.size - scrollbarPadding;
+  const maxScrollPos = sizes.content - sizes.viewport;
+  const maxThumbPos = scrollbar - thumbSizePx;
+  const scrollClampRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
+  const scrollWithoutMomentum = clamp(scrollPos, scrollClampRange);
+  const interpolate = linearScale([0, maxScrollPos], [0, maxThumbPos]);
+  return interpolate(scrollWithoutMomentum);
+}
+function linearScale(input, output) {
+  return (value) => {
+    if (input[0] === input[1] || output[0] === output[1])
+      return output[0];
+    const ratio = (output[1] - output[0]) / (input[1] - input[0]);
+    return output[0] + ratio * (value - input[0]);
+  };
+}
+function isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos) {
+  return scrollPos > 0 && scrollPos < maxScrollPos;
+}
+function useDebounceCallback(callback, delay) {
+  const handleCallback = useCallbackRef(callback);
+  const debounceTimerRef = React25.useRef(0);
+  React25.useEffect(() => () => window.clearTimeout(debounceTimerRef.current), []);
+  return React25.useCallback(() => {
+    window.clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = window.setTimeout(handleCallback, delay);
+  }, [handleCallback, delay]);
+}
+function useResizeObserver(element, onResize) {
+  const handleResize = useCallbackRef(onResize);
+  useLayoutEffect22(() => {
+    let rAF = 0;
+    if (element) {
+      const resizeObserver = new ResizeObserver(() => {
+        cancelAnimationFrame(rAF);
+        rAF = window.requestAnimationFrame(handleResize);
+      });
+      resizeObserver.observe(element);
+      return () => {
+        window.cancelAnimationFrame(rAF);
+        resizeObserver.unobserve(element);
+      };
+    }
+  }, [element, handleResize]);
+}
+var React25, React36, import_jsx_runtime10, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
+  let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
+  let rAF = 0;
+  (function loop() {
+    const position = { left: node.scrollLeft, top: node.scrollTop };
+    const isHorizontalScroll = prevPosition.left !== position.left;
+    const isVerticalScroll = prevPosition.top !== position.top;
+    if (isHorizontalScroll || isVerticalScroll)
+      handler();
+    prevPosition = position;
+    rAF = window.requestAnimationFrame(loop);
+  })();
+  return () => window.cancelAnimationFrame(rAF);
+}, Root3, Viewport, Scrollbar, Thumb, Corner;
+var init_dist19 = __esm(() => {
+  React25 = __toESM(require_react(), 1);
+  init_dist3();
+  init_dist14();
+  init_dist5();
+  init_dist();
+  init_dist9();
+  init_dist17();
+  init_dist6();
+  init_dist18();
+  init_dist4();
+  React36 = __toESM(require_react(), 1);
+  import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  [createScrollAreaContext, createScrollAreaScope] = createContextScope(SCROLL_AREA_NAME);
+  [ScrollAreaProvider, useScrollAreaContext] = createScrollAreaContext(SCROLL_AREA_NAME);
+  ScrollArea = React25.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeScrollArea,
+      type = "hover",
+      dir,
+      scrollHideDelay = 600,
+      ...scrollAreaProps
+    } = props2;
+    const [scrollArea, setScrollArea] = React25.useState(null);
+    const [viewport, setViewport] = React25.useState(null);
+    const [content, setContent] = React25.useState(null);
+    const [scrollbarX, setScrollbarX] = React25.useState(null);
+    const [scrollbarY, setScrollbarY] = React25.useState(null);
+    const [cornerWidth, setCornerWidth] = React25.useState(0);
+    const [cornerHeight, setCornerHeight] = React25.useState(0);
+    const [scrollbarXEnabled, setScrollbarXEnabled] = React25.useState(false);
+    const [scrollbarYEnabled, setScrollbarYEnabled] = React25.useState(false);
+    const composedRefs = useComposedRefs(forwardedRef, (node) => setScrollArea(node));
+    const direction = useDirection(dir);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaProvider, {
+      scope: __scopeScrollArea,
+      type,
+      dir: direction,
+      scrollHideDelay,
+      scrollArea,
+      viewport,
+      onViewportChange: setViewport,
+      content,
+      onContentChange: setContent,
+      scrollbarX,
+      onScrollbarXChange: setScrollbarX,
+      scrollbarXEnabled,
+      onScrollbarXEnabledChange: setScrollbarXEnabled,
+      scrollbarY,
+      onScrollbarYChange: setScrollbarY,
+      scrollbarYEnabled,
+      onScrollbarYEnabledChange: setScrollbarYEnabled,
+      onCornerWidthChange: setCornerWidth,
+      onCornerHeightChange: setCornerHeight,
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+        dir: direction,
+        ...scrollAreaProps,
+        ref: composedRefs,
+        style: {
+          position: "relative",
+          ["--radix-scroll-area-corner-width"]: cornerWidth + "px",
+          ["--radix-scroll-area-corner-height"]: cornerHeight + "px",
+          ...props2.style
+        }
+      })
+    });
+  });
+  ScrollArea.displayName = SCROLL_AREA_NAME;
+  ScrollAreaViewport = React25.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, children, nonce: nonce2, ...viewportProps } = props2;
+    const context = useScrollAreaContext(VIEWPORT_NAME, __scopeScrollArea);
+    const ref = React25.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref, context.onViewportChange);
+    return /* @__PURE__ */ import_jsx_runtime10.jsxs(import_jsx_runtime10.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime10.jsx("style", {
+        dangerouslySetInnerHTML: {
+          __html: `[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}`
+        },
+        nonce: nonce2
+      }),
+      /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+        "data-radix-scroll-area-viewport": "",
+        ...viewportProps,
+        ref: composedRefs,
+        style: {
+          overflowX: context.scrollbarXEnabled ? "scroll" : "hidden",
+          overflowY: context.scrollbarYEnabled ? "scroll" : "hidden",
+          ...props2.style
+        },
+        children: /* @__PURE__ */ import_jsx_runtime10.jsx("div", { ref: context.onContentChange, style: { minWidth: "100%", display: "table" }, children })
+      })
+    ] });
+  });
+  ScrollAreaViewport.displayName = VIEWPORT_NAME;
+  ScrollAreaScrollbar = React25.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const { onScrollbarXEnabledChange, onScrollbarYEnabledChange } = context;
+    const isHorizontal = props2.orientation === "horizontal";
+    React25.useEffect(() => {
+      isHorizontal ? onScrollbarXEnabledChange(true) : onScrollbarYEnabledChange(true);
+      return () => {
+        isHorizontal ? onScrollbarXEnabledChange(false) : onScrollbarYEnabledChange(false);
+      };
+    }, [isHorizontal, onScrollbarXEnabledChange, onScrollbarYEnabledChange]);
+    return context.type === "hover" ? /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarHover, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "scroll" ? /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarScroll, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "auto" ? /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarAuto, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "always" ? /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarVisible, { ...scrollbarProps, ref: forwardedRef }) : null;
+  });
+  ScrollAreaScrollbar.displayName = SCROLLBAR_NAME;
+  ScrollAreaScrollbarHover = React25.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [visible, setVisible] = React25.useState(false);
+    React25.useEffect(() => {
+      const scrollArea = context.scrollArea;
+      let hideTimer = 0;
+      if (scrollArea) {
+        const handlePointerEnter = () => {
+          window.clearTimeout(hideTimer);
+          setVisible(true);
+        };
+        const handlePointerLeave = () => {
+          hideTimer = window.setTimeout(() => setVisible(false), context.scrollHideDelay);
+        };
+        scrollArea.addEventListener("pointerenter", handlePointerEnter);
+        scrollArea.addEventListener("pointerleave", handlePointerLeave);
+        return () => {
+          window.clearTimeout(hideTimer);
+          scrollArea.removeEventListener("pointerenter", handlePointerEnter);
+          scrollArea.removeEventListener("pointerleave", handlePointerLeave);
+        };
+      }
+    }, [context.scrollArea, context.scrollHideDelay]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarAuto, {
+      "data-state": visible ? "visible" : "hidden",
+      ...scrollbarProps,
+      ref: forwardedRef
+    }) });
+  });
+  ScrollAreaScrollbarScroll = React25.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const isHorizontal = props2.orientation === "horizontal";
+    const debounceScrollEnd = useDebounceCallback(() => send("SCROLL_END"), 100);
+    const [state, send] = useStateMachine2("hidden", {
+      hidden: {
+        SCROLL: "scrolling"
+      },
+      scrolling: {
+        SCROLL_END: "idle",
+        POINTER_ENTER: "interacting"
+      },
+      interacting: {
+        SCROLL: "interacting",
+        POINTER_LEAVE: "idle"
+      },
+      idle: {
+        HIDE: "hidden",
+        SCROLL: "scrolling",
+        POINTER_ENTER: "interacting"
+      }
+    });
+    React25.useEffect(() => {
+      if (state === "idle") {
+        const hideTimer = window.setTimeout(() => send("HIDE"), context.scrollHideDelay);
+        return () => window.clearTimeout(hideTimer);
+      }
+    }, [state, context.scrollHideDelay, send]);
+    React25.useEffect(() => {
+      const viewport = context.viewport;
+      const scrollDirection = isHorizontal ? "scrollLeft" : "scrollTop";
+      if (viewport) {
+        let prevScrollPos = viewport[scrollDirection];
+        const handleScroll2 = () => {
+          const scrollPos = viewport[scrollDirection];
+          const hasScrollInDirectionChanged = prevScrollPos !== scrollPos;
+          if (hasScrollInDirectionChanged) {
+            send("SCROLL");
+            debounceScrollEnd();
+          }
+          prevScrollPos = scrollPos;
+        };
+        viewport.addEventListener("scroll", handleScroll2);
+        return () => viewport.removeEventListener("scroll", handleScroll2);
+      }
+    }, [context.viewport, isHorizontal, send, debounceScrollEnd]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Presence, { present: forceMount || state !== "hidden", children: /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarVisible, {
+      "data-state": state === "hidden" ? "hidden" : "visible",
+      ...scrollbarProps,
+      ref: forwardedRef,
+      onPointerEnter: composeEventHandlers(props2.onPointerEnter, () => send("POINTER_ENTER")),
+      onPointerLeave: composeEventHandlers(props2.onPointerLeave, () => send("POINTER_LEAVE"))
+    }) });
+  });
+  ScrollAreaScrollbarAuto = React25.forwardRef((props2, forwardedRef) => {
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const { forceMount, ...scrollbarProps } = props2;
+    const [visible, setVisible] = React25.useState(false);
+    const isHorizontal = props2.orientation === "horizontal";
+    const handleResize = useDebounceCallback(() => {
+      if (context.viewport) {
+        const isOverflowX = context.viewport.offsetWidth < context.viewport.scrollWidth;
+        const isOverflowY = context.viewport.offsetHeight < context.viewport.scrollHeight;
+        setVisible(isHorizontal ? isOverflowX : isOverflowY);
+      }
+    }, 10);
+    useResizeObserver(context.viewport, handleResize);
+    useResizeObserver(context.content, handleResize);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarVisible, {
+      "data-state": visible ? "visible" : "hidden",
+      ...scrollbarProps,
+      ref: forwardedRef
+    }) });
+  });
+  ScrollAreaScrollbarVisible = React25.forwardRef((props2, forwardedRef) => {
+    const { orientation = "vertical", ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const thumbRef = React25.useRef(null);
+    const pointerOffsetRef = React25.useRef(0);
+    const [sizes, setSizes] = React25.useState({
+      content: 0,
+      viewport: 0,
+      scrollbar: { size: 0, paddingStart: 0, paddingEnd: 0 }
+    });
+    const thumbRatio = getThumbRatio(sizes.viewport, sizes.content);
+    const commonProps = {
+      ...scrollbarProps,
+      sizes,
+      onSizesChange: setSizes,
+      hasThumb: Boolean(thumbRatio > 0 && thumbRatio < 1),
+      onThumbChange: (thumb) => thumbRef.current = thumb,
+      onThumbPointerUp: () => pointerOffsetRef.current = 0,
+      onThumbPointerDown: (pointerPos) => pointerOffsetRef.current = pointerPos
+    };
+    function getScrollPosition(pointerPos, dir) {
+      return getScrollPositionFromPointer(pointerPos, pointerOffsetRef.current, sizes, dir);
+    }
+    if (orientation === "horizontal") {
+      return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarX, {
+        ...commonProps,
+        ref: forwardedRef,
+        onThumbPositionChange: () => {
+          if (context.viewport && thumbRef.current) {
+            const scrollPos = context.viewport.scrollLeft;
+            const offset = getThumbOffsetFromScroll(scrollPos, sizes, context.dir);
+            thumbRef.current.style.transform = `translate3d(${offset}px, 0, 0)`;
+          }
+        },
+        onWheelScroll: (scrollPos) => {
+          if (context.viewport)
+            context.viewport.scrollLeft = scrollPos;
+        },
+        onDragScroll: (pointerPos) => {
+          if (context.viewport) {
+            context.viewport.scrollLeft = getScrollPosition(pointerPos, context.dir);
+          }
+        }
+      });
+    }
+    if (orientation === "vertical") {
+      return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarY, {
+        ...commonProps,
+        ref: forwardedRef,
+        onThumbPositionChange: () => {
+          if (context.viewport && thumbRef.current) {
+            const scrollPos = context.viewport.scrollTop;
+            const offset = getThumbOffsetFromScroll(scrollPos, sizes);
+            thumbRef.current.style.transform = `translate3d(0, ${offset}px, 0)`;
+          }
+        },
+        onWheelScroll: (scrollPos) => {
+          if (context.viewport)
+            context.viewport.scrollTop = scrollPos;
+        },
+        onDragScroll: (pointerPos) => {
+          if (context.viewport)
+            context.viewport.scrollTop = getScrollPosition(pointerPos);
+        }
+      });
+    }
+    return null;
+  });
+  ScrollAreaScrollbarX = React25.forwardRef((props2, forwardedRef) => {
+    const { sizes, onSizesChange, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [computedStyle, setComputedStyle] = React25.useState();
+    const ref = React25.useRef(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarXChange);
+    React25.useEffect(() => {
+      if (ref.current)
+        setComputedStyle(getComputedStyle(ref.current));
+    }, [ref]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarImpl, {
+      "data-orientation": "horizontal",
+      ...scrollbarProps,
+      ref: composeRefs2,
+      sizes,
+      style: {
+        bottom: 0,
+        left: context.dir === "rtl" ? "var(--radix-scroll-area-corner-width)" : 0,
+        right: context.dir === "ltr" ? "var(--radix-scroll-area-corner-width)" : 0,
+        ["--radix-scroll-area-thumb-width"]: getThumbSize(sizes) + "px",
+        ...props2.style
+      },
+      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.x),
+      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.x),
+      onWheelScroll: (event, maxScrollPos) => {
+        if (context.viewport) {
+          const scrollPos = context.viewport.scrollLeft + event.deltaX;
+          props2.onWheelScroll(scrollPos);
+          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+            event.preventDefault();
+          }
+        }
+      },
+      onResize: () => {
+        if (ref.current && context.viewport && computedStyle) {
+          onSizesChange({
+            content: context.viewport.scrollWidth,
+            viewport: context.viewport.offsetWidth,
+            scrollbar: {
+              size: ref.current.clientWidth,
+              paddingStart: toInt(computedStyle.paddingLeft),
+              paddingEnd: toInt(computedStyle.paddingRight)
+            }
+          });
+        }
+      }
+    });
+  });
+  ScrollAreaScrollbarY = React25.forwardRef((props2, forwardedRef) => {
+    const { sizes, onSizesChange, ...scrollbarProps } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
+    const [computedStyle, setComputedStyle] = React25.useState();
+    const ref = React25.useRef(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarYChange);
+    React25.useEffect(() => {
+      if (ref.current)
+        setComputedStyle(getComputedStyle(ref.current));
+    }, [ref]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaScrollbarImpl, {
+      "data-orientation": "vertical",
+      ...scrollbarProps,
+      ref: composeRefs2,
+      sizes,
+      style: {
+        top: 0,
+        right: context.dir === "ltr" ? 0 : undefined,
+        left: context.dir === "rtl" ? 0 : undefined,
+        bottom: "var(--radix-scroll-area-corner-height)",
+        ["--radix-scroll-area-thumb-height"]: getThumbSize(sizes) + "px",
+        ...props2.style
+      },
+      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.y),
+      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.y),
+      onWheelScroll: (event, maxScrollPos) => {
+        if (context.viewport) {
+          const scrollPos = context.viewport.scrollTop + event.deltaY;
+          props2.onWheelScroll(scrollPos);
+          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
+            event.preventDefault();
+          }
+        }
+      },
+      onResize: () => {
+        if (ref.current && context.viewport && computedStyle) {
+          onSizesChange({
+            content: context.viewport.scrollHeight,
+            viewport: context.viewport.offsetHeight,
+            scrollbar: {
+              size: ref.current.clientHeight,
+              paddingStart: toInt(computedStyle.paddingTop),
+              paddingEnd: toInt(computedStyle.paddingBottom)
+            }
+          });
+        }
+      }
+    });
+  });
+  [ScrollbarProvider, useScrollbarContext] = createScrollAreaContext(SCROLLBAR_NAME);
+  ScrollAreaScrollbarImpl = React25.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeScrollArea,
+      sizes,
+      hasThumb,
+      onThumbChange,
+      onThumbPointerUp,
+      onThumbPointerDown,
+      onThumbPositionChange,
+      onDragScroll,
+      onWheelScroll,
+      onResize,
+      ...scrollbarProps
+    } = props2;
+    const context = useScrollAreaContext(SCROLLBAR_NAME, __scopeScrollArea);
+    const [scrollbar, setScrollbar] = React25.useState(null);
+    const composeRefs2 = useComposedRefs(forwardedRef, (node) => setScrollbar(node));
+    const rectRef = React25.useRef(null);
+    const prevWebkitUserSelectRef = React25.useRef("");
+    const viewport = context.viewport;
+    const maxScrollPos = sizes.content - sizes.viewport;
+    const handleWheelScroll = useCallbackRef(onWheelScroll);
+    const handleThumbPositionChange = useCallbackRef(onThumbPositionChange);
+    const handleResize = useDebounceCallback(onResize, 10);
+    function handleDragScroll(event) {
+      if (rectRef.current) {
+        const x = event.clientX - rectRef.current.left;
+        const y = event.clientY - rectRef.current.top;
+        onDragScroll({ x, y });
+      }
+    }
+    React25.useEffect(() => {
+      const handleWheel = (event) => {
+        const element = event.target;
+        const isScrollbarWheel = scrollbar?.contains(element);
+        if (isScrollbarWheel)
+          handleWheelScroll(event, maxScrollPos);
+      };
+      document.addEventListener("wheel", handleWheel, { passive: false });
+      return () => document.removeEventListener("wheel", handleWheel, { passive: false });
+    }, [viewport, scrollbar, maxScrollPos, handleWheelScroll]);
+    React25.useEffect(handleThumbPositionChange, [sizes, handleThumbPositionChange]);
+    useResizeObserver(scrollbar, handleResize);
+    useResizeObserver(context.content, handleResize);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollbarProvider, {
+      scope: __scopeScrollArea,
+      scrollbar,
+      hasThumb,
+      onThumbChange: useCallbackRef(onThumbChange),
+      onThumbPointerUp: useCallbackRef(onThumbPointerUp),
+      onThumbPositionChange: handleThumbPositionChange,
+      onThumbPointerDown: useCallbackRef(onThumbPointerDown),
+      children: /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+        ...scrollbarProps,
+        ref: composeRefs2,
+        style: { position: "absolute", ...scrollbarProps.style },
+        onPointerDown: composeEventHandlers(props2.onPointerDown, (event) => {
+          const mainPointer = 0;
+          if (event.button === mainPointer) {
+            const element = event.target;
+            element.setPointerCapture(event.pointerId);
+            rectRef.current = scrollbar.getBoundingClientRect();
+            prevWebkitUserSelectRef.current = document.body.style.webkitUserSelect;
+            document.body.style.webkitUserSelect = "none";
+            if (context.viewport)
+              context.viewport.style.scrollBehavior = "auto";
+            handleDragScroll(event);
+          }
+        }),
+        onPointerMove: composeEventHandlers(props2.onPointerMove, handleDragScroll),
+        onPointerUp: composeEventHandlers(props2.onPointerUp, (event) => {
+          const element = event.target;
+          if (element.hasPointerCapture(event.pointerId)) {
+            element.releasePointerCapture(event.pointerId);
+          }
+          document.body.style.webkitUserSelect = prevWebkitUserSelectRef.current;
+          if (context.viewport)
+            context.viewport.style.scrollBehavior = "";
+          rectRef.current = null;
+        })
+      })
+    });
+  });
+  ScrollAreaThumb = React25.forwardRef((props2, forwardedRef) => {
+    const { forceMount, ...thumbProps } = props2;
+    const scrollbarContext = useScrollbarContext(THUMB_NAME, props2.__scopeScrollArea);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Presence, { present: forceMount || scrollbarContext.hasThumb, children: /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaThumbImpl, { ref: forwardedRef, ...thumbProps }) });
+  });
+  ScrollAreaThumbImpl = React25.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, style, ...thumbProps } = props2;
+    const scrollAreaContext = useScrollAreaContext(THUMB_NAME, __scopeScrollArea);
+    const scrollbarContext = useScrollbarContext(THUMB_NAME, __scopeScrollArea);
+    const { onThumbPositionChange } = scrollbarContext;
+    const composedRef = useComposedRefs(forwardedRef, (node) => scrollbarContext.onThumbChange(node));
+    const removeUnlinkedScrollListenerRef = React25.useRef(undefined);
+    const debounceScrollEnd = useDebounceCallback(() => {
+      if (removeUnlinkedScrollListenerRef.current) {
+        removeUnlinkedScrollListenerRef.current();
+        removeUnlinkedScrollListenerRef.current = undefined;
+      }
+    }, 100);
+    React25.useEffect(() => {
+      const viewport = scrollAreaContext.viewport;
+      if (viewport) {
+        const handleScroll2 = () => {
+          debounceScrollEnd();
+          if (!removeUnlinkedScrollListenerRef.current) {
+            const listener = addUnlinkedScrollListener(viewport, onThumbPositionChange);
+            removeUnlinkedScrollListenerRef.current = listener;
+            onThumbPositionChange();
+          }
+        };
+        onThumbPositionChange();
+        viewport.addEventListener("scroll", handleScroll2);
+        return () => viewport.removeEventListener("scroll", handleScroll2);
+      }
+    }, [scrollAreaContext.viewport, debounceScrollEnd, onThumbPositionChange]);
+    return /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+      "data-state": scrollbarContext.hasThumb ? "visible" : "hidden",
+      ...thumbProps,
+      ref: composedRef,
+      style: {
+        width: "var(--radix-scroll-area-thumb-width)",
+        height: "var(--radix-scroll-area-thumb-height)",
+        ...style
+      },
+      onPointerDownCapture: composeEventHandlers(props2.onPointerDownCapture, (event) => {
+        const thumb = event.target;
+        const thumbRect = thumb.getBoundingClientRect();
+        const x = event.clientX - thumbRect.left;
+        const y = event.clientY - thumbRect.top;
+        scrollbarContext.onThumbPointerDown({ x, y });
+      }),
+      onPointerUp: composeEventHandlers(props2.onPointerUp, scrollbarContext.onThumbPointerUp)
+    });
+  });
+  ScrollAreaThumb.displayName = THUMB_NAME;
+  ScrollAreaCorner = React25.forwardRef((props2, forwardedRef) => {
+    const context = useScrollAreaContext(CORNER_NAME, props2.__scopeScrollArea);
+    const hasBothScrollbarsVisible = Boolean(context.scrollbarX && context.scrollbarY);
+    const hasCorner = context.type !== "scroll" && hasBothScrollbarsVisible;
+    return hasCorner ? /* @__PURE__ */ import_jsx_runtime10.jsx(ScrollAreaCornerImpl, { ...props2, ref: forwardedRef }) : null;
+  });
+  ScrollAreaCorner.displayName = CORNER_NAME;
+  ScrollAreaCornerImpl = React25.forwardRef((props2, forwardedRef) => {
+    const { __scopeScrollArea, ...cornerProps } = props2;
+    const context = useScrollAreaContext(CORNER_NAME, __scopeScrollArea);
+    const [width, setWidth] = React25.useState(0);
+    const [height, setHeight] = React25.useState(0);
+    const hasSize = Boolean(width && height);
+    useResizeObserver(context.scrollbarX, () => {
+      const height2 = context.scrollbarX?.offsetHeight || 0;
+      context.onCornerHeightChange(height2);
+      setHeight(height2);
+    });
+    useResizeObserver(context.scrollbarY, () => {
+      const width2 = context.scrollbarY?.offsetWidth || 0;
+      context.onCornerWidthChange(width2);
+      setWidth(width2);
+    });
+    return hasSize ? /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.div, {
+      ...cornerProps,
+      ref: forwardedRef,
+      style: {
+        width,
+        height,
+        position: "absolute",
+        right: context.dir === "ltr" ? 0 : undefined,
+        left: context.dir === "rtl" ? 0 : undefined,
+        bottom: 0,
+        ...props2.style
+      }
+    }) : null;
+  });
+  Root3 = ScrollArea;
+  Viewport = ScrollAreaViewport;
+  Scrollbar = ScrollAreaScrollbar;
+  Thumb = ScrollAreaThumb;
+  Corner = ScrollAreaCorner;
+});
+
+// dashboard/src/components/ui/scroll-area.jsx
+var React37, jsx_dev_runtime6, ScrollArea2, ScrollBar;
+var init_scroll_area = __esm(() => {
+  React37 = __toESM(require_react(), 1);
+  init_dist19();
+  init_utils();
+  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  ScrollArea2 = React37.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Root3, {
+    ref,
+    className: cn("relative overflow-hidden", className),
+    ...props2,
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Viewport, {
+        className: "h-full w-full rounded-[inherit]",
+        children
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(ScrollBar, {}, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Corner, {}, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this));
+  ScrollArea2.displayName = Root3.displayName;
+  ScrollBar = React37.forwardRef(({ className, orientation = "vertical", ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Scrollbar, {
+    ref,
+    orientation,
+    className: cn("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
+    ...props2,
+    children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Thumb, {
+      className: "relative flex-1 rounded-full bg-border"
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this));
+  ScrollBar.displayName = Scrollbar.displayName;
+});
+
+// dashboard/src/components/ui/badge.jsx
+function Badge({
+  className,
+  variant,
+  ...props2
+}) {
+  return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("div", {
+    className: cn(badgeVariants({ variant }), className),
+    ...props2
+  }, undefined, false, undefined, this);
+}
+var React38, jsx_dev_runtime7, badgeVariants;
+var init_badge = __esm(() => {
+  React38 = __toESM(require_react(), 1);
+  init_dist16();
   init_utils();
   jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
-  Input = React12.forwardRef(({ className, type, ...props2 }, ref) => {
-    return /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("input", {
+  badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
+    variants: {
+      variant: {
+        default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+        secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+        destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+        outline: "text-foreground",
+        success: "border-transparent bg-green-500 text-white hover:bg-green-500/80"
+      }
+    },
+    defaultVariants: {
+      variant: "default"
+    }
+  });
+});
+
+// dashboard/src/components/ui/input.jsx
+var React40, jsx_dev_runtime9, Input;
+var init_input = __esm(() => {
+  React40 = __toESM(require_react(), 1);
+  init_utils();
+  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
+  Input = React40.forwardRef(({ className, type, ...props2 }, ref) => {
+    return /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("input", {
       type,
       className: cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
       ref,
@@ -26356,90 +28836,6 @@ var init_input = __esm(() => {
   Input.displayName = "Input";
 });
 
-// node_modules/@radix-ui/number/dist/index.mjs
-function clamp(value, [min, max]) {
-  return Math.min(max, Math.max(min, value));
-}
-var init_dist5 = () => {};
-
-// node_modules/@radix-ui/primitive/dist/index.mjs
-function composeEventHandlers(originalEventHandler, ourEventHandler, { checkForDefaultPrevented = true } = {}) {
-  return function handleEvent(event) {
-    originalEventHandler?.(event);
-    if (checkForDefaultPrevented === false || !event.defaultPrevented) {
-      return ourEventHandler?.(event);
-    }
-  };
-}
-var canUseDOM;
-var init_dist6 = __esm(() => {
-  canUseDOM = !!(typeof window !== "undefined" && window.document && window.document.createElement);
-});
-
-// node_modules/@radix-ui/react-context/dist/index.mjs
-function createContextScope(scopeName, createContextScopeDeps = []) {
-  let defaultContexts = [];
-  function createContext3(rootComponentName, defaultContext) {
-    const BaseContext = React13.createContext(defaultContext);
-    const index = defaultContexts.length;
-    defaultContexts = [...defaultContexts, defaultContext];
-    const Provider = (props2) => {
-      const { scope, children, ...context } = props2;
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const value = React13.useMemo(() => context, Object.values(context));
-      return /* @__PURE__ */ import_jsx_runtime4.jsx(Context.Provider, { value, children });
-    };
-    Provider.displayName = rootComponentName + "Provider";
-    function useContext22(consumerName, scope) {
-      const Context = scope?.[scopeName]?.[index] || BaseContext;
-      const context = React13.useContext(Context);
-      if (context)
-        return context;
-      if (defaultContext !== undefined)
-        return defaultContext;
-      throw new Error(`\`${consumerName}\` must be used within \`${rootComponentName}\``);
-    }
-    return [Provider, useContext22];
-  }
-  const createScope = () => {
-    const scopeContexts = defaultContexts.map((defaultContext) => {
-      return React13.createContext(defaultContext);
-    });
-    return function useScope(scope) {
-      const contexts = scope?.[scopeName] || scopeContexts;
-      return React13.useMemo(() => ({ [`__scope${scopeName}`]: { ...scope, [scopeName]: contexts } }), [scope, contexts]);
-    };
-  };
-  createScope.scopeName = scopeName;
-  return [createContext3, composeContextScopes(createScope, ...createContextScopeDeps)];
-}
-function composeContextScopes(...scopes) {
-  const baseScope = scopes[0];
-  if (scopes.length === 1)
-    return baseScope;
-  const createScope = () => {
-    const scopeHooks = scopes.map((createScope2) => ({
-      useScope: createScope2(),
-      scopeName: createScope2.scopeName
-    }));
-    return function useComposedScopes(overrideScopes) {
-      const nextScopes = scopeHooks.reduce((nextScopes2, { useScope, scopeName }) => {
-        const scopeProps = useScope(overrideScopes);
-        const currentScope = scopeProps[`__scope${scopeName}`];
-        return { ...nextScopes2, ...currentScope };
-      }, {});
-      return React13.useMemo(() => ({ [`__scope${baseScope.scopeName}`]: nextScopes }), [nextScopes]);
-    };
-  };
-  createScope.scopeName = baseScope.scopeName;
-  return createScope;
-}
-var React13, import_jsx_runtime4;
-var init_dist7 = __esm(() => {
-  React13 = __toESM(require_react(), 1);
-  import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-});
-
 // node_modules/@radix-ui/react-collection/dist/index.mjs
 function createCollection(name) {
   const PROVIDER_NAME = name + "CollectionProvider";
@@ -26447,38 +28843,38 @@ function createCollection(name) {
   const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map });
   const CollectionProvider = (props2) => {
     const { scope, children } = props2;
-    const ref = import_react6.default.useRef(null);
-    const itemMap = import_react6.default.useRef(/* @__PURE__ */ new Map).current;
-    return /* @__PURE__ */ import_jsx_runtime5.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
+    const ref = import_react9.default.useRef(null);
+    const itemMap = import_react9.default.useRef(/* @__PURE__ */ new Map).current;
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
   };
   CollectionProvider.displayName = PROVIDER_NAME;
   const COLLECTION_SLOT_NAME = name + "CollectionSlot";
   const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = import_react6.default.forwardRef((props2, forwardedRef) => {
+  const CollectionSlot = import_react9.default.forwardRef((props2, forwardedRef) => {
     const { scope, children } = props2;
     const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
     const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
-    return /* @__PURE__ */ import_jsx_runtime5.jsx(CollectionSlotImpl, { ref: composedRefs, children });
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionSlotImpl, { ref: composedRefs, children });
   });
   CollectionSlot.displayName = COLLECTION_SLOT_NAME;
   const ITEM_SLOT_NAME = name + "CollectionItemSlot";
   const ITEM_DATA_ATTR = "data-radix-collection-item";
   const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = import_react6.default.forwardRef((props2, forwardedRef) => {
+  const CollectionItemSlot = import_react9.default.forwardRef((props2, forwardedRef) => {
     const { scope, children, ...itemData } = props2;
-    const ref = import_react6.default.useRef(null);
+    const ref = import_react9.default.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-    import_react6.default.useEffect(() => {
+    import_react9.default.useEffect(() => {
       context.itemMap.set(ref, { ref, ...itemData });
       return () => void context.itemMap.delete(ref);
     });
-    return /* @__PURE__ */ import_jsx_runtime5.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
   });
   CollectionItemSlot.displayName = ITEM_SLOT_NAME;
   function useCollection(scope) {
     const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = import_react6.default.useCallback(() => {
+    const getItems = import_react9.default.useCallback(() => {
       const collectionNode = context.collectionRef.current;
       if (!collectionNode)
         return [];
@@ -26511,15 +28907,15 @@ function toSafeIndex(array, index) {
 function toSafeInteger(number) {
   return number !== number || number === 0 ? 0 : Math.trunc(number);
 }
-var import_react6, import_jsx_runtime5, import_react7, import_jsx_runtime6, __instanciated, OrderedDict;
-var init_dist8 = __esm(() => {
-  import_react6 = __toESM(require_react(), 1);
-  init_dist7();
+var import_react9, import_jsx_runtime11, import_react10, import_jsx_runtime12, __instanciated, OrderedDict;
+var init_dist20 = __esm(() => {
+  import_react9 = __toESM(require_react(), 1);
+  init_dist5();
   init_dist();
   init_dist2();
-  import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
-  import_react7 = __toESM(require_react(), 1);
-  import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+  import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+  import_react10 = __toESM(require_react(), 1);
+  import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
   "use client";
   __instanciated = /* @__PURE__ */ new WeakMap;
   OrderedDict = class _OrderedDict extends Map {
@@ -26808,531 +29204,6 @@ var init_dist8 = __esm(() => {
   };
 });
 
-// node_modules/@radix-ui/react-direction/dist/index.mjs
-function useDirection(localDir) {
-  const globalDir = React15.useContext(DirectionContext);
-  return localDir || globalDir || "ltr";
-}
-var React15, import_jsx_runtime7, DirectionContext;
-var init_dist9 = __esm(() => {
-  React15 = __toESM(require_react(), 1);
-  import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
-  DirectionContext = React15.createContext(undefined);
-});
-
-// node_modules/@radix-ui/react-use-callback-ref/dist/index.mjs
-function useCallbackRef(callback) {
-  const callbackRef = React16.useRef(callback);
-  React16.useEffect(() => {
-    callbackRef.current = callback;
-  });
-  return React16.useMemo(() => (...args) => callbackRef.current?.(...args), []);
-}
-var React16;
-var init_dist10 = __esm(() => {
-  React16 = __toESM(require_react(), 1);
-});
-
-// node_modules/@radix-ui/react-use-escape-keydown/dist/index.mjs
-function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
-  const onEscapeKeyDown = useCallbackRef(onEscapeKeyDownProp);
-  React17.useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onEscapeKeyDown(event);
-      }
-    };
-    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [onEscapeKeyDown, ownerDocument]);
-}
-var React17;
-var init_dist11 = __esm(() => {
-  React17 = __toESM(require_react(), 1);
-  init_dist10();
-});
-
-// node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
-function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
-  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside);
-  const isPointerInsideReactTreeRef = React18.useRef(false);
-  const handleClickRef = React18.useRef(() => {});
-  React18.useEffect(() => {
-    const handlePointerDown2 = (event) => {
-      if (event.target && !isPointerInsideReactTreeRef.current) {
-        let handleAndDispatchPointerDownOutsideEvent2 = function() {
-          handleAndDispatchCustomEvent(POINTER_DOWN_OUTSIDE, handlePointerDownOutside, eventDetail, { discrete: true });
-        };
-        var handleAndDispatchPointerDownOutsideEvent = handleAndDispatchPointerDownOutsideEvent2;
-        const eventDetail = { originalEvent: event };
-        if (event.pointerType === "touch") {
-          ownerDocument.removeEventListener("click", handleClickRef.current);
-          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
-          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
-        } else {
-          handleAndDispatchPointerDownOutsideEvent2();
-        }
-      } else {
-        ownerDocument.removeEventListener("click", handleClickRef.current);
-      }
-      isPointerInsideReactTreeRef.current = false;
-    };
-    const timerId = window.setTimeout(() => {
-      ownerDocument.addEventListener("pointerdown", handlePointerDown2);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      ownerDocument.removeEventListener("pointerdown", handlePointerDown2);
-      ownerDocument.removeEventListener("click", handleClickRef.current);
-    };
-  }, [ownerDocument, handlePointerDownOutside]);
-  return {
-    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
-  };
-}
-function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
-  const handleFocusOutside = useCallbackRef(onFocusOutside);
-  const isFocusInsideReactTreeRef = React18.useRef(false);
-  React18.useEffect(() => {
-    const handleFocus = (event) => {
-      if (event.target && !isFocusInsideReactTreeRef.current) {
-        const eventDetail = { originalEvent: event };
-        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
-          discrete: false
-        });
-      }
-    };
-    ownerDocument.addEventListener("focusin", handleFocus);
-    return () => ownerDocument.removeEventListener("focusin", handleFocus);
-  }, [ownerDocument, handleFocusOutside]);
-  return {
-    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
-    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
-  };
-}
-function dispatchUpdate() {
-  const event = new CustomEvent(CONTEXT_UPDATE);
-  document.dispatchEvent(event);
-}
-function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
-  const target = detail.originalEvent.target;
-  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
-  if (handler)
-    target.addEventListener(name, handler, { once: true });
-  if (discrete) {
-    dispatchDiscreteCustomEvent(target, event);
-  } else {
-    target.dispatchEvent(event);
-  }
-}
-var React18, import_jsx_runtime8, DISMISSABLE_LAYER_NAME = "DismissableLayer", CONTEXT_UPDATE = "dismissableLayer.update", POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside", FOCUS_OUTSIDE = "dismissableLayer.focusOutside", originalBodyPointerEvents, DismissableLayerContext, DismissableLayer, BRANCH_NAME = "DismissableLayerBranch", DismissableLayerBranch;
-var init_dist12 = __esm(() => {
-  React18 = __toESM(require_react(), 1);
-  init_dist6();
-  init_dist3();
-  init_dist();
-  init_dist10();
-  init_dist11();
-  import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  DismissableLayerContext = React18.createContext({
-    layers: /* @__PURE__ */ new Set,
-    layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set,
-    branches: /* @__PURE__ */ new Set
-  });
-  DismissableLayer = React18.forwardRef((props2, forwardedRef) => {
-    const {
-      disableOutsidePointerEvents = false,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      onFocusOutside,
-      onInteractOutside,
-      onDismiss,
-      ...layerProps
-    } = props2;
-    const context = React18.useContext(DismissableLayerContext);
-    const [node, setNode] = React18.useState(null);
-    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
-    const [, force] = React18.useState({});
-    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
-    const layers = Array.from(context.layers);
-    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
-    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
-    const index = node ? layers.indexOf(node) : -1;
-    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
-    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
-    const pointerDownOutside = usePointerDownOutside((event) => {
-      const target = event.target;
-      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (!isPointerEventsEnabled || isPointerDownOnBranch)
-        return;
-      onPointerDownOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented)
-        onDismiss?.();
-    }, ownerDocument);
-    const focusOutside = useFocusOutside((event) => {
-      const target = event.target;
-      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (isFocusInBranch)
-        return;
-      onFocusOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented)
-        onDismiss?.();
-    }, ownerDocument);
-    useEscapeKeydown((event) => {
-      const isHighestLayer = index === context.layers.size - 1;
-      if (!isHighestLayer)
-        return;
-      onEscapeKeyDown?.(event);
-      if (!event.defaultPrevented && onDismiss) {
-        event.preventDefault();
-        onDismiss();
-      }
-    }, ownerDocument);
-    React18.useEffect(() => {
-      if (!node)
-        return;
-      if (disableOutsidePointerEvents) {
-        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
-          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
-          ownerDocument.body.style.pointerEvents = "none";
-        }
-        context.layersWithOutsidePointerEventsDisabled.add(node);
-      }
-      context.layers.add(node);
-      dispatchUpdate();
-      return () => {
-        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
-          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
-        }
-      };
-    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
-    React18.useEffect(() => {
-      return () => {
-        if (!node)
-          return;
-        context.layers.delete(node);
-        context.layersWithOutsidePointerEventsDisabled.delete(node);
-        dispatchUpdate();
-      };
-    }, [node, context]);
-    React18.useEffect(() => {
-      const handleUpdate = () => force({});
-      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
-      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
-    }, []);
-    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.div, {
-      ...layerProps,
-      ref: composedRefs,
-      style: {
-        pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : undefined,
-        ...props2.style
-      },
-      onFocusCapture: composeEventHandlers(props2.onFocusCapture, focusOutside.onFocusCapture),
-      onBlurCapture: composeEventHandlers(props2.onBlurCapture, focusOutside.onBlurCapture),
-      onPointerDownCapture: composeEventHandlers(props2.onPointerDownCapture, pointerDownOutside.onPointerDownCapture)
-    });
-  });
-  DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
-  DismissableLayerBranch = React18.forwardRef((props2, forwardedRef) => {
-    const context = React18.useContext(DismissableLayerContext);
-    const ref = React18.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    React18.useEffect(() => {
-      const node = ref.current;
-      if (node) {
-        context.branches.add(node);
-        return () => {
-          context.branches.delete(node);
-        };
-      }
-    }, [context.branches]);
-    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.div, { ...props2, ref: composedRefs });
-  });
-  DismissableLayerBranch.displayName = BRANCH_NAME;
-});
-
-// node_modules/@radix-ui/react-focus-guards/dist/index.mjs
-function useFocusGuards() {
-  React19.useEffect(() => {
-    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
-    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
-    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
-    count++;
-    return () => {
-      if (count === 1) {
-        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
-      }
-      count--;
-    };
-  }, []);
-}
-function createFocusGuard() {
-  const element = document.createElement("span");
-  element.setAttribute("data-radix-focus-guard", "");
-  element.tabIndex = 0;
-  element.style.outline = "none";
-  element.style.opacity = "0";
-  element.style.position = "fixed";
-  element.style.pointerEvents = "none";
-  return element;
-}
-var React19, count = 0;
-var init_dist13 = __esm(() => {
-  React19 = __toESM(require_react(), 1);
-  "use client";
-});
-
-// node_modules/@radix-ui/react-focus-scope/dist/index.mjs
-function focusFirst(candidates, { select = false } = {}) {
-  const previouslyFocusedElement = document.activeElement;
-  for (const candidate of candidates) {
-    focus(candidate, { select });
-    if (document.activeElement !== previouslyFocusedElement)
-      return;
-  }
-}
-function getTabbableEdges(container) {
-  const candidates = getTabbableCandidates(container);
-  const first = findVisible(candidates, container);
-  const last = findVisible(candidates.reverse(), container);
-  return [first, last];
-}
-function getTabbableCandidates(container) {
-  const nodes = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node) => {
-      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
-      if (node.disabled || node.hidden || isHiddenInput)
-        return NodeFilter.FILTER_SKIP;
-      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-    }
-  });
-  while (walker.nextNode())
-    nodes.push(walker.currentNode);
-  return nodes;
-}
-function findVisible(elements, container) {
-  for (const element of elements) {
-    if (!isHidden(element, { upTo: container }))
-      return element;
-  }
-}
-function isHidden(node, { upTo }) {
-  if (getComputedStyle(node).visibility === "hidden")
-    return true;
-  while (node) {
-    if (upTo !== undefined && node === upTo)
-      return false;
-    if (getComputedStyle(node).display === "none")
-      return true;
-    node = node.parentElement;
-  }
-  return false;
-}
-function isSelectableInput(element) {
-  return element instanceof HTMLInputElement && "select" in element;
-}
-function focus(element, { select = false } = {}) {
-  if (element && element.focus) {
-    const previouslyFocusedElement = document.activeElement;
-    element.focus({ preventScroll: true });
-    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
-      element.select();
-  }
-}
-function createFocusScopesStack() {
-  let stack = [];
-  return {
-    add(focusScope) {
-      const activeFocusScope = stack[0];
-      if (focusScope !== activeFocusScope) {
-        activeFocusScope?.pause();
-      }
-      stack = arrayRemove(stack, focusScope);
-      stack.unshift(focusScope);
-    },
-    remove(focusScope) {
-      stack = arrayRemove(stack, focusScope);
-      stack[0]?.resume();
-    }
-  };
-}
-function arrayRemove(array, item) {
-  const updatedArray = [...array];
-  const index = updatedArray.indexOf(item);
-  if (index !== -1) {
-    updatedArray.splice(index, 1);
-  }
-  return updatedArray;
-}
-function removeLinks(items) {
-  return items.filter((item) => item.tagName !== "A");
-}
-var React20, import_jsx_runtime9, AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount", AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount", EVENT_OPTIONS, FOCUS_SCOPE_NAME = "FocusScope", FocusScope, focusScopesStack;
-var init_dist14 = __esm(() => {
-  React20 = __toESM(require_react(), 1);
-  init_dist();
-  init_dist3();
-  init_dist10();
-  import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  EVENT_OPTIONS = { bubbles: false, cancelable: true };
-  FocusScope = React20.forwardRef((props2, forwardedRef) => {
-    const {
-      loop = false,
-      trapped = false,
-      onMountAutoFocus: onMountAutoFocusProp,
-      onUnmountAutoFocus: onUnmountAutoFocusProp,
-      ...scopeProps
-    } = props2;
-    const [container, setContainer] = React20.useState(null);
-    const onMountAutoFocus = useCallbackRef(onMountAutoFocusProp);
-    const onUnmountAutoFocus = useCallbackRef(onUnmountAutoFocusProp);
-    const lastFocusedElementRef = React20.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
-    const focusScope = React20.useRef({
-      paused: false,
-      pause() {
-        this.paused = true;
-      },
-      resume() {
-        this.paused = false;
-      }
-    }).current;
-    React20.useEffect(() => {
-      if (trapped) {
-        let handleFocusIn2 = function(event) {
-          if (focusScope.paused || !container)
-            return;
-          const target = event.target;
-          if (container.contains(target)) {
-            lastFocusedElementRef.current = target;
-          } else {
-            focus(lastFocusedElementRef.current, { select: true });
-          }
-        }, handleFocusOut2 = function(event) {
-          if (focusScope.paused || !container)
-            return;
-          const relatedTarget = event.relatedTarget;
-          if (relatedTarget === null)
-            return;
-          if (!container.contains(relatedTarget)) {
-            focus(lastFocusedElementRef.current, { select: true });
-          }
-        }, handleMutations2 = function(mutations) {
-          const focusedElement = document.activeElement;
-          if (focusedElement !== document.body)
-            return;
-          for (const mutation of mutations) {
-            if (mutation.removedNodes.length > 0)
-              focus(container);
-          }
-        };
-        var handleFocusIn = handleFocusIn2, handleFocusOut = handleFocusOut2, handleMutations = handleMutations2;
-        document.addEventListener("focusin", handleFocusIn2);
-        document.addEventListener("focusout", handleFocusOut2);
-        const mutationObserver = new MutationObserver(handleMutations2);
-        if (container)
-          mutationObserver.observe(container, { childList: true, subtree: true });
-        return () => {
-          document.removeEventListener("focusin", handleFocusIn2);
-          document.removeEventListener("focusout", handleFocusOut2);
-          mutationObserver.disconnect();
-        };
-      }
-    }, [trapped, container, focusScope.paused]);
-    React20.useEffect(() => {
-      if (container) {
-        focusScopesStack.add(focusScope);
-        const previouslyFocusedElement = document.activeElement;
-        const hasFocusedCandidate = container.contains(previouslyFocusedElement);
-        if (!hasFocusedCandidate) {
-          const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
-          container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-          container.dispatchEvent(mountEvent);
-          if (!mountEvent.defaultPrevented) {
-            focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
-            if (document.activeElement === previouslyFocusedElement) {
-              focus(container);
-            }
-          }
-        }
-        return () => {
-          container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-          setTimeout(() => {
-            const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
-            container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-            container.dispatchEvent(unmountEvent);
-            if (!unmountEvent.defaultPrevented) {
-              focus(previouslyFocusedElement ?? document.body, { select: true });
-            }
-            container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-            focusScopesStack.remove(focusScope);
-          }, 0);
-        };
-      }
-    }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
-    const handleKeyDown = React20.useCallback((event) => {
-      if (!loop && !trapped)
-        return;
-      if (focusScope.paused)
-        return;
-      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
-      const focusedElement = document.activeElement;
-      if (isTabKey && focusedElement) {
-        const container2 = event.currentTarget;
-        const [first, last] = getTabbableEdges(container2);
-        const hasTabbableElementsInside = first && last;
-        if (!hasTabbableElementsInside) {
-          if (focusedElement === container2)
-            event.preventDefault();
-        } else {
-          if (!event.shiftKey && focusedElement === last) {
-            event.preventDefault();
-            if (loop)
-              focus(first, { select: true });
-          } else if (event.shiftKey && focusedElement === first) {
-            event.preventDefault();
-            if (loop)
-              focus(last, { select: true });
-          }
-        }
-      }
-    }, [loop, trapped, focusScope.paused]);
-    return /* @__PURE__ */ import_jsx_runtime9.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
-  });
-  FocusScope.displayName = FOCUS_SCOPE_NAME;
-  focusScopesStack = createFocusScopesStack();
-});
-
-// node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
-var React21, useLayoutEffect22;
-var init_dist15 = __esm(() => {
-  React21 = __toESM(require_react(), 1);
-  useLayoutEffect22 = globalThis?.document ? React21.useLayoutEffect : () => {};
-});
-
-// node_modules/@radix-ui/react-id/dist/index.mjs
-function useId2(deterministicId) {
-  const [id, setId] = React23.useState(useReactId());
-  useLayoutEffect22(() => {
-    if (!deterministicId)
-      setId((reactId) => reactId ?? String(count2++));
-  }, [deterministicId]);
-  return deterministicId || (id ? `radix-${id}` : "");
-}
-var React23, useReactId, count2 = 0;
-var init_dist16 = __esm(() => {
-  React23 = __toESM(require_react(), 1);
-  init_dist15();
-  useReactId = React23[" useId ".trim().toString()] || (() => {
-    return;
-  });
-});
-
 // node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
 function clamp2(start, value, end) {
   return max(start, min(value, end));
@@ -27524,10 +29395,10 @@ function computeCoordsFromPlacement(_ref, placement, rtl) {
   }
   return coords;
 }
-async function detectOverflow(state, options) {
+async function detectOverflow(state, options2) {
   var _await$platform$isEle;
-  if (options === undefined) {
-    options = {};
+  if (options2 === undefined) {
+    options2 = {};
   }
   const {
     x,
@@ -27543,7 +29414,7 @@ async function detectOverflow(state, options) {
     elementContext = "floating",
     altBoundary = false,
     padding = 0
-  } = evaluate(options, state);
+  } = evaluate(options2, state);
   const paddingObject = getPaddingObject(padding);
   const altContext = elementContext === "floating" ? "reference" : "floating";
   const element = elements[altBoundary ? altContext : elementContext];
@@ -27591,7 +29462,7 @@ function getSideOffsets(overflow, rect) {
 function isAnySideFullyClipped(overflow) {
   return sides.some((side) => overflow[side] >= 0);
 }
-async function convertValueToCoords(state, options) {
+async function convertValueToCoords(state, options2) {
   const {
     placement,
     platform,
@@ -27603,7 +29474,7 @@ async function convertValueToCoords(state, options) {
   const isVertical = getSideAxis(placement) === "y";
   const mainAxisMulti = originSides.has(side) ? -1 : 1;
   const crossAxisMulti = rtl && isVertical ? -1 : 1;
-  const rawValue = evaluate(options, state);
+  const rawValue = evaluate(options2, state);
   let {
     mainAxis,
     crossAxis,
@@ -27710,9 +29581,9 @@ var computePosition = async (reference, floating, config) => {
     strategy,
     middlewareData
   };
-}, arrow = (options) => ({
+}, arrow = (options2) => ({
   name: "arrow",
-  options,
+  options: options2,
   async fn(state) {
     const {
       x,
@@ -27726,7 +29597,7 @@ var computePosition = async (reference, floating, config) => {
     const {
       element,
       padding = 0
-    } = evaluate(options, state) || {};
+    } = evaluate(options2, state) || {};
     if (element == null) {
       return {};
     }
@@ -27771,13 +29642,13 @@ var computePosition = async (reference, floating, config) => {
       reset: shouldAddOffset
     };
   }
-}), flip = function(options) {
-  if (options === undefined) {
-    options = {};
+}), flip = function(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   return {
     name: "flip",
-    options,
+    options: options2,
     async fn(state) {
       var _middlewareData$arrow, _middlewareData$flip;
       const {
@@ -27796,7 +29667,7 @@ var computePosition = async (reference, floating, config) => {
         fallbackAxisSideDirection = "none",
         flipAlignment = true,
         ...detectOverflowOptions
-      } = evaluate(options, state);
+      } = evaluate(options2, state);
       if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
         return {};
       }
@@ -27875,13 +29746,13 @@ var computePosition = async (reference, floating, config) => {
       return {};
     }
   };
-}, hide = function(options) {
-  if (options === undefined) {
-    options = {};
+}, hide = function(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   return {
     name: "hide",
-    options,
+    options: options2,
     async fn(state) {
       const {
         rects
@@ -27889,7 +29760,7 @@ var computePosition = async (reference, floating, config) => {
       const {
         strategy = "referenceHidden",
         ...detectOverflowOptions
-      } = evaluate(options, state);
+      } = evaluate(options2, state);
       switch (strategy) {
         case "referenceHidden": {
           const overflow = await detectOverflow(state, {
@@ -27923,13 +29794,13 @@ var computePosition = async (reference, floating, config) => {
       }
     }
   };
-}, originSides, offset = function(options) {
-  if (options === undefined) {
-    options = 0;
+}, originSides, offset = function(options2) {
+  if (options2 === undefined) {
+    options2 = 0;
   }
   return {
     name: "offset",
-    options,
+    options: options2,
     async fn(state) {
       var _middlewareData$offse, _middlewareData$arrow;
       const {
@@ -27938,7 +29809,7 @@ var computePosition = async (reference, floating, config) => {
         placement,
         middlewareData
       } = state;
-      const diffCoords = await convertValueToCoords(state, options);
+      const diffCoords = await convertValueToCoords(state, options2);
       if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? undefined : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
         return {};
       }
@@ -27952,13 +29823,13 @@ var computePosition = async (reference, floating, config) => {
       };
     }
   };
-}, shift = function(options) {
-  if (options === undefined) {
-    options = {};
+}, shift = function(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   return {
     name: "shift",
-    options,
+    options: options2,
     async fn(state) {
       const {
         x,
@@ -27981,7 +29852,7 @@ var computePosition = async (reference, floating, config) => {
           }
         },
         ...detectOverflowOptions
-      } = evaluate(options, state);
+      } = evaluate(options2, state);
       const coords = {
         x,
         y
@@ -28023,12 +29894,12 @@ var computePosition = async (reference, floating, config) => {
       };
     }
   };
-}, limitShift = function(options) {
-  if (options === undefined) {
-    options = {};
+}, limitShift = function(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   return {
-    options,
+    options: options2,
     fn(state) {
       const {
         x,
@@ -28041,7 +29912,7 @@ var computePosition = async (reference, floating, config) => {
         offset: offset2 = 0,
         mainAxis: checkMainAxis = true,
         crossAxis: checkCrossAxis = true
-      } = evaluate(options, state);
+      } = evaluate(options2, state);
       const coords = {
         x,
         y
@@ -28087,13 +29958,13 @@ var computePosition = async (reference, floating, config) => {
       };
     }
   };
-}, size = function(options) {
-  if (options === undefined) {
-    options = {};
+}, size = function(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   return {
     name: "size",
-    options,
+    options: options2,
     async fn(state) {
       var _state$middlewareData, _state$middlewareData2;
       const {
@@ -28105,7 +29976,7 @@ var computePosition = async (reference, floating, config) => {
       const {
         apply = () => {},
         ...detectOverflowOptions
-      } = evaluate(options, state);
+      } = evaluate(options2, state);
       const overflow = await detectOverflow(state, detectOverflowOptions);
       const side = getSide(placement);
       const alignment = getAlignment(placement);
@@ -28175,7 +30046,7 @@ function hasWindow() {
   return typeof window !== "undefined";
 }
 function getNodeName(node) {
-  if (isNode(node)) {
+  if (isNode2(node)) {
     return (node.nodeName || "").toLowerCase();
   }
   return "#document";
@@ -28186,9 +30057,9 @@ function getWindow(node) {
 }
 function getDocumentElement(node) {
   var _ref;
-  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? undefined : _ref.documentElement;
+  return (_ref = (isNode2(node) ? node.ownerDocument : node.document) || window.document) == null ? undefined : _ref.documentElement;
 }
-function isNode(value) {
+function isNode2(value) {
   if (!hasWindow()) {
     return false;
   }
@@ -28593,8 +30464,8 @@ function hasFixedPositionAncestor(element, stopNode) {
   }
   return getComputedStyle2(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
 }
-function getClippingElementAncestors(element, cache) {
-  const cachedResult = cache.get(element);
+function getClippingElementAncestors(element, cache2) {
+  const cachedResult = cache2.get(element);
   if (cachedResult) {
     return cachedResult;
   }
@@ -28616,7 +30487,7 @@ function getClippingElementAncestors(element, cache) {
     }
     currentNode = getParentNode(currentNode);
   }
-  cache.set(element, result);
+  cache2.set(element, result);
   return result;
 }
 function getClippingRect(_ref) {
@@ -28774,7 +30645,7 @@ function observeMove(element, onMove) {
     const insetBottom = floor(root.clientHeight - (top + height));
     const insetLeft = floor(left);
     const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
-    const options = {
+    const options2 = {
       rootMargin,
       threshold: max(0, min(1, threshold)) || 1
     };
@@ -28800,20 +30671,20 @@ function observeMove(element, onMove) {
     }
     try {
       io = new IntersectionObserver(handleObserve, {
-        ...options,
+        ...options2,
         root: root.ownerDocument
       });
     } catch (_e) {
-      io = new IntersectionObserver(handleObserve, options);
+      io = new IntersectionObserver(handleObserve, options2);
     }
     io.observe(element);
   }
   refresh(true);
   return cleanup;
 }
-function autoUpdate(reference, floating, update, options) {
-  if (options === undefined) {
-    options = {};
+function autoUpdate(reference, floating, update, options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   const {
     ancestorScroll = true,
@@ -28821,7 +30692,7 @@ function autoUpdate(reference, floating, update, options) {
     elementResize = typeof ResizeObserver === "function",
     layoutShift = typeof IntersectionObserver === "function",
     animationFrame = false
-  } = options;
+  } = options2;
   const referenceEl = unwrapElement(reference);
   const ancestors = ancestorScroll || ancestorResize ? [...referenceEl ? getOverflowAncestors(referenceEl) : [], ...getOverflowAncestors(floating)] : [];
   ancestors.forEach((ancestor) => {
@@ -28892,15 +30763,15 @@ var noOffsets, SCROLLBAR_MAX = 25, absoluteOrFixed, getElementRects = async func
       height: floatingDimensions.height
     }
   };
-}, platform, offset2, shift2, flip2, size2, hide2, arrow2, limitShift2, computePosition2 = (reference, floating, options) => {
-  const cache = new Map;
+}, platform, offset2, shift2, flip2, size2, hide2, arrow2, limitShift2, computePosition2 = (reference, floating, options2) => {
+  const cache2 = new Map;
   const mergedOptions = {
     platform,
-    ...options
+    ...options2
   };
   const platformWithCache = {
     ...mergedOptions.platform,
-    _c: cache
+    _c: cache2
   };
   return computePosition(reference, floating, {
     ...mergedOptions,
@@ -28995,15 +30866,15 @@ function roundByDPR(element, value) {
   return Math.round(value * dpr) / dpr;
 }
 function useLatestRef(value) {
-  const ref = React25.useRef(value);
+  const ref = React42.useRef(value);
   index(() => {
     ref.current = value;
   });
   return ref;
 }
-function useFloating(options) {
-  if (options === undefined) {
-    options = {};
+function useFloating(options2) {
+  if (options2 === undefined) {
+    options2 = {};
   }
   const {
     placement = "bottom",
@@ -29017,8 +30888,8 @@ function useFloating(options) {
     transform = true,
     whileElementsMounted,
     open
-  } = options;
-  const [data, setData] = React25.useState({
+  } = options2;
+  const [data, setData] = React42.useState({
     x: 0,
     y: 0,
     strategy,
@@ -29026,19 +30897,19 @@ function useFloating(options) {
     middlewareData: {},
     isPositioned: false
   });
-  const [latestMiddleware, setLatestMiddleware] = React25.useState(middleware);
+  const [latestMiddleware, setLatestMiddleware] = React42.useState(middleware);
   if (!deepEqual(latestMiddleware, middleware)) {
     setLatestMiddleware(middleware);
   }
-  const [_reference, _setReference] = React25.useState(null);
-  const [_floating, _setFloating] = React25.useState(null);
-  const setReference = React25.useCallback((node) => {
+  const [_reference, _setReference] = React42.useState(null);
+  const [_floating, _setFloating] = React42.useState(null);
+  const setReference = React42.useCallback((node) => {
     if (node !== referenceRef.current) {
       referenceRef.current = node;
       _setReference(node);
     }
   }, []);
-  const setFloating = React25.useCallback((node) => {
+  const setFloating = React42.useCallback((node) => {
     if (node !== floatingRef.current) {
       floatingRef.current = node;
       _setFloating(node);
@@ -29046,14 +30917,14 @@ function useFloating(options) {
   }, []);
   const referenceEl = externalReference || _reference;
   const floatingEl = externalFloating || _floating;
-  const referenceRef = React25.useRef(null);
-  const floatingRef = React25.useRef(null);
-  const dataRef = React25.useRef(data);
+  const referenceRef = React42.useRef(null);
+  const floatingRef = React42.useRef(null);
+  const dataRef = React42.useRef(data);
   const hasWhileElementsMounted = whileElementsMounted != null;
   const whileElementsMountedRef = useLatestRef(whileElementsMounted);
   const platformRef = useLatestRef(platform2);
   const openRef = useLatestRef(open);
-  const update = React25.useCallback(() => {
+  const update = React42.useCallback(() => {
     if (!referenceRef.current || !floatingRef.current) {
       return;
     }
@@ -29072,7 +30943,7 @@ function useFloating(options) {
       };
       if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
         dataRef.current = fullData;
-        ReactDOM2.flushSync(() => {
+        ReactDOM3.flushSync(() => {
           setData(fullData);
         });
       }
@@ -29087,7 +30958,7 @@ function useFloating(options) {
       }));
     }
   }, [open]);
-  const isMountedRef = React25.useRef(false);
+  const isMountedRef = React42.useRef(false);
   index(() => {
     isMountedRef.current = true;
     return () => {
@@ -29106,17 +30977,17 @@ function useFloating(options) {
       update();
     }
   }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React25.useMemo(() => ({
+  const refs = React42.useMemo(() => ({
     reference: referenceRef,
     floating: floatingRef,
     setReference,
     setFloating
   }), [setReference, setFloating]);
-  const elements = React25.useMemo(() => ({
+  const elements = React42.useMemo(() => ({
     reference: referenceEl,
     floating: floatingEl
   }), [referenceEl, floatingEl]);
-  const floatingStyles = React25.useMemo(() => {
+  const floatingStyles = React42.useMemo(() => {
     const initialStyles = {
       position: strategy,
       left: 0,
@@ -29142,7 +31013,7 @@ function useFloating(options) {
       top: y
     };
   }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React25.useMemo(() => ({
+  return React42.useMemo(() => ({
     ...data,
     update,
     refs,
@@ -29150,18 +31021,18 @@ function useFloating(options) {
     floatingStyles
   }), [data, update, refs, elements, floatingStyles]);
 }
-var React25, import_react8, ReactDOM2, isClient, noop = function noop2() {}, index, arrow$1 = (options) => {
+var React42, import_react11, ReactDOM3, isClient, noop = function noop2() {}, index, arrow$1 = (options2) => {
   function isRef(value) {
     return {}.hasOwnProperty.call(value, "current");
   }
   return {
     name: "arrow",
-    options,
+    options: options2,
     fn(state) {
       const {
         element,
         padding
-      } = typeof options === "function" ? options(state) : options;
+      } = typeof options2 === "function" ? options2(state) : options2;
       if (element && isRef(element)) {
         if (element.current != null) {
           return arrow2({
@@ -29180,63 +31051,63 @@ var React25, import_react8, ReactDOM2, isClient, noop = function noop2() {}, ind
       return {};
     }
   };
-}, offset3 = (options, deps) => ({
-  ...offset2(options),
-  options: [options, deps]
-}), shift3 = (options, deps) => ({
-  ...shift2(options),
-  options: [options, deps]
-}), limitShift3 = (options, deps) => ({
-  ...limitShift2(options),
-  options: [options, deps]
-}), flip3 = (options, deps) => ({
-  ...flip2(options),
-  options: [options, deps]
-}), size3 = (options, deps) => ({
-  ...size2(options),
-  options: [options, deps]
-}), hide3 = (options, deps) => ({
-  ...hide2(options),
-  options: [options, deps]
-}), arrow3 = (options, deps) => ({
-  ...arrow$1(options),
-  options: [options, deps]
+}, offset3 = (options2, deps) => ({
+  ...offset2(options2),
+  options: [options2, deps]
+}), shift3 = (options2, deps) => ({
+  ...shift2(options2),
+  options: [options2, deps]
+}), limitShift3 = (options2, deps) => ({
+  ...limitShift2(options2),
+  options: [options2, deps]
+}), flip3 = (options2, deps) => ({
+  ...flip2(options2),
+  options: [options2, deps]
+}), size3 = (options2, deps) => ({
+  ...size2(options2),
+  options: [options2, deps]
+}), hide3 = (options2, deps) => ({
+  ...hide2(options2),
+  options: [options2, deps]
+}), arrow3 = (options2, deps) => ({
+  ...arrow$1(options2),
+  options: [options2, deps]
 });
 var init_floating_ui_react_dom = __esm(() => {
   init_floating_ui_dom();
   init_floating_ui_dom();
-  React25 = __toESM(require_react(), 1);
-  import_react8 = __toESM(require_react(), 1);
-  ReactDOM2 = __toESM(require_react_dom(), 1);
+  React42 = __toESM(require_react(), 1);
+  import_react11 = __toESM(require_react(), 1);
+  ReactDOM3 = __toESM(require_react_dom(), 1);
   isClient = typeof document !== "undefined";
-  index = isClient ? import_react8.useLayoutEffect : noop;
+  index = isClient ? import_react11.useLayoutEffect : noop;
 });
 
 // node_modules/@radix-ui/react-arrow/dist/index.mjs
-var React26, import_jsx_runtime10, NAME2 = "Arrow", Arrow, Root2;
-var init_dist17 = __esm(() => {
-  React26 = __toESM(require_react(), 1);
+var React43, import_jsx_runtime13, NAME2 = "Arrow", Arrow, Root4;
+var init_dist21 = __esm(() => {
+  React43 = __toESM(require_react(), 1);
   init_dist3();
-  import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
-  Arrow = React26.forwardRef((props2, forwardedRef) => {
+  import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
+  Arrow = React43.forwardRef((props2, forwardedRef) => {
     const { children, width = 10, height = 5, ...arrowProps } = props2;
-    return /* @__PURE__ */ import_jsx_runtime10.jsx(Primitive.svg, {
+    return /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.svg, {
       ...arrowProps,
       ref: forwardedRef,
       width,
       height,
       viewBox: "0 0 30 10",
       preserveAspectRatio: "none",
-      children: props2.asChild ? children : /* @__PURE__ */ import_jsx_runtime10.jsx("polygon", { points: "0,0 30,0 15,10" })
+      children: props2.asChild ? children : /* @__PURE__ */ import_jsx_runtime13.jsx("polygon", { points: "0,0 30,0 15,10" })
     });
   });
   Arrow.displayName = NAME2;
-  Root2 = Arrow;
+  Root4 = Arrow;
 });
 
 // node_modules/@radix-ui/react-use-size/dist/index.mjs
 function useSize(element) {
-  const [size4, setSize] = React27.useState(undefined);
+  const [size4, setSize] = React44.useState(undefined);
   useLayoutEffect22(() => {
     if (element) {
       setSize({ width: element.offsetWidth, height: element.offsetHeight });
@@ -29269,10 +31140,10 @@ function useSize(element) {
   }, [element]);
   return size4;
 }
-var React27;
-var init_dist18 = __esm(() => {
-  React27 = __toESM(require_react(), 1);
-  init_dist15();
+var React44;
+var init_dist22 = __esm(() => {
+  React44 = __toESM(require_react(), 1);
+  init_dist6();
 });
 
 // node_modules/@radix-ui/react-popper/dist/index.mjs
@@ -29283,19 +31154,19 @@ function getSideAndAlignFromPlacement(placement) {
   const [side, align = "center"] = placement.split("-");
   return [side, align];
 }
-var React28, import_jsx_runtime11, POPPER_NAME = "Popper", createPopperContext, createPopperScope, PopperProvider, usePopperContext, Popper = (props2) => {
+var React45, import_jsx_runtime14, POPPER_NAME = "Popper", createPopperContext, createPopperScope, PopperProvider, usePopperContext, Popper = (props2) => {
   const { __scopePopper, children } = props2;
-  const [anchor, setAnchor] = React28.useState(null);
-  return /* @__PURE__ */ import_jsx_runtime11.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
-}, ANCHOR_NAME = "PopperAnchor", PopperAnchor, CONTENT_NAME = "PopperContent", PopperContentProvider, useContentContext, PopperContent, ARROW_NAME = "PopperArrow", OPPOSITE_SIDE, PopperArrow, transformOrigin = (options) => ({
+  const [anchor, setAnchor] = React45.useState(null);
+  return /* @__PURE__ */ import_jsx_runtime14.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
+}, ANCHOR_NAME = "PopperAnchor", PopperAnchor, CONTENT_NAME2 = "PopperContent", PopperContentProvider, useContentContext, PopperContent, ARROW_NAME = "PopperArrow", OPPOSITE_SIDE, PopperArrow, transformOrigin = (options2) => ({
   name: "transformOrigin",
-  options,
+  options: options2,
   fn(data) {
     const { placement, rects, middlewareData } = data;
     const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
     const isArrowHidden = cannotCenterArrow;
-    const arrowWidth = isArrowHidden ? 0 : options.arrowWidth;
-    const arrowHeight = isArrowHidden ? 0 : options.arrowHeight;
+    const arrowWidth = isArrowHidden ? 0 : options2.arrowWidth;
+    const arrowHeight = isArrowHidden ? 0 : options2.arrowHeight;
     const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
     const noArrowAlign = { start: "0%", center: "50%", end: "100%" }[placedAlign];
     const arrowXCenter = (middlewareData.arrow?.x ?? 0) + arrowWidth / 2;
@@ -29317,40 +31188,40 @@ var React28, import_jsx_runtime11, POPPER_NAME = "Popper", createPopperContext, 
     }
     return { data: { x, y } };
   }
-}), Root22, Anchor, Content, Arrow2;
-var init_dist19 = __esm(() => {
-  React28 = __toESM(require_react(), 1);
+}), Root22, Anchor, Content2, Arrow2;
+var init_dist23 = __esm(() => {
+  React45 = __toESM(require_react(), 1);
   init_floating_ui_react_dom();
-  init_dist17();
+  init_dist21();
   init_dist();
-  init_dist7();
+  init_dist5();
   init_dist3();
-  init_dist10();
-  init_dist15();
-  init_dist18();
-  import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+  init_dist9();
+  init_dist6();
+  init_dist22();
+  import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
   [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
   Popper.displayName = POPPER_NAME;
-  PopperAnchor = React28.forwardRef((props2, forwardedRef) => {
+  PopperAnchor = React45.forwardRef((props2, forwardedRef) => {
     const { __scopePopper, virtualRef, ...anchorProps } = props2;
     const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React28.useRef(null);
+    const ref = React45.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = React28.useRef(null);
-    React28.useEffect(() => {
+    const anchorRef = React45.useRef(null);
+    React45.useEffect(() => {
       const previousAnchor = anchorRef.current;
       anchorRef.current = virtualRef?.current || ref.current;
       if (previousAnchor !== anchorRef.current) {
         context.onAnchorChange(anchorRef.current);
       }
     });
-    return virtualRef ? null : /* @__PURE__ */ import_jsx_runtime11.jsx(Primitive.div, { ...anchorProps, ref: composedRefs });
+    return virtualRef ? null : /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, { ...anchorProps, ref: composedRefs });
   });
   PopperAnchor.displayName = ANCHOR_NAME;
-  [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME);
-  PopperContent = React28.forwardRef((props2, forwardedRef) => {
+  [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME2);
+  PopperContent = React45.forwardRef((props2, forwardedRef) => {
     const {
       __scopePopper,
       side = "bottom",
@@ -29367,10 +31238,10 @@ var init_dist19 = __esm(() => {
       onPlaced,
       ...contentProps
     } = props2;
-    const context = usePopperContext(CONTENT_NAME, __scopePopper);
-    const [content, setContent] = React28.useState(null);
+    const context = usePopperContext(CONTENT_NAME2, __scopePopper);
+    const [content, setContent] = React45.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow4, setArrow] = React28.useState(null);
+    const [arrow4, setArrow] = React45.useState(null);
     const arrowSize = useSize(arrow4);
     const arrowWidth = arrowSize?.width ?? 0;
     const arrowHeight = arrowSize?.height ?? 0;
@@ -29430,12 +31301,12 @@ var init_dist19 = __esm(() => {
     const arrowX = middlewareData.arrow?.x;
     const arrowY = middlewareData.arrow?.y;
     const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React28.useState();
+    const [contentZIndex, setContentZIndex] = React45.useState();
     useLayoutEffect22(() => {
       if (content)
         setContentZIndex(window.getComputedStyle(content).zIndex);
     }, [content]);
-    return /* @__PURE__ */ import_jsx_runtime11.jsx("div", {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx("div", {
       ref: refs.setFloating,
       "data-radix-popper-content-wrapper": "",
       style: {
@@ -29453,14 +31324,14 @@ var init_dist19 = __esm(() => {
         }
       },
       dir: props2.dir,
-      children: /* @__PURE__ */ import_jsx_runtime11.jsx(PopperContentProvider, {
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(PopperContentProvider, {
         scope: __scopePopper,
         placedSide,
         onArrowChange: setArrow,
         arrowX,
         arrowY,
         shouldHideArrow: cannotCenterArrow,
-        children: /* @__PURE__ */ import_jsx_runtime11.jsx(Primitive.div, {
+        children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
           "data-side": placedSide,
           "data-align": placedAlign,
           ...contentProps,
@@ -29473,18 +31344,18 @@ var init_dist19 = __esm(() => {
       })
     });
   });
-  PopperContent.displayName = CONTENT_NAME;
+  PopperContent.displayName = CONTENT_NAME2;
   OPPOSITE_SIDE = {
     top: "bottom",
     right: "left",
     bottom: "top",
     left: "right"
   };
-  PopperArrow = React28.forwardRef(function PopperArrow2(props2, forwardedRef) {
+  PopperArrow = React45.forwardRef(function PopperArrow2(props2, forwardedRef) {
     const { __scopePopper, ...arrowProps } = props2;
     const contentContext = useContentContext(ARROW_NAME, __scopePopper);
     const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
-    return /* @__PURE__ */ import_jsx_runtime11.jsx("span", {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx("span", {
       ref: contentContext.onArrowChange,
       style: {
         position: "absolute",
@@ -29505,7 +31376,7 @@ var init_dist19 = __esm(() => {
         }[contentContext.placedSide],
         visibility: contentContext.shouldHideArrow ? "hidden" : undefined
       },
-      children: /* @__PURE__ */ import_jsx_runtime11.jsx(Root2, {
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(Root4, {
         ...arrowProps,
         ref: forwardedRef,
         style: {
@@ -29518,100 +31389,14 @@ var init_dist19 = __esm(() => {
   PopperArrow.displayName = ARROW_NAME;
   Root22 = Popper;
   Anchor = PopperAnchor;
-  Content = PopperContent;
+  Content2 = PopperContent;
   Arrow2 = PopperArrow;
-});
-
-// node_modules/@radix-ui/react-portal/dist/index.mjs
-var React29, import_react_dom2, import_jsx_runtime12, PORTAL_NAME = "Portal", Portal;
-var init_dist20 = __esm(() => {
-  React29 = __toESM(require_react(), 1);
-  import_react_dom2 = __toESM(require_react_dom(), 1);
-  init_dist3();
-  init_dist15();
-  import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  Portal = React29.forwardRef((props2, forwardedRef) => {
-    const { container: containerProp, ...portalProps } = props2;
-    const [mounted, setMounted] = React29.useState(false);
-    useLayoutEffect22(() => setMounted(true), []);
-    const container = containerProp || mounted && globalThis?.document?.body;
-    return container ? import_react_dom2.default.createPortal(/* @__PURE__ */ import_jsx_runtime12.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
-  });
-  Portal.displayName = PORTAL_NAME;
-});
-
-// node_modules/@radix-ui/react-use-controllable-state/dist/index.mjs
-function useControllableState({
-  prop,
-  defaultProp,
-  onChange = () => {},
-  caller
-}) {
-  const [uncontrolledProp, setUncontrolledProp, onChangeRef] = useUncontrolledState({
-    defaultProp,
-    onChange
-  });
-  const isControlled = prop !== undefined;
-  const value = isControlled ? prop : uncontrolledProp;
-  if (true) {
-    const isControlledRef = React30.useRef(prop !== undefined);
-    React30.useEffect(() => {
-      const wasControlled = isControlledRef.current;
-      if (wasControlled !== isControlled) {
-        const from = wasControlled ? "controlled" : "uncontrolled";
-        const to = isControlled ? "controlled" : "uncontrolled";
-        console.warn(`${caller} is changing from ${from} to ${to}. Components should not switch from controlled to uncontrolled (or vice versa). Decide between using a controlled or uncontrolled value for the lifetime of the component.`);
-      }
-      isControlledRef.current = isControlled;
-    }, [isControlled, caller]);
-  }
-  const setValue = React30.useCallback((nextValue) => {
-    if (isControlled) {
-      const value2 = isFunction(nextValue) ? nextValue(prop) : nextValue;
-      if (value2 !== prop) {
-        onChangeRef.current?.(value2);
-      }
-    } else {
-      setUncontrolledProp(nextValue);
-    }
-  }, [isControlled, prop, setUncontrolledProp, onChangeRef]);
-  return [value, setValue];
-}
-function useUncontrolledState({
-  defaultProp,
-  onChange
-}) {
-  const [value, setValue] = React30.useState(defaultProp);
-  const prevValueRef = React30.useRef(value);
-  const onChangeRef = React30.useRef(onChange);
-  useInsertionEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-  React30.useEffect(() => {
-    if (prevValueRef.current !== value) {
-      onChangeRef.current?.(value);
-      prevValueRef.current = value;
-    }
-  }, [value, prevValueRef]);
-  return [value, setValue, onChangeRef];
-}
-function isFunction(value) {
-  return typeof value === "function";
-}
-var React30, React24, useInsertionEffect, SYNC_STATE;
-var init_dist21 = __esm(() => {
-  React30 = __toESM(require_react(), 1);
-  init_dist15();
-  React24 = __toESM(require_react(), 1);
-  useInsertionEffect = React30[" useInsertionEffect ".trim().toString()] || useLayoutEffect22;
-  SYNC_STATE = Symbol("RADIX:SYNC_STATE");
 });
 
 // node_modules/@radix-ui/react-use-previous/dist/index.mjs
 function usePrevious(value) {
-  const ref = React31.useRef({ value, previous: value });
-  return React31.useMemo(() => {
+  const ref = React46.useRef({ value, previous: value });
+  return React46.useMemo(() => {
     if (ref.current.value !== value) {
       ref.current.previous = ref.current.value;
       ref.current.value = value;
@@ -29619,17 +31404,17 @@ function usePrevious(value) {
     return ref.current.previous;
   }, [value]);
 }
-var React31;
-var init_dist22 = __esm(() => {
-  React31 = __toESM(require_react(), 1);
+var React46;
+var init_dist24 = __esm(() => {
+  React46 = __toESM(require_react(), 1);
 });
 
 // node_modules/@radix-ui/react-visually-hidden/dist/index.mjs
-var React32, import_jsx_runtime13, VISUALLY_HIDDEN_STYLES, NAME3 = "VisuallyHidden", VisuallyHidden;
-var init_dist23 = __esm(() => {
-  React32 = __toESM(require_react(), 1);
+var React47, import_jsx_runtime15, VISUALLY_HIDDEN_STYLES, NAME3 = "VisuallyHidden", VisuallyHidden;
+var init_dist25 = __esm(() => {
+  React47 = __toESM(require_react(), 1);
   init_dist3();
-  import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
+  import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
   VISUALLY_HIDDEN_STYLES = Object.freeze({
     position: "absolute",
     border: 0,
@@ -29642,8 +31427,8 @@ var init_dist23 = __esm(() => {
     whiteSpace: "nowrap",
     wordWrap: "normal"
   });
-  VisuallyHidden = React32.forwardRef((props2, forwardedRef) => {
-    return /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.span, {
+  VisuallyHidden = React47.forwardRef((props2, forwardedRef) => {
+    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, {
       ...props2,
       ref: forwardedRef,
       style: { ...VISUALLY_HIDDEN_STYLES, ...props2.style }
@@ -29652,951 +31437,15 @@ var init_dist23 = __esm(() => {
   VisuallyHidden.displayName = NAME3;
 });
 
-// node_modules/aria-hidden/dist/es2015/index.js
-var getDefaultParent = function(originalTarget) {
-  if (typeof document === "undefined") {
-    return null;
-  }
-  var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
-  return sampleTarget.ownerDocument.body;
-}, counterMap, uncontrolledNodes, markerMap, lockCount = 0, unwrapHost = function(node) {
-  return node && (node.host || unwrapHost(node.parentNode));
-}, correctTargets = function(parent, targets) {
-  return targets.map(function(target) {
-    if (parent.contains(target)) {
-      return target;
-    }
-    var correctedTarget = unwrapHost(target);
-    if (correctedTarget && parent.contains(correctedTarget)) {
-      return correctedTarget;
-    }
-    console.error("aria-hidden", target, "in not contained inside", parent, ". Doing nothing");
-    return null;
-  }).filter(function(x) {
-    return Boolean(x);
-  });
-}, applyAttributeToOthers = function(originalTarget, parentNode, markerName, controlAttribute) {
-  var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  if (!markerMap[markerName]) {
-    markerMap[markerName] = new WeakMap;
-  }
-  var markerCounter = markerMap[markerName];
-  var hiddenNodes = [];
-  var elementsToKeep = new Set;
-  var elementsToStop = new Set(targets);
-  var keep = function(el) {
-    if (!el || elementsToKeep.has(el)) {
-      return;
-    }
-    elementsToKeep.add(el);
-    keep(el.parentNode);
-  };
-  targets.forEach(keep);
-  var deep = function(parent) {
-    if (!parent || elementsToStop.has(parent)) {
-      return;
-    }
-    Array.prototype.forEach.call(parent.children, function(node) {
-      if (elementsToKeep.has(node)) {
-        deep(node);
-      } else {
-        try {
-          var attr = node.getAttribute(controlAttribute);
-          var alreadyHidden = attr !== null && attr !== "false";
-          var counterValue = (counterMap.get(node) || 0) + 1;
-          var markerValue = (markerCounter.get(node) || 0) + 1;
-          counterMap.set(node, counterValue);
-          markerCounter.set(node, markerValue);
-          hiddenNodes.push(node);
-          if (counterValue === 1 && alreadyHidden) {
-            uncontrolledNodes.set(node, true);
-          }
-          if (markerValue === 1) {
-            node.setAttribute(markerName, "true");
-          }
-          if (!alreadyHidden) {
-            node.setAttribute(controlAttribute, "true");
-          }
-        } catch (e) {
-          console.error("aria-hidden: cannot operate on ", node, e);
-        }
-      }
-    });
-  };
-  deep(parentNode);
-  elementsToKeep.clear();
-  lockCount++;
-  return function() {
-    hiddenNodes.forEach(function(node) {
-      var counterValue = counterMap.get(node) - 1;
-      var markerValue = markerCounter.get(node) - 1;
-      counterMap.set(node, counterValue);
-      markerCounter.set(node, markerValue);
-      if (!counterValue) {
-        if (!uncontrolledNodes.has(node)) {
-          node.removeAttribute(controlAttribute);
-        }
-        uncontrolledNodes.delete(node);
-      }
-      if (!markerValue) {
-        node.removeAttribute(markerName);
-      }
-    });
-    lockCount--;
-    if (!lockCount) {
-      counterMap = new WeakMap;
-      counterMap = new WeakMap;
-      uncontrolledNodes = new WeakMap;
-      markerMap = {};
-    }
-  };
-}, hideOthers = function(originalTarget, parentNode, markerName) {
-  if (markerName === undefined) {
-    markerName = "data-aria-hidden";
-  }
-  var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  var activeParentNode = parentNode || getDefaultParent(originalTarget);
-  if (!activeParentNode) {
-    return function() {
-      return null;
-    };
-  }
-  targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
-  return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
-};
-var init_es2015 = __esm(() => {
-  counterMap = new WeakMap;
-  uncontrolledNodes = new WeakMap;
-  markerMap = {};
-});
-
-// node_modules/tslib/tslib.es6.mjs
-function __rest(s, e) {
-  var t = {};
-  for (var p in s)
-    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-      t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i = 0, p = Object.getOwnPropertySymbols(s);i < p.length; i++) {
-      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-        t[p[i]] = s[p[i]];
-    }
-  return t;
-}
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2)
-    for (var i = 0, l = from.length, ar;i < l; i++) {
-      if (ar || !(i in from)) {
-        if (!ar)
-          ar = Array.prototype.slice.call(from, 0, i);
-        ar[i] = from[i];
-      }
-    }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-var __assign = function() {
-  __assign = Object.assign || function __assign(t) {
-    for (var s, i = 1, n = arguments.length;i < n; i++) {
-      s = arguments[i];
-      for (var p in s)
-        if (Object.prototype.hasOwnProperty.call(s, p))
-          t[p] = s[p];
-    }
-    return t;
-  };
-  return __assign.apply(this, arguments);
-};
-var init_tslib_es6 = () => {};
-
-// node_modules/react-remove-scroll-bar/dist/es2015/constants.js
-var zeroRightClassName = "right-scroll-bar-position", fullWidthClassName = "width-before-scroll-bar", noScrollbarsClassName = "with-scroll-bars-hidden", removedBarSizeVariable = "--removed-body-scroll-bar-size";
-
-// node_modules/use-callback-ref/dist/es2015/assignRef.js
-function assignRef(ref, value) {
-  if (typeof ref === "function") {
-    ref(value);
-  } else if (ref) {
-    ref.current = value;
-  }
-  return ref;
-}
-
-// node_modules/use-callback-ref/dist/es2015/useRef.js
-function useCallbackRef2(initialValue, callback) {
-  var ref = import_react9.useState(function() {
-    return {
-      value: initialValue,
-      callback,
-      facade: {
-        get current() {
-          return ref.value;
-        },
-        set current(value) {
-          var last = ref.value;
-          if (last !== value) {
-            ref.value = value;
-            ref.callback(value, last);
-          }
-        }
-      }
-    };
-  })[0];
-  ref.callback = callback;
-  return ref.facade;
-}
-var import_react9;
-var init_useRef = __esm(() => {
-  import_react9 = __toESM(require_react(), 1);
-});
-
-// node_modules/use-callback-ref/dist/es2015/useMergeRef.js
-function useMergeRefs(refs, defaultValue) {
-  var callbackRef = useCallbackRef2(defaultValue || null, function(newValue) {
-    return refs.forEach(function(ref) {
-      return assignRef(ref, newValue);
-    });
-  });
-  useIsomorphicLayoutEffect2(function() {
-    var oldValue = currentValues.get(callbackRef);
-    if (oldValue) {
-      var prevRefs_1 = new Set(oldValue);
-      var nextRefs_1 = new Set(refs);
-      var current_1 = callbackRef.current;
-      prevRefs_1.forEach(function(ref) {
-        if (!nextRefs_1.has(ref)) {
-          assignRef(ref, null);
-        }
-      });
-      nextRefs_1.forEach(function(ref) {
-        if (!prevRefs_1.has(ref)) {
-          assignRef(ref, current_1);
-        }
-      });
-    }
-    currentValues.set(callbackRef, refs);
-  }, [refs]);
-  return callbackRef;
-}
-var React33, useIsomorphicLayoutEffect2, currentValues;
-var init_useMergeRef = __esm(() => {
-  React33 = __toESM(require_react(), 1);
-  init_useRef();
-  useIsomorphicLayoutEffect2 = typeof window !== "undefined" ? React33.useLayoutEffect : React33.useEffect;
-  currentValues = new WeakMap;
-});
-
-// node_modules/use-callback-ref/dist/es2015/index.js
-var init_es20152 = __esm(() => {
-  init_useMergeRef();
-});
-// node_modules/use-sidecar/dist/es2015/env.js
-var init_env = () => {};
-
-// node_modules/use-sidecar/dist/es2015/hook.js
-var import_react10, cache;
-var init_hook = __esm(() => {
-  import_react10 = __toESM(require_react(), 1);
-  init_env();
-  cache = new WeakMap;
-});
-
-// node_modules/use-sidecar/dist/es2015/hoc.js
-var React34;
-var init_hoc = __esm(() => {
-  React34 = __toESM(require_react(), 1);
-  init_hook();
-});
-
-// node_modules/use-sidecar/dist/es2015/config.js
-var init_config = () => {};
-
-// node_modules/use-sidecar/dist/es2015/medium.js
-function ItoI(a) {
-  return a;
-}
-function innerCreateMedium(defaults, middleware) {
-  if (middleware === undefined) {
-    middleware = ItoI;
-  }
-  var buffer = [];
-  var assigned = false;
-  var medium = {
-    read: function() {
-      if (assigned) {
-        throw new Error("Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.");
-      }
-      if (buffer.length) {
-        return buffer[buffer.length - 1];
-      }
-      return defaults;
-    },
-    useMedium: function(data) {
-      var item = middleware(data, assigned);
-      buffer.push(item);
-      return function() {
-        buffer = buffer.filter(function(x) {
-          return x !== item;
-        });
-      };
-    },
-    assignSyncMedium: function(cb) {
-      assigned = true;
-      while (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-      }
-      buffer = {
-        push: function(x) {
-          return cb(x);
-        },
-        filter: function() {
-          return buffer;
-        }
-      };
-    },
-    assignMedium: function(cb) {
-      assigned = true;
-      var pendingQueue = [];
-      if (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-        pendingQueue = buffer;
-      }
-      var executeQueue = function() {
-        var cbs2 = pendingQueue;
-        pendingQueue = [];
-        cbs2.forEach(cb);
-      };
-      var cycle = function() {
-        return Promise.resolve().then(executeQueue);
-      };
-      cycle();
-      buffer = {
-        push: function(x) {
-          pendingQueue.push(x);
-          cycle();
-        },
-        filter: function(filter) {
-          pendingQueue = pendingQueue.filter(filter);
-          return buffer;
-        }
-      };
-    }
-  };
-  return medium;
-}
-function createSidecarMedium(options) {
-  if (options === undefined) {
-    options = {};
-  }
-  var medium = innerCreateMedium(null);
-  medium.options = __assign({ async: true, ssr: false }, options);
-  return medium;
-}
-var init_medium = __esm(() => {
-  init_tslib_es6();
-});
-
-// node_modules/use-sidecar/dist/es2015/renderProp.js
-var React35, import_react11;
-var init_renderProp = __esm(() => {
-  React35 = __toESM(require_react(), 1);
-  import_react11 = __toESM(require_react(), 1);
-});
-
-// node_modules/use-sidecar/dist/es2015/exports.js
-function exportSidecar(medium, exported) {
-  medium.useMedium(exported);
-  return SideCar;
-}
-var React36, SideCar = function(_a) {
-  var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
-  if (!sideCar) {
-    throw new Error("Sidecar: please provide `sideCar` property to import the right car");
-  }
-  var Target = sideCar.read();
-  if (!Target) {
-    throw new Error("Sidecar medium not found");
-  }
-  return React36.createElement(Target, __assign({}, rest));
-};
-var init_exports = __esm(() => {
-  init_tslib_es6();
-  React36 = __toESM(require_react(), 1);
-  SideCar.isSideCarExport = true;
-});
-
-// node_modules/use-sidecar/dist/es2015/index.js
-var init_es20153 = __esm(() => {
-  init_hoc();
-  init_hook();
-  init_config();
-  init_medium();
-  init_renderProp();
-  init_exports();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/medium.js
-var effectCar;
-var init_medium2 = __esm(() => {
-  init_es20153();
-  effectCar = createSidecarMedium();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/UI.js
-var React37, nothing = function() {
-  return;
-}, RemoveScroll;
-var init_UI = __esm(() => {
-  init_tslib_es6();
-  React37 = __toESM(require_react(), 1);
-  init_es20152();
-  init_medium2();
-  RemoveScroll = React37.forwardRef(function(props2, parentRef) {
-    var ref = React37.useRef(null);
-    var _a = React37.useState({
-      onScrollCapture: nothing,
-      onWheelCapture: nothing,
-      onTouchMoveCapture: nothing
-    }), callbacks = _a[0], setCallbacks = _a[1];
-    var { forwardProps, children, className, removeScrollBar, enabled: enabled2, shards, sideCar, noRelative, noIsolation, inert, allowPinchZoom, as: _b } = props2, Container = _b === undefined ? "div" : _b, gapMode = props2.gapMode, rest = __rest(props2, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
-    var SideCar2 = sideCar;
-    var containerRef = useMergeRefs([ref, parentRef]);
-    var containerProps = __assign(__assign({}, rest), callbacks);
-    return React37.createElement(React37.Fragment, null, enabled2 && React37.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React37.cloneElement(React37.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React37.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
-  });
-  RemoveScroll.defaultProps = {
-    enabled: true,
-    removeScrollBar: true,
-    inert: false
-  };
-  RemoveScroll.classNames = {
-    fullWidth: fullWidthClassName,
-    zeroRight: zeroRightClassName
-  };
-});
-
-// node_modules/get-nonce/dist/es2015/index.js
-var currentNonce, getNonce2 = function() {
-  if (currentNonce) {
-    return currentNonce;
-  }
-  if (typeof __webpack_nonce__ !== "undefined") {
-    return __webpack_nonce__;
-  }
-  return;
-};
-
-// node_modules/react-style-singleton/dist/es2015/singleton.js
-function makeStyleTag() {
-  if (!document)
-    return null;
-  var tag = document.createElement("style");
-  tag.type = "text/css";
-  var nonce2 = getNonce2();
-  if (nonce2) {
-    tag.setAttribute("nonce", nonce2);
-  }
-  return tag;
-}
-function injectStyles(tag, css) {
-  if (tag.styleSheet) {
-    tag.styleSheet.cssText = css;
-  } else {
-    tag.appendChild(document.createTextNode(css));
-  }
-}
-function insertStyleTag(tag) {
-  var head = document.head || document.getElementsByTagName("head")[0];
-  head.appendChild(tag);
-}
-var stylesheetSingleton = function() {
-  var counter2 = 0;
-  var stylesheet = null;
-  return {
-    add: function(style) {
-      if (counter2 == 0) {
-        if (stylesheet = makeStyleTag()) {
-          injectStyles(stylesheet, style);
-          insertStyleTag(stylesheet);
-        }
-      }
-      counter2++;
-    },
-    remove: function() {
-      counter2--;
-      if (!counter2 && stylesheet) {
-        stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
-        stylesheet = null;
-      }
-    }
-  };
-};
-var init_singleton = () => {};
-
-// node_modules/react-style-singleton/dist/es2015/hook.js
-var React38, styleHookSingleton = function() {
-  var sheet = stylesheetSingleton();
-  return function(styles, isDynamic) {
-    React38.useEffect(function() {
-      sheet.add(styles);
-      return function() {
-        sheet.remove();
-      };
-    }, [styles && isDynamic]);
-  };
-};
-var init_hook2 = __esm(() => {
-  React38 = __toESM(require_react(), 1);
-  init_singleton();
-});
-
-// node_modules/react-style-singleton/dist/es2015/component.js
-var styleSingleton = function() {
-  var useStyle = styleHookSingleton();
-  var Sheet = function(_a) {
-    var { styles, dynamic } = _a;
-    useStyle(styles, dynamic);
-    return null;
-  };
-  return Sheet;
-};
-var init_component = __esm(() => {
-  init_hook2();
-});
-
-// node_modules/react-style-singleton/dist/es2015/index.js
-var init_es20154 = __esm(() => {
-  init_component();
-  init_singleton();
-  init_hook2();
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/utils.js
-var zeroGap, parse = function(x) {
-  return parseInt(x || "", 10) || 0;
-}, getOffset = function(gapMode) {
-  var cs = window.getComputedStyle(document.body);
-  var left = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
-  var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
-  var right = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
-  return [parse(left), parse(top), parse(right)];
-}, getGapWidth = function(gapMode) {
-  if (gapMode === undefined) {
-    gapMode = "margin";
-  }
-  if (typeof window === "undefined") {
-    return zeroGap;
-  }
-  var offsets = getOffset(gapMode);
-  var documentWidth = document.documentElement.clientWidth;
-  var windowWidth = window.innerWidth;
-  return {
-    left: offsets[0],
-    top: offsets[1],
-    right: offsets[2],
-    gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0])
-  };
-};
-var init_utils3 = __esm(() => {
-  zeroGap = {
-    left: 0,
-    top: 0,
-    right: 0,
-    gap: 0
-  };
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/component.js
-var React39, Style, lockAttribute = "data-scroll-locked", getStyles = function(_a, allowRelative, gapMode, important) {
-  var { left, top, right, gap } = _a;
-  if (gapMode === undefined) {
-    gapMode = "margin";
-  }
-  return `
-  .`.concat(noScrollbarsClassName, ` {
-   overflow: hidden `).concat(important, `;
-   padding-right: `).concat(gap, "px ").concat(important, `;
-  }
-  body[`).concat(lockAttribute, `] {
-    overflow: hidden `).concat(important, `;
-    overscroll-behavior: contain;
-    `).concat([
-    allowRelative && "position: relative ".concat(important, ";"),
-    gapMode === "margin" && `
-    padding-left: `.concat(left, `px;
-    padding-top: `).concat(top, `px;
-    padding-right: `).concat(right, `px;
-    margin-left:0;
-    margin-top:0;
-    margin-right: `).concat(gap, "px ").concat(important, `;
-    `),
-    gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
-  ].filter(Boolean).join(""), `
-  }
-
-  .`).concat(zeroRightClassName, ` {
-    right: `).concat(gap, "px ").concat(important, `;
-  }
-
-  .`).concat(fullWidthClassName, ` {
-    margin-right: `).concat(gap, "px ").concat(important, `;
-  }
-
-  .`).concat(zeroRightClassName, " .").concat(zeroRightClassName, ` {
-    right: 0 `).concat(important, `;
-  }
-
-  .`).concat(fullWidthClassName, " .").concat(fullWidthClassName, ` {
-    margin-right: 0 `).concat(important, `;
-  }
-
-  body[`).concat(lockAttribute, `] {
-    `).concat(removedBarSizeVariable, ": ").concat(gap, `px;
-  }
-`);
-}, getCurrentUseCounter = function() {
-  var counter2 = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
-  return isFinite(counter2) ? counter2 : 0;
-}, useLockAttribute = function() {
-  React39.useEffect(function() {
-    document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
-    return function() {
-      var newCounter = getCurrentUseCounter() - 1;
-      if (newCounter <= 0) {
-        document.body.removeAttribute(lockAttribute);
-      } else {
-        document.body.setAttribute(lockAttribute, newCounter.toString());
-      }
-    };
-  }, []);
-}, RemoveScrollBar = function(_a) {
-  var { noRelative, noImportant, gapMode: _b } = _a, gapMode = _b === undefined ? "margin" : _b;
-  useLockAttribute();
-  var gap = React39.useMemo(function() {
-    return getGapWidth(gapMode);
-  }, [gapMode]);
-  return React39.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
-};
-var init_component2 = __esm(() => {
-  React39 = __toESM(require_react(), 1);
-  init_es20154();
-  init_utils3();
-  Style = styleSingleton();
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/index.js
-var init_es20155 = __esm(() => {
-  init_component2();
-  init_utils3();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/aggresiveCapture.js
-var passiveSupported = false, options, nonPassive;
-var init_aggresiveCapture = __esm(() => {
-  if (typeof window !== "undefined") {
-    try {
-      options = Object.defineProperty({}, "passive", {
-        get: function() {
-          passiveSupported = true;
-          return true;
-        }
-      });
-      window.addEventListener("test", options, options);
-      window.removeEventListener("test", options, options);
-    } catch (err) {
-      passiveSupported = false;
-    }
-  }
-  nonPassive = passiveSupported ? { passive: false } : false;
-});
-
-// node_modules/react-remove-scroll/dist/es2015/handleScroll.js
-var alwaysContainsScroll = function(node) {
-  return node.tagName === "TEXTAREA";
-}, elementCanBeScrolled = function(node, overflow) {
-  if (!(node instanceof Element)) {
-    return false;
-  }
-  var styles = window.getComputedStyle(node);
-  return styles[overflow] !== "hidden" && !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === "visible");
-}, elementCouldBeVScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowY");
-}, elementCouldBeHScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowX");
-}, locationCouldBeScrolled = function(axis, node) {
-  var ownerDocument = node.ownerDocument;
-  var current = node;
-  do {
-    if (typeof ShadowRoot !== "undefined" && current instanceof ShadowRoot) {
-      current = current.host;
-    }
-    var isScrollable = elementCouldBeScrolled(axis, current);
-    if (isScrollable) {
-      var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
-      if (scrollHeight > clientHeight) {
-        return true;
-      }
-    }
-    current = current.parentNode;
-  } while (current && current !== ownerDocument.body);
-  return false;
-}, getVScrollVariables = function(_a) {
-  var { scrollTop, scrollHeight, clientHeight } = _a;
-  return [
-    scrollTop,
-    scrollHeight,
-    clientHeight
-  ];
-}, getHScrollVariables = function(_a) {
-  var { scrollLeft, scrollWidth, clientWidth } = _a;
-  return [
-    scrollLeft,
-    scrollWidth,
-    clientWidth
-  ];
-}, elementCouldBeScrolled = function(axis, node) {
-  return axis === "v" ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
-}, getScrollVariables = function(axis, node) {
-  return axis === "v" ? getVScrollVariables(node) : getHScrollVariables(node);
-}, getDirectionFactor = function(axis, direction) {
-  return axis === "h" && direction === "rtl" ? -1 : 1;
-}, handleScroll = function(axis, endTarget, event, sourceDelta, noOverscroll) {
-  var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
-  var delta = directionFactor * sourceDelta;
-  var target = event.target;
-  var targetInLock = endTarget.contains(target);
-  var shouldCancelScroll = false;
-  var isDeltaPositive = delta > 0;
-  var availableScroll = 0;
-  var availableScrollTop = 0;
-  do {
-    if (!target) {
-      break;
-    }
-    var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
-    var elementScroll = scroll_1 - capacity - directionFactor * position;
-    if (position || elementScroll) {
-      if (elementCouldBeScrolled(axis, target)) {
-        availableScroll += elementScroll;
-        availableScrollTop += position;
-      }
-    }
-    var parent_1 = target.parentNode;
-    target = parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1;
-  } while (!targetInLock && target !== document.body || targetInLock && (endTarget.contains(target) || endTarget === target));
-  if (isDeltaPositive && (noOverscroll && Math.abs(availableScroll) < 1 || !noOverscroll && delta > availableScroll)) {
-    shouldCancelScroll = true;
-  } else if (!isDeltaPositive && (noOverscroll && Math.abs(availableScrollTop) < 1 || !noOverscroll && -delta > availableScrollTop)) {
-    shouldCancelScroll = true;
-  }
-  return shouldCancelScroll;
-};
-
-// node_modules/react-remove-scroll/dist/es2015/SideEffect.js
-function RemoveScrollSideCar(props2) {
-  var shouldPreventQueue = React40.useRef([]);
-  var touchStartRef = React40.useRef([0, 0]);
-  var activeAxis = React40.useRef();
-  var id = React40.useState(idCounter++)[0];
-  var Style2 = React40.useState(styleSingleton)[0];
-  var lastProps = React40.useRef(props2);
-  React40.useEffect(function() {
-    lastProps.current = props2;
-  }, [props2]);
-  React40.useEffect(function() {
-    if (props2.inert) {
-      document.body.classList.add("block-interactivity-".concat(id));
-      var allow_1 = __spreadArray([props2.lockRef.current], (props2.shards || []).map(extractRef), true).filter(Boolean);
-      allow_1.forEach(function(el) {
-        return el.classList.add("allow-interactivity-".concat(id));
-      });
-      return function() {
-        document.body.classList.remove("block-interactivity-".concat(id));
-        allow_1.forEach(function(el) {
-          return el.classList.remove("allow-interactivity-".concat(id));
-        });
-      };
-    }
-    return;
-  }, [props2.inert, props2.lockRef.current, props2.shards]);
-  var shouldCancelEvent = React40.useCallback(function(event, parent) {
-    if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
-      return !lastProps.current.allowPinchZoom;
-    }
-    var touch = getTouchXY(event);
-    var touchStart = touchStartRef.current;
-    var deltaX = "deltaX" in event ? event.deltaX : touchStart[0] - touch[0];
-    var deltaY = "deltaY" in event ? event.deltaY : touchStart[1] - touch[1];
-    var currentAxis;
-    var target = event.target;
-    var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? "h" : "v";
-    if ("touches" in event && moveDirection === "h" && target.type === "range") {
-      return false;
-    }
-    var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    if (!canBeScrolledInMainDirection) {
-      return true;
-    }
-    if (canBeScrolledInMainDirection) {
-      currentAxis = moveDirection;
-    } else {
-      currentAxis = moveDirection === "v" ? "h" : "v";
-      canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    }
-    if (!canBeScrolledInMainDirection) {
-      return false;
-    }
-    if (!activeAxis.current && "changedTouches" in event && (deltaX || deltaY)) {
-      activeAxis.current = currentAxis;
-    }
-    if (!currentAxis) {
-      return true;
-    }
-    var cancelingAxis = activeAxis.current || currentAxis;
-    return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY, true);
-  }, []);
-  var shouldPrevent = React40.useCallback(function(_event) {
-    var event = _event;
-    if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
-      return;
-    }
-    var delta = "deltaY" in event ? getDeltaXY(event) : getTouchXY(event);
-    var sourceEvent = shouldPreventQueue.current.filter(function(e) {
-      return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta);
-    })[0];
-    if (sourceEvent && sourceEvent.should) {
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      return;
-    }
-    if (!sourceEvent) {
-      var shardNodes = (lastProps.current.shards || []).map(extractRef).filter(Boolean).filter(function(node) {
-        return node.contains(event.target);
-      });
-      var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
-      if (shouldStop) {
-        if (event.cancelable) {
-          event.preventDefault();
-        }
-      }
-    }
-  }, []);
-  var shouldCancel = React40.useCallback(function(name, delta, target, should) {
-    var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
-    shouldPreventQueue.current.push(event);
-    setTimeout(function() {
-      shouldPreventQueue.current = shouldPreventQueue.current.filter(function(e) {
-        return e !== event;
-      });
-    }, 1);
-  }, []);
-  var scrollTouchStart = React40.useCallback(function(event) {
-    touchStartRef.current = getTouchXY(event);
-    activeAxis.current = undefined;
-  }, []);
-  var scrollWheel = React40.useCallback(function(event) {
-    shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props2.lockRef.current));
-  }, []);
-  var scrollTouchMove = React40.useCallback(function(event) {
-    shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props2.lockRef.current));
-  }, []);
-  React40.useEffect(function() {
-    lockStack.push(Style2);
-    props2.setCallbacks({
-      onScrollCapture: scrollWheel,
-      onWheelCapture: scrollWheel,
-      onTouchMoveCapture: scrollTouchMove
-    });
-    document.addEventListener("wheel", shouldPrevent, nonPassive);
-    document.addEventListener("touchmove", shouldPrevent, nonPassive);
-    document.addEventListener("touchstart", scrollTouchStart, nonPassive);
-    return function() {
-      lockStack = lockStack.filter(function(inst) {
-        return inst !== Style2;
-      });
-      document.removeEventListener("wheel", shouldPrevent, nonPassive);
-      document.removeEventListener("touchmove", shouldPrevent, nonPassive);
-      document.removeEventListener("touchstart", scrollTouchStart, nonPassive);
-    };
-  }, []);
-  var { removeScrollBar, inert } = props2;
-  return React40.createElement(React40.Fragment, null, inert ? React40.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React40.createElement(RemoveScrollBar, { noRelative: props2.noRelative, gapMode: props2.gapMode }) : null);
-}
-function getOutermostShadowParent(node) {
-  var shadowParent = null;
-  while (node !== null) {
-    if (node instanceof ShadowRoot) {
-      shadowParent = node.host;
-      node = node.host;
-    }
-    node = node.parentNode;
-  }
-  return shadowParent;
-}
-var React40, getTouchXY = function(event) {
-  return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
-}, getDeltaXY = function(event) {
-  return [event.deltaX, event.deltaY];
-}, extractRef = function(ref) {
-  return ref && "current" in ref ? ref.current : ref;
-}, deltaCompare = function(x, y) {
-  return x[0] === y[0] && x[1] === y[1];
-}, generateStyle = function(id) {
-  return `
-  .block-interactivity-`.concat(id, ` {pointer-events: none;}
-  .allow-interactivity-`).concat(id, ` {pointer-events: all;}
-`);
-}, idCounter = 0, lockStack;
-var init_SideEffect = __esm(() => {
-  init_tslib_es6();
-  React40 = __toESM(require_react(), 1);
-  init_es20155();
-  init_es20154();
-  init_aggresiveCapture();
-  lockStack = [];
-});
-
-// node_modules/react-remove-scroll/dist/es2015/sidecar.js
-var sidecar_default;
-var init_sidecar = __esm(() => {
-  init_es20153();
-  init_SideEffect();
-  init_medium2();
-  sidecar_default = exportSidecar(effectCar, RemoveScrollSideCar);
-});
-
-// node_modules/react-remove-scroll/dist/es2015/Combination.js
-var React41, ReactRemoveScroll, Combination_default;
-var init_Combination = __esm(() => {
-  init_tslib_es6();
-  React41 = __toESM(require_react(), 1);
-  init_UI();
-  init_sidecar();
-  ReactRemoveScroll = React41.forwardRef(function(props2, ref) {
-    return React41.createElement(RemoveScroll, __assign({}, props2, { ref, sideCar: sidecar_default }));
-  });
-  ReactRemoveScroll.classNames = RemoveScroll.classNames;
-  Combination_default = ReactRemoveScroll;
-});
-
-// node_modules/react-remove-scroll/dist/es2015/index.js
-var init_es20156 = __esm(() => {
-  init_Combination();
-});
-
 // node_modules/@radix-ui/react-select/dist/index.mjs
 function shouldShowPlaceholder(value) {
   return value === "" || value === undefined;
 }
 function useTypeaheadSearch(onSearchChange) {
   const handleSearchChange = useCallbackRef(onSearchChange);
-  const searchRef = React42.useRef("");
-  const timerRef = React42.useRef(0);
-  const handleTypeaheadSearch = React42.useCallback((key) => {
+  const searchRef = React48.useRef("");
+  const timerRef = React48.useRef(0);
+  const handleTypeaheadSearch = React48.useCallback((key) => {
     const search = searchRef.current + key;
     handleSearchChange(search);
     (function updateSearch(value) {
@@ -30606,11 +31455,11 @@ function useTypeaheadSearch(onSearchChange) {
         timerRef.current = window.setTimeout(() => updateSearch(""), 1000);
     })(search);
   }, [handleSearchChange]);
-  const resetTypeahead = React42.useCallback(() => {
+  const resetTypeahead = React48.useCallback(() => {
     searchRef.current = "";
     window.clearTimeout(timerRef.current);
   }, []);
-  React42.useEffect(() => {
+  React48.useEffect(() => {
     return () => window.clearTimeout(timerRef.current);
   }, []);
   return [searchRef, handleTypeaheadSearch, resetTypeahead];
@@ -30629,7 +31478,7 @@ function findNextItem(items, search, currentItem) {
 function wrapArray(array, startIndex) {
   return array.map((_, index2) => array[(startIndex + index2) % array.length]);
 }
-var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_NAME = "Select", Collection, useCollection, createCollectionScope, createSelectContext, createSelectScope, usePopperScope, SelectProvider, useSelectContext, SelectNativeOptionsProvider, useSelectNativeOptionsContext, Select = (props2) => {
+var React48, ReactDOM4, import_jsx_runtime16, OPEN_KEYS, SELECTION_KEYS, SELECT_NAME = "Select", Collection, useCollection, createCollectionScope, createSelectContext, createSelectScope, usePopperScope, SelectProvider, useSelectContext, SelectNativeOptionsProvider, useSelectNativeOptionsContext, Select = (props2) => {
   const {
     __scopeSelect,
     children,
@@ -30647,9 +31496,9 @@ var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_
     form
   } = props2;
   const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = React42.useState(null);
-  const [valueNode, setValueNode] = React42.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = React42.useState(false);
+  const [trigger, setTrigger] = React48.useState(null);
+  const [valueNode, setValueNode] = React48.useState(null);
+  const [valueNodeHasChildren, setValueNodeHasChildren] = React48.useState(false);
   const direction = useDirection(dir);
   const [open, setOpen] = useControllableState({
     prop: openProp,
@@ -30663,11 +31512,11 @@ var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_
     onChange: onValueChange,
     caller: SELECT_NAME
   });
-  const triggerPointerDownPosRef = React42.useRef(null);
+  const triggerPointerDownPosRef = React48.useRef(null);
   const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = React42.useState(/* @__PURE__ */ new Set);
+  const [nativeOptionsSet, setNativeOptionsSet] = React48.useState(/* @__PURE__ */ new Set);
   const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-  return /* @__PURE__ */ import_jsx_runtime14.jsx(Root22, { ...popperScope, children: /* @__PURE__ */ import_jsx_runtime14.jsxs(SelectProvider, {
+  return /* @__PURE__ */ import_jsx_runtime16.jsx(Root22, { ...popperScope, children: /* @__PURE__ */ import_jsx_runtime16.jsxs(SelectProvider, {
     required,
     scope: __scopeSelect,
     trigger,
@@ -30685,12 +31534,12 @@ var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_
     triggerPointerDownPosRef,
     disabled,
     children: [
-      /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime14.jsx(SelectNativeOptionsProvider, {
+      /* @__PURE__ */ import_jsx_runtime16.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime16.jsx(SelectNativeOptionsProvider, {
         scope: props2.__scopeSelect,
-        onNativeOptionAdd: React42.useCallback((option) => {
+        onNativeOptionAdd: React48.useCallback((option) => {
           setNativeOptionsSet((prev) => new Set(prev).add(option));
         }, []),
-        onNativeOptionRemove: React42.useCallback((option) => {
+        onNativeOptionRemove: React48.useCallback((option) => {
           setNativeOptionsSet((prev) => {
             const optionsSet = new Set(prev);
             optionsSet.delete(option);
@@ -30699,7 +31548,7 @@ var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_
         }, []),
         children
       }) }),
-      isFormControl ? /* @__PURE__ */ import_jsx_runtime14.jsxs(SelectBubbleInput, {
+      isFormControl ? /* @__PURE__ */ import_jsx_runtime16.jsxs(SelectBubbleInput, {
         "aria-hidden": true,
         required,
         tabIndex: -1,
@@ -30710,41 +31559,41 @@ var React42, ReactDOM4, import_jsx_runtime14, OPEN_KEYS, SELECTION_KEYS, SELECT_
         disabled,
         form,
         children: [
-          value === undefined ? /* @__PURE__ */ import_jsx_runtime14.jsx("option", { value: "" }) : null,
+          value === undefined ? /* @__PURE__ */ import_jsx_runtime16.jsx("option", { value: "" }) : null,
           Array.from(nativeOptionsSet)
         ]
       }, nativeSelectKey) : null
     ]
   }) });
-}, TRIGGER_NAME = "SelectTrigger", SelectTrigger, VALUE_NAME = "SelectValue", SelectValue, ICON_NAME = "SelectIcon", SelectIcon, PORTAL_NAME2 = "SelectPortal", SelectPortal = (props2) => {
-  return /* @__PURE__ */ import_jsx_runtime14.jsx(Portal, { asChild: true, ...props2 });
-}, CONTENT_NAME2 = "SelectContent", SelectContent, CONTENT_MARGIN = 10, SelectContentProvider, useSelectContentContext, CONTENT_IMPL_NAME = "SelectContentImpl", Slot2, SelectContentImpl, ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition", SelectItemAlignedPosition, POPPER_POSITION_NAME = "SelectPopperPosition", SelectPopperPosition, SelectViewportProvider, useSelectViewportContext, VIEWPORT_NAME = "SelectViewport", SelectViewport, GROUP_NAME = "SelectGroup", SelectGroupContextProvider, useSelectGroupContext, SelectGroup, LABEL_NAME = "SelectLabel", SelectLabel, ITEM_NAME = "SelectItem", SelectItemContextProvider, useSelectItemContext, SelectItem, ITEM_TEXT_NAME = "SelectItemText", SelectItemText, ITEM_INDICATOR_NAME = "SelectItemIndicator", SelectItemIndicator, SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton", SelectScrollUpButton, SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton", SelectScrollDownButton, SelectScrollButtonImpl, SEPARATOR_NAME = "SelectSeparator", SelectSeparator, ARROW_NAME2 = "SelectArrow", SelectArrow, BUBBLE_INPUT_NAME = "SelectBubbleInput", SelectBubbleInput, Root23, Trigger, Value, Icon2, Portal2, Content2, Viewport, Label, Item, ItemText, ItemIndicator, ScrollUpButton, ScrollDownButton, Separator3;
-var init_dist24 = __esm(() => {
-  React42 = __toESM(require_react(), 1);
+}, TRIGGER_NAME2 = "SelectTrigger", SelectTrigger, VALUE_NAME = "SelectValue", SelectValue, ICON_NAME = "SelectIcon", SelectIcon, PORTAL_NAME3 = "SelectPortal", SelectPortal = (props2) => {
+  return /* @__PURE__ */ import_jsx_runtime16.jsx(Portal, { asChild: true, ...props2 });
+}, CONTENT_NAME3 = "SelectContent", SelectContent, CONTENT_MARGIN = 10, SelectContentProvider, useSelectContentContext, CONTENT_IMPL_NAME = "SelectContentImpl", Slot3, SelectContentImpl, ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition", SelectItemAlignedPosition, POPPER_POSITION_NAME = "SelectPopperPosition", SelectPopperPosition, SelectViewportProvider, useSelectViewportContext, VIEWPORT_NAME2 = "SelectViewport", SelectViewport, GROUP_NAME = "SelectGroup", SelectGroupContextProvider, useSelectGroupContext, SelectGroup, LABEL_NAME = "SelectLabel", SelectLabel, ITEM_NAME = "SelectItem", SelectItemContextProvider, useSelectItemContext, SelectItem, ITEM_TEXT_NAME = "SelectItemText", SelectItemText, ITEM_INDICATOR_NAME = "SelectItemIndicator", SelectItemIndicator, SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton", SelectScrollUpButton, SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton", SelectScrollDownButton, SelectScrollButtonImpl, SEPARATOR_NAME = "SelectSeparator", SelectSeparator, ARROW_NAME2 = "SelectArrow", SelectArrow, BUBBLE_INPUT_NAME = "SelectBubbleInput", SelectBubbleInput, Root23, Trigger2, Value, Icon2, Portal3, Content22, Viewport2, Label, Item, ItemText, ItemIndicator, ScrollUpButton, ScrollDownButton, Separator3;
+var init_dist26 = __esm(() => {
+  React48 = __toESM(require_react(), 1);
   ReactDOM4 = __toESM(require_react_dom(), 1);
-  init_dist5();
-  init_dist6();
-  init_dist8();
-  init_dist();
-  init_dist7();
-  init_dist9();
-  init_dist12();
-  init_dist13();
-  init_dist14();
-  init_dist16();
-  init_dist19();
-  init_dist19();
+  init_dist18();
+  init_dist4();
   init_dist20();
+  init_dist();
+  init_dist5();
+  init_dist17();
+  init_dist11();
+  init_dist15();
+  init_dist12();
+  init_dist7();
+  init_dist23();
+  init_dist23();
+  init_dist13();
   init_dist3();
   init_dist2();
-  init_dist10();
-  init_dist21();
-  init_dist15();
-  init_dist22();
-  init_dist23();
-  init_es2015();
+  init_dist9();
+  init_dist8();
+  init_dist6();
+  init_dist24();
+  init_dist25();
   init_es20156();
-  import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
+  init_es20155();
+  import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
   "use client";
   OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
   SELECTION_KEYS = [" ", "Enter"];
@@ -30757,14 +31606,14 @@ var init_dist24 = __esm(() => {
   [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
   [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
   Select.displayName = SELECT_NAME;
-  SelectTrigger = React42.forwardRef((props2, forwardedRef) => {
+  SelectTrigger = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, disabled = false, ...triggerProps } = props2;
     const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(TRIGGER_NAME, __scopeSelect);
+    const context = useSelectContext(TRIGGER_NAME2, __scopeSelect);
     const isDisabled = context.disabled || disabled;
     const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
     const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = React42.useRef("touch");
+    const pointerTypeRef = React48.useRef("touch");
     const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
       const enabledItems = getItems().filter((item) => !item.disabled);
       const currentItem = enabledItems.find((item) => item.value === context.value);
@@ -30785,7 +31634,7 @@ var init_dist24 = __esm(() => {
         };
       }
     };
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.button, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.button, {
       type: "button",
       role: "combobox",
       "aria-controls": context.contentId,
@@ -30830,8 +31679,8 @@ var init_dist24 = __esm(() => {
       })
     }) });
   });
-  SelectTrigger.displayName = TRIGGER_NAME;
-  SelectValue = React42.forwardRef((props2, forwardedRef) => {
+  SelectTrigger.displayName = TRIGGER_NAME2;
+  SelectValue = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props2;
     const context = useSelectContext(VALUE_NAME, __scopeSelect);
     const { onValueNodeHasChildrenChange } = context;
@@ -30840,36 +31689,36 @@ var init_dist24 = __esm(() => {
     useLayoutEffect22(() => {
       onValueNodeHasChildrenChange(hasChildren);
     }, [onValueNodeHasChildrenChange, hasChildren]);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.span, {
       ...valueProps,
       ref: composedRefs,
       style: { pointerEvents: "none" },
-      children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ import_jsx_runtime14.jsx(import_jsx_runtime14.Fragment, { children: placeholder }) : children
+      children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ import_jsx_runtime16.jsx(import_jsx_runtime16.Fragment, { children: placeholder }) : children
     });
   });
   SelectValue.displayName = VALUE_NAME;
-  SelectIcon = React42.forwardRef((props2, forwardedRef) => {
+  SelectIcon = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, children, ...iconProps } = props2;
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "▼" });
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "▼" });
   });
   SelectIcon.displayName = ICON_NAME;
-  SelectPortal.displayName = PORTAL_NAME2;
-  SelectContent = React42.forwardRef((props2, forwardedRef) => {
-    const context = useSelectContext(CONTENT_NAME2, props2.__scopeSelect);
-    const [fragment, setFragment] = React42.useState();
+  SelectPortal.displayName = PORTAL_NAME3;
+  SelectContent = React48.forwardRef((props2, forwardedRef) => {
+    const context = useSelectContext(CONTENT_NAME3, props2.__scopeSelect);
+    const [fragment, setFragment] = React48.useState();
     useLayoutEffect22(() => {
       setFragment(new DocumentFragment);
     }, []);
     if (!context.open) {
       const frag = fragment;
-      return frag ? ReactDOM4.createPortal(/* @__PURE__ */ import_jsx_runtime14.jsx(SelectContentProvider, { scope: props2.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.Slot, { scope: props2.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime14.jsx("div", { children: props2.children }) }) }), frag) : null;
+      return frag ? ReactDOM4.createPortal(/* @__PURE__ */ import_jsx_runtime16.jsx(SelectContentProvider, { scope: props2.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime16.jsx(Collection.Slot, { scope: props2.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime16.jsx("div", { children: props2.children }) }) }), frag) : null;
     }
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(SelectContentImpl, { ...props2, ref: forwardedRef });
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(SelectContentImpl, { ...props2, ref: forwardedRef });
   });
-  SelectContent.displayName = CONTENT_NAME2;
-  [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME2);
-  Slot2 = createSlot("SelectContent.RemoveScroll");
-  SelectContentImpl = React42.forwardRef((props2, forwardedRef) => {
+  SelectContent.displayName = CONTENT_NAME3;
+  [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME3);
+  Slot3 = createSlot("SelectContent.RemoveScroll");
+  SelectContentImpl = React48.forwardRef((props2, forwardedRef) => {
     const {
       __scopeSelect,
       position = "item-aligned",
@@ -30888,21 +31737,21 @@ var init_dist24 = __esm(() => {
       avoidCollisions,
       ...contentProps
     } = props2;
-    const context = useSelectContext(CONTENT_NAME2, __scopeSelect);
-    const [content, setContent] = React42.useState(null);
-    const [viewport, setViewport] = React42.useState(null);
+    const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
+    const [content, setContent] = React48.useState(null);
+    const [viewport, setViewport] = React48.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = React42.useState(null);
-    const [selectedItemText, setSelectedItemText] = React42.useState(null);
+    const [selectedItem, setSelectedItem] = React48.useState(null);
+    const [selectedItemText, setSelectedItemText] = React48.useState(null);
     const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = React42.useState(false);
-    const firstValidItemFoundRef = React42.useRef(false);
-    React42.useEffect(() => {
+    const [isPositioned, setIsPositioned] = React48.useState(false);
+    const firstValidItemFoundRef = React48.useRef(false);
+    React48.useEffect(() => {
       if (content)
         return hideOthers(content);
     }, [content]);
     useFocusGuards();
-    const focusFirst2 = React42.useCallback((candidates) => {
+    const focusFirst2 = React48.useCallback((candidates) => {
       const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
       const [lastItem] = restItems.slice(-1);
       const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
@@ -30919,14 +31768,14 @@ var init_dist24 = __esm(() => {
           return;
       }
     }, [getItems, viewport]);
-    const focusSelectedItem = React42.useCallback(() => focusFirst2([selectedItem, content]), [focusFirst2, selectedItem, content]);
-    React42.useEffect(() => {
+    const focusSelectedItem = React48.useCallback(() => focusFirst2([selectedItem, content]), [focusFirst2, selectedItem, content]);
+    React48.useEffect(() => {
       if (isPositioned) {
         focusSelectedItem();
       }
     }, [isPositioned, focusSelectedItem]);
     const { onOpenChange, triggerPointerDownPosRef } = context;
-    React42.useEffect(() => {
+    React48.useEffect(() => {
       if (content) {
         let pointerMoveDelta = { x: 0, y: 0 };
         const handlePointerMove2 = (event) => {
@@ -30956,7 +31805,7 @@ var init_dist24 = __esm(() => {
         };
       }
     }, [content, onOpenChange, triggerPointerDownPosRef]);
-    React42.useEffect(() => {
+    React48.useEffect(() => {
       const close = () => onOpenChange(false);
       window.addEventListener("blur", close);
       window.addEventListener("resize", close);
@@ -30973,7 +31822,7 @@ var init_dist24 = __esm(() => {
         setTimeout(() => nextItem.ref.current.focus());
       }
     });
-    const itemRefCallback = React42.useCallback((node, value, disabled) => {
+    const itemRefCallback = React48.useCallback((node, value, disabled) => {
       const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
       const isSelectedItem = context.value !== undefined && context.value === value;
       if (isSelectedItem || isFirstValidItem) {
@@ -30982,8 +31831,8 @@ var init_dist24 = __esm(() => {
           firstValidItemFoundRef.current = true;
       }
     }, [context.value]);
-    const handleItemLeave = React42.useCallback(() => content?.focus(), [content]);
-    const itemTextRefCallback = React42.useCallback((node, value, disabled) => {
+    const handleItemLeave = React48.useCallback(() => content?.focus(), [content]);
+    const itemTextRefCallback = React48.useCallback((node, value, disabled) => {
       const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
       const isSelectedItem = context.value !== undefined && context.value === value;
       if (isSelectedItem || isFirstValidItem) {
@@ -31003,7 +31852,7 @@ var init_dist24 = __esm(() => {
       hideWhenDetached,
       avoidCollisions
     } : {};
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(SelectContentProvider, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(SelectContentProvider, {
       scope: __scopeSelect,
       content,
       viewport,
@@ -31017,7 +31866,7 @@ var init_dist24 = __esm(() => {
       position,
       isPositioned,
       searchRef,
-      children: /* @__PURE__ */ import_jsx_runtime14.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, children: /* @__PURE__ */ import_jsx_runtime14.jsx(FocusScope, {
+      children: /* @__PURE__ */ import_jsx_runtime16.jsx(Combination_default, { as: Slot3, allowPinchZoom: true, children: /* @__PURE__ */ import_jsx_runtime16.jsx(FocusScope, {
         asChild: true,
         trapped: context.open,
         onMountAutoFocus: (event) => {
@@ -31027,14 +31876,14 @@ var init_dist24 = __esm(() => {
           context.trigger?.focus({ preventScroll: true });
           event.preventDefault();
         }),
-        children: /* @__PURE__ */ import_jsx_runtime14.jsx(DismissableLayer, {
+        children: /* @__PURE__ */ import_jsx_runtime16.jsx(DismissableLayer, {
           asChild: true,
           disableOutsidePointerEvents: true,
           onEscapeKeyDown,
           onPointerDownOutside,
           onFocusOutside: (event) => event.preventDefault(),
           onDismiss: () => context.onOpenChange(false),
-          children: /* @__PURE__ */ import_jsx_runtime14.jsx(SelectPosition, {
+          children: /* @__PURE__ */ import_jsx_runtime16.jsx(SelectPosition, {
             role: "listbox",
             id: context.contentId,
             "data-state": context.open ? "open" : "closed",
@@ -31077,18 +31926,18 @@ var init_dist24 = __esm(() => {
     });
   });
   SelectContentImpl.displayName = CONTENT_IMPL_NAME;
-  SelectItemAlignedPosition = React42.forwardRef((props2, forwardedRef) => {
+  SelectItemAlignedPosition = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, onPlaced, ...popperProps } = props2;
-    const context = useSelectContext(CONTENT_NAME2, __scopeSelect);
-    const contentContext = useSelectContentContext(CONTENT_NAME2, __scopeSelect);
-    const [contentWrapper, setContentWrapper] = React42.useState(null);
-    const [content, setContent] = React42.useState(null);
+    const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
+    const contentContext = useSelectContentContext(CONTENT_NAME3, __scopeSelect);
+    const [contentWrapper, setContentWrapper] = React48.useState(null);
+    const [content, setContent] = React48.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
     const getItems = useCollection(__scopeSelect);
-    const shouldExpandOnScrollRef = React42.useRef(false);
-    const shouldRepositionRef = React42.useRef(true);
+    const shouldExpandOnScrollRef = React48.useRef(false);
+    const shouldRepositionRef = React48.useRef(true);
     const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-    const position = React42.useCallback(() => {
+    const position = React48.useCallback(() => {
       if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
         const triggerRect = context.trigger.getBoundingClientRect();
         const contentRect = content.getBoundingClientRect();
@@ -31175,24 +32024,24 @@ var init_dist24 = __esm(() => {
       onPlaced
     ]);
     useLayoutEffect22(() => position(), [position]);
-    const [contentZIndex, setContentZIndex] = React42.useState();
+    const [contentZIndex, setContentZIndex] = React48.useState();
     useLayoutEffect22(() => {
       if (content)
         setContentZIndex(window.getComputedStyle(content).zIndex);
     }, [content]);
-    const handleScrollButtonChange = React42.useCallback((node) => {
+    const handleScrollButtonChange = React48.useCallback((node) => {
       if (node && shouldRepositionRef.current === true) {
         position();
         focusSelectedItem?.();
         shouldRepositionRef.current = false;
       }
     }, [position, focusSelectedItem]);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(SelectViewportProvider, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(SelectViewportProvider, {
       scope: __scopeSelect,
       contentWrapper,
       shouldExpandOnScrollRef,
       onScrollButtonChange: handleScrollButtonChange,
-      children: /* @__PURE__ */ import_jsx_runtime14.jsx("div", {
+      children: /* @__PURE__ */ import_jsx_runtime16.jsx("div", {
         ref: setContentWrapper,
         style: {
           display: "flex",
@@ -31200,7 +32049,7 @@ var init_dist24 = __esm(() => {
           position: "fixed",
           zIndex: contentZIndex
         },
-        children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
+        children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
           ...popperProps,
           ref: composedRefs,
           style: {
@@ -31213,7 +32062,7 @@ var init_dist24 = __esm(() => {
     });
   });
   SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
-  SelectPopperPosition = React42.forwardRef((props2, forwardedRef) => {
+  SelectPopperPosition = React48.forwardRef((props2, forwardedRef) => {
     const {
       __scopeSelect,
       align = "start",
@@ -31221,7 +32070,7 @@ var init_dist24 = __esm(() => {
       ...popperProps
     } = props2;
     const popperScope = usePopperScope(__scopeSelect);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Content, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Content2, {
       ...popperScope,
       ...popperProps,
       ref: forwardedRef,
@@ -31241,21 +32090,21 @@ var init_dist24 = __esm(() => {
     });
   });
   SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-  [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME2, {});
-  SelectViewport = React42.forwardRef((props2, forwardedRef) => {
+  [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME3, {});
+  SelectViewport = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, nonce: nonce2, ...viewportProps } = props2;
-    const contentContext = useSelectContentContext(VIEWPORT_NAME, __scopeSelect);
-    const viewportContext = useSelectViewportContext(VIEWPORT_NAME, __scopeSelect);
+    const contentContext = useSelectContentContext(VIEWPORT_NAME2, __scopeSelect);
+    const viewportContext = useSelectViewportContext(VIEWPORT_NAME2, __scopeSelect);
     const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = React42.useRef(0);
-    return /* @__PURE__ */ import_jsx_runtime14.jsxs(import_jsx_runtime14.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime14.jsx("style", {
+    const prevScrollTopRef = React48.useRef(0);
+    return /* @__PURE__ */ import_jsx_runtime16.jsxs(import_jsx_runtime16.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime16.jsx("style", {
         dangerouslySetInnerHTML: {
           __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}`
         },
         nonce: nonce2
       }),
-      /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
+      /* @__PURE__ */ import_jsx_runtime16.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
         "data-radix-select-viewport": "",
         role: "presentation",
         ...viewportProps,
@@ -31293,22 +32142,22 @@ var init_dist24 = __esm(() => {
       }) })
     ] });
   });
-  SelectViewport.displayName = VIEWPORT_NAME;
+  SelectViewport.displayName = VIEWPORT_NAME2;
   [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-  SelectGroup = React42.forwardRef((props2, forwardedRef) => {
+  SelectGroup = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, ...groupProps } = props2;
     const groupId = useId2();
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
   });
   SelectGroup.displayName = GROUP_NAME;
-  SelectLabel = React42.forwardRef((props2, forwardedRef) => {
+  SelectLabel = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, ...labelProps } = props2;
     const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
   });
   SelectLabel.displayName = LABEL_NAME;
   [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-  SelectItem = React42.forwardRef((props2, forwardedRef) => {
+  SelectItem = React48.forwardRef((props2, forwardedRef) => {
     const {
       __scopeSelect,
       value,
@@ -31319,11 +32168,11 @@ var init_dist24 = __esm(() => {
     const context = useSelectContext(ITEM_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
     const isSelected = context.value === value;
-    const [textValue, setTextValue] = React42.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = React42.useState(false);
+    const [textValue, setTextValue] = React48.useState(textValueProp ?? "");
+    const [isFocused, setIsFocused] = React48.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, (node) => contentContext.itemRefCallback?.(node, value, disabled));
     const textId = useId2();
-    const pointerTypeRef = React42.useRef("touch");
+    const pointerTypeRef = React48.useRef("touch");
     const handleSelect = () => {
       if (!disabled) {
         context.onValueChange(value);
@@ -31333,21 +32182,21 @@ var init_dist24 = __esm(() => {
     if (value === "") {
       throw new Error("A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.");
     }
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(SelectItemContextProvider, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(SelectItemContextProvider, {
       scope: __scopeSelect,
       value,
       disabled,
       textId,
       isSelected,
-      onItemTextChange: React42.useCallback((node) => {
+      onItemTextChange: React48.useCallback((node) => {
         setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
       }, []),
-      children: /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.ItemSlot, {
+      children: /* @__PURE__ */ import_jsx_runtime16.jsx(Collection.ItemSlot, {
         scope: __scopeSelect,
         value,
         disabled,
         textValue,
-        children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
+        children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
           role: "option",
           "aria-labelledby": textId,
           "data-highlighted": isFocused ? "" : undefined,
@@ -31398,37 +32247,37 @@ var init_dist24 = __esm(() => {
     });
   });
   SelectItem.displayName = ITEM_NAME;
-  SelectItemText = React42.forwardRef((props2, forwardedRef) => {
+  SelectItemText = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, className, style, ...itemTextProps } = props2;
     const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
     const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
     const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = React42.useState(null);
+    const [itemTextNode, setItemTextNode] = React48.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setItemTextNode(node), itemContext.onItemTextChange, (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled));
     const textContent = itemTextNode?.textContent;
-    const nativeOption = React42.useMemo(() => /* @__PURE__ */ import_jsx_runtime14.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value), [itemContext.disabled, itemContext.value, textContent]);
+    const nativeOption = React48.useMemo(() => /* @__PURE__ */ import_jsx_runtime16.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value), [itemContext.disabled, itemContext.value, textContent]);
     const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
     useLayoutEffect22(() => {
       onNativeOptionAdd(nativeOption);
       return () => onNativeOptionRemove(nativeOption);
     }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
-    return /* @__PURE__ */ import_jsx_runtime14.jsxs(import_jsx_runtime14.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
+    return /* @__PURE__ */ import_jsx_runtime16.jsxs(import_jsx_runtime16.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
       itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM4.createPortal(itemTextProps.children, context.valueNode) : null
     ] });
   });
   SelectItemText.displayName = ITEM_TEXT_NAME;
-  SelectItemIndicator = React42.forwardRef((props2, forwardedRef) => {
+  SelectItemIndicator = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, ...itemIndicatorProps } = props2;
     const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
-    return itemContext.isSelected ? /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
+    return itemContext.isSelected ? /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
   });
   SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
-  SelectScrollUpButton = React42.forwardRef((props2, forwardedRef) => {
+  SelectScrollUpButton = React48.forwardRef((props2, forwardedRef) => {
     const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props2.__scopeSelect);
     const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props2.__scopeSelect);
-    const [canScrollUp, setCanScrollUp] = React42.useState(false);
+    const [canScrollUp, setCanScrollUp] = React48.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
     useLayoutEffect22(() => {
       if (contentContext.viewport && contentContext.isPositioned) {
@@ -31443,7 +32292,7 @@ var init_dist24 = __esm(() => {
         return () => viewport.removeEventListener("scroll", handleScroll22);
       }
     }, [contentContext.viewport, contentContext.isPositioned]);
-    return canScrollUp ? /* @__PURE__ */ import_jsx_runtime14.jsx(SelectScrollButtonImpl, {
+    return canScrollUp ? /* @__PURE__ */ import_jsx_runtime16.jsx(SelectScrollButtonImpl, {
       ...props2,
       ref: composedRefs,
       onAutoScroll: () => {
@@ -31455,10 +32304,10 @@ var init_dist24 = __esm(() => {
     }) : null;
   });
   SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
-  SelectScrollDownButton = React42.forwardRef((props2, forwardedRef) => {
+  SelectScrollDownButton = React48.forwardRef((props2, forwardedRef) => {
     const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props2.__scopeSelect);
     const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props2.__scopeSelect);
-    const [canScrollDown, setCanScrollDown] = React42.useState(false);
+    const [canScrollDown, setCanScrollDown] = React48.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
     useLayoutEffect22(() => {
       if (contentContext.viewport && contentContext.isPositioned) {
@@ -31474,7 +32323,7 @@ var init_dist24 = __esm(() => {
         return () => viewport.removeEventListener("scroll", handleScroll22);
       }
     }, [contentContext.viewport, contentContext.isPositioned]);
-    return canScrollDown ? /* @__PURE__ */ import_jsx_runtime14.jsx(SelectScrollButtonImpl, {
+    return canScrollDown ? /* @__PURE__ */ import_jsx_runtime16.jsx(SelectScrollButtonImpl, {
       ...props2,
       ref: composedRefs,
       onAutoScroll: () => {
@@ -31486,25 +32335,25 @@ var init_dist24 = __esm(() => {
     }) : null;
   });
   SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
-  SelectScrollButtonImpl = React42.forwardRef((props2, forwardedRef) => {
+  SelectScrollButtonImpl = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props2;
     const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-    const autoScrollTimerRef = React42.useRef(null);
+    const autoScrollTimerRef = React48.useRef(null);
     const getItems = useCollection(__scopeSelect);
-    const clearAutoScrollTimer = React42.useCallback(() => {
+    const clearAutoScrollTimer = React48.useCallback(() => {
       if (autoScrollTimerRef.current !== null) {
         window.clearInterval(autoScrollTimerRef.current);
         autoScrollTimerRef.current = null;
       }
     }, []);
-    React42.useEffect(() => {
+    React48.useEffect(() => {
       return () => clearAutoScrollTimer();
     }, [clearAutoScrollTimer]);
     useLayoutEffect22(() => {
       const activeItem = getItems().find((item) => item.ref.current === document.activeElement);
       activeItem?.ref.current?.scrollIntoView({ block: "nearest" });
     }, [getItems]);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
       "aria-hidden": true,
       ...scrollIndicatorProps,
       ref: forwardedRef,
@@ -31525,24 +32374,24 @@ var init_dist24 = __esm(() => {
       })
     });
   });
-  SelectSeparator = React42.forwardRef((props2, forwardedRef) => {
+  SelectSeparator = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, ...separatorProps } = props2;
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
   });
   SelectSeparator.displayName = SEPARATOR_NAME;
-  SelectArrow = React42.forwardRef((props2, forwardedRef) => {
+  SelectArrow = React48.forwardRef((props2, forwardedRef) => {
     const { __scopeSelect, ...arrowProps } = props2;
     const popperScope = usePopperScope(__scopeSelect);
     const context = useSelectContext(ARROW_NAME2, __scopeSelect);
     const contentContext = useSelectContentContext(ARROW_NAME2, __scopeSelect);
-    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ import_jsx_runtime14.jsx(Arrow2, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
+    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ import_jsx_runtime16.jsx(Arrow2, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
   });
   SelectArrow.displayName = ARROW_NAME2;
-  SelectBubbleInput = React42.forwardRef(({ __scopeSelect, value, ...props2 }, forwardedRef) => {
-    const ref = React42.useRef(null);
+  SelectBubbleInput = React48.forwardRef(({ __scopeSelect, value, ...props2 }, forwardedRef) => {
+    const ref = React48.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const prevValue = usePrevious(value);
-    React42.useEffect(() => {
+    React48.useEffect(() => {
       const select = ref.current;
       if (!select)
         return;
@@ -31555,7 +32404,7 @@ var init_dist24 = __esm(() => {
         select.dispatchEvent(event);
       }
     }, [prevValue, value]);
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.select, {
+    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.select, {
       ...props2,
       style: { ...VISUALLY_HIDDEN_STYLES, ...props2.style },
       ref: composedRefs,
@@ -31564,12 +32413,12 @@ var init_dist24 = __esm(() => {
   });
   SelectBubbleInput.displayName = BUBBLE_INPUT_NAME;
   Root23 = Select;
-  Trigger = SelectTrigger;
+  Trigger2 = SelectTrigger;
   Value = SelectValue;
   Icon2 = SelectIcon;
-  Portal2 = SelectPortal;
-  Content2 = SelectContent;
-  Viewport = SelectViewport;
+  Portal3 = SelectPortal;
+  Content22 = SelectContent;
+  Viewport2 = SelectViewport;
   Label = SelectLabel;
   Item = SelectItem;
   ItemText = SelectItemText;
@@ -31580,92 +32429,92 @@ var init_dist24 = __esm(() => {
 });
 
 // dashboard/src/components/ui/select.jsx
-var React43, jsx_dev_runtime8, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
+var React49, jsx_dev_runtime10, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
 var init_select = __esm(() => {
-  React43 = __toESM(require_react(), 1);
-  init_dist24();
+  React49 = __toESM(require_react(), 1);
+  init_dist26();
   init_lucide_react();
   init_utils();
-  jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
   Select2 = Root23;
   SelectValue2 = Value;
-  SelectTrigger2 = React43.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Trigger, {
+  SelectTrigger2 = React49.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Trigger2, {
     ref,
     className: cn("flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1", className),
     ...props2,
     children: [
       children,
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Icon2, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Icon2, {
         asChild: true,
-        children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ChevronDown, {
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ChevronDown, {
           className: "h-4 w-4 opacity-50"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this));
-  SelectTrigger2.displayName = Trigger.displayName;
-  SelectScrollUpButton2 = React43.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ScrollUpButton, {
+  SelectTrigger2.displayName = Trigger2.displayName;
+  SelectScrollUpButton2 = React49.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ScrollUpButton, {
     ref,
     className: cn("flex cursor-default items-center justify-center py-1", className),
     ...props2,
-    children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ChevronUp, {
+    children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ChevronUp, {
       className: "h-4 w-4"
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
   SelectScrollUpButton2.displayName = ScrollUpButton.displayName;
-  SelectScrollDownButton2 = React43.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ScrollDownButton, {
+  SelectScrollDownButton2 = React49.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ScrollDownButton, {
     ref,
     className: cn("flex cursor-default items-center justify-center py-1", className),
     ...props2,
-    children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ChevronDown, {
+    children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ChevronDown, {
       className: "h-4 w-4"
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
   SelectScrollDownButton2.displayName = ScrollDownButton.displayName;
-  SelectContent2 = React43.forwardRef(({ className, children, position = "popper", ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Portal2, {
-    children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Content2, {
+  SelectContent2 = React49.forwardRef(({ className, children, position = "popper", ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Portal3, {
+    children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Content22, {
       ref,
       className: cn("relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className),
       position,
       ...props2,
       children: [
-        /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectScrollUpButton2, {}, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Viewport, {
+        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(SelectScrollUpButton2, {}, undefined, false, undefined, this),
+        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Viewport2, {
           className: cn("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"),
           children
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectScrollDownButton2, {}, undefined, false, undefined, this)
+        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(SelectScrollDownButton2, {}, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
-  SelectContent2.displayName = Content2.displayName;
-  SelectLabel2 = React43.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Label, {
+  SelectContent2.displayName = Content22.displayName;
+  SelectLabel2 = React49.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Label, {
     ref,
     className: cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
     ...props2
   }, undefined, false, undefined, this));
   SelectLabel2.displayName = Label.displayName;
-  SelectItem2 = React43.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Item, {
+  SelectItem2 = React49.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Item, {
     ref,
     className: cn("relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className),
     ...props2,
     children: [
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("span", {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("span", {
         className: "absolute left-2 flex h-3.5 w-3.5 items-center justify-center",
-        children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ItemIndicator, {
-          children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Check, {
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ItemIndicator, {
+          children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Check, {
             className: "h-4 w-4"
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(ItemText, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ItemText, {
         children
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this));
   SelectItem2.displayName = Item.displayName;
-  SelectSeparator2 = React43.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Separator3, {
+  SelectSeparator2 = React49.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Separator3, {
     ref,
     className: cn("-mx-1 my-1 h-px bg-muted", className),
     ...props2
@@ -32097,7 +32946,7 @@ var exports_ProjectSelector = {};
 __export(exports_ProjectSelector, {
   default: () => ProjectSelector_default
 });
-var import_react12, import_path_browserify, jsx_dev_runtime9, ProjectSelector = ({ onProjectSelect }) => {
+var import_react12, import_path_browserify, jsx_dev_runtime11, ProjectSelector = ({ onProjectSelect }) => {
   const [basePath, setBasePath] = import_react12.useState("~");
   const [projects, setProjects] = import_react12.useState([]);
   const [isLoading, setIsLoading] = import_react12.useState(false);
@@ -32135,10 +32984,10 @@ var import_react12, import_path_browserify, jsx_dev_runtime9, ProjectSelector = 
       }
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
     className: "flex items-center gap-2",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Input, {
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Input, {
         type: "text",
         placeholder: "Base path for projects...",
         value: basePath,
@@ -32146,27 +32995,27 @@ var import_react12, import_path_browserify, jsx_dev_runtime9, ProjectSelector = 
         onKeyDown: (e) => e.key === "Enter" && fetchProjects(),
         className: "w-[250px]"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Button, {
+      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
         onClick: fetchProjects,
         disabled: isLoading,
         children: isLoading ? "Loading..." : "Find Projects"
       }, undefined, false, undefined, this),
-      error && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("p", {
+      error && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("p", {
         className: "text-sm text-red-500",
         children: error
       }, undefined, false, undefined, this),
-      projects.length > 0 && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Select2, {
+      projects.length > 0 && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Select2, {
         onValueChange: handleSelectChange,
         disabled: !projects.length,
         children: [
-          /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(SelectTrigger2, {
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(SelectTrigger2, {
             className: "w-[280px]",
-            children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(SelectValue2, {
+            children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(SelectValue2, {
               placeholder: "Select a project"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(SelectContent2, {
-            children: projects.map((project) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(SelectItem2, {
+          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(SelectContent2, {
+            children: projects.map((project) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(SelectItem2, {
               value: project,
               children: project
             }, project, false, undefined, this))
@@ -32182,7 +33031,7 @@ var init_ProjectSelector = __esm(() => {
   init_input();
   init_select();
   import_path_browserify = __toESM(require_path_browserify(), 1);
-  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
   ProjectSelector_default = ProjectSelector;
 });
 
@@ -32365,832 +33214,12 @@ var init_fi = __esm(() => {
   init_lib();
 });
 
-// node_modules/@radix-ui/react-presence/dist/index.mjs
-function useStateMachine(initialState, machine) {
-  return React47.useReducer((state, event) => {
-    const nextState = machine[state][event];
-    return nextState ?? state;
-  }, initialState);
-}
-function usePresence(present) {
-  const [node, setNode] = React210.useState();
-  const stylesRef = React210.useRef(null);
-  const prevPresentRef = React210.useRef(present);
-  const prevAnimationNameRef = React210.useRef("none");
-  const initialState = present ? "mounted" : "unmounted";
-  const [state, send] = useStateMachine(initialState, {
-    mounted: {
-      UNMOUNT: "unmounted",
-      ANIMATION_OUT: "unmountSuspended"
-    },
-    unmountSuspended: {
-      MOUNT: "mounted",
-      ANIMATION_END: "unmounted"
-    },
-    unmounted: {
-      MOUNT: "mounted"
-    }
-  });
-  React210.useEffect(() => {
-    const currentAnimationName = getAnimationName(stylesRef.current);
-    prevAnimationNameRef.current = state === "mounted" ? currentAnimationName : "none";
-  }, [state]);
-  useLayoutEffect22(() => {
-    const styles = stylesRef.current;
-    const wasPresent = prevPresentRef.current;
-    const hasPresentChanged = wasPresent !== present;
-    if (hasPresentChanged) {
-      const prevAnimationName = prevAnimationNameRef.current;
-      const currentAnimationName = getAnimationName(styles);
-      if (present) {
-        send("MOUNT");
-      } else if (currentAnimationName === "none" || styles?.display === "none") {
-        send("UNMOUNT");
-      } else {
-        const isAnimating = prevAnimationName !== currentAnimationName;
-        if (wasPresent && isAnimating) {
-          send("ANIMATION_OUT");
-        } else {
-          send("UNMOUNT");
-        }
-      }
-      prevPresentRef.current = present;
-    }
-  }, [present, send]);
-  useLayoutEffect22(() => {
-    if (node) {
-      let timeoutId;
-      const ownerWindow = node.ownerDocument.defaultView ?? window;
-      const handleAnimationEnd = (event) => {
-        const currentAnimationName = getAnimationName(stylesRef.current);
-        const isCurrentAnimation = currentAnimationName.includes(CSS.escape(event.animationName));
-        if (event.target === node && isCurrentAnimation) {
-          send("ANIMATION_END");
-          if (!prevPresentRef.current) {
-            const currentFillMode = node.style.animationFillMode;
-            node.style.animationFillMode = "forwards";
-            timeoutId = ownerWindow.setTimeout(() => {
-              if (node.style.animationFillMode === "forwards") {
-                node.style.animationFillMode = currentFillMode;
-              }
-            });
-          }
-        }
-      };
-      const handleAnimationStart = (event) => {
-        if (event.target === node) {
-          prevAnimationNameRef.current = getAnimationName(stylesRef.current);
-        }
-      };
-      node.addEventListener("animationstart", handleAnimationStart);
-      node.addEventListener("animationcancel", handleAnimationEnd);
-      node.addEventListener("animationend", handleAnimationEnd);
-      return () => {
-        ownerWindow.clearTimeout(timeoutId);
-        node.removeEventListener("animationstart", handleAnimationStart);
-        node.removeEventListener("animationcancel", handleAnimationEnd);
-        node.removeEventListener("animationend", handleAnimationEnd);
-      };
-    } else {
-      send("ANIMATION_END");
-    }
-  }, [node, send]);
-  return {
-    isPresent: ["mounted", "unmountSuspended"].includes(state),
-    ref: React210.useCallback((node2) => {
-      stylesRef.current = node2 ? getComputedStyle(node2) : null;
-      setNode(node2);
-    }, [])
-  };
-}
-function getAnimationName(styles) {
-  return styles?.animationName || "none";
-}
-function getElementRef2(element) {
-  let getter = Object.getOwnPropertyDescriptor(element.props, "ref")?.get;
-  let mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.ref;
-  }
-  getter = Object.getOwnPropertyDescriptor(element, "ref")?.get;
-  mayWarn = getter && "isReactWarning" in getter && getter.isReactWarning;
-  if (mayWarn) {
-    return element.props.ref;
-  }
-  return element.props.ref || element.ref;
-}
-var React210, React47, Presence = (props2) => {
-  const { present, children } = props2;
-  const presence = usePresence(present);
-  const child = typeof children === "function" ? children({ present: presence.isPresent }) : React210.Children.only(children);
-  const ref = useComposedRefs(presence.ref, getElementRef2(child));
-  const forceMount = typeof children === "function";
-  return forceMount || presence.isPresent ? React210.cloneElement(child, { ref }) : null;
-};
-var init_dist25 = __esm(() => {
-  React210 = __toESM(require_react(), 1);
-  init_dist();
-  init_dist15();
-  React47 = __toESM(require_react(), 1);
-  "use client";
-  Presence.displayName = "Presence";
-});
-
-// node_modules/@radix-ui/react-scroll-area/dist/index.mjs
-function useStateMachine2(initialState, machine) {
-  return React48.useReducer((state, event) => {
-    const nextState = machine[state][event];
-    return nextState ?? state;
-  }, initialState);
-}
-function toInt(value) {
-  return value ? parseInt(value, 10) : 0;
-}
-function getThumbRatio(viewportSize, contentSize) {
-  const ratio = viewportSize / contentSize;
-  return isNaN(ratio) ? 0 : ratio;
-}
-function getThumbSize(sizes) {
-  const ratio = getThumbRatio(sizes.viewport, sizes.content);
-  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
-  const thumbSize = (sizes.scrollbar.size - scrollbarPadding) * ratio;
-  return Math.max(thumbSize, 18);
-}
-function getScrollPositionFromPointer(pointerPos, pointerOffset, sizes, dir = "ltr") {
-  const thumbSizePx = getThumbSize(sizes);
-  const thumbCenter = thumbSizePx / 2;
-  const offset4 = pointerOffset || thumbCenter;
-  const thumbOffsetFromEnd = thumbSizePx - offset4;
-  const minPointerPos = sizes.scrollbar.paddingStart + offset4;
-  const maxPointerPos = sizes.scrollbar.size - sizes.scrollbar.paddingEnd - thumbOffsetFromEnd;
-  const maxScrollPos = sizes.content - sizes.viewport;
-  const scrollRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
-  const interpolate = linearScale([minPointerPos, maxPointerPos], scrollRange);
-  return interpolate(pointerPos);
-}
-function getThumbOffsetFromScroll(scrollPos, sizes, dir = "ltr") {
-  const thumbSizePx = getThumbSize(sizes);
-  const scrollbarPadding = sizes.scrollbar.paddingStart + sizes.scrollbar.paddingEnd;
-  const scrollbar = sizes.scrollbar.size - scrollbarPadding;
-  const maxScrollPos = sizes.content - sizes.viewport;
-  const maxThumbPos = scrollbar - thumbSizePx;
-  const scrollClampRange = dir === "ltr" ? [0, maxScrollPos] : [maxScrollPos * -1, 0];
-  const scrollWithoutMomentum = clamp(scrollPos, scrollClampRange);
-  const interpolate = linearScale([0, maxScrollPos], [0, maxThumbPos]);
-  return interpolate(scrollWithoutMomentum);
-}
-function linearScale(input, output) {
-  return (value) => {
-    if (input[0] === input[1] || output[0] === output[1])
-      return output[0];
-    const ratio = (output[1] - output[0]) / (input[1] - input[0]);
-    return output[0] + ratio * (value - input[0]);
-  };
-}
-function isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos) {
-  return scrollPos > 0 && scrollPos < maxScrollPos;
-}
-function useDebounceCallback(callback, delay) {
-  const handleCallback = useCallbackRef(callback);
-  const debounceTimerRef = React212.useRef(0);
-  React212.useEffect(() => () => window.clearTimeout(debounceTimerRef.current), []);
-  return React212.useCallback(() => {
-    window.clearTimeout(debounceTimerRef.current);
-    debounceTimerRef.current = window.setTimeout(handleCallback, delay);
-  }, [handleCallback, delay]);
-}
-function useResizeObserver(element, onResize) {
-  const handleResize = useCallbackRef(onResize);
-  useLayoutEffect22(() => {
-    let rAF = 0;
-    if (element) {
-      const resizeObserver = new ResizeObserver(() => {
-        cancelAnimationFrame(rAF);
-        rAF = window.requestAnimationFrame(handleResize);
-      });
-      resizeObserver.observe(element);
-      return () => {
-        window.cancelAnimationFrame(rAF);
-        resizeObserver.unobserve(element);
-      };
-    }
-  }, [element, handleResize]);
-}
-var React212, React48, import_jsx_runtime15, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME2 = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
-  let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
-  let rAF = 0;
-  (function loop() {
-    const position = { left: node.scrollLeft, top: node.scrollTop };
-    const isHorizontalScroll = prevPosition.left !== position.left;
-    const isVerticalScroll = prevPosition.top !== position.top;
-    if (isHorizontalScroll || isVerticalScroll)
-      handler();
-    prevPosition = position;
-    rAF = window.requestAnimationFrame(loop);
-  })();
-  return () => window.cancelAnimationFrame(rAF);
-}, Root3, Viewport2, Scrollbar, Thumb, Corner;
-var init_dist26 = __esm(() => {
-  React212 = __toESM(require_react(), 1);
-  init_dist3();
-  init_dist25();
-  init_dist7();
-  init_dist();
-  init_dist10();
-  init_dist9();
-  init_dist15();
-  init_dist5();
-  init_dist6();
-  React48 = __toESM(require_react(), 1);
-  import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  [createScrollAreaContext, createScrollAreaScope] = createContextScope(SCROLL_AREA_NAME);
-  [ScrollAreaProvider, useScrollAreaContext] = createScrollAreaContext(SCROLL_AREA_NAME);
-  ScrollArea = React212.forwardRef((props2, forwardedRef) => {
-    const {
-      __scopeScrollArea,
-      type = "hover",
-      dir,
-      scrollHideDelay = 600,
-      ...scrollAreaProps
-    } = props2;
-    const [scrollArea, setScrollArea] = React212.useState(null);
-    const [viewport, setViewport] = React212.useState(null);
-    const [content, setContent] = React212.useState(null);
-    const [scrollbarX, setScrollbarX] = React212.useState(null);
-    const [scrollbarY, setScrollbarY] = React212.useState(null);
-    const [cornerWidth, setCornerWidth] = React212.useState(0);
-    const [cornerHeight, setCornerHeight] = React212.useState(0);
-    const [scrollbarXEnabled, setScrollbarXEnabled] = React212.useState(false);
-    const [scrollbarYEnabled, setScrollbarYEnabled] = React212.useState(false);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setScrollArea(node));
-    const direction = useDirection(dir);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaProvider, {
-      scope: __scopeScrollArea,
-      type,
-      dir: direction,
-      scrollHideDelay,
-      scrollArea,
-      viewport,
-      onViewportChange: setViewport,
-      content,
-      onContentChange: setContent,
-      scrollbarX,
-      onScrollbarXChange: setScrollbarX,
-      scrollbarXEnabled,
-      onScrollbarXEnabledChange: setScrollbarXEnabled,
-      scrollbarY,
-      onScrollbarYChange: setScrollbarY,
-      scrollbarYEnabled,
-      onScrollbarYEnabledChange: setScrollbarYEnabled,
-      onCornerWidthChange: setCornerWidth,
-      onCornerHeightChange: setCornerHeight,
-      children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-        dir: direction,
-        ...scrollAreaProps,
-        ref: composedRefs,
-        style: {
-          position: "relative",
-          ["--radix-scroll-area-corner-width"]: cornerWidth + "px",
-          ["--radix-scroll-area-corner-height"]: cornerHeight + "px",
-          ...props2.style
-        }
-      })
-    });
-  });
-  ScrollArea.displayName = SCROLL_AREA_NAME;
-  ScrollAreaViewport = React212.forwardRef((props2, forwardedRef) => {
-    const { __scopeScrollArea, children, nonce: nonce2, ...viewportProps } = props2;
-    const context = useScrollAreaContext(VIEWPORT_NAME2, __scopeScrollArea);
-    const ref = React212.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref, context.onViewportChange);
-    return /* @__PURE__ */ import_jsx_runtime15.jsxs(import_jsx_runtime15.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime15.jsx("style", {
-        dangerouslySetInnerHTML: {
-          __html: `[data-radix-scroll-area-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-scroll-area-viewport]::-webkit-scrollbar{display:none}`
-        },
-        nonce: nonce2
-      }),
-      /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-        "data-radix-scroll-area-viewport": "",
-        ...viewportProps,
-        ref: composedRefs,
-        style: {
-          overflowX: context.scrollbarXEnabled ? "scroll" : "hidden",
-          overflowY: context.scrollbarYEnabled ? "scroll" : "hidden",
-          ...props2.style
-        },
-        children: /* @__PURE__ */ import_jsx_runtime15.jsx("div", { ref: context.onContentChange, style: { minWidth: "100%", display: "table" }, children })
-      })
-    ] });
-  });
-  ScrollAreaViewport.displayName = VIEWPORT_NAME2;
-  ScrollAreaScrollbar = React212.forwardRef((props2, forwardedRef) => {
-    const { forceMount, ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const { onScrollbarXEnabledChange, onScrollbarYEnabledChange } = context;
-    const isHorizontal = props2.orientation === "horizontal";
-    React212.useEffect(() => {
-      isHorizontal ? onScrollbarXEnabledChange(true) : onScrollbarYEnabledChange(true);
-      return () => {
-        isHorizontal ? onScrollbarXEnabledChange(false) : onScrollbarYEnabledChange(false);
-      };
-    }, [isHorizontal, onScrollbarXEnabledChange, onScrollbarYEnabledChange]);
-    return context.type === "hover" ? /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarHover, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "scroll" ? /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarScroll, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "auto" ? /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarAuto, { ...scrollbarProps, ref: forwardedRef, forceMount }) : context.type === "always" ? /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarVisible, { ...scrollbarProps, ref: forwardedRef }) : null;
-  });
-  ScrollAreaScrollbar.displayName = SCROLLBAR_NAME;
-  ScrollAreaScrollbarHover = React212.forwardRef((props2, forwardedRef) => {
-    const { forceMount, ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const [visible, setVisible] = React212.useState(false);
-    React212.useEffect(() => {
-      const scrollArea = context.scrollArea;
-      let hideTimer = 0;
-      if (scrollArea) {
-        const handlePointerEnter = () => {
-          window.clearTimeout(hideTimer);
-          setVisible(true);
-        };
-        const handlePointerLeave = () => {
-          hideTimer = window.setTimeout(() => setVisible(false), context.scrollHideDelay);
-        };
-        scrollArea.addEventListener("pointerenter", handlePointerEnter);
-        scrollArea.addEventListener("pointerleave", handlePointerLeave);
-        return () => {
-          window.clearTimeout(hideTimer);
-          scrollArea.removeEventListener("pointerenter", handlePointerEnter);
-          scrollArea.removeEventListener("pointerleave", handlePointerLeave);
-        };
-      }
-    }, [context.scrollArea, context.scrollHideDelay]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarAuto, {
-      "data-state": visible ? "visible" : "hidden",
-      ...scrollbarProps,
-      ref: forwardedRef
-    }) });
-  });
-  ScrollAreaScrollbarScroll = React212.forwardRef((props2, forwardedRef) => {
-    const { forceMount, ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const isHorizontal = props2.orientation === "horizontal";
-    const debounceScrollEnd = useDebounceCallback(() => send("SCROLL_END"), 100);
-    const [state, send] = useStateMachine2("hidden", {
-      hidden: {
-        SCROLL: "scrolling"
-      },
-      scrolling: {
-        SCROLL_END: "idle",
-        POINTER_ENTER: "interacting"
-      },
-      interacting: {
-        SCROLL: "interacting",
-        POINTER_LEAVE: "idle"
-      },
-      idle: {
-        HIDE: "hidden",
-        SCROLL: "scrolling",
-        POINTER_ENTER: "interacting"
-      }
-    });
-    React212.useEffect(() => {
-      if (state === "idle") {
-        const hideTimer = window.setTimeout(() => send("HIDE"), context.scrollHideDelay);
-        return () => window.clearTimeout(hideTimer);
-      }
-    }, [state, context.scrollHideDelay, send]);
-    React212.useEffect(() => {
-      const viewport = context.viewport;
-      const scrollDirection = isHorizontal ? "scrollLeft" : "scrollTop";
-      if (viewport) {
-        let prevScrollPos = viewport[scrollDirection];
-        const handleScroll2 = () => {
-          const scrollPos = viewport[scrollDirection];
-          const hasScrollInDirectionChanged = prevScrollPos !== scrollPos;
-          if (hasScrollInDirectionChanged) {
-            send("SCROLL");
-            debounceScrollEnd();
-          }
-          prevScrollPos = scrollPos;
-        };
-        viewport.addEventListener("scroll", handleScroll2);
-        return () => viewport.removeEventListener("scroll", handleScroll2);
-      }
-    }, [context.viewport, isHorizontal, send, debounceScrollEnd]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Presence, { present: forceMount || state !== "hidden", children: /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarVisible, {
-      "data-state": state === "hidden" ? "hidden" : "visible",
-      ...scrollbarProps,
-      ref: forwardedRef,
-      onPointerEnter: composeEventHandlers(props2.onPointerEnter, () => send("POINTER_ENTER")),
-      onPointerLeave: composeEventHandlers(props2.onPointerLeave, () => send("POINTER_LEAVE"))
-    }) });
-  });
-  ScrollAreaScrollbarAuto = React212.forwardRef((props2, forwardedRef) => {
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const { forceMount, ...scrollbarProps } = props2;
-    const [visible, setVisible] = React212.useState(false);
-    const isHorizontal = props2.orientation === "horizontal";
-    const handleResize = useDebounceCallback(() => {
-      if (context.viewport) {
-        const isOverflowX = context.viewport.offsetWidth < context.viewport.scrollWidth;
-        const isOverflowY = context.viewport.offsetHeight < context.viewport.scrollHeight;
-        setVisible(isHorizontal ? isOverflowX : isOverflowY);
-      }
-    }, 10);
-    useResizeObserver(context.viewport, handleResize);
-    useResizeObserver(context.content, handleResize);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Presence, { present: forceMount || visible, children: /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarVisible, {
-      "data-state": visible ? "visible" : "hidden",
-      ...scrollbarProps,
-      ref: forwardedRef
-    }) });
-  });
-  ScrollAreaScrollbarVisible = React212.forwardRef((props2, forwardedRef) => {
-    const { orientation = "vertical", ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const thumbRef = React212.useRef(null);
-    const pointerOffsetRef = React212.useRef(0);
-    const [sizes, setSizes] = React212.useState({
-      content: 0,
-      viewport: 0,
-      scrollbar: { size: 0, paddingStart: 0, paddingEnd: 0 }
-    });
-    const thumbRatio = getThumbRatio(sizes.viewport, sizes.content);
-    const commonProps = {
-      ...scrollbarProps,
-      sizes,
-      onSizesChange: setSizes,
-      hasThumb: Boolean(thumbRatio > 0 && thumbRatio < 1),
-      onThumbChange: (thumb) => thumbRef.current = thumb,
-      onThumbPointerUp: () => pointerOffsetRef.current = 0,
-      onThumbPointerDown: (pointerPos) => pointerOffsetRef.current = pointerPos
-    };
-    function getScrollPosition(pointerPos, dir) {
-      return getScrollPositionFromPointer(pointerPos, pointerOffsetRef.current, sizes, dir);
-    }
-    if (orientation === "horizontal") {
-      return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarX, {
-        ...commonProps,
-        ref: forwardedRef,
-        onThumbPositionChange: () => {
-          if (context.viewport && thumbRef.current) {
-            const scrollPos = context.viewport.scrollLeft;
-            const offset4 = getThumbOffsetFromScroll(scrollPos, sizes, context.dir);
-            thumbRef.current.style.transform = `translate3d(${offset4}px, 0, 0)`;
-          }
-        },
-        onWheelScroll: (scrollPos) => {
-          if (context.viewport)
-            context.viewport.scrollLeft = scrollPos;
-        },
-        onDragScroll: (pointerPos) => {
-          if (context.viewport) {
-            context.viewport.scrollLeft = getScrollPosition(pointerPos, context.dir);
-          }
-        }
-      });
-    }
-    if (orientation === "vertical") {
-      return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarY, {
-        ...commonProps,
-        ref: forwardedRef,
-        onThumbPositionChange: () => {
-          if (context.viewport && thumbRef.current) {
-            const scrollPos = context.viewport.scrollTop;
-            const offset4 = getThumbOffsetFromScroll(scrollPos, sizes);
-            thumbRef.current.style.transform = `translate3d(0, ${offset4}px, 0)`;
-          }
-        },
-        onWheelScroll: (scrollPos) => {
-          if (context.viewport)
-            context.viewport.scrollTop = scrollPos;
-        },
-        onDragScroll: (pointerPos) => {
-          if (context.viewport)
-            context.viewport.scrollTop = getScrollPosition(pointerPos);
-        }
-      });
-    }
-    return null;
-  });
-  ScrollAreaScrollbarX = React212.forwardRef((props2, forwardedRef) => {
-    const { sizes, onSizesChange, ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const [computedStyle, setComputedStyle] = React212.useState();
-    const ref = React212.useRef(null);
-    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarXChange);
-    React212.useEffect(() => {
-      if (ref.current)
-        setComputedStyle(getComputedStyle(ref.current));
-    }, [ref]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarImpl, {
-      "data-orientation": "horizontal",
-      ...scrollbarProps,
-      ref: composeRefs2,
-      sizes,
-      style: {
-        bottom: 0,
-        left: context.dir === "rtl" ? "var(--radix-scroll-area-corner-width)" : 0,
-        right: context.dir === "ltr" ? "var(--radix-scroll-area-corner-width)" : 0,
-        ["--radix-scroll-area-thumb-width"]: getThumbSize(sizes) + "px",
-        ...props2.style
-      },
-      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.x),
-      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.x),
-      onWheelScroll: (event, maxScrollPos) => {
-        if (context.viewport) {
-          const scrollPos = context.viewport.scrollLeft + event.deltaX;
-          props2.onWheelScroll(scrollPos);
-          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
-            event.preventDefault();
-          }
-        }
-      },
-      onResize: () => {
-        if (ref.current && context.viewport && computedStyle) {
-          onSizesChange({
-            content: context.viewport.scrollWidth,
-            viewport: context.viewport.offsetWidth,
-            scrollbar: {
-              size: ref.current.clientWidth,
-              paddingStart: toInt(computedStyle.paddingLeft),
-              paddingEnd: toInt(computedStyle.paddingRight)
-            }
-          });
-        }
-      }
-    });
-  });
-  ScrollAreaScrollbarY = React212.forwardRef((props2, forwardedRef) => {
-    const { sizes, onSizesChange, ...scrollbarProps } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, props2.__scopeScrollArea);
-    const [computedStyle, setComputedStyle] = React212.useState();
-    const ref = React212.useRef(null);
-    const composeRefs2 = useComposedRefs(forwardedRef, ref, context.onScrollbarYChange);
-    React212.useEffect(() => {
-      if (ref.current)
-        setComputedStyle(getComputedStyle(ref.current));
-    }, [ref]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaScrollbarImpl, {
-      "data-orientation": "vertical",
-      ...scrollbarProps,
-      ref: composeRefs2,
-      sizes,
-      style: {
-        top: 0,
-        right: context.dir === "ltr" ? 0 : undefined,
-        left: context.dir === "rtl" ? 0 : undefined,
-        bottom: "var(--radix-scroll-area-corner-height)",
-        ["--radix-scroll-area-thumb-height"]: getThumbSize(sizes) + "px",
-        ...props2.style
-      },
-      onThumbPointerDown: (pointerPos) => props2.onThumbPointerDown(pointerPos.y),
-      onDragScroll: (pointerPos) => props2.onDragScroll(pointerPos.y),
-      onWheelScroll: (event, maxScrollPos) => {
-        if (context.viewport) {
-          const scrollPos = context.viewport.scrollTop + event.deltaY;
-          props2.onWheelScroll(scrollPos);
-          if (isScrollingWithinScrollbarBounds(scrollPos, maxScrollPos)) {
-            event.preventDefault();
-          }
-        }
-      },
-      onResize: () => {
-        if (ref.current && context.viewport && computedStyle) {
-          onSizesChange({
-            content: context.viewport.scrollHeight,
-            viewport: context.viewport.offsetHeight,
-            scrollbar: {
-              size: ref.current.clientHeight,
-              paddingStart: toInt(computedStyle.paddingTop),
-              paddingEnd: toInt(computedStyle.paddingBottom)
-            }
-          });
-        }
-      }
-    });
-  });
-  [ScrollbarProvider, useScrollbarContext] = createScrollAreaContext(SCROLLBAR_NAME);
-  ScrollAreaScrollbarImpl = React212.forwardRef((props2, forwardedRef) => {
-    const {
-      __scopeScrollArea,
-      sizes,
-      hasThumb,
-      onThumbChange,
-      onThumbPointerUp,
-      onThumbPointerDown,
-      onThumbPositionChange,
-      onDragScroll,
-      onWheelScroll,
-      onResize,
-      ...scrollbarProps
-    } = props2;
-    const context = useScrollAreaContext(SCROLLBAR_NAME, __scopeScrollArea);
-    const [scrollbar, setScrollbar] = React212.useState(null);
-    const composeRefs2 = useComposedRefs(forwardedRef, (node) => setScrollbar(node));
-    const rectRef = React212.useRef(null);
-    const prevWebkitUserSelectRef = React212.useRef("");
-    const viewport = context.viewport;
-    const maxScrollPos = sizes.content - sizes.viewport;
-    const handleWheelScroll = useCallbackRef(onWheelScroll);
-    const handleThumbPositionChange = useCallbackRef(onThumbPositionChange);
-    const handleResize = useDebounceCallback(onResize, 10);
-    function handleDragScroll(event) {
-      if (rectRef.current) {
-        const x = event.clientX - rectRef.current.left;
-        const y = event.clientY - rectRef.current.top;
-        onDragScroll({ x, y });
-      }
-    }
-    React212.useEffect(() => {
-      const handleWheel = (event) => {
-        const element = event.target;
-        const isScrollbarWheel = scrollbar?.contains(element);
-        if (isScrollbarWheel)
-          handleWheelScroll(event, maxScrollPos);
-      };
-      document.addEventListener("wheel", handleWheel, { passive: false });
-      return () => document.removeEventListener("wheel", handleWheel, { passive: false });
-    }, [viewport, scrollbar, maxScrollPos, handleWheelScroll]);
-    React212.useEffect(handleThumbPositionChange, [sizes, handleThumbPositionChange]);
-    useResizeObserver(scrollbar, handleResize);
-    useResizeObserver(context.content, handleResize);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollbarProvider, {
-      scope: __scopeScrollArea,
-      scrollbar,
-      hasThumb,
-      onThumbChange: useCallbackRef(onThumbChange),
-      onThumbPointerUp: useCallbackRef(onThumbPointerUp),
-      onThumbPositionChange: handleThumbPositionChange,
-      onThumbPointerDown: useCallbackRef(onThumbPointerDown),
-      children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-        ...scrollbarProps,
-        ref: composeRefs2,
-        style: { position: "absolute", ...scrollbarProps.style },
-        onPointerDown: composeEventHandlers(props2.onPointerDown, (event) => {
-          const mainPointer = 0;
-          if (event.button === mainPointer) {
-            const element = event.target;
-            element.setPointerCapture(event.pointerId);
-            rectRef.current = scrollbar.getBoundingClientRect();
-            prevWebkitUserSelectRef.current = document.body.style.webkitUserSelect;
-            document.body.style.webkitUserSelect = "none";
-            if (context.viewport)
-              context.viewport.style.scrollBehavior = "auto";
-            handleDragScroll(event);
-          }
-        }),
-        onPointerMove: composeEventHandlers(props2.onPointerMove, handleDragScroll),
-        onPointerUp: composeEventHandlers(props2.onPointerUp, (event) => {
-          const element = event.target;
-          if (element.hasPointerCapture(event.pointerId)) {
-            element.releasePointerCapture(event.pointerId);
-          }
-          document.body.style.webkitUserSelect = prevWebkitUserSelectRef.current;
-          if (context.viewport)
-            context.viewport.style.scrollBehavior = "";
-          rectRef.current = null;
-        })
-      })
-    });
-  });
-  ScrollAreaThumb = React212.forwardRef((props2, forwardedRef) => {
-    const { forceMount, ...thumbProps } = props2;
-    const scrollbarContext = useScrollbarContext(THUMB_NAME, props2.__scopeScrollArea);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Presence, { present: forceMount || scrollbarContext.hasThumb, children: /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaThumbImpl, { ref: forwardedRef, ...thumbProps }) });
-  });
-  ScrollAreaThumbImpl = React212.forwardRef((props2, forwardedRef) => {
-    const { __scopeScrollArea, style, ...thumbProps } = props2;
-    const scrollAreaContext = useScrollAreaContext(THUMB_NAME, __scopeScrollArea);
-    const scrollbarContext = useScrollbarContext(THUMB_NAME, __scopeScrollArea);
-    const { onThumbPositionChange } = scrollbarContext;
-    const composedRef = useComposedRefs(forwardedRef, (node) => scrollbarContext.onThumbChange(node));
-    const removeUnlinkedScrollListenerRef = React212.useRef(undefined);
-    const debounceScrollEnd = useDebounceCallback(() => {
-      if (removeUnlinkedScrollListenerRef.current) {
-        removeUnlinkedScrollListenerRef.current();
-        removeUnlinkedScrollListenerRef.current = undefined;
-      }
-    }, 100);
-    React212.useEffect(() => {
-      const viewport = scrollAreaContext.viewport;
-      if (viewport) {
-        const handleScroll2 = () => {
-          debounceScrollEnd();
-          if (!removeUnlinkedScrollListenerRef.current) {
-            const listener = addUnlinkedScrollListener(viewport, onThumbPositionChange);
-            removeUnlinkedScrollListenerRef.current = listener;
-            onThumbPositionChange();
-          }
-        };
-        onThumbPositionChange();
-        viewport.addEventListener("scroll", handleScroll2);
-        return () => viewport.removeEventListener("scroll", handleScroll2);
-      }
-    }, [scrollAreaContext.viewport, debounceScrollEnd, onThumbPositionChange]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-      "data-state": scrollbarContext.hasThumb ? "visible" : "hidden",
-      ...thumbProps,
-      ref: composedRef,
-      style: {
-        width: "var(--radix-scroll-area-thumb-width)",
-        height: "var(--radix-scroll-area-thumb-height)",
-        ...style
-      },
-      onPointerDownCapture: composeEventHandlers(props2.onPointerDownCapture, (event) => {
-        const thumb = event.target;
-        const thumbRect = thumb.getBoundingClientRect();
-        const x = event.clientX - thumbRect.left;
-        const y = event.clientY - thumbRect.top;
-        scrollbarContext.onThumbPointerDown({ x, y });
-      }),
-      onPointerUp: composeEventHandlers(props2.onPointerUp, scrollbarContext.onThumbPointerUp)
-    });
-  });
-  ScrollAreaThumb.displayName = THUMB_NAME;
-  ScrollAreaCorner = React212.forwardRef((props2, forwardedRef) => {
-    const context = useScrollAreaContext(CORNER_NAME, props2.__scopeScrollArea);
-    const hasBothScrollbarsVisible = Boolean(context.scrollbarX && context.scrollbarY);
-    const hasCorner = context.type !== "scroll" && hasBothScrollbarsVisible;
-    return hasCorner ? /* @__PURE__ */ import_jsx_runtime15.jsx(ScrollAreaCornerImpl, { ...props2, ref: forwardedRef }) : null;
-  });
-  ScrollAreaCorner.displayName = CORNER_NAME;
-  ScrollAreaCornerImpl = React212.forwardRef((props2, forwardedRef) => {
-    const { __scopeScrollArea, ...cornerProps } = props2;
-    const context = useScrollAreaContext(CORNER_NAME, __scopeScrollArea);
-    const [width, setWidth] = React212.useState(0);
-    const [height, setHeight] = React212.useState(0);
-    const hasSize = Boolean(width && height);
-    useResizeObserver(context.scrollbarX, () => {
-      const height2 = context.scrollbarX?.offsetHeight || 0;
-      context.onCornerHeightChange(height2);
-      setHeight(height2);
-    });
-    useResizeObserver(context.scrollbarY, () => {
-      const width2 = context.scrollbarY?.offsetWidth || 0;
-      context.onCornerWidthChange(width2);
-      setWidth(width2);
-    });
-    return hasSize ? /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-      ...cornerProps,
-      ref: forwardedRef,
-      style: {
-        width,
-        height,
-        position: "absolute",
-        right: context.dir === "ltr" ? 0 : undefined,
-        left: context.dir === "rtl" ? 0 : undefined,
-        bottom: 0,
-        ...props2.style
-      }
-    }) : null;
-  });
-  Root3 = ScrollArea;
-  Viewport2 = ScrollAreaViewport;
-  Scrollbar = ScrollAreaScrollbar;
-  Thumb = ScrollAreaThumb;
-  Corner = ScrollAreaCorner;
-});
-
-// dashboard/src/components/ui/scroll-area.jsx
-var React49, jsx_dev_runtime10, ScrollArea2, ScrollBar;
-var init_scroll_area = __esm(() => {
-  React49 = __toESM(require_react(), 1);
-  init_dist26();
-  init_utils();
-  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
-  "use client";
-  ScrollArea2 = React49.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Root3, {
-    ref,
-    className: cn("relative overflow-hidden", className),
-    ...props2,
-    children: [
-      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Viewport2, {
-        className: "h-full w-full rounded-[inherit]",
-        children
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ScrollBar, {}, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Corner, {}, undefined, false, undefined, this)
-    ]
-  }, undefined, true, undefined, this));
-  ScrollArea2.displayName = Root3.displayName;
-  ScrollBar = React49.forwardRef(({ className, orientation = "vertical", ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Scrollbar, {
-    ref,
-    orientation,
-    className: cn("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
-    ...props2,
-    children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Thumb, {
-      className: "relative flex-1 rounded-full bg-border"
-    }, undefined, false, undefined, this)
-  }, undefined, false, undefined, this));
-  ScrollBar.displayName = Scrollbar.displayName;
-});
-
 // dashboard/src/components/CodeBrowser.js
 var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
+var import_react15, jsx_dev_runtime12, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
   const [searchQuery, setSearchQuery] = import_react15.useState("");
   const [searchResults, setSearchResults] = import_react15.useState([]);
   const [isSearchLoading, setIsSearchLoading] = import_react15.useState(false);
@@ -33227,32 +33256,32 @@ var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, sel
     setSearchResults([]);
     setSearchError("");
   };
-  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Card, {
     className: "h-full flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardHeader, {
+      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardHeader, {
         children: [
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardTitle, {
+          /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardTitle, {
             children: "Code Intelligence"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
             className: "flex w-full items-center space-x-2 pt-2",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Input, {
+              /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Input, {
                 type: "text",
                 placeholder: "Semantic search (e.g., 'user auth logic')",
                 value: searchQuery,
                 onChange: (e) => setSearchQuery(e.target.value),
                 onKeyDown: (e) => e.key === "Enter" && handleSearch()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+              /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Button, {
                 onClick: handleSearch,
                 disabled: isSearchLoading,
-                children: isSearchLoading ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                children: isSearchLoading ? /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiLoader, {
                   className: "animate-spin"
                 }, undefined, false, undefined, this) : "Search"
               }, undefined, false, undefined, this),
-              searchResults.length > 0 && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+              searchResults.length > 0 && /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Button, {
                 variant: "outline",
                 size: "sm",
                 onClick: clearSearch,
@@ -33262,41 +33291,41 @@ var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, sel
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardContent, {
         className: "flex-grow p-0",
-        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ScrollArea2, {
+        children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(ScrollArea2, {
           className: "h-full w-full p-2",
           children: [
-            isSearchLoading && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+            isSearchLoading && /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
               className: "flex items-center gap-2 p-2 text-muted-foreground",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiLoader, {
                   className: "animate-spin"
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                   children: "Searching..."
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this),
-            searchError && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+            searchError && /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
               className: "flex items-center gap-2 p-2 text-destructive",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                   children: searchError
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this),
-            searchResults.length > 0 ? searchResults.map((result, index2) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+            searchResults.length > 0 ? searchResults.map((result, index2) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Button, {
               variant: "ghost",
               className: cn("w-full justify-start gap-2 px-2 text-left h-auto py-2", selectedFile === result.node.source_file && "bg-accent"),
               onClick: () => onFileSelect(result.node.source_file),
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFile, {}, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
                   className: "flex flex-col",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                       className: "font-semibold",
                       children: [
                         result.node.name,
@@ -33305,31 +33334,31 @@ var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, sel
                         ")"
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                       className: "text-xs text-muted-foreground",
                       children: result.node.source_file
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               ]
-            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(jsx_dev_runtime11.Fragment, {
+            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(jsx_dev_runtime12.Fragment, {
               children: [
-                isTreeLoading && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                isTreeLoading && /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
                   className: "flex items-center gap-2 p-2 text-muted-foreground",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiLoader, {
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiLoader, {
                       className: "animate-spin"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                       children: "Loading tree..."
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                treeError && /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+                treeError && /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
                   className: "flex items-center gap-2 p-2 text-destructive",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("span", {
                       children: treeError
                     }, undefined, false, undefined, this)
                   ]
@@ -33337,13 +33366,13 @@ var import_react15, jsx_dev_runtime11, CodeBrowser = ({ files, onFileSelect, sel
                 !isTreeLoading && !treeError && files.map((item) => {
                   const isFolder = item.type === "folder";
                   const isSelected = selectedFile === item.name;
-                  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Button, {
                     variant: "ghost",
                     className: cn("w-full justify-start gap-2 px-2", isFolder ? "font-semibold" : "font-normal", isSelected && "bg-accent"),
                     onClick: () => handleFileClick(item),
                     disabled: isFolder,
                     children: [
-                      isFolder ? /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                      isFolder ? /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(FiFile, {}, undefined, false, undefined, this),
                       item.name
                     ]
                   }, item.name, true, undefined, this);
@@ -33364,59 +33393,59 @@ var init_CodeBrowser = __esm(() => {
   init_input();
   init_card();
   init_utils();
-  jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
   CodeBrowser_default = CodeBrowser;
 });
 
 // dashboard/src/components/ui/table.jsx
-var React51, jsx_dev_runtime12, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
+var React54, jsx_dev_runtime13, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
 var init_table = __esm(() => {
-  React51 = __toESM(require_react(), 1);
+  React54 = __toESM(require_react(), 1);
   init_utils();
-  jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
-  Table = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("table", {
+  jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
+  Table = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("table", {
     ref,
     className: cn("w-full caption-bottom text-sm", className),
     ...props2
   }, undefined, false, undefined, this));
   Table.displayName = "Table";
-  TableHeader = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("thead", {
+  TableHeader = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("thead", {
     ref,
     className: cn("[&_tr]:border-b", className),
     ...props2
   }, undefined, false, undefined, this));
   TableHeader.displayName = "TableHeader";
-  TableBody = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("tbody", {
+  TableBody = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("tbody", {
     ref,
     className: cn("[&_tr:last-child]:border-0", className),
     ...props2
   }, undefined, false, undefined, this));
   TableBody.displayName = "TableBody";
-  TableFooter = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("tfoot", {
+  TableFooter = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("tfoot", {
     ref,
     className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
     ...props2
   }, undefined, false, undefined, this));
   TableFooter.displayName = "TableFooter";
-  TableRow = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("tr", {
+  TableRow = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("tr", {
     ref,
     className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
     ...props2
   }, undefined, false, undefined, this));
   TableRow.displayName = "TableRow";
-  TableHead = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("th", {
+  TableHead = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("th", {
     ref,
     className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
     ...props2
   }, undefined, false, undefined, this));
   TableHead.displayName = "TableHead";
-  TableCell = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("td", {
+  TableCell = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("td", {
     ref,
     className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
     ...props2
   }, undefined, false, undefined, this));
   TableCell.displayName = "TableCell";
-  TableCaption = React51.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("caption", {
+  TableCaption = React54.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("caption", {
     ref,
     className: cn("mt-4 text-sm text-muted-foreground", className),
     ...props2
@@ -33429,7 +33458,7 @@ var exports_ActivityLog = {};
 __export(exports_ActivityLog, {
   default: () => ActivityLog_default
 });
-var import_react16, jsx_dev_runtime13, ActivityLog = ({ agentActivity }) => {
+var import_react16, jsx_dev_runtime14, ActivityLog = ({ agentActivity }) => {
   const formatContent = (item) => {
     switch (item.type) {
       case "agent_start":
@@ -33454,58 +33483,58 @@ var import_react16, jsx_dev_runtime13, ActivityLog = ({ agentActivity }) => {
       return "destructive";
     return "outline";
   };
-  return /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardTitle, {
           children: "Live Activity Feed"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(ScrollArea2, {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ScrollArea2, {
           className: "h-96",
-          children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Table, {
+          children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Table, {
             children: [
-              /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableHeader, {
-                children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableHeader, {
+                children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableHead, {
                       className: "w-[120px]",
                       children: "Agent"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableHead, {
                       className: "w-[150px]",
                       children: "Event"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableHead, {
                       children: "Details"
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableBody, {
-                children: agentActivity.length > 0 ? agentActivity.map((item, index2) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableBody, {
+                children: agentActivity.length > 0 ? agentActivity.map((item, index2) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableCell, {
                       className: "font-medium",
                       children: [
                         "@",
                         item.agent
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableCell, {
-                      children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Badge, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableCell, {
+                      children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Badge, {
                         variant: getBadgeVariant(item.type),
                         children: item.tool ? `${item.type} (${item.tool})` : item.type
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableCell, {
                       className: "text-xs text-muted-foreground",
                       children: formatContent(item)
                     }, undefined, false, undefined, this)
                   ]
-                }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableRow, {
-                  children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(TableCell, {
+                }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableRow, {
+                  children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(TableCell, {
                     colSpan: "3",
                     className: "h-24 text-center",
                     children: "No agent activity yet."
@@ -33525,7 +33554,7 @@ var init_ActivityLog = __esm(() => {
   init_card();
   init_scroll_area();
   init_badge();
-  jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
   ActivityLog_default = ActivityLog;
 });
 
@@ -33700,7 +33729,7 @@ function config(newConfig) {
     Object.assign(globalConfig, newConfig);
   return globalConfig;
 }
-var NEVER, $brand, $ZodAsyncError, globalConfig;
+var NEVER, $brand, $ZodAsyncError, $ZodEncodeError, globalConfig;
 var init_core = __esm(() => {
   NEVER = Object.freeze({
     status: "aborted"
@@ -33711,6 +33740,12 @@ var init_core = __esm(() => {
       super(`Encountered Promise during synchronous parse. Use .parseAsync() instead.`);
     }
   };
+  $ZodEncodeError = class $ZodEncodeError extends Error {
+    constructor(name) {
+      super(`Encountered unidirectional transform during encode: ${name}`);
+      this.name = "ZodEncodeError";
+    }
+  };
   globalConfig = {};
 });
 
@@ -33718,7 +33753,12 @@ var init_core = __esm(() => {
 var exports_util = {};
 __export(exports_util, {
   unwrapMessage: () => unwrapMessage,
+  uint8ArrayToHex: () => uint8ArrayToHex,
+  uint8ArrayToBase64url: () => uint8ArrayToBase64url,
+  uint8ArrayToBase64: () => uint8ArrayToBase64,
   stringifyPrimitive: () => stringifyPrimitive,
+  shallowClone: () => shallowClone,
+  safeExtend: () => safeExtend,
   required: () => required,
   randomString: () => randomString,
   propertyKeyTypes: () => propertyKeyTypes,
@@ -33729,15 +33769,18 @@ __export(exports_util, {
   partial: () => partial,
   optionalKeys: () => optionalKeys,
   omit: () => omit,
+  objectClone: () => objectClone,
   numKeys: () => numKeys,
   nullish: () => nullish,
   normalizeParams: () => normalizeParams,
+  mergeDefs: () => mergeDefs,
   merge: () => merge,
   jsonStringifyReplacer: () => jsonStringifyReplacer,
   joinValues: () => joinValues,
   issue: () => issue,
   isPlainObject: () => isPlainObject,
   isObject: () => isObject,
+  hexToUint8Array: () => hexToUint8Array,
   getSizableOrigin: () => getSizableOrigin,
   getParsedType: () => getParsedType,
   getLengthableOrigin: () => getLengthableOrigin,
@@ -33750,11 +33793,14 @@ __export(exports_util, {
   esc: () => esc,
   defineLazy: () => defineLazy,
   createTransparentProxy: () => createTransparentProxy,
+  cloneDef: () => cloneDef,
   clone: () => clone,
   cleanRegex: () => cleanRegex,
   cleanEnum: () => cleanEnum,
   captureStackTrace: () => captureStackTrace,
   cached: () => cached,
+  base64urlToUint8Array: () => base64urlToUint8Array,
+  base64ToUint8Array: () => base64ToUint8Array,
   assignProp: () => assignProp,
   assertNotEqual: () => assertNotEqual,
   assertNever: () => assertNever,
@@ -33814,22 +33860,31 @@ function cleanRegex(source) {
 }
 function floatSafeRemainder(val, step) {
   const valDecCount = (val.toString().split(".")[1] || "").length;
-  const stepDecCount = (step.toString().split(".")[1] || "").length;
+  const stepString = step.toString();
+  let stepDecCount = (stepString.split(".")[1] || "").length;
+  if (stepDecCount === 0 && /\d?e-\d?/.test(stepString)) {
+    const match = stepString.match(/\d?e-(\d?)/);
+    if (match?.[1]) {
+      stepDecCount = Number.parseInt(match[1]);
+    }
+  }
   const decCount = valDecCount > stepDecCount ? valDecCount : stepDecCount;
   const valInt = Number.parseInt(val.toFixed(decCount).replace(".", ""));
   const stepInt = Number.parseInt(step.toFixed(decCount).replace(".", ""));
   return valInt % stepInt / 10 ** decCount;
 }
 function defineLazy(object, key, getter) {
-  const set = false;
+  let value = undefined;
   Object.defineProperty(object, key, {
     get() {
-      if (!set) {
-        const value = getter();
-        object[key] = value;
-        return value;
+      if (value === EVALUATING) {
+        return;
       }
-      throw new Error("cached value already set");
+      if (value === undefined) {
+        value = EVALUATING;
+        value = getter();
+      }
+      return value;
     },
     set(v) {
       Object.defineProperty(object, key, {
@@ -33839,6 +33894,9 @@ function defineLazy(object, key, getter) {
     configurable: true
   });
 }
+function objectClone(obj) {
+  return Object.create(Object.getPrototypeOf(obj), Object.getOwnPropertyDescriptors(obj));
+}
 function assignProp(target, prop, value) {
   Object.defineProperty(target, prop, {
     value,
@@ -33846,6 +33904,17 @@ function assignProp(target, prop, value) {
     enumerable: true,
     configurable: true
   });
+}
+function mergeDefs(...defs) {
+  const mergedDescriptors = {};
+  for (const def of defs) {
+    const descriptors = Object.getOwnPropertyDescriptors(def);
+    Object.assign(mergedDescriptors, descriptors);
+  }
+  return Object.defineProperties({}, mergedDescriptors);
+}
+function cloneDef(schema) {
+  return mergeDefs(schema._zod.def);
 }
 function getElementAtPath(obj, path2) {
   if (!path2)
@@ -33890,6 +33959,13 @@ function isPlainObject(o) {
     return false;
   }
   return true;
+}
+function shallowClone(o) {
+  if (isPlainObject(o))
+    return { ...o };
+  if (Array.isArray(o))
+    return [...o];
+  return o;
 }
 function numKeys(data) {
   let keyCount = 0;
@@ -33971,42 +34047,67 @@ function optionalKeys(shape) {
   });
 }
 function pick(schema, mask) {
-  const newShape = {};
   const currDef = schema._zod.def;
-  for (const key in mask) {
-    if (!(key in currDef.shape)) {
-      throw new Error(`Unrecognized key: "${key}"`);
-    }
-    if (!mask[key])
-      continue;
-    newShape[key] = currDef.shape[key];
-  }
-  return clone(schema, {
-    ...schema._zod.def,
-    shape: newShape,
+  const def = mergeDefs(schema._zod.def, {
+    get shape() {
+      const newShape = {};
+      for (const key in mask) {
+        if (!(key in currDef.shape)) {
+          throw new Error(`Unrecognized key: "${key}"`);
+        }
+        if (!mask[key])
+          continue;
+        newShape[key] = currDef.shape[key];
+      }
+      assignProp(this, "shape", newShape);
+      return newShape;
+    },
     checks: []
   });
+  return clone(schema, def);
 }
 function omit(schema, mask) {
-  const newShape = { ...schema._zod.def.shape };
   const currDef = schema._zod.def;
-  for (const key in mask) {
-    if (!(key in currDef.shape)) {
-      throw new Error(`Unrecognized key: "${key}"`);
-    }
-    if (!mask[key])
-      continue;
-    delete newShape[key];
-  }
-  return clone(schema, {
-    ...schema._zod.def,
-    shape: newShape,
+  const def = mergeDefs(schema._zod.def, {
+    get shape() {
+      const newShape = { ...schema._zod.def.shape };
+      for (const key in mask) {
+        if (!(key in currDef.shape)) {
+          throw new Error(`Unrecognized key: "${key}"`);
+        }
+        if (!mask[key])
+          continue;
+        delete newShape[key];
+      }
+      assignProp(this, "shape", newShape);
+      return newShape;
+    },
     checks: []
   });
+  return clone(schema, def);
 }
 function extend(schema, shape) {
   if (!isPlainObject(shape)) {
     throw new Error("Invalid input to extend: expected a plain object");
+  }
+  const checks = schema._zod.def.checks;
+  const hasChecks = checks && checks.length > 0;
+  if (hasChecks) {
+    throw new Error("Object schemas containing refinements cannot be extended. Use `.safeExtend()` instead.");
+  }
+  const def = mergeDefs(schema._zod.def, {
+    get shape() {
+      const _shape = { ...schema._zod.def.shape, ...shape };
+      assignProp(this, "shape", _shape);
+      return _shape;
+    },
+    checks: []
+  });
+  return clone(schema, def);
+}
+function safeExtend(schema, shape) {
+  if (!isPlainObject(shape)) {
+    throw new Error("Invalid input to safeExtend: expected a plain object");
   }
   const def = {
     ...schema._zod.def,
@@ -34015,84 +34116,95 @@ function extend(schema, shape) {
       assignProp(this, "shape", _shape);
       return _shape;
     },
-    checks: []
+    checks: schema._zod.def.checks
   };
   return clone(schema, def);
 }
 function merge(a, b) {
-  return clone(a, {
-    ...a._zod.def,
+  const def = mergeDefs(a._zod.def, {
     get shape() {
       const _shape = { ...a._zod.def.shape, ...b._zod.def.shape };
       assignProp(this, "shape", _shape);
       return _shape;
     },
-    catchall: b._zod.def.catchall,
+    get catchall() {
+      return b._zod.def.catchall;
+    },
     checks: []
   });
+  return clone(a, def);
 }
 function partial(Class, schema, mask) {
-  const oldShape = schema._zod.def.shape;
-  const shape = { ...oldShape };
-  if (mask) {
-    for (const key in mask) {
-      if (!(key in oldShape)) {
-        throw new Error(`Unrecognized key: "${key}"`);
+  const def = mergeDefs(schema._zod.def, {
+    get shape() {
+      const oldShape = schema._zod.def.shape;
+      const shape = { ...oldShape };
+      if (mask) {
+        for (const key in mask) {
+          if (!(key in oldShape)) {
+            throw new Error(`Unrecognized key: "${key}"`);
+          }
+          if (!mask[key])
+            continue;
+          shape[key] = Class ? new Class({
+            type: "optional",
+            innerType: oldShape[key]
+          }) : oldShape[key];
+        }
+      } else {
+        for (const key in oldShape) {
+          shape[key] = Class ? new Class({
+            type: "optional",
+            innerType: oldShape[key]
+          }) : oldShape[key];
+        }
       }
-      if (!mask[key])
-        continue;
-      shape[key] = Class ? new Class({
-        type: "optional",
-        innerType: oldShape[key]
-      }) : oldShape[key];
-    }
-  } else {
-    for (const key in oldShape) {
-      shape[key] = Class ? new Class({
-        type: "optional",
-        innerType: oldShape[key]
-      }) : oldShape[key];
-    }
-  }
-  return clone(schema, {
-    ...schema._zod.def,
-    shape,
+      assignProp(this, "shape", shape);
+      return shape;
+    },
     checks: []
   });
+  return clone(schema, def);
 }
 function required(Class, schema, mask) {
-  const oldShape = schema._zod.def.shape;
-  const shape = { ...oldShape };
-  if (mask) {
-    for (const key in mask) {
-      if (!(key in shape)) {
-        throw new Error(`Unrecognized key: "${key}"`);
+  const def = mergeDefs(schema._zod.def, {
+    get shape() {
+      const oldShape = schema._zod.def.shape;
+      const shape = { ...oldShape };
+      if (mask) {
+        for (const key in mask) {
+          if (!(key in shape)) {
+            throw new Error(`Unrecognized key: "${key}"`);
+          }
+          if (!mask[key])
+            continue;
+          shape[key] = new Class({
+            type: "nonoptional",
+            innerType: oldShape[key]
+          });
+        }
+      } else {
+        for (const key in oldShape) {
+          shape[key] = new Class({
+            type: "nonoptional",
+            innerType: oldShape[key]
+          });
+        }
       }
-      if (!mask[key])
-        continue;
-      shape[key] = new Class({
-        type: "nonoptional",
-        innerType: oldShape[key]
-      });
-    }
-  } else {
-    for (const key in oldShape) {
-      shape[key] = new Class({
-        type: "nonoptional",
-        innerType: oldShape[key]
-      });
-    }
-  }
-  return clone(schema, {
-    ...schema._zod.def,
-    shape,
+      assignProp(this, "shape", shape);
+      return shape;
+    },
     checks: []
   });
+  return clone(schema, def);
 }
 function aborted(x, startIndex = 0) {
+  if (x.aborted === true)
+    return true;
   for (let i = startIndex;i < x.issues.length; i++) {
-    if (x.issues[i]?.continue !== true)
+    if (x.issues[i]?.continue !== true) {
       return true;
+    }
   }
   return false;
 }
@@ -34153,11 +34265,48 @@ function cleanEnum(obj) {
     return Number.isNaN(Number.parseInt(k, 10));
   }).map((el) => el[1]);
 }
+function base64ToUint8Array(base64) {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0;i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+function uint8ArrayToBase64(bytes) {
+  let binaryString = "";
+  for (let i = 0;i < bytes.length; i++) {
+    binaryString += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binaryString);
+}
+function base64urlToUint8Array(base64url) {
+  const base64 = base64url.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = "=".repeat((4 - base64.length % 4) % 4);
+  return base64ToUint8Array(base64 + padding);
+}
+function uint8ArrayToBase64url(bytes) {
+  return uint8ArrayToBase64(bytes).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
+}
+function hexToUint8Array(hex) {
+  const cleanHex = hex.replace(/^0x/, "");
+  if (cleanHex.length % 2 !== 0) {
+    throw new Error("Invalid hex string length");
+  }
+  const bytes = new Uint8Array(cleanHex.length / 2);
+  for (let i = 0;i < cleanHex.length; i += 2) {
+    bytes[i / 2] = Number.parseInt(cleanHex.slice(i, i + 2), 16);
+  }
+  return bytes;
+}
+function uint8ArrayToHex(bytes) {
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 class Class {
   constructor(..._args) {}
 }
-var captureStackTrace, allowsEval, getParsedType = (data) => {
+var EVALUATING, captureStackTrace, allowsEval, getParsedType = (data) => {
   const t = typeof data;
   switch (t) {
     case "undefined":
@@ -34202,7 +34351,8 @@ var captureStackTrace, allowsEval, getParsedType = (data) => {
   }
 }, propertyKeyTypes, primitiveTypes, NUMBER_FORMAT_RANGES, BIGINT_FORMAT_RANGES;
 var init_util = __esm(() => {
-  captureStackTrace = Error.captureStackTrace ? Error.captureStackTrace : (..._args) => {};
+  EVALUATING = Symbol("evaluating");
+  captureStackTrace = "captureStackTrace" in Error ? Error.captureStackTrace : (..._args) => {};
   allowsEval = cached(() => {
     if (typeof navigator !== "undefined" && navigator?.userAgent?.includes("Cloudflare")) {
       return false;
@@ -34244,10 +34394,7 @@ function flattenError(error, mapper = (issue2) => issue2.message) {
   }
   return { formErrors, fieldErrors };
 }
-function formatError(error, _mapper) {
-  const mapper = _mapper || function(issue2) {
-    return issue2.message;
-  };
+function formatError(error, mapper = (issue2) => issue2.message) {
   const fieldErrors = { _errors: [] };
   const processError = (error2) => {
     for (const issue2 of error2.issues) {
@@ -34280,10 +34427,7 @@ function formatError(error, _mapper) {
   processError(error);
   return fieldErrors;
 }
-function treeifyError(error, _mapper) {
-  const mapper = _mapper || function(issue2) {
-    return issue2.message;
-  };
+function treeifyError(error, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
   const processError = (error2, path2 = []) => {
     var _a, _b;
@@ -34325,8 +34469,9 @@ function treeifyError(error, _mapper) {
   processError(error);
   return result;
 }
-function toDotPath(path2) {
+function toDotPath(_path) {
   const segs = [];
+  const path2 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
   for (const seg of path2) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
@@ -34344,7 +34489,7 @@ function toDotPath(path2) {
 }
 function prettifyError(error) {
   const lines = [];
-  const issues = [...error.issues].sort((a, b) => a.path.length - b.path.length);
+  const issues = [...error.issues].sort((a, b) => (a.path ?? []).length - (b.path ?? []).length);
   for (const issue2 of issues) {
     lines.push(`✖ ${issue2.message}`);
     if (issue2.path?.length)
@@ -34363,12 +34508,7 @@ var initializer = (inst, def) => {
     value: def,
     enumerable: false
   });
-  Object.defineProperty(inst, "message", {
-    get() {
-      return JSON.stringify(def, jsonStringifyReplacer, 2);
-    },
-    enumerable: true
-  });
+  inst.message = JSON.stringify(def, jsonStringifyReplacer, 2);
   Object.defineProperty(inst, "toString", {
     value: () => inst.message,
     enumerable: false
@@ -34424,7 +34564,27 @@ var _parse = (_Err) => (schema, value, _ctx, _params) => {
     success: false,
     error: new _Err(result.issues.map((iss) => finalizeIssue(iss, ctx, config())))
   } : { success: true, data: result.value };
-}, safeParseAsync;
+}, safeParseAsync, _encode = (_Err) => (schema, value, _ctx) => {
+  const ctx = _ctx ? Object.assign(_ctx, { direction: "backward" }) : { direction: "backward" };
+  return _parse(_Err)(schema, value, ctx);
+}, encode, _decode = (_Err) => (schema, value, _ctx) => {
+  return _parse(_Err)(schema, value, _ctx);
+}, decode, _encodeAsync = (_Err) => async (schema, value, _ctx) => {
+  const ctx = _ctx ? Object.assign(_ctx, { direction: "backward" }) : { direction: "backward" };
+  return _parseAsync(_Err)(schema, value, ctx);
+}, encodeAsync, _decodeAsync = (_Err) => async (schema, value, _ctx) => {
+  return _parseAsync(_Err)(schema, value, _ctx);
+}, decodeAsync, _safeEncode = (_Err) => (schema, value, _ctx) => {
+  const ctx = _ctx ? Object.assign(_ctx, { direction: "backward" }) : { direction: "backward" };
+  return _safeParse(_Err)(schema, value, ctx);
+}, safeEncode, _safeDecode = (_Err) => (schema, value, _ctx) => {
+  return _safeParse(_Err)(schema, value, _ctx);
+}, safeDecode, _safeEncodeAsync = (_Err) => async (schema, value, _ctx) => {
+  const ctx = _ctx ? Object.assign(_ctx, { direction: "backward" }) : { direction: "backward" };
+  return _safeParseAsync(_Err)(schema, value, ctx);
+}, safeEncodeAsync, _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
+  return _safeParseAsync(_Err)(schema, value, _ctx);
+}, safeDecodeAsync;
 var init_parse = __esm(() => {
   init_core();
   init_errors();
@@ -34433,6 +34593,14 @@ var init_parse = __esm(() => {
   parseAsync = /* @__PURE__ */ _parseAsync($ZodRealError);
   safeParse = /* @__PURE__ */ _safeParse($ZodRealError);
   safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
+  encode = /* @__PURE__ */ _encode($ZodRealError);
+  decode = /* @__PURE__ */ _decode($ZodRealError);
+  encodeAsync = /* @__PURE__ */ _encodeAsync($ZodRealError);
+  decodeAsync = /* @__PURE__ */ _decodeAsync($ZodRealError);
+  safeEncode = /* @__PURE__ */ _safeEncode($ZodRealError);
+  safeDecode = /* @__PURE__ */ _safeDecode($ZodRealError);
+  safeEncodeAsync = /* @__PURE__ */ _safeEncodeAsync($ZodRealError);
+  safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 });
 
 // node_modules/zod/v4/core/regexes.js
@@ -34449,17 +34617,34 @@ __export(exports_regexes, {
   ulid: () => ulid,
   time: () => time,
   string: () => string,
+  sha512_hex: () => sha512_hex,
+  sha512_base64url: () => sha512_base64url,
+  sha512_base64: () => sha512_base64,
+  sha384_hex: () => sha384_hex,
+  sha384_base64url: () => sha384_base64url,
+  sha384_base64: () => sha384_base64,
+  sha256_hex: () => sha256_hex,
+  sha256_base64url: () => sha256_base64url,
+  sha256_base64: () => sha256_base64,
+  sha1_hex: () => sha1_hex,
+  sha1_base64url: () => sha1_base64url,
+  sha1_base64: () => sha1_base64,
   rfc5322Email: () => rfc5322Email,
   number: () => number,
   null: () => _null,
   nanoid: () => nanoid,
+  md5_hex: () => md5_hex,
+  md5_base64url: () => md5_base64url,
+  md5_base64: () => md5_base64,
   lowercase: () => lowercase,
   ksuid: () => ksuid,
   ipv6: () => ipv6,
   ipv4: () => ipv4,
   integer: () => integer,
+  idnEmail: () => idnEmail,
   html5Email: () => html5Email,
   hostname: () => hostname,
+  hex: () => hex,
   guid: () => guid,
   extendedDuration: () => extendedDuration,
   emoji: () => emoji,
@@ -34477,8 +34662,7 @@ __export(exports_regexes, {
   boolean: () => boolean,
   bigint: () => bigint,
   base64url: () => base64url,
-  base64: () => base64,
-  _emoji: () => _emoji
+  base64: () => base64
 });
 function emoji() {
   return new RegExp(_emoji, "u");
@@ -34497,18 +34681,24 @@ function datetime(args) {
   if (args.local)
     opts.push("");
   if (args.offset)
-    opts.push(`([+-]\\d{2}:\\d{2})`);
+    opts.push(`([+-](?:[01]\\d|2[0-3]):[0-5]\\d)`);
   const timeRegex = `${time2}(?:${opts.join("|")})`;
   return new RegExp(`^${dateSource}T(?:${timeRegex})$`);
 }
+function fixedBase64(bodyLength, padding) {
+  return new RegExp(`^[A-Za-z0-9+/]{${bodyLength}}${padding}$`);
+}
+function fixedBase64url(length) {
+  return new RegExp(`^[A-Za-z0-9_-]{${length}}$`);
+}
 var cuid, cuid2, ulid, xid, ksuid, nanoid, duration, extendedDuration, guid, uuid = (version) => {
   if (!version)
-    return /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000)$/;
+    return /^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$/;
   return new RegExp(`^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-${version}[0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12})$`);
-}, uuid4, uuid6, uuid7, email, html5Email, rfc5322Email, unicodeEmail, browserEmail, _emoji = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`, ipv4, ipv6, cidrv4, cidrv6, base64, base64url, hostname, domain, e164, dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`, date, string = (params) => {
+}, uuid4, uuid6, uuid7, email, html5Email, rfc5322Email, unicodeEmail, idnEmail, browserEmail, _emoji = `^(\\p{Extended_Pictographic}|\\p{Emoji_Component})+$`, ipv4, ipv6, cidrv4, cidrv6, base64, base64url, hostname, domain, e164, dateSource = `(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))`, date, string = (params) => {
   const regex = params ? `[\\s\\S]{${params?.minimum ?? 0},${params?.maximum ?? ""}}` : `[\\s\\S]*`;
   return new RegExp(`^${regex}$`);
-}, bigint, integer, number, boolean, _null, _undefined, lowercase, uppercase;
+}, bigint, integer, number, boolean, _null, _undefined, lowercase, uppercase, hex, md5_hex, md5_base64, md5_base64url, sha1_hex, sha1_base64, sha1_base64url, sha256_hex, sha256_base64, sha256_base64url, sha384_hex, sha384_base64, sha384_base64url, sha512_hex, sha512_base64, sha512_base64url;
 var init_regexes = __esm(() => {
   cuid = /^[cC][^\s-]{8,}$/;
   cuid2 = /^[0-9a-z]+$/;
@@ -34526,25 +34716,42 @@ var init_regexes = __esm(() => {
   html5Email = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   rfc5322Email = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   unicodeEmail = /^[^\s@"]{1,64}@[^\s@]{1,255}$/u;
+  idnEmail = unicodeEmail;
   browserEmail = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
   ipv4 = /^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$/;
-  ipv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})$/;
+  ipv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$/;
   cidrv4 = /^((25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\/([0-9]|[1-2][0-9]|3[0-2])$/;
   cidrv6 = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|::|([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:?){0,6})\/(12[0-8]|1[01][0-9]|[1-9]?[0-9])$/;
   base64 = /^$|^(?:[0-9a-zA-Z+/]{4})*(?:(?:[0-9a-zA-Z+/]{2}==)|(?:[0-9a-zA-Z+/]{3}=))?$/;
   base64url = /^[A-Za-z0-9_-]*$/;
-  hostname = /^([a-zA-Z0-9-]+\.)*[a-zA-Z0-9-]+$/;
+  hostname = /^(?=.{1,253}\.?$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[-0-9a-zA-Z]{0,61}[0-9a-zA-Z])?)*\.?$/;
   domain = /^([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
   e164 = /^\+(?:[0-9]){6,14}[0-9]$/;
   date = /* @__PURE__ */ new RegExp(`^${dateSource}$`);
-  bigint = /^\d+n?$/;
-  integer = /^\d+$/;
-  number = /^-?\d+(?:\.\d+)?/i;
-  boolean = /true|false/i;
-  _null = /null/i;
-  _undefined = /undefined/i;
+  bigint = /^-?\d+n?$/;
+  integer = /^-?\d+$/;
+  number = /^-?\d+(?:\.\d+)?/;
+  boolean = /^(?:true|false)$/i;
+  _null = /^null$/i;
+  _undefined = /^undefined$/i;
   lowercase = /^[^A-Z]*$/;
   uppercase = /^[^a-z]*$/;
+  hex = /^[0-9a-fA-F]*$/;
+  md5_hex = /^[0-9a-fA-F]{32}$/;
+  md5_base64 = /* @__PURE__ */ fixedBase64(22, "==");
+  md5_base64url = /* @__PURE__ */ fixedBase64url(22);
+  sha1_hex = /^[0-9a-fA-F]{40}$/;
+  sha1_base64 = /* @__PURE__ */ fixedBase64(27, "=");
+  sha1_base64url = /* @__PURE__ */ fixedBase64url(27);
+  sha256_hex = /^[0-9a-fA-F]{64}$/;
+  sha256_base64 = /* @__PURE__ */ fixedBase64(43, "=");
+  sha256_base64url = /* @__PURE__ */ fixedBase64url(43);
+  sha384_hex = /^[0-9a-fA-F]{96}$/;
+  sha384_base64 = /* @__PURE__ */ fixedBase64(64, "");
+  sha384_base64url = /* @__PURE__ */ fixedBase64url(64);
+  sha512_hex = /^[0-9a-fA-F]{128}$/;
+  sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
+  sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 });
 
 // node_modules/zod/v4/core/checks.js
@@ -34669,6 +34876,7 @@ var init_checks = __esm(() => {
             expected: origin,
             format: def.format,
             code: "invalid_type",
+            continue: false,
             input,
             inst
           });
@@ -34775,6 +34983,7 @@ var init_checks = __esm(() => {
         origin: getSizableOrigin(input),
         code: "too_big",
         maximum: def.maximum,
+        inclusive: true,
         input,
         inst,
         continue: !def.abort
@@ -34802,6 +35011,7 @@ var init_checks = __esm(() => {
         origin: getSizableOrigin(input),
         code: "too_small",
         minimum: def.minimum,
+        inclusive: true,
         input,
         inst,
         continue: !def.abort
@@ -35078,7 +35288,8 @@ var init_checks = __esm(() => {
         code: "invalid_value",
         values: def.mime,
         input: payload.value.type,
-        inst
+        inst,
+        continue: !def.abort
       });
     };
   });
@@ -35133,8 +35344,8 @@ var version;
 var init_versions = __esm(() => {
   version = {
     major: 4,
-    minor: 0,
-    patch: 0
+    minor: 1,
+    patch: 12
   };
 });
 
@@ -35184,29 +35395,66 @@ function handleArrayResult(result, final, index2) {
   }
   final.value[index2] = result.value;
 }
-function handleObjectResult(result, final, key) {
+function handlePropertyResult(result, final, key, input) {
   if (result.issues.length) {
     final.issues.push(...prefixIssues(key, result.issues));
   }
-  final.value[key] = result.value;
-}
-function handleOptionalObjectResult(result, final, key, input) {
-  if (result.issues.length) {
-    if (input[key] === undefined) {
-      if (key in input) {
-        final.value[key] = undefined;
-      } else {
-        final.value[key] = result.value;
-      }
-    } else {
-      final.issues.push(...prefixIssues(key, result.issues));
-    }
-  } else if (result.value === undefined) {
-    if (key in input)
+  if (result.value === undefined) {
+    if (key in input) {
       final.value[key] = undefined;
+    }
   } else {
     final.value[key] = result.value;
   }
+}
+function normalizeDef(def) {
+  const keys = Object.keys(def.shape);
+  for (const k of keys) {
+    if (!def.shape?.[k]?._zod?.traits?.has("$ZodType")) {
+      throw new Error(`Invalid element at key "${k}": expected a Zod schema`);
+    }
+  }
+  const okeys = optionalKeys(def.shape);
+  return {
+    ...def,
+    keys,
+    keySet: new Set(keys),
+    numKeys: keys.length,
+    optionalKeys: new Set(okeys)
+  };
+}
+function handleCatchall(proms, input, payload, ctx, def, inst) {
+  const unrecognized = [];
+  const keySet = def.keySet;
+  const _catchall = def.catchall._zod;
+  const t = _catchall.def.type;
+  for (const key of Object.keys(input)) {
+    if (keySet.has(key))
+      continue;
+    if (t === "never") {
+      unrecognized.push(key);
+      continue;
+    }
+    const r2 = _catchall.run({ value: input[key], issues: [] }, ctx);
+    if (r2 instanceof Promise) {
+      proms.push(r2.then((r3) => handlePropertyResult(r3, payload, key, input)));
+    } else {
+      handlePropertyResult(r2, payload, key, input);
+    }
+  }
+  if (unrecognized.length) {
+    payload.issues.push({
+      code: "unrecognized_keys",
+      keys: unrecognized,
+      input,
+      inst
+    });
+  }
+  if (!proms.length)
+    return payload;
+  return Promise.all(proms).then(() => {
+    return payload;
+  });
 }
 function handleUnionResults(results, final, inst, ctx) {
   for (const result of results) {
@@ -35214,6 +35462,11 @@ function handleUnionResults(results, final, inst, ctx) {
       final.value = result.value;
       return final;
     }
+  }
+  const nonaborted = results.filter((r2) => !aborted(r2));
+  if (nonaborted.length === 1) {
+    final.value = nonaborted[0].value;
+    return nonaborted[0];
   }
   final.issues.push({
     code: "invalid_union",
@@ -35295,8 +35548,8 @@ function handleMapResult(keyResult, valueResult, final, key, input, inst, ctx) {
       final.issues.push(...prefixIssues(key, keyResult.issues));
     } else {
       final.issues.push({
-        origin: "map",
         code: "invalid_key",
+        origin: "map",
         input,
         inst,
         issues: keyResult.issues.map((iss) => finalizeIssue(iss, ctx, config()))
@@ -35325,6 +35578,12 @@ function handleSetResult(result, final) {
   }
   final.value.add(result.value);
 }
+function handleOptionalResult(result, input) {
+  if (result.issues.length && input === undefined) {
+    return { issues: [], value: undefined };
+  }
+  return result;
+}
 function handleDefaultResult(payload, def) {
   if (payload.value === undefined) {
     payload.value = def.defaultValue;
@@ -35342,11 +35601,39 @@ function handleNonOptionalResult(payload, inst) {
   }
   return payload;
 }
-function handlePipeResult(left, def, ctx) {
-  if (aborted(left)) {
+function handlePipeResult(left, next, ctx) {
+  if (left.issues.length) {
+    left.aborted = true;
     return left;
   }
-  return def.out._zod.run({ value: left.value, issues: left.issues }, ctx);
+  return next._zod.run({ value: left.value, issues: left.issues }, ctx);
+}
+function handleCodecAResult(result, def, ctx) {
+  if (result.issues.length) {
+    result.aborted = true;
+    return result;
+  }
+  const direction = ctx.direction || "forward";
+  if (direction === "forward") {
+    const transformed = def.transform(result.value, result);
+    if (transformed instanceof Promise) {
+      return transformed.then((value) => handleCodecTxResult(result, value, def.out, ctx));
+    }
+    return handleCodecTxResult(result, transformed, def.out, ctx);
+  } else {
+    const transformed = def.reverseTransform(result.value, result);
+    if (transformed instanceof Promise) {
+      return transformed.then((value) => handleCodecTxResult(result, value, def.in, ctx));
+    }
+    return handleCodecTxResult(result, transformed, def.in, ctx);
+  }
+}
+function handleCodecTxResult(left, value, nextSchema, ctx) {
+  if (left.issues.length) {
+    left.aborted = true;
+    return left;
+  }
+  return nextSchema._zod.run({ value, issues: left.issues }, ctx);
 }
 function handleReadonlyResult(payload) {
   payload.value = Object.freeze(payload.value);
@@ -35366,7 +35653,7 @@ function handleRefineResult(result, payload, input, inst) {
     payload.issues.push(issue(_iss));
   }
 }
-var $ZodType, $ZodString, $ZodStringFormat, $ZodGUID, $ZodUUID, $ZodEmail, $ZodURL, $ZodEmoji, $ZodNanoID, $ZodCUID, $ZodCUID2, $ZodULID, $ZodXID, $ZodKSUID, $ZodISODateTime, $ZodISODate, $ZodISOTime, $ZodISODuration, $ZodIPv4, $ZodIPv6, $ZodCIDRv4, $ZodCIDRv6, $ZodBase64, $ZodBase64URL, $ZodE164, $ZodJWT, $ZodCustomStringFormat, $ZodNumber, $ZodNumberFormat, $ZodBoolean, $ZodBigInt, $ZodBigIntFormat, $ZodSymbol, $ZodUndefined, $ZodNull, $ZodAny, $ZodUnknown, $ZodNever, $ZodVoid, $ZodDate, $ZodArray, $ZodObject, $ZodUnion, $ZodDiscriminatedUnion, $ZodIntersection, $ZodTuple, $ZodRecord, $ZodMap, $ZodSet, $ZodEnum, $ZodLiteral, $ZodFile, $ZodTransform, $ZodOptional, $ZodNullable, $ZodDefault, $ZodPrefault, $ZodNonOptional, $ZodSuccess, $ZodCatch, $ZodNaN, $ZodPipe, $ZodReadonly, $ZodTemplateLiteral, $ZodPromise, $ZodLazy, $ZodCustom;
+var $ZodType, $ZodString, $ZodStringFormat, $ZodGUID, $ZodUUID, $ZodEmail, $ZodURL, $ZodEmoji, $ZodNanoID, $ZodCUID, $ZodCUID2, $ZodULID, $ZodXID, $ZodKSUID, $ZodISODateTime, $ZodISODate, $ZodISOTime, $ZodISODuration, $ZodIPv4, $ZodIPv6, $ZodCIDRv4, $ZodCIDRv6, $ZodBase64, $ZodBase64URL, $ZodE164, $ZodJWT, $ZodCustomStringFormat, $ZodNumber, $ZodNumberFormat, $ZodBoolean, $ZodBigInt, $ZodBigIntFormat, $ZodSymbol, $ZodUndefined, $ZodNull, $ZodAny, $ZodUnknown, $ZodNever, $ZodVoid, $ZodDate, $ZodArray, $ZodObject, $ZodObjectJIT, $ZodUnion, $ZodDiscriminatedUnion, $ZodIntersection, $ZodTuple, $ZodRecord, $ZodMap, $ZodSet, $ZodEnum, $ZodLiteral, $ZodFile, $ZodTransform, $ZodOptional, $ZodNullable, $ZodDefault, $ZodPrefault, $ZodNonOptional, $ZodSuccess, $ZodCatch, $ZodNaN, $ZodPipe, $ZodCodec, $ZodReadonly, $ZodTemplateLiteral, $ZodFunction, $ZodPromise, $ZodLazy, $ZodCustom;
 var init_schemas = __esm(() => {
   init_checks();
   init_core();
@@ -35436,7 +35723,32 @@ var init_schemas = __esm(() => {
         }
         return payload;
       };
+      const handleCanaryResult = (canary, payload, ctx) => {
+        if (aborted(canary)) {
+          canary.aborted = true;
+          return canary;
+        }
+        const checkResult = runChecks(payload, checks, ctx);
+        if (checkResult instanceof Promise) {
+          if (ctx.async === false)
+            throw new $ZodAsyncError;
+          return checkResult.then((checkResult2) => inst._zod.parse(checkResult2, ctx));
+        }
+        return inst._zod.parse(checkResult, ctx);
+      };
       inst._zod.run = (payload, ctx) => {
+        if (ctx.skipChecks) {
+          return inst._zod.parse(payload, ctx);
+        }
+        if (ctx.direction === "backward") {
+          const canary = inst._zod.parse({ value: payload.value, issues: [] }, { ...ctx, skipChecks: true });
+          if (canary instanceof Promise) {
+            return canary.then((canary2) => {
+              return handleCanaryResult(canary2, payload, ctx);
+            });
+          }
+          return handleCanaryResult(canary, payload, ctx);
+        }
         const result = inst._zod.parse(payload, ctx);
         if (result instanceof Promise) {
           if (ctx.async === false)
@@ -35514,9 +35826,8 @@ var init_schemas = __esm(() => {
     $ZodStringFormat.init(inst, def);
     inst._zod.check = (payload) => {
       try {
-        const orig = payload.value;
-        const url = new URL(orig);
-        const href = url.href;
+        const trimmed = payload.value.trim();
+        const url = new URL(trimmed);
         if (def.hostname) {
           def.hostname.lastIndex = 0;
           if (!def.hostname.test(url.hostname)) {
@@ -35545,10 +35856,10 @@ var init_schemas = __esm(() => {
             });
           }
         }
-        if (!orig.endsWith("/") && href.endsWith("/")) {
-          payload.value = href.slice(0, -1);
+        if (def.normalize) {
+          payload.value = url.href;
         } else {
-          payload.value = href;
+          payload.value = trimmed;
         }
         return;
       } catch (_) {
@@ -35643,8 +35954,11 @@ var init_schemas = __esm(() => {
     def.pattern ?? (def.pattern = cidrv6);
     $ZodStringFormat.init(inst, def);
     inst._zod.check = (payload) => {
-      const [address, prefix] = payload.value.split("/");
+      const parts = payload.value.split("/");
       try {
+        if (parts.length !== 2)
+          throw new Error;
+        const [address, prefix] = parts;
         if (!prefix)
           throw new Error;
         const prefixNum = Number(prefix);
@@ -35946,22 +36260,20 @@ var init_schemas = __esm(() => {
   });
   $ZodObject = /* @__PURE__ */ $constructor("$ZodObject", (inst, def) => {
     $ZodType.init(inst, def);
-    const _normalized = cached(() => {
-      const keys = Object.keys(def.shape);
-      for (const k of keys) {
-        if (!(def.shape[k] instanceof $ZodType)) {
-          throw new Error(`Invalid element at key "${k}": expected a Zod schema`);
+    const desc = Object.getOwnPropertyDescriptor(def, "shape");
+    if (!desc?.get) {
+      const sh = def.shape;
+      Object.defineProperty(def, "shape", {
+        get: () => {
+          const newSh = { ...sh };
+          Object.defineProperty(def, "shape", {
+            value: newSh
+          });
+          return newSh;
         }
-      }
-      const okeys = optionalKeys(def.shape);
-      return {
-        shape: def.shape,
-        keys,
-        keySet: new Set(keys),
-        numKeys: keys.length,
-        optionalKeys: new Set(okeys)
-      };
-    });
+      });
+    }
+    const _normalized = cached(() => normalizeDef(def));
     defineLazy(inst._zod, "propValues", () => {
       const shape = def.shape;
       const propValues = {};
@@ -35975,6 +36287,43 @@ var init_schemas = __esm(() => {
       }
       return propValues;
     });
+    const isObject2 = isObject;
+    const catchall = def.catchall;
+    let value;
+    inst._zod.parse = (payload, ctx) => {
+      value ?? (value = _normalized.value);
+      const input = payload.value;
+      if (!isObject2(input)) {
+        payload.issues.push({
+          expected: "object",
+          code: "invalid_type",
+          input,
+          inst
+        });
+        return payload;
+      }
+      payload.value = {};
+      const proms = [];
+      const shape = value.shape;
+      for (const key of value.keys) {
+        const el = shape[key];
+        const r2 = el._zod.run({ value: input[key], issues: [] }, ctx);
+        if (r2 instanceof Promise) {
+          proms.push(r2.then((r3) => handlePropertyResult(r3, payload, key, input)));
+        } else {
+          handlePropertyResult(r2, payload, key, input);
+        }
+      }
+      if (!catchall) {
+        return proms.length ? Promise.all(proms).then(() => payload) : payload;
+      }
+      return handleCatchall(proms, input, payload, ctx, _normalized.value, inst);
+    };
+  });
+  $ZodObjectJIT = /* @__PURE__ */ $constructor("$ZodObjectJIT", (inst, def) => {
+    $ZodObject.init(inst, def);
+    const superParse = inst._zod.parse;
+    const _normalized = cached(() => normalizeDef(def));
     const generateFastpass = (shape) => {
       const doc = new Doc(["shape", "payload", "ctx"]);
       const normalized = _normalized.value;
@@ -35988,42 +36337,29 @@ var init_schemas = __esm(() => {
       for (const key of normalized.keys) {
         ids[key] = `key_${counter2++}`;
       }
-      doc.write(`const newResult = {}`);
+      doc.write(`const newResult = {};`);
       for (const key of normalized.keys) {
-        if (normalized.optionalKeys.has(key)) {
-          const id = ids[key];
-          doc.write(`const ${id} = ${parseStr(key)};`);
-          const k = esc(key);
-          doc.write(`
+        const id = ids[key];
+        const k = esc(key);
+        doc.write(`const ${id} = ${parseStr(key)};`);
+        doc.write(`
         if (${id}.issues.length) {
-          if (input[${k}] === undefined) {
-            if (${k} in input) {
-              newResult[${k}] = undefined;
-            }
-          } else {
-            payload.issues = payload.issues.concat(
-              ${id}.issues.map((iss) => ({
-                ...iss,
-                path: iss.path ? [${k}, ...iss.path] : [${k}],
-              }))
-            );
+          payload.issues = payload.issues.concat(${id}.issues.map(iss => ({
+            ...iss,
+            path: iss.path ? [${k}, ...iss.path] : [${k}]
+          })));
+        }
+
+
+        if (${id}.value === undefined) {
+          if (${k} in input) {
+            newResult[${k}] = undefined;
           }
-        } else if (${id}.value === undefined) {
-          if (${k} in input) newResult[${k}] = undefined;
         } else {
           newResult[${k}] = ${id}.value;
         }
-        `);
-        } else {
-          const id = ids[key];
-          doc.write(`const ${id} = ${parseStr(key)};`);
-          doc.write(`
-          if (${id}.issues.length) payload.issues = payload.issues.concat(${id}.issues.map(iss => ({
-            ...iss,
-            path: iss.path ? [${esc(key)}, ...iss.path] : [${esc(key)}]
-          })));`);
-          doc.write(`newResult[${esc(key)}] = ${id}.value`);
-        }
+
+      `);
       }
       doc.write(`payload.value = newResult;`);
       doc.write(`return payload;`);
@@ -36049,61 +36385,15 @@ var init_schemas = __esm(() => {
         });
         return payload;
       }
-      const proms = [];
       if (jit && fastEnabled && ctx?.async === false && ctx.jitless !== true) {
         if (!fastpass)
           fastpass = generateFastpass(def.shape);
         payload = fastpass(payload, ctx);
-      } else {
-        payload.value = {};
-        const shape = value.shape;
-        for (const key of value.keys) {
-          const el = shape[key];
-          const r2 = el._zod.run({ value: input[key], issues: [] }, ctx);
-          const isOptional = el._zod.optin === "optional" && el._zod.optout === "optional";
-          if (r2 instanceof Promise) {
-            proms.push(r2.then((r3) => isOptional ? handleOptionalObjectResult(r3, payload, key, input) : handleObjectResult(r3, payload, key)));
-          } else if (isOptional) {
-            handleOptionalObjectResult(r2, payload, key, input);
-          } else {
-            handleObjectResult(r2, payload, key);
-          }
-        }
+        if (!catchall)
+          return payload;
+        return handleCatchall([], input, payload, ctx, value, inst);
       }
-      if (!catchall) {
-        return proms.length ? Promise.all(proms).then(() => payload) : payload;
-      }
-      const unrecognized = [];
-      const keySet = value.keySet;
-      const _catchall = catchall._zod;
-      const t = _catchall.def.type;
-      for (const key of Object.keys(input)) {
-        if (keySet.has(key))
-          continue;
-        if (t === "never") {
-          unrecognized.push(key);
-          continue;
-        }
-        const r2 = _catchall.run({ value: input[key], issues: [] }, ctx);
-        if (r2 instanceof Promise) {
-          proms.push(r2.then((r3) => handleObjectResult(r3, payload, key)));
-        } else {
-          handleObjectResult(r2, payload, key);
-        }
-      }
-      if (unrecognized.length) {
-        payload.issues.push({
-          code: "unrecognized_keys",
-          keys: unrecognized,
-          input,
-          inst
-        });
-      }
-      if (!proms.length)
-        return payload;
-      return Promise.all(proms).then(() => {
-        return payload;
-      });
+      return superParse(payload, ctx);
     };
   });
   $ZodUnion = /* @__PURE__ */ $constructor("$ZodUnion", (inst, def) => {
@@ -36123,7 +36413,12 @@ var init_schemas = __esm(() => {
       }
       return;
     });
+    const single = def.options.length === 1;
+    const first = def.options[0]._zod.run;
     inst._zod.parse = (payload, ctx) => {
+      if (single) {
+        return first(payload, ctx);
+      }
       let async = false;
       const results = [];
       for (const option of def.options) {
@@ -36170,7 +36465,7 @@ var init_schemas = __esm(() => {
       const opts = def.options;
       const map = new Map;
       for (const o of opts) {
-        const values = o._zod.propValues[def.discriminator];
+        const values = o._zod.propValues?.[def.discriminator];
         if (!values || values.size === 0)
           throw new Error(`Invalid discriminated union option at index "${def.options.indexOf(o)}"`);
         for (const v of values) {
@@ -36204,6 +36499,7 @@ var init_schemas = __esm(() => {
         code: "invalid_union",
         errors: [],
         note: "No matching discriminator",
+        discriminator: def.discriminator,
         input,
         path: [def.discriminator],
         inst
@@ -36248,10 +36544,10 @@ var init_schemas = __esm(() => {
         const tooSmall = input.length < optStart - 1;
         if (tooBig || tooSmall) {
           payload.issues.push({
+            ...tooBig ? { code: "too_big", maximum: items.length } : { code: "too_small", minimum: items.length },
             input,
             inst,
-            origin: "array",
-            ...tooBig ? { code: "too_big", maximum: items.length } : { code: "too_small", minimum: items.length }
+            origin: "array"
           });
           return payload;
         }
@@ -36354,8 +36650,8 @@ var init_schemas = __esm(() => {
           }
           if (keyResult.issues.length) {
             payload.issues.push({
-              origin: "record",
               code: "invalid_key",
+              origin: "record",
               issues: keyResult.issues.map((iss) => finalizeIssue(iss, ctx, config())),
               input: key,
               path: [key],
@@ -36447,11 +36743,12 @@ var init_schemas = __esm(() => {
   $ZodEnum = /* @__PURE__ */ $constructor("$ZodEnum", (inst, def) => {
     $ZodType.init(inst, def);
     const values = getEnumValues(def.entries);
-    inst._zod.values = new Set(values);
+    const valuesSet = new Set(values);
+    inst._zod.values = valuesSet;
     inst._zod.pattern = new RegExp(`^(${values.filter((k) => propertyKeyTypes.has(typeof k)).map((o) => typeof o === "string" ? escapeRegex(o) : o.toString()).join("|")})$`);
     inst._zod.parse = (payload, _ctx) => {
       const input = payload.value;
-      if (inst._zod.values.has(input)) {
+      if (valuesSet.has(input)) {
         return payload;
       }
       payload.issues.push({
@@ -36465,8 +36762,11 @@ var init_schemas = __esm(() => {
   });
   $ZodLiteral = /* @__PURE__ */ $constructor("$ZodLiteral", (inst, def) => {
     $ZodType.init(inst, def);
+    if (def.values.length === 0) {
+      throw new Error("Cannot create literal schema with no valid values");
+    }
     inst._zod.values = new Set(def.values);
-    inst._zod.pattern = new RegExp(`^(${def.values.map((o) => typeof o === "string" ? escapeRegex(o) : o ? o.toString() : String(o)).join("|")})$`);
+    inst._zod.pattern = new RegExp(`^(${def.values.map((o) => typeof o === "string" ? escapeRegex(o) : o ? escapeRegex(o.toString()) : String(o)).join("|")})$`);
     inst._zod.parse = (payload, _ctx) => {
       const input = payload.value;
       if (inst._zod.values.has(input)) {
@@ -36498,9 +36798,12 @@ var init_schemas = __esm(() => {
   });
   $ZodTransform = /* @__PURE__ */ $constructor("$ZodTransform", (inst, def) => {
     $ZodType.init(inst, def);
-    inst._zod.parse = (payload, _ctx) => {
+    inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        throw new $ZodEncodeError(inst.constructor.name);
+      }
       const _out = def.transform(payload.value, payload);
-      if (_ctx.async) {
+      if (ctx.async) {
         const output = _out instanceof Promise ? _out : Promise.resolve(_out);
         return output.then((output2) => {
           payload.value = output2;
@@ -36527,7 +36830,10 @@ var init_schemas = __esm(() => {
     });
     inst._zod.parse = (payload, ctx) => {
       if (def.innerType._zod.optin === "optional") {
-        return def.innerType._zod.run(payload, ctx);
+        const result = def.innerType._zod.run(payload, ctx);
+        if (result instanceof Promise)
+          return result.then((r2) => handleOptionalResult(r2, payload.value));
+        return handleOptionalResult(result, payload.value);
       }
       if (payload.value === undefined) {
         return payload;
@@ -36557,6 +36863,9 @@ var init_schemas = __esm(() => {
     inst._zod.optin = "optional";
     defineLazy(inst._zod, "values", () => def.innerType._zod.values);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        return def.innerType._zod.run(payload, ctx);
+      }
       if (payload.value === undefined) {
         payload.value = def.defaultValue;
         return payload;
@@ -36573,6 +36882,9 @@ var init_schemas = __esm(() => {
     inst._zod.optin = "optional";
     defineLazy(inst._zod, "values", () => def.innerType._zod.values);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        return def.innerType._zod.run(payload, ctx);
+      }
       if (payload.value === undefined) {
         payload.value = def.defaultValue;
       }
@@ -36596,6 +36908,9 @@ var init_schemas = __esm(() => {
   $ZodSuccess = /* @__PURE__ */ $constructor("$ZodSuccess", (inst, def) => {
     $ZodType.init(inst, def);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        throw new $ZodEncodeError("ZodSuccess");
+      }
       const result = def.innerType._zod.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then((result2) => {
@@ -36609,10 +36924,13 @@ var init_schemas = __esm(() => {
   });
   $ZodCatch = /* @__PURE__ */ $constructor("$ZodCatch", (inst, def) => {
     $ZodType.init(inst, def);
-    inst._zod.optin = "optional";
+    defineLazy(inst._zod, "optin", () => def.innerType._zod.optin);
     defineLazy(inst._zod, "optout", () => def.innerType._zod.optout);
     defineLazy(inst._zod, "values", () => def.innerType._zod.values);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        return def.innerType._zod.run(payload, ctx);
+      }
       const result = def.innerType._zod.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then((result2) => {
@@ -36664,12 +36982,43 @@ var init_schemas = __esm(() => {
     defineLazy(inst._zod, "values", () => def.in._zod.values);
     defineLazy(inst._zod, "optin", () => def.in._zod.optin);
     defineLazy(inst._zod, "optout", () => def.out._zod.optout);
+    defineLazy(inst._zod, "propValues", () => def.in._zod.propValues);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        const right = def.out._zod.run(payload, ctx);
+        if (right instanceof Promise) {
+          return right.then((right2) => handlePipeResult(right2, def.in, ctx));
+        }
+        return handlePipeResult(right, def.in, ctx);
+      }
       const left = def.in._zod.run(payload, ctx);
       if (left instanceof Promise) {
-        return left.then((left2) => handlePipeResult(left2, def, ctx));
+        return left.then((left2) => handlePipeResult(left2, def.out, ctx));
       }
-      return handlePipeResult(left, def, ctx);
+      return handlePipeResult(left, def.out, ctx);
+    };
+  });
+  $ZodCodec = /* @__PURE__ */ $constructor("$ZodCodec", (inst, def) => {
+    $ZodType.init(inst, def);
+    defineLazy(inst._zod, "values", () => def.in._zod.values);
+    defineLazy(inst._zod, "optin", () => def.in._zod.optin);
+    defineLazy(inst._zod, "optout", () => def.out._zod.optout);
+    defineLazy(inst._zod, "propValues", () => def.in._zod.propValues);
+    inst._zod.parse = (payload, ctx) => {
+      const direction = ctx.direction || "forward";
+      if (direction === "forward") {
+        const left = def.in._zod.run(payload, ctx);
+        if (left instanceof Promise) {
+          return left.then((left2) => handleCodecAResult(left2, def, ctx));
+        }
+        return handleCodecAResult(left, def, ctx);
+      } else {
+        const right = def.out._zod.run(payload, ctx);
+        if (right instanceof Promise) {
+          return right.then((right2) => handleCodecAResult(right2, def, ctx));
+        }
+        return handleCodecAResult(right, def, ctx);
+      }
     };
   });
   $ZodReadonly = /* @__PURE__ */ $constructor("$ZodReadonly", (inst, def) => {
@@ -36679,6 +37028,9 @@ var init_schemas = __esm(() => {
     defineLazy(inst._zod, "optin", () => def.innerType._zod.optin);
     defineLazy(inst._zod, "optout", () => def.innerType._zod.optout);
     inst._zod.parse = (payload, ctx) => {
+      if (ctx.direction === "backward") {
+        return def.innerType._zod.run(payload, ctx);
+      }
       const result = def.innerType._zod.run(payload, ctx);
       if (result instanceof Promise) {
         return result.then(handleReadonlyResult);
@@ -36690,7 +37042,7 @@ var init_schemas = __esm(() => {
     $ZodType.init(inst, def);
     const regexParts = [];
     for (const part of def.parts) {
-      if (part instanceof $ZodType) {
+      if (typeof part === "object" && part !== null) {
         if (!part._zod.pattern) {
           throw new Error(`Invalid template literal part, no pattern found: ${[...part._zod.traits].shift()}`);
         }
@@ -36723,13 +37075,90 @@ var init_schemas = __esm(() => {
           input: payload.value,
           inst,
           code: "invalid_format",
-          format: "template_literal",
+          format: def.format ?? "template_literal",
           pattern: inst._zod.pattern.source
         });
         return payload;
       }
       return payload;
     };
+  });
+  $ZodFunction = /* @__PURE__ */ $constructor("$ZodFunction", (inst, def) => {
+    $ZodType.init(inst, def);
+    inst._def = def;
+    inst._zod.def = def;
+    inst.implement = (func) => {
+      if (typeof func !== "function") {
+        throw new Error("implement() must be called with a function");
+      }
+      return function(...args) {
+        const parsedArgs = inst._def.input ? parse2(inst._def.input, args) : args;
+        const result = Reflect.apply(func, this, parsedArgs);
+        if (inst._def.output) {
+          return parse2(inst._def.output, result);
+        }
+        return result;
+      };
+    };
+    inst.implementAsync = (func) => {
+      if (typeof func !== "function") {
+        throw new Error("implementAsync() must be called with a function");
+      }
+      return async function(...args) {
+        const parsedArgs = inst._def.input ? await parseAsync(inst._def.input, args) : args;
+        const result = await Reflect.apply(func, this, parsedArgs);
+        if (inst._def.output) {
+          return await parseAsync(inst._def.output, result);
+        }
+        return result;
+      };
+    };
+    inst._zod.parse = (payload, _ctx) => {
+      if (typeof payload.value !== "function") {
+        payload.issues.push({
+          code: "invalid_type",
+          expected: "function",
+          input: payload.value,
+          inst
+        });
+        return payload;
+      }
+      const hasPromiseOutput = inst._def.output && inst._def.output._zod.def.type === "promise";
+      if (hasPromiseOutput) {
+        payload.value = inst.implementAsync(payload.value);
+      } else {
+        payload.value = inst.implement(payload.value);
+      }
+      return payload;
+    };
+    inst.input = (...args) => {
+      const F = inst.constructor;
+      if (Array.isArray(args[0])) {
+        return new F({
+          type: "function",
+          input: new $ZodTuple({
+            type: "tuple",
+            items: args[0],
+            rest: args[1]
+          }),
+          output: inst._def.output
+        });
+      }
+      return new F({
+        type: "function",
+        input: args[0],
+        output: inst._def.output
+      });
+    };
+    inst.output = (output) => {
+      const F = inst.constructor;
+      return new F({
+        type: "function",
+        input: inst._def.input,
+        output
+      });
+    };
+    return inst;
   });
   $ZodPromise = /* @__PURE__ */ $constructor("$ZodPromise", (inst, def) => {
     $ZodType.init(inst, def);
@@ -36742,8 +37171,8 @@ var init_schemas = __esm(() => {
     defineLazy(inst._zod, "innerType", () => def.getter());
     defineLazy(inst._zod, "pattern", () => inst._zod.innerType._zod.pattern);
     defineLazy(inst._zod, "propValues", () => inst._zod.innerType._zod.propValues);
-    defineLazy(inst._zod, "optin", () => inst._zod.innerType._zod.optin);
-    defineLazy(inst._zod, "optout", () => inst._zod.innerType._zod.optout);
+    defineLazy(inst._zod, "optin", () => inst._zod.innerType._zod.optin ?? undefined);
+    defineLazy(inst._zod, "optout", () => inst._zod.innerType._zod.optout ?? undefined);
     inst._zod.parse = (payload, ctx) => {
       const inner = inst._zod.innerType;
       return inner._zod.run(payload, ctx);
@@ -37174,13 +37603,144 @@ var init_be = __esm(() => {
   init_util();
 });
 
-// node_modules/zod/v4/locales/ca.js
-function ca_default() {
+// node_modules/zod/v4/locales/bg.js
+function bg_default() {
   return {
     localeError: error4()
   };
 }
-var error4 = () => {
+var parsedType = (data) => {
+  const t = typeof data;
+  switch (t) {
+    case "number": {
+      return Number.isNaN(data) ? "NaN" : "число";
+    }
+    case "object": {
+      if (Array.isArray(data)) {
+        return "масив";
+      }
+      if (data === null) {
+        return "null";
+      }
+      if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+        return data.constructor.name;
+      }
+    }
+  }
+  return t;
+}, error4 = () => {
+  const Sizable = {
+    string: { unit: "символа", verb: "да съдържа" },
+    file: { unit: "байта", verb: "да съдържа" },
+    array: { unit: "елемента", verb: "да съдържа" },
+    set: { unit: "елемента", verb: "да съдържа" }
+  };
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
+  }
+  const Nouns = {
+    regex: "вход",
+    email: "имейл адрес",
+    url: "URL",
+    emoji: "емоджи",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "ISO време",
+    date: "ISO дата",
+    time: "ISO време",
+    duration: "ISO продължителност",
+    ipv4: "IPv4 адрес",
+    ipv6: "IPv6 адрес",
+    cidrv4: "IPv4 диапазон",
+    cidrv6: "IPv6 диапазон",
+    base64: "base64-кодиран низ",
+    base64url: "base64url-кодиран низ",
+    json_string: "JSON низ",
+    e164: "E.164 номер",
+    jwt: "JWT",
+    template_literal: "вход"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `Невалиден вход: очакван ${issue2.expected}, получен ${parsedType(issue2.input)}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `Невалиден вход: очакван ${stringifyPrimitive(issue2.values[0])}`;
+        return `Невалидна опция: очаквано едно от ${joinValues(issue2.values, "|")}`;
+      case "too_big": {
+        const adj = issue2.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue2.origin);
+        if (sizing)
+          return `Твърде голямо: очаква се ${issue2.origin ?? "стойност"} да съдържа ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "елемента"}`;
+        return `Твърде голямо: очаква се ${issue2.origin ?? "стойност"} да бъде ${adj}${issue2.maximum.toString()}`;
+      }
+      case "too_small": {
+        const adj = issue2.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue2.origin);
+        if (sizing) {
+          return `Твърде малко: очаква се ${issue2.origin} да съдържа ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+        }
+        return `Твърде малко: очаква се ${issue2.origin} да бъде ${adj}${issue2.minimum.toString()}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with") {
+          return `Невалиден низ: трябва да започва с "${_issue.prefix}"`;
+        }
+        if (_issue.format === "ends_with")
+          return `Невалиден низ: трябва да завършва с "${_issue.suffix}"`;
+        if (_issue.format === "includes")
+          return `Невалиден низ: трябва да включва "${_issue.includes}"`;
+        if (_issue.format === "regex")
+          return `Невалиден низ: трябва да съвпада с ${_issue.pattern}`;
+        let invalid_adj = "Невалиден";
+        if (_issue.format === "emoji")
+          invalid_adj = "Невалидно";
+        if (_issue.format === "datetime")
+          invalid_adj = "Невалидно";
+        if (_issue.format === "date")
+          invalid_adj = "Невалидна";
+        if (_issue.format === "time")
+          invalid_adj = "Невалидно";
+        if (_issue.format === "duration")
+          invalid_adj = "Невалидна";
+        return `${invalid_adj} ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `Невалидно число: трябва да бъде кратно на ${issue2.divisor}`;
+      case "unrecognized_keys":
+        return `Неразпознат${issue2.keys.length > 1 ? "и" : ""} ключ${issue2.keys.length > 1 ? "ове" : ""}: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return `Невалиден ключ в ${issue2.origin}`;
+      case "invalid_union":
+        return "Невалиден вход";
+      case "invalid_element":
+        return `Невалидна стойност в ${issue2.origin}`;
+      default:
+        return `Невалиден вход`;
+    }
+  };
+};
+var init_bg = __esm(() => {
+  init_util();
+});
+
+// node_modules/zod/v4/locales/ca.js
+function ca_default() {
+  return {
+    localeError: error5()
+  };
+}
+var error5 = () => {
   const Sizable = {
     string: { unit: "caràcters", verb: "contenir" },
     file: { unit: "bytes", verb: "contenir" },
@@ -37190,7 +37750,7 @@ var error4 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType = (data) => {
+  const parsedType2 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -37243,7 +37803,7 @@ var error4 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Tipus invàlid: s'esperava ${issue2.expected}, s'ha rebut ${parsedType(issue2.input)}`;
+        return `Tipus invàlid: s'esperava ${issue2.expected}, s'ha rebut ${parsedType2(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Valor invàlid: s'esperava ${stringifyPrimitive(issue2.values[0])}`;
@@ -37298,10 +37858,10 @@ var init_ca = __esm(() => {
 // node_modules/zod/v4/locales/cs.js
 function cs_default() {
   return {
-    localeError: error5()
+    localeError: error6()
   };
 }
-var error5 = () => {
+var error6 = () => {
   const Sizable = {
     string: { unit: "znaků", verb: "mít" },
     file: { unit: "bajtů", verb: "mít" },
@@ -37311,7 +37871,7 @@ var error5 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType = (data) => {
+  const parsedType2 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -37382,7 +37942,7 @@ var error5 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Neplatný vstup: očekáváno ${issue2.expected}, obdrženo ${parsedType(issue2.input)}`;
+        return `Neplatný vstup: očekáváno ${issue2.expected}, obdrženo ${parsedType2(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Neplatný vstup: očekáváno ${stringifyPrimitive(issue2.values[0])}`;
@@ -37434,13 +37994,148 @@ var init_cs = __esm(() => {
   init_util();
 });
 
+// node_modules/zod/v4/locales/da.js
+function da_default() {
+  return {
+    localeError: error7()
+  };
+}
+var error7 = () => {
+  const Sizable = {
+    string: { unit: "tegn", verb: "havde" },
+    file: { unit: "bytes", verb: "havde" },
+    array: { unit: "elementer", verb: "indeholdt" },
+    set: { unit: "elementer", verb: "indeholdt" }
+  };
+  const TypeNames = {
+    string: "streng",
+    number: "tal",
+    boolean: "boolean",
+    array: "liste",
+    object: "objekt",
+    set: "sæt",
+    file: "fil"
+  };
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
+  }
+  function getTypeName(type) {
+    return TypeNames[type] ?? type;
+  }
+  const parsedType2 = (data) => {
+    const t = typeof data;
+    switch (t) {
+      case "number": {
+        return Number.isNaN(data) ? "NaN" : "tal";
+      }
+      case "object": {
+        if (Array.isArray(data)) {
+          return "liste";
+        }
+        if (data === null) {
+          return "null";
+        }
+        if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+          return data.constructor.name;
+        }
+        return "objekt";
+      }
+    }
+    return t;
+  };
+  const Nouns = {
+    regex: "input",
+    email: "e-mailadresse",
+    url: "URL",
+    emoji: "emoji",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "ISO dato- og klokkeslæt",
+    date: "ISO-dato",
+    time: "ISO-klokkeslæt",
+    duration: "ISO-varighed",
+    ipv4: "IPv4-område",
+    ipv6: "IPv6-område",
+    cidrv4: "IPv4-spektrum",
+    cidrv6: "IPv6-spektrum",
+    base64: "base64-kodet streng",
+    base64url: "base64url-kodet streng",
+    json_string: "JSON-streng",
+    e164: "E.164-nummer",
+    jwt: "JWT",
+    template_literal: "input"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `Ugyldigt input: forventede ${getTypeName(issue2.expected)}, fik ${getTypeName(parsedType2(issue2.input))}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `Ugyldig værdi: forventede ${stringifyPrimitive(issue2.values[0])}`;
+        return `Ugyldigt valg: forventede en af følgende ${joinValues(issue2.values, "|")}`;
+      case "too_big": {
+        const adj = issue2.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue2.origin);
+        const origin = getTypeName(issue2.origin);
+        if (sizing)
+          return `For stor: forventede ${origin ?? "value"} ${sizing.verb} ${adj} ${issue2.maximum.toString()} ${sizing.unit ?? "elementer"}`;
+        return `For stor: forventede ${origin ?? "value"} havde ${adj} ${issue2.maximum.toString()}`;
+      }
+      case "too_small": {
+        const adj = issue2.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue2.origin);
+        const origin = getTypeName(issue2.origin);
+        if (sizing) {
+          return `For lille: forventede ${origin} ${sizing.verb} ${adj} ${issue2.minimum.toString()} ${sizing.unit}`;
+        }
+        return `For lille: forventede ${origin} havde ${adj} ${issue2.minimum.toString()}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with")
+          return `Ugyldig streng: skal starte med "${_issue.prefix}"`;
+        if (_issue.format === "ends_with")
+          return `Ugyldig streng: skal ende med "${_issue.suffix}"`;
+        if (_issue.format === "includes")
+          return `Ugyldig streng: skal indeholde "${_issue.includes}"`;
+        if (_issue.format === "regex")
+          return `Ugyldig streng: skal matche mønsteret ${_issue.pattern}`;
+        return `Ugyldig ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `Ugyldigt tal: skal være deleligt med ${issue2.divisor}`;
+      case "unrecognized_keys":
+        return `${issue2.keys.length > 1 ? "Ukendte nøgler" : "Ukendt nøgle"}: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return `Ugyldig nøgle i ${issue2.origin}`;
+      case "invalid_union":
+        return "Ugyldigt input: matcher ingen af de tilladte typer";
+      case "invalid_element":
+        return `Ugyldig værdi i ${issue2.origin}`;
+      default:
+        return `Ugyldigt input`;
+    }
+  };
+};
+var init_da = __esm(() => {
+  init_util();
+});
+
 // node_modules/zod/v4/locales/de.js
 function de_default() {
   return {
-    localeError: error6()
+    localeError: error8()
   };
 }
-var error6 = () => {
+var error8 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
     file: { unit: "Bytes", verb: "zu haben" },
@@ -37450,7 +38145,7 @@ var error6 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType = (data) => {
+  const parsedType2 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -37503,7 +38198,7 @@ var error6 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Ungültige Eingabe: erwartet ${issue2.expected}, erhalten ${parsedType(issue2.input)}`;
+        return `Ungültige Eingabe: erwartet ${issue2.expected}, erhalten ${parsedType2(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Ungültige Eingabe: erwartet ${stringifyPrimitive(issue2.values[0])}`;
@@ -37557,10 +38252,10 @@ var init_de = __esm(() => {
 // node_modules/zod/v4/locales/en.js
 function en_default() {
   return {
-    localeError: error7()
+    localeError: error9()
   };
 }
-var parsedType = (data) => {
+var parsedType2 = (data) => {
   const t = typeof data;
   switch (t) {
     case "number": {
@@ -37579,7 +38274,7 @@ var parsedType = (data) => {
     }
   }
   return t;
-}, error7 = () => {
+}, error9 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
     file: { unit: "bytes", verb: "to have" },
@@ -37622,7 +38317,7 @@ var parsedType = (data) => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Invalid input: expected ${issue2.expected}, received ${parsedType(issue2.input)}`;
+        return `Invalid input: expected ${issue2.expected}, received ${parsedType2(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Invalid input: expected ${stringifyPrimitive(issue2.values[0])}`;
@@ -37677,10 +38372,10 @@ var init_en = __esm(() => {
 // node_modules/zod/v4/locales/eo.js
 function eo_default() {
   return {
-    localeError: error8()
+    localeError: error10()
   };
 }
-var parsedType2 = (data) => {
+var parsedType3 = (data) => {
   const t = typeof data;
   switch (t) {
     case "number": {
@@ -37699,7 +38394,7 @@ var parsedType2 = (data) => {
     }
   }
   return t;
-}, error8 = () => {
+}, error10 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
     file: { unit: "bajtojn", verb: "havi" },
@@ -37742,7 +38437,7 @@ var parsedType2 = (data) => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Nevalida enigo: atendiĝis ${issue2.expected}, riceviĝis ${parsedType2(issue2.input)}`;
+        return `Nevalida enigo: atendiĝis ${issue2.expected}, riceviĝis ${parsedType3(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Nevalida enigo: atendiĝis ${stringifyPrimitive(issue2.values[0])}`;
@@ -37796,35 +38491,65 @@ var init_eo = __esm(() => {
 // node_modules/zod/v4/locales/es.js
 function es_default() {
   return {
-    localeError: error9()
+    localeError: error11()
   };
 }
-var error9 = () => {
+var error11 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
     file: { unit: "bytes", verb: "tener" },
     array: { unit: "elementos", verb: "tener" },
     set: { unit: "elementos", verb: "tener" }
   };
+  const TypeNames = {
+    string: "texto",
+    number: "número",
+    boolean: "booleano",
+    array: "arreglo",
+    object: "objeto",
+    set: "conjunto",
+    file: "archivo",
+    date: "fecha",
+    bigint: "número grande",
+    symbol: "símbolo",
+    undefined: "indefinido",
+    null: "nulo",
+    function: "función",
+    map: "mapa",
+    record: "registro",
+    tuple: "tupla",
+    enum: "enumeración",
+    union: "unión",
+    literal: "literal",
+    promise: "promesa",
+    void: "vacío",
+    never: "nunca",
+    unknown: "desconocido",
+    any: "cualquiera"
+  };
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  function getTypeName(type) {
+    return TypeNames[type] ?? type;
+  }
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
-        return Number.isNaN(data) ? "NaN" : "número";
+        return Number.isNaN(data) ? "NaN" : "number";
       }
       case "object": {
         if (Array.isArray(data)) {
-          return "arreglo";
+          return "array";
         }
         if (data === null) {
-          return "nulo";
+          return "null";
         }
         if (Object.getPrototypeOf(data) !== Object.prototype) {
           return data.constructor.name;
         }
+        return "object";
       }
     }
     return t;
@@ -37862,7 +38587,7 @@ var error9 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Entrada inválida: se esperaba ${issue2.expected}, recibido ${parsedType3(issue2.input)}`;
+        return `Entrada inválida: se esperaba ${getTypeName(issue2.expected)}, recibido ${getTypeName(parsedType4(issue2.input))}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Entrada inválida: se esperaba ${stringifyPrimitive(issue2.values[0])}`;
@@ -37870,17 +38595,19 @@ var error9 = () => {
       case "too_big": {
         const adj = issue2.inclusive ? "<=" : "<";
         const sizing = getSizing(issue2.origin);
+        const origin = getTypeName(issue2.origin);
         if (sizing)
-          return `Demasiado grande: se esperaba que ${issue2.origin ?? "valor"} tuviera ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elementos"}`;
-        return `Demasiado grande: se esperaba que ${issue2.origin ?? "valor"} fuera ${adj}${issue2.maximum.toString()}`;
+          return `Demasiado grande: se esperaba que ${origin ?? "valor"} tuviera ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "elementos"}`;
+        return `Demasiado grande: se esperaba que ${origin ?? "valor"} fuera ${adj}${issue2.maximum.toString()}`;
       }
       case "too_small": {
         const adj = issue2.inclusive ? ">=" : ">";
         const sizing = getSizing(issue2.origin);
+        const origin = getTypeName(issue2.origin);
         if (sizing) {
-          return `Demasiado pequeño: se esperaba que ${issue2.origin} tuviera ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+          return `Demasiado pequeño: se esperaba que ${origin} tuviera ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
         }
-        return `Demasiado pequeño: se esperaba que ${issue2.origin} fuera ${adj}${issue2.minimum.toString()}`;
+        return `Demasiado pequeño: se esperaba que ${origin} fuera ${adj}${issue2.minimum.toString()}`;
       }
       case "invalid_format": {
         const _issue = issue2;
@@ -37899,11 +38626,11 @@ var error9 = () => {
       case "unrecognized_keys":
         return `Llave${issue2.keys.length > 1 ? "s" : ""} desconocida${issue2.keys.length > 1 ? "s" : ""}: ${joinValues(issue2.keys, ", ")}`;
       case "invalid_key":
-        return `Llave inválida en ${issue2.origin}`;
+        return `Llave inválida en ${getTypeName(issue2.origin)}`;
       case "invalid_union":
         return "Entrada inválida";
       case "invalid_element":
-        return `Valor inválido en ${issue2.origin}`;
+        return `Valor inválido en ${getTypeName(issue2.origin)}`;
       default:
         return `Entrada inválida`;
     }
@@ -37916,10 +38643,10 @@ var init_es = __esm(() => {
 // node_modules/zod/v4/locales/fa.js
 function fa_default() {
   return {
-    localeError: error10()
+    localeError: error12()
   };
 }
-var error10 = () => {
+var error12 = () => {
   const Sizable = {
     string: { unit: "کاراکتر", verb: "داشته باشد" },
     file: { unit: "بایت", verb: "داشته باشد" },
@@ -37929,7 +38656,7 @@ var error10 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -37982,7 +38709,7 @@ var error10 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `ورودی نامعتبر: می‌بایست ${issue2.expected} می‌بود، ${parsedType3(issue2.input)} دریافت شد`;
+        return `ورودی نامعتبر: می‌بایست ${issue2.expected} می‌بود، ${parsedType4(issue2.input)} دریافت شد`;
       case "invalid_value":
         if (issue2.values.length === 1) {
           return `ورودی نامعتبر: می‌بایست ${stringifyPrimitive(issue2.values[0])} می‌بود`;
@@ -38042,10 +38769,10 @@ var init_fa = __esm(() => {
 // node_modules/zod/v4/locales/fi.js
 function fi_default() {
   return {
-    localeError: error11()
+    localeError: error13()
   };
 }
-var error11 = () => {
+var error13 = () => {
   const Sizable = {
     string: { unit: "merkkiä", subject: "merkkijonon" },
     file: { unit: "tavua", subject: "tiedoston" },
@@ -38059,7 +38786,7 @@ var error11 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38112,7 +38839,7 @@ var error11 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Virheellinen tyyppi: odotettiin ${issue2.expected}, oli ${parsedType3(issue2.input)}`;
+        return `Virheellinen tyyppi: odotettiin ${issue2.expected}, oli ${parsedType4(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Virheellinen syöte: täytyy olla ${stringifyPrimitive(issue2.values[0])}`;
@@ -38168,10 +38895,10 @@ var init_fi2 = __esm(() => {
 // node_modules/zod/v4/locales/fr.js
 function fr_default() {
   return {
-    localeError: error12()
+    localeError: error14()
   };
 }
-var error12 = () => {
+var error14 = () => {
   const Sizable = {
     string: { unit: "caractères", verb: "avoir" },
     file: { unit: "octets", verb: "avoir" },
@@ -38181,7 +38908,7 @@ var error12 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38234,7 +38961,7 @@ var error12 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Entrée invalide : ${issue2.expected} attendu, ${parsedType3(issue2.input)} reçu`;
+        return `Entrée invalide : ${issue2.expected} attendu, ${parsedType4(issue2.input)} reçu`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Entrée invalide : ${stringifyPrimitive(issue2.values[0])} attendu`;
@@ -38288,10 +39015,10 @@ var init_fr = __esm(() => {
 // node_modules/zod/v4/locales/fr-CA.js
 function fr_CA_default() {
   return {
-    localeError: error13()
+    localeError: error15()
   };
 }
-var error13 = () => {
+var error15 = () => {
   const Sizable = {
     string: { unit: "caractères", verb: "avoir" },
     file: { unit: "octets", verb: "avoir" },
@@ -38301,7 +39028,7 @@ var error13 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38354,7 +39081,7 @@ var error13 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Entrée invalide : attendu ${issue2.expected}, reçu ${parsedType3(issue2.input)}`;
+        return `Entrée invalide : attendu ${issue2.expected}, reçu ${parsedType4(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Entrée invalide : attendu ${stringifyPrimitive(issue2.values[0])}`;
@@ -38409,10 +39136,10 @@ var init_fr_CA = __esm(() => {
 // node_modules/zod/v4/locales/he.js
 function he_default() {
   return {
-    localeError: error14()
+    localeError: error16()
   };
 }
-var error14 = () => {
+var error16 = () => {
   const Sizable = {
     string: { unit: "אותיות", verb: "לכלול" },
     file: { unit: "בייטים", verb: "לכלול" },
@@ -38422,7 +39149,7 @@ var error14 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38475,7 +39202,7 @@ var error14 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `קלט לא תקין: צריך ${issue2.expected}, התקבל ${parsedType3(issue2.input)}`;
+        return `קלט לא תקין: צריך ${issue2.expected}, התקבל ${parsedType4(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `קלט לא תקין: צריך ${stringifyPrimitive(issue2.values[0])}`;
@@ -38529,10 +39256,10 @@ var init_he = __esm(() => {
 // node_modules/zod/v4/locales/hu.js
 function hu_default() {
   return {
-    localeError: error15()
+    localeError: error17()
   };
 }
-var error15 = () => {
+var error17 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
     file: { unit: "byte", verb: "legyen" },
@@ -38542,7 +39269,7 @@ var error15 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38595,7 +39322,7 @@ var error15 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Érvénytelen bemenet: a várt érték ${issue2.expected}, a kapott érték ${parsedType3(issue2.input)}`;
+        return `Érvénytelen bemenet: a várt érték ${issue2.expected}, a kapott érték ${parsedType4(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Érvénytelen bemenet: a várt érték ${stringifyPrimitive(issue2.values[0])}`;
@@ -38649,10 +39376,10 @@ var init_hu = __esm(() => {
 // node_modules/zod/v4/locales/id.js
 function id_default() {
   return {
-    localeError: error16()
+    localeError: error18()
   };
 }
-var error16 = () => {
+var error18 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
     file: { unit: "byte", verb: "memiliki" },
@@ -38662,7 +39389,7 @@ var error16 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType4 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38715,7 +39442,7 @@ var error16 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Input tidak valid: diharapkan ${issue2.expected}, diterima ${parsedType3(issue2.input)}`;
+        return `Input tidak valid: diharapkan ${issue2.expected}, diterima ${parsedType4(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Input tidak valid: diharapkan ${stringifyPrimitive(issue2.values[0])}`;
@@ -38766,13 +39493,133 @@ var init_id = __esm(() => {
   init_util();
 });
 
+// node_modules/zod/v4/locales/is.js
+function is_default() {
+  return {
+    localeError: error19()
+  };
+}
+var parsedType4 = (data) => {
+  const t = typeof data;
+  switch (t) {
+    case "number": {
+      return Number.isNaN(data) ? "NaN" : "númer";
+    }
+    case "object": {
+      if (Array.isArray(data)) {
+        return "fylki";
+      }
+      if (data === null) {
+        return "null";
+      }
+      if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+        return data.constructor.name;
+      }
+    }
+  }
+  return t;
+}, error19 = () => {
+  const Sizable = {
+    string: { unit: "stafi", verb: "að hafa" },
+    file: { unit: "bæti", verb: "að hafa" },
+    array: { unit: "hluti", verb: "að hafa" },
+    set: { unit: "hluti", verb: "að hafa" }
+  };
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
+  }
+  const Nouns = {
+    regex: "gildi",
+    email: "netfang",
+    url: "vefslóð",
+    emoji: "emoji",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "ISO dagsetning og tími",
+    date: "ISO dagsetning",
+    time: "ISO tími",
+    duration: "ISO tímalengd",
+    ipv4: "IPv4 address",
+    ipv6: "IPv6 address",
+    cidrv4: "IPv4 range",
+    cidrv6: "IPv6 range",
+    base64: "base64-encoded strengur",
+    base64url: "base64url-encoded strengur",
+    json_string: "JSON strengur",
+    e164: "E.164 tölugildi",
+    jwt: "JWT",
+    template_literal: "gildi"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `Rangt gildi: Þú slóst inn ${parsedType4(issue2.input)} þar sem á að vera ${issue2.expected}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `Rangt gildi: gert ráð fyrir ${stringifyPrimitive(issue2.values[0])}`;
+        return `Ógilt val: má vera eitt af eftirfarandi ${joinValues(issue2.values, "|")}`;
+      case "too_big": {
+        const adj = issue2.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue2.origin);
+        if (sizing)
+          return `Of stórt: gert er ráð fyrir að ${issue2.origin ?? "gildi"} hafi ${adj}${issue2.maximum.toString()} ${sizing.unit ?? "hluti"}`;
+        return `Of stórt: gert er ráð fyrir að ${issue2.origin ?? "gildi"} sé ${adj}${issue2.maximum.toString()}`;
+      }
+      case "too_small": {
+        const adj = issue2.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue2.origin);
+        if (sizing) {
+          return `Of lítið: gert er ráð fyrir að ${issue2.origin} hafi ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+        }
+        return `Of lítið: gert er ráð fyrir að ${issue2.origin} sé ${adj}${issue2.minimum.toString()}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with") {
+          return `Ógildur strengur: verður að byrja á "${_issue.prefix}"`;
+        }
+        if (_issue.format === "ends_with")
+          return `Ógildur strengur: verður að enda á "${_issue.suffix}"`;
+        if (_issue.format === "includes")
+          return `Ógildur strengur: verður að innihalda "${_issue.includes}"`;
+        if (_issue.format === "regex")
+          return `Ógildur strengur: verður að fylgja mynstri ${_issue.pattern}`;
+        return `Rangt ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `Röng tala: verður að vera margfeldi af ${issue2.divisor}`;
+      case "unrecognized_keys":
+        return `Óþekkt ${issue2.keys.length > 1 ? "ir lyklar" : "ur lykill"}: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return `Rangur lykill í ${issue2.origin}`;
+      case "invalid_union":
+        return "Rangt gildi";
+      case "invalid_element":
+        return `Rangt gildi í ${issue2.origin}`;
+      default:
+        return `Rangt gildi`;
+    }
+  };
+};
+var init_is = __esm(() => {
+  init_util();
+});
+
 // node_modules/zod/v4/locales/it.js
 function it_default() {
   return {
-    localeError: error17()
+    localeError: error20()
   };
 }
-var error17 = () => {
+var error20 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
     file: { unit: "byte", verb: "avere" },
@@ -38782,7 +39629,7 @@ var error17 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType5 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38835,7 +39682,7 @@ var error17 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Input non valido: atteso ${issue2.expected}, ricevuto ${parsedType3(issue2.input)}`;
+        return `Input non valido: atteso ${issue2.expected}, ricevuto ${parsedType5(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Input non valido: atteso ${stringifyPrimitive(issue2.values[0])}`;
@@ -38889,10 +39736,10 @@ var init_it = __esm(() => {
 // node_modules/zod/v4/locales/ja.js
 function ja_default() {
   return {
-    localeError: error18()
+    localeError: error21()
   };
 }
-var error18 = () => {
+var error21 = () => {
   const Sizable = {
     string: { unit: "文字", verb: "である" },
     file: { unit: "バイト", verb: "である" },
@@ -38902,7 +39749,7 @@ var error18 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType5 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -38955,7 +39802,7 @@ var error18 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `無効な入力: ${issue2.expected}が期待されましたが、${parsedType3(issue2.input)}が入力されました`;
+        return `無効な入力: ${issue2.expected}が期待されましたが、${parsedType5(issue2.input)}が入力されました`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `無効な入力: ${stringifyPrimitive(issue2.values[0])}が期待されました`;
@@ -39005,13 +39852,141 @@ var init_ja = __esm(() => {
   init_util();
 });
 
-// node_modules/zod/v4/locales/kh.js
-function kh_default() {
+// node_modules/zod/v4/locales/ka.js
+function ka_default() {
   return {
-    localeError: error19()
+    localeError: error22()
   };
 }
-var error19 = () => {
+var parsedType5 = (data) => {
+  const t = typeof data;
+  switch (t) {
+    case "number": {
+      return Number.isNaN(data) ? "NaN" : "რიცხვი";
+    }
+    case "object": {
+      if (Array.isArray(data)) {
+        return "მასივი";
+      }
+      if (data === null) {
+        return "null";
+      }
+      if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+        return data.constructor.name;
+      }
+    }
+  }
+  const typeMap = {
+    string: "სტრინგი",
+    boolean: "ბულეანი",
+    undefined: "undefined",
+    bigint: "bigint",
+    symbol: "symbol",
+    function: "ფუნქცია"
+  };
+  return typeMap[t] ?? t;
+}, error22 = () => {
+  const Sizable = {
+    string: { unit: "სიმბოლო", verb: "უნდა შეიცავდეს" },
+    file: { unit: "ბაიტი", verb: "უნდა შეიცავდეს" },
+    array: { unit: "ელემენტი", verb: "უნდა შეიცავდეს" },
+    set: { unit: "ელემენტი", verb: "უნდა შეიცავდეს" }
+  };
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
+  }
+  const Nouns = {
+    regex: "შეყვანა",
+    email: "ელ-ფოსტის მისამართი",
+    url: "URL",
+    emoji: "ემოჯი",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "თარიღი-დრო",
+    date: "თარიღი",
+    time: "დრო",
+    duration: "ხანგრძლივობა",
+    ipv4: "IPv4 მისამართი",
+    ipv6: "IPv6 მისამართი",
+    cidrv4: "IPv4 დიაპაზონი",
+    cidrv6: "IPv6 დიაპაზონი",
+    base64: "base64-კოდირებული სტრინგი",
+    base64url: "base64url-კოდირებული სტრინგი",
+    json_string: "JSON სტრინგი",
+    e164: "E.164 ნომერი",
+    jwt: "JWT",
+    template_literal: "შეყვანა"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `არასწორი შეყვანა: მოსალოდნელი ${issue2.expected}, მიღებული ${parsedType5(issue2.input)}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `არასწორი შეყვანა: მოსალოდნელი ${stringifyPrimitive(issue2.values[0])}`;
+        return `არასწორი ვარიანტი: მოსალოდნელია ერთ-ერთი ${joinValues(issue2.values, "|")}-დან`;
+      case "too_big": {
+        const adj = issue2.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue2.origin);
+        if (sizing)
+          return `ზედმეტად დიდი: მოსალოდნელი ${issue2.origin ?? "მნიშვნელობა"} ${sizing.verb} ${adj}${issue2.maximum.toString()} ${sizing.unit}`;
+        return `ზედმეტად დიდი: მოსალოდნელი ${issue2.origin ?? "მნიშვნელობა"} იყოს ${adj}${issue2.maximum.toString()}`;
+      }
+      case "too_small": {
+        const adj = issue2.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue2.origin);
+        if (sizing) {
+          return `ზედმეტად პატარა: მოსალოდნელი ${issue2.origin} ${sizing.verb} ${adj}${issue2.minimum.toString()} ${sizing.unit}`;
+        }
+        return `ზედმეტად პატარა: მოსალოდნელი ${issue2.origin} იყოს ${adj}${issue2.minimum.toString()}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with") {
+          return `არასწორი სტრინგი: უნდა იწყებოდეს "${_issue.prefix}"-ით`;
+        }
+        if (_issue.format === "ends_with")
+          return `არასწორი სტრინგი: უნდა მთავრდებოდეს "${_issue.suffix}"-ით`;
+        if (_issue.format === "includes")
+          return `არასწორი სტრინგი: უნდა შეიცავდეს "${_issue.includes}"-ს`;
+        if (_issue.format === "regex")
+          return `არასწორი სტრინგი: უნდა შეესაბამებოდეს შაბლონს ${_issue.pattern}`;
+        return `არასწორი ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `არასწორი რიცხვი: უნდა იყოს ${issue2.divisor}-ის ჯერადი`;
+      case "unrecognized_keys":
+        return `უცნობი გასაღებ${issue2.keys.length > 1 ? "ები" : "ი"}: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return `არასწორი გასაღები ${issue2.origin}-ში`;
+      case "invalid_union":
+        return "არასწორი შეყვანა";
+      case "invalid_element":
+        return `არასწორი მნიშვნელობა ${issue2.origin}-ში`;
+      default:
+        return `არასწორი შეყვანა`;
+    }
+  };
+};
+var init_ka = __esm(() => {
+  init_util();
+});
+
+// node_modules/zod/v4/locales/km.js
+function km_default() {
+  return {
+    localeError: error23()
+  };
+}
+var error23 = () => {
   const Sizable = {
     string: { unit: "តួអក្សរ", verb: "គួរមាន" },
     file: { unit: "បៃ", verb: "គួរមាន" },
@@ -39021,7 +39996,7 @@ var error19 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType6 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39074,7 +40049,7 @@ var error19 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `ទិន្នន័យបញ្ចូលមិនត្រឹមត្រូវ៖ ត្រូវការ ${issue2.expected} ប៉ុន្តែទទួលបាន ${parsedType3(issue2.input)}`;
+        return `ទិន្នន័យបញ្ចូលមិនត្រឹមត្រូវ៖ ត្រូវការ ${issue2.expected} ប៉ុន្តែទទួលបាន ${parsedType6(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `ទិន្នន័យបញ្ចូលមិនត្រឹមត្រូវ៖ ត្រូវការ ${stringifyPrimitive(issue2.values[0])}`;
@@ -39122,17 +40097,25 @@ var error19 = () => {
     }
   };
 };
-var init_kh = __esm(() => {
+var init_km = __esm(() => {
   init_util();
+});
+
+// node_modules/zod/v4/locales/kh.js
+function kh_default() {
+  return km_default();
+}
+var init_kh = __esm(() => {
+  init_km();
 });
 
 // node_modules/zod/v4/locales/ko.js
 function ko_default() {
   return {
-    localeError: error20()
+    localeError: error24()
   };
 }
-var error20 = () => {
+var error24 = () => {
   const Sizable = {
     string: { unit: "문자", verb: "to have" },
     file: { unit: "바이트", verb: "to have" },
@@ -39142,7 +40125,7 @@ var error20 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType6 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39195,7 +40178,7 @@ var error20 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `잘못된 입력: 예상 타입은 ${issue2.expected}, 받은 타입은 ${parsedType3(issue2.input)}입니다`;
+        return `잘못된 입력: 예상 타입은 ${issue2.expected}, 받은 타입은 ${parsedType6(issue2.input)}입니다`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `잘못된 입력: 값은 ${stringifyPrimitive(issue2.values[0])} 이어야 합니다`;
@@ -39251,13 +40234,243 @@ var init_ko = __esm(() => {
   init_util();
 });
 
+// node_modules/zod/v4/locales/lt.js
+function getUnitTypeFromNumber(number2) {
+  const abs = Math.abs(number2);
+  const last = abs % 10;
+  const last2 = abs % 100;
+  if (last2 >= 11 && last2 <= 19 || last === 0)
+    return "many";
+  if (last === 1)
+    return "one";
+  return "few";
+}
+function lt_default() {
+  return {
+    localeError: error25()
+  };
+}
+var parsedType6 = (data) => {
+  const t = typeof data;
+  return parsedTypeFromType(t, data);
+}, parsedTypeFromType = (t, data = undefined) => {
+  switch (t) {
+    case "number": {
+      return Number.isNaN(data) ? "NaN" : "skaičius";
+    }
+    case "bigint": {
+      return "sveikasis skaičius";
+    }
+    case "string": {
+      return "eilutė";
+    }
+    case "boolean": {
+      return "loginė reikšmė";
+    }
+    case "undefined":
+    case "void": {
+      return "neapibrėžta reikšmė";
+    }
+    case "function": {
+      return "funkcija";
+    }
+    case "symbol": {
+      return "simbolis";
+    }
+    case "object": {
+      if (data === undefined)
+        return "nežinomas objektas";
+      if (data === null)
+        return "nulinė reikšmė";
+      if (Array.isArray(data))
+        return "masyvas";
+      if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+        return data.constructor.name;
+      }
+      return "objektas";
+    }
+    case "null": {
+      return "nulinė reikšmė";
+    }
+  }
+  return t;
+}, capitalizeFirstCharacter = (text) => {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}, error25 = () => {
+  const Sizable = {
+    string: {
+      unit: {
+        one: "simbolis",
+        few: "simboliai",
+        many: "simbolių"
+      },
+      verb: {
+        smaller: {
+          inclusive: "turi būti ne ilgesnė kaip",
+          notInclusive: "turi būti trumpesnė kaip"
+        },
+        bigger: {
+          inclusive: "turi būti ne trumpesnė kaip",
+          notInclusive: "turi būti ilgesnė kaip"
+        }
+      }
+    },
+    file: {
+      unit: {
+        one: "baitas",
+        few: "baitai",
+        many: "baitų"
+      },
+      verb: {
+        smaller: {
+          inclusive: "turi būti ne didesnis kaip",
+          notInclusive: "turi būti mažesnis kaip"
+        },
+        bigger: {
+          inclusive: "turi būti ne mažesnis kaip",
+          notInclusive: "turi būti didesnis kaip"
+        }
+      }
+    },
+    array: {
+      unit: {
+        one: "elementą",
+        few: "elementus",
+        many: "elementų"
+      },
+      verb: {
+        smaller: {
+          inclusive: "turi turėti ne daugiau kaip",
+          notInclusive: "turi turėti mažiau kaip"
+        },
+        bigger: {
+          inclusive: "turi turėti ne mažiau kaip",
+          notInclusive: "turi turėti daugiau kaip"
+        }
+      }
+    },
+    set: {
+      unit: {
+        one: "elementą",
+        few: "elementus",
+        many: "elementų"
+      },
+      verb: {
+        smaller: {
+          inclusive: "turi turėti ne daugiau kaip",
+          notInclusive: "turi turėti mažiau kaip"
+        },
+        bigger: {
+          inclusive: "turi turėti ne mažiau kaip",
+          notInclusive: "turi turėti daugiau kaip"
+        }
+      }
+    }
+  };
+  function getSizing(origin, unitType, inclusive, targetShouldBe) {
+    const result = Sizable[origin] ?? null;
+    if (result === null)
+      return result;
+    return {
+      unit: result.unit[unitType],
+      verb: result.verb[targetShouldBe][inclusive ? "inclusive" : "notInclusive"]
+    };
+  }
+  const Nouns = {
+    regex: "įvestis",
+    email: "el. pašto adresas",
+    url: "URL",
+    emoji: "jaustukas",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "ISO data ir laikas",
+    date: "ISO data",
+    time: "ISO laikas",
+    duration: "ISO trukmė",
+    ipv4: "IPv4 adresas",
+    ipv6: "IPv6 adresas",
+    cidrv4: "IPv4 tinklo prefiksas (CIDR)",
+    cidrv6: "IPv6 tinklo prefiksas (CIDR)",
+    base64: "base64 užkoduota eilutė",
+    base64url: "base64url užkoduota eilutė",
+    json_string: "JSON eilutė",
+    e164: "E.164 numeris",
+    jwt: "JWT",
+    template_literal: "įvestis"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `Gautas tipas ${parsedType6(issue2.input)}, o tikėtasi - ${parsedTypeFromType(issue2.expected)}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `Privalo būti ${stringifyPrimitive(issue2.values[0])}`;
+        return `Privalo būti vienas iš ${joinValues(issue2.values, "|")} pasirinkimų`;
+      case "too_big": {
+        const origin = parsedTypeFromType(issue2.origin);
+        const sizing = getSizing(issue2.origin, getUnitTypeFromNumber(Number(issue2.maximum)), issue2.inclusive ?? false, "smaller");
+        if (sizing?.verb)
+          return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reikšmė")} ${sizing.verb} ${issue2.maximum.toString()} ${sizing.unit ?? "elementų"}`;
+        const adj = issue2.inclusive ? "ne didesnis kaip" : "mažesnis kaip";
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reikšmė")} turi būti ${adj} ${issue2.maximum.toString()} ${sizing?.unit}`;
+      }
+      case "too_small": {
+        const origin = parsedTypeFromType(issue2.origin);
+        const sizing = getSizing(issue2.origin, getUnitTypeFromNumber(Number(issue2.minimum)), issue2.inclusive ?? false, "bigger");
+        if (sizing?.verb)
+          return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reikšmė")} ${sizing.verb} ${issue2.minimum.toString()} ${sizing.unit ?? "elementų"}`;
+        const adj = issue2.inclusive ? "ne mažesnis kaip" : "didesnis kaip";
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reikšmė")} turi būti ${adj} ${issue2.minimum.toString()} ${sizing?.unit}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with") {
+          return `Eilutė privalo prasidėti "${_issue.prefix}"`;
+        }
+        if (_issue.format === "ends_with")
+          return `Eilutė privalo pasibaigti "${_issue.suffix}"`;
+        if (_issue.format === "includes")
+          return `Eilutė privalo įtraukti "${_issue.includes}"`;
+        if (_issue.format === "regex")
+          return `Eilutė privalo atitikti ${_issue.pattern}`;
+        return `Neteisingas ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `Skaičius privalo būti ${issue2.divisor} kartotinis.`;
+      case "unrecognized_keys":
+        return `Neatpažint${issue2.keys.length > 1 ? "i" : "as"} rakt${issue2.keys.length > 1 ? "ai" : "as"}: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return "Rastas klaidingas raktas";
+      case "invalid_union":
+        return "Klaidinga įvestis";
+      case "invalid_element": {
+        const origin = parsedTypeFromType(issue2.origin);
+        return `${capitalizeFirstCharacter(origin ?? issue2.origin ?? "reikšmė")} turi klaidingą įvestį`;
+      }
+      default:
+        return "Klaidinga įvestis";
+    }
+  };
+};
+var init_lt = __esm(() => {
+  init_util();
+});
+
 // node_modules/zod/v4/locales/mk.js
 function mk_default() {
   return {
-    localeError: error21()
+    localeError: error26()
   };
 }
-var error21 = () => {
+var error26 = () => {
   const Sizable = {
     string: { unit: "знаци", verb: "да имаат" },
     file: { unit: "бајти", verb: "да имаат" },
@@ -39267,7 +40480,7 @@ var error21 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39320,7 +40533,7 @@ var error21 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Грешен внес: се очекува ${issue2.expected}, примено ${parsedType3(issue2.input)}`;
+        return `Грешен внес: се очекува ${issue2.expected}, примено ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Invalid input: expected ${stringifyPrimitive(issue2.values[0])}`;
@@ -39375,10 +40588,10 @@ var init_mk = __esm(() => {
 // node_modules/zod/v4/locales/ms.js
 function ms_default() {
   return {
-    localeError: error22()
+    localeError: error27()
   };
 }
-var error22 = () => {
+var error27 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
     file: { unit: "bait", verb: "mempunyai" },
@@ -39388,7 +40601,7 @@ var error22 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39441,7 +40654,7 @@ var error22 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Input tidak sah: dijangka ${issue2.expected}, diterima ${parsedType3(issue2.input)}`;
+        return `Input tidak sah: dijangka ${issue2.expected}, diterima ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Input tidak sah: dijangka ${stringifyPrimitive(issue2.values[0])}`;
@@ -39495,10 +40708,10 @@ var init_ms = __esm(() => {
 // node_modules/zod/v4/locales/nl.js
 function nl_default() {
   return {
-    localeError: error23()
+    localeError: error28()
   };
 }
-var error23 = () => {
+var error28 = () => {
   const Sizable = {
     string: { unit: "tekens" },
     file: { unit: "bytes" },
@@ -39508,7 +40721,7 @@ var error23 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39561,7 +40774,7 @@ var error23 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Ongeldige invoer: verwacht ${issue2.expected}, ontving ${parsedType3(issue2.input)}`;
+        return `Ongeldige invoer: verwacht ${issue2.expected}, ontving ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Ongeldige invoer: verwacht ${stringifyPrimitive(issue2.values[0])}`;
@@ -39616,10 +40829,10 @@ var init_nl = __esm(() => {
 // node_modules/zod/v4/locales/no.js
 function no_default() {
   return {
-    localeError: error24()
+    localeError: error29()
   };
 }
-var error24 = () => {
+var error29 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "å ha" },
     file: { unit: "bytes", verb: "å ha" },
@@ -39629,7 +40842,7 @@ var error24 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39682,7 +40895,7 @@ var error24 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Ugyldig input: forventet ${issue2.expected}, fikk ${parsedType3(issue2.input)}`;
+        return `Ugyldig input: forventet ${issue2.expected}, fikk ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Ugyldig verdi: forventet ${stringifyPrimitive(issue2.values[0])}`;
@@ -39736,10 +40949,10 @@ var init_no = __esm(() => {
 // node_modules/zod/v4/locales/ota.js
 function ota_default() {
   return {
-    localeError: error25()
+    localeError: error30()
   };
 }
-var error25 = () => {
+var error30 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmalıdır" },
     file: { unit: "bayt", verb: "olmalıdır" },
@@ -39749,7 +40962,7 @@ var error25 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39802,7 +41015,7 @@ var error25 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Fâsit giren: umulan ${issue2.expected}, alınan ${parsedType3(issue2.input)}`;
+        return `Fâsit giren: umulan ${issue2.expected}, alınan ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Fâsit giren: umulan ${stringifyPrimitive(issue2.values[0])}`;
@@ -39856,10 +41069,10 @@ var init_ota = __esm(() => {
 // node_modules/zod/v4/locales/ps.js
 function ps_default() {
   return {
-    localeError: error26()
+    localeError: error31()
   };
 }
-var error26 = () => {
+var error31 = () => {
   const Sizable = {
     string: { unit: "توکي", verb: "ولري" },
     file: { unit: "بایټس", verb: "ولري" },
@@ -39869,7 +41082,7 @@ var error26 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -39922,7 +41135,7 @@ var error26 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `ناسم ورودي: باید ${issue2.expected} وای, مګر ${parsedType3(issue2.input)} ترلاسه شو`;
+        return `ناسم ورودي: باید ${issue2.expected} وای, مګر ${parsedType7(issue2.input)} ترلاسه شو`;
       case "invalid_value":
         if (issue2.values.length === 1) {
           return `ناسم ورودي: باید ${stringifyPrimitive(issue2.values[0])} وای`;
@@ -39982,10 +41195,10 @@ var init_ps = __esm(() => {
 // node_modules/zod/v4/locales/pl.js
 function pl_default() {
   return {
-    localeError: error27()
+    localeError: error32()
   };
 }
-var error27 = () => {
+var error32 = () => {
   const Sizable = {
     string: { unit: "znaków", verb: "mieć" },
     file: { unit: "bajtów", verb: "mieć" },
@@ -39995,7 +41208,7 @@ var error27 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40048,7 +41261,7 @@ var error27 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Nieprawidłowe dane wejściowe: oczekiwano ${issue2.expected}, otrzymano ${parsedType3(issue2.input)}`;
+        return `Nieprawidłowe dane wejściowe: oczekiwano ${issue2.expected}, otrzymano ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Nieprawidłowe dane wejściowe: oczekiwano ${stringifyPrimitive(issue2.values[0])}`;
@@ -40103,10 +41316,10 @@ var init_pl = __esm(() => {
 // node_modules/zod/v4/locales/pt.js
 function pt_default() {
   return {
-    localeError: error28()
+    localeError: error33()
   };
 }
-var error28 = () => {
+var error33 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "ter" },
     file: { unit: "bytes", verb: "ter" },
@@ -40116,7 +41329,7 @@ var error28 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40169,7 +41382,7 @@ var error28 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Tipo inválido: esperado ${issue2.expected}, recebido ${parsedType3(issue2.input)}`;
+        return `Tipo inválido: esperado ${issue2.expected}, recebido ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Entrada inválida: esperado ${stringifyPrimitive(issue2.values[0])}`;
@@ -40238,10 +41451,10 @@ function getRussianPlural(count3, one, few, many) {
 }
 function ru_default() {
   return {
-    localeError: error29()
+    localeError: error34()
   };
 }
-var error29 = () => {
+var error34 = () => {
   const Sizable = {
     string: {
       unit: {
@@ -40279,7 +41492,7 @@ var error29 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40332,7 +41545,7 @@ var error29 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Неверный ввод: ожидалось ${issue2.expected}, получено ${parsedType3(issue2.input)}`;
+        return `Неверный ввод: ожидалось ${issue2.expected}, получено ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Неверный ввод: ожидалось ${stringifyPrimitive(issue2.values[0])}`;
@@ -40391,10 +41604,10 @@ var init_ru = __esm(() => {
 // node_modules/zod/v4/locales/sl.js
 function sl_default() {
   return {
-    localeError: error30()
+    localeError: error35()
   };
 }
-var error30 = () => {
+var error35 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
     file: { unit: "bajtov", verb: "imeti" },
@@ -40404,7 +41617,7 @@ var error30 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40457,7 +41670,7 @@ var error30 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Neveljaven vnos: pričakovano ${issue2.expected}, prejeto ${parsedType3(issue2.input)}`;
+        return `Neveljaven vnos: pričakovano ${issue2.expected}, prejeto ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Neveljaven vnos: pričakovano ${stringifyPrimitive(issue2.values[0])}`;
@@ -40512,10 +41725,10 @@ var init_sl = __esm(() => {
 // node_modules/zod/v4/locales/sv.js
 function sv_default() {
   return {
-    localeError: error31()
+    localeError: error36()
   };
 }
-var error31 = () => {
+var error36 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
     file: { unit: "bytes", verb: "att ha" },
@@ -40525,7 +41738,7 @@ var error31 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40578,7 +41791,7 @@ var error31 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Ogiltig inmatning: förväntat ${issue2.expected}, fick ${parsedType3(issue2.input)}`;
+        return `Ogiltig inmatning: förväntat ${issue2.expected}, fick ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Ogiltig inmatning: förväntat ${stringifyPrimitive(issue2.values[0])}`;
@@ -40634,10 +41847,10 @@ var init_sv = __esm(() => {
 // node_modules/zod/v4/locales/ta.js
 function ta_default() {
   return {
-    localeError: error32()
+    localeError: error37()
   };
 }
-var error32 = () => {
+var error37 = () => {
   const Sizable = {
     string: { unit: "எழுத்துக்கள்", verb: "கொண்டிருக்க வேண்டும்" },
     file: { unit: "பைட்டுகள்", verb: "கொண்டிருக்க வேண்டும்" },
@@ -40647,7 +41860,7 @@ var error32 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40700,7 +41913,7 @@ var error32 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `தவறான உள்ளீடு: எதிர்பார்க்கப்பட்டது ${issue2.expected}, பெறப்பட்டது ${parsedType3(issue2.input)}`;
+        return `தவறான உள்ளீடு: எதிர்பார்க்கப்பட்டது ${issue2.expected}, பெறப்பட்டது ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `தவறான உள்ளீடு: எதிர்பார்க்கப்பட்டது ${stringifyPrimitive(issue2.values[0])}`;
@@ -40755,10 +41968,10 @@ var init_ta = __esm(() => {
 // node_modules/zod/v4/locales/th.js
 function th_default() {
   return {
-    localeError: error33()
+    localeError: error38()
   };
 }
-var error33 = () => {
+var error38 = () => {
   const Sizable = {
     string: { unit: "ตัวอักษร", verb: "ควรมี" },
     file: { unit: "ไบต์", verb: "ควรมี" },
@@ -40768,7 +41981,7 @@ var error33 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType3 = (data) => {
+  const parsedType7 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -40821,7 +42034,7 @@ var error33 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `ประเภทข้อมูลไม่ถูกต้อง: ควรเป็น ${issue2.expected} แต่ได้รับ ${parsedType3(issue2.input)}`;
+        return `ประเภทข้อมูลไม่ถูกต้อง: ควรเป็น ${issue2.expected} แต่ได้รับ ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `ค่าไม่ถูกต้อง: ควรเป็น ${stringifyPrimitive(issue2.values[0])}`;
@@ -40876,10 +42089,10 @@ var init_th = __esm(() => {
 // node_modules/zod/v4/locales/tr.js
 function tr_default() {
   return {
-    localeError: error34()
+    localeError: error39()
   };
 }
-var parsedType3 = (data) => {
+var parsedType7 = (data) => {
   const t = typeof data;
   switch (t) {
     case "number": {
@@ -40898,7 +42111,7 @@ var parsedType3 = (data) => {
     }
   }
   return t;
-}, error34 = () => {
+}, error39 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmalı" },
     file: { unit: "bayt", verb: "olmalı" },
@@ -40941,7 +42154,7 @@ var parsedType3 = (data) => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Geçersiz değer: beklenen ${issue2.expected}, alınan ${parsedType3(issue2.input)}`;
+        return `Geçersiz değer: beklenen ${issue2.expected}, alınan ${parsedType7(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Geçersiz değer: beklenen ${stringifyPrimitive(issue2.values[0])}`;
@@ -40991,13 +42204,13 @@ var init_tr = __esm(() => {
   init_util();
 });
 
-// node_modules/zod/v4/locales/ua.js
-function ua_default() {
+// node_modules/zod/v4/locales/uk.js
+function uk_default() {
   return {
-    localeError: error35()
+    localeError: error40()
   };
 }
-var error35 = () => {
+var error40 = () => {
   const Sizable = {
     string: { unit: "символів", verb: "матиме" },
     file: { unit: "байтів", verb: "матиме" },
@@ -41007,7 +42220,7 @@ var error35 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType4 = (data) => {
+  const parsedType8 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -41060,7 +42273,7 @@ var error35 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Неправильні вхідні дані: очікується ${issue2.expected}, отримано ${parsedType4(issue2.input)}`;
+        return `Неправильні вхідні дані: очікується ${issue2.expected}, отримано ${parsedType8(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Неправильні вхідні дані: очікується ${stringifyPrimitive(issue2.values[0])}`;
@@ -41107,17 +42320,25 @@ var error35 = () => {
     }
   };
 };
-var init_ua = __esm(() => {
+var init_uk = __esm(() => {
   init_util();
+});
+
+// node_modules/zod/v4/locales/ua.js
+function ua_default() {
+  return uk_default();
+}
+var init_ua = __esm(() => {
+  init_uk();
 });
 
 // node_modules/zod/v4/locales/ur.js
 function ur_default() {
   return {
-    localeError: error36()
+    localeError: error41()
   };
 }
-var error36 = () => {
+var error41 = () => {
   const Sizable = {
     string: { unit: "حروف", verb: "ہونا" },
     file: { unit: "بائٹس", verb: "ہونا" },
@@ -41127,7 +42348,7 @@ var error36 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType4 = (data) => {
+  const parsedType8 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -41180,7 +42401,7 @@ var error36 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `غلط ان پٹ: ${issue2.expected} متوقع تھا، ${parsedType4(issue2.input)} موصول ہوا`;
+        return `غلط ان پٹ: ${issue2.expected} متوقع تھا، ${parsedType8(issue2.input)} موصول ہوا`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `غلط ان پٹ: ${stringifyPrimitive(issue2.values[0])} متوقع تھا`;
@@ -41235,10 +42456,10 @@ var init_ur = __esm(() => {
 // node_modules/zod/v4/locales/vi.js
 function vi_default() {
   return {
-    localeError: error37()
+    localeError: error42()
   };
 }
-var error37 = () => {
+var error42 = () => {
   const Sizable = {
     string: { unit: "ký tự", verb: "có" },
     file: { unit: "byte", verb: "có" },
@@ -41248,7 +42469,7 @@ var error37 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType4 = (data) => {
+  const parsedType8 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -41301,7 +42522,7 @@ var error37 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `Đầu vào không hợp lệ: mong đợi ${issue2.expected}, nhận được ${parsedType4(issue2.input)}`;
+        return `Đầu vào không hợp lệ: mong đợi ${issue2.expected}, nhận được ${parsedType8(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `Đầu vào không hợp lệ: mong đợi ${stringifyPrimitive(issue2.values[0])}`;
@@ -41355,10 +42576,10 @@ var init_vi = __esm(() => {
 // node_modules/zod/v4/locales/zh-CN.js
 function zh_CN_default() {
   return {
-    localeError: error38()
+    localeError: error43()
   };
 }
-var error38 = () => {
+var error43 = () => {
   const Sizable = {
     string: { unit: "字符", verb: "包含" },
     file: { unit: "字节", verb: "包含" },
@@ -41368,7 +42589,7 @@ var error38 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType4 = (data) => {
+  const parsedType8 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -41421,7 +42642,7 @@ var error38 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `无效输入：期望 ${issue2.expected}，实际接收 ${parsedType4(issue2.input)}`;
+        return `无效输入：期望 ${issue2.expected}，实际接收 ${parsedType8(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `无效输入：期望 ${stringifyPrimitive(issue2.values[0])}`;
@@ -41475,10 +42696,10 @@ var init_zh_CN = __esm(() => {
 // node_modules/zod/v4/locales/zh-TW.js
 function zh_TW_default() {
   return {
-    localeError: error39()
+    localeError: error44()
   };
 }
-var error39 = () => {
+var error44 = () => {
   const Sizable = {
     string: { unit: "字元", verb: "擁有" },
     file: { unit: "位元組", verb: "擁有" },
@@ -41488,7 +42709,7 @@ var error39 = () => {
   function getSizing(origin) {
     return Sizable[origin] ?? null;
   }
-  const parsedType4 = (data) => {
+  const parsedType8 = (data) => {
     const t = typeof data;
     switch (t) {
       case "number": {
@@ -41541,7 +42762,7 @@ var error39 = () => {
   return (issue2) => {
     switch (issue2.code) {
       case "invalid_type":
-        return `無效的輸入值：預期為 ${issue2.expected}，但收到 ${parsedType4(issue2.input)}`;
+        return `無效的輸入值：預期為 ${issue2.expected}，但收到 ${parsedType8(issue2.input)}`;
       case "invalid_value":
         if (issue2.values.length === 1)
           return `無效的輸入值：預期為 ${stringifyPrimitive(issue2.values[0])}`;
@@ -41593,13 +42814,134 @@ var init_zh_TW = __esm(() => {
   init_util();
 });
 
+// node_modules/zod/v4/locales/yo.js
+function yo_default() {
+  return {
+    localeError: error45()
+  };
+}
+var error45 = () => {
+  const Sizable = {
+    string: { unit: "àmi", verb: "ní" },
+    file: { unit: "bytes", verb: "ní" },
+    array: { unit: "nkan", verb: "ní" },
+    set: { unit: "nkan", verb: "ní" }
+  };
+  function getSizing(origin) {
+    return Sizable[origin] ?? null;
+  }
+  const parsedType8 = (data) => {
+    const t = typeof data;
+    switch (t) {
+      case "number": {
+        return Number.isNaN(data) ? "NaN" : "nọ́mbà";
+      }
+      case "object": {
+        if (Array.isArray(data)) {
+          return "akopọ";
+        }
+        if (data === null) {
+          return "null";
+        }
+        if (Object.getPrototypeOf(data) !== Object.prototype && data.constructor) {
+          return data.constructor.name;
+        }
+      }
+    }
+    return t;
+  };
+  const Nouns = {
+    regex: "ẹ̀rọ ìbáwọlé",
+    email: "àdírẹ́sì ìmẹ́lì",
+    url: "URL",
+    emoji: "emoji",
+    uuid: "UUID",
+    uuidv4: "UUIDv4",
+    uuidv6: "UUIDv6",
+    nanoid: "nanoid",
+    guid: "GUID",
+    cuid: "cuid",
+    cuid2: "cuid2",
+    ulid: "ULID",
+    xid: "XID",
+    ksuid: "KSUID",
+    datetime: "àkókò ISO",
+    date: "ọjọ́ ISO",
+    time: "àkókò ISO",
+    duration: "àkókò tó pé ISO",
+    ipv4: "àdírẹ́sì IPv4",
+    ipv6: "àdírẹ́sì IPv6",
+    cidrv4: "àgbègbè IPv4",
+    cidrv6: "àgbègbè IPv6",
+    base64: "ọ̀rọ̀ tí a kọ́ ní base64",
+    base64url: "ọ̀rọ̀ base64url",
+    json_string: "ọ̀rọ̀ JSON",
+    e164: "nọ́mbà E.164",
+    jwt: "JWT",
+    template_literal: "ẹ̀rọ ìbáwọlé"
+  };
+  return (issue2) => {
+    switch (issue2.code) {
+      case "invalid_type":
+        return `Ìbáwọlé aṣìṣe: a ní láti fi ${issue2.expected}, àmọ̀ a rí ${parsedType8(issue2.input)}`;
+      case "invalid_value":
+        if (issue2.values.length === 1)
+          return `Ìbáwọlé aṣìṣe: a ní láti fi ${stringifyPrimitive(issue2.values[0])}`;
+        return `Àṣàyàn aṣìṣe: yan ọ̀kan lára ${joinValues(issue2.values, "|")}`;
+      case "too_big": {
+        const adj = issue2.inclusive ? "<=" : "<";
+        const sizing = getSizing(issue2.origin);
+        if (sizing)
+          return `Tó pọ̀ jù: a ní láti jẹ́ pé ${issue2.origin ?? "iye"} ${sizing.verb} ${adj}${issue2.maximum} ${sizing.unit}`;
+        return `Tó pọ̀ jù: a ní láti jẹ́ ${adj}${issue2.maximum}`;
+      }
+      case "too_small": {
+        const adj = issue2.inclusive ? ">=" : ">";
+        const sizing = getSizing(issue2.origin);
+        if (sizing)
+          return `Kéré ju: a ní láti jẹ́ pé ${issue2.origin} ${sizing.verb} ${adj}${issue2.minimum} ${sizing.unit}`;
+        return `Kéré ju: a ní láti jẹ́ ${adj}${issue2.minimum}`;
+      }
+      case "invalid_format": {
+        const _issue = issue2;
+        if (_issue.format === "starts_with")
+          return `Ọ̀rọ̀ aṣìṣe: gbọ́dọ̀ bẹ̀rẹ̀ pẹ̀lú "${_issue.prefix}"`;
+        if (_issue.format === "ends_with")
+          return `Ọ̀rọ̀ aṣìṣe: gbọ́dọ̀ parí pẹ̀lú "${_issue.suffix}"`;
+        if (_issue.format === "includes")
+          return `Ọ̀rọ̀ aṣìṣe: gbọ́dọ̀ ní "${_issue.includes}"`;
+        if (_issue.format === "regex")
+          return `Ọ̀rọ̀ aṣìṣe: gbọ́dọ̀ bá àpẹẹrẹ mu ${_issue.pattern}`;
+        return `Aṣìṣe: ${Nouns[_issue.format] ?? issue2.format}`;
+      }
+      case "not_multiple_of":
+        return `Nọ́mbà aṣìṣe: gbọ́dọ̀ jẹ́ èyà pípín ti ${issue2.divisor}`;
+      case "unrecognized_keys":
+        return `Bọtìnì àìmọ̀: ${joinValues(issue2.keys, ", ")}`;
+      case "invalid_key":
+        return `Bọtìnì aṣìṣe nínú ${issue2.origin}`;
+      case "invalid_union":
+        return "Ìbáwọlé aṣìṣe";
+      case "invalid_element":
+        return `Iye aṣìṣe nínú ${issue2.origin}`;
+      default:
+        return "Ìbáwọlé aṣìṣe";
+    }
+  };
+};
+var init_yo = __esm(() => {
+  init_util();
+});
+
 // node_modules/zod/v4/locales/index.js
 var exports_locales = {};
 __export(exports_locales, {
   zhTW: () => zh_TW_default,
   zhCN: () => zh_CN_default,
+  yo: () => yo_default,
   vi: () => vi_default,
   ur: () => ur_default,
+  uk: () => uk_default,
   ua: () => ua_default,
   tr: () => tr_default,
   th: () => th_default,
@@ -41615,10 +42957,14 @@ __export(exports_locales, {
   nl: () => nl_default,
   ms: () => ms_default,
   mk: () => mk_default,
+  lt: () => lt_default,
   ko: () => ko_default,
+  km: () => km_default,
   kh: () => kh_default,
+  ka: () => ka_default,
   ja: () => ja_default,
   it: () => it_default,
+  is: () => is_default,
   id: () => id_default,
   hu: () => hu_default,
   he: () => he_default,
@@ -41630,8 +42976,10 @@ __export(exports_locales, {
   eo: () => eo_default,
   en: () => en_default,
   de: () => de_default,
+  da: () => da_default,
   cs: () => cs_default,
   ca: () => ca_default,
+  bg: () => bg_default,
   be: () => be_default,
   az: () => az_default,
   ar: () => ar_default
@@ -41640,8 +42988,10 @@ var init_locales = __esm(() => {
   init_ar();
   init_az();
   init_be();
+  init_bg();
   init_ca();
   init_cs();
+  init_da();
   init_de();
   init_en();
   init_eo();
@@ -41653,10 +43003,14 @@ var init_locales = __esm(() => {
   init_he();
   init_hu();
   init_id();
+  init_is();
   init_it();
   init_ja();
+  init_ka();
   init_kh();
+  init_km();
   init_ko();
+  init_lt();
   init_mk();
   init_ms();
   init_nl();
@@ -41672,16 +43026,18 @@ var init_locales = __esm(() => {
   init_th();
   init_tr();
   init_ua();
+  init_uk();
   init_ur();
   init_vi();
   init_zh_CN();
   init_zh_TW();
+  init_yo();
 });
 
 // node_modules/zod/v4/core/registries.js
 class $ZodRegistry {
   constructor() {
-    this._map = new Map;
+    this._map = new WeakMap;
     this._idmap = new Map;
   }
   add(schema, ..._meta) {
@@ -41696,7 +43052,7 @@ class $ZodRegistry {
     return this;
   }
   clear() {
-    this._map = new Map;
+    this._map = new WeakMap;
     this._idmap = new Map;
     return this;
   }
@@ -41713,7 +43069,8 @@ class $ZodRegistry {
     if (p) {
       const pm = { ...this.get(p) ?? {} };
       delete pm.id;
-      return { ...pm, ...this._map.get(schema) };
+      const f = { ...pm, ...this._map.get(schema) };
+      return Object.keys(f).length ? f : undefined;
     }
     return this._map.get(schema);
   }
@@ -42432,7 +43789,7 @@ function _default(Class2, innerType, defaultValue) {
     type: "default",
     innerType,
     get defaultValue() {
-      return typeof defaultValue === "function" ? defaultValue() : defaultValue;
+      return typeof defaultValue === "function" ? defaultValue() : shallowClone(defaultValue);
     }
   });
 }
@@ -42508,6 +43865,34 @@ function _refine(Class2, fn, _params) {
   });
   return schema;
 }
+function _superRefine(fn) {
+  const ch = _check((payload) => {
+    payload.addIssue = (issue2) => {
+      if (typeof issue2 === "string") {
+        payload.issues.push(issue(issue2, payload.value, ch._zod.def));
+      } else {
+        const _issue = issue2;
+        if (_issue.fatal)
+          _issue.continue = false;
+        _issue.code ?? (_issue.code = "custom");
+        _issue.input ?? (_issue.input = payload.value);
+        _issue.inst ?? (_issue.inst = ch);
+        _issue.continue ?? (_issue.continue = !ch._zod.def.abort);
+        payload.issues.push(issue(_issue));
+      }
+    };
+    return fn(payload.value, payload);
+  });
+  return ch;
+}
+function _check(fn, params) {
+  const ch = new $ZodCheck({
+    check: "custom",
+    ...normalizeParams(params)
+  });
+  ch._zod.check = fn;
+  return ch;
+}
 function _stringbool(Classes, _params) {
   const params = normalizeParams(_params);
   let truthyArray = params.truthy ?? ["true", "1", "yes", "on", "y", "enabled"];
@@ -42518,12 +43903,15 @@ function _stringbool(Classes, _params) {
   }
   const truthySet = new Set(truthyArray);
   const falsySet = new Set(falsyArray);
-  const _Pipe = Classes.Pipe ?? $ZodPipe;
+  const _Codec = Classes.Codec ?? $ZodCodec;
   const _Boolean = Classes.Boolean ?? $ZodBoolean;
   const _String = Classes.String ?? $ZodString;
-  const _Transform = Classes.Transform ?? $ZodTransform;
-  const tx = new _Transform({
-    type: "transform",
+  const stringSchema = new _String({ type: "string", error: params.error });
+  const booleanSchema = new _Boolean({ type: "boolean", error: params.error });
+  const codec = new _Codec({
+    type: "pipe",
+    in: stringSchema,
+    out: booleanSchema,
     transform: (input, payload) => {
       let data = input;
       if (params.case !== "sensitive")
@@ -42538,29 +43926,22 @@ function _stringbool(Classes, _params) {
           expected: "stringbool",
           values: [...truthySet, ...falsySet],
           input: payload.value,
-          inst: tx
+          inst: codec,
+          continue: false
         });
         return {};
       }
     },
+    reverseTransform: (input, _payload) => {
+      if (input === true) {
+        return truthyArray[0] || "true";
+      } else {
+        return falsyArray[0] || "false";
+      }
+    },
     error: params.error
   });
-  const innerPipe = new _Pipe({
-    type: "pipe",
-    in: new _String({ type: "string", error: params.error }),
-    out: tx,
-    error: params.error
-  });
-  const outerPipe = new _Pipe({
-    type: "pipe",
-    in: innerPipe,
-    out: new _Boolean({
-      type: "boolean",
-      error: params.error
-    }),
-    error: params.error
-  });
-  return outerPipe;
+  return codec;
 }
 function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   const params = normalizeParams(_params);
@@ -42590,82 +43971,6 @@ var init_api = __esm(() => {
     Millisecond: 3,
     Microsecond: 6
   };
-});
-
-// node_modules/zod/v4/core/function.js
-class $ZodFunction {
-  constructor(def) {
-    this._def = def;
-    this.def = def;
-  }
-  implement(func) {
-    if (typeof func !== "function") {
-      throw new Error("implement() must be called with a function");
-    }
-    const impl = (...args) => {
-      const parsedArgs = this._def.input ? parse2(this._def.input, args, undefined, { callee: impl }) : args;
-      if (!Array.isArray(parsedArgs)) {
-        throw new Error("Invalid arguments schema: not an array or tuple schema.");
-      }
-      const output = func(...parsedArgs);
-      return this._def.output ? parse2(this._def.output, output, undefined, { callee: impl }) : output;
-    };
-    return impl;
-  }
-  implementAsync(func) {
-    if (typeof func !== "function") {
-      throw new Error("implement() must be called with a function");
-    }
-    const impl = async (...args) => {
-      const parsedArgs = this._def.input ? await parseAsync(this._def.input, args, undefined, { callee: impl }) : args;
-      if (!Array.isArray(parsedArgs)) {
-        throw new Error("Invalid arguments schema: not an array or tuple schema.");
-      }
-      const output = await func(...parsedArgs);
-      return this._def.output ? parseAsync(this._def.output, output, undefined, { callee: impl }) : output;
-    };
-    return impl;
-  }
-  input(...args) {
-    const F = this.constructor;
-    if (Array.isArray(args[0])) {
-      return new F({
-        type: "function",
-        input: new $ZodTuple({
-          type: "tuple",
-          items: args[0],
-          rest: args[1]
-        }),
-        output: this._def.output
-      });
-    }
-    return new F({
-      type: "function",
-      input: args[0],
-      output: this._def.output
-    });
-  }
-  output(output) {
-    const F = this.constructor;
-    return new F({
-      type: "function",
-      input: this._def.input,
-      output
-    });
-  }
-}
-function _function(params) {
-  return new $ZodFunction({
-    type: "function",
-    input: Array.isArray(params?.input) ? _tuple($ZodTuple, params?.input) : params?.input ?? _array($ZodArray, _unknown($ZodUnknown)),
-    output: params?.output ?? _unknown($ZodUnknown)
-  });
-}
-var init_function = __esm(() => {
-  init_api();
-  init_parse();
-  init_schemas();
-  init_schemas();
 });
 
 // node_modules/zod/v4/core/to-json-schema.js
@@ -42739,7 +44044,7 @@ class JSONSchemaGenerator {
               else if (regexes.length > 1) {
                 result.schema.allOf = [
                   ...regexes.map((regex) => ({
-                    ...this.target === "draft-7" ? { type: "string" } : {},
+                    ...this.target === "draft-7" || this.target === "draft-4" || this.target === "openapi-3.0" ? { type: "string" } : {},
                     pattern: regex.source
                   }))
                 ];
@@ -42754,22 +44059,34 @@ class JSONSchemaGenerator {
               json.type = "integer";
             else
               json.type = "number";
-            if (typeof exclusiveMinimum === "number")
-              json.exclusiveMinimum = exclusiveMinimum;
+            if (typeof exclusiveMinimum === "number") {
+              if (this.target === "draft-4" || this.target === "openapi-3.0") {
+                json.minimum = exclusiveMinimum;
+                json.exclusiveMinimum = true;
+              } else {
+                json.exclusiveMinimum = exclusiveMinimum;
+              }
+            }
             if (typeof minimum === "number") {
               json.minimum = minimum;
-              if (typeof exclusiveMinimum === "number") {
+              if (typeof exclusiveMinimum === "number" && this.target !== "draft-4") {
                 if (exclusiveMinimum >= minimum)
                   delete json.minimum;
                 else
                   delete json.exclusiveMinimum;
               }
             }
-            if (typeof exclusiveMaximum === "number")
-              json.exclusiveMaximum = exclusiveMaximum;
+            if (typeof exclusiveMaximum === "number") {
+              if (this.target === "draft-4" || this.target === "openapi-3.0") {
+                json.maximum = exclusiveMaximum;
+                json.exclusiveMaximum = true;
+              } else {
+                json.exclusiveMaximum = exclusiveMaximum;
+              }
+            }
             if (typeof maximum === "number") {
               json.maximum = maximum;
-              if (typeof exclusiveMaximum === "number") {
+              if (typeof exclusiveMaximum === "number" && this.target !== "draft-4") {
                 if (exclusiveMaximum <= maximum)
                   delete json.maximum;
                 else
@@ -42798,7 +44115,12 @@ class JSONSchemaGenerator {
             break;
           }
           case "null": {
-            _json.type = "null";
+            if (this.target === "openapi-3.0") {
+              _json.type = "string";
+              _json.nullable = true;
+              _json.enum = [null];
+            } else
+              _json.type = "null";
             break;
           }
           case "any": {
@@ -42878,10 +44200,11 @@ class JSONSchemaGenerator {
           }
           case "union": {
             const json = _json;
-            json.anyOf = def.options.map((x, i) => this.process(x, {
+            const options2 = def.options.map((x, i) => this.process(x, {
               ...params,
               path: [...params.path, "anyOf", i]
             }));
+            json.anyOf = options2;
             break;
           }
           case "intersection": {
@@ -42905,28 +44228,37 @@ class JSONSchemaGenerator {
           case "tuple": {
             const json = _json;
             json.type = "array";
-            const prefixItems = def.items.map((x, i) => this.process(x, { ...params, path: [...params.path, "prefixItems", i] }));
+            const prefixPath = this.target === "draft-2020-12" ? "prefixItems" : "items";
+            const restPath = this.target === "draft-2020-12" ? "items" : this.target === "openapi-3.0" ? "items" : "additionalItems";
+            const prefixItems = def.items.map((x, i) => this.process(x, {
+              ...params,
+              path: [...params.path, prefixPath, i]
+            }));
+            const rest = def.rest ? this.process(def.rest, {
+              ...params,
+              path: [...params.path, restPath, ...this.target === "openapi-3.0" ? [def.items.length] : []]
+            }) : null;
             if (this.target === "draft-2020-12") {
               json.prefixItems = prefixItems;
+              if (rest) {
+                json.items = rest;
+              }
+            } else if (this.target === "openapi-3.0") {
+              json.items = {
+                anyOf: prefixItems
+              };
+              if (rest) {
+                json.items.anyOf.push(rest);
+              }
+              json.minItems = prefixItems.length;
+              if (!rest) {
+                json.maxItems = prefixItems.length;
+              }
             } else {
               json.items = prefixItems;
-            }
-            if (def.rest) {
-              const rest = this.process(def.rest, {
-                ...params,
-                path: [...params.path, "items"]
-              });
-              if (this.target === "draft-2020-12") {
-                json.items = rest;
-              } else {
+              if (rest) {
                 json.additionalItems = rest;
               }
-            }
-            if (def.rest) {
-              json.items = this.process(def.rest, {
-                ...params,
-                path: [...params.path, "items"]
-              });
             }
             const { minimum, maximum } = schema._zod.bag;
             if (typeof minimum === "number")
@@ -42938,7 +44270,12 @@ class JSONSchemaGenerator {
           case "record": {
             const json = _json;
             json.type = "object";
-            json.propertyNames = this.process(def.keyType, { ...params, path: [...params.path, "propertyNames"] });
+            if (this.target === "draft-7" || this.target === "draft-2020-12") {
+              json.propertyNames = this.process(def.keyType, {
+                ...params,
+                path: [...params.path, "propertyNames"]
+              });
+            }
             json.additionalProperties = this.process(def.valueType, {
               ...params,
               path: [...params.path, "additionalProperties"]
@@ -42988,7 +44325,11 @@ class JSONSchemaGenerator {
             if (vals.length === 0) {} else if (vals.length === 1) {
               const val = vals[0];
               json.type = val === null ? "null" : typeof val;
-              json.const = val;
+              if (this.target === "draft-4" || this.target === "openapi-3.0") {
+                json.enum = [val];
+              } else {
+                json.const = val;
+              }
             } else {
               if (vals.every((v) => typeof v === "number"))
                 json.type = "number";
@@ -43037,7 +44378,12 @@ class JSONSchemaGenerator {
           }
           case "nullable": {
             const inner = this.process(def.innerType, params);
-            _json.anyOf = [inner, { type: "null" }];
+            if (this.target === "openapi-3.0") {
+              result.ref = def.innerType;
+              _json.nullable = true;
+            } else {
+              _json.anyOf = [inner, { type: "null" }];
+            }
             break;
           }
           case "nonoptional": {
@@ -43121,6 +44467,12 @@ class JSONSchemaGenerator {
           case "custom": {
             if (this.unrepresentable === "throw") {
               throw new Error("Custom types cannot be represented in JSON Schema");
+            }
+            break;
+          }
+          case "function": {
+            if (this.unrepresentable === "throw") {
+              throw new Error("Function types cannot be represented in JSON Schema");
             }
             break;
           }
@@ -43234,7 +44586,7 @@ class JSONSchemaGenerator {
       if (ref) {
         flattenRef(ref, params2);
         const refSchema = this.seen.get(ref).schema;
-        if (refSchema.$ref && params2.target === "draft-7") {
+        if (refSchema.$ref && (params2.target === "draft-7" || params2.target === "draft-4" || params2.target === "openapi-3.0")) {
           schema2.allOf = schema2.allOf ?? [];
           schema2.allOf.push(refSchema);
         } else {
@@ -43257,7 +44609,9 @@ class JSONSchemaGenerator {
       result.$schema = "https://json-schema.org/draft/2020-12/schema";
     } else if (this.target === "draft-7") {
       result.$schema = "http://json-schema.org/draft-07/schema#";
-    } else {
+    } else if (this.target === "draft-4") {
+      result.$schema = "http://json-schema.org/draft-04/schema#";
+    } else if (this.target === "openapi-3.0") {} else {
       console.warn(`Invalid target: ${this.target}`);
     }
     if (params.external?.uri) {
@@ -43416,6 +44770,9 @@ function isTransforming(_schema, _ctx) {
     case "catch": {
       return false;
     }
+    case "function": {
+      return false;
+    }
     default:
   }
   throw new Error(`Unknown schema type: ${def.type}`);
@@ -43439,6 +44796,10 @@ __export(exports_core2, {
   toDotPath: () => toDotPath,
   safeParseAsync: () => safeParseAsync,
   safeParse: () => safeParse,
+  safeEncodeAsync: () => safeEncodeAsync,
+  safeEncode: () => safeEncode,
+  safeDecodeAsync: () => safeDecodeAsync,
+  safeDecode: () => safeDecode,
   registry: () => registry,
   regexes: () => exports_regexes,
   prettifyError: () => prettifyError,
@@ -43450,9 +44811,12 @@ __export(exports_core2, {
   isValidBase64: () => isValidBase64,
   globalRegistry: () => globalRegistry,
   globalConfig: () => globalConfig,
-  function: () => _function,
   formatError: () => formatError,
   flattenError: () => flattenError,
+  encodeAsync: () => encodeAsync,
+  encode: () => encode,
+  decodeAsync: () => decodeAsync,
+  decode: () => decode,
   config: () => config,
   clone: () => clone,
   _xid: () => _xid,
@@ -43476,6 +44840,7 @@ __export(exports_core2, {
   _toLowerCase: () => _toLowerCase,
   _templateLiteral: () => _templateLiteral,
   _symbol: () => _symbol,
+  _superRefine: () => _superRefine,
   _success: () => _success,
   _stringbool: () => _stringbool,
   _stringFormat: () => _stringFormat,
@@ -43485,6 +44850,10 @@ __export(exports_core2, {
   _set: () => _set,
   _safeParseAsync: () => _safeParseAsync,
   _safeParse: () => _safeParse,
+  _safeEncodeAsync: () => _safeEncodeAsync,
+  _safeEncode: () => _safeEncode,
+  _safeDecodeAsync: () => _safeDecodeAsync,
+  _safeDecode: () => _safeDecode,
   _regex: () => _regex,
   _refine: () => _refine,
   _record: () => _record,
@@ -43545,11 +44914,15 @@ __export(exports_core2, {
   _file: () => _file,
   _enum: () => _enum,
   _endsWith: () => _endsWith,
+  _encodeAsync: () => _encodeAsync,
+  _encode: () => _encode,
   _emoji: () => _emoji2,
   _email: () => _email,
   _e164: () => _e164,
   _discriminatedUnion: () => _discriminatedUnion,
   _default: () => _default,
+  _decodeAsync: () => _decodeAsync,
+  _decode: () => _decode,
   _date: () => _date,
   _custom: () => _custom,
   _cuid2: () => _cuid2,
@@ -43561,6 +44934,7 @@ __export(exports_core2, {
   _coercedBigint: () => _coercedBigint,
   _cidrv6: () => _cidrv6,
   _cidrv4: () => _cidrv4,
+  _check: () => _check,
   _catch: () => _catch,
   _boolean: () => _boolean,
   _bigint: () => _bigint,
@@ -43602,6 +44976,7 @@ __export(exports_core2, {
   $ZodPrefault: () => $ZodPrefault,
   $ZodPipe: () => $ZodPipe,
   $ZodOptional: () => $ZodOptional,
+  $ZodObjectJIT: () => $ZodObjectJIT,
   $ZodObject: () => $ZodObject,
   $ZodNumberFormat: () => $ZodNumberFormat,
   $ZodNumber: () => $ZodNumber,
@@ -43628,6 +45003,7 @@ __export(exports_core2, {
   $ZodFile: () => $ZodFile,
   $ZodError: () => $ZodError,
   $ZodEnum: () => $ZodEnum,
+  $ZodEncodeError: () => $ZodEncodeError,
   $ZodEmoji: () => $ZodEmoji,
   $ZodEmail: () => $ZodEmail,
   $ZodE164: () => $ZodE164,
@@ -43636,6 +45012,7 @@ __export(exports_core2, {
   $ZodDate: () => $ZodDate,
   $ZodCustomStringFormat: () => $ZodCustomStringFormat,
   $ZodCustom: () => $ZodCustom,
+  $ZodCodec: () => $ZodCodec,
   $ZodCheckUpperCase: () => $ZodCheckUpperCase,
   $ZodCheckStringFormat: () => $ZodCheckStringFormat,
   $ZodCheckStartsWith: () => $ZodCheckStartsWith,
@@ -43683,7 +45060,6 @@ var init_core2 = __esm(() => {
   init_regexes();
   init_locales();
   init_registries();
-  init_function();
   init_api();
   init_to_json_schema();
   init_json_schema();
@@ -43752,10 +45128,16 @@ var initializer2 = (inst, issues) => {
       value: (mapper) => flattenError(inst, mapper)
     },
     addIssue: {
-      value: (issue2) => inst.issues.push(issue2)
+      value: (issue2) => {
+        inst.issues.push(issue2);
+        inst.message = JSON.stringify(inst.issues, jsonStringifyReplacer, 2);
+      }
     },
     addIssues: {
-      value: (issues2) => inst.issues.push(...issues2)
+      value: (issues2) => {
+        inst.issues.push(...issues2);
+        inst.message = JSON.stringify(inst.issues, jsonStringifyReplacer, 2);
+      }
     },
     isEmpty: {
       get() {
@@ -43767,6 +45149,7 @@ var initializer2 = (inst, issues) => {
 var init_errors2 = __esm(() => {
   init_core2();
   init_core2();
+  init_util();
   ZodError = $constructor("ZodError", initializer2);
   ZodRealError = $constructor("ZodError", initializer2, {
     Parent: Error
@@ -43774,7 +45157,7 @@ var init_errors2 = __esm(() => {
 });
 
 // node_modules/zod/v4/classic/parse.js
-var parse4, parseAsync2, safeParse2, safeParseAsync2;
+var parse4, parseAsync2, safeParse2, safeParseAsync2, encode2, decode2, encodeAsync2, decodeAsync2, safeEncode2, safeDecode2, safeEncodeAsync2, safeDecodeAsync2;
 var init_parse2 = __esm(() => {
   init_core2();
   init_errors2();
@@ -43782,6 +45165,14 @@ var init_parse2 = __esm(() => {
   parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
   safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
   safeParseAsync2 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
+  encode2 = /* @__PURE__ */ _encode(ZodRealError);
+  decode2 = /* @__PURE__ */ _decode(ZodRealError);
+  encodeAsync2 = /* @__PURE__ */ _encodeAsync(ZodRealError);
+  decodeAsync2 = /* @__PURE__ */ _decodeAsync(ZodRealError);
+  safeEncode2 = /* @__PURE__ */ _safeEncode(ZodRealError);
+  safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
+  safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
+  safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 });
 
 // node_modules/zod/v4/classic/schemas.js
@@ -43808,6 +45199,13 @@ function uuidv7(params) {
 }
 function url(params) {
   return _url(ZodURL, params);
+}
+function httpUrl(params) {
+  return _url(ZodURL, {
+    protocol: /^https?$/,
+    hostname: exports_regexes.domain,
+    ...exports_util.normalizeParams(params)
+  });
 }
 function emoji2(params) {
   return _emoji2(ZodEmoji, params);
@@ -43856,6 +45254,20 @@ function jwt(params) {
 }
 function stringFormat(format, fnOrRegex, _params = {}) {
   return _stringFormat(ZodCustomStringFormat, format, fnOrRegex, _params);
+}
+function hostname2(_params) {
+  return _stringFormat(ZodCustomStringFormat, "hostname", exports_regexes.hostname, _params);
+}
+function hex2(_params) {
+  return _stringFormat(ZodCustomStringFormat, "hex", exports_regexes.hex, _params);
+}
+function hash(alg, params) {
+  const enc = params?.enc ?? "hex";
+  const format = `${alg}_${enc}`;
+  const regex = exports_regexes[format];
+  if (!regex)
+    throw new Error(`Unrecognized hash format: ${format}`);
+  return _stringFormat(ZodCustomStringFormat, format, regex, params);
 }
 function number2(params) {
   return _number(ZodNumber, params);
@@ -43916,15 +45328,12 @@ function array(element, params) {
 }
 function keyof(schema) {
   const shape = schema._zod.def.shape;
-  return literal(Object.keys(shape));
+  return _enum2(Object.keys(shape));
 }
 function object(shape, params) {
   const def = {
     type: "object",
-    get shape() {
-      exports_util.assignProp(this, "shape", { ...shape });
-      return this.shape;
-    },
+    shape: shape ?? {},
     ...exports_util.normalizeParams(params)
   };
   return new ZodObject(def);
@@ -43932,10 +45341,7 @@ function object(shape, params) {
 function strictObject(shape, params) {
   return new ZodObject({
     type: "object",
-    get shape() {
-      exports_util.assignProp(this, "shape", { ...shape });
-      return this.shape;
-    },
+    shape,
     catchall: never(),
     ...exports_util.normalizeParams(params)
   });
@@ -43943,10 +45349,7 @@ function strictObject(shape, params) {
 function looseObject(shape, params) {
   return new ZodObject({
     type: "object",
-    get shape() {
-      exports_util.assignProp(this, "shape", { ...shape });
-      return this.shape;
-    },
+    shape,
     catchall: unknown(),
     ...exports_util.normalizeParams(params)
   });
@@ -43993,9 +45396,11 @@ function record(keyType, valueType, params) {
   });
 }
 function partialRecord(keyType, valueType, params) {
+  const k = clone(keyType);
+  k._zod.values = undefined;
   return new ZodRecord({
     type: "record",
-    keyType: union([keyType, never()]),
+    keyType: k,
     valueType,
     ...exports_util.normalizeParams(params)
   });
@@ -44066,7 +45471,7 @@ function _default2(innerType, defaultValue) {
     type: "default",
     innerType,
     get defaultValue() {
-      return typeof defaultValue === "function" ? defaultValue() : defaultValue;
+      return typeof defaultValue === "function" ? defaultValue() : exports_util.shallowClone(defaultValue);
     }
   });
 }
@@ -44075,7 +45480,7 @@ function prefault(innerType, defaultValue) {
     type: "prefault",
     innerType,
     get defaultValue() {
-      return typeof defaultValue === "function" ? defaultValue() : defaultValue;
+      return typeof defaultValue === "function" ? defaultValue() : exports_util.shallowClone(defaultValue);
     }
   });
 }
@@ -44109,6 +45514,15 @@ function pipe(in_, out) {
     out
   });
 }
+function codec(in_, out, params) {
+  return new ZodCodec({
+    type: "pipe",
+    in: in_,
+    out,
+    transform: params.decode,
+    reverseTransform: params.encode
+  });
+}
 function readonly(innerType) {
   return new ZodReadonly({
     type: "readonly",
@@ -44134,6 +45548,13 @@ function promise(innerType) {
     innerType
   });
 }
+function _function(params) {
+  return new ZodFunction({
+    type: "function",
+    input: Array.isArray(params?.input) ? tuple(params?.input) : params?.input ?? array(unknown()),
+    output: params?.output ?? unknown()
+  });
+}
 function check(fn) {
   const ch = new $ZodCheck({
     check: "custom"
@@ -44148,24 +45569,7 @@ function refine(fn, _params = {}) {
   return _refine(ZodCustom, fn, _params);
 }
 function superRefine(fn) {
-  const ch = check((payload) => {
-    payload.addIssue = (issue2) => {
-      if (typeof issue2 === "string") {
-        payload.issues.push(exports_util.issue(issue2, payload.value, ch._zod.def));
-      } else {
-        const _issue = issue2;
-        if (_issue.fatal)
-          _issue.continue = false;
-        _issue.code ?? (_issue.code = "custom");
-        _issue.input ?? (_issue.input = payload.value);
-        _issue.inst ?? (_issue.inst = ch);
-        _issue.continue ?? (_issue.continue = !ch._zod.def.abort);
-        payload.issues.push(exports_util.issue(_issue));
-      }
-    };
-    return fn(payload.value, payload);
-  });
-  return ch;
+  return _superRefine(fn);
 }
 function _instanceof(cls, params = {
   error: `Input not instance of ${cls.name}`
@@ -44189,11 +45593,10 @@ function json(params) {
 function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
-var ZodType, _ZodString, ZodString, ZodStringFormat, ZodEmail, ZodGUID, ZodUUID, ZodURL, ZodEmoji, ZodNanoID, ZodCUID, ZodCUID2, ZodULID, ZodXID, ZodKSUID, ZodIPv4, ZodIPv6, ZodCIDRv4, ZodCIDRv6, ZodBase64, ZodBase64URL, ZodE164, ZodJWT, ZodCustomStringFormat, ZodNumber, ZodNumberFormat, ZodBoolean, ZodBigInt, ZodBigIntFormat, ZodSymbol, ZodUndefined, ZodNull, ZodAny, ZodUnknown, ZodNever, ZodVoid, ZodDate, ZodArray, ZodObject, ZodUnion, ZodDiscriminatedUnion, ZodIntersection, ZodTuple, ZodRecord, ZodMap, ZodSet, ZodEnum, ZodLiteral, ZodFile, ZodTransform, ZodOptional, ZodNullable, ZodDefault, ZodPrefault, ZodNonOptional, ZodSuccess, ZodCatch, ZodNaN, ZodPipe, ZodReadonly, ZodTemplateLiteral, ZodLazy, ZodPromise, ZodCustom, stringbool = (...args) => _stringbool({
-  Pipe: ZodPipe,
+var ZodType, _ZodString, ZodString, ZodStringFormat, ZodEmail, ZodGUID, ZodUUID, ZodURL, ZodEmoji, ZodNanoID, ZodCUID, ZodCUID2, ZodULID, ZodXID, ZodKSUID, ZodIPv4, ZodIPv6, ZodCIDRv4, ZodCIDRv6, ZodBase64, ZodBase64URL, ZodE164, ZodJWT, ZodCustomStringFormat, ZodNumber, ZodNumberFormat, ZodBoolean, ZodBigInt, ZodBigIntFormat, ZodSymbol, ZodUndefined, ZodNull, ZodAny, ZodUnknown, ZodNever, ZodVoid, ZodDate, ZodArray, ZodObject, ZodUnion, ZodDiscriminatedUnion, ZodIntersection, ZodTuple, ZodRecord, ZodMap, ZodSet, ZodEnum, ZodLiteral, ZodFile, ZodTransform, ZodOptional, ZodNullable, ZodDefault, ZodPrefault, ZodNonOptional, ZodSuccess, ZodCatch, ZodNaN, ZodPipe, ZodCodec, ZodReadonly, ZodTemplateLiteral, ZodLazy, ZodPromise, ZodFunction, ZodCustom, stringbool = (...args) => _stringbool({
+  Codec: ZodCodec,
   Boolean: ZodBoolean,
-  String: ZodString,
-  Transform: ZodTransform
+  String: ZodString
 }, ...args);
 var init_schemas2 = __esm(() => {
   init_core2();
@@ -44204,15 +45607,15 @@ var init_schemas2 = __esm(() => {
   ZodType = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
     $ZodType.init(inst, def);
     inst.def = def;
+    inst.type = def.type;
     Object.defineProperty(inst, "_def", { value: def });
     inst.check = (...checks2) => {
-      return inst.clone({
-        ...def,
+      return inst.clone(exports_util.mergeDefs(def, {
         checks: [
           ...def.checks ?? [],
           ...checks2.map((ch) => typeof ch === "function" ? { _zod: { check: ch, def: { check: "custom" }, onattach: [] } } : ch)
         ]
-      });
+      }));
     };
     inst.clone = (def2, params) => clone(inst, def2, params);
     inst.brand = () => inst;
@@ -44225,6 +45628,14 @@ var init_schemas2 = __esm(() => {
     inst.parseAsync = async (data, params) => parseAsync2(inst, data, params, { callee: inst.parseAsync });
     inst.safeParseAsync = async (data, params) => safeParseAsync2(inst, data, params);
     inst.spa = inst.safeParseAsync;
+    inst.encode = (data, params) => encode2(inst, data, params);
+    inst.decode = (data, params) => decode2(inst, data, params);
+    inst.encodeAsync = async (data, params) => encodeAsync2(inst, data, params);
+    inst.decodeAsync = async (data, params) => decodeAsync2(inst, data, params);
+    inst.safeEncode = (data, params) => safeEncode2(inst, data, params);
+    inst.safeDecode = (data, params) => safeDecode2(inst, data, params);
+    inst.safeEncodeAsync = async (data, params) => safeEncodeAsync2(inst, data, params);
+    inst.safeDecodeAsync = async (data, params) => safeDecodeAsync2(inst, data, params);
     inst.refine = (check, params) => inst.check(refine(check, params));
     inst.superRefine = (refinement) => inst.check(superRefine(refinement));
     inst.overwrite = (fn) => inst.check(_overwrite(fn));
@@ -44507,9 +45918,11 @@ var init_schemas2 = __esm(() => {
     inst.unwrap = () => inst.element;
   });
   ZodObject = /* @__PURE__ */ $constructor("ZodObject", (inst, def) => {
-    $ZodObject.init(inst, def);
+    $ZodObjectJIT.init(inst, def);
     ZodType.init(inst, def);
-    exports_util.defineLazy(inst, "shape", () => def.shape);
+    exports_util.defineLazy(inst, "shape", () => {
+      return def.shape;
+    });
     inst.keyof = () => _enum2(Object.keys(inst._zod.def.shape));
     inst.catchall = (catchall) => inst.clone({ ...inst._zod.def, catchall });
     inst.passthrough = () => inst.clone({ ...inst._zod.def, catchall: unknown() });
@@ -44518,6 +45931,9 @@ var init_schemas2 = __esm(() => {
     inst.strip = () => inst.clone({ ...inst._zod.def, catchall: undefined });
     inst.extend = (incoming) => {
       return exports_util.extend(inst, incoming);
+    };
+    inst.safeExtend = (incoming) => {
+      return exports_util.safeExtend(inst, incoming);
     };
     inst.merge = (other) => exports_util.merge(inst, other);
     inst.pick = (mask) => exports_util.pick(inst, mask);
@@ -44627,6 +46043,9 @@ var init_schemas2 = __esm(() => {
     $ZodTransform.init(inst, def);
     ZodType.init(inst, def);
     inst._zod.parse = (payload, _ctx) => {
+      if (_ctx.direction === "backward") {
+        throw new $ZodEncodeError(inst.constructor.name);
+      }
       payload.addIssue = (issue2) => {
         if (typeof issue2 === "string") {
           payload.issues.push(exports_util.issue(issue2, payload.value, def));
@@ -44637,7 +46056,6 @@ var init_schemas2 = __esm(() => {
           _issue.code ?? (_issue.code = "custom");
           _issue.input ?? (_issue.input = payload.value);
           _issue.inst ?? (_issue.inst = inst);
-          _issue.continue ?? (_issue.continue = true);
           payload.issues.push(exports_util.issue(_issue));
         }
       };
@@ -44699,9 +46117,14 @@ var init_schemas2 = __esm(() => {
     inst.in = def.in;
     inst.out = def.out;
   });
+  ZodCodec = /* @__PURE__ */ $constructor("ZodCodec", (inst, def) => {
+    ZodPipe.init(inst, def);
+    $ZodCodec.init(inst, def);
+  });
   ZodReadonly = /* @__PURE__ */ $constructor("ZodReadonly", (inst, def) => {
     $ZodReadonly.init(inst, def);
     ZodType.init(inst, def);
+    inst.unwrap = () => inst._zod.def.innerType;
   });
   ZodTemplateLiteral = /* @__PURE__ */ $constructor("ZodTemplateLiteral", (inst, def) => {
     $ZodTemplateLiteral.init(inst, def);
@@ -44716,6 +46139,10 @@ var init_schemas2 = __esm(() => {
     $ZodPromise.init(inst, def);
     ZodType.init(inst, def);
     inst.unwrap = () => inst._zod.def.innerType;
+  });
+  ZodFunction = /* @__PURE__ */ $constructor("ZodFunction", (inst, def) => {
+    $ZodFunction.init(inst, def);
+    ZodType.init(inst, def);
   });
   ZodCustom = /* @__PURE__ */ $constructor("ZodCustom", (inst, def) => {
     $ZodCustom.init(inst, def);
@@ -44732,7 +46159,7 @@ function setErrorMap(map2) {
 function getErrorMap() {
   return config().customError;
 }
-var ZodIssueCode;
+var ZodIssueCode, ZodFirstPartyTypeKind;
 var init_compat = __esm(() => {
   init_core2();
   ZodIssueCode = {
@@ -44748,6 +46175,7 @@ var init_compat = __esm(() => {
     invalid_value: "invalid_value",
     custom: "custom"
   };
+  (function(ZodFirstPartyTypeKind2) {})(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
 });
 
 // node_modules/zod/v4/classic/coerce.js
@@ -44788,6 +46216,7 @@ __export(exports_external, {
   uuidv6: () => uuidv6,
   uuidv4: () => uuidv4,
   uuid: () => uuid2,
+  util: () => exports_util,
   url: () => url,
   uppercase: () => _uppercase,
   unknown: () => unknown,
@@ -44817,6 +46246,10 @@ __export(exports_external, {
   set: () => set,
   safeParseAsync: () => safeParseAsync2,
   safeParse: () => safeParse2,
+  safeEncodeAsync: () => safeEncodeAsync2,
+  safeEncode: () => safeEncode2,
+  safeDecodeAsync: () => safeDecodeAsync2,
+  safeDecode: () => safeDecode2,
   registry: () => registry,
   regexes: () => exports_regexes,
   regex: () => _regex,
@@ -44877,6 +46310,10 @@ __export(exports_external, {
   int: () => int,
   instanceof: () => _instanceof,
   includes: () => _includes,
+  httpUrl: () => httpUrl,
+  hostname: () => hostname2,
+  hex: () => hex2,
+  hash: () => hash,
   guid: () => guid2,
   gte: () => _gte,
   gt: () => _gt,
@@ -44890,10 +46327,14 @@ __export(exports_external, {
   file: () => file,
   enum: () => _enum2,
   endsWith: () => _endsWith,
+  encodeAsync: () => encodeAsync2,
+  encode: () => encode2,
   emoji: () => emoji2,
   email: () => email2,
   e164: () => e1642,
   discriminatedUnion: () => discriminatedUnion,
+  decodeAsync: () => decodeAsync2,
+  decode: () => decode2,
   date: () => date3,
   custom: () => custom,
   cuid2: () => cuid22,
@@ -44901,6 +46342,7 @@ __export(exports_external, {
   core: () => exports_core2,
   config: () => config,
   coerce: () => exports_coerce,
+  codec: () => codec,
   clone: () => clone,
   cidrv6: () => cidrv62,
   cidrv4: () => cidrv42,
@@ -44912,6 +46354,7 @@ __export(exports_external, {
   base64: () => base642,
   array: () => array,
   any: () => any,
+  _function: () => _function,
   _default: () => _default2,
   _ZodString: () => _ZodString,
   ZodXID: () => ZodXID,
@@ -44961,6 +46404,8 @@ __export(exports_external, {
   ZodIPv6: () => ZodIPv6,
   ZodIPv4: () => ZodIPv4,
   ZodGUID: () => ZodGUID,
+  ZodFunction: () => ZodFunction,
+  ZodFirstPartyTypeKind: () => ZodFirstPartyTypeKind,
   ZodFile: () => ZodFile,
   ZodError: () => ZodError,
   ZodEnum: () => ZodEnum,
@@ -44972,6 +46417,7 @@ __export(exports_external, {
   ZodDate: () => ZodDate,
   ZodCustomStringFormat: () => ZodCustomStringFormat,
   ZodCustom: () => ZodCustom,
+  ZodCodec: () => ZodCodec,
   ZodCatch: () => ZodCatch,
   ZodCUID2: () => ZodCUID2,
   ZodCUID: () => ZodCUID,
@@ -45198,8 +46644,8 @@ var init_ZodError = __esm(() => {
         return issue2.message;
       };
       const fieldErrors = { _errors: [] };
-      const processError = (error40) => {
-        for (const issue2 of error40.issues) {
+      const processError = (error46) => {
+        for (const issue2 of error46.issues) {
           if (issue2.code === "invalid_union") {
             issue2.unionErrors.map(processError);
           } else if (issue2.code === "invalid_return_type") {
@@ -45244,7 +46690,7 @@ var init_ZodError = __esm(() => {
       return this.issues.length === 0;
     }
     flatten(mapper = (issue2) => issue2.message) {
-      const fieldErrors = {};
+      const fieldErrors = Object.create(null);
       const formErrors = [];
       for (const sub of this.issues) {
         if (sub.path.length > 0) {
@@ -45262,8 +46708,8 @@ var init_ZodError = __esm(() => {
     }
   };
   ZodError2.create = (issues) => {
-    const error40 = new ZodError2(issues);
-    return error40;
+    const error46 = new ZodError2(issues);
+    return error46;
   };
 });
 
@@ -45713,7 +47159,7 @@ class ZodType2 {
   _refinement(refinement) {
     return new ZodEffects({
       schema: this,
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
+      typeName: ZodFirstPartyTypeKind2.ZodEffects,
       effect: { type: "refinement", refinement }
     });
   }
@@ -45778,7 +47224,7 @@ class ZodType2 {
     return new ZodEffects({
       ...processCreateParams(this._def),
       schema: this,
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
+      typeName: ZodFirstPartyTypeKind2.ZodEffects,
       effect: { type: "transform", transform: transform2 }
     });
   }
@@ -45788,12 +47234,12 @@ class ZodType2 {
       ...processCreateParams(this._def),
       innerType: this,
       defaultValue: defaultValueFunc,
-      typeName: ZodFirstPartyTypeKind.ZodDefault
+      typeName: ZodFirstPartyTypeKind2.ZodDefault
     });
   }
   brand() {
     return new ZodBranded({
-      typeName: ZodFirstPartyTypeKind.ZodBranded,
+      typeName: ZodFirstPartyTypeKind2.ZodBranded,
       type: this,
       ...processCreateParams(this._def)
     });
@@ -45804,7 +47250,7 @@ class ZodType2 {
       ...processCreateParams(this._def),
       innerType: this,
       catchValue: catchValueFunc,
-      typeName: ZodFirstPartyTypeKind.ZodCatch
+      typeName: ZodFirstPartyTypeKind2.ZodCatch
     });
   }
   describe(description) {
@@ -45964,7 +47410,7 @@ function mergeValues2(a, b) {
 function createZodEnum(values, params) {
   return new ZodEnum2({
     values,
-    typeName: ZodFirstPartyTypeKind.ZodEnum,
+    typeName: ZodFirstPartyTypeKind2.ZodEnum,
     ...processCreateParams(params)
   });
 }
@@ -45980,8 +47426,8 @@ var handleResult = (ctx, result) => {
       get error() {
         if (this._error)
           return this._error;
-        const error40 = new ZodError2(ctx.common.issues);
-        this._error = error40;
+        const error46 = new ZodError2(ctx.common.issues);
+        this._error = error46;
         return this._error;
       }
     };
@@ -46016,7 +47462,7 @@ var handleResult = (ctx, result) => {
   } else {
     return [];
   }
-}, ZodDiscriminatedUnion2, ZodIntersection2, ZodTuple2, ZodRecord2, ZodMap2, ZodSet2, ZodFunction, ZodLazy2, ZodLiteral2, ZodEnum2, ZodNativeEnum, ZodPromise2, ZodEffects, ZodOptional2, ZodNullable2, ZodDefault2, ZodCatch2, ZodNaN2, BRAND, ZodBranded, ZodPipeline, ZodReadonly2, late, ZodFirstPartyTypeKind, stringType, numberType, nanType, bigIntType, booleanType, dateType, symbolType, undefinedType, nullType, anyType, unknownType, neverType, voidType, arrayType, objectType, strictObjectType, unionType, discriminatedUnionType, intersectionType, tupleType, recordType, mapType, setType, functionType, lazyType, literalType, enumType, nativeEnumType, promiseType, effectsType, optionalType, nullableType, preprocessType, pipelineType;
+}, ZodDiscriminatedUnion2, ZodIntersection2, ZodTuple2, ZodRecord2, ZodMap2, ZodSet2, ZodFunction2, ZodLazy2, ZodLiteral2, ZodEnum2, ZodNativeEnum, ZodPromise2, ZodEffects, ZodOptional2, ZodNullable2, ZodDefault2, ZodCatch2, ZodNaN2, BRAND, ZodBranded, ZodPipeline, ZodReadonly2, late, ZodFirstPartyTypeKind2, stringType, numberType, nanType, bigIntType, booleanType, dateType, symbolType, undefinedType, nullType, anyType, unknownType, neverType, voidType, arrayType, objectType, strictObjectType, unionType, discriminatedUnionType, intersectionType, tupleType, recordType, mapType, setType, functionType, lazyType, literalType, enumType, nativeEnumType, promiseType, effectsType, optionalType, nullableType, preprocessType, pipelineType;
 var init_types = __esm(() => {
   init_ZodError();
   init_errors3();
@@ -46043,8 +47489,8 @@ var init_types = __esm(() => {
       if (this._def.coerce) {
         input.data = String(input.data);
       }
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.string) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.string) {
         const ctx2 = this._getOrReturnCtx(input);
         addIssueToContext(ctx2, {
           code: ZodIssueCode2.invalid_type,
@@ -46576,7 +48022,7 @@ var init_types = __esm(() => {
   ZodString2.create = (params) => {
     return new ZodString2({
       checks: [],
-      typeName: ZodFirstPartyTypeKind.ZodString,
+      typeName: ZodFirstPartyTypeKind2.ZodString,
       coerce: params?.coerce ?? false,
       ...processCreateParams(params)
     });
@@ -46592,8 +48038,8 @@ var init_types = __esm(() => {
       if (this._def.coerce) {
         input.data = Number(input.data);
       }
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.number) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.number) {
         const ctx2 = this._getOrReturnCtx(input);
         addIssueToContext(ctx2, {
           code: ZodIssueCode2.invalid_type,
@@ -46808,7 +48254,7 @@ var init_types = __esm(() => {
   ZodNumber2.create = (params) => {
     return new ZodNumber2({
       checks: [],
-      typeName: ZodFirstPartyTypeKind.ZodNumber,
+      typeName: ZodFirstPartyTypeKind2.ZodNumber,
       coerce: params?.coerce || false,
       ...processCreateParams(params)
     });
@@ -46827,8 +48273,8 @@ var init_types = __esm(() => {
           return this._getInvalidInput(input);
         }
       }
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.bigint) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.bigint) {
         return this._getInvalidInput(input);
       }
       let ctx = undefined;
@@ -46980,7 +48426,7 @@ var init_types = __esm(() => {
   ZodBigInt2.create = (params) => {
     return new ZodBigInt2({
       checks: [],
-      typeName: ZodFirstPartyTypeKind.ZodBigInt,
+      typeName: ZodFirstPartyTypeKind2.ZodBigInt,
       coerce: params?.coerce ?? false,
       ...processCreateParams(params)
     });
@@ -46990,8 +48436,8 @@ var init_types = __esm(() => {
       if (this._def.coerce) {
         input.data = Boolean(input.data);
       }
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.boolean) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.boolean) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -47005,7 +48451,7 @@ var init_types = __esm(() => {
   };
   ZodBoolean2.create = (params) => {
     return new ZodBoolean2({
-      typeName: ZodFirstPartyTypeKind.ZodBoolean,
+      typeName: ZodFirstPartyTypeKind2.ZodBoolean,
       coerce: params?.coerce || false,
       ...processCreateParams(params)
     });
@@ -47015,8 +48461,8 @@ var init_types = __esm(() => {
       if (this._def.coerce) {
         input.data = new Date(input.data);
       }
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.date) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.date) {
         const ctx2 = this._getOrReturnCtx(input);
         addIssueToContext(ctx2, {
           code: ZodIssueCode2.invalid_type,
@@ -47115,14 +48561,14 @@ var init_types = __esm(() => {
     return new ZodDate2({
       checks: [],
       coerce: params?.coerce || false,
-      typeName: ZodFirstPartyTypeKind.ZodDate,
+      typeName: ZodFirstPartyTypeKind2.ZodDate,
       ...processCreateParams(params)
     });
   };
   ZodSymbol2 = class ZodSymbol2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.symbol) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.symbol) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -47136,14 +48582,14 @@ var init_types = __esm(() => {
   };
   ZodSymbol2.create = (params) => {
     return new ZodSymbol2({
-      typeName: ZodFirstPartyTypeKind.ZodSymbol,
+      typeName: ZodFirstPartyTypeKind2.ZodSymbol,
       ...processCreateParams(params)
     });
   };
   ZodUndefined2 = class ZodUndefined2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.undefined) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.undefined) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -47157,14 +48603,14 @@ var init_types = __esm(() => {
   };
   ZodUndefined2.create = (params) => {
     return new ZodUndefined2({
-      typeName: ZodFirstPartyTypeKind.ZodUndefined,
+      typeName: ZodFirstPartyTypeKind2.ZodUndefined,
       ...processCreateParams(params)
     });
   };
   ZodNull2 = class ZodNull2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.null) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.null) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -47178,7 +48624,7 @@ var init_types = __esm(() => {
   };
   ZodNull2.create = (params) => {
     return new ZodNull2({
-      typeName: ZodFirstPartyTypeKind.ZodNull,
+      typeName: ZodFirstPartyTypeKind2.ZodNull,
       ...processCreateParams(params)
     });
   };
@@ -47193,7 +48639,7 @@ var init_types = __esm(() => {
   };
   ZodAny2.create = (params) => {
     return new ZodAny2({
-      typeName: ZodFirstPartyTypeKind.ZodAny,
+      typeName: ZodFirstPartyTypeKind2.ZodAny,
       ...processCreateParams(params)
     });
   };
@@ -47208,7 +48654,7 @@ var init_types = __esm(() => {
   };
   ZodUnknown2.create = (params) => {
     return new ZodUnknown2({
-      typeName: ZodFirstPartyTypeKind.ZodUnknown,
+      typeName: ZodFirstPartyTypeKind2.ZodUnknown,
       ...processCreateParams(params)
     });
   };
@@ -47225,14 +48671,14 @@ var init_types = __esm(() => {
   };
   ZodNever2.create = (params) => {
     return new ZodNever2({
-      typeName: ZodFirstPartyTypeKind.ZodNever,
+      typeName: ZodFirstPartyTypeKind2.ZodNever,
       ...processCreateParams(params)
     });
   };
   ZodVoid2 = class ZodVoid2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.undefined) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.undefined) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -47246,7 +48692,7 @@ var init_types = __esm(() => {
   };
   ZodVoid2.create = (params) => {
     return new ZodVoid2({
-      typeName: ZodFirstPartyTypeKind.ZodVoid,
+      typeName: ZodFirstPartyTypeKind2.ZodVoid,
       ...processCreateParams(params)
     });
   };
@@ -47347,7 +48793,7 @@ var init_types = __esm(() => {
       minLength: null,
       maxLength: null,
       exactLength: null,
-      typeName: ZodFirstPartyTypeKind.ZodArray,
+      typeName: ZodFirstPartyTypeKind2.ZodArray,
       ...processCreateParams(params)
     });
   };
@@ -47367,8 +48813,8 @@ var init_types = __esm(() => {
       return this._cached;
     }
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.object) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.object) {
         const ctx2 = this._getOrReturnCtx(input);
         addIssueToContext(ctx2, {
           code: ZodIssueCode2.invalid_type,
@@ -47499,7 +48945,7 @@ var init_types = __esm(() => {
           ...this._def.shape(),
           ...merging._def.shape()
         }),
-        typeName: ZodFirstPartyTypeKind.ZodObject
+        typeName: ZodFirstPartyTypeKind2.ZodObject
       });
       return merged;
     }
@@ -47582,7 +49028,7 @@ var init_types = __esm(() => {
       shape: () => shape,
       unknownKeys: "strip",
       catchall: ZodNever2.create(),
-      typeName: ZodFirstPartyTypeKind.ZodObject,
+      typeName: ZodFirstPartyTypeKind2.ZodObject,
       ...processCreateParams(params)
     });
   };
@@ -47591,7 +49037,7 @@ var init_types = __esm(() => {
       shape: () => shape,
       unknownKeys: "strict",
       catchall: ZodNever2.create(),
-      typeName: ZodFirstPartyTypeKind.ZodObject,
+      typeName: ZodFirstPartyTypeKind2.ZodObject,
       ...processCreateParams(params)
     });
   };
@@ -47600,7 +49046,7 @@ var init_types = __esm(() => {
       shape,
       unknownKeys: "strip",
       catchall: ZodNever2.create(),
-      typeName: ZodFirstPartyTypeKind.ZodObject,
+      typeName: ZodFirstPartyTypeKind2.ZodObject,
       ...processCreateParams(params)
     });
   };
@@ -47691,7 +49137,7 @@ var init_types = __esm(() => {
   ZodUnion2.create = (types, params) => {
     return new ZodUnion2({
       options: types,
-      typeName: ZodFirstPartyTypeKind.ZodUnion,
+      typeName: ZodFirstPartyTypeKind2.ZodUnion,
       ...processCreateParams(params)
     });
   };
@@ -47755,7 +49201,7 @@ var init_types = __esm(() => {
         }
       }
       return new ZodDiscriminatedUnion2({
-        typeName: ZodFirstPartyTypeKind.ZodDiscriminatedUnion,
+        typeName: ZodFirstPartyTypeKind2.ZodDiscriminatedUnion,
         discriminator,
         options: options2,
         optionsMap,
@@ -47812,7 +49258,7 @@ var init_types = __esm(() => {
     return new ZodIntersection2({
       left,
       right,
-      typeName: ZodFirstPartyTypeKind.ZodIntersection,
+      typeName: ZodFirstPartyTypeKind2.ZodIntersection,
       ...processCreateParams(params)
     });
   };
@@ -47878,7 +49324,7 @@ var init_types = __esm(() => {
     }
     return new ZodTuple2({
       items: schemas3,
-      typeName: ZodFirstPartyTypeKind.ZodTuple,
+      typeName: ZodFirstPartyTypeKind2.ZodTuple,
       rest: null,
       ...processCreateParams(params)
     });
@@ -47924,14 +49370,14 @@ var init_types = __esm(() => {
         return new ZodRecord2({
           keyType: first,
           valueType: second,
-          typeName: ZodFirstPartyTypeKind.ZodRecord,
+          typeName: ZodFirstPartyTypeKind2.ZodRecord,
           ...processCreateParams(third)
         });
       }
       return new ZodRecord2({
         keyType: ZodString2.create(),
         valueType: first,
-        typeName: ZodFirstPartyTypeKind.ZodRecord,
+        typeName: ZodFirstPartyTypeKind2.ZodRecord,
         ...processCreateParams(second)
       });
     }
@@ -47998,7 +49444,7 @@ var init_types = __esm(() => {
     return new ZodMap2({
       valueType,
       keyType,
-      typeName: ZodFirstPartyTypeKind.ZodMap,
+      typeName: ZodFirstPartyTypeKind2.ZodMap,
       ...processCreateParams(params)
     });
   };
@@ -48083,11 +49529,11 @@ var init_types = __esm(() => {
       valueType,
       minSize: null,
       maxSize: null,
-      typeName: ZodFirstPartyTypeKind.ZodSet,
+      typeName: ZodFirstPartyTypeKind2.ZodSet,
       ...processCreateParams(params)
     });
   };
-  ZodFunction = class ZodFunction extends ZodType2 {
+  ZodFunction2 = class ZodFunction2 extends ZodType2 {
     constructor() {
       super(...arguments);
       this.validate = this.implement;
@@ -48102,25 +49548,25 @@ var init_types = __esm(() => {
         });
         return INVALID;
       }
-      function makeArgsIssue(args, error40) {
+      function makeArgsIssue(args, error46) {
         return makeIssue({
           data: args,
           path: ctx.path,
           errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x) => !!x),
           issueData: {
             code: ZodIssueCode2.invalid_arguments,
-            argumentsError: error40
+            argumentsError: error46
           }
         });
       }
-      function makeReturnsIssue(returns, error40) {
+      function makeReturnsIssue(returns, error46) {
         return makeIssue({
           data: returns,
           path: ctx.path,
           errorMaps: [ctx.common.contextualErrorMap, ctx.schemaErrorMap, getErrorMap2(), en_default2].filter((x) => !!x),
           issueData: {
             code: ZodIssueCode2.invalid_return_type,
-            returnTypeError: error40
+            returnTypeError: error46
           }
         });
       }
@@ -48129,15 +49575,15 @@ var init_types = __esm(() => {
       if (this._def.returns instanceof ZodPromise2) {
         const me = this;
         return OK(async function(...args) {
-          const error40 = new ZodError2([]);
+          const error46 = new ZodError2([]);
           const parsedArgs = await me._def.args.parseAsync(args, params).catch((e) => {
-            error40.addIssue(makeArgsIssue(args, e));
-            throw error40;
+            error46.addIssue(makeArgsIssue(args, e));
+            throw error46;
           });
           const result = await Reflect.apply(fn, this, parsedArgs);
           const parsedReturns = await me._def.returns._def.type.parseAsync(result, params).catch((e) => {
-            error40.addIssue(makeReturnsIssue(result, e));
-            throw error40;
+            error46.addIssue(makeReturnsIssue(result, e));
+            throw error46;
           });
           return parsedReturns;
         });
@@ -48164,13 +49610,13 @@ var init_types = __esm(() => {
       return this._def.returns;
     }
     args(...items) {
-      return new ZodFunction({
+      return new ZodFunction2({
         ...this._def,
         args: ZodTuple2.create(items).rest(ZodUnknown2.create())
       });
     }
     returns(returnType) {
-      return new ZodFunction({
+      return new ZodFunction2({
         ...this._def,
         returns: returnType
       });
@@ -48184,10 +49630,10 @@ var init_types = __esm(() => {
       return validatedFunc;
     }
     static create(args, returns, params) {
-      return new ZodFunction({
+      return new ZodFunction2({
         args: args ? args : ZodTuple2.create([]).rest(ZodUnknown2.create()),
         returns: returns || ZodUnknown2.create(),
-        typeName: ZodFirstPartyTypeKind.ZodFunction,
+        typeName: ZodFirstPartyTypeKind2.ZodFunction,
         ...processCreateParams(params)
       });
     }
@@ -48205,7 +49651,7 @@ var init_types = __esm(() => {
   ZodLazy2.create = (getter, params) => {
     return new ZodLazy2({
       getter,
-      typeName: ZodFirstPartyTypeKind.ZodLazy,
+      typeName: ZodFirstPartyTypeKind2.ZodLazy,
       ...processCreateParams(params)
     });
   };
@@ -48229,7 +49675,7 @@ var init_types = __esm(() => {
   ZodLiteral2.create = (value, params) => {
     return new ZodLiteral2({
       value,
-      typeName: ZodFirstPartyTypeKind.ZodLiteral,
+      typeName: ZodFirstPartyTypeKind2.ZodLiteral,
       ...processCreateParams(params)
     });
   };
@@ -48332,7 +49778,7 @@ var init_types = __esm(() => {
   ZodNativeEnum.create = (values, params) => {
     return new ZodNativeEnum({
       values,
-      typeName: ZodFirstPartyTypeKind.ZodNativeEnum,
+      typeName: ZodFirstPartyTypeKind2.ZodNativeEnum,
       ...processCreateParams(params)
     });
   };
@@ -48362,7 +49808,7 @@ var init_types = __esm(() => {
   ZodPromise2.create = (schema, params) => {
     return new ZodPromise2({
       type: schema,
-      typeName: ZodFirstPartyTypeKind.ZodPromise,
+      typeName: ZodFirstPartyTypeKind2.ZodPromise,
       ...processCreateParams(params)
     });
   };
@@ -48371,7 +49817,7 @@ var init_types = __esm(() => {
       return this._def.schema;
     }
     sourceType() {
-      return this._def.schema._def.typeName === ZodFirstPartyTypeKind.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
+      return this._def.schema._def.typeName === ZodFirstPartyTypeKind2.ZodEffects ? this._def.schema.sourceType() : this._def.schema;
     }
     _parse(input) {
       const { status, ctx } = this._processInputParams(input);
@@ -48492,7 +49938,7 @@ var init_types = __esm(() => {
   ZodEffects.create = (schema, effect, params) => {
     return new ZodEffects({
       schema,
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
+      typeName: ZodFirstPartyTypeKind2.ZodEffects,
       effect,
       ...processCreateParams(params)
     });
@@ -48501,14 +49947,14 @@ var init_types = __esm(() => {
     return new ZodEffects({
       schema,
       effect: { type: "preprocess", transform: preprocess2 },
-      typeName: ZodFirstPartyTypeKind.ZodEffects,
+      typeName: ZodFirstPartyTypeKind2.ZodEffects,
       ...processCreateParams(params)
     });
   };
   ZodOptional2 = class ZodOptional2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 === ZodParsedType.undefined) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 === ZodParsedType.undefined) {
         return OK(undefined);
       }
       return this._def.innerType._parse(input);
@@ -48520,14 +49966,14 @@ var init_types = __esm(() => {
   ZodOptional2.create = (type, params) => {
     return new ZodOptional2({
       innerType: type,
-      typeName: ZodFirstPartyTypeKind.ZodOptional,
+      typeName: ZodFirstPartyTypeKind2.ZodOptional,
       ...processCreateParams(params)
     });
   };
   ZodNullable2 = class ZodNullable2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 === ZodParsedType.null) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 === ZodParsedType.null) {
         return OK(null);
       }
       return this._def.innerType._parse(input);
@@ -48539,7 +49985,7 @@ var init_types = __esm(() => {
   ZodNullable2.create = (type, params) => {
     return new ZodNullable2({
       innerType: type,
-      typeName: ZodFirstPartyTypeKind.ZodNullable,
+      typeName: ZodFirstPartyTypeKind2.ZodNullable,
       ...processCreateParams(params)
     });
   };
@@ -48563,7 +50009,7 @@ var init_types = __esm(() => {
   ZodDefault2.create = (type, params) => {
     return new ZodDefault2({
       innerType: type,
-      typeName: ZodFirstPartyTypeKind.ZodDefault,
+      typeName: ZodFirstPartyTypeKind2.ZodDefault,
       defaultValue: typeof params.default === "function" ? params.default : () => params.default,
       ...processCreateParams(params)
     });
@@ -48616,15 +50062,15 @@ var init_types = __esm(() => {
   ZodCatch2.create = (type, params) => {
     return new ZodCatch2({
       innerType: type,
-      typeName: ZodFirstPartyTypeKind.ZodCatch,
+      typeName: ZodFirstPartyTypeKind2.ZodCatch,
       catchValue: typeof params.catch === "function" ? params.catch : () => params.catch,
       ...processCreateParams(params)
     });
   };
   ZodNaN2 = class ZodNaN2 extends ZodType2 {
     _parse(input) {
-      const parsedType4 = this._getType(input);
-      if (parsedType4 !== ZodParsedType.nan) {
+      const parsedType8 = this._getType(input);
+      if (parsedType8 !== ZodParsedType.nan) {
         const ctx = this._getOrReturnCtx(input);
         addIssueToContext(ctx, {
           code: ZodIssueCode2.invalid_type,
@@ -48638,7 +50084,7 @@ var init_types = __esm(() => {
   };
   ZodNaN2.create = (params) => {
     return new ZodNaN2({
-      typeName: ZodFirstPartyTypeKind.ZodNaN,
+      typeName: ZodFirstPartyTypeKind2.ZodNaN,
       ...processCreateParams(params)
     });
   };
@@ -48708,7 +50154,7 @@ var init_types = __esm(() => {
       return new ZodPipeline({
         in: a,
         out: b,
-        typeName: ZodFirstPartyTypeKind.ZodPipeline
+        typeName: ZodFirstPartyTypeKind2.ZodPipeline
       });
     }
   };
@@ -48730,51 +50176,51 @@ var init_types = __esm(() => {
   ZodReadonly2.create = (type, params) => {
     return new ZodReadonly2({
       innerType: type,
-      typeName: ZodFirstPartyTypeKind.ZodReadonly,
+      typeName: ZodFirstPartyTypeKind2.ZodReadonly,
       ...processCreateParams(params)
     });
   };
   late = {
     object: ZodObject2.lazycreate
   };
-  (function(ZodFirstPartyTypeKind2) {
-    ZodFirstPartyTypeKind2["ZodString"] = "ZodString";
-    ZodFirstPartyTypeKind2["ZodNumber"] = "ZodNumber";
-    ZodFirstPartyTypeKind2["ZodNaN"] = "ZodNaN";
-    ZodFirstPartyTypeKind2["ZodBigInt"] = "ZodBigInt";
-    ZodFirstPartyTypeKind2["ZodBoolean"] = "ZodBoolean";
-    ZodFirstPartyTypeKind2["ZodDate"] = "ZodDate";
-    ZodFirstPartyTypeKind2["ZodSymbol"] = "ZodSymbol";
-    ZodFirstPartyTypeKind2["ZodUndefined"] = "ZodUndefined";
-    ZodFirstPartyTypeKind2["ZodNull"] = "ZodNull";
-    ZodFirstPartyTypeKind2["ZodAny"] = "ZodAny";
-    ZodFirstPartyTypeKind2["ZodUnknown"] = "ZodUnknown";
-    ZodFirstPartyTypeKind2["ZodNever"] = "ZodNever";
-    ZodFirstPartyTypeKind2["ZodVoid"] = "ZodVoid";
-    ZodFirstPartyTypeKind2["ZodArray"] = "ZodArray";
-    ZodFirstPartyTypeKind2["ZodObject"] = "ZodObject";
-    ZodFirstPartyTypeKind2["ZodUnion"] = "ZodUnion";
-    ZodFirstPartyTypeKind2["ZodDiscriminatedUnion"] = "ZodDiscriminatedUnion";
-    ZodFirstPartyTypeKind2["ZodIntersection"] = "ZodIntersection";
-    ZodFirstPartyTypeKind2["ZodTuple"] = "ZodTuple";
-    ZodFirstPartyTypeKind2["ZodRecord"] = "ZodRecord";
-    ZodFirstPartyTypeKind2["ZodMap"] = "ZodMap";
-    ZodFirstPartyTypeKind2["ZodSet"] = "ZodSet";
-    ZodFirstPartyTypeKind2["ZodFunction"] = "ZodFunction";
-    ZodFirstPartyTypeKind2["ZodLazy"] = "ZodLazy";
-    ZodFirstPartyTypeKind2["ZodLiteral"] = "ZodLiteral";
-    ZodFirstPartyTypeKind2["ZodEnum"] = "ZodEnum";
-    ZodFirstPartyTypeKind2["ZodEffects"] = "ZodEffects";
-    ZodFirstPartyTypeKind2["ZodNativeEnum"] = "ZodNativeEnum";
-    ZodFirstPartyTypeKind2["ZodOptional"] = "ZodOptional";
-    ZodFirstPartyTypeKind2["ZodNullable"] = "ZodNullable";
-    ZodFirstPartyTypeKind2["ZodDefault"] = "ZodDefault";
-    ZodFirstPartyTypeKind2["ZodCatch"] = "ZodCatch";
-    ZodFirstPartyTypeKind2["ZodPromise"] = "ZodPromise";
-    ZodFirstPartyTypeKind2["ZodBranded"] = "ZodBranded";
-    ZodFirstPartyTypeKind2["ZodPipeline"] = "ZodPipeline";
-    ZodFirstPartyTypeKind2["ZodReadonly"] = "ZodReadonly";
-  })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
+  (function(ZodFirstPartyTypeKind3) {
+    ZodFirstPartyTypeKind3["ZodString"] = "ZodString";
+    ZodFirstPartyTypeKind3["ZodNumber"] = "ZodNumber";
+    ZodFirstPartyTypeKind3["ZodNaN"] = "ZodNaN";
+    ZodFirstPartyTypeKind3["ZodBigInt"] = "ZodBigInt";
+    ZodFirstPartyTypeKind3["ZodBoolean"] = "ZodBoolean";
+    ZodFirstPartyTypeKind3["ZodDate"] = "ZodDate";
+    ZodFirstPartyTypeKind3["ZodSymbol"] = "ZodSymbol";
+    ZodFirstPartyTypeKind3["ZodUndefined"] = "ZodUndefined";
+    ZodFirstPartyTypeKind3["ZodNull"] = "ZodNull";
+    ZodFirstPartyTypeKind3["ZodAny"] = "ZodAny";
+    ZodFirstPartyTypeKind3["ZodUnknown"] = "ZodUnknown";
+    ZodFirstPartyTypeKind3["ZodNever"] = "ZodNever";
+    ZodFirstPartyTypeKind3["ZodVoid"] = "ZodVoid";
+    ZodFirstPartyTypeKind3["ZodArray"] = "ZodArray";
+    ZodFirstPartyTypeKind3["ZodObject"] = "ZodObject";
+    ZodFirstPartyTypeKind3["ZodUnion"] = "ZodUnion";
+    ZodFirstPartyTypeKind3["ZodDiscriminatedUnion"] = "ZodDiscriminatedUnion";
+    ZodFirstPartyTypeKind3["ZodIntersection"] = "ZodIntersection";
+    ZodFirstPartyTypeKind3["ZodTuple"] = "ZodTuple";
+    ZodFirstPartyTypeKind3["ZodRecord"] = "ZodRecord";
+    ZodFirstPartyTypeKind3["ZodMap"] = "ZodMap";
+    ZodFirstPartyTypeKind3["ZodSet"] = "ZodSet";
+    ZodFirstPartyTypeKind3["ZodFunction"] = "ZodFunction";
+    ZodFirstPartyTypeKind3["ZodLazy"] = "ZodLazy";
+    ZodFirstPartyTypeKind3["ZodLiteral"] = "ZodLiteral";
+    ZodFirstPartyTypeKind3["ZodEnum"] = "ZodEnum";
+    ZodFirstPartyTypeKind3["ZodEffects"] = "ZodEffects";
+    ZodFirstPartyTypeKind3["ZodNativeEnum"] = "ZodNativeEnum";
+    ZodFirstPartyTypeKind3["ZodOptional"] = "ZodOptional";
+    ZodFirstPartyTypeKind3["ZodNullable"] = "ZodNullable";
+    ZodFirstPartyTypeKind3["ZodDefault"] = "ZodDefault";
+    ZodFirstPartyTypeKind3["ZodCatch"] = "ZodCatch";
+    ZodFirstPartyTypeKind3["ZodPromise"] = "ZodPromise";
+    ZodFirstPartyTypeKind3["ZodBranded"] = "ZodBranded";
+    ZodFirstPartyTypeKind3["ZodPipeline"] = "ZodPipeline";
+    ZodFirstPartyTypeKind3["ZodReadonly"] = "ZodReadonly";
+  })(ZodFirstPartyTypeKind2 || (ZodFirstPartyTypeKind2 = {}));
   stringType = ZodString2.create;
   numberType = ZodNumber2.create;
   nanType = ZodNaN2.create;
@@ -48798,7 +50244,7 @@ var init_types = __esm(() => {
   recordType = ZodRecord2.create;
   mapType = ZodMap2.create;
   setType = ZodSet2.create;
-  functionType = ZodFunction.create;
+  functionType = ZodFunction2.create;
   lazyType = ZodLazy2.create;
   literalType = ZodLiteral2.create;
   enumType = ZodEnum2.create;
@@ -48830,17 +50276,17 @@ var init_v3 = __esm(() => {
 var init_dist28 = () => {};
 
 // node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs
-function getErrorMessage(error40) {
-  if (error40 == null) {
+function getErrorMessage(error46) {
+  if (error46 == null) {
     return "unknown error";
   }
-  if (typeof error40 === "string") {
-    return error40;
+  if (typeof error46 === "string") {
+    return error46;
   }
-  if (error40 instanceof Error) {
-    return error40.message;
+  if (error46 instanceof Error) {
+    return error46.message;
   }
-  return JSON.stringify(error40);
+  return JSON.stringify(error46);
 }
 var marker = "vercel.ai.error", symbol2, _a, _AISDKError, AISDKError, name = "AI_APICallError", marker2, symbol22, _a2, name2 = "AI_EmptyResponseBodyError", marker3, symbol3, _a3, name3 = "AI_InvalidArgumentError", marker4, symbol4, _a4, InvalidArgumentError, name4 = "AI_InvalidPromptError", marker5, symbol5, _a5, name5 = "AI_InvalidResponseDataError", marker6, symbol6, _a6, name6 = "AI_JSONParseError", marker7, symbol7, _a7, JSONParseError, name7 = "AI_LoadAPIKeyError", marker8, symbol8, _a8, name8 = "AI_LoadSettingError", marker9, symbol9, _a9, name9 = "AI_NoContentGeneratedError", marker10, symbol10, _a10, name10 = "AI_NoSuchModelError", marker11, symbol11, _a11, name11 = "AI_TooManyEmbeddingValuesForCallError", marker12, symbol12, _a12, name12 = "AI_TypeValidationError", marker13, symbol13, _a13, _TypeValidationError, TypeValidationError, name13 = "AI_UnsupportedFunctionalityError", marker14, symbol14, _a14;
 var init_dist29 = __esm(() => {
@@ -48856,12 +50302,12 @@ var init_dist29 = __esm(() => {
       this.name = name14;
       this.cause = cause;
     }
-    static isInstance(error40) {
-      return _AISDKError2.hasMarker(error40, marker);
+    static isInstance(error46) {
+      return _AISDKError2.hasMarker(error46, marker);
     }
-    static hasMarker(error40, marker15) {
+    static hasMarker(error46, marker15) {
       const markerSymbol = Symbol.for(marker15);
-      return error40 != null && typeof error40 === "object" && markerSymbol in error40 && typeof error40[markerSymbol] === "boolean" && error40[markerSymbol] === true;
+      return error46 != null && typeof error46 === "object" && markerSymbol in error46 && typeof error46[markerSymbol] === "boolean" && error46[markerSymbol] === true;
     }
   };
   _a = symbol2;
@@ -48884,8 +50330,8 @@ var init_dist29 = __esm(() => {
       this[_a4] = true;
       this.argument = argument;
     }
-    static isInstance(error40) {
-      return AISDKError.hasMarker(error40, marker4);
+    static isInstance(error46) {
+      return AISDKError.hasMarker(error46, marker4);
     }
   };
   _a4 = symbol4;
@@ -48908,8 +50354,8 @@ Error message: ${getErrorMessage(cause)}`,
       this[_a7] = true;
       this.text = text;
     }
-    static isInstance(error40) {
-      return AISDKError.hasMarker(error40, marker7);
+    static isInstance(error46) {
+      return AISDKError.hasMarker(error46, marker7);
     }
   };
   _a7 = symbol7;
@@ -48941,8 +50387,8 @@ Error message: ${getErrorMessage(cause)}`,
       this[_a13] = true;
       this.value = value;
     }
-    static isInstance(error40) {
-      return AISDKError.hasMarker(error40, marker13);
+    static isInstance(error46) {
+      return AISDKError.hasMarker(error46, marker13);
     }
     static wrap({
       value,
@@ -49084,10 +50530,10 @@ async function safeValidateTypes({
       error: TypeValidationError.wrap({ value, cause: result.error }),
       rawValue: value
     };
-  } catch (error40) {
+  } catch (error46) {
     return {
       success: false,
-      error: TypeValidationError.wrap({ value, cause: error40 }),
+      error: TypeValidationError.wrap({ value, cause: error46 }),
       rawValue: value
     };
   }
@@ -49102,10 +50548,10 @@ async function safeParseJSON({
       return { success: true, value, rawValue: value };
     }
     return await safeValidateTypes({ value, schema });
-  } catch (error40) {
+  } catch (error46) {
     return {
       success: false,
-      error: JSONParseError.isInstance(error40) ? error40 : new JSONParseError({ text, cause: error40 }),
+      error: JSONParseError.isInstance(error46) ? error46 : new JSONParseError({ text, cause: error46 }),
       rawValue: undefined
     };
   }
@@ -49137,7 +50583,7 @@ function parseArrayDef(def, refs) {
   const res = {
     type: "array"
   };
-  if (((_a15 = def.type) == null ? undefined : _a15._def) && ((_c = (_b = def.type) == null ? undefined : _b._def) == null ? undefined : _c.typeName) !== ZodFirstPartyTypeKind.ZodAny) {
+  if (((_a15 = def.type) == null ? undefined : _a15._def) && ((_c = (_b = def.type) == null ? undefined : _b._def) == null ? undefined : _c.typeName) !== ZodFirstPartyTypeKind2.ZodAny) {
     res.items = parseDef(def.type._def, {
       ...refs,
       currentPath: [...refs.currentPath, "items"]
@@ -49256,14 +50702,14 @@ function parseIntersectionDef(def, refs) {
   return mergedAllOf.length ? { allOf: mergedAllOf } : undefined;
 }
 function parseLiteralDef(def) {
-  const parsedType4 = typeof def.value;
-  if (parsedType4 !== "bigint" && parsedType4 !== "number" && parsedType4 !== "boolean" && parsedType4 !== "string") {
+  const parsedType8 = typeof def.value;
+  if (parsedType8 !== "bigint" && parsedType8 !== "number" && parsedType8 !== "boolean" && parsedType8 !== "string") {
     return {
       type: Array.isArray(def.value) ? "array" : "object"
     };
   }
   return {
-    type: parsedType4 === "bigint" ? "integer" : parsedType4,
+    type: parsedType8 === "bigint" ? "integer" : parsedType8,
     const: def.value
   };
 }
@@ -49532,20 +50978,20 @@ function parseRecordDef(def, refs) {
       currentPath: [...refs.currentPath, "additionalProperties"]
     })) != null ? _a15 : refs.allowedAdditionalProperties
   };
-  if (((_b = def.keyType) == null ? undefined : _b._def.typeName) === ZodFirstPartyTypeKind.ZodString && ((_c = def.keyType._def.checks) == null ? undefined : _c.length)) {
+  if (((_b = def.keyType) == null ? undefined : _b._def.typeName) === ZodFirstPartyTypeKind2.ZodString && ((_c = def.keyType._def.checks) == null ? undefined : _c.length)) {
     const { type, ...keyType } = parseStringDef(def.keyType._def, refs);
     return {
       ...schema,
       propertyNames: keyType
     };
-  } else if (((_d = def.keyType) == null ? undefined : _d._def.typeName) === ZodFirstPartyTypeKind.ZodEnum) {
+  } else if (((_d = def.keyType) == null ? undefined : _d._def.typeName) === ZodFirstPartyTypeKind2.ZodEnum) {
     return {
       ...schema,
       propertyNames: {
         enum: def.keyType._def.values
       }
     };
-  } else if (((_e = def.keyType) == null ? undefined : _e._def.typeName) === ZodFirstPartyTypeKind.ZodBranded && def.keyType._def.type._def.typeName === ZodFirstPartyTypeKind.ZodString && ((_f = def.keyType._def.type._def.checks) == null ? undefined : _f.length)) {
+  } else if (((_e = def.keyType) == null ? undefined : _e._def.typeName) === ZodFirstPartyTypeKind2.ZodBranded && def.keyType._def.type._def.typeName === ZodFirstPartyTypeKind2.ZodString && ((_f = def.keyType._def.type._def.checks) == null ? undefined : _f.length)) {
     const { type, ...keyType } = parseBrandedDef(def.keyType._def, refs);
     return {
       ...schema,
@@ -49994,73 +51440,73 @@ var createIdGenerator = ({
   return parseDef(def.innerType._def, refs);
 }, selectParser = (def, typeName, refs) => {
   switch (typeName) {
-    case ZodFirstPartyTypeKind.ZodString:
+    case ZodFirstPartyTypeKind2.ZodString:
       return parseStringDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodNumber:
+    case ZodFirstPartyTypeKind2.ZodNumber:
       return parseNumberDef(def);
-    case ZodFirstPartyTypeKind.ZodObject:
+    case ZodFirstPartyTypeKind2.ZodObject:
       return parseObjectDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodBigInt:
+    case ZodFirstPartyTypeKind2.ZodBigInt:
       return parseBigintDef(def);
-    case ZodFirstPartyTypeKind.ZodBoolean:
+    case ZodFirstPartyTypeKind2.ZodBoolean:
       return parseBooleanDef();
-    case ZodFirstPartyTypeKind.ZodDate:
+    case ZodFirstPartyTypeKind2.ZodDate:
       return parseDateDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodUndefined:
+    case ZodFirstPartyTypeKind2.ZodUndefined:
       return parseUndefinedDef();
-    case ZodFirstPartyTypeKind.ZodNull:
+    case ZodFirstPartyTypeKind2.ZodNull:
       return parseNullDef();
-    case ZodFirstPartyTypeKind.ZodArray:
+    case ZodFirstPartyTypeKind2.ZodArray:
       return parseArrayDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodUnion:
-    case ZodFirstPartyTypeKind.ZodDiscriminatedUnion:
+    case ZodFirstPartyTypeKind2.ZodUnion:
+    case ZodFirstPartyTypeKind2.ZodDiscriminatedUnion:
       return parseUnionDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodIntersection:
+    case ZodFirstPartyTypeKind2.ZodIntersection:
       return parseIntersectionDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodTuple:
+    case ZodFirstPartyTypeKind2.ZodTuple:
       return parseTupleDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodRecord:
+    case ZodFirstPartyTypeKind2.ZodRecord:
       return parseRecordDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodLiteral:
+    case ZodFirstPartyTypeKind2.ZodLiteral:
       return parseLiteralDef(def);
-    case ZodFirstPartyTypeKind.ZodEnum:
+    case ZodFirstPartyTypeKind2.ZodEnum:
       return parseEnumDef(def);
-    case ZodFirstPartyTypeKind.ZodNativeEnum:
+    case ZodFirstPartyTypeKind2.ZodNativeEnum:
       return parseNativeEnumDef(def);
-    case ZodFirstPartyTypeKind.ZodNullable:
+    case ZodFirstPartyTypeKind2.ZodNullable:
       return parseNullableDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodOptional:
+    case ZodFirstPartyTypeKind2.ZodOptional:
       return parseOptionalDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodMap:
+    case ZodFirstPartyTypeKind2.ZodMap:
       return parseMapDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodSet:
+    case ZodFirstPartyTypeKind2.ZodSet:
       return parseSetDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodLazy:
+    case ZodFirstPartyTypeKind2.ZodLazy:
       return () => def.getter()._def;
-    case ZodFirstPartyTypeKind.ZodPromise:
+    case ZodFirstPartyTypeKind2.ZodPromise:
       return parsePromiseDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodNaN:
-    case ZodFirstPartyTypeKind.ZodNever:
+    case ZodFirstPartyTypeKind2.ZodNaN:
+    case ZodFirstPartyTypeKind2.ZodNever:
       return parseNeverDef();
-    case ZodFirstPartyTypeKind.ZodEffects:
+    case ZodFirstPartyTypeKind2.ZodEffects:
       return parseEffectsDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodAny:
+    case ZodFirstPartyTypeKind2.ZodAny:
       return parseAnyDef();
-    case ZodFirstPartyTypeKind.ZodUnknown:
+    case ZodFirstPartyTypeKind2.ZodUnknown:
       return parseUnknownDef();
-    case ZodFirstPartyTypeKind.ZodDefault:
+    case ZodFirstPartyTypeKind2.ZodDefault:
       return parseDefaultDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodBranded:
+    case ZodFirstPartyTypeKind2.ZodBranded:
       return parseBrandedDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodReadonly:
+    case ZodFirstPartyTypeKind2.ZodReadonly:
       return parseReadonlyDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodCatch:
+    case ZodFirstPartyTypeKind2.ZodCatch:
       return parseCatchDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodPipeline:
+    case ZodFirstPartyTypeKind2.ZodPipeline:
       return parsePipelineDef(def, refs);
-    case ZodFirstPartyTypeKind.ZodFunction:
-    case ZodFirstPartyTypeKind.ZodVoid:
-    case ZodFirstPartyTypeKind.ZodSymbol:
+    case ZodFirstPartyTypeKind2.ZodFunction:
+    case ZodFirstPartyTypeKind2.ZodVoid:
+    case ZodFirstPartyTypeKind2.ZodSymbol:
       return;
     default:
       return /* @__PURE__ */ ((_) => {
@@ -51019,8 +52465,8 @@ async function consumeStream({
       if (done)
         break;
     }
-  } catch (error40) {
-    onError == null || onError(error40);
+  } catch (error46) {
+    onError == null || onError(error46);
   } finally {
     reader.releaseLock();
   }
@@ -51040,7 +52486,7 @@ async function convertFileListToFileUIParts(files) {
         var _a17;
         resolve2((_a17 = readerEvent.target) == null ? undefined : _a17.result);
       };
-      reader.onerror = (error40) => reject(error40);
+      reader.onerror = (error46) => reject(error46);
       reader.readAsDataURL(file2);
     });
     return {
@@ -51054,7 +52500,7 @@ async function convertFileListToFileUIParts(files) {
 var __defProp2, __export2 = (target, all) => {
   for (var name17 in all)
     __defProp2(target, name17, { get: all[name17], enumerable: true });
-}, name14 = "AI_NoOutputSpecifiedError", marker15, symbol15, _a15, name22 = "AI_InvalidArgumentError", marker22, symbol23, _a22, name32 = "AI_InvalidStreamPartError", marker32, symbol32, _a32, name42 = "AI_InvalidToolInputError", marker42, symbol42, _a42, name52 = "AI_MCPClientError", marker52, symbol52, _a52, name62 = "AI_NoImageGeneratedError", marker62, symbol62, _a62, name72 = "AI_NoObjectGeneratedError", marker72, symbol72, _a72, NoObjectGeneratedError, name82 = "AI_NoOutputGeneratedError", marker82, symbol82, _a82, name92 = "AI_NoSuchToolError", marker92, symbol92, _a92, name102 = "AI_ToolCallRepairError", marker102, symbol102, _a102, name112 = "AI_InvalidDataContentError", marker112, symbol112, _a112, name122 = "AI_InvalidMessageRoleError", marker122, symbol122, _a122, name132 = "AI_MessageConversionError", marker132, symbol132, _a132, name142 = "AI_DownloadError", marker142, symbol142, _a142, name15 = "AI_RetryError", marker152, symbol152, _a152, VERSION = "5.0.70", dataContentSchema, jsonValueSchema, providerMetadataSchema, textPartSchema, imagePartSchema, filePartSchema, reasoningPartSchema, toolCallPartSchema, outputSchema, toolResultPartSchema, systemModelMessageSchema, userModelMessageSchema, assistantModelMessageSchema, toolModelMessageSchema, modelMessageSchema, originalGenerateId, JsonToSseTransformStream, uiMessageChunkSchema, originalGenerateId2, originalGenerateId3, SerialJobExecutor = class {
+}, name14 = "AI_NoOutputSpecifiedError", marker15, symbol15, _a15, name22 = "AI_InvalidArgumentError", marker22, symbol23, _a22, name32 = "AI_InvalidStreamPartError", marker32, symbol32, _a32, name42 = "AI_InvalidToolInputError", marker42, symbol42, _a42, name52 = "AI_MCPClientError", marker52, symbol52, _a52, name62 = "AI_NoImageGeneratedError", marker62, symbol62, _a62, name72 = "AI_NoObjectGeneratedError", marker72, symbol72, _a72, NoObjectGeneratedError, name82 = "AI_NoOutputGeneratedError", marker82, symbol82, _a82, name92 = "AI_NoSuchToolError", marker92, symbol92, _a92, name102 = "AI_ToolCallRepairError", marker102, symbol102, _a102, name112 = "AI_InvalidDataContentError", marker112, symbol112, _a112, name122 = "AI_InvalidMessageRoleError", marker122, symbol122, _a122, name132 = "AI_MessageConversionError", marker132, symbol132, _a132, name142 = "AI_DownloadError", marker142, symbol142, _a142, name15 = "AI_RetryError", marker152, symbol152, _a152, VERSION = "5.0.76", dataContentSchema, jsonValueSchema, providerMetadataSchema, textPartSchema, imagePartSchema, filePartSchema, reasoningPartSchema, toolCallPartSchema, outputSchema, toolResultPartSchema, systemModelMessageSchema, userModelMessageSchema, assistantModelMessageSchema, toolModelMessageSchema, modelMessageSchema, originalGenerateId, JsonToSseTransformStream, uiMessageChunkSchema, originalGenerateId2, originalGenerateId3, SerialJobExecutor = class {
   constructor() {
     this.queue = [];
     this.isProcessing = false;
@@ -51076,8 +52522,8 @@ var __defProp2, __export2 = (target, all) => {
         try {
           await job();
           resolve2();
-        } catch (error40) {
-          reject(error40);
+        } catch (error46) {
+          reject(error46);
         }
       });
       this.processQueue();
@@ -51393,12 +52839,12 @@ var __defProp2, __export2 = (target, all) => {
   }
   setStatus({
     status,
-    error: error40
+    error: error46
   }) {
     if (this.status === status)
       return;
     this.state.status = status;
-    this.state.error = error40;
+    this.state.error = error46;
   }
   get error() {
     return this.state.error;
@@ -51483,12 +52929,12 @@ var __defProp2, __export2 = (target, all) => {
           messageMetadataSchema: this.messageMetadataSchema,
           dataPartSchemas: this.dataPartSchemas,
           runUpdateMessageJob,
-          onError: (error40) => {
-            throw error40;
+          onError: (error46) => {
+            throw error46;
           }
         }),
-        onError: (error40) => {
-          throw error40;
+        onError: (error46) => {
+          throw error46;
         }
       });
       this.setStatus({ status: "ready" });
@@ -51520,7 +52966,7 @@ var __defProp2, __export2 = (target, all) => {
       }
       this.activeResponse = undefined;
     }
-    if ((_b = this.sendAutomaticallyWhen) == null ? undefined : _b.call(this, { messages: this.state.messages })) {
+    if (((_b = this.sendAutomaticallyWhen) == null ? undefined : _b.call(this, { messages: this.state.messages })) && !isError) {
       await this.makeRequest({
         trigger: "submit-message",
         messageId: (_c = this.lastMessage) == null ? undefined : _c.id,
@@ -51591,8 +53037,8 @@ var init_dist31 = __esm(() => {
       this.usage = usage;
       this.finishReason = finishReason;
     }
-    static isInstance(error40) {
-      return AISDKError.hasMarker(error40, marker72);
+    static isInstance(error46) {
+      return AISDKError.hasMarker(error46, marker72);
     }
   };
   _a72 = symbol72;
@@ -52269,7 +53715,7 @@ function useChat({
   const subscribeToMessages = import_react17.useCallback((update) => chatRef.current["~registerMessagesCallback"](update, throttleWaitMs), [throttleWaitMs, optionsId]);
   const messages = import_react17.useSyncExternalStore(subscribeToMessages, () => chatRef.current.messages, () => chatRef.current.messages);
   const status = import_react17.useSyncExternalStore(chatRef.current["~registerStatusCallback"], () => chatRef.current.status, () => chatRef.current.status);
-  const error40 = import_react17.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
+  const error46 = import_react17.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
   const setMessages = import_react17.useCallback((messagesParam) => {
     if (typeof messagesParam === "function") {
       messagesParam = messagesParam(chatRef.current.messages);
@@ -52289,7 +53735,7 @@ function useChat({
     regenerate: chatRef.current.regenerate,
     clearError: chatRef.current.clearError,
     stop: chatRef.current.stop,
-    error: error40,
+    error: error46,
     resumeStream: chatRef.current.resumeStream,
     status,
     addToolResult: chatRef.current.addToolResult
@@ -52420,7 +53866,7 @@ var exports_ChatInterface = {};
 __export(exports_ChatInterface, {
   default: () => ChatInterface_default
 });
-var import_react20, jsx_dev_runtime14, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject }) => {
+var import_react20, jsx_dev_runtime15, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     body: {
       project_path: activeProject
@@ -52434,33 +53880,33 @@ var import_react20, jsx_dev_runtime14, BUSY_STATUSES, ChatInterface = ({ engineS
       handleSubmit(e);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
     className: "flex flex-col h-full",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ScrollArea2, {
+      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(ScrollArea2, {
         className: "flex-grow p-1",
-        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+        children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
           className: "space-y-4 p-3",
-          children: messages.length > 0 ? messages.map((m) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+          children: messages.length > 0 ? messages.map((m) => /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
             className: "flex",
-            children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+            children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
               className: `p-3 rounded-lg max-w-xs lg:max-w-md ${m.role === "user" ? "ml-auto bg-primary text-primary-foreground" : "bg-muted"}`,
-              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("p", {
+              children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("p", {
                 className: "text-sm whitespace-pre-wrap",
                 children: m.content
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this)
-          }, m.id, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+          }, m.id, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
             className: "text-center text-sm text-muted-foreground pt-4",
             children: "Define a new mission for the selected project."
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("form", {
+      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("form", {
         onSubmit: handleFormSubmit,
         className: "flex items-center gap-2 p-1 border-t",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Input, {
+          /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Input, {
             type: "text",
             value: input,
             onChange: handleInputChange,
@@ -52468,7 +53914,7 @@ var import_react20, jsx_dev_runtime14, BUSY_STATUSES, ChatInterface = ({ engineS
             disabled: !activeProject || isBusy,
             className: "flex-grow"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Button, {
+          /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Button, {
             type: "submit",
             disabled: !canSubmit,
             children: isBusy ? "Busy" : "Send"
@@ -52484,7 +53930,7 @@ var init_ChatInterface = __esm(() => {
   init_input();
   init_button();
   init_scroll_area();
-  jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
   BUSY_STATUSES = [
     "ENRICHMENT_PHASE",
     "PLANNING_PHASE",
@@ -52502,7 +53948,7 @@ var exports_DocumentUploader = {};
 __export(exports_DocumentUploader, {
   default: () => DocumentUploader_default
 });
-var import_react22, jsx_dev_runtime15, DocumentUploader = () => {
+var import_react22, jsx_dev_runtime16, DocumentUploader = () => {
   const [selectedFile, setSelectedFile] = import_react22.useState(null);
   const [isLoading, setIsLoading] = import_react22.useState(false);
   const [message, setMessage] = import_react22.useState("");
@@ -52531,28 +53977,28 @@ var import_react22, jsx_dev_runtime15, DocumentUploader = () => {
       } else {
         throw new Error(result.error || "Unknown error occurred.");
       }
-    } catch (error40) {
-      setMessage(`Error: ${error40.message}`);
+    } catch (error46) {
+      setMessage(`Error: ${error46.message}`);
     } finally {
       setIsLoading(false);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
     className: "space-y-2",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Input, {
+      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Input, {
         type: "file",
         onChange: handleFileChange,
         disabled: isLoading,
         className: "text-sm"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Button, {
+      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Button, {
         onClick: handleUpload,
         disabled: !selectedFile || isLoading,
         className: "w-full",
         children: isLoading ? "Uploading..." : "Upload and Process"
       }, undefined, false, undefined, this),
-      message && /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("p", {
+      message && /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("p", {
         className: cn("text-sm text-center", message.startsWith("Error") ? "text-destructive" : "text-muted-foreground"),
         children: message
       }, undefined, false, undefined, this)
@@ -52564,7 +54010,7 @@ var init_DocumentUploader = __esm(() => {
   init_input();
   init_button();
   init_utils();
-  jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
   DocumentUploader_default = DocumentUploader;
 });
 
@@ -52573,23 +54019,23 @@ var exports_FileViewer = {};
 __export(exports_FileViewer, {
   default: () => FileViewer_default
 });
-var import_react23, jsx_dev_runtime16, FileViewer = ({ filePath, content, isLoading }) => {
-  return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Card, {
+var import_react23, jsx_dev_runtime17, FileViewer = ({ filePath, content, isLoading }) => {
+  return /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Card, {
     className: "h-full w-full flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardTitle, {
           className: "truncate",
           children: isLoading ? "Loading..." : filePath || "Select a file to view"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardContent, {
         className: "flex-grow overflow-hidden",
-        children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(ScrollArea2, {
+        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(ScrollArea2, {
           className: "h-full w-full",
-          children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("pre", {
+          children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV("pre", {
             className: "text-sm p-4",
-            children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("code", {
+            children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV("code", {
               children: isLoading ? "Loading file content..." : content || "No content to display."
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
@@ -52602,7 +54048,7 @@ var init_FileViewer = __esm(() => {
   import_react23 = __toESM(require_react(), 1);
   init_scroll_area();
   init_card();
-  jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime17 = __toESM(require_jsx_dev_runtime(), 1);
   FileViewer_default = FileViewer;
 });
 
@@ -52611,54 +54057,54 @@ var exports_AgentPerformanceMonitor = {};
 __export(exports_AgentPerformanceMonitor, {
   default: () => AgentPerformanceMonitor_default
 });
-var import_react24, jsx_dev_runtime17, AgentPerformanceMonitor = ({ healthData }) => {
+var import_react24, jsx_dev_runtime18, AgentPerformanceMonitor = ({ healthData }) => {
   const agents = healthData?.metrics?.performance?.metrics?.agents || [];
-  return /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardTitle, {
           children: "Agent Performance"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Table, {
+      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Table, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHeader, {
-              children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHeader, {
+              children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
                     children: "Agent"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
                     children: "Success Rate"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
                     children: "Total Tasks"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
                     children: "Avg. Completion Time"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableBody, {
-              children: agents.length > 0 ? agents.map((agent) => /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableBody, {
+              children: agents.length > 0 ? agents.map((agent) => /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
                     children: agent.name
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
                     children: agent.successRate
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
                     children: agent.tasks
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
                     children: agent.avgTime
                   }, undefined, false, undefined, this)
                 ]
-              }, agent.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
-                children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+              }, agent.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
+                children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
                   colSpan: "4",
                   className: "text-center",
                   children: "No agent performance data available."
@@ -52675,7 +54121,7 @@ var init_AgentPerformanceMonitor = __esm(() => {
   import_react24 = __toESM(require_react(), 1);
   init_card();
   init_table();
-  jsx_dev_runtime17 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
   AgentPerformanceMonitor_default = AgentPerformanceMonitor;
 });
 
@@ -52684,48 +54130,48 @@ var exports_ToolHealthMonitor = {};
 __export(exports_ToolHealthMonitor, {
   default: () => ToolHealthMonitor_default
 });
-var import_react25, jsx_dev_runtime18, ToolHealthMonitor = ({ healthData }) => {
+var import_react25, jsx_dev_runtime19, ToolHealthMonitor = ({ healthData }) => {
   const tools = healthData?.metrics?.performance?.metrics?.tools || [];
-  return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardTitle, {
           children: "Tool Health"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Table, {
+      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Table, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHeader, {
-              children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableHeader, {
+              children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableHead, {
                     children: "Tool"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableHead, {
                     children: "Frequency"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableHead, {
                     children: "Success Rate"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableBody, {
-              children: tools.length > 0 ? tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableBody, {
+              children: tools.length > 0 ? tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableCell, {
                     children: tool.name
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableCell, {
                     children: tool.frequency
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableCell, {
                     children: tool.successRate
                   }, undefined, false, undefined, this)
                 ]
-              }, tool.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableRow, {
-                children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(TableCell, {
+              }, tool.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableRow, {
+                children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(TableCell, {
                   colSpan: "3",
                   className: "text-center",
                   children: "No tool health data available."
@@ -52742,17 +54188,17 @@ var init_ToolHealthMonitor = __esm(() => {
   import_react25 = __toESM(require_react(), 1);
   init_card();
   init_table();
-  jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime19 = __toESM(require_jsx_dev_runtime(), 1);
   ToolHealthMonitor_default = ToolHealthMonitor;
 });
 
 // dashboard/src/components/ui/alert.jsx
-var React58, jsx_dev_runtime19, alertVariants, Alert, AlertTitle, AlertDescription;
+var React61, jsx_dev_runtime20, alertVariants, Alert, AlertTitle, AlertDescription;
 var init_alert = __esm(() => {
-  React58 = __toESM(require_react(), 1);
-  init_dist4();
+  React61 = __toESM(require_react(), 1);
+  init_dist16();
   init_utils();
-  jsx_dev_runtime19 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
   alertVariants = cva("relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground", {
     variants: {
       variant: {
@@ -52764,20 +54210,20 @@ var init_alert = __esm(() => {
       variant: "default"
     }
   });
-  Alert = React58.forwardRef(({ className, variant, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+  Alert = React61.forwardRef(({ className, variant, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
     ref,
     role: "alert",
     className: cn(alertVariants({ variant }), className),
     ...props2
   }, undefined, false, undefined, this));
   Alert.displayName = "Alert";
-  AlertTitle = React58.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("h5", {
+  AlertTitle = React61.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("h5", {
     ref,
     className: cn("mb-1 font-medium leading-none tracking-tight", className),
     ...props2
   }, undefined, false, undefined, this));
   AlertTitle.displayName = "AlertTitle";
-  AlertDescription = React58.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+  AlertDescription = React61.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
     ref,
     className: cn("text-sm [&_p]:leading-relaxed", className),
     ...props2
@@ -52790,30 +54236,30 @@ var exports_SystemHealthAlerts = {};
 __export(exports_SystemHealthAlerts, {
   default: () => SystemHealthAlerts_default
 });
-var import_react26, jsx_dev_runtime20, SystemHealthAlerts = ({ healthData }) => {
+var import_react26, jsx_dev_runtime21, SystemHealthAlerts = ({ healthData }) => {
   const alerts = healthData?.alerts || [];
-  return /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardTitle, {
           children: "System Health Alerts & Recommendations"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardContent, {
         className: "grid gap-4",
-        children: alerts.length > 0 ? alerts.map((alert, index2) => /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Alert, {
+        children: alerts.length > 0 ? alerts.map((alert, index2) => /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Alert, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Terminal, {
+            /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Terminal, {
               className: "h-4 w-4"
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(AlertTitle, {
+            /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(AlertTitle, {
               children: alert.title
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(AlertDescription, {
+            /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(AlertDescription, {
               children: alert.description
             }, undefined, false, undefined, this)
           ]
-        }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
+        }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           className: "text-center text-muted-foreground",
           children: "No system health alerts."
         }, undefined, false, undefined, this)
@@ -52826,7 +54272,7 @@ var init_SystemHealthAlerts = __esm(() => {
   init_card();
   init_alert();
   init_lucide_react();
-  jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
   SystemHealthAlerts_default = SystemHealthAlerts;
 });
 
@@ -52835,9 +54281,9 @@ var exports_MissionPlanner = {};
 __export(exports_MissionPlanner, {
   default: () => MissionPlanner_default
 });
-var import_react27, jsx_dev_runtime21, MissionPlanner = () => {
+var import_react27, jsx_dev_runtime22, MissionPlanner = () => {
   const [plan, setPlan] = import_react27.useState({ tasks: [], message: "Loading plan..." });
-  const [error40, setError] = import_react27.useState(null);
+  const [error46, setError] = import_react27.useState(null);
   import_react27.useEffect(() => {
     const fetchPlan = async () => {
       try {
@@ -52868,20 +54314,20 @@ var import_react27, jsx_dev_runtime21, MissionPlanner = () => {
         return "secondary";
     }
   };
-  if (error40) {
-    return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Card, {
+  if (error46) {
+    return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Card, {
       children: [
-        /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardHeader, {
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardTitle, {
+        /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardTitle, {
             children: "Mission Plan"
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardContent, {
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("p", {
+        /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("p", {
             className: "text-red-500",
             children: [
               "Error: ",
-              error40
+              error46
             ]
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this)
@@ -52889,60 +54335,60 @@ var import_react27, jsx_dev_runtime21, MissionPlanner = () => {
     }, undefined, true, undefined, this);
   }
   if (!plan.tasks || plan.tasks.length === 0) {
-    return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Card, {
+    return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Card, {
       children: [
-        /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardHeader, {
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardTitle, {
+        /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardTitle, {
             children: "Mission Plan"
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardContent, {
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("p", {
+        /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("p", {
             children: plan.message || "No tasks in the current plan."
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this);
   }
-  return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardTitle, {
           children: "Mission Plan"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Table, {
+      /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Table, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableHeader, {
-              children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableHeader, {
+              children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableHead, {
                     className: "w-[80px]",
                     children: "ID"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableHead, {
                     children: "Description"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableHead, {
                     className: "w-[120px]",
                     children: "Status"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableBody, {
-              children: plan.tasks.map((task) => /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableBody, {
+              children: plan.tasks.map((task) => /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableCell, {
                     className: "font-medium",
                     children: task.id
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableCell, {
                     children: task.description
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(TableCell, {
-                    children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Badge, {
+                  /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(TableCell, {
+                    children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Badge, {
                       variant: getStatusVariant(task.status),
                       children: task.status
                     }, undefined, false, undefined, this)
@@ -52961,30 +54407,30 @@ var init_MissionPlanner = __esm(() => {
   init_table();
   init_badge();
   init_card();
-  jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
   MissionPlanner_default = MissionPlanner;
 });
 
 // node_modules/@radix-ui/react-collapsible/dist/index.mjs
-function getState(open) {
+function getState2(open) {
   return open ? "open" : "closed";
 }
-var React61, import_jsx_runtime16, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME2 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME3 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root4, Trigger2, Content3;
+var React64, import_jsx_runtime17, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME3 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME4 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root5, Trigger3, Content3;
 var init_dist33 = __esm(() => {
-  React61 = __toESM(require_react(), 1);
+  React64 = __toESM(require_react(), 1);
+  init_dist4();
+  init_dist5();
+  init_dist8();
   init_dist6();
-  init_dist7();
-  init_dist21();
-  init_dist15();
   init_dist();
   init_dist3();
-  init_dist25();
-  init_dist16();
-  import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
+  init_dist14();
+  init_dist7();
+  import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
   [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
-  Collapsible = React61.forwardRef((props2, forwardedRef) => {
+  Collapsible = React64.forwardRef((props2, forwardedRef) => {
     const {
       __scopeCollapsible,
       open: openProp,
@@ -52999,14 +54445,14 @@ var init_dist33 = __esm(() => {
       onChange: onOpenChange,
       caller: COLLAPSIBLE_NAME
     });
-    return /* @__PURE__ */ import_jsx_runtime16.jsx(CollapsibleProvider, {
+    return /* @__PURE__ */ import_jsx_runtime17.jsx(CollapsibleProvider, {
       scope: __scopeCollapsible,
       disabled,
       contentId: useId2(),
       open,
-      onOpenToggle: React61.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
-      children: /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
-        "data-state": getState(open),
+      onOpenToggle: React64.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+      children: /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
+        "data-state": getState2(open),
         "data-disabled": disabled ? "" : undefined,
         ...collapsibleProps,
         ref: forwardedRef
@@ -53014,14 +54460,14 @@ var init_dist33 = __esm(() => {
     });
   });
   Collapsible.displayName = COLLAPSIBLE_NAME;
-  CollapsibleTrigger = React61.forwardRef((props2, forwardedRef) => {
+  CollapsibleTrigger = React64.forwardRef((props2, forwardedRef) => {
     const { __scopeCollapsible, ...triggerProps } = props2;
-    const context = useCollapsibleContext(TRIGGER_NAME2, __scopeCollapsible);
-    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.button, {
+    const context = useCollapsibleContext(TRIGGER_NAME3, __scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.button, {
       type: "button",
       "aria-controls": context.contentId,
       "aria-expanded": context.open || false,
-      "data-state": getState(context.open),
+      "data-state": getState2(context.open),
       "data-disabled": context.disabled ? "" : undefined,
       disabled: context.disabled,
       ...triggerProps,
@@ -53029,27 +54475,27 @@ var init_dist33 = __esm(() => {
       onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
     });
   });
-  CollapsibleTrigger.displayName = TRIGGER_NAME2;
-  CollapsibleContent = React61.forwardRef((props2, forwardedRef) => {
+  CollapsibleTrigger.displayName = TRIGGER_NAME3;
+  CollapsibleContent = React64.forwardRef((props2, forwardedRef) => {
     const { forceMount, ...contentProps } = props2;
-    const context = useCollapsibleContext(CONTENT_NAME3, props2.__scopeCollapsible);
-    return /* @__PURE__ */ import_jsx_runtime16.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime16.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
+    const context = useCollapsibleContext(CONTENT_NAME4, props2.__scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime17.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime17.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
   });
-  CollapsibleContent.displayName = CONTENT_NAME3;
-  CollapsibleContentImpl = React61.forwardRef((props2, forwardedRef) => {
+  CollapsibleContent.displayName = CONTENT_NAME4;
+  CollapsibleContentImpl = React64.forwardRef((props2, forwardedRef) => {
     const { __scopeCollapsible, present, children, ...contentProps } = props2;
-    const context = useCollapsibleContext(CONTENT_NAME3, __scopeCollapsible);
-    const [isPresent, setIsPresent] = React61.useState(present);
-    const ref = React61.useRef(null);
+    const context = useCollapsibleContext(CONTENT_NAME4, __scopeCollapsible);
+    const [isPresent, setIsPresent] = React64.useState(present);
+    const ref = React64.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const heightRef = React61.useRef(0);
+    const heightRef = React64.useRef(0);
     const height = heightRef.current;
-    const widthRef = React61.useRef(0);
+    const widthRef = React64.useRef(0);
     const width = widthRef.current;
     const isOpen = context.open || isPresent;
-    const isMountAnimationPreventedRef = React61.useRef(isOpen);
-    const originalStylesRef = React61.useRef(undefined);
-    React61.useEffect(() => {
+    const isMountAnimationPreventedRef = React64.useRef(isOpen);
+    const originalStylesRef = React64.useRef(undefined);
+    React64.useEffect(() => {
       const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
       return () => cancelAnimationFrame(rAF);
     }, []);
@@ -53072,8 +54518,8 @@ var init_dist33 = __esm(() => {
         setIsPresent(present);
       }
     }, [context.open, present]);
-    return /* @__PURE__ */ import_jsx_runtime16.jsx(Primitive.div, {
-      "data-state": getState(context.open),
+    return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
+      "data-state": getState2(context.open),
       "data-disabled": context.disabled ? "" : undefined,
       id: context.contentId,
       hidden: !isOpen,
@@ -53087,29 +54533,29 @@ var init_dist33 = __esm(() => {
       children: isOpen && children
     });
   });
-  Root4 = Collapsible;
-  Trigger2 = CollapsibleTrigger;
+  Root5 = Collapsible;
+  Trigger3 = CollapsibleTrigger;
   Content3 = CollapsibleContent;
 });
 
 // node_modules/@radix-ui/react-accordion/dist/index.mjs
-function getState2(open) {
+function getState3(open) {
   return open ? "open" : "closed";
 }
-var import_react28, import_jsx_runtime17, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME3 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME4 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content22;
+var import_react28, import_jsx_runtime18, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME4 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME5 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content23;
 var init_dist34 = __esm(() => {
   import_react28 = __toESM(require_react(), 1);
-  init_dist7();
-  init_dist8();
+  init_dist5();
+  init_dist20();
   init_dist();
-  init_dist6();
-  init_dist21();
+  init_dist4();
+  init_dist8();
   init_dist3();
   init_dist33();
   init_dist33();
-  init_dist16();
-  init_dist9();
-  import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+  init_dist7();
+  init_dist17();
+  import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
   "use client";
   ACCORDION_KEYS = ["Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"];
   [Collection2, useCollection2, createCollectionScope2] = createCollection(ACCORDION_NAME);
@@ -53122,7 +54568,7 @@ var init_dist34 = __esm(() => {
     const { type, ...accordionProps } = props2;
     const singleProps = accordionProps;
     const multipleProps = accordionProps;
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Collection2.Provider, { scope: props2.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.Provider, { scope: props2.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
   });
   Accordion.displayName = ACCORDION_NAME;
   [AccordionValueProvider, useAccordionValueContext] = createAccordionContext(ACCORDION_NAME);
@@ -53141,12 +54587,12 @@ var init_dist34 = __esm(() => {
       onChange: onValueChange,
       caller: ACCORDION_NAME
     });
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionValueProvider, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
       scope: props2.__scopeAccordion,
       value: import_react28.default.useMemo(() => value ? [value] : [], [value]),
       onItemOpen: setValue,
       onItemClose: import_react28.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
-      children: /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
+      children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
     });
   });
   AccordionImplMultiple = import_react28.default.forwardRef((props2, forwardedRef) => {
@@ -53164,12 +54610,12 @@ var init_dist34 = __esm(() => {
     });
     const handleItemOpen = import_react28.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
     const handleItemClose = import_react28.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionValueProvider, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
       scope: props2.__scopeAccordion,
       value,
       onItemOpen: handleItemOpen,
       onItemClose: handleItemClose,
-      children: /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
+      children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionCollapsibleProvider, { scope: props2.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
     });
   });
   [AccordionImplProvider, useAccordionContext] = createAccordionContext(ACCORDION_NAME);
@@ -53244,12 +54690,12 @@ var init_dist34 = __esm(() => {
       const clampedIndex = nextIndex % triggerCount;
       triggerCollection[clampedIndex].ref.current?.focus();
     });
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionImplProvider, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplProvider, {
       scope: __scopeAccordion,
       disabled,
       direction: dir,
       orientation,
-      children: /* @__PURE__ */ import_jsx_runtime17.jsx(Collection2.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
+      children: /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime18.jsx(Primitive.div, {
         ...accordionProps,
         "data-orientation": orientation,
         ref: composedRefs,
@@ -53266,14 +54712,14 @@ var init_dist34 = __esm(() => {
     const triggerId = useId2();
     const open = value && valueContext.value.includes(value) || false;
     const disabled = accordionContext.disabled || props2.disabled;
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(AccordionItemProvider, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionItemProvider, {
       scope: __scopeAccordion,
       open,
       disabled,
       triggerId,
-      children: /* @__PURE__ */ import_jsx_runtime17.jsx(Root4, {
+      children: /* @__PURE__ */ import_jsx_runtime18.jsx(Root5, {
         "data-orientation": accordionContext.orientation,
-        "data-state": getState2(open),
+        "data-state": getState3(open),
         ...collapsibleScope,
         ...accordionItemProps,
         ref: forwardedRef,
@@ -53294,9 +54740,9 @@ var init_dist34 = __esm(() => {
     const { __scopeAccordion, ...headerProps } = props2;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
     const itemContext = useAccordionItemContext(HEADER_NAME, __scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.h3, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(Primitive.h3, {
       "data-orientation": accordionContext.orientation,
-      "data-state": getState2(itemContext.open),
+      "data-state": getState3(itemContext.open),
       "data-disabled": itemContext.disabled ? "" : undefined,
       ...headerProps,
       ref: forwardedRef
@@ -53306,10 +54752,10 @@ var init_dist34 = __esm(() => {
   AccordionTrigger = import_react28.default.forwardRef((props2, forwardedRef) => {
     const { __scopeAccordion, ...triggerProps } = props2;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(TRIGGER_NAME3, __scopeAccordion);
-    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME3, __scopeAccordion);
+    const itemContext = useAccordionItemContext(TRIGGER_NAME4, __scopeAccordion);
+    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME4, __scopeAccordion);
     const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Collection2.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime17.jsx(Trigger2, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime18.jsx(Trigger3, {
       "aria-disabled": itemContext.open && !collapsibleContext.collapsible || undefined,
       "data-orientation": accordionContext.orientation,
       id: itemContext.triggerId,
@@ -53318,13 +54764,13 @@ var init_dist34 = __esm(() => {
       ref: forwardedRef
     }) });
   });
-  AccordionTrigger.displayName = TRIGGER_NAME3;
+  AccordionTrigger.displayName = TRIGGER_NAME4;
   AccordionContent = import_react28.default.forwardRef((props2, forwardedRef) => {
     const { __scopeAccordion, ...contentProps } = props2;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(CONTENT_NAME4, __scopeAccordion);
+    const itemContext = useAccordionItemContext(CONTENT_NAME5, __scopeAccordion);
     const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Content3, {
+    return /* @__PURE__ */ import_jsx_runtime18.jsx(Content3, {
       role: "region",
       "aria-labelledby": itemContext.triggerId,
       "data-orientation": accordionContext.orientation,
@@ -53338,55 +54784,55 @@ var init_dist34 = __esm(() => {
       }
     });
   });
-  AccordionContent.displayName = CONTENT_NAME4;
+  AccordionContent.displayName = CONTENT_NAME5;
   Root24 = Accordion;
   Item2 = AccordionItem;
   Header = AccordionHeader;
   Trigger22 = AccordionTrigger;
-  Content22 = AccordionContent;
+  Content23 = AccordionContent;
 });
 
 // dashboard/src/components/ui/accordion.jsx
-var React63, jsx_dev_runtime22, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
+var React66, jsx_dev_runtime23, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
 var init_accordion = __esm(() => {
-  React63 = __toESM(require_react(), 1);
+  React66 = __toESM(require_react(), 1);
   init_dist34();
   init_lucide_react();
   init_utils();
-  jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
   Accordion2 = Root24;
-  AccordionItem2 = React63.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Item2, {
+  AccordionItem2 = React66.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Item2, {
     ref,
     className: cn("border-b", className),
     ...props2
   }, undefined, false, undefined, this));
   AccordionItem2.displayName = "AccordionItem";
-  AccordionTrigger2 = React63.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Header, {
+  AccordionTrigger2 = React66.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Header, {
     className: "flex",
-    children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Trigger22, {
+    children: /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Trigger22, {
       ref,
       className: cn("flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180", className),
       ...props2,
       children: [
         children,
-        /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(ChevronDown, {
+        /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(ChevronDown, {
           className: "h-4 w-4 shrink-0 transition-transform duration-200"
         }, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
   AccordionTrigger2.displayName = Trigger22.displayName;
-  AccordionContent2 = React63.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Content22, {
+  AccordionContent2 = React66.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Content23, {
     ref,
     className: "overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
     ...props2,
-    children: /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("div", {
+    children: /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("div", {
       className: cn("pb-4 pt-0", className),
       children
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
-  AccordionContent2.displayName = Content22.displayName;
+  AccordionContent2.displayName = Content23.displayName;
 });
 
 // dashboard/src/components/GovernanceDashboard.js
@@ -53394,7 +54840,7 @@ var exports_GovernanceDashboard = {};
 __export(exports_GovernanceDashboard, {
   default: () => GovernanceDashboard_default
 });
-var import_react29, jsx_dev_runtime23, GovernanceDashboard = () => {
+var import_react29, jsx_dev_runtime24, GovernanceDashboard = () => {
   const [proposals, setProposals] = import_react29.useState([]);
   const [isLoading, setIsLoading] = import_react29.useState(true);
   const fetchProposals = async () => {
@@ -53402,8 +54848,8 @@ var import_react29, jsx_dev_runtime23, GovernanceDashboard = () => {
       const response = await fetch("/api/proposals");
       const data = await response.json();
       setProposals(data);
-    } catch (error40) {
-      console.error("Failed to fetch proposals:", error40);
+    } catch (error46) {
+      console.error("Failed to fetch proposals:", error46);
     } finally {
       setIsLoading(false);
     }
@@ -53423,64 +54869,64 @@ var import_react29, jsx_dev_runtime23, GovernanceDashboard = () => {
         throw new Error(result.error || "API call failed");
       }
       fetchProposals();
-    } catch (error40) {
-      console.error(`Failed to ${decision} proposal:`, error40);
+    } catch (error46) {
+      console.error(`Failed to ${decision} proposal:`, error46);
     }
   };
   if (isLoading)
-    return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("p", {
+    return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
       children: "Loading proposals..."
     }, undefined, false, undefined, this);
-  return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
     className: "h-full w-full flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(CardHeader, {
+      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
         children: [
-          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(CardTitle, {
+          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
             children: "System Governance"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(CardDescription, {
+          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardDescription, {
             children: "Review and approve proposals from the @metis agent."
           }, undefined, false, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
         className: "flex-grow overflow-auto",
-        children: /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Accordion2, {
+        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Accordion2, {
           type: "single",
           collapsible: true,
-          children: proposals.length > 0 ? proposals.map((p) => /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(AccordionItem2, {
+          children: proposals.length > 0 ? proposals.map((p) => /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(AccordionItem2, {
             value: p.id,
             children: [
-              /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(AccordionTrigger2, {
+              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(AccordionTrigger2, {
                 children: p.reason
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(AccordionContent2, {
-                children: /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(AccordionContent2, {
+                children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
                   className: "space-y-4",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("p", {
+                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
                       children: [
-                        /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("strong", {
+                        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("strong", {
                           children: "File:"
                         }, undefined, false, undefined, this),
                         " ",
                         p.file_path
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("pre", {
+                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("pre", {
                       className: "text-xs p-2 bg-muted rounded-md overflow-x-auto max-h-96",
                       children: p.new_content
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("div", {
+                    /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
                       className: "flex gap-2",
                       children: [
-                        /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Button, {
+                        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Button, {
                           onClick: () => handleDecision(p.id, "approve"),
                           size: "sm",
                           children: "Approve"
                         }, undefined, false, undefined, this),
-                        /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Button, {
+                        /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Button, {
                           onClick: () => handleDecision(p.id, "reject"),
                           variant: "destructive",
                           size: "sm",
@@ -53492,7 +54938,7 @@ var import_react29, jsx_dev_runtime23, GovernanceDashboard = () => {
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this)
             ]
-          }, p.id, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("p", {
+          }, p.id, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
             className: "text-sm text-muted-foreground",
             children: "No active proposals."
           }, undefined, false, undefined, this)
@@ -53506,7 +54952,7 @@ var init_GovernanceDashboard = __esm(() => {
   init_card();
   init_accordion();
   init_button();
-  jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
   GovernanceDashboard_default = GovernanceDashboard;
 });
 
@@ -53515,33 +54961,33 @@ var exports_ThoughtStream = {};
 __export(exports_ThoughtStream, {
   default: () => ThoughtStream_default
 });
-var import_react30, jsx_dev_runtime24, ThoughtStream = ({ thoughts }) => {
-  return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(Card, {
+var import_react30, jsx_dev_runtime25, ThoughtStream = ({ thoughts }) => {
+  return /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
     className: "h-full w-full flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
           children: "Live Thought Stream"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
         className: "flex-grow overflow-hidden",
-        children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ScrollArea2, {
+        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ScrollArea2, {
           className: "h-full w-full pr-4",
-          children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
             className: "space-y-3",
-            children: thoughts.length > 0 ? thoughts.map((thought, index2) => /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+            children: thoughts.length > 0 ? thoughts.map((thought, index2) => /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
               className: "text-sm text-muted-foreground",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
                   className: "font-mono text-xs mr-2",
                   children: new Date(thought.timestamp).toLocaleTimeString()
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
                   children: thought.thought
                 }, undefined, false, undefined, this)
               ]
-            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
+            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("p", {
               className: "text-sm text-muted-foreground",
               children: "Waiting for agent thoughts..."
             }, undefined, false, undefined, this)
@@ -53555,19 +55001,196 @@ var init_ThoughtStream = __esm(() => {
   import_react30 = __toESM(require_react(), 1);
   init_card();
   init_scroll_area();
-  jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
   ThoughtStream_default = ThoughtStream;
 });
 
+// dashboard/src/components/ExecutiveSummary.js
+var exports_ExecutiveSummary = {};
+__export(exports_ExecutiveSummary, {
+  default: () => ExecutiveSummary
+});
+function ExecutiveSummary() {
+  const [summary, setSummary] = import_react31.useState(null);
+  const [isLoading, setIsLoading] = import_react31.useState(true);
+  const [error46, setError] = import_react31.useState(null);
+  import_react31.useEffect(() => {
+    async function fetchSummary() {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/executive-summary");
+        if (!response.ok) {
+          throw new Error(`Failed to fetch executive summary: ${response.statusText}`);
+        }
+        const data = await response.json();
+        setSummary(data);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchSummary();
+    const interval = setInterval(fetchSummary, 1e4);
+    return () => clearInterval(interval);
+  }, []);
+  if (isLoading) {
+    return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+      children: [
+        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+            children: "Executive Summary"
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this),
+        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("p", {
+            children: "Loading high-level metrics..."
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this)
+      ]
+    }, undefined, true, undefined, this);
+  }
+  if (error46) {
+    return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+      className: "border-destructive",
+      children: [
+        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+            children: "Executive Summary"
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this),
+        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("p", {
+            className: "text-destructive",
+            children: [
+              "Error: ",
+              error46
+            ]
+          }, undefined, true, undefined, this)
+        }, undefined, false, undefined, this)
+      ]
+    }, undefined, true, undefined, this);
+  }
+  if (!summary) {
+    return null;
+  }
+  const kpis = [
+    { label: "Overall Success Rate", value: `${summary.overallSuccessRate}%` },
+    { label: "Avg. Task Completion Time", value: formatDuration(summary.averageTaskCompletionTime) },
+    { label: "Total Estimated Cost", value: `$${summary.totalEstimatedCost.toFixed(4)}` },
+    { label: "Total Tasks Processed", value: summary.totalTasks }
+  ];
+  return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+          children: "Executive Summary"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("div", {
+            className: "grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6",
+            children: kpis.map((kpi) => /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
+                  className: "flex flex-row items-center justify-between space-y-0 pb-2",
+                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+                    className: "text-sm font-medium",
+                    children: kpi.label
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
+                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("div", {
+                    className: "text-2xl font-bold",
+                    children: kpi.value
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, kpi.label, true, undefined, this))
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("h3", {
+            className: "text-lg font-semibold mb-2",
+            children: "Agent Reliability Rankings"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Table, {
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHeader, {
+                children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                      children: "Agent ID"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                      className: "text-right",
+                      children: "Reliability"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                      className: "text-right",
+                      children: "Tasks Handled"
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this)
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableBody, {
+                children: summary.agentReliabilityRankings && summary.agentReliabilityRankings.length > 0 ? summary.agentReliabilityRankings.map((agent) => /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                      className: "font-medium",
+                      children: agent.agentId
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                      className: "text-right",
+                      children: [
+                        agent.reliability.toFixed(2),
+                        "%"
+                      ]
+                    }, undefined, true, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                      className: "text-right",
+                      children: agent.tasks
+                    }, undefined, false, undefined, this)
+                  ]
+                }, agent.agentId, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
+                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                    colSpan: 3,
+                    className: "text-center",
+                    children: "No agent data available yet."
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}
+var import_react31, jsx_dev_runtime26, formatDuration = (ms) => {
+  if (ms < 1000)
+    return `${ms} ms`;
+  const seconds = ms / 1000;
+  if (seconds < 60)
+    return `${seconds.toFixed(2)} s`;
+  const minutes = seconds / 60;
+  return `${minutes.toFixed(2)} min`;
+};
+var init_ExecutiveSummary = __esm(() => {
+  import_react31 = __toESM(require_react(), 1);
+  init_card();
+  init_table();
+  jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
+});
+
 // dashboard/src/index.js
-var import_react34 = __toESM(require_react(), 1);
+var import_react35 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react32 = __toESM(require_react(), 1);
+var import_react33 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react31 = __toESM(require_react(), 1);
+var import_react32 = __toESM(require_react(), 1);
 
 // dashboard/src/hooks/useWebSocket.js
 var import_react = __toESM(require_react(), 1);
@@ -53589,6 +55212,7 @@ var useWebSocket = (url) => {
       try {
         const jsonData = JSON.parse(event.data);
         setData(jsonData);
+        window.dispatchEvent(new MessageEvent("message", { data: event.data }));
       } catch (err) {
         console.error("Error parsing WebSocket message:", err);
         setError("Error parsing WebSocket message");
@@ -55914,26 +57538,377 @@ Separator2.displayName = Root.displayName;
 // dashboard/src/pages/Dashboard.js
 init_card();
 
-// dashboard/src/components/CurrentObjective.js
-var import_react5 = __toESM(require_react(), 1);
-init_card();
-init_badge();
-var jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
+// dashboard/src/components/ui/dialog.jsx
+var React33 = __toESM(require_react(), 1);
+
+// node_modules/@radix-ui/react-dialog/dist/index.mjs
+var React32 = __toESM(require_react(), 1);
+init_dist4();
+init_dist();
+init_dist5();
+init_dist7();
+init_dist8();
+init_dist11();
+init_dist12();
+init_dist13();
+init_dist14();
+init_dist3();
+init_dist15();
+init_es20155();
+init_es20156();
+init_dist2();
+var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+"use client";
+var DIALOG_NAME = "Dialog";
+var [createDialogContext, createDialogScope] = createContextScope(DIALOG_NAME);
+var [DialogProvider, useDialogContext] = createDialogContext(DIALOG_NAME);
+var Dialog = (props2) => {
+  const {
+    __scopeDialog,
+    children,
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+    modal = true
+  } = props2;
+  const triggerRef = React32.useRef(null);
+  const contentRef = React32.useRef(null);
+  const [open, setOpen] = useControllableState({
+    prop: openProp,
+    defaultProp: defaultOpen ?? false,
+    onChange: onOpenChange,
+    caller: DIALOG_NAME
+  });
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogProvider, {
+    scope: __scopeDialog,
+    triggerRef,
+    contentRef,
+    contentId: useId2(),
+    titleId: useId2(),
+    descriptionId: useId2(),
+    open,
+    onOpenChange: setOpen,
+    onOpenToggle: React32.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+    modal,
+    children
+  });
+};
+Dialog.displayName = DIALOG_NAME;
+var TRIGGER_NAME = "DialogTrigger";
+var DialogTrigger = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, ...triggerProps } = props2;
+  const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
+  const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
+    type: "button",
+    "aria-haspopup": "dialog",
+    "aria-expanded": context.open,
+    "aria-controls": context.contentId,
+    "data-state": getState(context.open),
+    ...triggerProps,
+    ref: composedTriggerRef,
+    onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
+  });
+});
+DialogTrigger.displayName = TRIGGER_NAME;
+var PORTAL_NAME2 = "DialogPortal";
+var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME2, {
+  forceMount: undefined
+});
+var DialogPortal = (props2) => {
+  const { __scopeDialog, forceMount, children, container } = props2;
+  const context = useDialogContext(PORTAL_NAME2, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React32.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(Portal, { asChild: true, container, children: child }) })) });
+};
+DialogPortal.displayName = PORTAL_NAME2;
+var OVERLAY_NAME = "DialogOverlay";
+var DialogOverlay = React32.forwardRef((props2, forwardedRef) => {
+  const portalContext = usePortalContext(OVERLAY_NAME, props2.__scopeDialog);
+  const { forceMount = portalContext.forceMount, ...overlayProps } = props2;
+  const context = useDialogContext(OVERLAY_NAME, props2.__scopeDialog);
+  return context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(DialogOverlayImpl, { ...overlayProps, ref: forwardedRef }) }) : null;
+});
+DialogOverlay.displayName = OVERLAY_NAME;
+var Slot2 = createSlot("DialogOverlay.RemoveScroll");
+var DialogOverlayImpl = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, ...overlayProps } = props2;
+  const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, shards: [context.contentRef], children: /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.div, {
+    "data-state": getState(context.open),
+    ...overlayProps,
+    ref: forwardedRef,
+    style: { pointerEvents: "auto", ...overlayProps.style }
+  }) });
+});
+var CONTENT_NAME = "DialogContent";
+var DialogContent = React32.forwardRef((props2, forwardedRef) => {
+  const portalContext = usePortalContext(CONTENT_NAME, props2.__scopeDialog);
+  const { forceMount = portalContext.forceMount, ...contentProps } = props2;
+  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentModal, { ...contentProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentNonModal, { ...contentProps, ref: forwardedRef }) });
+});
+DialogContent.displayName = CONTENT_NAME;
+var DialogContentModal = React32.forwardRef((props2, forwardedRef) => {
+  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+  const contentRef = React32.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
+  React32.useEffect(() => {
+    const content = contentRef.current;
+    if (content)
+      return hideOthers(content);
+  }, []);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
+    ...props2,
+    ref: composedRefs,
+    trapFocus: context.open,
+    disableOutsidePointerEvents: true,
+    onCloseAutoFocus: composeEventHandlers(props2.onCloseAutoFocus, (event) => {
+      event.preventDefault();
+      context.triggerRef.current?.focus();
+    }),
+    onPointerDownOutside: composeEventHandlers(props2.onPointerDownOutside, (event) => {
+      const originalEvent = event.detail.originalEvent;
+      const ctrlLeftClick = originalEvent.button === 0 && originalEvent.ctrlKey === true;
+      const isRightClick = originalEvent.button === 2 || ctrlLeftClick;
+      if (isRightClick)
+        event.preventDefault();
+    }),
+    onFocusOutside: composeEventHandlers(props2.onFocusOutside, (event) => event.preventDefault())
+  });
+});
+var DialogContentNonModal = React32.forwardRef((props2, forwardedRef) => {
+  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+  const hasInteractedOutsideRef = React32.useRef(false);
+  const hasPointerDownOutsideRef = React32.useRef(false);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
+    ...props2,
+    ref: forwardedRef,
+    trapFocus: false,
+    disableOutsidePointerEvents: false,
+    onCloseAutoFocus: (event) => {
+      props2.onCloseAutoFocus?.(event);
+      if (!event.defaultPrevented) {
+        if (!hasInteractedOutsideRef.current)
+          context.triggerRef.current?.focus();
+        event.preventDefault();
+      }
+      hasInteractedOutsideRef.current = false;
+      hasPointerDownOutsideRef.current = false;
+    },
+    onInteractOutside: (event) => {
+      props2.onInteractOutside?.(event);
+      if (!event.defaultPrevented) {
+        hasInteractedOutsideRef.current = true;
+        if (event.detail.originalEvent.type === "pointerdown") {
+          hasPointerDownOutsideRef.current = true;
+        }
+      }
+      const target = event.target;
+      const targetIsTrigger = context.triggerRef.current?.contains(target);
+      if (targetIsTrigger)
+        event.preventDefault();
+      if (event.detail.originalEvent.type === "focusin" && hasPointerDownOutsideRef.current) {
+        event.preventDefault();
+      }
+    }
+  });
+});
+var DialogContentImpl = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props2;
+  const context = useDialogContext(CONTENT_NAME, __scopeDialog);
+  const contentRef = React32.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, contentRef);
+  useFocusGuards();
+  return /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
+    /* @__PURE__ */ import_jsx_runtime8.jsx(FocusScope, {
+      asChild: true,
+      loop: true,
+      trapped: trapFocus,
+      onMountAutoFocus: onOpenAutoFocus,
+      onUnmountAutoFocus: onCloseAutoFocus,
+      children: /* @__PURE__ */ import_jsx_runtime8.jsx(DismissableLayer, {
+        role: "dialog",
+        id: context.contentId,
+        "aria-describedby": context.descriptionId,
+        "aria-labelledby": context.titleId,
+        "data-state": getState(context.open),
+        ...contentProps,
+        ref: composedRefs,
+        onDismiss: () => context.onOpenChange(false)
+      })
+    }),
+    /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime8.jsx(TitleWarning, { titleId: context.titleId }),
+      /* @__PURE__ */ import_jsx_runtime8.jsx(DescriptionWarning, { contentRef, descriptionId: context.descriptionId })
+    ] })
+  ] });
+});
+var TITLE_NAME = "DialogTitle";
+var DialogTitle = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, ...titleProps } = props2;
+  const context = useDialogContext(TITLE_NAME, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.h2, { id: context.titleId, ...titleProps, ref: forwardedRef });
+});
+DialogTitle.displayName = TITLE_NAME;
+var DESCRIPTION_NAME = "DialogDescription";
+var DialogDescription = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, ...descriptionProps } = props2;
+  const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.p, { id: context.descriptionId, ...descriptionProps, ref: forwardedRef });
+});
+DialogDescription.displayName = DESCRIPTION_NAME;
+var CLOSE_NAME = "DialogClose";
+var DialogClose = React32.forwardRef((props2, forwardedRef) => {
+  const { __scopeDialog, ...closeProps } = props2;
+  const context = useDialogContext(CLOSE_NAME, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
+    type: "button",
+    ...closeProps,
+    ref: forwardedRef,
+    onClick: composeEventHandlers(props2.onClick, () => context.onOpenChange(false))
+  });
+});
+DialogClose.displayName = CLOSE_NAME;
+function getState(open) {
+  return open ? "open" : "closed";
+}
+var TITLE_WARNING_NAME = "DialogTitleWarning";
+var [WarningProvider, useWarningContext] = createContext22(TITLE_WARNING_NAME, {
+  contentName: CONTENT_NAME,
+  titleName: TITLE_NAME,
+  docsSlug: "dialog"
+});
+var TitleWarning = ({ titleId }) => {
+  const titleWarningContext = useWarningContext(TITLE_WARNING_NAME);
+  const MESSAGE = `\`${titleWarningContext.contentName}\` requires a \`${titleWarningContext.titleName}\` for the component to be accessible for screen reader users.
+
+If you want to hide the \`${titleWarningContext.titleName}\`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/${titleWarningContext.docsSlug}`;
+  React32.useEffect(() => {
+    if (titleId) {
+      const hasTitle = document.getElementById(titleId);
+      if (!hasTitle)
+        console.error(MESSAGE);
+    }
+  }, [MESSAGE, titleId]);
+  return null;
+};
+var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
+var DescriptionWarning = ({ contentRef, descriptionId }) => {
+  const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
+  const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
+  React32.useEffect(() => {
+    const describedById = contentRef.current?.getAttribute("aria-describedby");
+    if (descriptionId && describedById) {
+      const hasDescription = document.getElementById(descriptionId);
+      if (!hasDescription)
+        console.warn(MESSAGE);
+    }
+  }, [MESSAGE, contentRef, descriptionId]);
+  return null;
+};
+var Root2 = Dialog;
+var Portal2 = DialogPortal;
+var Overlay = DialogOverlay;
+var Content = DialogContent;
+var Title = DialogTitle;
+var Description = DialogDescription;
+var Close = DialogClose;
+
+// dashboard/src/components/ui/dialog.jsx
+init_lucide_react();
+init_utils();
+var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
+"use client";
+var Dialog2 = Root2;
+var DialogPortal2 = Portal2;
+var DialogOverlay2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
+  ref,
+  className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+  ...props2
+}, undefined, false, undefined, this));
+DialogOverlay2.displayName = Overlay.displayName;
+var DialogContent2 = React33.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
+  children: [
+    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogOverlay2, {}, undefined, false, undefined, this),
+    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Content, {
+      ref,
+      className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
+      ...props2,
+      children: [
+        children,
+        /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Close, {
+          className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+          children: [
+            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(X, {
+              className: "h-4 w-4"
+            }, undefined, false, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
+              className: "sr-only",
+              children: "Close"
+            }, undefined, false, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      ]
+    }, undefined, true, undefined, this)
+  ]
+}, undefined, true, undefined, this));
+DialogContent2.displayName = Content.displayName;
+var DialogHeader = ({
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
+  ...props2
+}, undefined, false, undefined, this);
+DialogHeader.displayName = "DialogHeader";
+var DialogFooter = ({
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+  ...props2
+}, undefined, false, undefined, this);
+DialogFooter.displayName = "DialogFooter";
+var DialogTitle2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
+  ref,
+  className: cn("text-lg font-semibold leading-none tracking-tight", className),
+  ...props2
+}, undefined, false, undefined, this));
+DialogTitle2.displayName = Title.displayName;
+var DialogDescription2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
+  ref,
+  className: cn("text-sm text-muted-foreground", className),
+  ...props2
+}, undefined, false, undefined, this));
+DialogDescription2.displayName = Description.displayName;
 
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var CodeBrowser2 = import_react31.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var ActivityLog2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var DocumentUploader2 = import_react31.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
-var FileViewer2 = import_react31.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
-var AgentPerformanceMonitor2 = import_react31.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
-var ToolHealthMonitor2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SystemHealthAlerts2 = import_react31.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
-var MissionPlanner2 = import_react31.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
-var GovernanceDashboard2 = import_react31.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
-var ThoughtStream2 = import_react31.lazy(() => Promise.resolve().then(() => (init_ThoughtStream(), exports_ThoughtStream)));
+init_button();
+init_scroll_area();
+
+// dashboard/src/components/CurrentObjective.js
+var import_react8 = __toESM(require_react(), 1);
+init_card();
+init_badge();
+var jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
+
+// dashboard/src/pages/Dashboard.js
+var jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
+var ProjectSelector2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var CodeBrowser2 = import_react32.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var ActivityLog2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var DocumentUploader2 = import_react32.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
+var FileViewer2 = import_react32.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+var AgentPerformanceMonitor2 = import_react32.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
+var ToolHealthMonitor2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SystemHealthAlerts2 = import_react32.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
+var MissionPlanner2 = import_react32.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
+var GovernanceDashboard2 = import_react32.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
+var ThoughtStream2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ThoughtStream(), exports_ThoughtStream)));
+var ExecutiveSummary2 = import_react32.lazy(() => Promise.resolve().then(() => (init_ExecutiveSummary(), exports_ExecutiveSummary)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -55950,10 +57925,11 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react31.useState(INITIAL_STATE);
-  const [thoughtStream, setThoughtStream] = import_react31.useState([]);
-  const [currentObjective, setCurrentObjective] = import_react31.useState(null);
-  const [healthData, setHealthData] = import_react31.useState(null);
+  const [systemState, setSystemState] = import_react32.useState(INITIAL_STATE);
+  const [thoughtStream, setThoughtStream] = import_react32.useState([]);
+  const [currentObjective, setCurrentObjective] = import_react32.useState(null);
+  const [healthData, setHealthData] = import_react32.useState(null);
+  const [humanApprovalRequest, setHumanApprovalRequest] = import_react32.useState(null);
   const fetchFiles = async () => {
     setSystemState((prevState) => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -55964,12 +57940,12 @@ var Dashboard = () => {
       }
       const files = await response.json();
       setSystemState((prevState) => ({ ...prevState, files, isFileListLoading: false }));
-    } catch (error40) {
-      console.error("Error fetching files:", error40);
-      setSystemState((prevState) => ({ ...prevState, files: [], filesError: error40.message, isFileListLoading: false }));
+    } catch (error46) {
+      console.error("Error fetching files:", error46);
+      setSystemState((prevState) => ({ ...prevState, files: [], filesError: error46.message, isFileListLoading: false }));
     }
   };
-  import_react31.useEffect(() => {
+  import_react32.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -56006,11 +57982,26 @@ var Dashboard = () => {
         case "thought_stream":
           setThoughtStream((prevStream) => [payload, ...prevStream].slice(0, 50));
           break;
+        case "human_approval_request":
+          setHumanApprovalRequest(payload);
+          break;
         default:
           break;
       }
     }
   }, [data]);
+  const handleApprovalResponse = (decision) => {
+    if (!humanApprovalRequest)
+      return;
+    sendMessage({
+      type: "human_approval_response",
+      payload: {
+        requestId: humanApprovalRequest.requestId,
+        decision
+      }
+    });
+    setHumanApprovalRequest(null);
+  };
   const handleProjectSelect = (selectedPath) => {
     if (selectedPath) {
       sendMessage({ type: "set_project", payload: { path: selectedPath } });
@@ -56036,340 +58027,408 @@ var Dashboard = () => {
         fileContent: data2.content,
         isFileContentLoading: false
       }));
-    } catch (error40) {
-      console.error("Failed to fetch file content:", error40);
+    } catch (error46) {
+      console.error("Failed to fetch file content:", error46);
       setSystemState((prevState) => ({
         ...prevState,
-        fileContent: `Error loading file: ${error40.message}`,
+        fileContent: `Error loading file: ${error46.message}`,
         isFileContentLoading: false
       }));
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
     className: "dark h-screen w-screen bg-background text-foreground",
-    children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-      direction: "vertical",
-      className: "h-full w-full",
-      children: [
-        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-          defaultSize: 10,
-          minSize: 10,
-          maxSize: 10,
-          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-            className: "flex items-center justify-between p-4 border-b h-full",
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(jsx_dev_runtime27.Fragment, {}, undefined, false, undefined, this),
+        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Dialog2, {
+          open: !!humanApprovalRequest,
+          onOpenChange: (isOpen) => !isOpen && setHumanApprovalRequest(null),
+          children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DialogContent2, {
+            className: "sm:max-w-[600px]",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                className: "flex items-center gap-4",
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DialogHeader, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("h1", {
-                    className: "text-xl font-bold",
-                    children: "Stigmergy"
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DialogTitle2, {
+                    children: "Human Approval Required"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                    fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                      className: "p-4",
-                      children: "Loading Project Selector..."
-                    }, undefined, false, undefined, this),
-                    children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ProjectSelector2, {
-                      onProjectSelect: handleProjectSelect
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DialogDescription2, {
+                    children: "An agent has paused its execution and requires your input to proceed."
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                className: "grid gap-4 py-4",
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+                    className: "text-sm font-medium",
+                    children: humanApprovalRequest?.message
+                  }, undefined, false, undefined, this),
+                  humanApprovalRequest?.data && /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ScrollArea2, {
+                    className: "h-72 w-full rounded-md border p-4",
+                    children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("pre", {
+                      className: "text-xs whitespace-pre-wrap",
+                      children: JSON.stringify(humanApprovalRequest.data, null, 2)
                     }, undefined, false, undefined, this)
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                className: "flex items-center gap-4 text-sm",
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DialogFooter, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
-                    children: [
-                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("b", {
-                        children: "Active Project:"
-                      }, undefined, false, undefined, this),
-                      " ",
-                      systemState.project_path || "None"
-                    ]
-                  }, undefined, true, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Separator2, {
-                    orientation: "vertical",
-                    className: "h-6"
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Button, {
+                    variant: "destructive",
+                    onClick: () => handleApprovalResponse("rejected"),
+                    children: "Reject"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
-                    children: [
-                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("b", {
-                        children: "Status:"
-                      }, undefined, false, undefined, this),
-                      " ",
-                      /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("span", {
-                        className: "font-mono p-1 bg-muted rounded-md",
-                        children: systemState.project_status || "Idle"
-                      }, undefined, false, undefined, this)
-                    ]
-                  }, undefined, true, undefined, this)
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Button, {
+                    variant: "default",
+                    onClick: () => handleApprovalResponse("approved"),
+                    children: "Approve"
+                  }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             ]
           }, undefined, true, undefined, this)
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-          withHandle: true
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-          defaultSize: 65,
-          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-            direction: "horizontal",
-            className: "h-full",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                defaultSize: 40,
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                  direction: "vertical",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
-                        className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                          className: "flex-grow overflow-auto p-0",
-                          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                            fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                              className: "p-4",
-                              children: "Loading Code..."
-                            }, undefined, false, undefined, this),
-                            children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CodeBrowser2, {
-                              files: systemState.files,
-                              onFileSelect: handleFileSelect,
-                              selectedFile: systemState.selectedFile,
-                              isLoading: systemState.isFileListLoading,
-                              error: systemState.filesError
-                            }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                              className: "text-muted-foreground p-4",
-                              children: "Set a project to see files."
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 50,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading Viewer..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(FileViewer2, {
-                          filePath: systemState.selectedFile,
-                          content: systemState.fileContent,
-                          isLoading: systemState.isFileContentLoading
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                withHandle: true
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                defaultSize: 60,
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                  direction: "vertical",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 60,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
-                        className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
-                              children: "Agent Chat"
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                            className: "flex-grow p-2",
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Chat..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ChatInterface2, {
-                                sendMessage,
-                                engineStatus: systemState.project_status,
-                                activeProject: systemState.project_path
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      defaultSize: 40,
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
-                        className: "h-full w-full rounded-none border-0 border-r flex flex-col",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
-                              children: "Document Intelligence"
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                            className: "flex-grow overflow-y-auto p-4 space-y-4",
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading Uploader..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-          withHandle: true
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-          defaultSize: 25,
-          children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(Card, {
-            className: "h-full w-full rounded-none border-0 border-t flex flex-col",
-            children: [
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardHeader, {
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardTitle, {
-                  children: "System Health Overview"
-                }, undefined, false, undefined, this)
-              }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(CardContent, {
-                className: "flex-grow overflow-auto p-2",
-                children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                  direction: "horizontal",
-                  children: [
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(AgentPerformanceMonitor2, {
-                          healthData
-                        }, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                        fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                          className: "p-4",
-                          children: "Loading Governance..."
-                        }, undefined, false, undefined, this),
-                        children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
-                      }, undefined, false, undefined, this)
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                      withHandle: true
-                    }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                      children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanelGroup, {
-                        direction: "vertical",
-                        children: [
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ToolHealthMonitor2, {
-                                healthData
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizableHandle, {
-                            withHandle: true
-                          }, undefined, false, undefined, this),
-                          /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ResizablePanel, {
-                            children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react31.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV("div", {
-                                className: "p-4",
-                                children: "Loading..."
-                              }, undefined, false, undefined, this),
-                              children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(SystemHealthAlerts2, {
-                                healthData
-                              }, undefined, false, undefined, this)
-                            }, undefined, false, undefined, this)
-                          }, undefined, false, undefined, this)
-                        ]
-                      }, undefined, true, undefined, this)
-                    }, undefined, false, undefined, this)
-                  ]
-                }, undefined, true, undefined, this)
-              }, undefined, false, undefined, this)
-            ]
-          }, undefined, true, undefined, this)
         }, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+        direction: "vertical",
+        className: "h-full w-full",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+            defaultSize: 10,
+            minSize: 10,
+            maxSize: 10,
+            children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+              className: "flex items-center justify-between p-4 border-b h-full",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                  className: "flex items-center gap-4",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("h1", {
+                      className: "text-xl font-bold",
+                      children: "Stigmergy"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                      fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                        className: "p-4",
+                        children: "Loading Project Selector..."
+                      }, undefined, false, undefined, this),
+                      children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ProjectSelector2, {
+                        onProjectSelect: handleProjectSelect
+                      }, undefined, false, undefined, this)
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                  className: "flex items-center gap-4 text-sm",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("span", {
+                      children: [
+                        /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("b", {
+                          children: "Active Project:"
+                        }, undefined, false, undefined, this),
+                        " ",
+                        systemState.project_path || "None"
+                      ]
+                    }, undefined, true, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Separator2, {
+                      orientation: "vertical",
+                      className: "h-6"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("span", {
+                      children: [
+                        /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("b", {
+                          children: "Status:"
+                        }, undefined, false, undefined, this),
+                        " ",
+                        /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("span", {
+                          className: "font-mono p-1 bg-muted rounded-md",
+                          children: systemState.project_status || "Idle"
+                        }, undefined, false, undefined, this)
+                      ]
+                    }, undefined, true, undefined, this)
+                  ]
+                }, undefined, true, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+            withHandle: true
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+            defaultSize: 25,
+            minSize: 20,
+            children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+              fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                className: "p-4",
+                children: "Loading Executive Summary..."
+              }, undefined, false, undefined, this),
+              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ExecutiveSummary2, {}, undefined, false, undefined, this)
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+            withHandle: true
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+            defaultSize: 65,
+            children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+              direction: "horizontal",
+              className: "h-full",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                  defaultSize: 40,
+                  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+                    direction: "vertical",
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        defaultSize: 50,
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Card, {
+                          className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
+                          children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardContent, {
+                            className: "flex-grow overflow-auto p-0",
+                            children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                className: "p-4",
+                                children: "Loading Code..."
+                              }, undefined, false, undefined, this),
+                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CodeBrowser2, {
+                                files: systemState.files,
+                                onFileSelect: handleFileSelect,
+                                selectedFile: systemState.selectedFile,
+                                isLoading: systemState.isFileListLoading,
+                                error: systemState.filesError
+                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                className: "text-muted-foreground p-4",
+                                children: "Set a project to see files."
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          }, undefined, false, undefined, this)
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                        withHandle: true
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        defaultSize: 50,
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                            className: "p-4",
+                            children: "Loading Viewer..."
+                          }, undefined, false, undefined, this),
+                          children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(FileViewer2, {
+                            filePath: systemState.selectedFile,
+                            content: systemState.fileContent,
+                            isLoading: systemState.isFileContentLoading
+                          }, undefined, false, undefined, this)
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this)
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                  withHandle: true
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                  defaultSize: 60,
+                  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+                    direction: "vertical",
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        defaultSize: 60,
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Card, {
+                          className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardTitle, {
+                                children: "Agent Chat"
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardContent, {
+                              className: "flex-grow p-2",
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                  className: "p-4",
+                                  children: "Loading Chat..."
+                                }, undefined, false, undefined, this),
+                                children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ChatInterface2, {
+                                  sendMessage,
+                                  engineStatus: systemState.project_status,
+                                  activeProject: systemState.project_path
+                                }, undefined, false, undefined, this)
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                        withHandle: true
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        defaultSize: 40,
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Card, {
+                          className: "h-full w-full rounded-none border-0 border-r flex flex-col",
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardTitle, {
+                                children: "Document Intelligence"
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardContent, {
+                              className: "flex-grow overflow-y-auto p-4 space-y-4",
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                  className: "p-4",
+                                  children: "Loading Uploader..."
+                                }, undefined, false, undefined, this),
+                                children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+            withHandle: true
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+            defaultSize: 25,
+            children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Card, {
+              className: "h-full w-full rounded-none border-0 border-t flex flex-col",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardHeader, {
+                  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardTitle, {
+                    children: "System Health Overview"
+                  }, undefined, false, undefined, this)
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardContent, {
+                  className: "flex-grow overflow-auto p-2",
+                  children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+                    direction: "horizontal",
+                    children: [
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                            className: "p-4",
+                            children: "Loading..."
+                          }, undefined, false, undefined, this),
+                          children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(AgentPerformanceMonitor2, {
+                            healthData
+                          }, undefined, false, undefined, this)
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                        withHandle: true
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                            className: "p-4",
+                            children: "Loading Governance..."
+                          }, undefined, false, undefined, this),
+                          children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
+                        }, undefined, false, undefined, this)
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                        withHandle: true
+                      }, undefined, false, undefined, this),
+                      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanelGroup, {
+                          direction: "vertical",
+                          children: [
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                  className: "p-4",
+                                  children: "Loading..."
+                                }, undefined, false, undefined, this),
+                                children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ToolHealthMonitor2, {
+                                  healthData
+                                }, undefined, false, undefined, this)
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizableHandle, {
+                              withHandle: true
+                            }, undefined, false, undefined, this),
+                            /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(ResizablePanel, {
+                              children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(import_react32.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                                  className: "p-4",
+                                  children: "Loading..."
+                                }, undefined, false, undefined, this),
+                                children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(SystemHealthAlerts2, {
+                                  healthData
+                                }, undefined, false, undefined, this)
+                              }, undefined, false, undefined, this)
+                            }, undefined, false, undefined, this)
+                          ]
+                        }, undefined, true, undefined, this)
+                      }, undefined, false, undefined, this)
+                    ]
+                  }, undefined, true, undefined, this)
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
 };
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime28 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/components/ErrorBoundary.js
-var import_react33 = __toESM(require_react(), 1);
-var jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
+var import_react34 = __toESM(require_react(), 1);
+var jsx_dev_runtime29 = __toESM(require_jsx_dev_runtime(), 1);
 
-class ErrorBoundary extends import_react33.default.Component {
+class ErrorBoundary extends import_react34.default.Component {
   constructor(props2) {
     super(props2);
     this.state = { hasError: false, error: null, errorInfo: null };
   }
-  static getDerivedStateFromError(error40) {
+  static getDerivedStateFromError(error46) {
     return { hasError: true };
   }
-  componentDidCatch(error40, errorInfo) {
-    console.error("Uncaught error in React component tree:", error40, errorInfo);
-    this.setState({ error: error40, errorInfo });
+  componentDidCatch(error46, errorInfo) {
+    console.error("Uncaught error in React component tree:", error46, errorInfo);
+    this.setState({ error: error46, errorInfo });
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+      return /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("div", {
         style: { padding: "20px", color: "white", backgroundColor: "#400000", height: "100vh", fontFamily: "monospace", overflow: "auto" },
         children: [
-          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("h1", {
+          /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("h1", {
             children: "Application Error Caught"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+          /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("p", {
             children: "The application failed to render. This is the error that was previously silent."
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("hr", {}, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("details", {
+          /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("hr", {}, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("details", {
             open: true,
             style: { whiteSpace: "pre-wrap" },
             children: [
-              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("summary", {
+              /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("summary", {
                 style: { fontWeight: "bold", cursor: "pointer" },
                 children: "Error Details"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("h3", {
+              /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("h3", {
                 children: this.state.error && this.state.error.toString()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("div", {
                 children: this.state.errorInfo && this.state.errorInfo.componentStack
               }, undefined, false, undefined, this)
             ]
@@ -56383,10 +58442,10 @@ class ErrorBoundary extends import_react33.default.Component {
 var ErrorBoundary_default = ErrorBoundary;
 
 // dashboard/src/index.js
-var jsx_dev_runtime28 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime30 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react34.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ErrorBoundary_default, {
-    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime30.jsxDEV(import_react35.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime30.jsxDEV(ErrorBoundary_default, {
+    children: /* @__PURE__ */ jsx_dev_runtime30.jsxDEV(App_default, {}, undefined, false, undefined, this)
   }, undefined, false, undefined, this)
 }, undefined, false, undefined, this));

@@ -574,6 +574,100 @@ Execute the file write operation now. Upon success, respond with a confirmation 
             }
         });
 
+        this.app.get('/api/executive-summary', async (c) => {
+            const trajectoriesDir = path.join(this.projectRoot, '.stigmergy', 'trajectories');
+            const performanceDir = path.join(this.projectRoot, '.ai', 'performance');
+
+            try {
+                // --- 1. Process Trajectories ---
+                const trajectoryFiles = await fs.readdir(trajectoriesDir).catch(() => []);
+                let totalTasks = 0;
+                let successfulTasks = 0;
+                let totalDuration = 0;
+                const agentStats = {}; // { agentId: { total: 0, success: 0 } }
+
+                for (const file of trajectoryFiles) {
+                    if (!file.endsWith('.json')) continue;
+                    try {
+                        const filePath = path.join(trajectoriesDir, file);
+                        const trajectory = await fs.readJson(filePath);
+
+                        totalTasks++;
+                        const isSuccess = trajectory.status === 'COMPLETED' || trajectory.status === 'PLAN_EXECUTED';
+                        if (isSuccess) {
+                            successfulTasks++;
+                        }
+
+                        if (trajectory.start_time && trajectory.end_time) {
+                            const start = new Date(trajectory.start_time).getTime();
+                            const end = new Date(trajectory.end_time).getTime();
+                            totalDuration += (end - start);
+                        }
+
+                        // Aggregate agent stats from events
+                        if (trajectory.events) {
+                            for (const event of trajectory.events) {
+                                if (event.type === 'tool_call' && event.agent) {
+                                    const agentId = event.agent;
+                                    if (!agentStats[agentId]) {
+                                        agentStats[agentId] = { total: 0, success: 0 };
+                                    }
+                                    agentStats[agentId].total++;
+                                    if (event.status === 'success') {
+                                         agentStats[agentId].success++;
+                                    }
+                                }
+                            }
+                        }
+
+                    } catch (err) {
+                        console.warn(`[ExecutiveSummary] Could not process trajectory file ${file}: ${err.message}`);
+                    }
+                }
+
+                // --- 2. Process Performance Logs (for cost) ---
+                const performanceFiles = await fs.readdir(performanceDir).catch(() => []);
+                let totalCost = 0;
+
+                for (const file of performanceFiles) {
+                     if (!file.endsWith('.json')) continue;
+                    try {
+                        const filePath = path.join(performanceDir, file);
+                        const perfLog = await fs.readJson(filePath);
+                        if (perfLog.cost) {
+                            totalCost += perfLog.cost;
+                        }
+                    } catch (err) {
+                        console.warn(`[ExecutiveSummary] Could not process performance file ${file}: ${err.message}`);
+                    }
+                }
+
+                // --- 3. Calculate Final Metrics ---
+                const successRate = totalTasks > 0 ? (successfulTasks / totalTasks) * 100 : 0;
+                const avgCompletionTime = totalTasks > 0 ? totalDuration / totalTasks : 0; // in milliseconds
+
+                const agentReliability = Object.entries(agentStats).map(([agentId, stats]) => ({
+                    agentId,
+                    reliability: stats.total > 0 ? (stats.success / stats.total) * 100 : 0,
+                    tasks: stats.total
+                })).sort((a, b) => b.reliability - a.reliability);
+
+
+                return c.json({
+                    overallSuccessRate: parseFloat(successRate.toFixed(2)),
+                    averageTaskCompletionTime: avgCompletionTime,
+                    totalEstimatedCost: parseFloat(totalCost.toFixed(6)),
+                    agentReliabilityRankings: agentReliability,
+                    totalTasks,
+                    successfulTasks
+                });
+
+            } catch (error) {
+                console.error('[Engine] Error generating executive summary:', error);
+                return c.json({ error: 'Failed to generate executive summary.' }, 500);
+            }
+        });
+
         this.app.post('/api/upload', async (c) => {
             try {
                 const formData = await c.req.formData();

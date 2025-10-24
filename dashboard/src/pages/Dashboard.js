@@ -22,6 +22,7 @@ const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.j
 const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 const ThoughtStream = lazy(() => import('../components/ThoughtStream.js'));
+const ExecutiveSummary = lazy(() => import('../components/ExecutiveSummary.js'));
 
 
 const INITIAL_STATE = {
@@ -205,6 +206,12 @@ const Dashboard = () => {
                 <span><b>Status:</b> <span className="font-mono p-1 bg-muted rounded-md">{systemState.project_status || 'Idle'}</span></span>
             </div>
           </div>
+        </ResizablePanel>
+        <ResizableHandle withHandle />
+        <ResizablePanel defaultSize={25} minSize={20}>
+            <Suspense fallback={<div className="p-4">Loading Executive Summary...</div>}>
+                <ExecutiveSummary />
+            </Suspense>
         </ResizablePanel>
         <ResizableHandle withHandle />
         <ResizablePanel defaultSize={65}>
