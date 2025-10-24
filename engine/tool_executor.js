@@ -218,7 +218,8 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
 
         let result;
         try {
-            result = await subAgentEngine.triggerAgent(subagent_type, description);
+            // Add a default 5-minute timeout to all sub-agent tasks
+            result = await subAgentEngine.triggerAgent(subagent_type, description, 300000);
         } finally {
             await subAgentEngine.stop();
         }

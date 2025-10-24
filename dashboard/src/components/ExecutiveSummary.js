@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
+import { WebSocketContext } from '../contexts/WebSocketContext';
 
 // Helper to format milliseconds into a readable string
 const formatDuration = (ms) => {
@@ -15,6 +16,7 @@ export default function ExecutiveSummary() {
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { lastMessage } = useContext(WebSocketContext);
 
   useEffect(() => {
     async function fetchSummary() {
@@ -38,6 +40,18 @@ export default function ExecutiveSummary() {
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    if (lastMessage) {
+      const message = JSON.parse(lastMessage.data);
+      if (message.type === 'cost_update' && summary) {
+        setSummary(prevSummary => ({
+          ...prevSummary,
+          totalEstimatedCost: message.payload.total
+        }));
+      }
+    }
+  }, [lastMessage, summary]);
 
   if (isLoading) {
     return (

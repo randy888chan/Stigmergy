@@ -360,28 +360,28 @@ export async function verify_comprehensive_quality({ sourceFile, testFile, brief
 
 // Legacy QA tools for backward compatibility
 
-export async function verify_requirements({ requirements, code, ai, generateObject, config }) {
+export async function verify_requirements({ requirements, code, ai, generateObject, config, engine }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
-  const { object } = await generateObject({
+  const { object: result } = await generateObject({
     model: client(modelName),
     prompt: `Does the code satisfy all requirements? Respond with a boolean and feedback. Requirements: ${requirements}
 
 Code: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
-  });
-  return object;
+  }, engine);
+  return result;
 }
 
-export async function verify_architecture({ architecture_blueprint, code, ai, generateObject, config }) {
+export async function verify_architecture({ architecture_blueprint, code, ai, generateObject, config, engine }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
-  const { object } = await generateObject({
+  const { object: result } = await generateObject({
     model: client(modelName),
     prompt: `Does the code adhere to the blueprint? Blueprint: ${architecture_blueprint}
 
 Code: ${code}`,
     schema: z.object({ passed: z.boolean(), feedback: z.string() }),
-  });
-  return object;
+  }, engine);
+  return result;
 }
 
 export async function run_tests_and_check_coverage({ test_command = "npm test -- --coverage", required_coverage = 80, execPromise = defaultExecPromise }) {

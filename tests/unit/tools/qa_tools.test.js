@@ -24,13 +24,13 @@ describe('QA Tools', () => {
         };
 
         const result = await verify_requirements(
-          { requirements: "reqs", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
+          { requirements: "reqs", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined, engine: {} }
         );
 
         // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
         expect(mockClient).toHaveBeenCalledWith('mock-model-name');
-        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }), {});
         expect(result.passed).toBe(true);
     });
     
@@ -48,13 +48,13 @@ describe('QA Tools', () => {
         };
 
         const result = await verify_architecture(
-          { architecture_blueprint: "blueprint", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined }
+          { architecture_blueprint: "blueprint", code: "code", ai: mockAiProvider, generateObject: mockGenerateObject, config: undefined, engine: {} }
         );
 
         // Assert that our local mocks were called correctly.
         expect(mockGetModelForTier).toHaveBeenCalledWith('b_tier', null, undefined);
         expect(mockClient).toHaveBeenCalledWith('mock-model-name');
-        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }));
+        expect(mockGenerateObject).toHaveBeenCalledWith(expect.objectContaining({ model: 'mock-model-from-client' }), {});
         expect(result.passed).toBe(false);
     });
 });
