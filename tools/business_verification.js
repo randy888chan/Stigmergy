@@ -2,7 +2,7 @@ import fs from "fs-extra";
 import path from "path";
 import { z } from "zod";
 
-export async function generate_financial_projections({ business_plan_content, ai, generateObject, config }) {
+export async function generate_financial_projections({ business_plan_content, ai, generateObject, config, engine }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),
@@ -21,11 +21,11 @@ export async function generate_financial_projections({ business_plan_content, ai
         .length(5),
       summary: z.string(),
     }),
-  });
+  }, engine);
   return object;
 }
 
-export async function perform_business_valuation({ business_plan_content, ai, generateObject, config }) {
+export async function perform_business_valuation({ business_plan_content, ai, generateObject, config, engine }) {
   const { client, modelName } = ai.getModelForTier('b_tier', null, config);
   const { object } = await generateObject({
     model: client(modelName),
@@ -40,6 +40,6 @@ export async function perform_business_valuation({ business_plan_content, ai, ge
       qualitative_valuation: z.string(),
       estimated_value_range: z.string(),
     }),
-  });
+  }, engine);
   return object;
 }

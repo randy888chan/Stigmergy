@@ -1,5 +1,6 @@
-export async function generateStructuredOutput(prompt, schema, ai, tier = 'utility_tier', config) {
-  // CORRECT PATTERN: Get both client and modelName, then create the model instance.
+import { getEstimatedCost } from 'llm-cost-calculator';
+
+export async function generateStructuredOutput(prompt, schema, ai, tier = 'utility_tier', config, engine) {
   const { client, modelName, provider } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
 
@@ -10,16 +11,26 @@ export async function generateStructuredOutput(prompt, schema, ai, tier = 'utili
     ({ generateObject } = await import('@ai-sdk/openai'));
   }
 
-  const { object } = await generateObject({
+  const { object, usage } = await generateObject({
     model: model,
     prompt: prompt,
     schema: schema,
   });
-  return object;
+
+  const costResult = await getEstimatedCost({
+    model: modelName,
+    input: prompt,
+    output: JSON.stringify(object),
+  });
+  const cost = costResult.cost;
+  if (engine) {
+    engine.sessionCost += cost;
+  }
+
+  return { object, cost: { last: cost, total: engine ? engine.sessionCost : 0 } };
 }
 
-export async function generateText(prompt, ai, tier = 'utility_tier', config) {
-  // CORRECT PATTERN: Get both client and modelName, then create the model instance.
+export async function generateText(prompt, ai, tier = 'utility_tier', config, engine) {
   const { client, modelName, provider } = ai.getModelForTier(tier, null, config);
   const model = client(modelName);
 
@@ -30,17 +41,24 @@ export async function generateText(prompt, ai, tier = 'utility_tier', config) {
     ({ generateText } = await import('@ai-sdk/openai'));
   }
 
-  // We use generateText from 'ai' for this now.
-  const { text } = await generateText({
+  const { text, usage } = await generateText({
     model: model,
     prompt: prompt,
   });
-  return text;
+
+  const costResult = await getEstimatedCost({
+    model: modelName,
+    input: prompt,
+    output: text,
+  });
+  const cost = costResult.cost;
+  if (engine) {
+    engine.sessionCost += cost;
+  }
+
+  return { text, cost: { last: cost, total: engine ? engine.sessionCost : 0 } };
 }
 
-// Cache management for file operations
 export function clearFileCache() {
-  // In a real implementation, this would clear any cached file data
-  // For now, this is a placeholder implementation
   console.log('[LLM Adapter] File cache cleared');
 }

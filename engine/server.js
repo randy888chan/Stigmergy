@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
+import { getEstimatedCost } from 'llm-cost-calculator';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { upgradeWebSocket } from 'hono/bun';
 import { cors } from 'hono/cors';
@@ -73,6 +74,7 @@ export class Engine {
         // Initialize tool executor
         this.toolExecutorPromise = this.initializeToolExecutor();
 
+        this.sessionCost = 0;
         // Add this block:
         this.healthCheckInterval = setInterval(async () => {
             if (this.clients.size > 0) {
@@ -246,17 +248,17 @@ Based on all the information above, please create the initial \`plan.md\` file t
         }
     }
 
-    async triggerAgent(agentId, prompt) {
-        await this.toolExecutorPromise; // Wait for the executor to be initialized
+    async triggerAgent(agentId, prompt, timeout = 300000) {
+        await this.toolExecutorPromise;
         await this.stateManagerInitializationPromise;
         console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
-        const agentName = agentId.replace('@', '');
-        let lastTextResponse = null;
 
-        try {
+        const agentExecution = (async () => {
+            const agentName = agentId.replace('@', '');
+            let lastTextResponse = null;
+
             const workingDirectory = path.join(this.projectRoot, '.stigmergy', 'sandboxes', agentName);
             await fs.ensureDir(workingDirectory);
-            console.log(chalk.blue(`[Engine] Ensured agent sandbox exists at: ${workingDirectory}`));
 
             const executeTool = this.toolExecutor;
 
@@ -296,7 +298,6 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
             while (!isDone && turnCount < maxTurns) {
                 turnCount++;
-                console.log(chalk.blue(`[Engine] Agent loop turn ${turnCount}...`));
 
                 const streamTextFunc = this._test_streamText || streamText;
                 let model;
@@ -307,16 +308,29 @@ Based on all the information above, please create the initial \`plan.md\` file t
                     model = client(modelName);
                 }
 
-                const { toolCalls, finishReason, text } = await streamTextFunc({
+                const { toolCalls, finishReason, text, usage } = await streamTextFunc({
                     model,
                     messages,
                     tools: executeTool.getTools(),
                 });
 
-                lastTextResponse = text; // Always capture the last text response
+                if (usage) {
+                    const { modelName } = this.ai.getModelForTier('reasoning_tier');
+                    const costResult = await getEstimatedCost({
+                        model: modelName,
+                        input: messages.map(m => m.content).join('\n'),
+                        output: text,
+                    });
+                    const cost = costResult.cost;
+                    if (cost) {
+                        this.sessionCost += cost;
+                        this.broadcastEvent('cost_update', { last: cost, total: this.sessionCost });
+                    }
+                }
+
+                lastTextResponse = text;
 
                 if (finishReason === 'stop' || finishReason === 'length') {
-                    console.log(chalk.yellow(`[Engine] Agent loop finished with reason: ${finishReason}`));
                     isDone = true;
                     continue;
                 }
@@ -326,14 +340,10 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
                     const toolResults = [];
                     for (const toolCall of toolCalls) {
-                        console.log(chalk.cyan(`[Agent] Calling tool: ${toolCall.toolName} with args: ${JSON.stringify(toolCall.args, null, 2)}`));
-                        // Pass the agent's specific working directory to the executor
                         const result = await executeTool.execute(toolCall.toolName, toolCall.args, agentName, workingDirectory);
-                        
                         if (result && result.project_status) {
                             this.broadcastEvent('state_update', result);
                         }
-                        
                         toolResults.push({
                             role: 'tool',
                             tool_call_id: toolCall.toolCallId,
@@ -343,8 +353,6 @@ Based on all the information above, please create the initial \`plan.md\` file t
                     }
                     messages.push(...toolResults);
                 } else {
-                    // If there are no tool calls, but the finish reason isn't stop, we might be done.
-                    // This handles cases where the agent just responds with text.
                     isDone = true;
                 }
             }
@@ -353,12 +361,19 @@ Based on all the information above, please create the initial \`plan.md\` file t
                 console.error(chalk.red('[Engine] Agent loop reached max turns. Aborting.'));
             }
 
-            return lastTextResponse; // Return the last captured text response
+            return lastTextResponse;
+        });
 
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Agent ${agentId} timed out after ${timeout}ms`)), timeout)
+        );
+
+        try {
+            return await Promise.race([agentExecution(), timeoutPromise]);
         } catch (error) {
-            console.error(chalk.red('[Engine] Error in agent logic:'), error);
-            await this.stateManager.updateStatus({ newStatus: 'ERROR', message: 'Agent failed to execute.' });
-            return null; // Return null on error
+            console.error(chalk.red(`[Engine] ${error.message}`));
+            await this.stateManager.updateStatus({ newStatus: 'ERROR', message: error.message });
+            return null;
         }
     }
 
@@ -656,7 +671,7 @@ Execute the file write operation now. Upon success, respond with a confirmation 
                 return c.json({
                     overallSuccessRate: parseFloat(successRate.toFixed(2)),
                     averageTaskCompletionTime: avgCompletionTime,
-                    totalEstimatedCost: parseFloat(totalCost.toFixed(6)),
+                    totalEstimatedCost: this.sessionCost,
                     agentReliabilityRankings: agentReliability,
                     totalTasks,
                     successfulTasks
