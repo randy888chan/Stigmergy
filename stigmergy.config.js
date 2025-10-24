@@ -4,6 +4,7 @@
 
 const config = {
   corePath: ".stigmergy-core",
+  custom_tools_path: "./stigmergy-tools",
   security: {
     allowedDirs: [
       "src",
