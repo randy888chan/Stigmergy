@@ -24,6 +24,7 @@ const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard
 const ThoughtStream = lazy(() => import('../components/ThoughtStream.js'));
 const ExecutiveSummary = lazy(() => import('../components/ExecutiveSummary.js'));
 const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
+const MissionBriefing = lazy(() => import('../components/MissionBriefing.js').then(module => ({ default: module.MissionBriefing })));
 
 
 const INITIAL_STATE = {
@@ -48,6 +49,7 @@ const Dashboard = () => {
   const [currentObjective, setCurrentObjective] = useState(null);
   const [healthData, setHealthData] = useState(null);
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
+  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const fetchFiles = async () => {
     setSystemState(prevState => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -191,6 +193,15 @@ const Dashboard = () => {
             </Dialog>
         </Suspense>
 
+        {/* Mission Briefing Modal */}
+        <Suspense fallback={<></>}>
+            <Dialog open={isBriefingOpen} onOpenChange={setIsBriefingOpen}>
+                <DialogContent className="sm:max-w-[800px]">
+                    <MissionBriefing setOpen={setIsBriefingOpen} />
+                </DialogContent>
+            </Dialog>
+        </Suspense>
+
 
       <ResizablePanelGroup direction="vertical" className="h-full w-full">
         <ResizablePanel defaultSize={10} minSize={10} maxSize={10}>
@@ -200,6 +211,7 @@ const Dashboard = () => {
                 <Suspense fallback={<div className="p-4">Loading Project Selector...</div>}>
                     <ProjectSelector onProjectSelect={handleProjectSelect} />
                 </Suspense>
+                <Button onClick={() => setIsBriefingOpen(true)} variant="outline">New Mission Briefing</Button>
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <span><b>Active Project:</b> {systemState.project_path || 'None'}</span>
