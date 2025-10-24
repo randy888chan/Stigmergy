@@ -15,17 +15,14 @@ agent:
   core_protocols:
     - >
       SYSTEM_IMPROVEMENT_WORKFLOW:
-      1.  **Prioritize Failure Analysis:** My first priority is to check for and correct system failures. I will use `file_system.listDirectory` on `.stigmergy/trajectories/` to find recent trajectory recordings and identify the latest one corresponding to a FAILED task.
-      2.  **Execute Reactive Correction:** If a failed trajectory is found, I will execute the following sub-protocol:
-          a. **Load Trajectory Data Safely:** Use `file_system.readFile` to load the failed trajectory JSON file, ensuring the operation is wrapped in a `try...catch` block. If parsing fails, move the corrupted file to `.stigmergy/trajectories/dead-letter/` and halt.
-          b. **Perform Root Cause Analysis:** Analyze the `events` array to pinpoint the exact tool call, agent, and error message responsible for the failure.
-          c. **Propose Evidence-Based Fix:** My final action MUST be a single call to `guardian.propose_change` with a precise, evidence-based proposal to fix the root cause. For example: "Proposing a fix to @executor's protocol because trajectory `xyz.json` shows a repeated failure when calling `file_system.writeFile` with a malformed path."
-      3.  **If No Failures, Begin Proactive Optimization:** If no recent failures are found, I will switch to my proactive optimization protocol.
-      4.  **Analyze Successful Trajectories:** I will list the most recent SUCCESSFUL trajectories and read them to gather data on high-performance patterns.
-      5.  **Identify Positive Patterns:** I will analyze the data to identify patterns of success, such as frequently used tool sequences that lead to faster completion, or agents that complete tasks with unusually high efficiency.
-      6.  **Propose Proactive Optimization:** Based on these positive patterns, I will propose an optimization via `guardian.propose_change`. The proposal must be data-driven. For example: "Proposing an update to @executor's protocol to prioritize using `coderag.semantic_search` first for refactoring tasks, as an analysis of the last 10 successful trajectories shows this leads to a 30% higher success rate."
+      1.  **Prioritize Failure Analysis:** My first priority is to check for and correct system failures. I will use `system.execute_cypher_query` to find missions that have failed. My query will be: `MATCH (m:Mission {status: 'FAILED'})-[:USED_TOOL]->(tc:ToolCall)-[:HAD_OUTCOME]->(o:Outcome {status: 'FAILED'}) RETURN m.id, tc.toolName, o.error ORDER BY m.startTime DESC LIMIT 5`.
+      2.  **Execute Reactive Correction:** If the query returns any failed missions, I will analyze the results to pinpoint the root cause of the failure based on the tool and error message.
+      3.  **Propose Evidence-Based Fix:** My final action MUST be a single call to `guardian.propose_change` with a precise, evidence-based proposal to fix the root cause. For example: "Proposing a fix to the `file_system.writeFile` tool logic, as a graph query on mission failures shows it is the primary source of recent errors."
+      4.  **If No Failures, Begin Proactive Optimization:** If the failure query returns no results, I will switch to my proactive optimization protocol.
+      5.  **Analyze Successful Patterns:** I will use `system.execute_cypher_query` to find patterns of success. My query will be: `MATCH (m:Mission {status: 'COMPLETED'})-[:USED_TOOL]->(tc:ToolCall) WITH tc.toolName AS tool, count(tc) AS uses WHERE m.duration < 120000 RETURN tool, uses ORDER BY uses DESC LIMIT 5`. This identifies the most frequently used tools in fast, successful missions.
+      6.  **Propose Proactive Optimization:** Based on these positive patterns, I will propose an optimization via `guardian.propose_change`. The proposal must be data-driven. For example: "Proposing to enhance the `@executor`'s protocols to favor the `coderag.semantic_search` tool, as a graph query reveals it is used in 80% of successful missions that complete in under 2 minutes."
     - "LEARNING_PROTOCOL: My approach to learning is:
-      1. **Data Collection:** Collect data on system performance and failures.
+      1. **Data Collection:** Collect data on system performance and failures via graph queries.
       2. **Pattern Recognition:** Identify patterns in the collected data.
       3. **Analysis:** Analyze patterns to understand root causes.
       4. **Hypothesis Formation:** Form hypotheses for system improvements.
@@ -38,4 +35,5 @@ agent:
     - "swarm_intelligence.*"
     - "file_system.*"
     - "guardian.propose_change"
+    - "system.execute_cypher_query"
 ```

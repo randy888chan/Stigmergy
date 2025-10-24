@@ -192,4 +192,33 @@ analyze_task_execution_strategy: async ({ task_description }) => {
 
     return { executor, reasoning };
   },
+
+  execute_cypher_query: async ({ query }) => {
+    if (!query) {
+      throw new Error("The 'query' argument is required for system.execute_cypher_query.");
+    }
+    if (!engine.stateManager || !engine.stateManager.getDriver()) {
+        return "EXECUTION FAILED: Neo4j database is not connected.";
+    }
+    const driver = engine.stateManager.getDriver();
+    const session = driver.session();
+    try {
+        console.log(`[System Tool] Executing Cypher Query: ${query}`);
+        const result = await session.run(query);
+        // Neo4j records are complex objects. We need to serialize them into a more digestible format.
+        const serializedRecords = result.records.map(record => {
+            const serializedRecord = {};
+            record.keys.forEach(key => {
+                serializedRecord[key] = record.get(key);
+            });
+            return serializedRecord;
+        });
+        return JSON.stringify(serializedRecords, null, 2);
+    } catch (error) {
+        console.error(`[System Tool] Cypher query failed: ${error.message}`);
+        return `EXECUTION FAILED: ${error.message}`;
+    } finally {
+        await session.close();
+    }
+  },
 });
