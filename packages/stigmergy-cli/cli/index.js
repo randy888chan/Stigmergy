@@ -317,6 +317,23 @@ If a goal is provided, this command sends the goal to the running Stigmergy serv
 If no goal is provided, it starts an interactive chat session with the service.
   `);
 
+program
+  .command("add-tool")
+  .description("Creates a new custom tool boilerplate file.")
+  .option('--name <name>', 'The name of the new tool file (e.g., my_tool)')
+  .action(async (options) => {
+    const addToolPath = path.resolve(__dirname, './commands/add-tool.js');
+    const { addTool } = await import(addToolPath);
+    await addTool(options);
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy add-tool --name "my_custom_tool"
+
+This command creates a boilerplate file in the custom tools directory
+(defined by 'custom_tools_path' in stigmergy.config.js).
+  `);
+
 // Override the default help command to add examples
 program.addHelpText('after', `
 Examples:

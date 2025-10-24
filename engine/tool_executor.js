@@ -177,7 +177,6 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
   // Cache semantic_search calls to prevent redundant searches within a single agent execution loop
   coderagTools.semantic_search = cachedQuery('semantic_search', coderagTools.semantic_search);
 
-
   const toolbelt = {
     file_system: injectedFileSystem,
     shell,
@@ -228,6 +227,40 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       },
     },
   };
+
+  // Dynamically load custom tools
+  const customToolsPath = config.custom_tools_path;
+  if (customToolsPath) {
+    const absoluteCustomToolsPath = path.resolve(engine.projectRoot || process.cwd(), customToolsPath);
+    try {
+      fsProvider.statSync(absoluteCustomToolsPath); // Throws ENOENT if directory doesn't exist, which is caught below
+      const files = await fsProvider.readdir(absoluteCustomToolsPath);
+      for (const file of files) {
+        if (file.endsWith('.js')) {
+          const toolName = path.basename(file, '.js');
+          const toolPath = path.join(absoluteCustomToolsPath, file);
+          try {
+            const toolModule = await import(`file://${toolPath}`);
+            if (toolbelt[toolName]) {
+              console.warn(chalk.yellow(`[ToolLoader] Warning: Custom tool namespace '${toolName}' conflicts with a built-in tool. The custom tool will be ignored.`));
+            } else if (Object.keys(toolModule).length > 0) {
+              toolbelt[toolName] = toolModule;
+              console.log(chalk.blue(`[ToolLoader] Successfully loaded custom tool: ${toolName}`));
+            } else {
+              console.warn(chalk.yellow(`[ToolLoader] Warning: Custom tool file '${file}' has no exports. Ignoring.`));
+            }
+          } catch (e) {
+            console.error(chalk.red(`[ToolLoader] Error loading custom tool from ${file}:`), e);
+          }
+        }
+      }
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        console.error(chalk.red(`[ToolLoader] Error accessing custom tools directory at ${absoluteCustomToolsPath}:`), e);
+      }
+      // If ENOENT, the directory doesn't exist, so we just silently continue.
+    }
+  }
 
   const getTools = () => {
       // ... (implementation unchanged)
