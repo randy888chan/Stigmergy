@@ -19,6 +19,8 @@ import fs from 'fs-extra';
 import yaml from 'js-yaml';
 import tmp from 'tmp';
 import { unifiedIntelligenceService } from '../services/unified_intelligence.js';
+import { BudgetExceededError } from '../utils/errorHandler.js';
+import { TrajectoryRecorder } from '../services/trajectory_recorder.js';
 
 export class Engine {
     constructor(options = {}) {
@@ -74,7 +76,9 @@ export class Engine {
         // Initialize tool executor
         this.toolExecutorPromise = this.initializeToolExecutor();
 
+        this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
         this.sessionCost = 0;
+        this.maxSessionCost = this.config.max_session_cost; // Initialize with default
         // Add this block:
         this.healthCheckInterval = setInterval(async () => {
             if (this.clients.size > 0) {
@@ -127,7 +131,7 @@ export class Engine {
     async initializeToolExecutor() {
         const executorFactory = this._test_executorFactory || createExecutor;
         const fsProvider = this._test_fs || fs;
-        this.toolExecutor = await executorFactory(this, this.ai, { config: this.config, unifiedIntelligenceService: this.unifiedIntelligenceService }, fsProvider);
+        this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager); this.toolExecutor = await executorFactory(this, this.ai, { config: this.config, unifiedIntelligenceService: this.unifiedIntelligenceService }, fsProvider);
     }
 
     async setActiveProject(projectPath) {
@@ -299,6 +303,10 @@ Based on all the information above, please create the initial \`plan.md\` file t
             while (!isDone && turnCount < maxTurns) {
                 turnCount++;
 
+                if (this.sessionCost > this.maxSessionCost) {
+                    throw new BudgetExceededError(`Mission aborted: Budget of $${this.maxSessionCost.toFixed(2)} has been exceeded.`);
+                }
+
                 const streamTextFunc = this._test_streamText || streamText;
                 let model;
                 if (this._test_streamText) {
@@ -316,12 +324,11 @@ Based on all the information above, please create the initial \`plan.md\` file t
 
                 if (usage) {
                     const { modelName } = this.ai.getModelForTier('reasoning_tier');
-                    const costResult = await getEstimatedCost({
+                    const cost = getEstimatedCost({
                         model: modelName,
-                        input: messages.map(m => m.content).join('\n'),
-                        output: text,
+                        inputTokens: usage.promptTokens,
+                        outputTokens: usage.completionTokens
                     });
-                    const cost = costResult.cost;
                     if (cost) {
                         this.sessionCost += cost;
                         this.broadcastEvent('cost_update', { last: cost, total: this.sessionCost });
@@ -719,10 +726,15 @@ Execute the file write operation now. Upon success, respond with a confirmation 
 
         // 3. IDE (MCP) Endpoint
         this.app.get('/mcp', async (c) => {
-            const { goal: prompt, project_path } = c.req.query();
+            const { goal: prompt, project_path, max_session_cost } = c.req.query();
 
             if (!prompt || !project_path) {
                 return c.json({ error: 'goal and project_path query parameters are required.' }, 400);
+            }
+
+            if (max_session_cost) {
+                this.maxSessionCost = parseFloat(max_session_cost);
+                console.log(chalk.yellow(`[Engine] Max session cost overridden by CLI: $${this.maxSessionCost.toFixed(2)}`));
             }
 
             console.log(chalk.cyan(`[MCP] Received prompt for project: ${project_path}`));

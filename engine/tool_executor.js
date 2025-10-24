@@ -161,7 +161,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
   const { default: createSystemTools } = await import("../tools/system_tools.js");
   const { default: createCoderagTools } = await import("../tools/coderag_tool.js");
-  const { default: trajectoryRecorder } = await import("../services/trajectory_recorder.js");
+  const trajectoryRecorder = engine.trajectoryRecorder;
 
   const injectedFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
     if (key === 'readFile') {
@@ -305,10 +305,34 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
       if (agentConfigCache.has(agentId)) {
         agentConfig = agentConfigCache.get(agentId);
       } else {
-        const agentDefPath = path.join(corePath, "agents", `${agentId}.md`);
-        const agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
+        const customAgentsDir = config.custom_agents_path ? path.resolve(engine.projectRoot || process.cwd(), config.custom_agents_path) : null;
+        const coreAgentsDir = path.join(corePath, "agents");
+
+        const potentialPaths = [];
+        if (customAgentsDir) {
+          potentialPaths.push(path.join(customAgentsDir, `${agentId}.md`));
+        }
+        potentialPaths.push(path.join(coreAgentsDir, `${agentId}.md`));
+
+        let agentFileContent = null;
+        let foundPath = null;
+
+        for (const agentDefPath of potentialPaths) {
+            try {
+                agentFileContent = await fsProvider.readFile(agentDefPath, "utf8");
+                foundPath = agentDefPath;
+                break; // Found it, stop searching.
+            } catch (e) {
+                if (e.code !== 'ENOENT') throw e; // Re-throw unexpected errors
+            }
+        }
+
+        if (!agentFileContent) {
+             throw new Error(`Could not find agent definition for '${agentId}' in custom path ('${customAgentsDir}') or core path ('${coreAgentsDir}').`);
+        }
+
         const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
-        if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition for: ${agentId}`);
+        if (!yamlMatch) throw new Error(`Could not find YAML block in agent definition file: ${foundPath}`);
         const parsedConfig = yaml.load(yamlMatch[1]).agent;
         agentConfigCache.set(agentId, parsedConfig);
         agentConfig = parsedConfig;

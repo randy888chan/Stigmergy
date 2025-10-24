@@ -304,4 +304,8 @@ export class GraphStateManager extends EventEmitter {
       this.connectionStatus = "CLOSED";
     }
   }
+
+  getDriver() {
+    return this.driver;
+  }
 }

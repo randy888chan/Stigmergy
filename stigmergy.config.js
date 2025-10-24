@@ -5,6 +5,7 @@
 const config = {
   corePath: ".stigmergy-core",
   custom_tools_path: "./stigmergy-tools",
+  custom_agents_path: "./stigmergy-agents",
   security: {
     allowedDirs: [
       "src",
@@ -99,7 +100,8 @@ const config = {
   collaboration: {
     mode: 'single-player', // 'single-player' or 'team'
     server_url: 'http://localhost:3012'
-  }
+  },
+  max_session_cost: 2.00, // Default max cost in USD for a single mission
 };
 
 export default config;

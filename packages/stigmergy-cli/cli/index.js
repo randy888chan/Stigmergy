@@ -334,6 +334,24 @@ This command creates a boilerplate file in the custom tools directory
 (defined by 'custom_tools_path' in stigmergy.config.js).
   `);
 
+program
+  .command("add-agent")
+  .description("Creates a new custom agent definition file.")
+  .option('--name <name>', 'The name of the new agent (e.g., my_agent)')
+  .option('--force', 'Force overwrite of existing agent file')
+  .action(async (options) => {
+    const addAgentPath = path.resolve(__dirname, './commands/add-agent.js');
+    const { addAgent } = await import(addAgentPath);
+    await addAgent(options);
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy add-agent --name "my_analyst"
+
+This command creates a boilerplate agent definition file in the custom agents directory
+(defined by 'custom_agents_path' in stigmergy.config.js).
+  `);
+
 // Override the default help command to add examples
 program.addHelpText('after', `
 Examples:

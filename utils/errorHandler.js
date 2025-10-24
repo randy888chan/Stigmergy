@@ -21,6 +21,13 @@ export class OperationalError extends Error {
   }
 }
 
+class BudgetExceededError extends OperationalError {
+    constructor(message) {
+        super(message);
+        this.name = 'BudgetExceededError';
+    }
+}
+
 class ErrorHandler {
   process(error, context = {}) {
     if (error instanceof OperationalError) return error;
@@ -50,4 +57,5 @@ class ErrorHandler {
   }
 }
 
+export { BudgetExceededError };
 export default new ErrorHandler();

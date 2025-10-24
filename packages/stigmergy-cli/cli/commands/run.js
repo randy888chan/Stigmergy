@@ -13,6 +13,19 @@ export const builder = {
     demandOption: false,
     type: 'string',
   },
+  output: {
+    alias: 'o',
+    describe: 'The output format for mission status events',
+    demandOption: false,
+    type: 'string',
+    choices: ['json', 'human'],
+    default: 'human',
+  },
+  'max-session-cost': {
+    describe: 'Override the maximum session cost for this mission',
+    demandOption: false,
+    type: 'number'
+  }
 };
 
 const startInteractiveChat = async () => {
@@ -62,48 +75,96 @@ const startInteractiveChat = async () => {
 
 export const handler = async (argv) => {
   if (argv.goal) {
-    const { goal } = argv;
+    const { goal, output } = argv;
     const project_path = process.cwd();
+    const maxSessionCost = argv['max-session-cost'];
     const spinner = ora('Connecting to Stigmergy Engine...').start();
 
-    const url = 'http://localhost:3010/mcp';
-    const es = new EventSource(`${url}?goal=${encodeURIComponent(goal)}&project_path=${encodeURIComponent(project_path)}`);
+    let url = `http://localhost:3010/mcp?goal=${encodeURIComponent(goal)}&project_path=${encodeURIComponent(project_path)}`;
+    if (maxSessionCost) {
+        url += `&max_session_cost=${maxSessionCost}`;
+    }
+    const es = new EventSource(url);
+
+    let lastStatus = '';
+
+    const handleHumanOutput = (event) => {
+        try {
+            if (event.data === '[DONE]') {
+                spinner.succeed(chalk.green('Mission finished.'));
+                es.close();
+                process.exit(0);
+                return;
+            }
+
+            const outerData = JSON.parse(event.data);
+            const contentString = outerData.choices?.[0]?.delta?.content;
+            if (!contentString) return;
+
+            const jsonMatch = contentString.match(/```json\n([\s\S]*?)\n```/);
+            if (jsonMatch && jsonMatch[1]) {
+                const innerData = JSON.parse(jsonMatch[1]);
+                const { type, payload } = innerData;
+
+                switch (type) {
+                    case 'state_update':
+                        const status = `[${payload.project_status}] ${payload.message || ''}`;
+                        if (status !== lastStatus) {
+                            spinner.succeed(lastStatus); // Finalize the last step
+                            spinner.start(status); // Start a new step
+                            lastStatus = status;
+                        }
+                        break;
+                    case 'tool_start':
+                        spinner.text = chalk.gray(`  → Using tool: ${payload.tool} with args ${JSON.stringify(payload.args)}`);
+                        break;
+                    case 'tool_end':
+                         // We just go back to the main status text, so no change here.
+                        spinner.text = lastStatus;
+                        break;
+                    case 'thought_stream':
+                        spinner.stopAndPersist({
+                            symbol: '🧠',
+                            text: chalk.italic.dim(`  Thought: ${payload.thought}`),
+                        });
+                        spinner.start(lastStatus); // Continue with the main status
+                        break;
+                    case 'objective_update':
+                        spinner.stopAndPersist({
+                            symbol: '🎯',
+                            text: chalk.bold.cyan(`New Objective for ${payload.agent}: ${payload.task}`),
+                        });
+                        spinner.start(lastStatus); // Continue
+                        break;
+                    default:
+                        // Do nothing for other events to keep the output clean.
+                        break;
+                }
+            } else if (!contentString.includes('json')) {
+                // Initial connection messages
+                spinner.text = contentString;
+            }
+        } catch (error) {
+            // Ignore parsing errors for non-JSON messages
+        }
+    };
+
+    const handleJsonOutput = (event) => {
+        if (event.data === '[DONE]') {
+            es.close();
+            process.exit(0);
+        }
+        console.log(event.data); // Print the raw SSE data
+    };
 
     es.onopen = () => {
       spinner.succeed('Connected to Stigmergy Engine.');
       console.log(chalk.blue(`🚀 Starting mission with goal: "${goal}"`));
-      spinner.start('Mission in progress...');
+      lastStatus = 'Mission in progress...';
+      spinner.start(lastStatus);
     };
 
-    es.onmessage = (event) => {
-      try {
-        if (event.data === '[DONE]') {
-            spinner.succeed(chalk.green(`Mission finished.`));
-            es.close();
-            process.exit(0);
-        }
-
-        const outerData = JSON.parse(event.data);
-        if (outerData.choices && outerData.choices[0].delta.content) {
-            const contentString = outerData.choices[0].delta.content;
-            // The content itself is a JSON string inside ```json ... ```, so we need to extract and parse it.
-            const jsonMatch = contentString.match(/```json\n([\s\S]*?)\n```/);
-            if (jsonMatch && jsonMatch[1]) {
-                const innerData = JSON.parse(jsonMatch[1]);
-                if (innerData.type === 'state_update') {
-                    const { project_status, message: statusMessage } = innerData.payload;
-                    spinner.text = `[${project_status}] ${statusMessage || ''}`;
-                } else {
-                    spinner.text = `Received event: ${innerData.type}`;
-                }
-            } else if (!contentString.includes('json')) { // Don't log the big JSON blocks
-                spinner.text = contentString;
-            }
-        }
-      } catch (error) {
-        //spinner.warn(`Non-JSON message received: ${event.data}`);
-      }
-    };
+    es.onmessage = (output === 'human') ? handleHumanOutput : handleJsonOutput;
 
     es.onerror = (error) => {
       spinner.fail(chalk.red('Connection to Stigmergy Engine failed. Is the service running?'));
