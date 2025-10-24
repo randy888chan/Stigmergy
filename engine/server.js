@@ -1010,23 +1010,27 @@ function createWebSocketEvent(ws, data, code, reason) {
 if (import.meta.main) {
     // Top-level await is available in ES modules
     const startServer = async () => {
-        // No need for external state manager at the top level
-        const engineOptions = { unifiedIntelligenceService };
+        try {
+            // Asynchronously initialize the configuration service
+            await configService.initialize();
 
-        if (process.env.USE_MOCK_AI === 'true') {
-            console.log(chalk.yellow('--- [NOTICE] ---'));
-            console.log(chalk.yellow('Running with USE_MOCK_AI=true. AI provider initialization will be skipped.'));
-            console.log(chalk.yellow('This is for local testing and requires a mock function to be injected during tests.'));
-            console.log(chalk.yellow('--- [NOTICE] ---'));
-            engineOptions._test_streamText = true;
+            const engineOptions = { unifiedIntelligenceService };
+
+            if (process.env.USE_MOCK_AI === 'true') {
+                console.log(chalk.yellow('--- [NOTICE] ---'));
+                console.log(chalk.yellow('Running with USE_MOCK_AI=true. AI provider initialization will be skipped.'));
+                console.log(chalk.yellow('This is for local testing and requires a mock function to be injected during tests.'));
+                console.log(chalk.yellow('--- [NOTICE] ---'));
+                engineOptions._test_streamText = true;
+            }
+
+            const engine = new Engine(engineOptions);
+            await engine.start();
+        } catch (error) {
+            console.error(chalk.red(`[Engine] Failed to start: ${error.message}`));
+            process.exit(1);
         }
-
-        const engine = new Engine(engineOptions);
-        await engine.start();
     };
 
-    startServer().catch(error => {
-        console.error(chalk.red(`[Engine] Failed to start: ${error.message}`));
-        process.exit(1);
-    });
+    startServer();
 }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
-import { WebSocketContext } from '../contexts/WebSocketContext';
+import useWebSocket from '../hooks/useWebSocket';
 
 // Helper to format milliseconds into a readable string
 const formatDuration = (ms) => {
@@ -16,7 +16,7 @@ export default function ExecutiveSummary() {
   const [summary, setSummary] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { lastMessage } = useContext(WebSocketContext);
+  const { lastMessage } = useWebSocket();
 
   useEffect(() => {
     async function fetchSummary() {

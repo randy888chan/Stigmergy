@@ -113,6 +113,33 @@ Stigmergy can operate in "Team Mode," where multiple developers can connect thei
 
 Now, when you run missions, your engine will coordinate with the central team server.
 
+## 🔒 Production Deployment: Secure Secrets Management
+
+For production or team environments, it is strongly recommended to use a dedicated secrets manager instead of `.env` files. Stigmergy has built-in support for [Doppler](https://www.doppler.com/).
+
+### How it Works
+
+When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. These secrets take precedence over any values in local `.env` files.
+
+### Step 1: Log in with Doppler
+
+To configure your environment with Doppler, use the `login` command.
+
+1.  **Get your Doppler Service Token:**
+    *   Go to your Doppler project.
+    *   Navigate to the `config` you want to use (e.g., `prd`).
+    *   Find the `DOPPLER_TOKEN` value. This is your service token.
+
+2.  **Run the login command:**
+    ```bash
+    stigmergy login <your-doppler-service-token>
+    ```
+    This command saves your token securely to a local configuration file at `~/.stigmergy/config.json`.
+
+### Step 2: Restart the Engine
+
+After logging in, restart the Stigmergy engine. It will automatically detect the token and begin fetching secrets from Doppler, securely providing API keys and other credentials to the system.
+
 ## 🆘 Troubleshooting: Hard Reset Protocol
 
 If the Docker environment enters a corrupted state, you can perform a hard reset to purge all caches and volumes.

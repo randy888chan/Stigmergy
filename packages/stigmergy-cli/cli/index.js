@@ -352,6 +352,10 @@ This command creates a boilerplate agent definition file in the custom agents di
 (defined by 'custom_agents_path' in stigmergy.config.js).
   `);
 
+// Register commands from external files
+import { createLoginCommand } from './commands/login.js';
+program.addCommand(createLoginCommand());
+
 // Override the default help command to add examples
 program.addHelpText('after', `
 Examples:
