@@ -6,78 +6,60 @@ It empowers a swarm of specialized AI agents to autonomously analyze, plan, and 
 
 ---
 
-## User Installation
+## 🚀 Getting Started: The 5-Minute Onboarding Wizard
 
-For users who want to use Stigmergy without setting up a development environment, follow these simple steps.
+The recommended way to get started with Stigmergy is by using the interactive setup wizard. This ensures a consistent, validated, and correctly configured environment.
 
-### Step 1: Install the CLI
+### Step 1: Clone the Repository
 
-Open your terminal and run the following command to install the Stigmergy command-line tool globally:
-
-```bash
-npm install -g stigmergy-cli
-```
-
-### Step 2: Run the Core Engine
-
-Run the following command to download and start the pre-built Stigmergy Core Engine Docker container. This will also expose the dashboard on `http://localhost:3010`.
+First, clone the Stigmergy source code to your local machine.
 
 ```bash
-docker run -d -p 3010:3010 -v /var/run/docker.sock:/var/run/docker.sock --name stigmergy-engine stigmergyai/stigmergy-core:latest
+git clone https://github.com/your-repo/stigmergy.git
+cd stigmergy
 ```
-*(Note: The Docker image path `stigmergyai/stigmergy-core:latest` is a placeholder for the official image.)*
 
-You are now ready to run your first mission! Navigate to any local project directory and use the `stigmergy run` command.
+### Step 2: Install Dependencies
 
----
+Next, install all the necessary dependencies using Bun. This single command installs packages for the core engine, the CLI, and all other local utilities.
 
-## Getting Started: The Docker-First Workflow (For Developers)
-
-Stigmergy is designed to be a tool you run on your own machine. It is not a cloud service. This ensures maximum privacy, security, and control over your codebase.
-
-*   **Global Service, Local Execution:** You run the Stigmergy engine as a single, persistent Docker container. This "factory" is then commanded to work on any of your local project repositories.
-*   **CLI as the "Source of Truth":** The command line is the primary interface for initiating, monitoring, and managing tasks. This ensures maximum compatibility, scriptability, and transparent control.
-*   **Dashboard for Observability:** A real-time web dashboard provides a visual, read-only "Command & Control" view of the agent swarm's activity, allowing you to monitor their thoughts, actions, and progress.
-
-## Getting Started: The Docker-First Workflow
-
-Using Docker is the recommended way to run Stigmergy, as it guarantees a consistent and isolated environment.
-
-### Step 1: Clone and Configure the Engine
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone https://github.com/your-repo/stigmergy.git
-    cd stigmergy
-    ```
-
-2.  **Configure Your Environment:**
-    *   Copy the example environment file:
-        ```bash
-        cp .env.example .env.development
-        ```
-    *   Open `.env.development` and add your API keys (e.g., `OPENROUTER_API_KEY`).
-
-### Step 2: Build and Run the Engine with Docker
-
-1.  **Launch with Docker Compose:** This single command builds the Stigmergy engine image and starts the service container.
-    ```bash
-    docker-compose up --build
-    ```
-    The Stigmergy "factory" is now running and listening for commands. You can access the real-time dashboard at `http://localhost:3010`.
+```bash
+bun install
+```
 
 ### Step 3: Link the CLI Tool
 
-To easily command the Stigmergy engine from any terminal, you need to link the CLI package.
+To make the `stigmergy` command available system-wide, link the CLI package.
 
 1.  **Navigate to the CLI package:**
     ```bash
     cd packages/stigmergy-cli
     ```
-2.  **Link the package:** This makes the `stigmergy` command globally available.
+2.  **Link the package:**
     ```bash
     npm link
     ```
+3.  **Return to the project root:**
+    ```bash
+    cd ../..
+    ```
+
+### Step 4: Run the Setup Wizard
+
+Now, run the interactive setup wizard. This is the primary command for all new users.
+
+```bash
+stigmergy setup
+```
+
+The wizard will guide you through the entire process:
+1.  **Initializing** the required `.stigmergy-core` directory structure.
+2.  **Configuring** your AI provider by asking for API keys.
+3.  **Creating** a `.env.development` file automatically.
+4.  **Verifying** your complete setup with a comprehensive health check.
+5.  **Starting** the Stigmergy engine for you.
+
+Once the wizard is complete, you are ready to run your first mission! The engine will be running in the background, and you can access the dashboard at `http://localhost:3010`.
 
 ### Step 4: Run Your First Mission
 
