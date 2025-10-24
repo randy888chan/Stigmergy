@@ -30,9 +30,7 @@ import * as git_tool from "../tools/git_tool.js";
 import { clearFileCache } from "./llm_adapter.js";
 import ErrorHandler, { OperationalError } from "../utils/errorHandler.js";
 import { trackToolUsage } from "../services/model_monitoring.js";
-
-// Import trajectory recorder
-// import trajectoryRecorder from "../services/trajectory_recorder.js"; // Defer import
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 // ====================================================================================
 // START: Centralized Path Resolution & Security Logic
@@ -274,14 +272,20 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
   };
 
   const execute = async (toolName, args, agentId, workingDirectory) => {
-    engine.broadcastEvent('tool_start', { tool: toolName, args });
-    const startTime = Date.now();
-    
-    const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
-    
-    try {
-      const criticalTools = ['file_system.writeFile', 'shell.execute'];
-      if (criticalTools.includes(toolName)) {
+    const tracer = trace.getTracer('stigmergy-tool-executor');
+    return tracer.startActiveSpan(`executeTool:${toolName}`, async (span) => {
+        span.setAttribute('tool.name', toolName);
+        span.setAttribute('agent.id', agentId);
+        span.setAttribute('args', JSON.stringify(args));
+
+        engine.broadcastEvent('tool_start', { tool: toolName, args });
+        const startTime = Date.now();
+
+        const recordingId = trajectoryRecorder.startRecording(`tool_${toolName}`, { toolName, args, agentId });
+
+        try {
+            const criticalTools = ['file_system.writeFile', 'shell.execute'];
+            if (criticalTools.includes(toolName)) {
         const auditPrompt = `Audit the following action for constitutional compliance:\n\n- Agent: ${agentId}\n- Tool: ${toolName}\n- Arguments: ${JSON.stringify(args, null, 2)}`;
 
         console.log(chalk.yellow.bold(`[ConstitutionalAudit] Invoking @auditor for critical tool: ${toolName}`));
@@ -423,14 +427,18 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
         executionTime: Date.now() - startTime,
         error: processedError.message,
       });
+      span.recordException(processedError);
+      span.setStatus({ code: SpanStatusCode.ERROR, message: processedError.message });
       throw processedError;
     } finally {
-      try {
-        await trajectoryRecorder.finalizeRecording(recordingId);
-      } catch (finalizeError) {
-        console.error(`[ToolExecutor] Error finalizing trajectory recording: ${finalizeError.message}`);
-      }
+        try {
+            await trajectoryRecorder.finalizeRecording(recordingId);
+        } catch (finalizeError) {
+            console.error(`[ToolExecutor] Error finalizing trajectory recording: ${finalizeError.message}`);
+        }
+        span.end();
     }
+    });
   };
 
   // Expose toolbelt for testing purposes

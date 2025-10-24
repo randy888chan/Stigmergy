@@ -6,10 +6,23 @@ import { Button } from './ui/button.jsx';
 const GovernanceDashboard = () => {
   const [proposals, setProposals] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      setIsAdmin(true);
+    }
+  }, []);
 
   const fetchProposals = async () => {
     try {
-      const response = await fetch('/api/proposals');
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch('/api/proposals', {
+        headers: {
+          'Authorization': `Bearer ${authToken}`
+        }
+      });
       const data = await response.json();
       setProposals(data);
     } catch (error) {
@@ -27,8 +40,14 @@ const GovernanceDashboard = () => {
 
   const handleDecision = async (proposalId, decision) => {
     try {
+        const authToken = localStorage.getItem('authToken');
+        const adminToken = localStorage.getItem('adminToken');
         const response = await fetch(`/api/proposals/${proposalId}/${decision}`, {
             method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`,
+              'X-Admin-Token': adminToken
+            }
         });
         const result = await response.json();
         if (!response.ok) {
@@ -58,10 +77,12 @@ const GovernanceDashboard = () => {
                 <div className="space-y-4">
                   <p><strong>File:</strong> {p.file_path}</p>
                   <pre className="text-xs p-2 bg-muted rounded-md overflow-x-auto max-h-96">{p.new_content}</pre>
-                  <div className="flex gap-2">
-                    <Button onClick={() => handleDecision(p.id, 'approve')} size="sm">Approve</Button>
-                    <Button onClick={() => handleDecision(p.id, 'reject')} variant="destructive" size="sm">Reject</Button>
-                  </div>
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      <Button onClick={() => handleDecision(p.id, 'approve')} size="sm">Approve</Button>
+                      <Button onClick={() => handleDecision(p.id, 'reject')} variant="destructive" size="sm">Reject</Button>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

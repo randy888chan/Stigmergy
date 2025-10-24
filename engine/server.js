@@ -21,6 +21,7 @@ import tmp from 'tmp';
 import { unifiedIntelligenceService } from '../services/unified_intelligence.js';
 import { BudgetExceededError } from '../utils/errorHandler.js';
 import { TrajectoryRecorder } from '../services/trajectory_recorder.js';
+import { trace, SpanStatusCode } from '@opentelemetry/api';
 
 export class Engine {
     constructor(options = {}) {
@@ -46,10 +47,40 @@ export class Engine {
         this.app = new Hono();
         this.app.use('*', cors());
 
-        // Middleware to make stateManager available to all routes
-        this.app.use('*', (c, next) => {
-            c.set('stateManager', this); // Pass the whole engine instance
-            return next();
+        // --- Phase 36: Authentication Middleware ---
+        this.app.use('*', async (c, next) => {
+            const authHeader = c.req.header('Authorization');
+            const headerToken = authHeader?.split(' ')[1];
+            const queryToken = c.req.query('token');
+            const token = headerToken || queryToken;
+            const authToken = process.env.STIGMERGY_AUTH_TOKEN;
+
+            // Allow health check to pass without auth
+            if (c.req.path === '/health') {
+                return next();
+            }
+
+            if (!authToken || token === authToken) {
+                // For RBAC, check for admin token on sensitive routes
+                if (['POST', 'DELETE'].includes(c.req.method)) {
+                    const adminToken = process.env.STIGMERGY_ADMIN_TOKEN;
+                    if (adminToken && token !== adminToken) {
+                         // This is a sensitive operation, but the user is not an admin.
+                         // We can check if the specific route is one that needs admin privileges.
+                         // For now, let's assume all POST/DELETE need it for simplicity.
+                         const adminTokenHeader = c.req.header('X-Admin-Token');
+                         if(adminTokenHeader !== adminToken){
+                            console.warn(`[Auth] Admin token missing for ${c.req.method} ${c.req.path}`);
+                            return c.json({ error: 'Unauthorized: Admin privileges required.' }, 403);
+                         }
+                    }
+                }
+                c.set('stateManager', this); // Pass the whole engine instance
+                await next();
+            } else {
+                console.warn(`[Auth] Invalid token received for ${c.req.path}`);
+                return c.json({ error: 'Unauthorized' }, 401);
+            }
         });
 
         this.clients = new Set();
@@ -253,13 +284,18 @@ Based on all the information above, please create the initial \`plan.md\` file t
     }
 
     async triggerAgent(agentId, prompt, timeout = 300000) {
-        await this.toolExecutorPromise;
-        await this.stateManagerInitializationPromise;
-        console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
+        const tracer = trace.getTracer('stigmergy-engine');
+        return tracer.startActiveSpan(`triggerAgent:${agentId}`, async (span) => {
+            span.setAttribute('agent.id', agentId);
+            span.setAttribute('prompt', prompt);
 
-        const agentExecution = (async () => {
-            const agentName = agentId.replace('@', '');
-            let lastTextResponse = null;
+            await this.toolExecutorPromise;
+            await this.stateManagerInitializationPromise;
+            console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt}"`));
+
+            const agentExecution = (async () => {
+                const agentName = agentId.replace('@', '');
+                let lastTextResponse = null;
 
             const workingDirectory = path.join(this.projectRoot, '.stigmergy', 'sandboxes', agentName);
             await fs.ensureDir(workingDirectory);
@@ -376,12 +412,18 @@ Based on all the information above, please create the initial \`plan.md\` file t
         );
 
         try {
-            return await Promise.race([agentExecution(), timeoutPromise]);
+            const result = await Promise.race([agentExecution(), timeoutPromise]);
+            span.end();
+            return result;
         } catch (error) {
+            span.recordException(error);
+            span.setStatus({ code: SpanStatusCode.ERROR, message: error.message });
             console.error(chalk.red(`[Engine] ${error.message}`));
             await this.stateManager.updateStatus({ newStatus: 'ERROR', message: error.message });
+            span.end();
             return null;
         }
+        });
     }
 
     setupRoutes() {

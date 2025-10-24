@@ -22775,12 +22775,18 @@ var import_react, useWebSocket = (url) => {
   const [loading, setLoading] = import_react.useState(true);
   const ws = import_react.useRef(null);
   import_react.useEffect(() => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      setError("No auth token found");
+      setLoading(false);
+      return;
+    }
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = window.location.host;
-    const wsUrl = url || `${protocol}//${host}/ws`;
+    const wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
     ws.current = new WebSocket(wsUrl);
     ws.current.onopen = () => {
-      console.log(`WebSocket connection opened to ${url}`);
+      console.log(`WebSocket connection opened`);
       setLoading(false);
     };
     ws.current.onmessage = (event) => {
@@ -22806,7 +22812,7 @@ var import_react, useWebSocket = (url) => {
         ws.current.close();
       }
     };
-  }, []);
+  }, [url]);
   const sendMessage = (message) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message));
@@ -28043,6 +28049,343 @@ var init_es20156 = __esm(() => {
   markerMap = {};
 });
 
+// node_modules/@radix-ui/react-dialog/dist/index.mjs
+function getState(open) {
+  return open ? "open" : "closed";
+}
+var React32, import_jsx_runtime8, DIALOG_NAME = "Dialog", createDialogContext, createDialogScope, DialogProvider, useDialogContext, Dialog = (props2) => {
+  const {
+    __scopeDialog,
+    children,
+    open: openProp,
+    defaultOpen,
+    onOpenChange,
+    modal = true
+  } = props2;
+  const triggerRef = React32.useRef(null);
+  const contentRef = React32.useRef(null);
+  const [open, setOpen] = useControllableState({
+    prop: openProp,
+    defaultProp: defaultOpen ?? false,
+    onChange: onOpenChange,
+    caller: DIALOG_NAME
+  });
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogProvider, {
+    scope: __scopeDialog,
+    triggerRef,
+    contentRef,
+    contentId: useId2(),
+    titleId: useId2(),
+    descriptionId: useId2(),
+    open,
+    onOpenChange: setOpen,
+    onOpenToggle: React32.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+    modal,
+    children
+  });
+}, TRIGGER_NAME = "DialogTrigger", DialogTrigger, PORTAL_NAME2 = "DialogPortal", PortalProvider, usePortalContext, DialogPortal = (props2) => {
+  const { __scopeDialog, forceMount, children, container } = props2;
+  const context = useDialogContext(PORTAL_NAME2, __scopeDialog);
+  return /* @__PURE__ */ import_jsx_runtime8.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React32.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(Portal, { asChild: true, container, children: child }) })) });
+}, OVERLAY_NAME = "DialogOverlay", DialogOverlay, Slot2, DialogOverlayImpl, CONTENT_NAME = "DialogContent", DialogContent, DialogContentModal, DialogContentNonModal, DialogContentImpl, TITLE_NAME = "DialogTitle", DialogTitle, DESCRIPTION_NAME = "DialogDescription", DialogDescription, CLOSE_NAME = "DialogClose", DialogClose, TITLE_WARNING_NAME = "DialogTitleWarning", WarningProvider, useWarningContext, TitleWarning = ({ titleId }) => {
+  const titleWarningContext = useWarningContext(TITLE_WARNING_NAME);
+  const MESSAGE = `\`${titleWarningContext.contentName}\` requires a \`${titleWarningContext.titleName}\` for the component to be accessible for screen reader users.
+
+If you want to hide the \`${titleWarningContext.titleName}\`, you can wrap it with our VisuallyHidden component.
+
+For more information, see https://radix-ui.com/primitives/docs/components/${titleWarningContext.docsSlug}`;
+  React32.useEffect(() => {
+    if (titleId) {
+      const hasTitle = document.getElementById(titleId);
+      if (!hasTitle)
+        console.error(MESSAGE);
+    }
+  }, [MESSAGE, titleId]);
+  return null;
+}, DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning", DescriptionWarning = ({ contentRef, descriptionId }) => {
+  const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
+  const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
+  React32.useEffect(() => {
+    const describedById = contentRef.current?.getAttribute("aria-describedby");
+    if (descriptionId && describedById) {
+      const hasDescription = document.getElementById(descriptionId);
+      if (!hasDescription)
+        console.warn(MESSAGE);
+    }
+  }, [MESSAGE, contentRef, descriptionId]);
+  return null;
+}, Root2, Trigger, Portal2, Overlay, Content, Title, Description, Close;
+var init_dist16 = __esm(() => {
+  React32 = __toESM(require_react(), 1);
+  init_dist4();
+  init_dist();
+  init_dist5();
+  init_dist7();
+  init_dist8();
+  init_dist11();
+  init_dist12();
+  init_dist13();
+  init_dist14();
+  init_dist3();
+  init_dist15();
+  init_es20155();
+  init_es20156();
+  init_dist2();
+  import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  [createDialogContext, createDialogScope] = createContextScope(DIALOG_NAME);
+  [DialogProvider, useDialogContext] = createDialogContext(DIALOG_NAME);
+  Dialog.displayName = DIALOG_NAME;
+  DialogTrigger = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, ...triggerProps } = props2;
+    const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
+    const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
+      type: "button",
+      "aria-haspopup": "dialog",
+      "aria-expanded": context.open,
+      "aria-controls": context.contentId,
+      "data-state": getState(context.open),
+      ...triggerProps,
+      ref: composedTriggerRef,
+      onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
+    });
+  });
+  DialogTrigger.displayName = TRIGGER_NAME;
+  [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME2, {
+    forceMount: undefined
+  });
+  DialogPortal.displayName = PORTAL_NAME2;
+  DialogOverlay = React32.forwardRef((props2, forwardedRef) => {
+    const portalContext = usePortalContext(OVERLAY_NAME, props2.__scopeDialog);
+    const { forceMount = portalContext.forceMount, ...overlayProps } = props2;
+    const context = useDialogContext(OVERLAY_NAME, props2.__scopeDialog);
+    return context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(DialogOverlayImpl, { ...overlayProps, ref: forwardedRef }) }) : null;
+  });
+  DialogOverlay.displayName = OVERLAY_NAME;
+  Slot2 = createSlot("DialogOverlay.RemoveScroll");
+  DialogOverlayImpl = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, ...overlayProps } = props2;
+    const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, shards: [context.contentRef], children: /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.div, {
+      "data-state": getState(context.open),
+      ...overlayProps,
+      ref: forwardedRef,
+      style: { pointerEvents: "auto", ...overlayProps.style }
+    }) });
+  });
+  DialogContent = React32.forwardRef((props2, forwardedRef) => {
+    const portalContext = usePortalContext(CONTENT_NAME, props2.__scopeDialog);
+    const { forceMount = portalContext.forceMount, ...contentProps } = props2;
+    const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentModal, { ...contentProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentNonModal, { ...contentProps, ref: forwardedRef }) });
+  });
+  DialogContent.displayName = CONTENT_NAME;
+  DialogContentModal = React32.forwardRef((props2, forwardedRef) => {
+    const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+    const contentRef = React32.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
+    React32.useEffect(() => {
+      const content = contentRef.current;
+      if (content)
+        return hideOthers(content);
+    }, []);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
+      ...props2,
+      ref: composedRefs,
+      trapFocus: context.open,
+      disableOutsidePointerEvents: true,
+      onCloseAutoFocus: composeEventHandlers(props2.onCloseAutoFocus, (event) => {
+        event.preventDefault();
+        context.triggerRef.current?.focus();
+      }),
+      onPointerDownOutside: composeEventHandlers(props2.onPointerDownOutside, (event) => {
+        const originalEvent = event.detail.originalEvent;
+        const ctrlLeftClick = originalEvent.button === 0 && originalEvent.ctrlKey === true;
+        const isRightClick = originalEvent.button === 2 || ctrlLeftClick;
+        if (isRightClick)
+          event.preventDefault();
+      }),
+      onFocusOutside: composeEventHandlers(props2.onFocusOutside, (event) => event.preventDefault())
+    });
+  });
+  DialogContentNonModal = React32.forwardRef((props2, forwardedRef) => {
+    const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
+    const hasInteractedOutsideRef = React32.useRef(false);
+    const hasPointerDownOutsideRef = React32.useRef(false);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
+      ...props2,
+      ref: forwardedRef,
+      trapFocus: false,
+      disableOutsidePointerEvents: false,
+      onCloseAutoFocus: (event) => {
+        props2.onCloseAutoFocus?.(event);
+        if (!event.defaultPrevented) {
+          if (!hasInteractedOutsideRef.current)
+            context.triggerRef.current?.focus();
+          event.preventDefault();
+        }
+        hasInteractedOutsideRef.current = false;
+        hasPointerDownOutsideRef.current = false;
+      },
+      onInteractOutside: (event) => {
+        props2.onInteractOutside?.(event);
+        if (!event.defaultPrevented) {
+          hasInteractedOutsideRef.current = true;
+          if (event.detail.originalEvent.type === "pointerdown") {
+            hasPointerDownOutsideRef.current = true;
+          }
+        }
+        const target = event.target;
+        const targetIsTrigger = context.triggerRef.current?.contains(target);
+        if (targetIsTrigger)
+          event.preventDefault();
+        if (event.detail.originalEvent.type === "focusin" && hasPointerDownOutsideRef.current) {
+          event.preventDefault();
+        }
+      }
+    });
+  });
+  DialogContentImpl = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props2;
+    const context = useDialogContext(CONTENT_NAME, __scopeDialog);
+    const contentRef = React32.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, contentRef);
+    useFocusGuards();
+    return /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
+      /* @__PURE__ */ import_jsx_runtime8.jsx(FocusScope, {
+        asChild: true,
+        loop: true,
+        trapped: trapFocus,
+        onMountAutoFocus: onOpenAutoFocus,
+        onUnmountAutoFocus: onCloseAutoFocus,
+        children: /* @__PURE__ */ import_jsx_runtime8.jsx(DismissableLayer, {
+          role: "dialog",
+          id: context.contentId,
+          "aria-describedby": context.descriptionId,
+          "aria-labelledby": context.titleId,
+          "data-state": getState(context.open),
+          ...contentProps,
+          ref: composedRefs,
+          onDismiss: () => context.onOpenChange(false)
+        })
+      }),
+      /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
+        /* @__PURE__ */ import_jsx_runtime8.jsx(TitleWarning, { titleId: context.titleId }),
+        /* @__PURE__ */ import_jsx_runtime8.jsx(DescriptionWarning, { contentRef, descriptionId: context.descriptionId })
+      ] })
+    ] });
+  });
+  DialogTitle = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, ...titleProps } = props2;
+    const context = useDialogContext(TITLE_NAME, __scopeDialog);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.h2, { id: context.titleId, ...titleProps, ref: forwardedRef });
+  });
+  DialogTitle.displayName = TITLE_NAME;
+  DialogDescription = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, ...descriptionProps } = props2;
+    const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.p, { id: context.descriptionId, ...descriptionProps, ref: forwardedRef });
+  });
+  DialogDescription.displayName = DESCRIPTION_NAME;
+  DialogClose = React32.forwardRef((props2, forwardedRef) => {
+    const { __scopeDialog, ...closeProps } = props2;
+    const context = useDialogContext(CLOSE_NAME, __scopeDialog);
+    return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
+      type: "button",
+      ...closeProps,
+      ref: forwardedRef,
+      onClick: composeEventHandlers(props2.onClick, () => context.onOpenChange(false))
+    });
+  });
+  DialogClose.displayName = CLOSE_NAME;
+  [WarningProvider, useWarningContext] = createContext22(TITLE_WARNING_NAME, {
+    contentName: CONTENT_NAME,
+    titleName: TITLE_NAME,
+    docsSlug: "dialog"
+  });
+  Root2 = Dialog;
+  Trigger = DialogTrigger;
+  Portal2 = DialogPortal;
+  Overlay = DialogOverlay;
+  Content = DialogContent;
+  Title = DialogTitle;
+  Description = DialogDescription;
+  Close = DialogClose;
+});
+
+// dashboard/src/components/ui/dialog.jsx
+var React33, jsx_dev_runtime4, Dialog2, DialogTrigger2, DialogPortal2, DialogOverlay2, DialogContent2, DialogHeader = ({
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
+  ...props2
+}, undefined, false, undefined, this), DialogFooter = ({
+  className,
+  ...props2
+}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
+  className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+  ...props2
+}, undefined, false, undefined, this), DialogTitle2, DialogDescription2;
+var init_dialog = __esm(() => {
+  React33 = __toESM(require_react(), 1);
+  init_dist16();
+  init_lucide_react();
+  init_utils();
+  jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  Dialog2 = Root2;
+  DialogTrigger2 = Trigger;
+  DialogPortal2 = Portal2;
+  DialogOverlay2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
+    ref,
+    className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  DialogOverlay2.displayName = Overlay.displayName;
+  DialogContent2 = React33.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogOverlay2, {}, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Content, {
+        ref,
+        className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
+        ...props2,
+        children: [
+          children,
+          /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Close, {
+            className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(X, {
+                className: "h-4 w-4"
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
+                className: "sr-only",
+                children: "Close"
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this));
+  DialogContent2.displayName = Content.displayName;
+  DialogHeader.displayName = "DialogHeader";
+  DialogFooter.displayName = "DialogFooter";
+  DialogTitle2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
+    ref,
+    className: cn("text-lg font-semibold leading-none tracking-tight", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  DialogTitle2.displayName = Title.displayName;
+  DialogDescription2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
+    ref,
+    className: cn("text-sm text-muted-foreground", className),
+    ...props2
+  }, undefined, false, undefined, this));
+  DialogDescription2.displayName = Description.displayName;
+});
+
 // node_modules/class-variance-authority/dist/index.mjs
 var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value === 0 ? "0" : value, cx, cva = (base, config) => (props2) => {
   var _config_compoundVariants;
@@ -28084,7 +28427,7 @@ var falsyToString = (value) => typeof value === "boolean" ? `${value}` : value =
   }, []);
   return cx(base, getVariantClassNames, getCompoundVariantClassNames, props2 === null || props2 === undefined ? undefined : props2.class, props2 === null || props2 === undefined ? undefined : props2.className);
 };
-var init_dist16 = __esm(() => {
+var init_dist17 = __esm(() => {
   init_clsx();
   cx = clsx;
 });
@@ -28094,7 +28437,7 @@ var React34, jsx_dev_runtime5, buttonVariants, Button;
 var init_button = __esm(() => {
   React34 = __toESM(require_react(), 1);
   init_dist2();
-  init_dist16();
+  init_dist17();
   init_utils();
   jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
   buttonVariants = cva("inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50", {
@@ -28136,7 +28479,7 @@ function useDirection(localDir) {
   return localDir || globalDir || "ltr";
 }
 var React35, import_jsx_runtime9, DirectionContext;
-var init_dist17 = __esm(() => {
+var init_dist18 = __esm(() => {
   React35 = __toESM(require_react(), 1);
   import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
   DirectionContext = React35.createContext(undefined);
@@ -28146,7 +28489,7 @@ var init_dist17 = __esm(() => {
 function clamp(value, [min, max]) {
   return Math.min(max, Math.max(min, value));
 }
-var init_dist18 = () => {};
+var init_dist19 = () => {};
 
 // node_modules/@radix-ui/react-scroll-area/dist/index.mjs
 function useStateMachine2(initialState, machine) {
@@ -28242,16 +28585,16 @@ var React25, React36, import_jsx_runtime10, SCROLL_AREA_NAME = "ScrollArea", cre
   })();
   return () => window.cancelAnimationFrame(rAF);
 }, Root3, Viewport, Scrollbar, Thumb, Corner;
-var init_dist19 = __esm(() => {
+var init_dist20 = __esm(() => {
   React25 = __toESM(require_react(), 1);
   init_dist3();
   init_dist14();
   init_dist5();
   init_dist();
   init_dist9();
-  init_dist17();
-  init_dist6();
   init_dist18();
+  init_dist6();
+  init_dist19();
   init_dist4();
   React36 = __toESM(require_react(), 1);
   import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
@@ -28807,7 +29150,7 @@ var init_dist19 = __esm(() => {
 var React37, jsx_dev_runtime6, ScrollArea2, ScrollBar;
 var init_scroll_area = __esm(() => {
   React37 = __toESM(require_react(), 1);
-  init_dist19();
+  init_dist20();
   init_utils();
   jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
@@ -28851,7 +29194,7 @@ function Badge({
 var React38, jsx_dev_runtime7, badgeVariants;
 var init_badge = __esm(() => {
   React38 = __toESM(require_react(), 1);
-  init_dist16();
+  init_dist17();
   init_utils();
   jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
   badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
@@ -28959,7 +29302,7 @@ function toSafeInteger(number) {
   return number !== number || number === 0 ? 0 : Math.trunc(number);
 }
 var import_react9, import_jsx_runtime11, import_react10, import_jsx_runtime12, __instanciated, OrderedDict;
-var init_dist20 = __esm(() => {
+var init_dist21 = __esm(() => {
   import_react9 = __toESM(require_react(), 1);
   init_dist5();
   init_dist();
@@ -31136,7 +31479,7 @@ var init_floating_ui_react_dom = __esm(() => {
 
 // node_modules/@radix-ui/react-arrow/dist/index.mjs
 var React43, import_jsx_runtime13, NAME2 = "Arrow", Arrow, Root4;
-var init_dist21 = __esm(() => {
+var init_dist22 = __esm(() => {
   React43 = __toESM(require_react(), 1);
   init_dist3();
   import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
@@ -31192,7 +31535,7 @@ function useSize(element) {
   return size4;
 }
 var React44;
-var init_dist22 = __esm(() => {
+var init_dist23 = __esm(() => {
   React44 = __toESM(require_react(), 1);
   init_dist6();
 });
@@ -31240,16 +31583,16 @@ var React45, import_jsx_runtime14, POPPER_NAME = "Popper", createPopperContext, 
     return { data: { x, y } };
   }
 }), Root22, Anchor, Content2, Arrow2;
-var init_dist23 = __esm(() => {
+var init_dist24 = __esm(() => {
   React45 = __toESM(require_react(), 1);
   init_floating_ui_react_dom();
-  init_dist21();
+  init_dist22();
   init_dist();
   init_dist5();
   init_dist3();
   init_dist9();
   init_dist6();
-  init_dist22();
+  init_dist23();
   import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
@@ -31456,13 +31799,13 @@ function usePrevious(value) {
   }, [value]);
 }
 var React46;
-var init_dist24 = __esm(() => {
+var init_dist25 = __esm(() => {
   React46 = __toESM(require_react(), 1);
 });
 
 // node_modules/@radix-ui/react-visually-hidden/dist/index.mjs
 var React47, import_jsx_runtime15, VISUALLY_HIDDEN_STYLES, NAME3 = "VisuallyHidden", VisuallyHidden;
-var init_dist25 = __esm(() => {
+var init_dist26 = __esm(() => {
   React47 = __toESM(require_react(), 1);
   init_dist3();
   import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
@@ -31619,29 +31962,29 @@ var React48, ReactDOM4, import_jsx_runtime16, OPEN_KEYS, SELECTION_KEYS, SELECT_
 }, TRIGGER_NAME2 = "SelectTrigger", SelectTrigger, VALUE_NAME = "SelectValue", SelectValue, ICON_NAME = "SelectIcon", SelectIcon, PORTAL_NAME3 = "SelectPortal", SelectPortal = (props2) => {
   return /* @__PURE__ */ import_jsx_runtime16.jsx(Portal, { asChild: true, ...props2 });
 }, CONTENT_NAME3 = "SelectContent", SelectContent, CONTENT_MARGIN = 10, SelectContentProvider, useSelectContentContext, CONTENT_IMPL_NAME = "SelectContentImpl", Slot3, SelectContentImpl, ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition", SelectItemAlignedPosition, POPPER_POSITION_NAME = "SelectPopperPosition", SelectPopperPosition, SelectViewportProvider, useSelectViewportContext, VIEWPORT_NAME2 = "SelectViewport", SelectViewport, GROUP_NAME = "SelectGroup", SelectGroupContextProvider, useSelectGroupContext, SelectGroup, LABEL_NAME = "SelectLabel", SelectLabel, ITEM_NAME = "SelectItem", SelectItemContextProvider, useSelectItemContext, SelectItem, ITEM_TEXT_NAME = "SelectItemText", SelectItemText, ITEM_INDICATOR_NAME = "SelectItemIndicator", SelectItemIndicator, SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton", SelectScrollUpButton, SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton", SelectScrollDownButton, SelectScrollButtonImpl, SEPARATOR_NAME = "SelectSeparator", SelectSeparator, ARROW_NAME2 = "SelectArrow", SelectArrow, BUBBLE_INPUT_NAME = "SelectBubbleInput", SelectBubbleInput, Root23, Trigger2, Value, Icon2, Portal3, Content22, Viewport2, Label, Item, ItemText, ItemIndicator, ScrollUpButton, ScrollDownButton, Separator3;
-var init_dist26 = __esm(() => {
+var init_dist27 = __esm(() => {
   React48 = __toESM(require_react(), 1);
   ReactDOM4 = __toESM(require_react_dom(), 1);
-  init_dist18();
+  init_dist19();
   init_dist4();
-  init_dist20();
+  init_dist21();
   init_dist();
   init_dist5();
-  init_dist17();
+  init_dist18();
   init_dist11();
   init_dist15();
   init_dist12();
   init_dist7();
-  init_dist23();
-  init_dist23();
+  init_dist24();
+  init_dist24();
   init_dist13();
   init_dist3();
   init_dist2();
   init_dist9();
   init_dist8();
   init_dist6();
-  init_dist24();
   init_dist25();
+  init_dist26();
   init_es20156();
   init_es20155();
   import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
@@ -32483,7 +32826,7 @@ var init_dist26 = __esm(() => {
 var React49, jsx_dev_runtime10, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
 var init_select = __esm(() => {
   React49 = __toESM(require_react(), 1);
-  init_dist26();
+  init_dist27();
   init_lucide_react();
   init_utils();
   jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
@@ -33695,7 +34038,7 @@ function splitLines(chunk) {
   return [lines, incompleteLine];
 }
 var ParseError;
-var init_dist27 = __esm(() => {
+var init_dist28 = __esm(() => {
   ParseError = class ParseError extends Error {
     constructor(message, options2) {
       super(message), this.name = "ParseError", this.type = options2.type, this.field = options2.field, this.value = options2.value, this.line = options2.line;
@@ -33706,7 +34049,7 @@ var init_dist27 = __esm(() => {
 // node_modules/eventsource-parser/dist/stream.js
 var EventSourceParserStream;
 var init_stream = __esm(() => {
-  init_dist27();
+  init_dist28();
   EventSourceParserStream = class EventSourceParserStream extends TransformStream {
     constructor({ onError, onRetry, onComment } = {}) {
       let parser;
@@ -50324,7 +50667,7 @@ var init_v3 = __esm(() => {
 });
 
 // node_modules/@standard-schema/spec/dist/index.js
-var init_dist28 = () => {};
+var init_dist29 = () => {};
 
 // node_modules/ai/node_modules/@ai-sdk/provider/dist/index.mjs
 function getErrorMessage(error46) {
@@ -50340,7 +50683,7 @@ function getErrorMessage(error46) {
   return JSON.stringify(error46);
 }
 var marker = "vercel.ai.error", symbol2, _a, _AISDKError, AISDKError, name = "AI_APICallError", marker2, symbol22, _a2, name2 = "AI_EmptyResponseBodyError", marker3, symbol3, _a3, name3 = "AI_InvalidArgumentError", marker4, symbol4, _a4, InvalidArgumentError, name4 = "AI_InvalidPromptError", marker5, symbol5, _a5, name5 = "AI_InvalidResponseDataError", marker6, symbol6, _a6, name6 = "AI_JSONParseError", marker7, symbol7, _a7, JSONParseError, name7 = "AI_LoadAPIKeyError", marker8, symbol8, _a8, name8 = "AI_LoadSettingError", marker9, symbol9, _a9, name9 = "AI_NoContentGeneratedError", marker10, symbol10, _a10, name10 = "AI_NoSuchModelError", marker11, symbol11, _a11, name11 = "AI_TooManyEmbeddingValuesForCallError", marker12, symbol12, _a12, name12 = "AI_TypeValidationError", marker13, symbol13, _a13, _TypeValidationError, TypeValidationError, name13 = "AI_UnsupportedFunctionalityError", marker14, symbol14, _a14;
-var init_dist29 = __esm(() => {
+var init_dist30 = __esm(() => {
   symbol2 = Symbol.for(marker);
   _AISDKError = class _AISDKError2 extends Error {
     constructor({
@@ -51639,17 +51982,17 @@ var createIdGenerator = ({
   combined.$schema = "http://json-schema.org/draft-07/schema#";
   return combined;
 }, zod_to_json_schema_default, schemaSymbol;
-var init_dist30 = __esm(() => {
-  init_dist29();
-  init_dist29();
-  init_dist29();
-  init_dist29();
+var init_dist31 = __esm(() => {
+  init_dist30();
+  init_dist30();
+  init_dist30();
+  init_dist30();
   init_stream();
   init_v4();
   init_v3();
   init_v3();
   init_v3();
-  init_dist28();
+  init_dist29();
   generateId = createIdGenerator();
   suspectProtoRx = /"__proto__"\s*:/;
   suspectConstructorRx = /"constructor"\s*:/;
@@ -53028,28 +53371,28 @@ var __defProp2, __export2 = (target, all) => {
     }
   }
 }, uiMessagesSchema;
-var init_dist31 = __esm(() => {
-  init_dist30();
-  init_dist29();
-  init_v4();
-  init_v4();
-  init_v4();
-  init_v4();
-  init_v4();
-  init_dist30();
-  init_dist30();
-  init_v4();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
+var init_dist32 = __esm(() => {
+  init_dist31();
   init_dist30();
   init_v4();
   init_v4();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
+  init_v4();
+  init_v4();
+  init_v4();
+  init_dist31();
+  init_dist31();
+  init_v4();
+  init_dist31();
+  init_dist31();
+  init_dist31();
+  init_dist31();
+  init_dist31();
+  init_v4();
+  init_v4();
+  init_dist31();
+  init_dist31();
+  init_dist31();
+  init_dist31();
   init_v4();
   __defProp2 = Object.defineProperty;
   marker15 = `vercel.ai.error.${name14}`;
@@ -53883,9 +54226,9 @@ var import_react17, import_throttleit, import_react18, import_react19, __accessC
     __privateGet(this, _callMessagesCallbacks).call(this);
   }
 }, _state, Chat;
-var init_dist32 = __esm(() => {
+var init_dist33 = __esm(() => {
   import_react17 = __toESM(require_react(), 1);
-  init_dist31();
+  init_dist32();
   import_throttleit = __toESM(require_throttleit(), 1);
   import_react18 = __toESM(require_react(), 1);
   import_react19 = __toESM(require_react(), 1);
@@ -53977,7 +54320,7 @@ var import_react20, jsx_dev_runtime15, BUSY_STATUSES, ChatInterface = ({ engineS
 }, ChatInterface_default;
 var init_ChatInterface = __esm(() => {
   import_react20 = __toESM(require_react(), 1);
-  init_dist32();
+  init_dist33();
   init_input();
   init_button();
   init_scroll_area();
@@ -54247,7 +54590,7 @@ var init_ToolHealthMonitor = __esm(() => {
 var React61, jsx_dev_runtime20, alertVariants, Alert, AlertTitle, AlertDescription;
 var init_alert = __esm(() => {
   React61 = __toESM(require_react(), 1);
-  init_dist16();
+  init_dist17();
   init_utils();
   jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
   alertVariants = cva("relative w-full rounded-lg border p-4 [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-foreground", {
@@ -54467,7 +54810,7 @@ function getState2(open) {
   return open ? "open" : "closed";
 }
 var React64, import_jsx_runtime17, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME3 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME4 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root5, Trigger3, Content3;
-var init_dist33 = __esm(() => {
+var init_dist34 = __esm(() => {
   React64 = __toESM(require_react(), 1);
   init_dist4();
   init_dist5();
@@ -54594,18 +54937,18 @@ function getState3(open) {
   return open ? "open" : "closed";
 }
 var import_react28, import_jsx_runtime18, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME4 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME5 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content23;
-var init_dist34 = __esm(() => {
+var init_dist35 = __esm(() => {
   import_react28 = __toESM(require_react(), 1);
   init_dist5();
-  init_dist20();
+  init_dist21();
   init_dist();
   init_dist4();
   init_dist8();
   init_dist3();
-  init_dist33();
-  init_dist33();
+  init_dist34();
+  init_dist34();
   init_dist7();
-  init_dist17();
+  init_dist18();
   import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
   "use client";
   ACCORDION_KEYS = ["Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"];
@@ -54847,7 +55190,7 @@ var init_dist34 = __esm(() => {
 var React66, jsx_dev_runtime23, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
 var init_accordion = __esm(() => {
   React66 = __toESM(require_react(), 1);
-  init_dist34();
+  init_dist35();
   init_lucide_react();
   init_utils();
   jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
@@ -55056,17 +55399,224 @@ var init_ThoughtStream = __esm(() => {
   ThoughtStream_default = ThoughtStream;
 });
 
+// node_modules/@radix-ui/react-progress/dist/index.mjs
+function defaultGetValueLabel(value, max2) {
+  return `${Math.round(value / max2 * 100)}%`;
+}
+function getProgressState(value, maxValue) {
+  return value == null ? "indeterminate" : value === maxValue ? "complete" : "loading";
+}
+function isNumber2(value) {
+  return typeof value === "number";
+}
+function isValidMaxNumber(max2) {
+  return isNumber2(max2) && !isNaN(max2) && max2 > 0;
+}
+function isValidValueNumber(value, max2) {
+  return isNumber2(value) && !isNaN(value) && value <= max2 && value >= 0;
+}
+function getInvalidMaxError(propValue, componentName) {
+  return `Invalid prop \`max\` of value \`${propValue}\` supplied to \`${componentName}\`. Only numbers greater than 0 are valid max values. Defaulting to \`${DEFAULT_MAX}\`.`;
+}
+function getInvalidValueError(propValue, componentName) {
+  return `Invalid prop \`value\` of value \`${propValue}\` supplied to \`${componentName}\`. The \`value\` prop must be:
+  - a positive number
+  - less than the value passed to \`max\` (or ${DEFAULT_MAX} if no \`max\` prop is set)
+  - \`null\` or \`undefined\` if the progress is indeterminate.
+
+Defaulting to \`null\`.`;
+}
+var React69, import_jsx_runtime19, PROGRESS_NAME = "Progress", DEFAULT_MAX = 100, createProgressContext, createProgressScope, ProgressProvider, useProgressContext, Progress, INDICATOR_NAME = "ProgressIndicator", ProgressIndicator, Root6, Indicator;
+var init_dist36 = __esm(() => {
+  React69 = __toESM(require_react(), 1);
+  init_dist5();
+  init_dist3();
+  import_jsx_runtime19 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  [createProgressContext, createProgressScope] = createContextScope(PROGRESS_NAME);
+  [ProgressProvider, useProgressContext] = createProgressContext(PROGRESS_NAME);
+  Progress = React69.forwardRef((props2, forwardedRef) => {
+    const {
+      __scopeProgress,
+      value: valueProp = null,
+      max: maxProp,
+      getValueLabel = defaultGetValueLabel,
+      ...progressProps
+    } = props2;
+    if ((maxProp || maxProp === 0) && !isValidMaxNumber(maxProp)) {
+      console.error(getInvalidMaxError(`${maxProp}`, "Progress"));
+    }
+    const max2 = isValidMaxNumber(maxProp) ? maxProp : DEFAULT_MAX;
+    if (valueProp !== null && !isValidValueNumber(valueProp, max2)) {
+      console.error(getInvalidValueError(`${valueProp}`, "Progress"));
+    }
+    const value = isValidValueNumber(valueProp, max2) ? valueProp : null;
+    const valueLabel = isNumber2(value) ? getValueLabel(value, max2) : undefined;
+    return /* @__PURE__ */ import_jsx_runtime19.jsx(ProgressProvider, { scope: __scopeProgress, value, max: max2, children: /* @__PURE__ */ import_jsx_runtime19.jsx(Primitive.div, {
+      "aria-valuemax": max2,
+      "aria-valuemin": 0,
+      "aria-valuenow": isNumber2(value) ? value : undefined,
+      "aria-valuetext": valueLabel,
+      role: "progressbar",
+      "data-state": getProgressState(value, max2),
+      "data-value": value ?? undefined,
+      "data-max": max2,
+      ...progressProps,
+      ref: forwardedRef
+    }) });
+  });
+  Progress.displayName = PROGRESS_NAME;
+  ProgressIndicator = React69.forwardRef((props2, forwardedRef) => {
+    const { __scopeProgress, ...indicatorProps } = props2;
+    const context = useProgressContext(INDICATOR_NAME, __scopeProgress);
+    return /* @__PURE__ */ import_jsx_runtime19.jsx(Primitive.div, {
+      "data-state": getProgressState(context.value, context.max),
+      "data-value": context.value ?? undefined,
+      "data-max": context.max,
+      ...indicatorProps,
+      ref: forwardedRef
+    });
+  });
+  ProgressIndicator.displayName = INDICATOR_NAME;
+  Root6 = Progress;
+  Indicator = ProgressIndicator;
+});
+
+// dashboard/src/components/ui/progress.jsx
+var React70, jsx_dev_runtime26, Progress2;
+var init_progress = __esm(() => {
+  React70 = __toESM(require_react(), 1);
+  init_dist36();
+  init_utils();
+  jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
+  "use client";
+  Progress2 = React70.forwardRef(({ className, value, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Root6, {
+    ref,
+    className: cn("relative h-4 w-full overflow-hidden rounded-full bg-secondary", className),
+    ...props2,
+    children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Indicator, {
+      className: "h-full w-full flex-1 bg-primary transition-all",
+      style: { transform: `translateX(-${100 - (value || 0)}%)` }
+    }, undefined, false, undefined, this)
+  }, undefined, false, undefined, this));
+  Progress2.displayName = Root6.displayName;
+});
+
+// dashboard/src/components/MilestoneTracker.js
+var import_react31, jsx_dev_runtime27, MilestoneTracker = () => {
+  const [milestones, setMilestones] = import_react31.useState([]);
+  const [isLoading, setIsLoading] = import_react31.useState(true);
+  const [error46, setError] = import_react31.useState(null);
+  import_react31.useEffect(() => {
+    const fetchMilestoneProgress = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const response = await fetch("/api/executive-summary");
+        if (!response.ok) {
+          throw new Error("Failed to fetch milestone data.");
+        }
+        const data = await response.json();
+        setMilestones(data.milestoneProgress || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchMilestoneProgress();
+    const interval = setInterval(fetchMilestoneProgress, 5000);
+    return () => clearInterval(interval);
+  }, []);
+  if (isLoading) {
+    return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+      children: "Loading milestones..."
+    }, undefined, false, undefined, this);
+  }
+  if (error46) {
+    return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+      className: "text-red-500",
+      children: error46
+    }, undefined, false, undefined, this);
+  }
+  return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Card, {
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardTitle, {
+          children: "Milestone Progress"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(CardContent, {
+        children: milestones.length === 0 ? /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("p", {
+          children: "No milestones defined in the current plan."
+        }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+          className: "space-y-4",
+          children: milestones.map((milestone) => /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("div", {
+                className: "flex justify-between items-center mb-1",
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("span", {
+                    className: "text-sm font-medium",
+                    children: milestone.name
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("span", {
+                    className: "text-sm text-muted-foreground",
+                    children: [
+                      milestone.progress,
+                      "%"
+                    ]
+                  }, undefined, true, undefined, this)
+                ]
+              }, undefined, true, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime27.jsxDEV(Progress2, {
+                value: milestone.progress
+              }, undefined, false, undefined, this)
+            ]
+          }, milestone.name, true, undefined, this))
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+}, MilestoneTracker_default;
+var init_MilestoneTracker = __esm(() => {
+  import_react31 = __toESM(require_react(), 1);
+  init_card();
+  init_progress();
+  jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
+  MilestoneTracker_default = MilestoneTracker;
+});
+
 // dashboard/src/components/ExecutiveSummary.js
 var exports_ExecutiveSummary = {};
 __export(exports_ExecutiveSummary, {
   default: () => ExecutiveSummary
 });
 function ExecutiveSummary() {
-  const [summary, setSummary] = import_react31.useState(null);
-  const [isLoading, setIsLoading] = import_react31.useState(true);
-  const [error46, setError] = import_react31.useState(null);
+  const [summary, setSummary] = import_react32.useState(null);
+  const [isLoading, setIsLoading] = import_react32.useState(true);
+  const [error46, setError] = import_react32.useState(null);
   const { lastMessage } = useWebSocket_default();
-  import_react31.useEffect(() => {
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = import_react32.useState(false);
+  const [chroniclerSummary, setChroniclerSummary] = import_react32.useState("");
+  const [isChroniclerLoading, setIsChroniclerLoading] = import_react32.useState(false);
+  const handleFetchSummary = async () => {
+    setIsChroniclerLoading(true);
+    setChroniclerSummary("");
+    try {
+      const response = await fetch("/api/mission/summary");
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to fetch summary.");
+      }
+      setChroniclerSummary(data.summary);
+    } catch (err) {
+      setChroniclerSummary(`Error: ${err.message}`);
+    } finally {
+      setIsChroniclerLoading(false);
+    }
+  };
+  import_react32.useEffect(() => {
     async function fetchSummary() {
       try {
         setIsLoading(true);
@@ -55086,7 +55636,7 @@ function ExecutiveSummary() {
     const interval = setInterval(fetchSummary, 1e4);
     return () => clearInterval(interval);
   }, []);
-  import_react31.useEffect(() => {
+  import_react32.useEffect(() => {
     if (lastMessage) {
       const message = JSON.parse(lastMessage.data);
       if (message.type === "cost_update" && summary) {
@@ -55098,15 +55648,15 @@ function ExecutiveSummary() {
     }
   }, [lastMessage, summary]);
   if (isLoading) {
-    return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+    return /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
       children: [
-        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
-          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
             children: "Executive Summary"
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
-          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("p", {
+        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("p", {
             children: "Loading high-level metrics..."
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
@@ -55114,16 +55664,16 @@ function ExecutiveSummary() {
     }, undefined, true, undefined, this);
   }
   if (error46) {
-    return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+    return /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
       className: "border-destructive",
       children: [
-        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
-          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
+          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
             children: "Executive Summary"
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
-          children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("p", {
+        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("p", {
             className: "text-destructive",
             children: [
               "Error: ",
@@ -55143,28 +55693,63 @@ function ExecutiveSummary() {
     { label: "Total Estimated Cost", value: `$${summary.totalEstimatedCost.toFixed(4)}` },
     { label: "Total Tasks Processed", value: summary.totalTasks }
   ];
-  return /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
-          children: "Executive Summary"
-        }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
+        className: "flex flex-row items-center justify-between",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
+            children: "Executive Summary"
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Dialog2, {
+            open: isSummaryDialogOpen,
+            onOpenChange: setIsSummaryDialogOpen,
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogTrigger2, {
+                asChild: true,
+                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Button, {
+                  variant: "outline",
+                  onClick: handleFetchSummary,
+                  children: "View Summary of Changes"
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogContent2, {
+                className: "sm:max-w-[600px]",
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogHeader, {
+                    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogTitle2, {
+                      children: "Chronicler's Report"
+                    }, undefined, false, undefined, this)
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                    className: "prose prose-sm dark:prose-invert max-w-none",
+                    children: isChroniclerLoading ? /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("p", {
+                      children: "Generating summary..."
+                    }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("p", {
+                      children: chroniclerSummary
+                    }, undefined, false, undefined, this)
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this)
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
             className: "grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6",
-            children: kpis.map((kpi) => /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Card, {
+            children: kpis.map((kpi) => /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
               children: [
-                /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardHeader, {
+                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
                   className: "flex flex-row items-center justify-between space-y-0 pb-2",
-                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardTitle, {
+                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
                     className: "text-sm font-medium",
                     children: kpi.label
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(CardContent, {
-                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
                     className: "text-2xl font-bold",
                     children: kpi.value
                   }, undefined, false, undefined, this)
@@ -55172,50 +55757,54 @@ function ExecutiveSummary() {
               ]
             }, kpi.label, true, undefined, this))
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV("h3", {
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+            className: "mb-6",
+            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(MilestoneTracker_default, {}, undefined, false, undefined, this)
+          }, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("h3", {
             className: "text-lg font-semibold mb-2",
             children: "Agent Reliability Rankings"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(Table, {
+          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Table, {
             children: [
-              /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHeader, {
-                children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableHeader, {
+                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableHead, {
                       children: "Agent ID"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableHead, {
                       className: "text-right",
                       children: "Reliability"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableHead, {
                       className: "text-right",
                       children: "Tasks Handled"
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableBody, {
-                children: summary.agentReliabilityRankings && summary.agentReliabilityRankings.length > 0 ? summary.agentReliabilityRankings.map((agent) => /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableBody, {
+                children: summary.agentReliabilityRankings && summary.agentReliabilityRankings.length > 0 ? summary.agentReliabilityRankings.map((agent) => /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableCell, {
                       className: "font-medium",
                       children: agent.agentId
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableCell, {
                       className: "text-right",
                       children: [
                         agent.reliability.toFixed(2),
                         "%"
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableCell, {
                       className: "text-right",
                       children: agent.tasks
                     }, undefined, false, undefined, this)
                   ]
-                }, agent.agentId, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableRow, {
-                  children: /* @__PURE__ */ jsx_dev_runtime26.jsxDEV(TableCell, {
+                }, agent.agentId, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableRow, {
+                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(TableCell, {
                     colSpan: 3,
                     className: "text-center",
                     children: "No agent data available yet."
@@ -55229,7 +55818,7 @@ function ExecutiveSummary() {
     ]
   }, undefined, true, undefined, this);
 }
-var import_react31, jsx_dev_runtime26, formatDuration = (ms) => {
+var import_react32, jsx_dev_runtime28, formatDuration = (ms) => {
   if (ms < 1000)
     return `${ms} ms`;
   const seconds = ms / 1000;
@@ -55239,11 +55828,14 @@ var import_react31, jsx_dev_runtime26, formatDuration = (ms) => {
   return `${minutes.toFixed(2)} min`;
 };
 var init_ExecutiveSummary = __esm(() => {
-  import_react31 = __toESM(require_react(), 1);
+  import_react32 = __toESM(require_react(), 1);
   init_card();
   init_table();
   init_useWebSocket();
-  jsx_dev_runtime26 = __toESM(require_jsx_dev_runtime(), 1);
+  init_MilestoneTracker();
+  init_button();
+  init_dialog();
+  jsx_dev_runtime28 = __toESM(require_jsx_dev_runtime(), 1);
 });
 
 // dashboard/src/components/SwarmVisualizer.js
@@ -55251,11 +55843,11 @@ var exports_SwarmVisualizer = {};
 __export(exports_SwarmVisualizer, {
   default: () => SwarmVisualizer_default
 });
-var import_react32, jsx_dev_runtime27, SwarmVisualizer = () => {
-  const canvasRef = import_react32.useRef(null);
+var import_react33, jsx_dev_runtime29, SwarmVisualizer = () => {
+  const canvasRef = import_react33.useRef(null);
   const { lastMessage } = useWebSocket_default();
-  const [graph, setGraph] = import_react32.useState({ nodes: {}, edges: [] });
-  import_react32.useEffect(() => {
+  const [graph, setGraph] = import_react33.useState({ nodes: {}, edges: [] });
+  import_react33.useEffect(() => {
     if (lastMessage) {
       try {
         const event = JSON.parse(lastMessage);
@@ -55282,7 +55874,7 @@ var import_react32, jsx_dev_runtime27, SwarmVisualizer = () => {
       }
     }
   }, [lastMessage]);
-  import_react32.useEffect(() => {
+  import_react33.useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     canvas.width = canvas.offsetWidth;
@@ -55313,27 +55905,187 @@ var import_react32, jsx_dev_runtime27, SwarmVisualizer = () => {
       context.fillStyle = "#4a90e2";
     });
   }, [graph]);
-  return /* @__PURE__ */ jsx_dev_runtime27.jsxDEV("canvas", {
+  return /* @__PURE__ */ jsx_dev_runtime29.jsxDEV("canvas", {
     ref: canvasRef,
     style: { width: "100%", height: "100%" }
   }, undefined, false, undefined, this);
 }, SwarmVisualizer_default;
 var init_SwarmVisualizer = __esm(() => {
-  import_react32 = __toESM(require_react(), 1);
+  import_react33 = __toESM(require_react(), 1);
   init_useWebSocket();
-  jsx_dev_runtime27 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime29 = __toESM(require_jsx_dev_runtime(), 1);
   SwarmVisualizer_default = SwarmVisualizer;
 });
 
+// dashboard/src/components/ui/textarea.jsx
+var React74, jsx_dev_runtime30, Textarea;
+var init_textarea = __esm(() => {
+  React74 = __toESM(require_react(), 1);
+  init_utils();
+  jsx_dev_runtime30 = __toESM(require_jsx_dev_runtime(), 1);
+  Textarea = React74.forwardRef(({ className, ...props2 }, ref) => {
+    return /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("textarea", {
+      className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
+      ref,
+      ...props2
+    }, undefined, false, undefined, this);
+  });
+  Textarea.displayName = "Textarea";
+});
+
+// dashboard/src/components/MissionBriefing.js
+var exports_MissionBriefing = {};
+__export(exports_MissionBriefing, {
+  MissionBriefing: () => MissionBriefing
+});
+var import_react34, jsx_dev_runtime31, MissionBriefing = ({ setOpen }) => {
+  const [missionTitle, setMissionTitle] = import_react34.useState("");
+  const [userStories, setUserStories] = import_react34.useState("");
+  const [acceptanceCriteria, setAcceptanceCriteria] = import_react34.useState("");
+  const [isLoading, setIsLoading] = import_react34.useState(false);
+  const [error46, setError] = import_react34.useState(null);
+  const [success2, setSuccess] = import_react34.useState(null);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const response = await fetch("/api/mission/briefing", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          missionTitle,
+          userStories,
+          acceptanceCriteria
+        })
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to submit mission briefing.");
+      }
+      const result = await response.json();
+      setSuccess(result.message);
+      setMissionTitle("");
+      setUserStories("");
+      setAcceptanceCriteria("");
+      setTimeout(() => {
+        if (setOpen) {
+          setOpen(false);
+        }
+      }, 2000);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  return /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(Card, {
+    children: [
+      /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(CardTitle, {
+          children: "New Mission Briefing"
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(CardContent, {
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("form", {
+            onSubmit: handleSubmit,
+            className: "space-y-4",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("div", {
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("label", {
+                    htmlFor: "missionTitle",
+                    className: "block text-sm font-medium text-gray-700",
+                    children: "Mission Title"
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(Input, {
+                    id: "missionTitle",
+                    value: missionTitle,
+                    onChange: (e) => setMissionTitle(e.target.value),
+                    placeholder: "e.g., Implement User Authentication",
+                    required: true
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("div", {
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("label", {
+                    htmlFor: "userStories",
+                    className: "block text-sm font-medium text-gray-700",
+                    children: "User Stories"
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(Textarea, {
+                    id: "userStories",
+                    value: userStories,
+                    onChange: (e) => setUserStories(e.target.value),
+                    placeholder: "As a user, I want to be able to...",
+                    required: true,
+                    rows: 5
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("div", {
+                children: [
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("label", {
+                    htmlFor: "acceptanceCriteria",
+                    className: "block text-sm font-medium text-gray-700",
+                    children: "Key Acceptance Criteria"
+                  }, undefined, false, undefined, this),
+                  /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(Textarea, {
+                    id: "acceptanceCriteria",
+                    value: acceptanceCriteria,
+                    onChange: (e) => setAcceptanceCriteria(e.target.value),
+                    placeholder: "- A new user can register for an account.\\n- A registered user can log in.",
+                    required: true,
+                    rows: 5
+                  }, undefined, false, undefined, this)
+                ]
+              }, undefined, true, undefined, this),
+              /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("div", {
+                className: "flex justify-end",
+                children: /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(Button, {
+                  type: "submit",
+                  disabled: isLoading,
+                  children: isLoading ? "Submitting..." : "Submit Mission"
+                }, undefined, false, undefined, this)
+              }, undefined, false, undefined, this)
+            ]
+          }, undefined, true, undefined, this),
+          error46 && /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("p", {
+            className: "mt-4 text-sm text-red-600",
+            children: error46
+          }, undefined, false, undefined, this),
+          success2 && /* @__PURE__ */ jsx_dev_runtime31.jsxDEV("p", {
+            className: "mt-4 text-sm text-green-600",
+            children: success2
+          }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this)
+    ]
+  }, undefined, true, undefined, this);
+};
+var init_MissionBriefing = __esm(() => {
+  import_react34 = __toESM(require_react(), 1);
+  init_button();
+  init_card();
+  init_input();
+  init_textarea();
+  jsx_dev_runtime31 = __toESM(require_jsx_dev_runtime(), 1);
+});
+
 // dashboard/src/index.js
-var import_react36 = __toESM(require_react(), 1);
+var import_react38 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react34 = __toESM(require_react(), 1);
+var import_react36 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react33 = __toESM(require_react(), 1);
+var import_react35 = __toESM(require_react(), 1);
 init_useWebSocket();
 init_utils();
 
@@ -57630,354 +58382,7 @@ Separator2.displayName = Root.displayName;
 
 // dashboard/src/pages/Dashboard.js
 init_card();
-
-// dashboard/src/components/ui/dialog.jsx
-var React33 = __toESM(require_react(), 1);
-
-// node_modules/@radix-ui/react-dialog/dist/index.mjs
-var React32 = __toESM(require_react(), 1);
-init_dist4();
-init_dist();
-init_dist5();
-init_dist7();
-init_dist8();
-init_dist11();
-init_dist12();
-init_dist13();
-init_dist14();
-init_dist3();
-init_dist15();
-init_es20155();
-init_es20156();
-init_dist2();
-var import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-"use client";
-var DIALOG_NAME = "Dialog";
-var [createDialogContext, createDialogScope] = createContextScope(DIALOG_NAME);
-var [DialogProvider, useDialogContext] = createDialogContext(DIALOG_NAME);
-var Dialog = (props2) => {
-  const {
-    __scopeDialog,
-    children,
-    open: openProp,
-    defaultOpen,
-    onOpenChange,
-    modal = true
-  } = props2;
-  const triggerRef = React32.useRef(null);
-  const contentRef = React32.useRef(null);
-  const [open, setOpen] = useControllableState({
-    prop: openProp,
-    defaultProp: defaultOpen ?? false,
-    onChange: onOpenChange,
-    caller: DIALOG_NAME
-  });
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogProvider, {
-    scope: __scopeDialog,
-    triggerRef,
-    contentRef,
-    contentId: useId2(),
-    titleId: useId2(),
-    descriptionId: useId2(),
-    open,
-    onOpenChange: setOpen,
-    onOpenToggle: React32.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
-    modal,
-    children
-  });
-};
-Dialog.displayName = DIALOG_NAME;
-var TRIGGER_NAME = "DialogTrigger";
-var DialogTrigger = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, ...triggerProps } = props2;
-  const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
-  const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
-    type: "button",
-    "aria-haspopup": "dialog",
-    "aria-expanded": context.open,
-    "aria-controls": context.contentId,
-    "data-state": getState(context.open),
-    ...triggerProps,
-    ref: composedTriggerRef,
-    onClick: composeEventHandlers(props2.onClick, context.onOpenToggle)
-  });
-});
-DialogTrigger.displayName = TRIGGER_NAME;
-var PORTAL_NAME2 = "DialogPortal";
-var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME2, {
-  forceMount: undefined
-});
-var DialogPortal = (props2) => {
-  const { __scopeDialog, forceMount, children, container } = props2;
-  const context = useDialogContext(PORTAL_NAME2, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React32.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(Portal, { asChild: true, container, children: child }) })) });
-};
-DialogPortal.displayName = PORTAL_NAME2;
-var OVERLAY_NAME = "DialogOverlay";
-var DialogOverlay = React32.forwardRef((props2, forwardedRef) => {
-  const portalContext = usePortalContext(OVERLAY_NAME, props2.__scopeDialog);
-  const { forceMount = portalContext.forceMount, ...overlayProps } = props2;
-  const context = useDialogContext(OVERLAY_NAME, props2.__scopeDialog);
-  return context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime8.jsx(DialogOverlayImpl, { ...overlayProps, ref: forwardedRef }) }) : null;
-});
-DialogOverlay.displayName = OVERLAY_NAME;
-var Slot2 = createSlot("DialogOverlay.RemoveScroll");
-var DialogOverlayImpl = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, ...overlayProps } = props2;
-  const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, shards: [context.contentRef], children: /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.div, {
-    "data-state": getState(context.open),
-    ...overlayProps,
-    ref: forwardedRef,
-    style: { pointerEvents: "auto", ...overlayProps.style }
-  }) });
-});
-var CONTENT_NAME = "DialogContent";
-var DialogContent = React32.forwardRef((props2, forwardedRef) => {
-  const portalContext = usePortalContext(CONTENT_NAME, props2.__scopeDialog);
-  const { forceMount = portalContext.forceMount, ...contentProps } = props2;
-  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Presence, { present: forceMount || context.open, children: context.modal ? /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentModal, { ...contentProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentNonModal, { ...contentProps, ref: forwardedRef }) });
-});
-DialogContent.displayName = CONTENT_NAME;
-var DialogContentModal = React32.forwardRef((props2, forwardedRef) => {
-  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
-  const contentRef = React32.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
-  React32.useEffect(() => {
-    const content = contentRef.current;
-    if (content)
-      return hideOthers(content);
-  }, []);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
-    ...props2,
-    ref: composedRefs,
-    trapFocus: context.open,
-    disableOutsidePointerEvents: true,
-    onCloseAutoFocus: composeEventHandlers(props2.onCloseAutoFocus, (event) => {
-      event.preventDefault();
-      context.triggerRef.current?.focus();
-    }),
-    onPointerDownOutside: composeEventHandlers(props2.onPointerDownOutside, (event) => {
-      const originalEvent = event.detail.originalEvent;
-      const ctrlLeftClick = originalEvent.button === 0 && originalEvent.ctrlKey === true;
-      const isRightClick = originalEvent.button === 2 || ctrlLeftClick;
-      if (isRightClick)
-        event.preventDefault();
-    }),
-    onFocusOutside: composeEventHandlers(props2.onFocusOutside, (event) => event.preventDefault())
-  });
-});
-var DialogContentNonModal = React32.forwardRef((props2, forwardedRef) => {
-  const context = useDialogContext(CONTENT_NAME, props2.__scopeDialog);
-  const hasInteractedOutsideRef = React32.useRef(false);
-  const hasPointerDownOutsideRef = React32.useRef(false);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(DialogContentImpl, {
-    ...props2,
-    ref: forwardedRef,
-    trapFocus: false,
-    disableOutsidePointerEvents: false,
-    onCloseAutoFocus: (event) => {
-      props2.onCloseAutoFocus?.(event);
-      if (!event.defaultPrevented) {
-        if (!hasInteractedOutsideRef.current)
-          context.triggerRef.current?.focus();
-        event.preventDefault();
-      }
-      hasInteractedOutsideRef.current = false;
-      hasPointerDownOutsideRef.current = false;
-    },
-    onInteractOutside: (event) => {
-      props2.onInteractOutside?.(event);
-      if (!event.defaultPrevented) {
-        hasInteractedOutsideRef.current = true;
-        if (event.detail.originalEvent.type === "pointerdown") {
-          hasPointerDownOutsideRef.current = true;
-        }
-      }
-      const target = event.target;
-      const targetIsTrigger = context.triggerRef.current?.contains(target);
-      if (targetIsTrigger)
-        event.preventDefault();
-      if (event.detail.originalEvent.type === "focusin" && hasPointerDownOutsideRef.current) {
-        event.preventDefault();
-      }
-    }
-  });
-});
-var DialogContentImpl = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props2;
-  const context = useDialogContext(CONTENT_NAME, __scopeDialog);
-  const contentRef = React32.useRef(null);
-  const composedRefs = useComposedRefs(forwardedRef, contentRef);
-  useFocusGuards();
-  return /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
-    /* @__PURE__ */ import_jsx_runtime8.jsx(FocusScope, {
-      asChild: true,
-      loop: true,
-      trapped: trapFocus,
-      onMountAutoFocus: onOpenAutoFocus,
-      onUnmountAutoFocus: onCloseAutoFocus,
-      children: /* @__PURE__ */ import_jsx_runtime8.jsx(DismissableLayer, {
-        role: "dialog",
-        id: context.contentId,
-        "aria-describedby": context.descriptionId,
-        "aria-labelledby": context.titleId,
-        "data-state": getState(context.open),
-        ...contentProps,
-        ref: composedRefs,
-        onDismiss: () => context.onOpenChange(false)
-      })
-    }),
-    /* @__PURE__ */ import_jsx_runtime8.jsxs(import_jsx_runtime8.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime8.jsx(TitleWarning, { titleId: context.titleId }),
-      /* @__PURE__ */ import_jsx_runtime8.jsx(DescriptionWarning, { contentRef, descriptionId: context.descriptionId })
-    ] })
-  ] });
-});
-var TITLE_NAME = "DialogTitle";
-var DialogTitle = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, ...titleProps } = props2;
-  const context = useDialogContext(TITLE_NAME, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.h2, { id: context.titleId, ...titleProps, ref: forwardedRef });
-});
-DialogTitle.displayName = TITLE_NAME;
-var DESCRIPTION_NAME = "DialogDescription";
-var DialogDescription = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, ...descriptionProps } = props2;
-  const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.p, { id: context.descriptionId, ...descriptionProps, ref: forwardedRef });
-});
-DialogDescription.displayName = DESCRIPTION_NAME;
-var CLOSE_NAME = "DialogClose";
-var DialogClose = React32.forwardRef((props2, forwardedRef) => {
-  const { __scopeDialog, ...closeProps } = props2;
-  const context = useDialogContext(CLOSE_NAME, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime8.jsx(Primitive.button, {
-    type: "button",
-    ...closeProps,
-    ref: forwardedRef,
-    onClick: composeEventHandlers(props2.onClick, () => context.onOpenChange(false))
-  });
-});
-DialogClose.displayName = CLOSE_NAME;
-function getState(open) {
-  return open ? "open" : "closed";
-}
-var TITLE_WARNING_NAME = "DialogTitleWarning";
-var [WarningProvider, useWarningContext] = createContext22(TITLE_WARNING_NAME, {
-  contentName: CONTENT_NAME,
-  titleName: TITLE_NAME,
-  docsSlug: "dialog"
-});
-var TitleWarning = ({ titleId }) => {
-  const titleWarningContext = useWarningContext(TITLE_WARNING_NAME);
-  const MESSAGE = `\`${titleWarningContext.contentName}\` requires a \`${titleWarningContext.titleName}\` for the component to be accessible for screen reader users.
-
-If you want to hide the \`${titleWarningContext.titleName}\`, you can wrap it with our VisuallyHidden component.
-
-For more information, see https://radix-ui.com/primitives/docs/components/${titleWarningContext.docsSlug}`;
-  React32.useEffect(() => {
-    if (titleId) {
-      const hasTitle = document.getElementById(titleId);
-      if (!hasTitle)
-        console.error(MESSAGE);
-    }
-  }, [MESSAGE, titleId]);
-  return null;
-};
-var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
-var DescriptionWarning = ({ contentRef, descriptionId }) => {
-  const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
-  const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
-  React32.useEffect(() => {
-    const describedById = contentRef.current?.getAttribute("aria-describedby");
-    if (descriptionId && describedById) {
-      const hasDescription = document.getElementById(descriptionId);
-      if (!hasDescription)
-        console.warn(MESSAGE);
-    }
-  }, [MESSAGE, contentRef, descriptionId]);
-  return null;
-};
-var Root2 = Dialog;
-var Portal2 = DialogPortal;
-var Overlay = DialogOverlay;
-var Content = DialogContent;
-var Title = DialogTitle;
-var Description = DialogDescription;
-var Close = DialogClose;
-
-// dashboard/src/components/ui/dialog.jsx
-init_lucide_react();
-init_utils();
-var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
-"use client";
-var Dialog2 = Root2;
-var DialogPortal2 = Portal2;
-var DialogOverlay2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
-  ref,
-  className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
-  ...props2
-}, undefined, false, undefined, this));
-DialogOverlay2.displayName = Overlay.displayName;
-var DialogContent2 = React33.forwardRef(({ className, children, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
-  children: [
-    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogOverlay2, {}, undefined, false, undefined, this),
-    /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Content, {
-      ref,
-      className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg", className),
-      ...props2,
-      children: [
-        children,
-        /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Close, {
-          className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
-          children: [
-            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(X, {
-              className: "h-4 w-4"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("span", {
-              className: "sr-only",
-              children: "Close"
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  ]
-}, undefined, true, undefined, this));
-DialogContent2.displayName = Content.displayName;
-var DialogHeader = ({
-  className,
-  ...props2
-}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-  className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
-  ...props2
-}, undefined, false, undefined, this);
-DialogHeader.displayName = "DialogHeader";
-var DialogFooter = ({
-  className,
-  ...props2
-}) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV("div", {
-  className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
-  ...props2
-}, undefined, false, undefined, this);
-DialogFooter.displayName = "DialogFooter";
-var DialogTitle2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
-  ref,
-  className: cn("text-lg font-semibold leading-none tracking-tight", className),
-  ...props2
-}, undefined, false, undefined, this));
-DialogTitle2.displayName = Title.displayName;
-var DialogDescription2 = React33.forwardRef(({ className, ...props2 }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
-  ref,
-  className: cn("text-sm text-muted-foreground", className),
-  ...props2
-}, undefined, false, undefined, this));
-DialogDescription2.displayName = Description.displayName;
-
-// dashboard/src/pages/Dashboard.js
+init_dialog();
 init_button();
 init_scroll_area();
 
@@ -57988,21 +58393,22 @@ init_badge();
 var jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var jsx_dev_runtime28 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var CodeBrowser2 = import_react33.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var ActivityLog2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var DocumentUploader2 = import_react33.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
-var FileViewer2 = import_react33.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
-var AgentPerformanceMonitor2 = import_react33.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
-var ToolHealthMonitor2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SystemHealthAlerts2 = import_react33.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
-var MissionPlanner2 = import_react33.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
-var GovernanceDashboard2 = import_react33.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
-var ThoughtStream2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ThoughtStream(), exports_ThoughtStream)));
-var ExecutiveSummary2 = import_react33.lazy(() => Promise.resolve().then(() => (init_ExecutiveSummary(), exports_ExecutiveSummary)));
-var SwarmVisualizer2 = import_react33.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
+var jsx_dev_runtime32 = __toESM(require_jsx_dev_runtime(), 1);
+var ProjectSelector2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var CodeBrowser2 = import_react35.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var ActivityLog2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var DocumentUploader2 = import_react35.lazy(() => Promise.resolve().then(() => (init_DocumentUploader(), exports_DocumentUploader)));
+var FileViewer2 = import_react35.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+var AgentPerformanceMonitor2 = import_react35.lazy(() => Promise.resolve().then(() => (init_AgentPerformanceMonitor(), exports_AgentPerformanceMonitor)));
+var ToolHealthMonitor2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SystemHealthAlerts2 = import_react35.lazy(() => Promise.resolve().then(() => (init_SystemHealthAlerts(), exports_SystemHealthAlerts)));
+var MissionPlanner2 = import_react35.lazy(() => Promise.resolve().then(() => (init_MissionPlanner(), exports_MissionPlanner)));
+var GovernanceDashboard2 = import_react35.lazy(() => Promise.resolve().then(() => (init_GovernanceDashboard(), exports_GovernanceDashboard)));
+var ThoughtStream2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ThoughtStream(), exports_ThoughtStream)));
+var ExecutiveSummary2 = import_react35.lazy(() => Promise.resolve().then(() => (init_ExecutiveSummary(), exports_ExecutiveSummary)));
+var SwarmVisualizer2 = import_react35.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
+var MissionBriefing2 = import_react35.lazy(() => Promise.resolve().then(() => (init_MissionBriefing(), exports_MissionBriefing)).then((module) => ({ default: module.MissionBriefing })));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -58019,11 +58425,12 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default("ws://localhost:3010/ws");
-  const [systemState, setSystemState] = import_react33.useState(INITIAL_STATE);
-  const [thoughtStream, setThoughtStream] = import_react33.useState([]);
-  const [currentObjective, setCurrentObjective] = import_react33.useState(null);
-  const [healthData, setHealthData] = import_react33.useState(null);
-  const [humanApprovalRequest, setHumanApprovalRequest] = import_react33.useState(null);
+  const [systemState, setSystemState] = import_react35.useState(INITIAL_STATE);
+  const [thoughtStream, setThoughtStream] = import_react35.useState([]);
+  const [currentObjective, setCurrentObjective] = import_react35.useState(null);
+  const [healthData, setHealthData] = import_react35.useState(null);
+  const [humanApprovalRequest, setHumanApprovalRequest] = import_react35.useState(null);
+  const [isBriefingOpen, setIsBriefingOpen] = import_react35.useState(false);
   const fetchFiles = async () => {
     setSystemState((prevState) => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -58039,7 +58446,7 @@ var Dashboard = () => {
       setSystemState((prevState) => ({ ...prevState, files: [], filesError: error46.message, isFileListLoading: false }));
     }
   };
-  import_react33.useEffect(() => {
+  import_react35.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -58130,51 +58537,51 @@ var Dashboard = () => {
       }));
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
     className: "dark h-screen w-screen bg-background text-foreground",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(jsx_dev_runtime28.Fragment, {}, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Dialog2, {
+      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(jsx_dev_runtime32.Fragment, {}, undefined, false, undefined, this),
+        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Dialog2, {
           open: !!humanApprovalRequest,
           onOpenChange: (isOpen) => !isOpen && setHumanApprovalRequest(null),
-          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogContent2, {
+          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogContent2, {
             className: "sm:max-w-[600px]",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogHeader, {
+              /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogHeader, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogTitle2, {
+                  /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogTitle2, {
                     children: "Human Approval Required"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogDescription2, {
+                  /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogDescription2, {
                     children: "An agent has paused its execution and requires your input to proceed."
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                 className: "grid gap-4 py-4",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("p", {
+                  /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("p", {
                     className: "text-sm font-medium",
                     children: humanApprovalRequest?.message
                   }, undefined, false, undefined, this),
-                  humanApprovalRequest?.data && /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ScrollArea2, {
+                  humanApprovalRequest?.data && /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ScrollArea2, {
                     className: "h-72 w-full rounded-md border p-4",
-                    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("pre", {
+                    children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("pre", {
                       className: "text-xs whitespace-pre-wrap",
                       children: JSON.stringify(humanApprovalRequest.data, null, 2)
                     }, undefined, false, undefined, this)
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DialogFooter, {
+              /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogFooter, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Button, {
+                  /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Button, {
                     variant: "destructive",
                     onClick: () => handleApprovalResponse("rejected"),
                     children: "Reject"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Button, {
+                  /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Button, {
                     variant: "default",
                     onClick: () => handleApprovalResponse("approved"),
                     children: "Approve"
@@ -58185,58 +58592,76 @@ var Dashboard = () => {
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(jsx_dev_runtime32.Fragment, {}, undefined, false, undefined, this),
+        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Dialog2, {
+          open: isBriefingOpen,
+          onOpenChange: setIsBriefingOpen,
+          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DialogContent2, {
+            className: "sm:max-w-[800px]",
+            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(MissionBriefing2, {
+              setOpen: setIsBriefingOpen
+            }, undefined, false, undefined, this)
+          }, undefined, false, undefined, this)
+        }, undefined, false, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
         direction: "vertical",
         className: "h-full w-full",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
             defaultSize: 10,
             minSize: 10,
             maxSize: 10,
-            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
               className: "flex items-center justify-between p-4 border-b h-full",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                   className: "flex items-center gap-4",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("h1", {
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("h1", {
                       className: "text-xl font-bold",
                       children: "Stigmergy"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                      fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                      fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                         className: "p-4",
                         children: "Loading Project Selector..."
                       }, undefined, false, undefined, this),
-                      children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ProjectSelector2, {
+                      children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ProjectSelector2, {
                         onProjectSelect: handleProjectSelect
                       }, undefined, false, undefined, this)
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Button, {
+                      onClick: () => setIsBriefingOpen(true),
+                      variant: "outline",
+                      children: "New Mission Briefing"
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                   className: "flex items-center gap-4 text-sm",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("span", {
                       children: [
-                        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("b", {
+                        /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("b", {
                           children: "Active Project:"
                         }, undefined, false, undefined, this),
                         " ",
                         systemState.project_path || "None"
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Separator2, {
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Separator2, {
                       orientation: "vertical",
                       className: "h-6"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("span", {
                       children: [
-                        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("b", {
+                        /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("b", {
                           children: "Status:"
                         }, undefined, false, undefined, this),
                         " ",
-                        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("span", {
+                        /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("span", {
                           className: "font-mono p-1 bg-muted rounded-md",
                           children: systemState.project_status || "Idle"
                         }, undefined, false, undefined, this)
@@ -58247,44 +58672,44 @@ var Dashboard = () => {
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
             withHandle: true
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
             defaultSize: 25,
             minSize: 20,
-            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
               direction: "horizontal",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                    fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                    fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                       className: "p-4",
                       children: "Loading Executive Summary..."
                     }, undefined, false, undefined, this),
-                    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ExecutiveSummary2, {}, undefined, false, undefined, this)
+                    children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ExecutiveSummary2, {}, undefined, false, undefined, this)
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                   withHandle: true
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                    fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                    fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                       className: "p-4",
                       children: "Loading Swarm Visualizer..."
                     }, undefined, false, undefined, this),
-                    children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
+                    children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Card, {
                       className: "h-full w-full rounded-none border-0 border-l",
                       children: [
-                        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
+                        /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardHeader, {
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardTitle, {
                             children: "Live Swarm Delegation"
                           }, undefined, false, undefined, this)
                         }, undefined, false, undefined, this),
-                        /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                        /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardContent, {
                           className: "h-[calc(100%-4rem)] w-full p-0",
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(SwarmVisualizer2, {}, undefined, false, undefined, this)
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(SwarmVisualizer2, {}, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
                       ]
                     }, undefined, true, undefined, this)
@@ -58293,38 +58718,38 @@ var Dashboard = () => {
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
             withHandle: true
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
             defaultSize: 65,
-            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
               direction: "horizontal",
               className: "h-full",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                   defaultSize: 40,
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
                     direction: "vertical",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                         defaultSize: 50,
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Card, {
                           className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardContent, {
                             className: "flex-grow overflow-auto p-0",
-                            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                              fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                              fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                 className: "p-4",
                                 children: "Loading Code..."
                               }, undefined, false, undefined, this),
-                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CodeBrowser2, {
+                              children: systemState.project_path ? /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CodeBrowser2, {
                                 files: systemState.files,
                                 onFileSelect: handleFileSelect,
                                 selectedFile: systemState.selectedFile,
                                 isLoading: systemState.isFileListLoading,
                                 error: systemState.filesError
-                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                              }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                 className: "text-muted-foreground p-4",
                                 children: "Set a project to see files."
                               }, undefined, false, undefined, this)
@@ -58332,17 +58757,17 @@ var Dashboard = () => {
                           }, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                         withHandle: true
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                         defaultSize: 50,
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                             className: "p-4",
                             children: "Loading Viewer..."
                           }, undefined, false, undefined, this),
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(FileViewer2, {
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(FileViewer2, {
                             filePath: systemState.selectedFile,
                             content: systemState.fileContent,
                             isLoading: systemState.isFileContentLoading
@@ -58352,32 +58777,32 @@ var Dashboard = () => {
                     ]
                   }, undefined, true, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                   withHandle: true
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                   defaultSize: 60,
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
                     direction: "vertical",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                         defaultSize: 60,
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Card, {
                           className: "h-full w-full rounded-none border-0 border-r border-b flex flex-col",
                           children: [
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardTitle, {
                                 children: "Agent Chat"
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this),
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardContent, {
                               className: "flex-grow p-2",
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                                fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                   className: "p-4",
                                   children: "Loading Chat..."
                                 }, undefined, false, undefined, this),
-                                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ChatInterface2, {
+                                children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ChatInterface2, {
                                   sendMessage,
                                   engineStatus: systemState.project_status,
                                   activeProject: systemState.project_path
@@ -58387,27 +58812,27 @@ var Dashboard = () => {
                           ]
                         }, undefined, true, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                         withHandle: true
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
                         defaultSize: 40,
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Card, {
                           className: "h-full w-full rounded-none border-0 border-r flex flex-col",
                           children: [
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardHeader, {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardTitle, {
                                 children: "Document Intelligence"
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this),
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardContent, {
                               className: "flex-grow overflow-y-auto p-4 space-y-4",
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                                fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                   className: "p-4",
                                   children: "Loading Uploader..."
                                 }, undefined, false, undefined, this),
-                                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
+                                children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(DocumentUploader2, {}, undefined, false, undefined, this)
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this)
                           ]
@@ -58419,75 +58844,75 @@ var Dashboard = () => {
               ]
             }, undefined, true, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
             withHandle: true
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
+          /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
             defaultSize: 25,
-            children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(Card, {
+            children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(Card, {
               className: "h-full w-full rounded-none border-0 border-t flex flex-col",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardHeader, {
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardTitle, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardHeader, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardTitle, {
                     children: "System Health Overview"
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(CardContent, {
+                /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(CardContent, {
                   className: "flex-grow overflow-auto p-2",
-                  children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+                  children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
                     direction: "horizontal",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                             className: "p-4",
                             children: "Loading..."
                           }, undefined, false, undefined, this),
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(AgentPerformanceMonitor2, {
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(AgentPerformanceMonitor2, {
                             healthData
                           }, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                         withHandle: true
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                          fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                          fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                             className: "p-4",
                             children: "Loading Governance..."
                           }, undefined, false, undefined, this),
-                          children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
+                          children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(GovernanceDashboard2, {}, undefined, false, undefined, this)
                         }, undefined, false, undefined, this)
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                         withHandle: true
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                        children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanelGroup, {
+                      /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                        children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanelGroup, {
                           direction: "vertical",
                           children: [
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                                fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                   className: "p-4",
                                   children: "Loading..."
                                 }, undefined, false, undefined, this),
-                                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ToolHealthMonitor2, {
+                                children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ToolHealthMonitor2, {
                                   healthData
                                 }, undefined, false, undefined, this)
                               }, undefined, false, undefined, this)
                             }, undefined, false, undefined, this),
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizableHandle, {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizableHandle, {
                               withHandle: true
                             }, undefined, false, undefined, this),
-                            /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(ResizablePanel, {
-                              children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(import_react33.Suspense, {
-                                fallback: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV("div", {
+                            /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(ResizablePanel, {
+                              children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(import_react35.Suspense, {
+                                fallback: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV("div", {
                                   className: "p-4",
                                   children: "Loading..."
                                 }, undefined, false, undefined, this),
-                                children: /* @__PURE__ */ jsx_dev_runtime28.jsxDEV(SystemHealthAlerts2, {
+                                children: /* @__PURE__ */ jsx_dev_runtime32.jsxDEV(SystemHealthAlerts2, {
                                   healthData
                                 }, undefined, false, undefined, this)
                               }, undefined, false, undefined, this)
@@ -58509,17 +58934,17 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/App.js
-var jsx_dev_runtime29 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime33 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  return /* @__PURE__ */ jsx_dev_runtime29.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime33.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/components/ErrorBoundary.js
-var import_react35 = __toESM(require_react(), 1);
-var jsx_dev_runtime30 = __toESM(require_jsx_dev_runtime(), 1);
+var import_react37 = __toESM(require_react(), 1);
+var jsx_dev_runtime34 = __toESM(require_jsx_dev_runtime(), 1);
 
-class ErrorBoundary extends import_react35.default.Component {
+class ErrorBoundary extends import_react37.default.Component {
   constructor(props2) {
     super(props2);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -58533,28 +58958,28 @@ class ErrorBoundary extends import_react35.default.Component {
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("div", {
+      return /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("div", {
         style: { padding: "20px", color: "white", backgroundColor: "#400000", height: "100vh", fontFamily: "monospace", overflow: "auto" },
         children: [
-          /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("h1", {
+          /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("h1", {
             children: "Application Error Caught"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("p", {
+          /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("p", {
             children: "The application failed to render. This is the error that was previously silent."
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("hr", {}, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("details", {
+          /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("hr", {}, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("details", {
             open: true,
             style: { whiteSpace: "pre-wrap" },
             children: [
-              /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("summary", {
+              /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("summary", {
                 style: { fontWeight: "bold", cursor: "pointer" },
                 children: "Error Details"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("h3", {
+              /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("h3", {
                 children: this.state.error && this.state.error.toString()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime30.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime34.jsxDEV("div", {
                 children: this.state.errorInfo && this.state.errorInfo.componentStack
               }, undefined, false, undefined, this)
             ]
@@ -58568,10 +58993,10 @@ class ErrorBoundary extends import_react35.default.Component {
 var ErrorBoundary_default = ErrorBoundary;
 
 // dashboard/src/index.js
-var jsx_dev_runtime31 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime35 = __toESM(require_jsx_dev_runtime(), 1);
 var root = import_client.default.createRoot(document.getElementById("root"));
-root.render(/* @__PURE__ */ jsx_dev_runtime31.jsxDEV(import_react36.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(ErrorBoundary_default, {
-    children: /* @__PURE__ */ jsx_dev_runtime31.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root.render(/* @__PURE__ */ jsx_dev_runtime35.jsxDEV(import_react38.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime35.jsxDEV(ErrorBoundary_default, {
+    children: /* @__PURE__ */ jsx_dev_runtime35.jsxDEV(App_default, {}, undefined, false, undefined, this)
   }, undefined, false, undefined, this)
 }, undefined, false, undefined, this));
