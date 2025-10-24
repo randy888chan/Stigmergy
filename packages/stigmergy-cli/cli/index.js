@@ -352,6 +352,38 @@ This command creates a boilerplate agent definition file in the custom agents di
 (defined by 'custom_agents_path' in stigmergy.config.js).
   `);
 
+program
+    .command("export-knowledge")
+    .description("Exports the entire knowledge graph to a .cypher file.")
+    .action(async () => {
+        const exportPath = path.resolve(__dirname, './commands/export-knowledge.js');
+        const { exportKnowledge } = await import(exportPath);
+        await exportKnowledge();
+    })
+    .addHelpText('after', `
+Examples:
+    $ stigmergy export-knowledge
+
+This command contacts a running Stigmergy engine and requests a full dump of the Neo4j learning graph.
+The output is saved to a timestamped .cypher file in the project's root directory.
+    `);
+
+program
+    .command("import-knowledge")
+    .description("Imports a knowledge graph from a .cypher file.")
+    .option('--file <file>', 'The path to the .cypher file to import.')
+    .action(async (options) => {
+        const importPath = path.resolve(__dirname, './commands/import-knowledge.js');
+        const { importKnowledge } = await import(importPath);
+        await importKnowledge(options);
+    })
+    .addHelpText('after', `
+Examples:
+    $ stigmergy import-knowledge --file ./knowledge-export-20231027.cypher
+
+This command reads a .cypher script and sends it to a running Stigmergy engine to populate the Neo4j database.
+    `);
+
 // Register commands from external files
 import { createLoginCommand } from './commands/login.js';
 program.addCommand(createLoginCommand());

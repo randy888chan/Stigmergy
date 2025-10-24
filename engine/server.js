@@ -866,6 +866,53 @@ Based on the information above, please formulate a plan and execute the mission.
             }
         });
 
+        this.app.post('/api/knowledge/export', async (c) => {
+            try {
+                const query = "CALL apoc.export.cypher.all(null, {stream: true, format: 'cypher-shell'})";
+                // Assuming system.execute_cypher_query is available via toolExecutor
+                const resultString = await this.toolExecutor.execute('system.execute_cypher_query', { query }, '@system', this.projectRoot);
+                const result = JSON.parse(resultString); // The tool returns a JSON string
+
+                // The result from apoc.export.cypher.all is a stream of data.
+                // We need to concatenate the 'cypher' property from each object in the result array.
+                const cypherScript = result.map(record => record.cypher).join('');
+
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const fileName = `knowledge-export-${timestamp}.cypher`;
+                const filePath = path.join(this.projectRoot, fileName);
+
+                await fs.writeFile(filePath, cypherScript);
+
+                return c.json({ message: 'Knowledge graph exported successfully.', filePath });
+            } catch (error) {
+                console.error(chalk.red('[Engine] Knowledge export failed:'), error);
+                return c.json({ error: `Failed to export knowledge graph: ${error.message}` }, 500);
+            }
+        });
+
+        this.app.post('/api/knowledge/import', async (c) => {
+            try {
+                const { cypherScript } = await c.req.json();
+                if (!cypherScript) {
+                    return c.json({ error: 'cypherScript is required in the request body.' }, 400);
+                }
+
+                // Split the script into individual statements. APOC export separates them with semicolons.
+                const statements = cypherScript.split(';').map(s => s.trim()).filter(s => s.length > 0);
+
+                for (const statement of statements) {
+                     // We need to add the semicolon back for execution
+                    const query = `${statement};`;
+                    await this.toolExecutor.execute('system.execute_cypher_query', { query }, '@system', this.projectRoot);
+                }
+
+                return c.json({ message: `Knowledge graph imported successfully. Executed ${statements.length} statements.` });
+            } catch (error) {
+                console.error(chalk.red('[Engine] Knowledge import failed:'), error);
+                return c.json({ error: `Failed to import knowledge graph: ${error.message}` }, 500);
+            }
+        });
+
 
         // 3. IDE (MCP) Endpoint
         this.app.get('/mcp', async (c) => {
