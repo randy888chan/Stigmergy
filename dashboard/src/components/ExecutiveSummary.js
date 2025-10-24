@@ -2,6 +2,9 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import useWebSocket from '../hooks/useWebSocket';
+import MilestoneTracker from './MilestoneTracker';
+import { Button } from './ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 
 // Helper to format milliseconds into a readable string
 const formatDuration = (ms) => {
@@ -17,6 +20,26 @@ export default function ExecutiveSummary() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const { lastMessage } = useWebSocket();
+  const [isSummaryDialogOpen, setIsSummaryDialogOpen] = useState(false);
+  const [chroniclerSummary, setChroniclerSummary] = useState('');
+  const [isChroniclerLoading, setIsChroniclerLoading] = useState(false);
+
+  const handleFetchSummary = async () => {
+    setIsChroniclerLoading(true);
+    setChroniclerSummary('');
+    try {
+      const response = await fetch('/api/mission/summary');
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to fetch summary.');
+      }
+      setChroniclerSummary(data.summary);
+    } catch (err) {
+      setChroniclerSummary(`Error: ${err.message}`);
+    } finally {
+      setIsChroniclerLoading(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchSummary() {
@@ -92,8 +115,21 @@ export default function ExecutiveSummary() {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Executive Summary</CardTitle>
+        <Dialog open={isSummaryDialogOpen} onOpenChange={setIsSummaryDialogOpen}>
+          <DialogTrigger asChild>
+            <Button variant="outline" onClick={handleFetchSummary}>View Summary of Changes</Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Chronicler's Report</DialogTitle>
+            </DialogHeader>
+            <div className="prose prose-sm dark:prose-invert max-w-none">
+              {isChroniclerLoading ? <p>Generating summary...</p> : <p>{chroniclerSummary}</p>}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent>
         {/* KPI Grid */}
@@ -108,6 +144,10 @@ export default function ExecutiveSummary() {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        <div className="mb-6">
+          <MilestoneTracker />
         </div>
 
         {/* Agent Reliability Table */}

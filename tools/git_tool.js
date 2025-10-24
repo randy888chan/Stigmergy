@@ -25,6 +25,23 @@ export async function init({ path: repoPath }) {
 }
 
 /**
+ * Gets the diff of staged changes.
+ * @param {object} args - The arguments for the function.
+ * @param {string} args.workingDirectory - The absolute path to the directory of the git repo.
+ * @returns {Promise<string>} The git diff as a string, or an error message.
+ */
+export async function get_staged_diff({ workingDirectory }) {
+    try {
+        const git = simpleGit(workingDirectory);
+        const diff = await git.diff(['--staged']);
+        return diff || 'No staged changes found.';
+    } catch (error) {
+        console.error(`Failed to get staged diff in ${workingDirectory}:`, error);
+        return `EXECUTION FAILED: ${error.message}`;
+    }
+}
+
+/**
  * Commits changes to the Git repository.
  * @param {object} args - The arguments for the function.
  * @param {string} args.message - The commit message.

@@ -675,13 +675,48 @@ Execute the file write operation now. Upon success, respond with a confirmation 
                 })).sort((a, b) => b.reliability - a.reliability);
 
 
+                // --- 4. Read and Process plan.md for Milestone Progress ---
+                const planPath = path.join(this.projectRoot, 'plan.md');
+                let milestoneProgress = [];
+                try {
+                    const fileContent = await fs.readFile(planPath, 'utf-8');
+                    const yamlMatch = fileContent.match(/```(?:yaml|yml)\n([\s\S]*?)\n```/);
+                    if (yamlMatch && yamlMatch[1]) {
+                        const planData = yaml.load(yamlMatch[1]);
+                        if (planData && Array.isArray(planData.tasks)) {
+                            const milestones = {}; // { "Milestone Name": { total: 0, completed: 0 } }
+                            for (const task of planData.tasks) {
+                                const milestoneName = task.milestone || "General Tasks";
+                                if (!milestones[milestoneName]) {
+                                    milestones[milestoneName] = { total: 0, completed: 0 };
+                                }
+                                milestones[milestoneName].total++;
+                                if (task.status === 'COMPLETED') {
+                                    milestones[milestoneName].completed++;
+                                }
+                            }
+                            milestoneProgress = Object.entries(milestones).map(([name, data]) => ({
+                                name,
+                                progress: data.total > 0 ? parseFloat(((data.completed / data.total) * 100).toFixed(2)) : 0,
+                            }));
+                        }
+                    }
+                } catch (err) {
+                     if (err.code !== 'ENOENT') {
+                        console.warn(`[ExecutiveSummary] Could not process plan.md: ${err.message}`);
+                    }
+                    // If plan.md doesn't exist, just return empty array, which is fine.
+                }
+
+
                 return c.json({
                     overallSuccessRate: parseFloat(successRate.toFixed(2)),
                     averageTaskCompletionTime: avgCompletionTime,
                     totalEstimatedCost: this.sessionCost,
                     agentReliabilityRankings: agentReliability,
                     totalTasks,
-                    successfulTasks
+                    successfulTasks,
+                    milestoneProgress // Add this to the response
                 });
 
             } catch (error) {
@@ -720,6 +755,72 @@ Execute the file write operation now. Upon success, respond with a confirmation 
             } catch (error) {
                 console.error(chalk.red('[Engine] File upload failed:'), error);
                 return c.json({ error: 'Failed to process file upload.' }, 500);
+            }
+        });
+
+        this.app.post('/api/mission/briefing', async (c) => {
+            const engine = c.get('stateManager'); // It's the engine instance
+            if (!engine) {
+                return c.json({ error: 'Engine not available' }, 500);
+            }
+
+            try {
+                const { missionTitle, userStories, acceptanceCriteria, outOfScope } = await c.req.json();
+
+                if (!missionTitle || !userStories || !acceptanceCriteria) {
+                    return c.json({ error: 'Missing required fields: missionTitle, userStories, acceptanceCriteria' }, 400);
+                }
+
+                // Translate structured data into a markdown prompt
+                const prompt = `
+# Mission: ${missionTitle}
+
+## User Stories
+${userStories}
+
+## Acceptance Criteria
+${acceptanceCriteria}
+
+${outOfScope ? `## Out of Scope\n${outOfScope}` : ''}
+
+Based on the information above, please formulate a plan and execute the mission.
+                `.trim();
+
+                // Trigger the existing executeGoal workflow
+                engine.executeGoal(prompt).catch(err => {
+                    console.error(chalk.red(`[Mission Briefing] Error executing goal: ${err.message}`));
+                });
+
+                return c.json({ message: 'Mission briefing received and initiated successfully.' });
+            } catch (error) {
+                console.error(chalk.red('[Engine] Error processing mission briefing:'), error);
+                return c.json({ error: 'Failed to process mission briefing.' }, 500);
+            }
+        });
+
+        this.app.get('/api/mission/summary', async (c) => {
+            const engine = c.get('stateManager');
+            if (!engine) {
+                return c.json({ error: 'Engine not available' }, 500);
+            }
+
+            try {
+                // The tool executor expects the projectRoot to be passed as workingDirectory
+                // The result is a JSON string containing the raw diff string, so it needs to be parsed.
+                const rawToolResult = await this.toolExecutor.execute('git_tool.get_staged_diff', { workingDirectory: this.projectRoot }, '@system', this.projectRoot);
+                const diff = JSON.parse(rawToolResult);
+
+                if (!diff || diff === 'No staged changes found.') {
+                    return c.json({ summary: 'No changes have been staged to summarize.' });
+                }
+
+                const chroniclerPrompt = `Please summarize the following git diff in a human-readable, non-technical format:\n\n${diff}`;
+                const summary = await this.triggerAgent('@chronicler', chroniclerPrompt);
+
+                return c.json({ summary });
+            } catch (error) {
+                console.error(chalk.red('[Engine] Error generating mission summary:'), error);
+                return c.json({ error: 'Failed to generate mission summary.' }, 500);
             }
         });
 
