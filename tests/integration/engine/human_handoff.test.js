@@ -1,35 +1,36 @@
-import { mock, describe, test, expect, beforeEach, afterEach } from 'bun:test';
-import path from 'path';
-import mockFs, { vol } from '../../mocks/fs.js';
-import { GraphStateManager } from '../../../src/infrastructure/state/GraphStateManager.js';
-import { Engine } from '../../../engine/server.js';
+import { mock, describe, test, expect, beforeEach, afterEach } from "bun:test";
+import path from "path";
+import mockFs, { vol } from "../../mocks/fs.js";
+import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
+import { Engine } from "../../../engine/server.js";
 
 const mockStreamText = mock();
 
-describe('Human Handoff Workflow', () => {
+describe("Human Handoff Workflow", () => {
   let engine;
   let broadcastSpy;
   let projectRoot;
+  let stateManager;
 
   beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
 
-    mock.module('fs', () => mockFs);
-    mock.module('fs-extra', () => mockFs);
-    mock.module('ai', () => ({ streamText: mockStreamText }));
-    mock.module('../../../services/config_service.js', () => ({
-        configService: {
-            getConfig: () => ({
-                model_tiers: { reasoning_tier: { provider: 'mock', model_name: 'mock-model' } },
-                providers: { mock_provider: { api_key: 'mock-key' } }
-            }),
-        },
+    mock.module("fs", () => mockFs);
+    mock.module("fs-extra", () => mockFs);
+    mock.module("ai", () => ({ streamText: mockStreamText }));
+    mock.module("../../../services/config_service.js", () => ({
+      configService: {
+        getConfig: () => ({
+          model_tiers: { reasoning_tier: { provider: "mock", model_name: "mock-model" } },
+          providers: { mock_provider: { api_key: "mock-key" } },
+        }),
+      },
     }));
 
-    projectRoot = path.resolve('/test-handoff-project');
-    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, '.stigmergy-core');
-    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, 'agents');
+    projectRoot = path.resolve("/test-handoff-project");
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
+    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.ensureDir(agentDir);
 
     const mockDispatcherAgent = `
@@ -40,68 +41,80 @@ agent:
     - "system.*"
 \`\`\`
 `;
-    await mockFs.promises.writeFile(path.join(agentDir, 'dispatcher.md'), mockDispatcherAgent);
+    await mockFs.promises.writeFile(path.join(agentDir, "dispatcher.md"), mockDispatcherAgent);
 
     broadcastSpy = mock(() => {});
-    const stateManager = new GraphStateManager(projectRoot);
+    stateManager = new GraphStateManager(projectRoot);
 
     // DEFINITIVE FIX: Align with the new dependency-injected architecture
     const mockUnifiedIntelligenceService = {};
-    const { createExecutor: realCreateExecutor } = await import('../../../engine/tool_executor.js');
+    const { createExecutor: realCreateExecutor } = await import("../../../engine/tool_executor.js");
 
     const testExecutorFactory = async (engineInstance, ai, options, fs) => {
-        const finalOptions = { ...options, unifiedIntelligenceService: mockUnifiedIntelligenceService };
-        return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
+      const finalOptions = {
+        ...options,
+        unifiedIntelligenceService: mockUnifiedIntelligenceService,
+      };
+      return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
     };
 
     engine = new Engine({
-        projectRoot,
-        corePath: process.env.STIGMERGY_CORE_PATH,
-        stateManager,
-        startServer: false,
-        broadcastEvent: broadcastSpy,
-        _test_fs: mockFs,
-        _test_streamText: mockStreamText,
-        _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
-        _test_executorFactory: testExecutorFactory,
+      projectRoot,
+      corePath: process.env.STIGMERGY_CORE_PATH,
+      stateManager,
+      startServer: false,
+      broadcastEvent: broadcastSpy,
+      _test_fs: mockFs,
+      _test_streamText: mockStreamText,
+      _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
+      _test_executorFactory: testExecutorFactory,
     });
   });
 
   afterEach(async () => {
-      if (engine) {
-          await engine.stop();
-      }
-      mock.restore();
-      delete process.env.STIGMERGY_CORE_PATH;
+    if (engine) {
+      await engine.stop();
+    }
+    mock.restore();
+    delete process.env.STIGMERGY_CORE_PATH;
   });
 
-  test('Dispatcher agent should call the request_human_approval tool', async () => {
+  test("Dispatcher agent should call the request_human_approval tool", async () => {
     const toolCall = {
-        toolCallId: '1',
-        toolName: 'system.request_human_approval',
-        args: { message: 'Approve plan?', data: { content: 'plan details' } }
+      toolCallId: "1",
+      toolName: "system.request_human_approval",
+      args: { message: "Approve plan?", data: { content: "plan details" } },
     };
 
     // This multi-turn mock is crucial for the test to pass.
     mockStreamText
-        .mockResolvedValueOnce({ text: 'I need to ask for approval.', toolCalls: [toolCall], finishReason: 'tool-calls' })
-        .mockResolvedValueOnce({ text: 'Approval received: approved. Handoff complete.', finishReason: 'stop' });
+      .mockResolvedValueOnce({
+        text: "I need to ask for approval.",
+        toolCalls: [toolCall],
+        finishReason: "tool-calls",
+      })
+      .mockResolvedValueOnce({
+        text: "Approval received: approved. Handoff complete.",
+        finishReason: "stop",
+      });
 
     // Don't await the triggerAgent call directly, as it will now pause.
     const agentPromise = engine.triggerAgent(
-      '@dispatcher',
-      'Please request approval for the plan.'
+      "@dispatcher",
+      "Please request approval for the plan."
     );
 
     // Give the agent a moment to run and hit the pause point.
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // 1. Verify that the broadcast was called, indicating the agent is waiting.
-    const approvalRequestCall = broadcastSpy.mock.calls.find(call => call[0] === 'human_approval_request');
+    const approvalRequestCall = broadcastSpy.mock.calls.find(
+      (call) => call[0] === "human_approval_request"
+    );
     expect(approvalRequestCall).toBeDefined(); // Ensure the event was broadcast.
     const payload = approvalRequestCall[1];
-    expect(payload.message).toBe('Approve plan?');
-    expect(payload.data).toEqual({ content: 'plan details' });
+    expect(payload.message).toBe("Approve plan?");
+    expect(payload.data).toEqual({ content: "plan details" });
 
     // 2. Simulate the user's response.
     const requestId = payload.requestId;
@@ -109,7 +122,7 @@ agent:
 
     const resolver = engine.pendingApprovals.get(requestId);
     expect(resolver).toBeDefined();
-    resolver('approved'); // Simulate the user clicking "Approve"
+    resolver("approved"); // Simulate the user clicking "Approve"
 
     // 3. Now, await the agent's completion.
     await agentPromise;

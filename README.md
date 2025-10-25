@@ -53,6 +53,7 @@ stigmergy setup
 ```
 
 The wizard will guide you through the entire process:
+
 1.  **Initializing** the required `.stigmergy-core` directory structure.
 2.  **Configuring** your AI provider by asking for API keys.
 3.  **Creating** a `.env.development` file automatically.
@@ -66,6 +67,7 @@ Once the wizard is complete, you are ready to run your first mission! The engine
 This is the primary way to interact with Stigmergy.
 
 1.  **Navigate to Your Project:** Open a terminal in the project repository you want Stigmergy to work on.
+
     ```bash
     cd /path/to/your/project-to-fix
     ```
@@ -87,29 +89,31 @@ Stigmergy can operate in "Team Mode," where multiple developers can connect thei
 
 ### How it Works
 
-*   The **Team Server** acts as the central source of truth for the project's mission plan and status.
-*   Each developer's local **Stigmergy Engine** connects to this server, syncing state instead of managing it locally.
+- The **Team Server** acts as the central source of truth for the project's mission plan and status.
+- Each developer's local **Stigmergy Engine** connects to this server, syncing state instead of managing it locally.
 
 ### Running in Team Mode
 
 1.  **Start the Team Server:**
     Use Docker Compose to start both the main engine and the team server.
+
     ```bash
     # Make sure you've already run `docker-compose up --build` at least once
     docker-compose up team-server
     ```
+
     The team server will be running on `http://localhost:3012`.
 
 2.  **Configure Your Local Engine for Team Mode:**
-    *   Open `stigmergy.config.js` in the main Stigmergy project.
-    *   Modify the `collaboration` object to enable team mode:
-        ```javascript
-        collaboration: {
-          mode: 'team', // 'single-player' or 'team'
-          server_url: 'http://localhost:3012' // URL of your running team server
-        }
-        ```
-    *   Restart your main Stigmergy engine (`docker-compose restart stigmergy`) for the changes to take effect.
+    - Open `stigmergy.config.js` in the main Stigmergy project.
+    - Modify the `collaboration` object to enable team mode:
+      ```javascript
+      collaboration: {
+        mode: 'team', // 'single-player' or 'team'
+        server_url: 'http://localhost:3012' // URL of your running team server
+      }
+      ```
+    - Restart your main Stigmergy engine (`docker-compose restart stigmergy`) for the changes to take effect.
 
 Now, when you run missions, your engine will coordinate with the central team server.
 
@@ -119,7 +123,7 @@ For production or team environments, using a dedicated secrets manager is **requ
 
 ### How it Works
 
-When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. **If a Doppler token is detected, the system will completely ignore any `.env` files**, ensuring that Doppler remains the single source of truth for all secrets.
+When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. **If a Doppler token is detected, the system will completely ignore any `.env` files, ensuring that Doppler remains the single source of truth for all secrets.**
 
 For local development, you can still use a `.env.development` file for convenience, but for any production-like or shared environment, Doppler is the required standard.
 
@@ -128,9 +132,9 @@ For local development, you can still use a `.env.development` file for convenien
 To configure your environment with Doppler, use the `login` command.
 
 1.  **Get your Doppler Service Token:**
-    *   Go to your Doppler project.
-    *   Navigate to the `config` you want to use (e.g., `prd`).
-    *   Find the `DOPPLER_TOKEN` value. This is your service token.
+    - Go to your Doppler project.
+    - Navigate to the `config` you want to use (e.g., `prd`).
+    - Find the `DOPPLER_TOKEN` value. This is your service token.
 
 2.  **Run the login command:**
     ```bash
@@ -147,7 +151,9 @@ After logging in, restart the Stigmergy engine. It will automatically detect the
 If the Docker environment enters a corrupted state, you can perform a hard reset to purge all caches and volumes.
 
 **Run the following command from the `stigmergy` project root:**
+
 ```bash
 docker-compose down -v
 ```
+
 This will stop and remove all Docker containers, networks, and volumes, allowing you to start fresh with `docker-compose up --build`.
