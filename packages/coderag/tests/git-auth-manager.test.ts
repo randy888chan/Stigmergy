@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { GitAuthManager } from '../../src/coderag/scanner/git/git-auth-manager.ts';
-import { GitUrlParser } from '../../src/coderag/scanner/git/git-url-parser.ts';
+import { GitAuthManager } from '@stigmergy/coderag/scanner/git/git-auth-manager.ts';
+import { GitUrlParser } from '@stigmergy/coderag/scanner/git/git-url-parser.ts';
 
 describe('GitAuthManager', () => {
   let authManager: GitAuthManager;

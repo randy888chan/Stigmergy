@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, mock } from 'bun:test';
-import { createRemoteScannerTools, handleRemoteScannerTool } from '../../src/coderag/mcp/tools/remote-scanner-tools.js';
-import { CodebaseScanner } from '../../src/coderag/scanner/codebase-scanner.js';
+import { createRemoteScannerTools, handleRemoteScannerTool } from '@stigmergy/coderag/mcp/tools/remote-scanner-tools.js';
+import { CodebaseScanner } from '@stigmergy/coderag/scanner/codebase-scanner.js';
 
 // NOTE: The module-level mock for Neo4jClient was removed to prevent test pollution.
 // The test creates a mock `CodebaseScanner` and a placeholder `mockClient` object,
 // which is sufficient for testing the tool creation and handling logic.
-mock.module('../../src/coderag/scanner/codebase-scanner.js', () => ({
+mock.module('@stigmergy/coderag/scanner/codebase-scanner.js', () => ({
   CodebaseScanner: mock(),
 }));
 
@@ -16,7 +16,7 @@ describe('Remote Scanner Tools', () => {
 
   beforeEach(() => {
     // Re-import the mocked classes for each test to get fresh mocks
-    const { CodebaseScanner: MockCodebaseScanner } = require('../../src/coderag/scanner/codebase-scanner.js');
+    const { CodebaseScanner: MockCodebaseScanner } = require('@stigmergy/coderag/scanner/codebase-scanner.js');
 
     // Reset mocks
     MockCodebaseScanner.mockClear();

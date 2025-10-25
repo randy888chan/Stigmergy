@@ -1,10 +1,10 @@
 import { configService } from './config_service.js';
 
 // Dynamically import from the merged coderag source
-import { Neo4jClient } from '../src/coderag/graph/neo4j-client.ts';
-import { CodebaseScanner } from '../src/coderag/scanner/codebase-scanner.ts';
-import { MetricsManager } from '../src/coderag/analysis/metrics-manager.ts';
-import { SemanticSearchManager } from '../src/coderag/services/semantic-search-manager.ts';
+import { Neo4jClient } from '@stigmergy/coderag/graph/neo4j-client.ts';
+import { CodebaseScanner } from '@stigmergy/coderag/scanner/codebase-scanner.ts';
+import { MetricsManager } from '@stigmergy/coderag/analysis/metrics-manager.ts';
+import { SemanticSearchManager } from '@stigmergy/coderag/services/semantic-search-manager.ts';
 
 class UnifiedIntelligenceService {
   constructor() {

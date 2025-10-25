@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterEach, mock } from 'bun:test';
-import { MetricsManager } from '../../../src/coderag/analysis/metrics-manager.js';
+import { MetricsManager } from '@stigmergy/coderag/analysis/metrics-manager.js';
 
 // NOTE: The module-level mock for Neo4jClient was removed from this file.
 // It was causing test pollution in other files (like simple-components.test.ts).

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'bun:test';
-import { GitUrlParser } from '../../src/coderag/scanner/git/git-url-parser.ts';
-import { GitError } from '../../src/coderag/scanner/git/types.ts';
+import { GitUrlParser } from '@stigmergy/coderag/scanner/git/git-url-parser.ts';
+import { GitError } from '@stigmergy/coderag/scanner/git/types.ts';
 
 describe('GitUrlParser', () => {
   describe('parse', () => {

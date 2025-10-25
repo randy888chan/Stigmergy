@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import { Neo4jConfig, ProjectConfig, SemanticSearchConfig } from './types.js';
 
 dotenv.config();
