@@ -41,7 +41,8 @@
     "build:agents": "bun run cli/commands/build.js",
     "health-check": "bun run scripts/health-check.js",
     "validate": "bun run cli/index.js validate",
-    "init": "bun run cli/index.js init"
+    "init": "bun run cli/index.js init",
+    "prepare": "husky"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",
@@ -121,10 +122,10 @@
     "dotenv": "^17.2.3",
     "eslint": "^8.57.0",
     "fs-extra": "^11.3.2",
-    "husky": "^9.0.11",
+    "husky": "^9.1.7",
     "identity-obj-proxy": "^3.0.0",
     "jest-environment-jsdom": "^30.2.0",
-    "lint-staged": "^15.2.2",
+    "lint-staged": "^16.2.6",
     "memfs": "^4.49.0",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
@@ -135,5 +136,8 @@
   },
   "overrides": {
     "highlight.js": "11.9.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,md,json}": "prettier --write"
   }
 }

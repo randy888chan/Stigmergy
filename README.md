@@ -115,11 +115,13 @@ Now, when you run missions, your engine will coordinate with the central team se
 
 ## 🔒 Production Deployment: Secure Secrets Management
 
-For production or team environments, it is strongly recommended to use a dedicated secrets manager instead of `.env` files. Stigmergy has built-in support for [Doppler](https://www.doppler.com/).
+For production or team environments, using a dedicated secrets manager is **required** to ensure security and proper configuration. Stigmergy integrates with [Doppler](https://www.doppler.com/) as the primary and prioritized method for handling secrets.
 
 ### How it Works
 
-When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. These secrets take precedence over any values in local `.env` files.
+When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. **If a Doppler token is detected, the system will completely ignore any `.env` files**, ensuring that Doppler remains the single source of truth for all secrets.
+
+For local development, you can still use a `.env.development` file for convenience, but for any production-like or shared environment, Doppler is the required standard.
 
 ### Step 1: Log in with Doppler
 
