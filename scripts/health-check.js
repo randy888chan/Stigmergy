@@ -124,14 +124,8 @@ class ComprehensiveHealthCheck {
             console.log(chalk.green(`   ✅ Connection successful (${result.version || 'Unknown version'})`));
             this.results.neo4j = { success: true, version: result.version };
         } else {
-            if (config.features.neo4j === 'required') {
-                this.errors.push(`Neo4j connection failed: ${result.message}`);
-                console.log(chalk.red(`   ❌ ${result.message}`));
-            } else {
-                this.warnings.push(`Neo4j not available: ${result.message}`);
-                console.log(chalk.yellow(`   ⚠️  ${result.message}`));
-                console.log(chalk.blue('   ℹ️  System will run in fallback mode'));
-            }
+            this.errors.push(`Neo4j connection failed: ${result.message}`);
+            console.log(chalk.red(`   ❌ ${result.message}`));
             
             if (result.recovery_suggestions) {
                 console.log(chalk.blue('   💡 Suggestions:'));

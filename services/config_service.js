@@ -109,14 +109,14 @@ class ConfigService {
                     process.env[key] = secrets[key].computed;
                 }
             }
-            console.log(chalk.green('   ✅ Loaded secrets from Doppler.'));
+            console.log(chalk.green('   ✅ Loaded secrets from Doppler. Skipping .env files.'));
+            return; // Prioritize Doppler; do not load .env files if successful.
         } catch (error) {
             console.warn(chalk.yellow(`   ⚠️ Failed to fetch secrets from Doppler: ${error.message}. Falling back to .env files.`));
         }
     } else {
         console.log(`   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.`);
     }
-
 
     // 2. Load .env files as a fallback or supplement
     const filesToTry = [`.env.${nodeEnv}`, '.env.development', '.env'];

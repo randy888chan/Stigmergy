@@ -845,6 +845,27 @@ Based on the information above, please formulate a plan and execute the mission.
             }
         });
 
+        this.app.get('/api/executive-summary', (c) => {
+            // In the future, this data will come from a real analytics service.
+            const mockData = {
+                overallSuccessRate: 92.5,
+                averageTaskCompletionTime: 45000, // in milliseconds
+                totalEstimatedCost: 1.23,
+                totalTasks: 128,
+                agentReliabilityRankings: [
+                    { agentId: '@executor', reliability: 98.2, tasks: 50 },
+                    { agentId: '@specifier', reliability: 95.0, tasks: 20 },
+                    { agentId: '@debugger', reliability: 89.7, tasks: 15 },
+                ],
+                milestoneProgress: [
+                    { name: 'User Authentication', progress: 100 },
+                    { name: 'API Development', progress: 75 },
+                    { name: 'Frontend Implementation', progress: 40 },
+                ],
+            };
+            return c.json(mockData);
+        });
+
         this.app.get('/api/mission/summary', async (c) => {
             const engine = c.get('stateManager');
             if (!engine) {
