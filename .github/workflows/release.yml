@@ -23,6 +23,10 @@ jobs:
         uses: oven-sh/setup-bun@v1
       - name: Install dependencies
         run: bun install
+      - name: Lint and Format Check
+        run: bunx prettier --check .
+      - name: Enforce Code Coverage
+        run: bunx c8 --check-coverage bun test:unit
       - name: Run Full Test Suite
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
