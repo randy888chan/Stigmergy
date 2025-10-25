@@ -38,10 +38,11 @@ We welcome pull requests! If you'd like to contribute code, please follow these 
     docker-compose up stigmergy-dev
     ```
 3.  **Make your changes.** Please ensure your code follows the existing style and that you add or update tests as appropriate.
-4.  **Run the test suite** to make sure everything is still working correctly:
-    ```bash
-    bun test
-    ```
+4. **Run the test suite** to make sure everything is still working correctly. For local development, run the fast unit tests:
+```bash
+bun run test:local
+```
+The full test suite will be run automatically by our CI pipeline when you submit a pull request.
 5.  **Submit a pull request** to the `main` branch of the main Stigmergy repository. Please provide a clear description of the changes you've made.
 
 Thank you for your contributions!
