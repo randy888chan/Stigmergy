@@ -1,5 +1,5 @@
 import neo4j, { Driver, Session, Result } from 'neo4j-driver';
-import { Neo4jConfig, ProjectConfig, ProjectContext } from '../types.js';
+import { Neo4jConfig, ProjectConfig, ProjectContext } from '../types';
 
 export class Neo4jClient {
   private driver: Driver | null = null;
@@ -79,15 +79,15 @@ export class Neo4jClient {
     try {
       // Create project-aware constraints and indexes for better performance
       const constraints = [
-        // Project-aware core constraints
-        'CREATE CONSTRAINT IF NOT EXISTS FOR (n:CodeNode) REQUIRE (n.project_id, n.id) IS UNIQUE',
-        'CREATE CONSTRAINT IF NOT EXISTS FOR (e:CodeEdge) REQUIRE (e.project_id, e.id) IS UNIQUE',
+        // Organization and Project-aware core constraints
+        'CREATE CONSTRAINT IF NOT EXISTS FOR (n:CodeNode) REQUIRE (n.organizationId, n.project_id, n.id) IS UNIQUE',
+        'CREATE CONSTRAINT IF NOT EXISTS FOR (e:CodeEdge) REQUIRE (e.organizationId, e.project_id, e.id) IS UNIQUE',
 
         // Project context constraints
-        'CREATE CONSTRAINT IF NOT EXISTS FOR (p:ProjectContext) REQUIRE p.project_id IS UNIQUE',
+        'CREATE CONSTRAINT IF NOT EXISTS FOR (p:ProjectContext) REQUIRE (p.organizationId, p.project_id) IS UNIQUE',
 
         // Project-aware indexes for performance
-        'CREATE INDEX IF NOT EXISTS FOR (n:CodeNode) ON (n.project_id)',
+        'CREATE INDEX IF NOT EXISTS FOR (n:CodeNode) ON (n.organizationId, n.project_id)',
         'CREATE INDEX IF NOT EXISTS FOR (n:CodeNode) ON (n.project_id, n.type)',
         'CREATE INDEX IF NOT EXISTS FOR (n:CodeNode) ON (n.project_id, n.name)',
         'CREATE INDEX IF NOT EXISTS FOR (n:CodeNode) ON (n.project_id, n.qualified_name)',
@@ -115,6 +115,7 @@ export class Neo4jClient {
   async createProject(project: ProjectContext): Promise<ProjectContext> {
     const query = `
       CREATE (p:ProjectContext {
+        organizationId: $organizationId,
         project_id: $project_id,
         name: $name,
         description: $description,
@@ -125,6 +126,7 @@ export class Neo4jClient {
     `;
 
     const params = {
+      organizationId: project.organizationId,
       project_id: project.project_id,
       name: project.name || project.project_id,
       description: project.description || null
@@ -145,13 +147,13 @@ export class Neo4jClient {
     };
   }
 
-  async getProject(projectId: string): Promise<ProjectContext | null> {
+  async getProject(organizationId: string, projectId: string): Promise<ProjectContext | null> {
     const query = `
-      MATCH (p:ProjectContext {project_id: $project_id})
+      MATCH (p:ProjectContext {organizationId: $organizationId, project_id: $project_id})
       RETURN p
     `;
 
-    const result = await this.runQuery(query, { project_id: projectId });
+    const result = await this.runQuery(query, { organizationId, project_id: projectId });
     if (result.records.length === 0) {
       return null;
     }
@@ -166,14 +168,14 @@ export class Neo4jClient {
     };
   }
 
-  async listProjects(): Promise<ProjectContext[]> {
+  async listProjects(organizationId: string): Promise<ProjectContext[]> {
     const query = `
-      MATCH (p:ProjectContext)
+      MATCH (p:ProjectContext {organizationId: $organizationId})
       RETURN p
       ORDER BY p.created_at DESC
     `;
 
-    const result = await this.client.runQuery(query);
+    const result = await this.runQuery(query, { organizationId });
     return result.records.map(record => {
       const p = record.get('p');
       return {
@@ -186,16 +188,16 @@ export class Neo4jClient {
     });
   }
 
-  async deleteProject(projectId: string): Promise<boolean> {
+  async deleteProject(organizationId: string, projectId: string): Promise<boolean> {
     const query = `
-      MATCH (p:ProjectContext {project_id: $project_id})
-      OPTIONAL MATCH (n:CodeNode {project_id: $project_id})
-      OPTIONAL MATCH (e:CodeEdge {project_id: $project_id})
+      MATCH (p:ProjectContext {organizationId: $organizationId, project_id: $project_id})
+      OPTIONAL MATCH (n:CodeNode {organizationId: $organizationId, project_id: $project_id})
+      OPTIONAL MATCH (e:CodeEdge {organizationId: $organizationId, project_id: $project_id})
       DELETE p, n, e
       RETURN count(p) as deleted_projects
     `;
 
-    const result = await this.client.runQuery(query, { project_id: projectId });
+    const result = await this.runQuery(query, { organizationId, project_id: projectId });
     return result.records[0]?.get('deleted_projects') > 0;
   }
 

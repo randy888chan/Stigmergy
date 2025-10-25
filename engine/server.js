@@ -26,6 +26,8 @@ import { trace, SpanStatusCode } from '@opentelemetry/api';
 export class Engine {
     constructor(options = {}) {
         this.projectRoot = options.projectRoot || process.cwd();
+        this.organizationId = options.organizationId || 'default';
+        this.projectId = options.projectId || path.basename(this.projectRoot);
         this.corePath = options.corePath || path.join(this.projectRoot, '.stigmergy-core');
         this.config = configService.getConfig();
 
@@ -141,7 +143,7 @@ export class Engine {
                         throw new Error(`Health check failed with status: ${response.status}`);
                     }
                     console.log(chalk.green('[Engine] Team server is healthy. Connecting...'));
-                    storageAdapter = new HttpStorageAdapter(serverUrl);
+                    storageAdapter = new HttpStorageAdapter(serverUrl, this.organizationId, this.projectId);
                 } catch (error) {
                     console.warn(chalk.yellow(`[Engine] WARN: Team server health check failed: ${error.message}`));
                     console.warn(chalk.yellow('[Engine] Falling back to "single-player" mode.'));
@@ -165,7 +167,7 @@ export class Engine {
         this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager); this.toolExecutor = await executorFactory(this, this.ai, { config: this.config, unifiedIntelligenceService: this.unifiedIntelligenceService }, fsProvider);
     }
 
-    async setActiveProject(projectPath) {
+    async setActiveProject(projectPath, organizationId = 'default') {
         await this.stateManagerInitializationPromise;
         console.log(chalk.blue(`[Engine] Setting active project to: ${projectPath}`));
         if (!projectPath || typeof projectPath !== 'string') {
@@ -174,6 +176,8 @@ export class Engine {
         }
 
         this.projectRoot = projectPath;
+        this.organizationId = organizationId;
+        this.projectId = path.basename(projectPath);
 
         // Re-initialize the GraphStateManager with the new project root
         if (this.stateManager) {
@@ -184,13 +188,14 @@ export class Engine {
         this.stateManagerInitializationPromise = this._initializeStateManager({});
         await this.stateManagerInitializationPromise;
 
-
         console.log(chalk.green(`[Engine] Project context switched. New root: ${this.projectRoot}`));
         this.broadcastEvent('project_switched', { path: this.projectRoot });
     }
 
-    async executeGoal(prompt) {
+    async executeGoal(prompt, organizationId, projectId) {
         await this.stateManagerInitializationPromise;
+        this.organizationId = organizationId || this.organizationId;
+        this.projectId = projectId || this.projectId;
         console.log(chalk.cyan(`[Engine] Received new goal for project ${this.projectRoot}: "${prompt}"`));
         await this.stateManager.initializeProject(prompt);
     }
@@ -758,7 +763,7 @@ Execute the file write operation now. Upon success, respond with a confirmation 
                     agentReliabilityRankings: agentReliability,
                     totalTasks,
                     successfulTasks,
-                    milestoneProgress // Add this to the response
+                    milestoneProgress
                 });
 
             } catch (error) {
@@ -911,6 +916,31 @@ Based on the information above, please formulate a plan and execute the mission.
                 console.error(chalk.red('[Engine] Knowledge import failed:'), error);
                 return c.json({ error: `Failed to import knowledge graph: ${error.message}` }, 500);
             }
+        });
+
+        this.app.post('/api/mission/briefing', async (c) => {
+            const { missionTitle, userStories, acceptanceCriteria } = await c.req.json();
+
+            if (!missionTitle || !userStories || !acceptanceCriteria) {
+                return c.json({ error: 'missionTitle, userStories, and acceptanceCriteria are required' }, 400);
+            }
+
+            const conductorPrompt = `
+                # Mission Briefing
+                ## Title: ${missionTitle}
+                ## User Stories
+                ${userStories}
+                ## Acceptance Criteria
+                ${acceptanceCriteria}
+
+                As the Conductor, your task is to understand this mission briefing and initiate the first step of the process.
+            `;
+
+            // We can directly trigger the conductor agent.
+            // In a more complex setup, this might go into a queue.
+            this.triggerAgent('@conductor', conductorPrompt);
+
+            return c.json({ message: 'Mission briefing received, conductor agent initiated.' });
         });
 
 
