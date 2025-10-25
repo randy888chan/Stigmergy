@@ -112,3 +112,5 @@ export const MissionBriefing = ({ setOpen }) => {
     </Card>
   );
 };
+
+export default MissionBriefing;

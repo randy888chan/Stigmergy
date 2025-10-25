@@ -1,13 +1,15 @@
 
 export class HttpStorageAdapter {
-  constructor(serverUrl) {
+  constructor(serverUrl, organizationId, projectId) {
     this.serverUrl = serverUrl || 'http://localhost:3012'; // Default for the team server
+    this.organizationId = organizationId;
+    this.projectId = projectId;
     console.log(`HttpStorageAdapter initialized for server: ${this.serverUrl}`);
   }
 
   async getState() {
     try {
-      const response = await fetch(`${this.serverUrl}/api/state`);
+      const response = await fetch(`${this.serverUrl}/api/state/${this.organizationId}/${this.projectId}`);
       if (!response.ok) {
         throw new Error(`Failed to fetch state: ${response.statusText}`);
       }
@@ -22,7 +24,7 @@ export class HttpStorageAdapter {
 
   async updateState(state) {
     try {
-      const response = await fetch(`${this.serverUrl}/api/state`, {
+      const response = await fetch(`${this.serverUrl}/api/state/${this.organizationId}/${this.projectId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

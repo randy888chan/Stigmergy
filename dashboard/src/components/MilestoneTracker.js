@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { Progress } from './ui/progress'; // Assuming a Progress component exists
 
 const MilestoneTracker = () => {
   const [milestones, setMilestones] = useState([]);
@@ -36,32 +34,28 @@ const MilestoneTracker = () => {
   }
 
   if (error) {
-    return <p className="text-red-500">{error}</p>;
+    return <p>{error}</p>;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Milestone Progress</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {milestones.length === 0 ? (
-          <p>No milestones defined in the current plan.</p>
-        ) : (
-          <div className="space-y-4">
-            {milestones.map((milestone) => (
-              <div key={milestone.name}>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm font-medium">{milestone.name}</span>
-                  <span className="text-sm text-muted-foreground">{milestone.progress}%</span>
-                </div>
-                <Progress value={milestone.progress} />
+    <div>
+      <h2>Milestone Progress</h2>
+      {milestones.length === 0 ? (
+        <p>No milestones defined in the current plan.</p>
+      ) : (
+        <div>
+          {milestones.map((milestone) => (
+            <div key={milestone.name}>
+              <div>
+                <span>{milestone.name}</span>
+                <span>{milestone.progress}%</span>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <progress value={milestone.progress} max="100" />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 };
 
