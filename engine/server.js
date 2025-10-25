@@ -112,10 +112,14 @@ export class Engine {
     this.setupRoutes();
     // this.setupStateListener(); // This will be called after state manager is initialized
 
-    // Initialize tool executor
-    this.toolExecutorPromise = this.initializeToolExecutor();
-
-    this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
+    // DEFINITIVE FIX: Chain the initialization promises to enforce correct order.
+    // The TrajectoryRecorder depends on the StateManager, which must be initialized first.
+    // The ToolExecutor depends on the TrajectoryRecorder.
+    this.toolExecutorPromise = this.stateManagerInitializationPromise.then(() => {
+      this.trajectoryRecorder =
+        options.trajectoryRecorder || new TrajectoryRecorder(this.stateManager);
+      return this.initializeToolExecutor();
+    });
     this.sessionCost = 0;
     this.maxSessionCost = this.config.max_session_cost; // Initialize with default
     // Add this block:
@@ -171,7 +175,8 @@ export class Engine {
   async initializeToolExecutor() {
     const executorFactory = this._test_executorFactory || createExecutor;
     const fsProvider = this._test_fs || fs;
-    this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
+    // DEFINITIVE FIX: The TrajectoryRecorder is now created in the constructor's promise chain.
+    // Remove the redundant and potentially problematic instantiation from here.
     this.toolExecutor = await executorFactory(
       this,
       this.ai,

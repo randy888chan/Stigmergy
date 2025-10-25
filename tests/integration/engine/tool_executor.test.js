@@ -31,8 +31,13 @@ describe("Tool Executor Path Resolution and Security", () => {
         }),
       },
     }));
+    const mockTrajectoryRecorder = {
+      startRecording: mock(),
+      logEvent: mock(),
+      finalizeRecording: mock(),
+    };
     mock.module("../../../services/trajectory_recorder.js", () => ({
-      default: { startRecording: mock(), logEvent: mock(), finalizeRecording: mock() },
+      TrajectoryRecorder: mock(() => mockTrajectoryRecorder),
     }));
     mock.module("../../../services/model_monitoring.js", () => ({
       trackToolUsage: mock(),
@@ -69,6 +74,7 @@ describe("Tool Executor Path Resolution and Security", () => {
       startServer: false,
       _test_fs: mockFs,
       _test_unifiedIntelligenceService: {},
+      trajectoryRecorder: mockTrajectoryRecorder, // DEFINITIVE FIX: Inject the mock recorder.
     });
 
     // THIS IS THE CRITICAL FIX:
