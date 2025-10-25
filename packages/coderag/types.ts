@@ -1,5 +1,3 @@
-// src/coderag/types.ts
-
 export interface Neo4jConfig {
   uri: string;
   user: string;

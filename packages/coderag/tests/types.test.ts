@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { CodeNode, CodeEdge } from '../../src/coderag/types.js';
+import { CodeNode, CodeEdge } from '@stigmergy/coderag/types.js';
 
 describe('Types', () => {
   test('should create a valid CodeNode', () => {

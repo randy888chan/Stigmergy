@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'bun:test';
-import { GitCacheManager } from '../../src/coderag/scanner/git/git-cache-manager.js';
-import { GitUrlParser } from '../../src/coderag/scanner/git/git-url-parser.js';
+import { GitCacheManager } from '@stigmergy/coderag/scanner/git/git-cache-manager.js';
+import { GitUrlParser } from '@stigmergy/coderag/scanner/git/git-url-parser.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';

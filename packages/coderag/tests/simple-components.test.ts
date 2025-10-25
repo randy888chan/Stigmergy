@@ -1,8 +1,8 @@
 // Simple tests for core components to boost coverage
 import { describe, test, expect, beforeEach, mock } from 'bun:test';
-import { Neo4jClient } from '../../src/coderag/graph/neo4j-client.js';
-import { NodeManager } from '../../src/coderag/graph/node-manager.js';
-import { EdgeManager } from '../../src/coderag/graph/edge-manager.js';
+import { Neo4jClient } from '@stigmergy/coderag/graph/neo4j-client.js';
+import { NodeManager } from '@stigmergy/coderag/graph/node-manager.js';
+import { EdgeManager } from '@stigmergy/coderag/graph/edge-manager.js';
 
 // Mock the neo4j-driver dependency with a high-fidelity mock
 mock.module('neo4j-driver', () => {

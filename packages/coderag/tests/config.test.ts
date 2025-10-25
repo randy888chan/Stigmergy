@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, afterAll } from 'bun:test';
-import { getConfig } from '../../src/coderag/config.js';
+import { getConfig } from '@stigmergy/coderag/config.js';
 
 describe('Configuration', () => {
   const originalEnv = process.env;

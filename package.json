@@ -20,6 +20,9 @@
     "ecosystem.config.js",
     "stigmergy.config.js"
   ],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "start": "bun run engine/server.js",
     "start:mock": "USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js",
@@ -93,7 +96,8 @@
     "tmp": "^0.2.3",
     "uuid": "13.0.0",
     "ws": "^8.18.3",
-    "zod": "^4.1.12"
+    "zod": "^4.1.12",
+    "@stigmergy/coderag": "workspace:*"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^19.0.2",
