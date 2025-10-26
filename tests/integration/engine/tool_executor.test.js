@@ -15,15 +15,15 @@ describe("Tool Executor Path Resolution and Security", () => {
     vol.reset(); // PRISTINE STATE: Reset filesystem
     mock.restore(); // PRISTINE STATE: Restore mocks
 
-    // DEFINITIVE FIX #1: Mock the CORRECT module that tool_executor.js actually imports.
+    // DEFINITIVE FIX #1: Mock the *actual* config file the tool_executor imports.
     mock.module("../../../stigmergy.config.js", () => ({
       default: {
         // Correctly mock the default export
         security: {
-          allowedDirs: ["src", "public", ".stigmergy-core"], // Also allow core for the guardian test
+          allowedDirs: ["src", "public", ".stigmergy-core"],
           generatedPaths: ["dist"],
         },
-        custom_agents_path: null, // Ensure no custom agents are loaded
+        custom_agents_path: null,
       },
     }));
 

@@ -4,7 +4,7 @@
 # NOTE: setup-dom.js has been removed from preload to prevent polluting the
 # out-of-process E2E test server environment. Frontend tests must now
 # import it directly if they need a DOM environment.
-preload = ["./tests/setup-globals.js", "./dashboard/src/setupTests.js"]
+preload = ["./tests/setup-globals.js"]
 
 # These point to the scripts that run once after the entire test suite.
 teardown = "./tests/teardown.js"
