@@ -1,4 +1,5 @@
 import "../../../tests/setup-dom.js";
+import "../../setupTests.js";
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import ChatInterface from "./ChatInterface";

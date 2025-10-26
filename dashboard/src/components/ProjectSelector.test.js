@@ -1,4 +1,5 @@
 import "../../../tests/setup-dom.js";
+import "../../setupTests.js";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import ProjectSelector from "./ProjectSelector";

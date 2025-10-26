@@ -1,4 +1,5 @@
 import "../../../tests/setup-dom.js";
+import "../../setupTests.js";
 // New content for dashboard/src/components/ExecutiveSummary.test.js
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
