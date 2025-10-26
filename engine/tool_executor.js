@@ -243,6 +243,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           projectRoot: engine.projectRoot,
           corePath: engine.corePath,
           startServer: false,
+          stateManager: engine.stateManager, // Pass the existing state manager
           // Pass down all test-related properties
           _test_fs: engine._test_fs,
           _test_streamText: engine._test_streamText,

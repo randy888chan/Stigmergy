@@ -22,7 +22,7 @@ import { unifiedIntelligenceService } from "../services/unified_intelligence.js"
 import { BudgetExceededError } from "../utils/errorHandler.js";
 import { TrajectoryRecorder } from "../services/trajectory_recorder.js";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-import { sdk } from "../services/tracing.js";
+// import { sdk } from "../services/tracing.js";
 
 export class Engine {
   constructor(options = {}) {
@@ -1293,12 +1293,12 @@ Based on the information above, please formulate a plan and execute the mission.
       this.server = null;
       console.log("HTTP server stopped.");
     }
-    if (this.stateManager) {
+    if (this.stateManager && !this.isExternalStateManager) {
       await this.stateManager.closeDriver();
     }
     // Shut down OpenTelemetry
-    await sdk.shutdown();
-    console.log("OpenTelemetry SDK shut down.");
+    // await sdk.shutdown();
+    // console.log("OpenTelemetry SDK shut down.");
   }
 }
 
