@@ -22,7 +22,7 @@ import { unifiedIntelligenceService } from "../services/unified_intelligence.js"
 import { BudgetExceededError } from "../utils/errorHandler.js";
 import { TrajectoryRecorder } from "../services/trajectory_recorder.js";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-// import { sdk } from "../services/tracing.js";
+import { sdk } from "../services/tracing.js";
 
 export class Engine {
   constructor(options = {}) {
@@ -1218,87 +1218,33 @@ Based on the information above, please formulate a plan and execute the mission.
     console.log(chalk.blue("Initializing Stigmergy Engine..."));
     const PORT = Number(process.env.STIGMERGY_PORT) || 3010;
 
-    return new Promise((resolve) => {
-      if (typeof Bun !== "undefined") {
-        console.log(chalk.cyan("[Engine] Detected Bun environment. Using Bun.serve."));
-        try {
-          this.server = Bun.serve({
-            port: PORT,
-            fetch: (req, server) => this.app.fetch(req, { server }),
-            websocket: {
-              open: (ws) => {
-                const { events } = ws.data;
-                events?.onOpen?.(createWebSocketEvent(ws), ws);
-              },
-              message: (ws, message) => {
-                const { events } = ws.data;
-                events?.onMessage?.(createWebSocketEvent(ws, message), ws);
-              },
-              close: (ws, code, reason) => {
-                const { events } = ws.data;
-                events?.onClose?.(createWebSocketEvent(ws, code, reason), ws);
-              },
-              drain: (ws) => {
-                const { events } = ws.data;
-                events?.onDrain?.(createWebSocketEvent(ws), ws);
-              },
-            },
-            error: (error) => {
-              console.error(chalk.red(`[Engine] Bun.serve failed: ${error.message}`));
-              if (error.code === "EADDRINUSE") {
-                console.error(
-                  chalk.red(`[Engine] Port ${PORT} is already in use. Please use a different port.`)
-                );
-              }
-              // In a test environment, we might want to reject the promise
-              // For now, we log and exit to prevent a hung process
-              process.exit(1);
-            },
-          });
-          console.log(
-            chalk.green(
-              `🚀 Stigmergy Engine (Bun/Hono) server is running on http://localhost:${PORT}`
-            )
-          );
-          resolve();
-        } catch (error) {
-          console.error(
-            chalk.red(`[Engine] Critical error during Bun.serve startup: ${error.message}`)
-          );
-          process.exit(1);
-        }
-      } else {
-        console.log(chalk.cyan("[Engine] Detected Node.js environment. Using @hono/node-server."));
-        this.server = serve(
-          {
-            fetch: app.fetch,
-            port: this.port,
-          },
-          (info) => {
-            console.log(`Stigmergy engine is running on http://localhost:${info.port}`);
-          }
-        );
+    this.server = serve(
+      {
+        fetch: this.app.fetch,
+        port: PORT,
+      },
+      (info) => {
+        console.log(`Stigmergy engine is running on http://localhost:${info.port}`);
       }
-    });
+    );
   }
 
   async stop() {
     console.log("Shutting down Stigmergy engine...");
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
     }
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
-      this.server = null;
       console.log("HTTP server stopped.");
     }
     if (this.stateManager && !this.isExternalStateManager) {
+      console.log("Closing internally-managed State Manager driver.");
       await this.stateManager.closeDriver();
     }
-    // Shut down OpenTelemetry
-    // await sdk.shutdown();
-    // console.log("OpenTelemetry SDK shut down.");
+    // This is the critical fix that will solve the timeout:
+    await sdk.shutdown();
+    console.log("OpenTelemetry SDK shut down.");
   }
 }
 
