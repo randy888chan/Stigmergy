@@ -17,7 +17,7 @@ RUN bun build ./engine/server.js --outdir ./dist
 FROM oven/bun:1.0 AS deps
 WORKDIR /usr/src/app
 COPY package.json bun.lockb* ./
-RUN bun install --production
+RUN bun install
 
 # ---- Runner Stage ----
 # This is the final, lean production image.

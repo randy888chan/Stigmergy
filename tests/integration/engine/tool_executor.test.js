@@ -4,7 +4,6 @@ import { OperationalError } from "../../../utils/errorHandler.js";
 import mockFs, { vol } from "../../mocks/fs.js";
 import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
 // import { Engine } from '../../../engine/server.js'; // Deferred import
-import { createExecutor } from "../../../engine/tool_executor.js";
 
 describe("Tool Executor Path Resolution and Security", () => {
   let mockEngine;
@@ -16,21 +15,21 @@ describe("Tool Executor Path Resolution and Security", () => {
     vol.reset(); // PRISTINE STATE: Reset filesystem
     mock.restore(); // PRISTINE STATE: Restore mocks
 
-    // Mock modules for isolation
-    mock.module("fs", () => mockFs);
-    mock.module("fs-extra", () => mockFs);
-    mock.module("../../../services/config_service.js", () => ({
-      configService: {
-        getConfig: () => ({
-          security: {
-            allowedDirs: ["src", "public"],
-            generatedPaths: ["dist"],
-          },
-          model_tiers: { reasoning_tier: { provider: "mock", model_name: "mock-model" } },
-          providers: { mock_provider: { api_key: "mock-key" } },
-        }),
+    // DEFINITIVE FIX #1: Mock the CORRECT module that tool_executor.js actually imports.
+    mock.module("../../../stigmergy.config.js", () => ({
+      default: {
+        // Correctly mock the default export
+        security: {
+          allowedDirs: ["src", "public", ".stigmergy-core"], // Also allow core for the guardian test
+          generatedPaths: ["dist"],
+        },
+        custom_agents_path: null, // Ensure no custom agents are loaded
       },
     }));
+
+    // Mock other dependencies as before
+    mock.module("fs", () => mockFs);
+    mock.module("fs-extra", () => mockFs);
     const mockTrajectoryRecorder = {
       startRecording: mock(),
       logEvent: mock(),
@@ -41,7 +40,6 @@ describe("Tool Executor Path Resolution and Security", () => {
     }));
     mock.module("../../../services/model_monitoring.js", () => ({
       trackToolUsage: mock(),
-      appendLog: mock(),
     }));
 
     // Setup mock project structure
@@ -74,17 +72,11 @@ describe("Tool Executor Path Resolution and Security", () => {
       startServer: false,
       _test_fs: mockFs,
       _test_unifiedIntelligenceService: {},
-      trajectoryRecorder: mockTrajectoryRecorder, // DEFINITIVE FIX: Inject the mock recorder.
+      trajectoryRecorder: mockTrajectoryRecorder,
     });
 
-    // THIS IS THE CRITICAL FIX:
-    // Explicitly wait for the toolExecutor promise to resolve.
     await mockEngine.toolExecutorPromise;
-
-    // Now that the executor is guaranteed to exist, we can safely access its methods.
     execute = mockEngine.toolExecutor.execute;
-
-    // Mock the triggerAgent to always return a compliant audit for this test suite
     mockEngine.triggerAgent = mock(() => Promise.resolve(JSON.stringify({ compliant: true })));
   });
 

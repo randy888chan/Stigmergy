@@ -38,6 +38,8 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 // ====================================================================================
 
 function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
+  // DEFINITIVE FIX: Define SAFE_DIRECTORIES inside the function to respect test mocks.
+  // This prevents the value from being cached at the module level.
   const SAFE_DIRECTORIES = config.security?.allowedDirs || [
     "src",
     "public",
@@ -229,7 +231,6 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           );
         }
 
-        // Broadcast the delegation event for the frontend visualizer
         engine.broadcastEvent("agent_delegation", {
           sourceAgentId: sourceAgentId,
           targetAgentId: subagent_type,
@@ -249,6 +250,8 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           _test_executorFactory: engine._test_executorFactory, // Pass the factory itself
         });
 
+        // THIS IS THE CRITICAL FIX:
+        // Ensure the sub-agent engine is always stopped.
         let result;
         try {
           // Add a default 5-minute timeout to all sub-agent tasks
