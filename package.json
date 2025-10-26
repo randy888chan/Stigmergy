@@ -27,7 +27,7 @@
     "start": "bun run engine/server.js",
     "start:mock": "USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js",
     "dev": "concurrently \"bun --hot run engine/server.js\" \"bun run watch:dashboard\"",
-    "dev:ai": "bun run build:dashboard && bun --hot --require ./services/tracing.js engine/server.js",
+    "dev:ai": "bun run build:dashboard && bun --hot engine/server.js",
     "dev:reset": "sudo docker compose down -v && sudo docker compose up --build stigmergy",
     "test": "bun run test:unit && bun run test:integration && bun run test:e2e",
     "test:local": "bun run test:unit",

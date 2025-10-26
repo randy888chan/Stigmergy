@@ -19,10 +19,34 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     // Set mock env vars BEFORE any application code is imported
     process.env.OPENROUTER_API_KEY = "mock-api-key";
     process.env.OPENROUTER_BASE_URL = "http://localhost:3000";
+    process.env.NEO4J_URI = "neo4j://localhost";
+    process.env.NEO4J_USER = "neo4j";
+    process.env.NEO4J_PASSWORD = "password";
 
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     mock.module("ai", () => ({ streamText: mockStreamText }));
+    const mockNeo4j = {
+      driver: () => ({
+        session: () => ({
+          run: () =>
+            Promise.resolve({
+              records: [],
+              summary: {
+                counters: {
+                  updates: () => ({ nodesCreated: 1, relationshipsCreated: 1 }),
+                },
+              },
+            }),
+          close: () => Promise.resolve(),
+        }),
+        close: () => Promise.resolve(),
+      }),
+      auth: {
+        basic: () => {},
+      },
+    };
+    mock.module("neo4j-driver", () => ({ default: mockNeo4j, ...mockNeo4j }));
 
     // Mock services that are instantiated on import
     mock.module("../../../services/config_service.js", () => ({
@@ -195,7 +219,7 @@ tasks:
     expect(finalState.project_status).toBe("PLAN_EXECUTED");
 
     const finalContent = await mockFs.promises.readFile(
-      path.join(projectRoot, ".stigmergy/sandboxes/executor/src/example.js"),
+      path.join(projectRoot, "src/example.js"),
       "utf-8"
     );
     expect(finalContent).toBe('console.log("hello");');

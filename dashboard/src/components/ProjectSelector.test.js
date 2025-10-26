@@ -13,12 +13,15 @@ global.fetch = jest.fn(() =>
 
 describe("ProjectSelector", () => {
   test('loads and displays projects when "Find Projects" is clicked', async () => {
-    render(<ProjectSelector activeProject={null} setActiveProject={() => {}} />);
+    render(<ProjectSelector activeProject={null} onProjectSelect={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Find Projects" }));
 
     await waitFor(() => {
-      expect(screen.getByText("Select a project")).toBeInTheDocument();
+      // The placeholder is inside the combobox trigger for the Select component
+      const trigger = screen.getByRole("combobox");
+      expect(trigger).toBeInTheDocument();
+      expect(trigger).toHaveTextContent(/select a project/i);
     });
   });
 });
