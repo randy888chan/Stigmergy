@@ -1234,15 +1234,23 @@ Based on the information above, please formulate a plan and execute the mission.
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
     }
+    // --- DEFINITIVE FIX: Graceful Shutdown Sequence ---
+    // 1. Stop the HTTP server to prevent new incoming requests.
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
       console.log("HTTP server stopped.");
     }
+    // 2. Unregister event listeners to prevent memory leaks and dangling operations.
+    if (this.stateManager) {
+      this.stateManager.off("stateChanged", this.stateChangedListener);
+      this.stateManager.off("triggerAgent", this.triggerAgentListener);
+    }
+    // 3. Close the State Manager's connection ONLY if it was created internally.
     if (this.stateManager && !this.isExternalStateManager) {
       console.log("Closing internally-managed State Manager driver.");
       await this.stateManager.closeDriver();
     }
-    // This is the critical fix that will solve the timeout:
+    // 4. Shut down the OpenTelemetry SDK to flush any remaining traces.
     await sdk.shutdown();
     console.log("OpenTelemetry SDK shut down.");
   }
