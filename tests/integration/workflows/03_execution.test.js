@@ -118,12 +118,14 @@ agent:
       return executor;
     };
 
+    // --- DEFINITIVE FIX: The Singleton Mismatch ---
+    // Create the stateManager ONCE and inject it into the engine.
     stateManager = new GraphStateManager(projectRoot);
 
     engine = new Engine({
       projectRoot,
       corePath: process.env.STIGMERGY_CORE_PATH,
-      stateManager,
+      stateManager, // <-- INJECTION
       startServer: false,
       _test_fs: mockFs,
       _test_streamText: mockStreamText,
@@ -135,7 +137,10 @@ agent:
   });
 
   afterEach(async () => {
-    if (engine) await engine.stop();
+    // DEFINITIVE FIX: Ensure engine is always stopped to prevent resource leaks.
+    if (engine) {
+      await engine.stop();
+    }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
   });

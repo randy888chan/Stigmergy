@@ -38,8 +38,6 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 // ====================================================================================
 
 function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
-  // DEFINITIVE FIX: Define SAFE_DIRECTORIES inside the function to respect test mocks.
-  // This prevents the value from being cached at the module level.
   const SAFE_DIRECTORIES = config.security?.allowedDirs || [
     "src",
     "public",
@@ -58,32 +56,28 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
   }
 
   const baseDir = workingDirectory || projectRoot || process.cwd();
-
-  // Security Check 1: Prevent path traversal.
-  if (filePath.includes("..")) {
-    throw new OperationalError(
-      `Security violation: Path traversal attempt ("..") in path "${filePath}"`
-    );
-  }
-
+  // --- Step 1: Resolve the path to its canonical, absolute form FIRST. ---
   const resolvedPath = path.resolve(baseDir, filePath);
   const projectScope = projectRoot || process.cwd();
 
-  // Security Check 2: Ensure path is within the project scope.
+  // --- Step 2: Perform all security checks on the CANONICAL path. ---
+
+  // Security Check 1: Ensure the resolved path is still within the project scope.
+  // This is the primary defense against path traversal attacks (e.g., `../..`).
   if (!resolvedPath.startsWith(projectScope)) {
     throw new OperationalError(
-      `Security violation: Path "${filePath}" resolves outside the project scope.`
+      `Security violation: Path traversal attempt. Resolved path "${resolvedPath}" is outside the project scope.`
     );
   }
 
-  // Security Check 3: If in a sandbox, ensure path is within the sandbox.
+  // Security Check 2: If in a sandbox, ensure path is within the sandbox.
   if (workingDirectory && !resolvedPath.startsWith(workingDirectory)) {
     throw new OperationalError(
       `Security violation: Path "${filePath}" attempts to escape the agent's sandbox.`
     );
   }
 
-  // Security Check 4: Check against generated and unsafe directories, ONLY if not in a sandbox.
+  // Security Check 3: Check against generated and unsafe directories, ONLY if not in a sandbox.
   if (!workingDirectory) {
     const relativeToProject = path.relative(projectScope, resolvedPath);
 
@@ -100,11 +94,14 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
     }
 
     // Check against safe directories.
-    // Allow access to the project root itself.
     if (relativeToProject !== "") {
       const isCoreFile = relativeToProject.startsWith(".stigmergy-core");
+
+      // DEFINITIVE FIX: The check must be more precise. It should match either the
+      // full directory name or the directory name followed by a path separator.
+      // This prevents partial name matches (e.g., 'src' matching 'src_evil').
       const isSafeDir = SAFE_DIRECTORIES.some(
-        (dir) => relativeToProject.startsWith(dir + path.sep) || relativeToProject === dir
+        (dir) => relativeToProject === dir || relativeToProject.startsWith(dir + path.sep)
       );
 
       if (!isCoreFile && !isSafeDir) {
@@ -116,11 +113,10 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
     }
   }
 
-  // Security Check 5: Check file size limit.
+  // Security Check 4: Check file size limit.
   if (config.security?.maxFileSizeMB) {
-    let stats;
     try {
-      stats = fsProvider.statSync(resolvedPath);
+      const stats = fsProvider.statSync(resolvedPath);
       if (stats) {
         const maxBytes = config.security.maxFileSizeMB * 1024 * 1024;
         if (stats.size > maxBytes) {
@@ -130,7 +126,10 @@ function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
         }
       }
     } catch (e) {
-      // File doesn't exist yet, skip size check.
+      // File doesn't exist yet, which is fine. The check will run again on write.
+      if (e.code !== "ENOENT") {
+        throw e; // Re-throw other errors
+      }
     }
   }
 
@@ -430,19 +429,26 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           throw new Error(`Tool '${toolName}' not found.`);
         }
 
+        // DEFINITIVE FIX: The path resolution logic must be applied *before* the constitutional audit,
+        // so the auditor gets the final, absolute path, not the agent-provided relative one.
+        // It also needs to handle both `path` and `directory` arguments gracefully.
         if (namespace === "file_system") {
           const pathKey = args.path !== undefined ? "path" : "directory";
-          const originalPath = args[pathKey] ?? ".";
-          const resolvedPath = resolvePath(
-            originalPath,
-            engine.projectRoot,
-            workingDirectory,
-            fsProvider
-          );
-          args[pathKey] = resolvedPath;
+          if (args[pathKey] !== undefined) {
+            const originalPath = args[pathKey];
+            const resolvedPath = resolvePath(
+              originalPath,
+              engine.projectRoot,
+              workingDirectory,
+              fsProvider
+            );
+            args[pathKey] = resolvedPath; // Mutate args with the secure, absolute path
 
-          if (funcName === "writeFile" || funcName === "appendFile") {
-            if (resolvedPath.startsWith(corePath)) {
+            // The core file write check also belongs here, as it's a path-based security rule.
+            if (
+              (funcName === "writeFile" || funcName === "appendFile") &&
+              resolvedPath.startsWith(corePath)
+            ) {
               if (agentId !== "@guardian" && agentId !== "@metis") {
                 throw new OperationalError(
                   `Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '${agentId}' is not authorized.`
@@ -451,8 +457,9 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
             }
           }
         } else if (namespace === "git_tool" && funcName === "init") {
-          const originalPath = args.path ?? ".";
-          args.path = resolvePath(originalPath, engine.projectRoot, workingDirectory, fsProvider);
+          if (args.path !== undefined) {
+            args.path = resolvePath(args.path, engine.projectRoot, workingDirectory, fsProvider);
+          }
         }
 
         const permittedTools = agentConfig.engine_tools || [];

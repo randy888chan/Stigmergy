@@ -2,8 +2,8 @@ import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import { OperationalError } from "../../../utils/errorHandler.js";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-// import { Engine } from '../../../engine/server.js'; // Deferred import
+// import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js"; // DEFERRED
+// import { Engine } from '../../../engine/server.js'; // DEFERRED
 
 describe("Tool Executor Path Resolution and Security", () => {
   let mockEngine;
@@ -12,13 +12,12 @@ describe("Tool Executor Path Resolution and Security", () => {
   let stateManager;
 
   beforeEach(async () => {
-    vol.reset(); // PRISTINE STATE: Reset filesystem
-    mock.restore(); // PRISTINE STATE: Restore mocks
+    vol.reset();
+    mock.restore();
 
-    // DEFINITIVE FIX #1: Mock the *actual* config file the tool_executor imports.
+    // DEFINITIVE FIX: Mock the config file dependency BEFORE any module that might import it is loaded.
     mock.module("../../../stigmergy.config.js", () => ({
       default: {
-        // Correctly mock the default export
         security: {
           allowedDirs: ["src", "public", ".stigmergy-core"],
           generatedPaths: ["dist"],
@@ -27,7 +26,7 @@ describe("Tool Executor Path Resolution and Security", () => {
       },
     }));
 
-    // Mock other dependencies as before
+    // Mock other services as before
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     const mockTrajectoryRecorder = {
@@ -42,14 +41,13 @@ describe("Tool Executor Path Resolution and Security", () => {
       trackToolUsage: mock(),
     }));
 
-    // Setup mock project structure
+    // Set up mock project structure
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.promises.mkdir(agentDir, { recursive: true });
     await mockFs.promises.mkdir(path.join(projectRoot, "src"), { recursive: true });
     await mockFs.promises.mkdir(path.join(projectRoot, "dist"), { recursive: true });
 
-    // Create mock agent files
     const agentFiles = {
       "@test-agent.md": 'id: "@test-agent"\\nengine_tools: ["file_system.*"]',
       "@guardian.md": 'id: "@guardian"\\nengine_tools: ["file_system.*"]',
@@ -62,13 +60,20 @@ describe("Tool Executor Path Resolution and Security", () => {
       );
     }
 
-    // DYNAMIC IMPORT: Import Engine *after* its dependencies have been mocked.
+    // DYNAMIC IMPORT: Load modules that depend on the mocked config *after* the mock is in place.
     const { Engine } = await import("../../../engine/server.js");
+    const { GraphStateManager } = await import(
+      "../../../src/infrastructure/state/GraphStateManager.js"
+    );
+
+    // --- DEFINITIVE FIX: The Singleton Mismatch ---
+    // The test MUST use the SAME instance of the state manager that the engine uses.
+    // By creating it here and injecting it, we ensure they are the same.
     const stateManager = new GraphStateManager(projectRoot);
 
     mockEngine = new Engine({
       projectRoot,
-      stateManager,
+      stateManager, // Inject the state manager
       startServer: false,
       _test_fs: mockFs,
       _test_unifiedIntelligenceService: {},
