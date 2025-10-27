@@ -1,5 +1,3 @@
-import "@happy-dom/global-registrator";
-
 // Setup script that runs before each test file
 // Sets a global configuration variable that points to the temporary .stigmergy-core directory
 
