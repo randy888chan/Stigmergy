@@ -5,13 +5,19 @@ import path from "path";
 import fs from "fs-extra";
 
 export class GraphStateManager extends EventEmitter {
-  constructor(projectRoot) {
+  constructor(projectRoot, driver = null) {
     super();
     this.projectRoot = projectRoot || process.cwd();
-    this.driver = null;
+    this.driver = driver;
     this.connectionStatus = "UNINITIALIZED";
     this.projectConfig = null;
-    this.initializeDriver();
+
+    if (this.driver) {
+      this.connectionStatus = "INITIALIZED";
+      console.log("GraphStateManager: Using pre-configured Neo4j driver.");
+    } else {
+      this.initializeDriver();
+    }
   }
 
   initializeDriver() {
@@ -21,14 +27,13 @@ export class GraphStateManager extends EventEmitter {
 
     if (!neo4jUri || !neo4jUser || !neo4jPassword) {
       this.connectionStatus = "REQUIRED_MISSING";
-      throw new Error("GraphStateManager: Neo4j is required, but credentials are not fully set in the environment.");
+      throw new Error(
+        "GraphStateManager: Neo4j is required, but credentials are not fully set in the environment."
+      );
     }
 
     try {
-      this.driver = neo4j.driver(
-        neo4jUri,
-        neo4j.auth.basic(neo4jUser, neo4jPassword)
-      );
+      this.driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
       this.connectionStatus = "INITIALIZED";
       console.log("GraphStateManager: Neo4j driver initialized.");
     } catch (e) {
@@ -38,19 +43,19 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async testConnection() {
-    if (!this.driver || this.connectionStatus !== 'INITIALIZED') {
-      return { status: 'error', message: 'Neo4j driver not initialized' };
+    if (!this.driver || this.connectionStatus !== "INITIALIZED") {
+      return { status: "error", message: "Neo4j driver not initialized" };
     }
 
     const session = this.driver.session();
     try {
-      await session.run('RETURN 1');
+      await session.run("RETURN 1");
       console.log("GraphStateManager: Neo4j connection test successful.");
-      return { status: 'ok', message: 'Neo4j connection successful' };
+      return { status: "ok", message: "Neo4j connection successful" };
     } catch (error) {
       this.connectionStatus = "CONNECTION_FAILED";
       console.error("GraphStateManager: Neo4j connection test failed:", error.message);
-      return { status: 'error', message: `Neo4j connection failed: ${error.message}` };
+      return { status: "error", message: `Neo4j connection failed: ${error.message}` };
     } finally {
       await session.close();
     }
@@ -64,27 +69,26 @@ export class GraphStateManager extends EventEmitter {
       history: [],
     };
 
-    if (this.connectionStatus !== 'INITIALIZED') {
+    if (this.connectionStatus !== "INITIALIZED") {
       throw new Error("GraphStateManager: Cannot get state, Neo4j driver not initialized.");
     }
 
     const session = this.driver.session();
     try {
-      const result = await session.run(
-        'MATCH (p:Project {name: $projectName}) RETURN p',
-        { projectName }
-      );
+      const result = await session.run("MATCH (p:Project {name: $projectName}) RETURN p", {
+        projectName,
+      });
 
       if (result.records.length === 0) {
         return defaultState;
       }
 
-      const projectNode = result.records[0].get('p').properties;
-      
-      if (projectNode.project_manifest && typeof projectNode.project_manifest === 'string') {
+      const projectNode = result.records[0].get("p").properties;
+
+      if (projectNode.project_manifest && typeof projectNode.project_manifest === "string") {
         projectNode.project_manifest = JSON.parse(projectNode.project_manifest);
       }
-      if (projectNode.history && typeof projectNode.history === 'string') {
+      if (projectNode.history && typeof projectNode.history === "string") {
         projectNode.history = JSON.parse(projectNode.history);
       }
 
@@ -100,17 +104,17 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async updateState(event) {
-    if (this.connectionStatus !== 'INITIALIZED') {
+    if (this.connectionStatus !== "INITIALIZED") {
       throw new Error("GraphStateManager: Cannot update state, Neo4j driver not initialized.");
     }
 
     const session = this.driver.session();
-    const projectName = event.project_name || 'default';
-    
+    const projectName = event.project_name || "default";
+
     const propertiesToSet = { ...event };
     delete propertiesToSet.type;
     propertiesToSet.name = projectName;
-    
+
     if (propertiesToSet.project_manifest) {
       propertiesToSet.project_manifest = JSON.stringify(propertiesToSet.project_manifest, null, 2);
     }
@@ -124,7 +128,7 @@ export class GraphStateManager extends EventEmitter {
          SET p += $properties`,
         { projectName, properties: propertiesToSet }
       );
-      
+
       const newState = await this.getState(projectName);
       this.emit("stateChanged", newState);
       return newState;
@@ -138,12 +142,12 @@ export class GraphStateManager extends EventEmitter {
     }
   }
 
-  async updateStatus({ newStatus, message = '' }) {
+  async updateStatus({ newStatus, message = "" }) {
     const event = {
-      type: 'STATUS_UPDATE',
+      type: "STATUS_UPDATE",
       project_status: newStatus,
       message: message,
-      last_updated: new Date().toISOString()
+      last_updated: new Date().toISOString(),
     };
     return this.updateState(event);
   }

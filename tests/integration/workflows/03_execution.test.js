@@ -120,12 +120,18 @@ agent:
 
     // --- DEFINITIVE FIX: The Singleton Mismatch ---
     // Create the stateManager ONCE and inject it into the engine.
-    stateManager = new GraphStateManager(projectRoot);
+    const mockDriver = mockNeo4j.driver();
+    stateManager = new GraphStateManager(projectRoot, mockDriver);
+
+    // Get the mock config from the mocked service to inject it
+    const { configService } = await import("../../../services/config_service.js");
+    const mockConfig = configService.getConfig();
 
     engine = new Engine({
       projectRoot,
       corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager, // <-- INJECTION
+      config: mockConfig, // <-- INJECTION
       startServer: false,
       _test_fs: mockFs,
       _test_streamText: mockStreamText,

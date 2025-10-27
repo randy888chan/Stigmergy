@@ -2,6 +2,7 @@ import "../../../tests/setup-dom.js";
 import "../../setupTests.js";
 import React from "react";
 import { render, screen } from "@testing-library/react";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import ChatInterface from "./ChatInterface";
 
 // Mock the useChat hook from @ai-sdk/react
@@ -15,6 +16,12 @@ jest.mock("@ai-sdk/react", () => ({
 }));
 
 describe("ChatInterface", () => {
+  beforeAll(() => {
+    GlobalRegistrator.register();
+  });
+  afterAll(() => {
+    GlobalRegistrator.unregister();
+  });
   test("renders with an active project and available engine", () => {
     render(
       <ChatInterface activeProject="test-project" isEngineBusy={false} isEngineReady={true} />
