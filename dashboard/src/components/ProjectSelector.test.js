@@ -2,6 +2,7 @@ import "../../../tests/setup-dom.js";
 import "../../setupTests.js";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import ProjectSelector from "./ProjectSelector";
 
 // Mock the global fetch
@@ -13,6 +14,12 @@ global.fetch = jest.fn(() =>
 );
 
 describe("ProjectSelector", () => {
+  beforeAll(() => {
+    GlobalRegistrator.register();
+  });
+  afterAll(() => {
+    GlobalRegistrator.unregister();
+  });
   test('loads and displays projects when "Find Projects" is clicked', async () => {
     render(<ProjectSelector activeProject={null} onProjectSelect={() => {}} />);
 

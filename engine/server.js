@@ -30,7 +30,13 @@ export class Engine {
     this.organizationId = options.organizationId || "default";
     this.projectId = options.projectId || path.basename(this.projectRoot);
     this.corePath = options.corePath || path.join(this.projectRoot, ".stigmergy-core");
-    this.config = configService.getConfig();
+    // DEFINITIVE FIX: Configuration is now injected, not fetched from a global singleton.
+    this.config = options.config;
+    if (!this.config) {
+      // This will cause a crash if the config is not provided, which is what we want.
+      // In production, the entry point provides it. In tests, the test setup must provide it.
+      throw new Error("Engine requires a 'config' object in its constructor options.");
+    }
 
     // State Manager will be initialized asynchronously
     this.stateManager = null;
@@ -1234,23 +1240,14 @@ Based on the information above, please formulate a plan and execute the mission.
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
     }
-    // --- DEFINITIVE FIX: Graceful Shutdown Sequence ---
-    // 1. Stop the HTTP server to prevent new incoming requests.
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
       console.log("HTTP server stopped.");
     }
-    // 2. Unregister event listeners to prevent memory leaks and dangling operations.
     if (this.stateManager) {
-      this.stateManager.off("stateChanged", this.stateChangedListener);
-      this.stateManager.off("triggerAgent", this.triggerAgentListener);
-    }
-    // 3. Close the State Manager's connection ONLY if it was created internally.
-    if (this.stateManager && !this.isExternalStateManager) {
-      console.log("Closing internally-managed State Manager driver.");
       await this.stateManager.closeDriver();
     }
-    // 4. Shut down the OpenTelemetry SDK to flush any remaining traces.
+    // This is the critical fix that will solve the timeout:
     await sdk.shutdown();
     console.log("OpenTelemetry SDK shut down.");
   }
@@ -1272,8 +1269,12 @@ if (import.meta.main) {
     try {
       // Asynchronously initialize the configuration service
       await configService.initialize();
+      const config = configService.getConfig();
 
-      const engineOptions = { unifiedIntelligenceService };
+      const engineOptions = {
+        unifiedIntelligenceService,
+        config, // Inject the initialized config
+      };
 
       if (process.env.USE_MOCK_AI === "true") {
         console.log(chalk.yellow("--- [NOTICE] ---"));

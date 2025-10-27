@@ -3,6 +3,7 @@ import "../../setupTests.js";
 // New content for dashboard/src/components/ExecutiveSummary.test.js
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
+import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import ExecutiveSummary from "./ExecutiveSummary";
 
 const mockSuccessData = {
@@ -14,6 +15,12 @@ const mockSuccessData = {
 };
 
 describe("ExecutiveSummary", () => {
+  beforeAll(() => {
+    GlobalRegistrator.register();
+  });
+  afterAll(() => {
+    GlobalRegistrator.unregister();
+  });
   test("shows a loading state initially", () => {
     global.fetch = jest.fn(() => new Promise(() => {})); // A promise that never resolves
     render(<ExecutiveSummary />);

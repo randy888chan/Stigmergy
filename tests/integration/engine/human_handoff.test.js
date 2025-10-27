@@ -1,8 +1,6 @@
 import { mock, describe, test, expect, beforeEach, afterEach } from "bun:test";
 import path from "path";
-import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-import { Engine } from "../../../engine/server.js";
+import { vol } from "../../mocks/fs.js";
 
 const mockStreamText = mock();
 
@@ -11,22 +9,37 @@ describe("Human Handoff Workflow", () => {
   let broadcastSpy;
   let projectRoot;
   let stateManager;
+  let Engine; // To be assigned in beforeEach
 
   beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    // DEFINITIVE FIX: The 'Async-First Mocking' Pattern
+    const mockFs = (await import("../../mocks/fs.js")).default;
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     mock.module("ai", () => ({ streamText: mockStreamText }));
-    mock.module("../../../services/config_service.js", () => ({
-      configService: {
-        getConfig: () => ({
-          model_tiers: { reasoning_tier: { provider: "mock", model_name: "mock-model" } },
-          providers: { mock_provider: { api_key: "mock-key" } },
-        }),
-      },
-    }));
+
+    const mockConfig = {
+      model_tiers: { reasoning_tier: { provider: "mock", model_name: "mock-model" } },
+      max_session_cost: 1.0,
+    };
+
+    // Dynamically import modules after mocks
+    Engine = (await import("../../../engine/server.js")).Engine;
+    const { GraphStateManager } = await import(
+      "../../../src/infrastructure/state/GraphStateManager.js"
+    );
+    const { createExecutor: realCreateExecutor } = await import("../../../engine/tool_executor.js");
+
+    const mockDriver = {
+      session: () => ({
+        run: () => Promise.resolve({ records: [] }),
+        close: () => Promise.resolve(),
+      }),
+      close: () => Promise.resolve(),
+    };
 
     projectRoot = path.resolve("/test-handoff-project");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
@@ -44,12 +57,9 @@ agent:
     await mockFs.promises.writeFile(path.join(agentDir, "dispatcher.md"), mockDispatcherAgent);
 
     broadcastSpy = mock(() => {});
-    stateManager = new GraphStateManager(projectRoot);
+    stateManager = new GraphStateManager(projectRoot, mockDriver);
 
-    // DEFINITIVE FIX: Align with the new dependency-injected architecture
     const mockUnifiedIntelligenceService = {};
-    const { createExecutor: realCreateExecutor } = await import("../../../engine/tool_executor.js");
-
     const testExecutorFactory = async (engineInstance, ai, options, fs) => {
       const finalOptions = {
         ...options,
@@ -62,6 +72,7 @@ agent:
       projectRoot,
       corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager,
+      config: mockConfig, // Inject the mock config
       startServer: false,
       broadcastEvent: broadcastSpy,
       _test_fs: mockFs,
