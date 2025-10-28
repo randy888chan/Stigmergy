@@ -1238,19 +1238,40 @@ Based on the information above, please formulate a plan and execute the mission.
   }
 
   async stop() {
-    console.log("Shutting down Stigmergy engine...");
+    console.log(
+      chalk.blue(
+        `[Engine] Shutting down... (Server running: ${!!this.server}, External StateManager: ${this.isExternalStateManager})`
+      )
+    );
+
+    // 1. Clear intervals to stop background tasks
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
     }
+
+    // 2. Unregister event listeners to prevent memory leaks
+    if (this.stateManager) {
+      this.stateManager.off("stateChanged", this.stateChangedListener);
+      this.stateManager.off("triggerAgent", this.triggerAgentListener);
+    }
+
+    // 3. Close the HTTP server
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
-      console.log("HTTP server stopped.");
+      console.log(chalk.green("[Engine] HTTP server stopped."));
+      this.server = null;
     }
-    if (this.stateManager) {
+
+    // 4. Close the State Manager's connection (ONLY if it was created internally)
+    if (this.stateManager && !this.isExternalStateManager) {
       await this.stateManager.closeDriver();
+      console.log(chalk.green("[Engine] Internal StateManager connection closed."));
     }
-    // This is the critical fix that will solve the timeout:
+
+    // 5. This is the critical fix that will solve the timeout:
     await sdk.shutdown();
-    console.log("OpenTelemetry SDK shut down.");
+    console.log(chalk.green("[Engine] OpenTelemetry SDK shut down."));
+    console.log(chalk.blue("[Engine] Shutdown complete."));
   }
 }

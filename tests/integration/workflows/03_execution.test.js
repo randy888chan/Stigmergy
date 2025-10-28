@@ -13,6 +13,27 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    mock.module("../../../services/tracing.js", () => ({
+      sdk: {
+        start: mock(),
+        shutdown: mock(async () => {}),
+      },
+      trace: {
+        getTracer: () => ({
+          startActiveSpan: (name, fn) =>
+            fn({
+              setAttribute: () => {},
+              recordException: () => {},
+              setStatus: () => {},
+              end: () => {},
+            }),
+        }),
+      },
+      SpanStatusCode: {
+        ERROR: "ERROR",
+      },
+    }));
+
     // Prevent dotenv from reading actual .env files
     mock.module("dotenv", () => ({ config: mock() }));
 
@@ -25,28 +46,13 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
 
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
-    mock.module("ai", () => ({ streamText: mockStreamText }));
-    const mockNeo4j = {
-      driver: () => ({
-        session: () => ({
-          run: () =>
-            Promise.resolve({
-              records: [],
-              summary: {
-                counters: {
-                  updates: () => ({ nodesCreated: 1, relationshipsCreated: 1 }),
-                },
-              },
-            }),
-          close: () => Promise.resolve(),
-        }),
-        close: () => Promise.resolve(),
-      }),
-      auth: {
-        basic: () => {},
-      },
-    };
-    mock.module("neo4j-driver", () => ({ default: mockNeo4j, ...mockNeo4j }));
+
+    // DEFINITIVE FIX: Mock the entire 'ai' package to prevent any background processes.
+    mock.module("ai", () => ({
+      streamText: mockStreamText,
+      // Add mocks for any other functions from 'ai' that might be called.
+      // For now, streamText is the only one.
+    }));
 
     // Mock services that are instantiated on import
     mock.module("../../../services/config_service.js", () => ({
@@ -120,7 +126,21 @@ agent:
 
     // --- DEFINITIVE FIX: The Singleton Mismatch ---
     // Create the stateManager ONCE and inject it into the engine.
-    const mockDriver = mockNeo4j.driver();
+    const mockDriver = {
+      session: () => ({
+        run: () =>
+          Promise.resolve({
+            records: [],
+            summary: {
+              counters: {
+                updates: () => ({ nodesCreated: 1, relationshipsCreated: 1 }),
+              },
+            },
+          }),
+        close: () => Promise.resolve(),
+      }),
+      close: () => Promise.resolve(),
+    };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
 
     // Get the mock config from the mocked service to inject it
@@ -146,6 +166,9 @@ agent:
     // DEFINITIVE FIX: Ensure engine is always stopped to prevent resource leaks.
     if (engine) {
       await engine.stop();
+    }
+    if (stateManager) {
+      await stateManager.closeDriver();
     }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
@@ -229,10 +252,19 @@ tasks:
     const finalState = await engine.stateManager.getState();
     expect(finalState.project_status).toBe("PLAN_EXECUTED");
 
-    const finalContent = await mockFs.promises.readFile(
-      path.join(projectRoot, "src/example.js"),
-      "utf-8"
+    // The file should be written to the executor's sandbox, not the project root.
+    const expectedPath = path.join(
+      projectRoot,
+      ".stigmergy",
+      "sandboxes",
+      "executor",
+      "src/example.js"
     );
+
+    // Log the file system state for debugging
+    console.log("Final file system state:", JSON.stringify(vol.toJSON(), null, 2));
+
+    const finalContent = await mockFs.promises.readFile(expectedPath, "utf-8");
     expect(finalContent).toBe('console.log("hello");');
   });
 });
