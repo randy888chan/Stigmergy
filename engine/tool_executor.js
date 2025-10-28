@@ -3,7 +3,6 @@ import { promises as fs } from "fs";
 import path from "path";
 import yaml from "js-yaml";
 import { sanitizeToolCall } from "../utils/sanitization.js";
-import config from "../stigmergy.config.js";
 import { cachedQuery } from "../utils/queryCache.js";
 
 // Import all tool namespaces
@@ -37,7 +36,13 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 // START: Centralized Path Resolution & Security Logic
 // ====================================================================================
 
-function resolvePath(filePath, projectRoot, workingDirectory, fsProvider = fs) {
+function resolvePath(
+  filePath,
+  projectRoot,
+  workingDirectory,
+  config, // DEFINITIVE FIX: Inject config
+  fsProvider = fs
+) {
   const SAFE_DIRECTORIES = config.security?.allowedDirs || [
     "src",
     "public",
@@ -181,7 +186,8 @@ const agentConfigCache = new Map();
 
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
   const { config: engineConfig, unifiedIntelligenceService } = options;
-  const corePath = engine.corePath; // DEFINITIVE FIX: Get corePath from the engine instance.
+  const config = engineConfig || (await import("../stigmergy.config.js")).default;
+  const corePath = engine.corePath;
 
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
   const { default: createSystemTools } = await import("../tools/system_tools.js");
@@ -242,8 +248,8 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           projectRoot: engine.projectRoot,
           corePath: engine.corePath,
           startServer: false,
-          stateManager: engine.stateManager, // Pass the existing state manager
-          // Pass down all test-related properties
+          stateManager: engine.stateManager,
+          config: config, // DEFINITIVE FIX: Propagate the config to sub-agents
           _test_fs: engine._test_fs,
           _test_streamText: engine._test_streamText,
           _test_unifiedIntelligenceService: engine._test_unifiedIntelligenceService,
@@ -440,6 +446,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
               originalPath,
               engine.projectRoot,
               workingDirectory,
+              config,
               fsProvider
             );
             args[pathKey] = resolvedPath; // Mutate args with the secure, absolute path
@@ -458,7 +465,13 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           }
         } else if (namespace === "git_tool" && funcName === "init") {
           if (args.path !== undefined) {
-            args.path = resolvePath(args.path, engine.projectRoot, workingDirectory, fsProvider);
+            args.path = resolvePath(
+              args.path,
+              engine.projectRoot,
+              workingDirectory,
+              config,
+              fsProvider
+            );
           }
         }
 
