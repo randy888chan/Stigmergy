@@ -25,20 +25,30 @@ export class GraphStateManager extends EventEmitter {
     const neo4jUser = process.env.NEO4J_USER;
     const neo4jPassword = process.env.NEO4J_PASSWORD;
 
+    this.fallback_mode = false;
+    this.memory_state = {};
+
     if (!neo4jUri || !neo4jUser || !neo4jPassword) {
-      this.connectionStatus = "REQUIRED_MISSING";
-      throw new Error(
-        "GraphStateManager: Neo4j is required, but credentials are not fully set in the environment."
+      console.warn(
+        "GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management."
       );
+      this.connectionStatus = "FALLBACK_MODE";
+      this.fallback_mode = true;
+      return;
     }
 
     try {
-      this.driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword));
+      this.driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword), {
+        connectionTimeout: 5000, // 5 seconds
+      });
       this.connectionStatus = "INITIALIZED";
       console.log("GraphStateManager: Neo4j driver initialized.");
     } catch (e) {
-      this.connectionStatus = "FAILED_INITIALIZATION";
-      throw new Error(`GraphStateManager: Failed to initialize Neo4j driver. ${e.message}`);
+      console.warn(
+        `GraphStateManager: Failed to initialize Neo4j driver. Falling back to in-memory state. Error: ${e.message}`
+      );
+      this.connectionStatus = "FALLBACK_MODE";
+      this.fallback_mode = true;
     }
   }
 
@@ -62,6 +72,16 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async getState(projectName = "default") {
+    if (this.fallback_mode) {
+      return (
+        this.memory_state[projectName] || {
+          project_name: projectName,
+          project_status: "NEEDS_INITIALIZATION",
+          project_manifest: { tasks: [] },
+          history: [],
+        }
+      );
+    }
     const defaultState = {
       project_name: projectName,
       project_status: "NEEDS_INITIALIZATION",
@@ -104,12 +124,19 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async updateState(event) {
+    const projectName = event.project_name || "default";
+    if (this.fallback_mode) {
+      const currentState = this.memory_state[projectName] || {};
+      const newState = { ...currentState, ...event };
+      this.memory_state[projectName] = newState;
+      this.emit("stateChanged", newState);
+      return newState;
+    }
     if (this.connectionStatus !== "INITIALIZED") {
       throw new Error("GraphStateManager: Cannot update state, Neo4j driver not initialized.");
     }
 
     const session = this.driver.session();
-    const projectName = event.project_name || "default";
 
     const propertiesToSet = { ...event };
     delete propertiesToSet.type;
