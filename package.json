@@ -98,7 +98,7 @@
     "react-resizable-panels": "^2.0.19",
     "similarity": "^1.2.1",
     "simple-git": "^3.28.0",
-    "tailwind-merge": "^2.3.0",
+    "tailwind-merge": "^3.3.1",
     "tmp": "^0.2.3",
     "uuid": "13.0.0",
     "ws": "^8.18.3",
