@@ -1239,74 +1239,18 @@ Based on the information above, please formulate a plan and execute the mission.
 
   async stop() {
     console.log("Shutting down Stigmergy engine...");
-    // Definitive fix: Clear the interval timer to allow the process to exit.
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
     }
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
       console.log("HTTP server stopped.");
     }
-    // Properly clean up event listeners to prevent state leakage.
     if (this.stateManager) {
-      this.stateManager.off("stateChanged", this.stateChangedListener);
-      this.stateManager.off("triggerAgent", this.triggerAgentListener);
-      // Only close the driver if the engine created it internally.
-      if (!this.isExternalStateManager) {
-        await this.stateManager.closeDriver();
-      }
+      await this.stateManager.closeDriver();
     }
     // This is the critical fix that will solve the timeout:
     await sdk.shutdown();
     console.log("OpenTelemetry SDK shut down.");
   }
-}
-
-function createWebSocketEvent(ws, data, code, reason) {
-  if (data) {
-    return new MessageEvent("message", { data });
-  }
-  if (code !== undefined) {
-    return new CloseEvent("close", { code, reason });
-  }
-  return new Event("open");
-}
-
-if (import.meta.main) {
-  // Top-level await is available in ES modules
-  const startServer = async () => {
-    try {
-      // Asynchronously initialize the configuration service
-      await configService.initialize();
-      const config = configService.getConfig();
-
-      const engineOptions = {
-        unifiedIntelligenceService,
-        config, // Inject the initialized config
-      };
-
-      if (process.env.USE_MOCK_AI === "true") {
-        console.log(chalk.yellow("--- [NOTICE] ---"));
-        console.log(
-          chalk.yellow("Running with USE_MOCK_AI=true. AI provider initialization will be skipped.")
-        );
-        console.log(
-          chalk.yellow(
-            "This is for local testing and requires a mock function to be injected during tests."
-          )
-        );
-        console.log(chalk.yellow("--- [NOTICE] ---"));
-        engineOptions._test_streamText = true;
-      }
-
-      const engine = new Engine(engineOptions);
-      await engine.start();
-    } catch (error) {
-      console.error(chalk.red(`[Engine] Failed to start: ${error.message}`));
-      process.exit(1);
-    }
-  };
-
-  startServer();
 }
