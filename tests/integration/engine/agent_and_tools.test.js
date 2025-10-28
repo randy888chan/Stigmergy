@@ -102,6 +102,9 @@ agent:
     if (engine) {
       await engine.stop();
     }
+    if (stateManager) {
+      await stateManager.closeDriver();
+    }
     delete process.env.STIGMERGY_CORE_PATH;
     mock.restore();
   });

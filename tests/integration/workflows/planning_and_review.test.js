@@ -91,6 +91,9 @@ agent:
 
   afterEach(async () => {
     if (engine) await engine.stop();
+    if (stateManager) {
+      await stateManager.closeDriver();
+    }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
   });

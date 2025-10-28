@@ -12,6 +12,7 @@ describe("Tool Executor Security (Definitive Fix)", () => {
   const projectRoot = "/test-project-security";
   let mockFs;
   let OperationalError;
+  let stateManager;
 
   beforeEach(async () => {
     vol.reset();
@@ -91,7 +92,7 @@ agent:
       off: mock(),
       on: mock(),
     };
-    const stateManager = new GraphStateManager(projectRoot, mockDriver);
+    stateManager = new GraphStateManager(projectRoot, mockDriver);
 
     // DEFINITIVE FIX: The mock config MUST match the structure the Engine constructor expects.
     // The constructor accesses `config.ai.tiers`, so that structure must be present.
@@ -135,6 +136,9 @@ agent:
 
   afterEach(async () => {
     if (mockEngine) await mockEngine.stop();
+    if (stateManager) {
+      await stateManager.closeDriver();
+    }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
   });
