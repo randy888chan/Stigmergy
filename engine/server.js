@@ -108,7 +108,9 @@ export class Engine {
       this.broadcastEvent = options.broadcastEvent;
     }
 
-    this.config = configService.getConfig();
+    // This line was the root cause of the test failures. It overwrote the
+    // dependency-injected mock config with a globally-loaded one.
+    // this.config = configService.getConfig();
 
     if (!this._test_streamText) {
       this.ai = getAiProviders(this.config);
@@ -1237,15 +1239,23 @@ Based on the information above, please formulate a plan and execute the mission.
 
   async stop() {
     console.log("Shutting down Stigmergy engine...");
+    // Definitive fix: Clear the interval timer to allow the process to exit.
     if (this.healthCheckInterval) {
       clearInterval(this.healthCheckInterval);
+      this.healthCheckInterval = null;
     }
     if (this.server) {
       await new Promise((resolve) => this.server.close(resolve));
       console.log("HTTP server stopped.");
     }
+    // Properly clean up event listeners to prevent state leakage.
     if (this.stateManager) {
-      await this.stateManager.closeDriver();
+      this.stateManager.off("stateChanged", this.stateChangedListener);
+      this.stateManager.off("triggerAgent", this.triggerAgentListener);
+      // Only close the driver if the engine created it internally.
+      if (!this.isExternalStateManager) {
+        await this.stateManager.closeDriver();
+      }
     }
     // This is the critical fix that will solve the timeout:
     await sdk.shutdown();

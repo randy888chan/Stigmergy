@@ -23,15 +23,6 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
 
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
-    mock.module("../../../services/config_service.js", () => ({
-      configService: {
-        getConfig: () => ({
-          security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
-          model_tiers: { reasoning_tier: { provider: "mock", model_name: "mock-model" } },
-          providers: { mock_provider: { api_key: "mock-key" } },
-        }),
-      },
-    }));
     mock.module("../../../services/model_monitoring.js", () => ({
       trackToolUsage: mock(async () => {}),
     }));
@@ -53,16 +44,12 @@ agent:
 
     stateManager = new GraphStateManager(projectRoot);
 
-    // --- DEFINITIVE FIX: The "Golden Pattern" for Agent & Tool Integration ---
-
-    // 1. Mock the specific service methods this test focuses on.
     const mockUnifiedIntelligenceService = {
       semanticSearch: mockSemanticSearch,
       calculateMetrics: mockCalculateMetrics,
       findArchitecturalIssues: mockFindArchitecturalIssues,
     };
 
-    // 2. Create the factory that injects the mocked service.
     const testExecutorFactory = async (engineInstance, ai, options, fs) => {
       const finalOptions = {
         ...options,
@@ -72,20 +59,42 @@ agent:
       return executor;
     };
 
+    // DEFINITIVE FIX: The mock config MUST match the structure the Engine constructor expects.
+    const mockConfig = {
+      security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
+      max_session_cost: 1.0,
+      custom_agents_path: null,
+      collaboration: {
+        mode: "single-player",
+      },
+      ai: {
+        tiers: {
+          reasoning_tier: "mock-model",
+          execution_tier: "mock-model",
+        },
+        providers: {
+          "mock-provider": {
+            label: "Mock Provider",
+            models: ["mock-model"],
+          },
+        },
+      },
+    };
+
     engine = new Engine({
       broadcastEvent: mock(),
       projectRoot: projectRoot,
       stateManager,
+      config: mockConfig, // Inject the complete mock config
       startServer: false,
       _test_fs: mockFs,
       _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
       _test_executorFactory: testExecutorFactory,
+      _test_streamText: true, // Prevent actual AI calls
     });
 
-    // 3. Await the promise to ensure the executor is initialized.
     await engine.toolExecutorPromise;
 
-    // 4. Get the `execute` function from the engine's fully-formed executor.
     execute = engine.toolExecutor.execute;
   });
 

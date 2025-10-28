@@ -1,55 +1,86 @@
 import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
-import { vol } from "../../mocks/fs.js"; // Only import vol, not the mock implementation
+import { vol } from "memfs";
 
-describe("Tool Executor Path Resolution and Security", () => {
+// This is the final, stable version of the test suite.
+// It combines the Async-First Mocking and Dependency Injection patterns
+// to ensure complete test isolation and stability.
+
+describe("Tool Executor Security (Definitive Fix)", () => {
   let mockEngine;
   let execute;
   const projectRoot = "/test-project-security";
-  let stateManager;
+  let mockFs;
   let OperationalError;
-  let Engine; // Declare here to be assigned in beforeEach
 
   beforeEach(async () => {
     vol.reset();
     mock.restore();
 
-    // DEFINITIVE FIX: The 'Async-First Mocking' Pattern
-    // 1. Mock all module dependencies *inside* beforeEach.
-    const mockFs = (await import("../../mocks/fs.js")).default;
+    mockFs = (await import("../../mocks/fs.js")).default;
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
 
-    mock.module("../../../stigmergy.config.js", () => ({
-      default: {
-        security: {
-          allowedDirs: ["src", "public", ".stigmergy-core"],
-          generatedPaths: ["dist"],
-        },
-        custom_agents_path: null,
-        max_session_cost: 1.0,
+    mock.module("../../../services/tracing.js", () => ({
+      startTracing: mock(),
+      sdk: { shutdown: mock() },
+      trace: {
+        getTracer: () => ({
+          startActiveSpan: (name, fn) =>
+            fn({
+              setAttribute: () => {},
+              recordException: () => {},
+              setStatus: () => {},
+              end: () => {},
+            }),
+        }),
+      },
+      SpanStatusCode: {
+        ERROR: "ERROR",
       },
     }));
 
-    const mockTrajectoryRecorder = {
-      startRecording: mock(),
-      logEvent: mock(),
-      finalizeRecording: mock(),
-    };
-    mock.module("../../../services/trajectory_recorder.js", () => ({
-      TrajectoryRecorder: mock(() => mockTrajectoryRecorder),
-    }));
-    mock.module("../../../services/model_monitoring.js", () => ({
-      trackToolUsage: mock(),
-    }));
-
-    // 2. Dynamically import the modules under test *after* the mocks are in place.
-    Engine = (await import("../../../engine/server.js")).Engine;
+    const { Engine } = await import("../../../engine/server.js");
     const { GraphStateManager } = await import(
       "../../../src/infrastructure/state/GraphStateManager.js"
     );
     const errorHandlerModule = await import("../../../utils/errorHandler.js");
     OperationalError = errorHandlerModule.OperationalError;
+
+    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
+    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
+    mockFs.ensureDirSync(agentDir);
+    mockFs.ensureDirSync(path.join(projectRoot, "src"));
+    mockFs.ensureDirSync(path.join(projectRoot, "dist"));
+    mockFs.ensureDirSync(path.join(projectRoot, "unsafe"));
+
+    const agentFiles = {
+      "auditor.md": `
+\`\`\`yaml
+agent:
+  id: "auditor"
+\`\`\`
+`,
+      "@test-agent.md": `
+\`\`\`yaml
+agent:
+  id: "@test-agent"
+  engine_tools:
+    - "file_system.writeFile"
+\`\`\`
+`,
+      "@guardian.md": `
+\`\`\`yaml
+agent:
+  id: "@guardian"
+  engine_tools:
+    - "file_system.writeFile"
+\`\`\`
+`,
+    };
+    for (const [filename, content] of Object.entries(agentFiles)) {
+      mockFs.writeFileSync(path.join(agentDir, filename), content);
+    }
 
     const mockDriver = {
       session: () => ({
@@ -57,38 +88,44 @@ describe("Tool Executor Path Resolution and Security", () => {
         close: () => Promise.resolve(),
       }),
       close: () => Promise.resolve(),
+      off: mock(),
+      on: mock(),
     };
+    const stateManager = new GraphStateManager(projectRoot, mockDriver);
 
-    // 3. Proceed with test setup as before.
-    process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
-    const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
-    await mockFs.promises.mkdir(agentDir, { recursive: true });
-    await mockFs.promises.mkdir(path.join(projectRoot, "src"), { recursive: true });
-    await mockFs.promises.mkdir(path.join(projectRoot, "dist"), { recursive: true });
-
-    const agentFiles = {
-      "@test-agent.md": 'id: "@test-agent"\\nengine_tools: ["file_system.*"]',
-      "@guardian.md": 'id: "@guardian"\\nengine_tools: ["file_system.*"]',
-      "auditor.md": 'id: "auditor"\\nengine_tools: ["file_system.readFile"]',
+    // DEFINITIVE FIX: The mock config MUST match the structure the Engine constructor expects.
+    // The constructor accesses `config.ai.tiers`, so that structure must be present.
+    const mockConfig = {
+      security: {
+        allowedDirs: ["src", "public", ".stigmergy-core", "dist"],
+        generatedPaths: ["dist"],
+      },
+      max_session_cost: 1.0,
+      custom_agents_path: null,
+      collaboration: {
+        mode: "single-player",
+      },
+      ai: {
+        tiers: {
+          reasoning_tier: "mock-model",
+          execution_tier: "mock-model",
+        },
+        providers: {
+          "mock-provider": {
+            label: "Mock Provider",
+            models: ["mock-model"],
+          },
+        },
+      },
     };
-    for (const [filename, content] of Object.entries(agentFiles)) {
-      await mockFs.promises.writeFile(
-        path.join(agentDir, filename),
-        `\`\`\`yaml\\nagent:\\n  ${content}\\n\`\`\``
-      );
-    }
-
-    stateManager = new GraphStateManager(projectRoot, mockDriver);
-    const mockConfig = (await import("../../../stigmergy.config.js")).default;
 
     mockEngine = new Engine({
       projectRoot,
       stateManager,
-      config: mockConfig,
+      config: mockConfig, // Inject the complete mock config
       startServer: false,
       _test_fs: mockFs,
-      _test_unifiedIntelligenceService: {},
-      trajectoryRecorder: mockTrajectoryRecorder,
+      _test_streamText: true, // Prevent actual AI calls
     });
 
     await mockEngine.toolExecutorPromise;
@@ -97,17 +134,15 @@ describe("Tool Executor Path Resolution and Security", () => {
   });
 
   afterEach(async () => {
-    mock.restore(); // PRISTINE STATE: Restore mocks
-    if (mockEngine) {
-      await mockEngine.stop(); // PRISTINE STATE: Stop the engine
-    }
+    if (mockEngine) await mockEngine.stop();
+    mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
   });
 
   test("should allow writing to a safe directory", async () => {
     const filePath = "src/allowed.js";
     await execute("file_system.writeFile", { path: filePath, content: "safe" }, "@test-agent");
-    const content = await mockFs.promises.readFile(path.join(projectRoot, filePath), "utf-8");
+    const content = mockFs.readFileSync(path.join(projectRoot, filePath), "utf-8");
     expect(content).toBe("safe");
   });
 
@@ -117,6 +152,7 @@ describe("Tool Executor Path Resolution and Security", () => {
       { path: "unsafe/file.js", content: "unsafe" },
       "@test-agent"
     );
+    await expect(promise).rejects.toThrow(OperationalError);
     await expect(promise).rejects.toThrow(/Access restricted to unsafe directory/);
   });
 
@@ -145,7 +181,7 @@ describe("Tool Executor Path Resolution and Security", () => {
       { path: coreFilePath, content: "core-setting" },
       "@guardian"
     );
-    const content = await mockFs.promises.readFile(path.join(projectRoot, coreFilePath), "utf-8");
+    const content = mockFs.readFileSync(path.join(projectRoot, coreFilePath), "utf-8");
     expect(content).toBe("core-setting");
   });
 
@@ -162,7 +198,6 @@ describe("Tool Executor Path Resolution and Security", () => {
   });
 
   test("should block a tool call if the @auditor deems it non-compliant", async () => {
-    // Override the default mock to return a non-compliant response for this specific test
     mockEngine.triggerAgent = mock(() =>
       Promise.resolve(
         JSON.stringify({
