@@ -1,4 +1,4 @@
-import { test, describe, expect, mock, beforeEach, afterEach, spyOn } from "bun:test";
+import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
 
@@ -7,54 +7,19 @@ const mockStreamText = mock();
 describe("Execution Workflow: @dispatcher and @executor", () => {
   let engine;
   const projectRoot = "/test-project-exec";
+  // These will be populated by dynamic imports
   let GraphStateManager, Engine, realCreateExecutor, stateManager;
 
   beforeEach(async () => {
+    // --- MOCKING PHASE ---
     vol.reset();
     mockStreamText.mockClear();
 
-    mock.module("../../../services/tracing.js", () => ({
-      sdk: {
-        start: mock(),
-        shutdown: mock(async () => {}),
-      },
-      trace: {
-        getTracer: () => ({
-          startActiveSpan: (name, fn) =>
-            fn({
-              setAttribute: () => {},
-              recordException: () => {},
-              setStatus: () => {},
-              end: () => {},
-            }),
-        }),
-      },
-      SpanStatusCode: {
-        ERROR: "ERROR",
-      },
-    }));
-
-    // Prevent dotenv from reading actual .env files
+    // Mock all external or problematic modules BEFORE importing any application code.
     mock.module("dotenv", () => ({ config: mock() }));
-
-    // Set mock env vars BEFORE any application code is imported
-    process.env.OPENROUTER_API_KEY = "mock-api-key";
-    process.env.OPENROUTER_BASE_URL = "http://localhost:3000";
-    process.env.NEO4J_URI = "neo4j://localhost";
-    process.env.NEO4J_USER = "neo4j";
-    process.env.NEO4J_PASSWORD = "password";
-
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
-
-    // DEFINITIVE FIX: Mock the entire 'ai' package to prevent any background processes.
-    mock.module("ai", () => ({
-      streamText: mockStreamText,
-      // Add mocks for any other functions from 'ai' that might be called.
-      // For now, streamText is the only one.
-    }));
-
-    // Mock services that are instantiated on import
+    mock.module("ai", () => ({ streamText: mockStreamText }));
     mock.module("../../../services/config_service.js", () => ({
       configService: {
         getConfig: () => ({
@@ -70,7 +35,15 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
       appendLog: mock(async () => {}),
     }));
 
-    // Dynamically import modules AFTER mocks are in place
+    // Set mock env vars. This is safe as no app code has loaded yet.
+    process.env.OPENROUTER_API_KEY = "mock-api-key";
+    process.env.OPENROUTER_BASE_URL = "http://localhost:3000";
+    process.env.NEO4J_URI = "neo4j://localhost";
+    process.env.NEO4J_USER = "neo4j";
+    process.env.NEO4J_PASSWORD = "password";
+
+    // --- DYNAMIC IMPORT PHASE ---
+    // Now that mocks are in place, we can safely import the application code.
     const stateManagerModule = await import(
       "../../../src/infrastructure/state/GraphStateManager.js"
     );
@@ -80,11 +53,10 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     const engineModule = await import("../../../engine/server.js");
     Engine = engineModule.Engine;
 
-    // Setup mock project structure in the pristine filesystem
+    // --- SETUP PHASE ---
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.promises.mkdir(agentDir, { recursive: true });
-
     const dispatcherContent = `
 \`\`\`yaml
 agent:
@@ -120,38 +92,57 @@ agent:
         ...options,
         unifiedIntelligenceService: mockUnifiedIntelligenceService,
       };
-      const executor = await realCreateExecutor(engineInstance, ai, finalOptions, fs);
-      return executor;
+      return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
     };
 
-    // --- DEFINITIVE FIX: The Singleton Mismatch ---
-    // Create the stateManager ONCE and inject it into the engine.
+    // --- DEFINITIVE FIX: Create a STATEFUL mock driver for PROJECT nodes ---
+    let mockProjectDb = {}; // In-memory store for project states
+
     const mockDriver = {
       session: () => ({
-        run: () =>
-          Promise.resolve({
-            records: [],
-            summary: {
-              counters: {
-                updates: () => ({ nodesCreated: 1, relationshipsCreated: 1 }),
-              },
-            },
-          }),
+        run: (query, params) => {
+          const projectName = params?.projectName || "default";
+
+          if (query.includes("MERGE (p:Project")) {
+            // Update query for a project
+            const stateProperties = params.properties || {};
+            mockProjectDb[projectName] = { ...mockProjectDb[projectName], ...stateProperties };
+            return Promise.resolve({
+              records: [],
+              summary: { counters: { updates: () => ({ nodesCreated: 1 }) } },
+            });
+          }
+
+          if (query.includes("MATCH (p:Project")) {
+            // Get query for a project
+            const projectState = mockProjectDb[projectName];
+            if (!projectState) {
+              return Promise.resolve({ records: [], summary: {} });
+            }
+            const record = {
+              get: (key) => ({ properties: projectState }),
+            };
+            return Promise.resolve({ records: [record], summary: {} });
+          }
+
+          // Fallback for any other query
+          return Promise.resolve({ records: [], summary: { counters: { updates: () => ({}) } } });
+        },
         close: () => Promise.resolve(),
       }),
       close: () => Promise.resolve(),
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
+    // --- End of Fix ---
 
-    // Get the mock config from the mocked service to inject it
     const { configService } = await import("../../../services/config_service.js");
     const mockConfig = configService.getConfig();
 
     engine = new Engine({
       projectRoot,
       corePath: process.env.STIGMERGY_CORE_PATH,
-      stateManager, // <-- INJECTION
-      config: mockConfig, // <-- INJECTION
+      stateManager,
+      config: mockConfig,
       startServer: false,
       _test_fs: mockFs,
       _test_streamText: mockStreamText,
@@ -159,6 +150,7 @@ agent:
       _test_executorFactory: testExecutorFactory,
     });
 
+    // Initialize the state in our mock "database"
     await engine.stateManager.updateStatus({ newStatus: "AWAITING_USER_INPUT" });
   });
 

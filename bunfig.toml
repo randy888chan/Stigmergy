@@ -1,5 +1,6 @@
-// VERIFIED: Preload configuration is correct and free of DOM pollution.
+# VERIFIED: Preload configuration is correct and free of DOM pollution.
 [test]
+preload = ["./tests/setup-globals.js"]
 # This file will run BEFORE every test file.
 # setup-globals.js creates our temporary test directory.
 # NOTE: setup-dom.js has been removed from preload to prevent polluting the
