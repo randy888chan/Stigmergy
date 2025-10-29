@@ -54,7 +54,37 @@ agent:
     await createAgentFile("Dispatcher");
     await createAgentFile("Auditor");
 
-    stateManager = new GraphStateManager(projectRoot); // <-- Assign to the outer variable
+    // --- STATEFUL MOCK DRIVER ---
+    let mockProjectDb = {}; // In-memory store for project states
+    const mockDriver = {
+      session: () => ({
+        run: (query, params) => {
+          const projectName = params?.projectName || "default";
+          if (query.includes("MERGE (p:Project")) {
+            const stateProperties = params.properties || {};
+            mockProjectDb[projectName] = { ...mockProjectDb[projectName], ...stateProperties };
+            return Promise.resolve({
+              records: [],
+              summary: { counters: { updates: () => ({ nodesCreated: 1 }) } },
+            });
+          }
+          if (query.includes("MATCH (p:Project")) {
+            const projectState = mockProjectDb[projectName];
+            if (!projectState) return Promise.resolve({ records: [], summary: {} });
+            return Promise.resolve({
+              records: [{ get: () => ({ properties: projectState }) }],
+              summary: {},
+            });
+          }
+          return Promise.resolve({ records: [], summary: { counters: { updates: () => ({}) } } });
+        },
+        close: () => Promise.resolve(),
+      }),
+      close: () => Promise.resolve(),
+    };
+    stateManager = new GraphStateManager(projectRoot, mockDriver);
+    // --- END STATEFUL MOCK ---
+
     const mockUnifiedIntelligenceService = {};
     const testExecutorFactory = async (engineInstance, ai, options, fs) => {
       const finalOptions = {
@@ -64,10 +94,14 @@ agent:
       return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
     };
 
+    const { configService } = await import("../../../services/config_service.js");
+    const mockConfig = configService.getConfig();
+
     engine = new Engine({
       projectRoot,
       corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager,
+      config: mockConfig, // <-- INJECTION
       startServer: false,
       _test_fs: mockFs,
       _test_streamText: mockStreamText,
