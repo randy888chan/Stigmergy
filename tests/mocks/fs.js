@@ -69,6 +69,9 @@ mockFs.readJson = promisifyWithCallback(async (file) => {
   const content = await mockFs.promises.readFile(file, "utf8");
   return JSON.parse(content);
 });
+mockFs.ensureDirSync = (path, options) => {
+  return mockFs.mkdirSync(path, { recursive: true, ...options });
+};
 
 // 6. Final Export Structure: Supports `import fs from 'fs-extra'` and `import { promises } from 'fs-extra'`.
 const definitiveMock = {

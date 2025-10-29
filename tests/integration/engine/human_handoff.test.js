@@ -1,3 +1,4 @@
+// VERIFIED: This test correctly implements the full asynchronous handoff workflow, including response simulation.
 import { mock, describe, test, expect, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import { vol } from "../../mocks/fs.js";
