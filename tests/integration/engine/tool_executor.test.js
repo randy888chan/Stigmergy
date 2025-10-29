@@ -13,6 +13,30 @@ describe("Tool Executor Security (Definitive Fix)", () => {
   let mockFs;
   let OperationalError;
   let stateManager;
+  let Engine;
+  let GraphStateManager;
+
+  const mockConfig = {
+    security: {
+      allowedDirs: ["src", "public", ".stigmergy-core", "dist"],
+      generatedPaths: ["dist"],
+    },
+    max_session_cost: 1.0,
+    custom_agents_path: null,
+    collaboration: { mode: "single-player" },
+    ai: {
+      tiers: {
+        reasoning_tier: "mock-model",
+        execution_tier: "mock-model",
+      },
+      providers: {
+        "mock-provider": { models: ["mock-model"] },
+      },
+    },
+  };
+  mock.module("../../../stigmergy.config.js", () => ({
+    default: mockConfig,
+  }));
 
   beforeEach(async () => {
     vol.reset();
@@ -41,10 +65,11 @@ describe("Tool Executor Security (Definitive Fix)", () => {
       },
     }));
 
-    const { Engine } = await import("../../../engine/server.js");
-    const { GraphStateManager } = await import(
-      "../../../src/infrastructure/state/GraphStateManager.js"
-    );
+    // --- DEFINITIVE FIX: Dynamic Import ---
+    // Import modules *after* the mocks are established.
+    Engine = (await import("../../../engine/server.js")).Engine;
+    GraphStateManager = (await import("../../../src/infrastructure/state/GraphStateManager.js"))
+      .GraphStateManager;
     const errorHandlerModule = await import("../../../utils/errorHandler.js");
     OperationalError = errorHandlerModule.OperationalError;
 
@@ -94,36 +119,12 @@ agent:
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
 
-    // DEFINITIVE FIX: The mock config MUST match the structure the Engine constructor expects.
-    // The constructor accesses `config.ai.tiers`, so that structure must be present.
-    const mockConfig = {
-      security: {
-        allowedDirs: ["src", "public", ".stigmergy-core", "dist"],
-        generatedPaths: ["dist"],
-      },
-      max_session_cost: 1.0,
-      custom_agents_path: null,
-      collaboration: {
-        mode: "single-player",
-      },
-      ai: {
-        tiers: {
-          reasoning_tier: "mock-model",
-          execution_tier: "mock-model",
-        },
-        providers: {
-          "mock-provider": {
-            label: "Mock Provider",
-            models: ["mock-model"],
-          },
-        },
-      },
-    };
+    const { default: config } = await import("../../../stigmergy.config.js");
 
     mockEngine = new Engine({
       projectRoot,
       stateManager,
-      config: mockConfig, // Inject the complete mock config
+      config, // Inject the dynamically imported mock config
       startServer: false,
       _test_fs: mockFs,
       _test_streamText: true, // Prevent actual AI calls

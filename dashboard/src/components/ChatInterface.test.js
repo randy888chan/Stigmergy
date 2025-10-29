@@ -1,4 +1,5 @@
 import "../../../tests/setup-dom.js";
+// VERIFIED: Local DOM environment is correctly imported for this frontend test.
 import "../../setupTests.js";
 import React from "react";
 import { render, screen } from "@testing-library/react";
