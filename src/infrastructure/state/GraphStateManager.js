@@ -11,16 +11,18 @@ export class GraphStateManager extends EventEmitter {
     this.driver = driver;
     this.connectionStatus = "UNINITIALIZED";
     this.projectConfig = null;
+  }
 
+  async initialize() {
     if (this.driver) {
       this.connectionStatus = "INITIALIZED";
       console.log("GraphStateManager: Using pre-configured Neo4j driver.");
     } else {
-      this.initializeDriver();
+      await this.initializeDriver();
     }
   }
 
-  initializeDriver() {
+  async initializeDriver() {
     const neo4jUri = process.env.NEO4J_URI;
     const neo4jUser = process.env.NEO4J_USER;
     const neo4jPassword = process.env.NEO4J_PASSWORD;
@@ -53,7 +55,7 @@ export class GraphStateManager extends EventEmitter {
       };
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Neo4j connection timed out')), 5000)
+        setTimeout(() => reject(new Error("Neo4j connection timed out")), 5000)
       );
 
       await Promise.race([connectionTest(), timeoutPromise]);
@@ -61,7 +63,6 @@ export class GraphStateManager extends EventEmitter {
       this.driver = driver;
       this.connectionStatus = "INITIALIZED";
       console.log("GraphStateManager: Neo4j driver initialized and connection verified.");
-
     } catch (e) {
       console.warn(
         `GraphStateManager: Failed to initialize or connect to Neo4j driver. Falling back to in-memory state. Error: ${e.message}`

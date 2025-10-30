@@ -175,6 +175,7 @@ export class Engine {
       }
 
       this.stateManager = new GraphStateManager(this.projectRoot, storageAdapter);
+      await this.stateManager.initialize();
     }
     // --- End of Fix ---
     this.setupStateListener();

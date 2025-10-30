@@ -7,15 +7,19 @@ const mockStreamText = mock();
 describe("Execution Workflow: @dispatcher and @executor", () => {
   let engine;
   const projectRoot = "/test-project-exec";
-  // These will be populated by dynamic imports
   let GraphStateManager, Engine, realCreateExecutor, stateManager;
 
   beforeEach(async () => {
-    // --- MOCKING PHASE ---
     vol.reset();
     mockStreamText.mockClear();
 
-    // Mock all external or problematic modules BEFORE importing any application code.
+    // DEFINITIVE FIX: Mock all services BEFORE importing any application code
+    mock.module("../../../services/tracing.js", () => ({
+      sdk: { shutdown: () => Promise.resolve() },
+    }));
+    mock.module("../../../services/unified_intelligence.js", () => ({
+      unifiedIntelligenceService: {},
+    }));
     mock.module("dotenv", () => ({ config: mock() }));
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
@@ -35,15 +39,7 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
       appendLog: mock(async () => {}),
     }));
 
-    // Set mock env vars. This is safe as no app code has loaded yet.
-    process.env.OPENROUTER_API_KEY = "mock-api-key";
-    process.env.OPENROUTER_BASE_URL = "http://localhost:3000";
-    process.env.NEO4J_URI = "neo4j://localhost";
-    process.env.NEO4J_USER = "neo4j";
-    process.env.NEO4J_PASSWORD = "password";
-
-    // --- DYNAMIC IMPORT PHASE ---
-    // Now that mocks are in place, we can safely import the application code.
+    // DEFINITIVE FIX: Dynamically import Engine and other dependencies AFTER mocks are established
     const stateManagerModule = await import(
       "../../../src/infrastructure/state/GraphStateManager.js"
     );
@@ -53,7 +49,6 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     const engineModule = await import("../../../engine/server.js");
     Engine = engineModule.Engine;
 
-    // --- SETUP PHASE ---
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.promises.mkdir(agentDir, { recursive: true });
@@ -95,16 +90,12 @@ agent:
       return await realCreateExecutor(engineInstance, ai, finalOptions, fs);
     };
 
-    // --- DEFINITIVE FIX: Create a STATEFUL mock driver for PROJECT nodes ---
-    let mockProjectDb = {}; // In-memory store for project states
-
+    let mockProjectDb = {};
     const mockDriver = {
       session: () => ({
         run: (query, params) => {
           const projectName = params?.projectName || "default";
-
           if (query.includes("MERGE (p:Project")) {
-            // Update query for a project
             const stateProperties = params.properties || {};
             mockProjectDb[projectName] = { ...mockProjectDb[projectName], ...stateProperties };
             return Promise.resolve({
@@ -112,20 +103,12 @@ agent:
               summary: { counters: { updates: () => ({ nodesCreated: 1 }) } },
             });
           }
-
           if (query.includes("MATCH (p:Project")) {
-            // Get query for a project
             const projectState = mockProjectDb[projectName];
-            if (!projectState) {
-              return Promise.resolve({ records: [], summary: {} });
-            }
-            const record = {
-              get: (key) => ({ properties: projectState }),
-            };
+            if (!projectState) return Promise.resolve({ records: [], summary: {} });
+            const record = { get: (key) => ({ properties: projectState }) };
             return Promise.resolve({ records: [record], summary: {} });
           }
-
-          // Fallback for any other query
           return Promise.resolve({ records: [], summary: { counters: { updates: () => ({}) } } });
         },
         close: () => Promise.resolve(),
@@ -133,7 +116,7 @@ agent:
       close: () => Promise.resolve(),
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
-    // --- End of Fix ---
+    await stateManager.initialize();
 
     const { configService } = await import("../../../services/config_service.js");
     const mockConfig = configService.getConfig();
@@ -150,12 +133,10 @@ agent:
       _test_executorFactory: testExecutorFactory,
     });
 
-    // Initialize the state in our mock "database"
     await engine.stateManager.updateStatus({ newStatus: "AWAITING_USER_INPUT" });
   });
 
   afterEach(async () => {
-    // DEFINITIVE FIX: Ensure engine is always stopped to prevent resource leaks.
     if (engine) {
       await engine.stop();
     }
@@ -164,6 +145,11 @@ agent:
     }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
+    delete process.env.OPENROUTER_API_KEY;
+    delete process.env.OPENROUTER_BASE_URL;
+    delete process.env.NEO4J_URI;
+    delete process.env.NEO4J_USER;
+    delete process.env.NEO4J_PASSWORD;
   });
 
   test("Dispatcher should read plan and delegate to executor", async () => {
@@ -215,18 +201,18 @@ agent:
     const dispatcherFinishes = { text: "All done.", toolCalls: [], finishReason: "stop" };
 
     mockStreamText
-      .mockResolvedValueOnce(dispatcherReadsPlan) // dispatcher reads plan
-      .mockResolvedValueOnce(dispatcherReadsFile) // dispatcher reads file
-      .mockResolvedValueOnce(dispatcherDelegates) // dispatcher delegates to executor
-      .mockResolvedValueOnce(executorWritesFile) // executor calls writeFile
+      .mockResolvedValueOnce(dispatcherReadsPlan)
+      .mockResolvedValueOnce(dispatcherReadsFile)
+      .mockResolvedValueOnce(dispatcherDelegates)
+      .mockResolvedValueOnce(executorWritesFile)
       .mockResolvedValueOnce({
         text: '{"compliant": true, "reason": "Constitutional."}',
         toolCalls: [],
         finishReason: "stop",
-      }) // auditor approves
-      .mockResolvedValueOnce(executorFinishes) // executor finishes
-      .mockResolvedValueOnce(dispatcherUpdatesStatus) // dispatcher calls updateStatus
-      .mockResolvedValueOnce(dispatcherFinishes); // dispatcher finishes
+      })
+      .mockResolvedValueOnce(executorFinishes)
+      .mockResolvedValueOnce(dispatcherUpdatesStatus)
+      .mockResolvedValueOnce(dispatcherFinishes);
 
     const planContent = `
 tasks:
@@ -244,7 +230,6 @@ tasks:
     const finalState = await engine.stateManager.getState();
     expect(finalState.project_status).toBe("PLAN_EXECUTED");
 
-    // The file should be written to the executor's sandbox, not the project root.
     const expectedPath = path.join(
       projectRoot,
       ".stigmergy",
@@ -252,9 +237,6 @@ tasks:
       "executor",
       "src/example.js"
     );
-
-    // Log the file system state for debugging
-    console.log("Final file system state:", JSON.stringify(vol.toJSON(), null, 2));
 
     const finalContent = await mockFs.promises.readFile(expectedPath, "utf-8");
     expect(finalContent).toBe('console.log("hello");');

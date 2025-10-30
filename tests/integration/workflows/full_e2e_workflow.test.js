@@ -1,9 +1,6 @@
 import { spyOn, mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-import { Engine } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
 
 const mockStreamText = mock();
 
@@ -11,12 +8,20 @@ describe("Full E-to-E Workflow (Isolated)", () => {
   let engine;
   let projectRoot;
   let writeFileSpy;
-  let stateManager; // <-- Added to hold the stateManager instance
+  let stateManager;
+  let Engine; // To be populated by dynamic import
 
   beforeEach(async () => {
     vol.reset(); // PRISTINE STATE
     mockStreamText.mockClear();
 
+    // DEFINITIVE FIX: Mock all services BEFORE importing any application code
+    mock.module("../../../services/tracing.js", () => ({
+      sdk: { shutdown: () => Promise.resolve() },
+    }));
+    mock.module("../../../services/unified_intelligence.js", () => ({
+      unifiedIntelligenceService: {},
+    }));
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     mock.module("ai", () => ({ streamText: mockStreamText }));
@@ -28,6 +33,16 @@ describe("Full E-to-E Workflow (Isolated)", () => {
         }),
       },
     }));
+
+    // DEFINITIVE FIX: Dynamically import Engine and other dependencies AFTER mocks are established
+    const engineModule = await import("../../../engine/server.js");
+    Engine = engineModule.Engine;
+    const stateManagerModule = await import(
+      "../../../src/infrastructure/state/GraphStateManager.js"
+    );
+    const GraphStateManager = stateManagerModule.GraphStateManager;
+    const toolExecutorModule = await import("../../../engine/tool_executor.js");
+    const realCreateExecutor = toolExecutorModule.createExecutor;
 
     projectRoot = path.resolve("/test-project");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
@@ -83,6 +98,7 @@ agent:
       close: () => Promise.resolve(),
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
+    await stateManager.initialize();
     // --- END STATEFUL MOCK ---
 
     const mockUnifiedIntelligenceService = {};
@@ -116,6 +132,7 @@ agent:
     if (engine) {
       await engine.stop();
     }
+    // This is required because the stateManager is external to the engine
     if (stateManager) {
       await stateManager.closeDriver();
     }
@@ -127,7 +144,6 @@ agent:
     const filePath = "hello.txt";
     const fileContent = "Hello, world!";
 
-    // The mock sequence must now include the final status update.
     const dispatcherToolCalls = [
       {
         toolCallId: "1",
@@ -151,15 +167,12 @@ agent:
       }) // Auditor
       .mockResolvedValueOnce({ text: "All tasks are complete.", finishReason: "stop" }); // Final response
 
-    // Correct agent IDs must be used
     await engine.triggerAgent("@specifier", "Create a plan.");
     await engine.triggerAgent("@qa", "Review the plan.");
     await engine.triggerAgent("@dispatcher", "The plan is approved. Please write the file.");
 
-    // The path is now resolved inside the executor, so we check the sandboxed path.
     const expectedPath = path.join(projectRoot, ".stigmergy", "sandboxes", "dispatcher", filePath);
 
-    // More robust check: verify the file content directly.
     const actualContent = await mockFs.promises.readFile(expectedPath, "utf-8");
     expect(actualContent).toBe(fileContent);
 

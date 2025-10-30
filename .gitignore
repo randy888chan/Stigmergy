@@ -24,6 +24,9 @@ test-project/
 coverage/
 .stigmergy-core-test-temp-*
 tool_executor_test_temp_core/
+playwright-report/
+test-results/
+mock_server.log
 
 # Evaluation and Test Results
 evaluation/test_results*.json
