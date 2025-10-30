@@ -38,14 +38,33 @@ export class GraphStateManager extends EventEmitter {
     }
 
     try {
-      this.driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword), {
+      const driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword), {
         connectionTimeout: 5000, // 5 seconds
       });
+
+      const connectionTest = async () => {
+        const session = driver.session();
+        try {
+          await session.run("RETURN 1");
+          return true;
+        } finally {
+          await session.close();
+        }
+      };
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Neo4j connection timed out')), 5000)
+      );
+
+      await Promise.race([connectionTest(), timeoutPromise]);
+
+      this.driver = driver;
       this.connectionStatus = "INITIALIZED";
-      console.log("GraphStateManager: Neo4j driver initialized.");
+      console.log("GraphStateManager: Neo4j driver initialized and connection verified.");
+
     } catch (e) {
       console.warn(
-        `GraphStateManager: Failed to initialize Neo4j driver. Falling back to in-memory state. Error: ${e.message}`
+        `GraphStateManager: Failed to initialize or connect to Neo4j driver. Falling back to in-memory state. Error: ${e.message}`
       );
       this.connectionStatus = "FALLBACK_MODE";
       this.fallback_mode = true;

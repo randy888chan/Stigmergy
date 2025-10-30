@@ -2,60 +2,26 @@
 // It verifies the core dashboard user workflow in a real browser, providing
 // much higher confidence that the application is working as intended for a user.
 import { test, expect } from "@playwright/test";
-import { spawn } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 
-const ENGINE_PORT = 3014; // Use a unique port for this test
+const ENGINE_PORT = 3011; // Standard port for the 'start:mock' script
 const PROJECT_DIR = path.resolve(process.cwd(), "temp-dashboard-test-project");
-let engineProcess;
 
-test.beforeAll(async () => {
+// Note: The server is now expected to be started externally before running the tests.
+// This is a more robust pattern than managing child processes within the test file.
+
+test.beforeEach(async () => {
+  // Ensure the test directory is clean before each test
   await fs.rm(PROJECT_DIR, { recursive: true, force: true });
   await fs.mkdir(PROJECT_DIR, { recursive: true });
-
-  // Use the reliable 'start:mock' script to run the server in a controlled environment.
-  engineProcess = spawn("bun", ["run", "start:mock"], {
-    env: {
-      ...process.env,
-      PORT: ENGINE_PORT.toString(),
-      STIGMERGY_PORT: ENGINE_PORT.toString(),
-      OPENROUTER_API_KEY: "mock-api-key",
-      OPENROUTER_BASE_URL: `http://localhost:${ENGINE_PORT}`,
-      PROJECTS_BASE_PATH: PROJECT_DIR, // Ensure the mock server knows where to find projects
-    },
-    detached: true,
-  });
-
   // Add mock projects for the ProjectSelector to find
   await fs.mkdir(path.join(PROJECT_DIR, "project-a"));
   await fs.mkdir(path.join(PROJECT_DIR, "project-b"));
-
-  // Log server output for easier debugging
-  engineProcess.stdout.on("data", (data) => console.log(`[Dashboard E2E STDOUT]: ${data}`));
-  engineProcess.stderr.on("data", (data) => console.error(`[Dashboard E2E STDERR]: ${data}`));
-
-  // Wait for the engine to be ready by polling the health endpoint
-  await new Promise((resolve) => {
-    const interval = setInterval(async () => {
-      try {
-        const response = await fetch(`http://localhost:${ENGINE_PORT}/health`);
-        if (response.ok) {
-          console.log("[Dashboard E2E] Server is healthy.");
-          clearInterval(interval);
-          resolve();
-        }
-      } catch (e) {
-        // Ignore fetch errors while waiting for server
-      }
-    }, 1000);
-  });
 });
 
-test.afterAll(async () => {
-  if (engineProcess) {
-    process.kill(-engineProcess.pid); // Kill the process group
-  }
+test.afterEach(async () => {
+  // Clean up the directory after each test
   await fs.rm(PROJECT_DIR, { recursive: true, force: true });
 });
 
