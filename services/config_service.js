@@ -149,49 +149,54 @@ class ConfigService {
     console.log(`🔧 Loading environment configuration for: ${nodeEnv}`);
 
     // 1. Attempt to load from Doppler first
-    const configDir = path.join(os.homedir(), ".stigmergy");
-    const configFile = path.join(configDir, "config.json");
-    let dopplerToken;
-    try {
-      if (await fsExtra.pathExists(configFile)) {
-        const localConfig = await fsExtra.readJson(configFile);
-        dopplerToken = localConfig.dopplerToken;
-      }
-    } catch (e) {
-      console.warn(
-        chalk.yellow(
-          `   ⚠️ Could not read local config file at ${configFile}. Proceeding without Doppler.`
-        )
-      );
-    }
-
-    if (dopplerToken) {
+    // DEFINITIVE FIX: Skip Doppler in test environments to prevent hangs.
+    if (nodeEnv === "test") {
+      console.log(chalk.yellow("   Skipping Doppler check in test environment."));
+    } else {
+      const configDir = path.join(os.homedir(), ".stigmergy");
+      const configFile = path.join(configDir, "config.json");
+      let dopplerToken;
       try {
-        const doppler = new Doppler({
-          accessToken: dopplerToken,
-          // Add a timeout to prevent hanging in test environments
-          requestTimeout: 3000,
-        });
-        const dopplerProject = process.env.DOPPLER_PROJECT || "stigmergy";
-        console.log(`   Fetching secrets for Doppler project: ${dopplerProject}`);
-        const secrets = await doppler.secrets.get(dopplerProject);
-
-        for (const key in secrets) {
-          if (secrets[key].computed) {
-            process.env[key] = secrets[key].computed;
-          }
+        if (await fsExtra.pathExists(configFile)) {
+          const localConfig = await fsExtra.readJson(configFile);
+          dopplerToken = localConfig.dopplerToken;
         }
-        console.log(chalk.green("   ✅ Loaded secrets from Doppler. Skipping .env files."));
-        return; // Prioritize Doppler; do not load .env files if successful.
-      } catch (error) {
+      } catch (e) {
         console.warn(
           chalk.yellow(
-            `   ⚠️ Failed to fetch secrets from Doppler: ${error.message}. Falling back to .env files.`
+            `   ⚠️ Could not read local config file at ${configFile}. Proceeding without Doppler.`
           )
         );
       }
-    } else {
-      console.log(`   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.`);
+
+      if (dopplerToken) {
+        try {
+          const doppler = new Doppler({
+            accessToken: dopplerToken,
+            // Add a timeout to prevent hanging in test environments
+            requestTimeout: 3000,
+          });
+          const dopplerProject = process.env.DOPPLER_PROJECT || "stigmergy";
+          console.log(`   Fetching secrets for Doppler project: ${dopplerProject}`);
+          const secrets = await doppler.secrets.get(dopplerProject);
+
+          for (const key in secrets) {
+            if (secrets[key].computed) {
+              process.env[key] = secrets[key].computed;
+            }
+          }
+          console.log(chalk.green("   ✅ Loaded secrets from Doppler. Skipping .env files."));
+          return; // Prioritize Doppler; do not load .env files if successful.
+        } catch (error) {
+          console.warn(
+            chalk.yellow(
+              `   ⚠️ Failed to fetch secrets from Doppler: ${error.message}. Falling back to .env files.`
+            )
+          );
+        }
+      } else {
+        console.log(`   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.`);
+      }
     }
 
     // 2. Load .env files as a fallback or supplement

@@ -4,12 +4,61 @@
 import { test, expect } from "@playwright/test";
 import fs from "fs/promises";
 import path from "path";
+import { spawn } from "child_process";
 
 const ENGINE_PORT = 3011; // Standard port for the 'start:mock' script
 const PROJECT_DIR = path.resolve(process.cwd(), "temp-dashboard-test-project");
+let serverProcess;
 
-// Note: The server is now expected to be started externally before running the tests.
-// This is a more robust pattern than managing child processes within the test file.
+// ARCHITECTURAL FIX: The test suite now manages its own server process,
+// making it self-contained and reliable.
+test.beforeAll(async () => {
+  console.log("E2E: beforeAll started.");
+  console.log("Starting mock server for E2E tests...");
+  // Start the server as a detached process
+  serverProcess = spawn("bun", ["run", "start:mock"], {
+    cwd: process.cwd(),
+    detached: true,
+    stdio: "pipe", // Use pipe to capture stdout/stderr
+  });
+
+  // Wait for the server to be ready by listening for the startup message
+  await new Promise((resolve, reject) => {
+    serverProcess.stdout.on("data", (data) => {
+      const output = data.toString();
+      console.log(`[Server STDOUT]: ${output}`);
+      if (output.includes(`Stigmergy engine is running on http://localhost:${ENGINE_PORT}`)) {
+        console.log("Mock server started successfully.");
+        resolve();
+      }
+    });
+
+    serverProcess.stderr.on("data", (data) => {
+      console.error(`[Server STDERR]: ${data.toString()}`);
+    });
+
+    serverProcess.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`Server process exited with code ${code}`));
+      }
+    });
+  });
+});
+
+test.afterAll(async () => {
+  console.log("E2E: afterAll started.");
+  if (serverProcess) {
+    console.log("Stopping mock server...");
+    // Kill the entire process group to ensure the server and any of its children are terminated
+    try {
+      // The `-` before the PID is crucial to kill the entire process group.
+      process.kill(-serverProcess.pid);
+      console.log("Mock server stopped.");
+    } catch (e) {
+      console.error("Failed to stop server:", e);
+    }
+  }
+});
 
 test.beforeEach(async () => {
   // Ensure the test directory is clean before each test
