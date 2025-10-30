@@ -1194,18 +1194,16 @@ Based on the information above, please formulate a plan and execute the mission.
     // --- THIS MUST BE LAST: THE GENERAL "CATCH-ALL" ROUTES ---
 
     // 5. Serve Static Assets (JS, CSS, images) from the public directory
-    if (process.env.NODE_ENV !== "test") {
-      // The "Reliable Path" fix: construct path relative to this file's location.
-      const currentFilePath = new URL(import.meta.url).pathname;
-      const engineDir = path.dirname(currentFilePath);
-      const projectRootForStatic = path.resolve(engineDir, ".."); // Assumes engine is one level down from project root
-      const publicPath = path.join(projectRootForStatic, "dashboard", "public");
+    // The "Reliable Path" fix: construct path relative to this file's location.
+    const currentFilePath = new URL(import.meta.url).pathname;
+    const engineDir = path.dirname(currentFilePath);
+    const projectRootForStatic = path.resolve(engineDir, ".."); // Assumes engine is one level down from project root
+    const publicPath = path.join(projectRootForStatic, "dashboard", "public");
 
-      this.app.use("/*", serveStatic({ root: publicPath }));
+    this.app.use("/*", serveStatic({ root: publicPath }));
 
-      // 6. Fallback for Single-Page App: Serve index.html for any other GET request
-      this.app.get("*", serveStatic({ path: "index.html", root: publicPath }));
-    }
+    // 6. Fallback for Single-Page App: Serve index.html for any other GET request
+    this.app.get("*", serveStatic({ path: "index.html", root: publicPath }));
   }
 
   broadcastEvent(type, payload) {
