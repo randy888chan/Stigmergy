@@ -678,10 +678,6 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.mb-2 {
-  margin-bottom: 0.5rem;
-}
-
 .mb-6 {
   margin-bottom: 1.5rem;
 }
@@ -868,10 +864,6 @@ body {
 
 .max-w-lg {
   max-width: 32rem;
-}
-
-.max-w-none {
-  max-width: none;
 }
 
 .max-w-xs {
@@ -1086,10 +1078,6 @@ body {
   border-top-width: 1px;
 }
 
-.border-destructive {
-  border-color: hsl(var(--destructive));
-}
-
 .border-destructive\/50 {
   border-color: hsl(var(--destructive) / 0.5);
 }
@@ -1279,10 +1267,6 @@ body {
 
 .text-center {
   text-align: center;
-}
-
-.text-right {
-  text-align: right;
 }
 
 .align-middle {
