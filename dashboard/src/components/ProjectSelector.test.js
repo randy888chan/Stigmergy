@@ -1,35 +1,30 @@
+// Definitive Fix: New test file to resolve environment conflicts.
 import "../../../tests/setup-dom.js";
 import "../../setupTests.js";
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { GlobalRegistrator } from "@happy-dom/global-registrator";
 import ProjectSelector from "./ProjectSelector";
-
-// Mock the global fetch
-global.fetch = jest.fn(() =>
-  Promise.resolve({
-    ok: true,
-    json: () => Promise.resolve(["project-a", "project-b"]),
-  })
-);
+import { mock } from "bun:test";
 
 describe("ProjectSelector", () => {
-  beforeAll(() => {
-    GlobalRegistrator.register();
-  });
-  afterAll(() => {
-    GlobalRegistrator.unregister();
-  });
   test('loads and displays projects when "Find Projects" is clicked', async () => {
+    // Mock fetch locally for this test
+    global.fetch = mock(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(["project-a", "project-b"]),
+      })
+    );
+
     render(<ProjectSelector activeProject={null} onProjectSelect={() => {}} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Find Projects" }));
 
     await waitFor(() => {
-      // The placeholder is inside the combobox trigger for the Select component
       const trigger = screen.getByRole("combobox");
       expect(trigger).toBeInTheDocument();
-      expect(trigger).toHaveTextContent(/select a project/i);
+      // This assertion is more robust as it doesn't depend on specific placeholder text
+      expect(screen.getByText("project-a")).toBeInTheDocument();
     });
   });
 });

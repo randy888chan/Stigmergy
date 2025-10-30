@@ -1,12 +1,30 @@
-// Setup script that runs before each test file to create a fake browser environment
-import { GlobalRegistrator } from "@happy-dom/global-registrator";
+// DEFINITIVE FIX: Replace happy-dom with jsdom for a stable, feature-complete environment.
+import { JSDOM } from "jsdom";
+import { TextEncoder, TextDecoder } from "util";
 
-// The global DOM environment is no longer registered here.
-// Each frontend component test will register it locally.
-// Mock fetch for frontend components
-global.fetch = jest.fn(() =>
+// Create a new JSDOM instance.
+const dom = new JSDOM('<!DOCTYPE html><div id="root"></div>', {
+  url: "http://localhost:3010", // Set a base URL for fetch requests
+  pretendToBeVisual: true, // Allow requestAnimationFrame
+});
+
+// Expose the JSDOM window object and its properties globally
+global.window = dom.window;
+global.document = dom.window.document;
+global.navigator = dom.window.navigator;
+global.requestAnimationFrame = dom.window.requestAnimationFrame;
+global.cancelAnimationFrame = dom.window.cancelAnimationFrame;
+
+// Polyfill missing APIs
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+global.fetch = () =>
   Promise.resolve({
     json: () => Promise.resolve({ projects: ["project-a", "project-b"] }),
     ok: true,
-  })
-);
+  });
+
+// This ensures that React's testing library can find the DOM.
+if (typeof window === "undefined") {
+  global.window = {};
+}

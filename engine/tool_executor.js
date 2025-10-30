@@ -254,6 +254,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
           _test_streamText: engine._test_streamText,
           _test_unifiedIntelligenceService: engine._test_unifiedIntelligenceService,
           _test_executorFactory: engine._test_executorFactory, // Pass the factory itself
+          trajectoryRecorder: engine.trajectoryRecorder, // DEFINITIVE FIX: Propagate the recorder
         });
 
         // THIS IS THE CRITICAL FIX:
