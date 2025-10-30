@@ -1,12 +1,9 @@
 import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-import { Engine } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
 
 // High-fidelity mocks for git operations
-const mockCommit = mock(async () => ({ commit: "mock-commit-hash", summary: { changes: 1 } })); // Accept any args
+const mockCommit = mock(async () => ({ commit: "mock-commit-hash", summary: { changes: 1 } }));
 const mockInit = mock(async () => {});
 const mockAdd = mock(async () => {});
 
@@ -16,6 +13,7 @@ describe("Genesis Agent Workflow", () => {
   let engine;
   let projectRoot;
   let stateManager;
+  let Engine; // To be populated by dynamic import
 
   beforeEach(async () => {
     vol.reset();
@@ -24,22 +22,20 @@ describe("Genesis Agent Workflow", () => {
     mockStreamText.mockClear();
     mockAdd.mockClear();
 
+    // DEFINITIVE FIX: Mock all services BEFORE importing any application code
+    mock.module("../../../services/tracing.js", () => ({
+      sdk: { shutdown: () => Promise.resolve() },
+    }));
+    mock.module("../../../services/unified_intelligence.js", () => ({
+      unifiedIntelligenceService: {},
+    }));
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
-
-    // This mock is critical. `simple-git` checks for directory existence, which fails in memfs.
-    // The `cwd` function is also vital, as the tool depends on it.
     const mockSimpleGit = () => {
-      const git = {
-        init: mockInit,
-        add: mockAdd,
-        commit: mockCommit,
-        cwd: () => git, // Return `this` (git object) for chaining
-      };
+      const git = { init: mockInit, add: mockAdd, commit: mockCommit, cwd: () => git };
       return git;
     };
     mock.module("simple-git", () => ({ default: mockSimpleGit, simpleGit: mockSimpleGit }));
-
     mock.module("ai", () => ({ streamText: mockStreamText }));
     mock.module("../../../services/config_service.js", () => ({
       configService: {
@@ -49,6 +45,16 @@ describe("Genesis Agent Workflow", () => {
         }),
       },
     }));
+
+    // DEFINITIVE FIX: Dynamically import Engine and other dependencies AFTER mocks are established
+    const engineModule = await import("../../../engine/server.js");
+    Engine = engineModule.Engine;
+    const stateManagerModule = await import(
+      "../../../src/infrastructure/state/GraphStateManager.js"
+    );
+    const GraphStateManager = stateManagerModule.GraphStateManager;
+    const toolExecutorModule = await import("../../../engine/tool_executor.js");
+    const realCreateExecutor = toolExecutorModule.createExecutor;
 
     projectRoot = path.resolve("/test-genesis-project");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
@@ -73,7 +79,6 @@ agent:
 `;
     await mockFs.promises.writeFile(path.join(agentDir, "auditor.md"), auditorAgentContent);
 
-    // --- STATEFUL MOCK DRIVER ---
     let mockProjectDb = {};
     const mockDriver = {
       session: () => ({
@@ -102,7 +107,7 @@ agent:
       close: () => Promise.resolve(),
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
-    // --- END STATEFUL MOCK ---
+    await stateManager.initialize();
 
     const mockUnifiedIntelligenceService = {};
     const testExecutorFactory = async (engineInstance, ai, options, fs) => {
@@ -140,6 +145,9 @@ agent:
     }
     mock.restore();
     delete process.env.STIGMERGY_CORE_PATH;
+    delete process.env.NEO4J_URI;
+    delete process.env.NEO4J_USER;
+    delete process.env.NEO4J_PASSWORD;
   });
 
   test("should initialize a new project, create a file, and make an initial commit", async () => {
@@ -148,7 +156,6 @@ agent:
     const sandboxDir = path.join(projectRoot, ".stigmergy/sandboxes/genesis");
     await mockFs.ensureDir(sandboxDir);
 
-    // Realistic multi-turn mock
     const toolCalls = [
       { toolName: "git_tool.init", args: { path: "." }, toolCallId: "1" },
       {
@@ -159,33 +166,27 @@ agent:
       { toolName: "git_tool.commit", args: { message: "Initial commit" }, toolCallId: "3" },
     ];
 
-    // This simpler, sequential mock is more reliable for this linear workflow.
     mockStreamText
-      // 1. Genesis decides to init
       .mockResolvedValueOnce({
         text: "Okay, I will initialize the project.",
         toolCalls: [toolCalls[0]],
         finishReason: "tool-calls",
       })
-      // 2. Genesis decides to write the file
       .mockResolvedValueOnce({
         text: "Now, I will create the file.",
         toolCalls: [toolCalls[1]],
         finishReason: "tool-calls",
       })
-      // 3. The tool executor calls the auditor for the writeFile call
       .mockResolvedValueOnce({
         text: '{"compliant": true, "reason": "Constitutional."}',
         toolCalls: [],
         finishReason: "stop",
       })
-      // 4. Genesis decides to commit
       .mockResolvedValueOnce({
         text: "Finally, I will commit the file.",
         toolCalls: [toolCalls[2]],
         finishReason: "tool-calls",
       })
-      // 5. Genesis finishes its work
       .mockResolvedValueOnce({
         text: "All tasks are complete.",
         toolCalls: [],
@@ -198,7 +199,6 @@ agent:
     expect(mockAdd).toHaveBeenCalledWith("./*");
     expect(mockCommit).toHaveBeenCalledTimes(1);
 
-    // Verify the file was written by trying to read it. This is more robust than pathExists.
     let fileContent;
     try {
       fileContent = await mockFs.promises.readFile(path.join(sandboxDir, "index.js"), "utf-8");
