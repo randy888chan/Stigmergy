@@ -1,0 +1,8 @@
+$ USE_MOCK_AI=true STIGMERGY_PORT=3011 bun run engine/server.js
+1 | (function (entry, fetcher)
+              ^
+SyntaxError: Export named 'Resource' not found in module '/app/node_modules/@opentelemetry/resources/build/src/index.js'.
+      at loadAndEvaluateModule (1:11)
+
+Bun v1.2.14 (Linux x64 baseline)
+error: script "start:mock" exited with code 1

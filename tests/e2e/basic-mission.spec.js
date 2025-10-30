@@ -1,37 +1,19 @@
 import { test, expect } from "@playwright/test";
-import { spawn } from "child_process";
 import fs from "fs/promises";
 import path from "path";
 
-const ENGINE_PORT = 3013; // Use a unique port for this test
+const ENGINE_PORT = 3011; // Standard port for the 'start:mock' script
 const PROJECT_DIR = path.resolve(process.cwd(), "temp-playwright-project");
 const OUTPUT_FILE = path.join(PROJECT_DIR, "output.js");
-let engineProcess;
 
-test.beforeAll(async () => {
+// Note: The server is now expected to be started externally before running the tests.
+
+test.beforeEach(async () => {
   await fs.rm(PROJECT_DIR, { recursive: true, force: true });
   await fs.mkdir(PROJECT_DIR, { recursive: true });
-
-  // Start the Stigmergy Core Engine for the test
-  engineProcess = spawn("bun", ["run", "engine/server.js"], {
-    env: { ...process.env, STIGMERGY_PORT: ENGINE_PORT, USE_MOCK_AI: "true" }, // Use mock AI for speed
-    detached: true,
-  });
-
-  // Wait for the engine to be ready
-  await new Promise((resolve) => {
-    engineProcess.stdout.on("data", (data) => {
-      if (data.toString().includes("Stigmergy engine is running")) {
-        resolve();
-      }
-    });
-  });
 });
 
-test.afterAll(async () => {
-  if (engineProcess) {
-    process.kill(-engineProcess.pid); // Kill the process group
-  }
+test.afterEach(async () => {
   await fs.rm(PROJECT_DIR, { recursive: true, force: true });
 });
 
