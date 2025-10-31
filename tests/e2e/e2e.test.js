@@ -1,6 +1,3 @@
-// Definitive Fix: This new E2E test replaces the four broken component tests.
-// It verifies the core dashboard user workflow in a real browser, providing
-// much higher confidence that the application is working as intended for a user.
 import { test, expect } from "@playwright/test";
 import fs from "fs/promises";
 import path from "path";
@@ -46,7 +43,7 @@ test.describe("Dashboard Core Workflow", () => {
     // 5. Submit a mission
     await page.fill(
       'textarea[placeholder="Enter your mission objective..."]',
-      "Create a simple hello world script."
+      "Create a file named output.js that logs 'Hello from Playwright'"
     );
     await page.getByRole("button", { name: "Send" }).click();
 

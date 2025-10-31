@@ -9,7 +9,13 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
+    baseURL: "http://localhost:3011",
     trace: "on-first-retry",
+  },
+  webServer: {
+    command: "bun run start:mock",
+    url: "http://localhost:3011",
+    reuseExistingServer: !process.env.CI,
   },
   projects: [
     {
