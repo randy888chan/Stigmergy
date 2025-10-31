@@ -27,6 +27,7 @@ tool_executor_test_temp_core/
 playwright-report/
 test-results/
 mock_server.log
+server.log
 
 # Evaluation and Test Results
 evaluation/test_results*.json
