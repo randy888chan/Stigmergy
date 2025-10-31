@@ -1,0 +1,461 @@
+bun test v1.2.14 (6a363a38)
+
+tests/e2e/e2e.test.js:
+
+# Unhandled error between tests
+-------------------------------
+69 |     this.test = test;
+70 |   }
+71 |   _currentSuite(location, title) {
+72 |     const suite = (0, import_globals.currentlyLoadingFileSuite)();
+73 |     if (!suite) {
+74 |       throw new Error([
+                 ^
+error: Playwright Test did not expect test.beforeEach() to be called here.
+Most common reasons include:
+- You are calling test.beforeEach() in a configuration file.
+- You are calling test.beforeEach() in a file that is imported by the configuration file.
+- You have two different versions of @playwright/test. This usually happens
+  when one of the dependencies in your package.json depends on @playwright/test.
+      at _currentSuite (/app/node_modules/playwright/lib/common/testType.js:74:13)
+      at _hook (/app/node_modules/playwright/lib/common/testType.js:159:24)
+      at /app/tests/e2e/e2e.test.js:10:6
+      at loadAndEvaluateModule (2:1)
+-------------------------------
+
+
+tests/e2e/live_mission.test.js:
+(skip) Live E2E Mission: Create a file
+
+tests/unit/debug.test.js:
+(pass) GitUrlParser > parse > should parse HTTPS GitHub URLs correctly [0.39ms]
+(pass) GitUrlParser > parse > should parse HTTPS URLs without .git suffix [0.10ms]
+(pass) GitUrlParser > parse > should parse SSH GitHub URLs correctly [0.08ms]
+(pass) GitUrlParser > parse > should parse GitLab URLs correctly [0.06ms]
+(pass) GitUrlParser > parse > should parse Bitbucket URLs correctly [0.04ms]
+(pass) GitUrlParser > parse > should parse custom Git server URLs correctly [0.04ms]
+(pass) GitUrlParser > parse > should parse git protocol URLs correctly [0.07ms]
+(pass) GitUrlParser > parse > should throw error for invalid URLs [0.30ms]
+(pass) GitUrlParser > parse > should throw error for null/undefined URLs [0.09ms]
+(pass) GitUrlParser > isGitUrl > should return true for valid git URLs [0.09ms]
+(pass) GitUrlParser > isGitUrl > should return false for invalid URLs [0.07ms]
+(pass) GitUrlParser > validateUrl > should return valid=true for valid URLs [0.09ms]
+(pass) GitUrlParser > validateUrl > should return valid=false with error for invalid URLs [0.14ms]
+(pass) GitUrlParser > normalizeUrl > should normalize SSH URLs to HTTPS [0.16ms]
+(pass) GitUrlParser > normalizeUrl > should keep HTTPS URLs as-is [0.13ms]
+(pass) GitUrlParser > buildCloneUrl > should build HTTPS clone URL [0.11ms]
+(pass) GitUrlParser > buildCloneUrl > should build SSH clone URL [0.04ms]
+(pass) GitUrlParser > buildCloneUrl > should build GitHub clone URL with token [0.03ms]
+(pass) GitUrlParser > buildCloneUrl > should build GitLab clone URL with token [0.04ms]
+(pass) debug [0.02ms]
+
+tests/unit/localization.test.js:
+(pass) Localization utilities > should translate error messages [0.16ms]
+(pass) Localization utilities > should fallback to English if translation not found [0.03ms]
+(pass) Localization utilities > should handle localization of error objects [0.08ms]
+
+tests/unit/system_validator.test.js:
+--- Starting Comprehensive System Health Check ---
+✅ System health check passed successfully.
+(pass) SystemValidator > should run comprehensiveCheck and report success when all checks pass [1.13ms]
+(pass) SystemValidator > validateBackups should return success when backups are valid [0.18ms]
+(pass) SystemValidator > validateBackups should return an error if the backup directory does not exist [0.21ms]
+(pass) SystemValidator > validateBackups should return an error if there are no backup files [0.12ms]
+--- Starting Comprehensive System Health Check ---
+⚠️ System health check failed.
+(pass) SystemValidator > comprehensiveCheck should report failure if any check fails [0.36ms]
+(pass) SystemValidator > validateBackups should validate the most recent backup file [0.36ms]
+
+tests/unit/HttpStorageAdapter.test.js:
+HttpStorageAdapter initialized for server: http://localhost:3012
+HttpStorageAdapter: State fetched successfully from the server.
+(pass) HttpStorageAdapter > should fetch state from the server [0.67ms]
+HttpStorageAdapter initialized for server: http://localhost:3012
+HttpStorageAdapter: State updated successfully on the server.
+(pass) HttpStorageAdapter > should update state on the server [0.30ms]
+
+tests/integration/workflows/03_execution.test.js:
+GraphStateManager: Using pre-configured Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] State changed to: AWAITING_USER_INPUT
+[Engine] Triggering agent @dispatcher with prompt: "Proceed with the plan."
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @executor with prompt: "Create file src/example.js with content: console.log("hello");"
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: executor
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "src/example.js",
+  "content": "console.log(\"hello\");"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[Engine] State changed to: PLAN_EXECUTED
+[System Tool] System status successfully updated to PLAN_EXECUTED.
+(pass) Execution Workflow: @dispatcher and @executor > Dispatcher should read plan and delegate to executor [26.26ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/workflows/full_e2e_workflow.test.js:
+GraphStateManager: Using pre-configured Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @specifier with prompt: "Create a plan."
+[Engine] Triggering agent @qa with prompt: "Review the plan."
+[Engine] Triggering agent @dispatcher with prompt: "The plan is approved. Please write the file."
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: dispatcher
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "hello.txt",
+  "content": "Hello, world!"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] State changed to: EXECUTION_COMPLETE
+[System Tool] System status successfully updated to EXECUTION_COMPLETE.
+(pass) Full E-to-E Workflow (Isolated) > Isolation Test: Manually-triggered workflow should execute correctly [6.74ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/workflows/research_workflow.test.js:
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @analyst with prompt: "What is the impact of AI on software development?"
+(pass) Research Workflow > triggers deep_dive, evaluate_sources, and reports with confidence [1.34ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/workflows/planning_and_review.test.js:
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @specifier with prompt: "Create a plan for a simple file."
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @qa with prompt: "Please review the generated plan."
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+(pass) Phase-Based E2E Test: Planning and Review Handoff > Specifier should correctly delegate a plan to the QA agent [4.02ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/workflows/genesis_workflow.test.js:
+GraphStateManager: Using pre-configured Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] State changed to: AWAITING_USER_INPUT
+[Engine] Triggering agent @genesis with prompt: "Create a new Node.js project with an index.js file that logs 'hello world'"
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: genesis
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "index.js",
+  "content": "console.log('hello world');"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+(pass) Genesis Agent Workflow > should initialize a new project, create a file, and make an initial commit [5.39ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/engine/agent_and_tools.test.js:
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+(pass) Engine: Agent and Coderag Tool Integration > should call coderag.semantic_search [1.72ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+(pass) Engine: Agent and Coderag Tool Integration > should call coderag.calculate_metrics [1.18ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+(pass) Engine: Agent and Coderag Tool Integration > should call coderag.find_architectural_issues [1.05ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+
+tests/integration/engine/tool_executor.test.js:
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+(pass) Tool Executor Security (Definitive Fix) > should allow writing to a safe directory [2.14ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+(pass) Tool Executor Security (Definitive Fix) > should prevent writing to an unsafe directory [2.07ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+(pass) Tool Executor Security (Definitive Fix) > should prevent path traversal [0.75ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+(pass) Tool Executor Security (Definitive Fix) > should prevent writing to a generated code path [0.68ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+(pass) Tool Executor Security (Definitive Fix) > should allow @guardian to write to core files [1.38ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+(pass) Tool Executor Security (Definitive Fix) > should prevent non-@guardian agents from writing to core files [0.69ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action blocked by @auditor: Violation of test principle.
+(pass) Tool Executor Security (Definitive Fix) > should block a tool call if the @auditor deems it non-compliant [1.12ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/engine/human_handoff.test.js:
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+serveStatic: root path '/app/dashboard/public' is not found, are you sure it's correct?
+[Engine] Triggering agent @dispatcher with prompt: "Please request approval for the plan."
+[System Tool] Requesting human approval (ID: req_1761904646752_osuliff): Approve plan?
+(pass) Human Handoff Workflow > Dispatcher agent should call the request_human_approval tool [102.85ms]
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+
+tests/integration/external/ai_provider.test.js:
+(skip) External Service Health Check: AI Provider > LIVE: should connect to OpenRouter and receive a valid model list
+
+tests/integration/external/database.test.js:
+(skip) External Service Health Check: Neo4j Database > LIVE: should connect to the configured Neo4j database successfully
+
+tests/unit/utils/localization.test.js:
+(pass) Localization Utilities > should translate error messages [0.05ms]
+(pass) Localization Utilities > should fallback to English if translation not found [0.02ms]
+(pass) Localization Utilities > should handle localization of error objects [0.06ms]
+
+tests/unit/utils/errorHandler.test.js:
+(pass) Error Handler Utilities > should have error handler instance [0.04ms]
+[ErrorHandler] Processed Error [AgentFailure] for Agent [unknown]
+  -> Original Message: test error
+(pass) Error Handler Utilities > should process errors properly [2.07ms]
+(pass) Error Handler Utilities > should have ERROR_TYPES defined [0.06ms]
+(pass) Error Handler Utilities > should create OperationalError instances [0.05ms]
+
+tests/unit/utils/queryCache.test.js:
+(pass) Query Cache Utilities > should have cachedQuery function [0.03ms]
+(pass) Query Cache Utilities > should properly cache query results [0.02ms]
+
+tests/unit/utils/sanitization.test.js:
+(pass) Sanitization Utilities > should have sanitizeToolCall function [0.03ms]
+(pass) Sanitization Utilities > should properly sanitize tool calls [0.02ms]
+
+tests/unit/ai/providers.test.js:
+(pass) AI Provider Logic > should use createOpenAI for the OpenAI provider without strict compatibility [0.28ms]
+(pass) AI Provider Logic > should use createOpenAI with "strict" compatibility for OpenRouter provider [0.09ms]
+(pass) AI Provider Logic > should remove trailing /v1 from baseURL before calling provider [0.09ms]
+
+tests/unit/tools/file_system.test.js:
+(pass) File System Tools (Definitive Fix) > should write a file and then read it back [0.92ms]
+(pass) File System Tools (Definitive Fix) > should append content to an existing file [0.85ms]
+(pass) File System Tools (Definitive Fix) > listFiles should list files recursively and return relative paths [11.64ms]
+(pass) File System Tools (Definitive Fix) > readFile should return an error if the file does not exist [0.28ms]
+
+tests/unit/tools/qa_tools.test.js:
+(pass) QA Tools > should have QA tool functions [0.04ms]
+(pass) QA Tools > verify_requirements should use the injected AI functions [5.31ms]
+(pass) QA Tools > verify_architecture should use the injected AI functions [0.66ms]
+
+tests/unit/tools/shell.test.js:
+(pass) Shell Tool > should execute shell commands and return stdout [0.39ms]
+(pass) Shell Tool > should handle command errors gracefully [0.28ms]
+(pass) Shell Tool > should return stderr even on successful exit [0.21ms]
+
+tests/unit/tools/chat_interface.test.js:
+Processing command: create a new api endpoint for users
+Command is development related.
+(pass) Chat Interface Tool > should call initializeProject for a development-related command [0.52ms]
+Processing command: what is the system status
+Command is health related.
+(pass) Chat Interface Tool > should NOT call initializeProject for a system status command [0.10ms]
+Processing command: some random unknown command
+Command is unknown, asking for clarification.
+(pass) Chat Interface Tool > should return a clarification message for an unknown command [0.12ms]
+
+tests/unit/tools/core_tools.test.js:
+(pass) Core Tools > should have all required core tool functions [0.03ms]
+(pass) Core Tools > should properly create structured responses [0.02ms]
+
+tests/unit/tools/business_verification.test.js:
+(pass) Business Verification Tools > should have all required business verification functions [0.15ms]
+(pass) Business Verification Tools > generate_financial_projections should use the injected AI functions [1.27ms]
+(pass) Business Verification Tools > perform_business_valuation should use the injected AI functions [0.79ms]
+
+tests/unit/tools/swarm_intelligence_tools.test.js:
+(pass) Swarm Intelligence Tools > should have all required swarm intelligence functions [1.87ms]
+(pass) Swarm Intelligence Tools > should properly handle failure patterns analysis [0.05ms]
+
+packages/coderag/tests/simple-components.test.ts:
+(pass) Simple Component Tests > NodeManager Simple Tests > should handle empty search results [0.33ms]
+(pass) Simple Component Tests > NodeManager Simple Tests > should get node label for different types [0.10ms]
+(pass) Simple Component Tests > NodeManager Simple Tests > should ensure plain object conversion [0.26ms]
+(pass) Simple Component Tests > EdgeManager Simple Tests > should handle empty edge queries [0.26ms]
+(pass) Simple Component Tests > EdgeManager Simple Tests > should handle inheritance hierarchy with no results [0.16ms]
+(pass) Simple Component Tests > EdgeManager Simple Tests > should ensure plain object conversion for edges [0.19ms]
+(pass) Simple Component Tests > Neo4jClient Simple Tests > should generate project labels correctly [0.18ms]
+(pass) Simple Component Tests > Neo4jClient Simple Tests > should generate and parse scoped IDs [0.12ms]
+
+packages/coderag/tests/git-cache-manager.test.ts:
+(pass) GitCacheManager > getCachedRepository > should return null for non-existent cache entry [0.65ms]
+(pass) GitCacheManager > getCachedRepository > should return null for expired cache entry [1108.01ms]
+(pass) GitCacheManager > addToCache > should add repository to cache [2.35ms]
+(pass) GitCacheManager > addToCache > should retrieve cached repository [1.99ms]
+(pass) GitCacheManager > getCacheStats > should return cache statistics [0.39ms]
+(pass) GitCacheManager > getCacheStats > should update statistics after adding entries [1.97ms]
+(pass) GitCacheManager > clearCache > should clear all cache entries [2.47ms]
+
+packages/coderag/tests/types.test.ts:
+(pass) Types > should create a valid CodeNode [2.70ms]
+(pass) Types > should create a valid CodeEdge [0.11ms]
+(pass) Types > should allow minimal CodeNode [0.05ms]
+(pass) Types > should allow minimal CodeEdge [0.03ms]
+
+packages/coderag/tests/remote-scanner-tools.test.ts:
+(pass) Remote Scanner Tools > createRemoteScannerTools > should return array of remote scanner tools [0.28ms]
+(pass) Remote Scanner Tools > createRemoteScannerTools > should have proper schema for scan_remote_repo tool [0.09ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > scan_remote_repo > should handle successful repository scanning [1.95ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > scan_remote_repo > should handle custom project ID [0.24ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > scan_remote_repo > should clear graph when requested [0.26ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > validate_remote_repo > should validate accessible repository [0.53ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > validate_remote_repo > should handle inaccessible repository [0.13ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > validate_remote_repo > should handle validation errors [0.45ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > git_cache_stats > should return cache statistics [0.25ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > clear_git_cache > should clear cache and return statistics [6.07ms]
+(pass) Remote Scanner Tools > handleRemoteScannerTool > error handling > should throw error for unknown tool [0.20ms]
+
+packages/coderag/tests/config.test.ts:
+(pass) Configuration > should return valid config when all environment variables are set [0.10ms]
+(pass) Configuration > should throw error when NEO4J_URI is missing [0.07ms]
+(pass) Configuration > should throw error when NEO4J_USER is missing [0.07ms]
+(pass) Configuration > should throw error when NEO4J_PASSWORD is missing [0.05ms]
+
+packages/coderag/tests/git-auth-manager.test.ts:
+(pass) GitAuthManager > loadAuthFromEnvironment > should load GitHub token from environment [0.29ms]
+(pass) GitAuthManager > loadAuthFromEnvironment > should load GitLab token and host from environment [0.12ms]
+(pass) GitAuthManager > loadAuthFromEnvironment > should load Bitbucket credentials from environment [0.10ms]
+(pass) GitAuthManager > getAuthForRepository > should return SSH clone URL for SSH protocol [0.17ms]
+(pass) GitAuthManager > getAuthForRepository > should return authenticated GitHub URL with token [0.17ms]
+(pass) GitAuthManager > getAuthForRepository > should return authenticated GitLab URL with token [0.10ms]
+(pass) GitAuthManager > getAuthForRepository > should return public URL when no authentication available [0.04ms]
+(pass) GitAuthManager > validateAuthentication > should validate SSH authentication [0.14ms]
+(pass) GitAuthManager > validateAuthentication > should validate token authentication [0.08ms]
+(pass) GitAuthManager > validateAuthentication > should warn about invalid token format [0.17ms]
+(pass) GitAuthManager > validateAuthentication > should default to public access [0.13ms]
+(pass) GitAuthManager > updateAuthConfig > should merge auth configurations [0.16ms]
+(pass) GitAuthManager > updateAuthConfig > should override existing configurations [0.04ms]
+(pass) GitAuthManager > clearAuthConfig > should clear all authentication data [0.05ms]
+
+packages/coderag/tests/git-url-parser.test.ts:
+(pass) GitUrlParser > parse > should parse HTTPS GitHub URLs correctly [0.11ms]
+(pass) GitUrlParser > parse > should parse HTTPS URLs without .git suffix [0.08ms]
+(pass) GitUrlParser > parse > should parse SSH GitHub URLs correctly [0.11ms]
+(pass) GitUrlParser > parse > should parse GitLab URLs correctly [0.09ms]
+(pass) GitUrlParser > parse > should parse Bitbucket URLs correctly [0.06ms]
+(pass) GitUrlParser > parse > should parse custom Git server URLs correctly [0.04ms]
+(pass) GitUrlParser > parse > should parse git protocol URLs correctly [0.05ms]
+(pass) GitUrlParser > parse > should throw error for invalid URLs [0.20ms]
+(pass) GitUrlParser > parse > should throw error for null/undefined URLs [0.07ms]
+(pass) GitUrlParser > isGitUrl > should return true for valid git URLs [0.08ms]
+(pass) GitUrlParser > isGitUrl > should return false for invalid URLs [0.07ms]
+(pass) GitUrlParser > validateUrl > should return valid=true for valid URLs [0.04ms]
+(pass) GitUrlParser > validateUrl > should return valid=false with error for invalid URLs [0.04ms]
+(pass) GitUrlParser > normalizeUrl > should normalize SSH URLs to HTTPS [0.04ms]
+(pass) GitUrlParser > normalizeUrl > should keep HTTPS URLs as-is [0.02ms]
+(pass) GitUrlParser > buildCloneUrl > should build HTTPS clone URL [0.03ms]
+(pass) GitUrlParser > buildCloneUrl > should build SSH clone URL [0.02ms]
+(pass) GitUrlParser > buildCloneUrl > should build GitHub clone URL with token [0.02ms]
+(pass) GitUrlParser > buildCloneUrl > should build GitLab clone URL with token [0.02ms]
+
+packages/coderag/tests/analysis/metrics-manager.test.ts:
+(pass) MetricsManager > calculateCKMetrics > should calculate all CK metrics for a class [1.42ms]
+(pass) MetricsManager > calculateCKMetrics > should handle zero values gracefully [0.32ms]
+(pass) MetricsManager > calculatePackageMetrics > should calculate package metrics correctly [0.67ms]
+(pass) MetricsManager > calculatePackageMetrics > should handle package with no coupling [0.20ms]
+(pass) MetricsManager > findArchitecturalIssues > should find multiple types of architectural issues [0.99ms]
+(pass) MetricsManager > findArchitecturalIssues > should return empty array when no issues found [0.16ms]
+(pass) MetricsManager > calculateProjectSummary > should calculate comprehensive project summary [0.65ms]
+(pass) MetricsManager > helper methods > should get class name [0.10ms]
+(pass) MetricsManager > helper methods > should return Unknown for missing class name [0.07ms]
+
+3 tests skipped:
+(skip) Live E2E Mission: Create a file
+(skip) External Service Health Check: AI Provider > LIVE: should connect to OpenRouter and receive a valid model list
+(skip) External Service Health Check: Neo4j Database > LIVE: should connect to the configured Neo4j database successfully
+
+
+1 tests failed:
+
+ 157 pass
+ 3 skip
+ 1 fail
+ 1 error
+ 396 expect() calls
+Ran 161 tests across 36 files. [4.53s]
