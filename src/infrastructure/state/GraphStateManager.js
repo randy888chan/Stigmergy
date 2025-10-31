@@ -209,19 +209,18 @@ export class GraphStateManager extends EventEmitter {
   }
 
   async closeDriver() {
-    if (this.driver) {
+    if (this.driver && typeof this.driver.close === "function") {
       console.log("GraphStateManager: Closing Neo4j driver.");
       try {
         await this.driver.close();
       } catch (error) {
         console.warn(
-          "GraphStateManager: Error while closing Neo4j driver. It might have been already closed.",
-          error.message
+          `GraphStateManager: Error while closing Neo4j driver. It might have been already closed. ${error.message}`
         );
       }
-      this.driver = null;
-      this.connectionStatus = "CLOSED";
     }
+    this.driver = null;
+    this.connectionStatus = "CLOSED";
   }
 
   getDriver() {

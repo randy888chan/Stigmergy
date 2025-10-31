@@ -34,8 +34,8 @@
     "test:unit": "bun test tests/unit/**",
     "test:integration": "bun test tests/integration/**",
     "test:e2e": "node ./node_modules/playwright/lib/program.js test",
-    "test:e2e:ci": "bun run start:mock & wait-on http://localhost:3011 && npm run test:e2e --; kill $!",
-    "test:e2e:local": "bun run start:mock & wait-on http://localhost:3011 && npm run test:e2e --; kill $!",
+    "test:e2e:local": "bun run start:mock & wait-on --timeout 60000 http-get://localhost:3011 && bun run test:e2e; kill $!",
+    "test:e2e:ci": "bun run start:mock & wait-on --timeout 60000 http-get://localhost:3011 && xvfb-run bun run test:e2e; kill $!",
     "test:e2e:detached": "nohup bun run start:mock &",
     "test:watch": "bun test --watch",
     "build": "bun run build:dashboard && bun run build:agents",
@@ -44,8 +44,7 @@
     "build:agents": "bun run cli/commands/build.js",
     "health-check": "bun run scripts/health-check.js",
     "validate": "bun run cli/index.js validate",
-    "init": "bun run cli/index.js init",
-    "prepare": "husky"
+    "init": "bun run cli/index.js init"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.0.2",
