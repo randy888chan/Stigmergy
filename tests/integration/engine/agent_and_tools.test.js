@@ -1,9 +1,10 @@
 import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-import { Engine } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
+import { streamText } from "ai";
+
+// Note: Static imports for Engine, GSP, etc., are removed to prevent module cache pollution.
+// They will be dynamically imported within `beforeEach` after mocks are established.
 
 const mockSemanticSearch = mock(async (params) => []);
 const mockCalculateMetrics = mock(async (params) => ({}));
@@ -14,6 +15,7 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
   let execute;
   const projectRoot = "/test-project";
   let stateManager;
+  let Engine, GraphStateManager, realCreateExecutor; // For dynamic imports
 
   beforeEach(async () => {
     vol.reset();
@@ -21,11 +23,22 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
     mockCalculateMetrics.mockClear();
     mockFindArchitecturalIssues.mockClear();
 
+    // Establish mocks BEFORE importing application code
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
+    mock.module("ai", () => ({ streamText: mock() })); // Mock the AI service
+    mock.module("llm-cost-calculator", () => ({ getEstimatedCost: () => 0.0 })); // Mock cost calculator
     mock.module("../../../services/model_monitoring.js", () => ({
       trackToolUsage: mock(async () => {}),
     }));
+
+    // Dynamically import modules AFTER mocks are established
+    const engineModule = await import("../../../engine/server.js");
+    Engine = engineModule.Engine;
+    const gsmModule = await import("../../../src/infrastructure/state/GraphStateManager.js");
+    GraphStateManager = gsmModule.GraphStateManager;
+    const teModule = await import("../../../engine/tool_executor.js");
+    realCreateExecutor = teModule.createExecutor;
 
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     await mockFs.ensureDir(path.join(process.env.STIGMERGY_CORE_PATH, "agents"));
@@ -42,7 +55,16 @@ agent:
       mockDebuggerAgentContent
     );
 
-    stateManager = new GraphStateManager(projectRoot);
+    // Use a mock driver for the state manager
+    const mockDriver = {
+      session: () => ({
+        run: () => Promise.resolve({ records: [], summary: {} }),
+        close: () => Promise.resolve(),
+      }),
+      close: () => Promise.resolve(),
+    };
+    stateManager = new GraphStateManager(projectRoot, mockDriver);
+    await stateManager.initialize();
 
     const mockUnifiedIntelligenceService = {
       semanticSearch: mockSemanticSearch,
@@ -59,7 +81,6 @@ agent:
       return executor;
     };
 
-    // DEFINITIVE FIX: The mock config MUST match the structure the Engine constructor expects.
     const mockConfig = {
       security: { allowedDirs: ["src", "public"], generatedPaths: ["dist"] },
       max_session_cost: 1.0,
@@ -85,12 +106,12 @@ agent:
       broadcastEvent: mock(),
       projectRoot: projectRoot,
       stateManager,
-      config: mockConfig, // Inject the complete mock config
+      config: mockConfig,
       startServer: false,
       _test_fs: mockFs,
       _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
       _test_executorFactory: testExecutorFactory,
-      _test_streamText: true, // Prevent actual AI calls
+      _test_streamText: true,
     });
 
     await engine.toolExecutorPromise;
