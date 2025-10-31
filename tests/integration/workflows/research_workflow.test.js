@@ -1,15 +1,17 @@
 import { mock, test, expect, beforeEach, afterEach, describe } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
-import { Engine } from "../../../engine/server.js";
-import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
+
+// Static imports removed to prevent module cache pollution.
+// They will be dynamically imported in beforeEach.
 
 const executeMock = mock();
 const mockStreamText = mock();
 let engine, stateManager;
 
 describe("Research Workflow", () => {
+  let Engine, GraphStateManager, realCreateExecutor; // For dynamic imports
+
   beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
@@ -18,6 +20,7 @@ describe("Research Workflow", () => {
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     mock.module("ai", () => ({ streamText: mockStreamText }));
+    mock.module("llm-cost-calculator", () => ({ getEstimatedCost: () => 0.0 }));
     mock.module("../../../services/config_service.js", () => ({
       configService: {
         getConfig: () => ({
@@ -26,6 +29,14 @@ describe("Research Workflow", () => {
         }),
       },
     }));
+
+    // Dynamically import modules AFTER mocks are established
+    const engineModule = await import("../../../engine/server.js");
+    Engine = engineModule.Engine;
+    const gsmModule = await import("../../../src/infrastructure/state/GraphStateManager.js");
+    GraphStateManager = gsmModule.GraphStateManager;
+    const teModule = await import("../../../engine/tool_executor.js");
+    realCreateExecutor = teModule.createExecutor;
 
     const projectRoot = path.join(process.cwd(), "test-project-research");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
@@ -52,7 +63,6 @@ describe("Research Workflow", () => {
       return executor;
     };
 
-    // --- STATEFUL MOCK DRIVER ---
     let mockProjectDb = {};
     const mockDriver = {
       session: () => ({
@@ -81,7 +91,6 @@ describe("Research Workflow", () => {
       close: () => Promise.resolve(),
     };
     stateManager = new GraphStateManager(projectRoot, mockDriver);
-    // --- END STATEFUL MOCK ---
 
     const { configService } = await import("../../../services/config_service.js");
     const mockConfig = configService.getConfig();

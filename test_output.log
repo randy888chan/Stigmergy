@@ -1,0 +1,149 @@
+bun test v1.2.14 (6a363a38)
+--- Starting Comprehensive System Health Check ---
+✅ System health check passed successfully.
+--- Starting Comprehensive System Health Check ---
+HttpStorageAdapter initialized for server: http://localhost:3012
+HttpStorageAdapter: State fetched successfully from the server.
+HttpStorageAdapter initialized for server: http://localhost:3012
+HttpStorageAdapter: State updated successfully on the server.
+GraphStateManager: Using pre-configured Neo4j driver.
+[Engine] State changed to: AWAITING_USER_INPUT
+[Engine] Triggering agent @dispatcher with prompt: "Proceed with the plan."
+[Engine] Triggering agent @executor with prompt: "Create file src/example.js with content: console.log("hello");"
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: executor
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "src/example.js",
+  "content": "console.log(\"hello\");"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[Engine] State changed to: PLAN_EXECUTED
+[System Tool] System status successfully updated to PLAN_EXECUTED.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+GraphStateManager: Using pre-configured Neo4j driver.
+[Engine] Triggering agent @specifier with prompt: "Create a plan."
+[Engine] Triggering agent @qa with prompt: "Review the plan."
+[Engine] Triggering agent @dispatcher with prompt: "The plan is approved. Please write the file."
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: dispatcher
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "hello.txt",
+  "content": "Hello, world!"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] State changed to: EXECUTION_COMPLETE
+[System Tool] System status successfully updated to EXECUTION_COMPLETE.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[Engine] Triggering agent @analyst with prompt: "What is the impact of AI on software development?"
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[Engine] Triggering agent @specifier with prompt: "Create a plan for a simple file."
+[Engine] Triggering agent @qa with prompt: "Please review the generated plan."
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+GraphStateManager: Using pre-configured Neo4j driver.
+[Engine] State changed to: AWAITING_USER_INPUT
+[Engine] Triggering agent @genesis with prompt: "Create a new Node.js project with an index.js file that logs 'hello world'"
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Triggering agent auditor with prompt: "Audit the following action for constitutional compliance:
+
+- Agent: genesis
+- Tool: file_system.writeFile
+- Arguments: {
+  "path": "index.js",
+  "content": "console.log('hello world');"
+}"
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[LLM Adapter] File cache cleared
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[ConstitutionalAudit] Action approved by @auditor.
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[ConstitutionalAudit] Invoking @auditor for critical tool: file_system.writeFile
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+[Engine] Triggering agent @dispatcher with prompt: "Please request approval for the plan."
+[System Tool] Requesting human approval (ID: req_1761896701652_f2cwvj0): Approve plan?
+[Engine] Shutting down... (Server running: false, External StateManager: true)
+[Engine] OpenTelemetry SDK shut down.
+[Engine] Shutdown complete.
+GraphStateManager: Closing Neo4j driver.
+Processing command: create a new api endpoint for users
+Command is development related.
+Processing command: what is the system status
+Command is health related.
+Processing command: some random unknown command
+Command is unknown, asking for clarification.
