@@ -191,7 +191,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
 
   const { default: createGuardianTools } = await import("../tools/guardian_tool.js");
   const { default: createSystemTools } = await import("../tools/system_tools.js");
-  const { default: createCoderagTools } = await import("../tools/coderag_tool.js");
+  const { createCoderagTool } = await import("../tools/coderag_tool.js");
   const trajectoryRecorder = engine.trajectoryRecorder;
 
   const injectedFileSystem = Object.keys(fileSystem).reduce((acc, key) => {
@@ -204,7 +204,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     return acc;
   }, {});
 
-  const coderagTools = createCoderagTools(engine, { unifiedIntelligenceService });
+  const coderagTools = createCoderagTool(engine, { unifiedIntelligenceService });
   // Cache semantic_search calls to prevent redundant searches within a single agent execution loop
   coderagTools.semantic_search = cachedQuery("semantic_search", coderagTools.semantic_search);
 

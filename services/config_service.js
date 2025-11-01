@@ -149,10 +149,8 @@ class ConfigService {
     console.log(`🔧 Loading environment configuration for: ${nodeEnv}`);
 
     // 1. Attempt to load from Doppler first
-    // DEFINITIVE FIX: Skip Doppler in test environments to prevent hangs.
-    if (nodeEnv === "test") {
-      console.log(chalk.yellow("   Skipping Doppler check in test environment."));
-    } else {
+    // DEFINITIVE FIX: Only attempt Doppler connection in non-test environments.
+    if (nodeEnv !== "test") {
       const configDir = path.join(os.homedir(), ".stigmergy");
       const configFile = path.join(configDir, "config.json");
       let dopplerToken;
@@ -173,8 +171,7 @@ class ConfigService {
         try {
           const doppler = new Doppler({
             accessToken: dopplerToken,
-            // Add a timeout to prevent hanging in test environments
-            requestTimeout: 3000,
+            requestTimeout: 3000, // Add a timeout to prevent hangs
           });
           const dopplerProject = process.env.DOPPLER_PROJECT || "stigmergy";
           console.log(`   Fetching secrets for Doppler project: ${dopplerProject}`);
@@ -197,6 +194,8 @@ class ConfigService {
       } else {
         console.log(`   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.`);
       }
+    } else {
+      console.log(chalk.yellow("   Skipping Doppler check in test environment."));
     }
 
     // 2. Load .env files as a fallback or supplement

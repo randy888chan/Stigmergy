@@ -1,0 +1,93 @@
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { execSync } from "child_process";
+import fs from "fs-extra";
+import path from "path";
+
+const PM2_PROCESS_NAME = "stigmergy-mock";
+const MOCK_SERVER_URL = "http://localhost:3011";
+
+// Helper function to poll an async condition
+const poll = async (fn, timeout, interval) => {
+  const endTime = new Date().getTime() + timeout;
+
+  const checkCondition = async (resolve, reject) => {
+    try {
+      const result = await fn();
+      if (result) {
+        resolve(result);
+      } else if (new Date().getTime() < endTime) {
+        setTimeout(() => checkCondition(resolve, reject), interval);
+      } else {
+        reject(new Error("Polling timed out waiting for condition."));
+      }
+    } catch (e) {
+      if (new Date().getTime() < endTime) {
+        setTimeout(() => checkCondition(resolve, reject), interval);
+      } else {
+        reject(new Error(`Polling timed out with error: ${e.message}`));
+      }
+    }
+  };
+
+  return new Promise(checkCondition);
+};
+
+describe("API-Level E2E Test", () => {
+  // Increase timeout for setup
+  beforeAll(() => {
+    console.log("Starting mock server with PM2...");
+    // Ensure any old instances are gone
+    execSync(`pm2 delete ${PM2_PROCESS_NAME} || true`);
+    execSync(`pm2 start ecosystem.config.cjs --env test --name ${PM2_PROCESS_NAME}`);
+    // Wait for the server to be ready by polling the health endpoint
+    execSync(`npx wait-on --timeout 60000 ${MOCK_SERVER_URL}/health`);
+    console.log("Mock server is responsive.");
+  }, 65000);
+
+  afterAll(() => {
+    console.log("Dumping server logs from PM2...");
+    // Use try-catch to prevent the test run from failing if the log command itself fails
+    try {
+      execSync(`pm2 logs ${PM2_PROCESS_NAME} --lines 100`);
+    } catch (e) {
+      console.error("Could not dump PM2 logs:", e.message);
+    }
+    console.log("Stopping mock server with PM2...");
+    execSync(`pm2 delete ${PM2_PROCESS_NAME} || true`);
+  });
+
+  test("should transition to PLANNING_PHASE after a mission briefing", async () => {
+    const mission = {
+      missionTitle: "E2E Test Mission",
+      userStories: "- As a user, I want this test to pass.",
+      acceptanceCriteria: "- The system state becomes PLANNING_PHASE.",
+    };
+
+    const response = await fetch(`${MOCK_SERVER_URL}/api/mission/briefing`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(mission),
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.message).toBe("Mission briefing received and initiated successfully.");
+
+    // Poll the /api/state endpoint until the status is PLANNING_PHASE
+    const finalState = await poll(
+      async () => {
+        const stateResponse = await fetch(`${MOCK_SERVER_URL}/api/state`);
+        if (!stateResponse.ok) return false;
+        const state = await stateResponse.json();
+        return state.project_status === "PLANNING_PHASE" ? state : false;
+      },
+      30000, // 30-second timeout
+      1000   // 1-second interval
+    );
+
+    expect(finalState).toBeTruthy();
+    expect(finalState.project_status).toBe("PLANNING_PHASE");
+    expect(finalState.message).toBe("Handoff to @specifier complete.");
+
+  }, 35000);
+});
