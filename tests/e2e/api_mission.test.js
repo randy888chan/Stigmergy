@@ -33,29 +33,6 @@ const poll = async (fn, timeout, interval) => {
 };
 
 describe("API-Level E2E Test", () => {
-  // Increase timeout for setup
-  beforeAll(() => {
-    console.log("Starting mock server with PM2...");
-    // Ensure any old instances are gone
-    execSync(`pm2 delete ${PM2_PROCESS_NAME} || true`);
-    execSync(`pm2 start ecosystem.config.cjs --env test --name ${PM2_PROCESS_NAME}`);
-    // Wait for the server to be ready by polling the health endpoint
-    execSync(`npx wait-on --timeout 60000 ${MOCK_SERVER_URL}/health`);
-    console.log("Mock server is responsive.");
-  }, 65000);
-
-  afterAll(() => {
-    console.log("Dumping server logs from PM2...");
-    // Use try-catch to prevent the test run from failing if the log command itself fails
-    try {
-      execSync(`pm2 logs ${PM2_PROCESS_NAME} --lines 100`);
-    } catch (e) {
-      console.error("Could not dump PM2 logs:", e.message);
-    }
-    console.log("Stopping mock server with PM2...");
-    execSync(`pm2 delete ${PM2_PROCESS_NAME} || true`);
-  });
-
   test("should transition to PLANNING_PHASE after a mission briefing", async () => {
     const mission = {
       missionTitle: "E2E Test Mission",

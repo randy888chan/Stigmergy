@@ -33,7 +33,7 @@
     "test:local": "bun run test:unit",
     "test:unit": "bun test tests/unit/**",
     "test:integration": "bun test tests/integration/**",
-    "test:e2e": "bun test tests/e2e/**",
+    "test:e2e": "pm2 delete stigmergy-mock || true && pm2 start ecosystem.config.cjs --env test --name stigmergy-mock && npx wait-on --timeout 60000 http://localhost:3011/health && bun test tests/e2e/**; EXIT_CODE=$?; pm2 delete stigmergy-mock && (exit $EXIT_CODE)",
     "test:watch": "bun test --watch",
     "build": "bun run build:dashboard && bun run build:agents",
     "build:dashboard": "npx tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css && bun build ./dashboard/src/index.js --outdir ./dashboard/public",
