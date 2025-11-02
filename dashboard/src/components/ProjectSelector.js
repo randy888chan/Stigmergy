@@ -10,7 +10,7 @@ import {
 } from "./ui/select.jsx";
 import path from 'path-browserify';
 
-const ProjectSelector = ({ onProjectSelect }) => {
+export const ProjectSelector = ({ onProjectSelect }) => {
   const [basePath, setBasePath] = useState('~');
   const [projects, setProjects] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,11 +33,12 @@ const ProjectSelector = ({ onProjectSelect }) => {
       // We will assume the API knows how to handle it or we expect an absolute path.
       // For now, we'll just send it as is, but a more robust solution might be needed.
       const response = await fetch(`/api/projects?basePath=${encodeURIComponent(basePath)}`);
+      const data = await response.json(); // Read the body ONCE.
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || `Error: ${response.status}`);
+        // If response is not ok, throw an error using the parsed data.
+        throw new Error(data.error || `Error: ${response.status}`);
       }
-      const data = await response.json();
+      // If response is ok, set the projects.
       setProjects(data);
     } catch (err) {
       setError(err.message);
@@ -87,5 +88,3 @@ const ProjectSelector = ({ onProjectSelect }) => {
     </div>
   );
 };
-
-export default ProjectSelector;

@@ -18,6 +18,7 @@ global.cancelAnimationFrame = dom.window.cancelAnimationFrame;
 // Polyfill missing APIs
 global.TextEncoder = TextEncoder;
 global.TextDecoder = TextDecoder;
+global.getComputedStyle = window.getComputedStyle;
 global.fetch = () =>
   Promise.resolve({
     json: () => Promise.resolve({ projects: ["project-a", "project-b"] }),
