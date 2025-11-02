@@ -249,14 +249,6 @@ export class Engine {
   }
 
   async initiateAutonomousSwarm(state) {
-    if (process.env.NODE_ENV === 'test') {
-      console.log(chalk.yellow('[Engine] Test environment detected. Skipping full swarm initiation and transitioning to PLANNING_PHASE.'));
-      await this.stateManager.updateStatus({
-        newStatus: "PLANNING_PHASE",
-        message: "Handoff to @specifier complete.",
-      });
-      return;
-    }
     await this.stateManagerInitializationPromise;
     console.log(chalk.cyan("[Engine] Intelligence Gathering Phase Initiated."));
 

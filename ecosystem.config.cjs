@@ -4,6 +4,8 @@ module.exports = {
       name: 'stigmergy-mock',
       script: './engine/main.js',
       interpreter: 'bun',
+      out_file: './.logs/stigmergy-mock.log',
+      error_file: './.logs/stigmergy-mock.log',
       // All test-specific environment variables go here
       env_test: {
         NODE_ENV: 'test',

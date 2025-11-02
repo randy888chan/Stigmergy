@@ -46,3 +46,4 @@ dashboard/public/*.bundle.js.LICENSE.txt
 .idea/
 .DS_Store
 .env
+.logs
