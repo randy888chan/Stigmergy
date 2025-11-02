@@ -46,7 +46,7 @@
   "dependencies": {
     "@ai-sdk/google": "^2.0.26",
     "@ai-sdk/openai": "^2.0.59",
-    "@ai-sdk/react": "^2.0.70",
+    "@ai-sdk/react": "^2.0.86",
     "@babel/parser": "^7.28.4",
     "@babel/traverse": "^7.28.4",
     "@dopplerhq/node-sdk": "^1.3.0",
@@ -67,7 +67,6 @@
     "@stigmergy/coderag": "workspace:*",
     "@supabase/supabase-js": "^2.38.0",
     "@xterm/addon-fit": "^0.10.0",
-    "ai": "^5.0.76",
     "axios": "^1.13.1",
     "chalk": "^5.6.2",
     "chrome-devtools-mcp": "^0.9.0",
