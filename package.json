@@ -29,7 +29,7 @@
     "dev": "concurrently \"bun --hot run engine/server.js\" \"bun run watch:dashboard\"",
     "dev:ai": "bun run build:dashboard && bun --hot engine/server.js",
     "dev:reset": "sudo docker compose down -v && sudo docker compose up --build stigmergy",
-    "test": "bun test tests/unit/ tests/integration/",
+    "test": "NODE_ENV=test bun test tests/unit/ tests/integration/",
     "test:local": "bun run test:unit",
     "test:unit": "bun test tests/unit/**",
     "test:integration": "bun test tests/integration/**",
