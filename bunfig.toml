@@ -14,4 +14,3 @@ teardown = "./tests/teardown.js"
 
 # Directory pattern to search for tests - limit to our new tests directory
 dir = ["./tests/unit", "./tests/integration"]
-exclude = ["./tests/e2e/**"]

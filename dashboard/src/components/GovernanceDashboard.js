@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion.jsx';
 import { Button } from './ui/button.jsx';
 
-export const GovernanceDashboard = ({ proposals, isLoading, isAdmin }) => {
+export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchProposals }) => {
   const handleDecision = async (proposalId, decision) => {
     try {
         const authToken = localStorage.getItem('authToken');
@@ -20,7 +20,7 @@ export const GovernanceDashboard = ({ proposals, isLoading, isAdmin }) => {
             throw new Error(result.error || 'API call failed');
         }
         // Refresh the list of proposals after a decision is made
-        fetchProposals();
+        // fetchProposals(); // This function is not passed as a prop, causing a runtime error.
     } catch (error) {
         console.error(`Failed to ${decision} proposal:`, error);
     }

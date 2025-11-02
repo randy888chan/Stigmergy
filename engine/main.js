@@ -19,7 +19,7 @@ async function main() {
       engineOptions._test_unifiedIntelligenceService = {
         isInitialized: true,
         search: async () => ({ results: [], condensed_preamble: "Mock search results." }),
-        // Add other mock methods as needed
+        triggerAgent: async () => "Mock agent response.",
       };
     }
     const engine = new Engine(engineOptions);

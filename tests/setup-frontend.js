@@ -26,6 +26,8 @@ const localStorageMock = (() => {
   };
 })();
 Object.defineProperty(window, 'localStorage', { value: localStorageMock });
+global.localStorage = window.localStorage;
+
 
 // Mock Canvas API for swarm visualizer
 if (window.HTMLCanvasElement) {
