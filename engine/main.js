@@ -13,7 +13,16 @@ async function main() {
     const config = configService.getConfig();
 
     // 2. Create the engine instance with the loaded configuration.
-    const engine = new Engine({ config });
+    const engineOptions = { config };
+    if (process.env.NODE_ENV === 'test') {
+      console.log(chalk.yellow("[main] Test environment detected. Injecting mock UnifiedIntelligenceService."));
+      engineOptions._test_unifiedIntelligenceService = {
+        isInitialized: true,
+        search: async () => ({ results: [], condensed_preamble: "Mock search results." }),
+        // Add other mock methods as needed
+      };
+    }
+    const engine = new Engine(engineOptions);
 
     // 3. Await the asynchronous initialization of all engine components.
     await engine.stateManagerInitializationPromise;
