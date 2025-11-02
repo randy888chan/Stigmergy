@@ -5,7 +5,7 @@ import { Button } from './ui/button.jsx';
 import { ScrollArea } from './ui/scroll-area.jsx';
 
 // These are the states where the engine is actively working and cannot accept new goals.
-const BUSY_STATUSES = [
+export const BUSY_STATUSES = [
   'ENRICHMENT_PHASE',
   'PLANNING_PHASE',
   'CODING_PHASE',
@@ -15,7 +15,7 @@ const BUSY_STATUSES = [
   'Running', // A general busy state
 ];
 
-const ChatInterface = ({ engineStatus, activeProject }) => {
+export const ChatInterface = ({ engineStatus, activeProject }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     // The Vercel AI SDK `useChat` hook defaults to `/api/chat`.
     // We pass the active project path in the body of the request.
@@ -77,5 +77,3 @@ const ChatInterface = ({ engineStatus, activeProject }) => {
     </div>
   );
 };
-
-export default ChatInterface;

@@ -3,6 +3,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["dashboard/src/*"]
-    }
+    },
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
   }
 }
