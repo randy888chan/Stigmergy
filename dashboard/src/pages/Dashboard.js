@@ -347,7 +347,7 @@ const Dashboard = () => {
                         <ResizableHandle withHandle />
                         <ResizablePanel>
                            <Suspense fallback={<div className="p-4">Loading Governance...</div>}>
-                                <GovernanceDashboard proposals={proposals} isAdmin={true} />
+                                <GovernanceDashboard proposals={proposals} isAdmin={true} fetchProposals={fetchProposals} />
                             </Suspense>
                         </ResizablePanel>
                         <ResizableHandle withHandle />

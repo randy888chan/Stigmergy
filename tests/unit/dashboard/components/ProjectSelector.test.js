@@ -3,11 +3,16 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
-import { describe, it, expect } from 'bun:test';
+import { describe, it, expect, mock } from 'bun:test';
 
-describe.skip('ProjectSelector - Isolated Render Test', () => {
+// Mock the path-browserify module to prevent import/resolution issues in the test environment.
+mock.module('path-browserify', () => ({
+  join: (...args) => args.join('/'),
+}));
+
+describe('ProjectSelector - Isolated Render Test', () => {
   it('should render without crashing', () => {
-    render(<ProjectSelector onProjectSelect={() => {}} />);
-    expect(screen.getByRole('button', { name: /find projects/i })).toBeInTheDocument();
+    const { getByRole } = render(<ProjectSelector onProjectSelect={() => {}} />);
+    expect(getByRole('button', { name: /find projects/i })).toBeInTheDocument();
   });
 });
