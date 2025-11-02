@@ -1,14 +1,14 @@
 import fs from 'fs-extra';
 import path from 'path';
-import pdfParse from 'pdf-parse-debugging-disabled';
+import { PDFExtract } from 'pdf.js-extract';
 import mammoth from 'mammoth';
 
 async function processPDF(filePath) {
-    const buffer = await fs.readFile(filePath);
-    const data = await pdfParse(buffer);
+    const pdfExtract = new PDFExtract();
+    const data = await pdfExtract.extract(filePath, {});
     return {
-        content: data.text,
-        metadata: { pages: data.numpages, info: data.info }
+        content: data.pages.map(page => page.content.map(item => item.str).join(' ')).join('\n'),
+        metadata: { pages: data.pages.length, info: data.pdfInfo }
     };
 }
 

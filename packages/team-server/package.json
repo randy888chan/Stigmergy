@@ -10,7 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "hono": "^4.2.5",
-    "@hono/node-server": "^1.11.1"
+    "@hono/node-server": "^1.19.6",
+    "hono": "^4.10.4"
   }
 }

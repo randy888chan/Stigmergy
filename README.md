@@ -146,10 +146,6 @@ To configure your environment with Doppler, use the `login` command.
 
 After logging in, restart the Stigmergy engine. It will automatically detect the token and begin fetching secrets from Doppler, securely providing API keys and other credentials to the system.
 
-## Testing
-
-**Note on End-to-End (E2E) Tests:** The E2E tests, which use Playwright, have been temporarily removed from the main test suite due to a conflict with the Bun test runner. To run the E2E tests, please use the following command: `npx playwright test`.
-
 ## 🆘 Troubleshooting: Hard Reset Protocol
 
 If the Docker environment enters a corrupted state, you can perform a hard reset to purge all caches and volumes.

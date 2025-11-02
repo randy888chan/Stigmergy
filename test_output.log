@@ -1,0 +1,7 @@
+bun test v1.2.14 (6a363a38)
+
+tests/e2e/api_mission.test.js:
+Starting mock server with PM2...
+Mock server is responsive.
+(pass) API-Level E2E Test > should transition to PLANNING_PHASE after a mission briefing [22.63ms]
+Dumping server logs from PM2...
