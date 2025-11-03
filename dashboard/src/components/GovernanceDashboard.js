@@ -3,41 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion.jsx';
 import { Button } from './ui/button.jsx';
 
-const GovernanceDashboard = () => {
-  const [proposals, setProposals] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const adminToken = localStorage.getItem('adminToken');
-    if (adminToken) {
-      setIsAdmin(true);
-    }
-  }, []);
-
-  const fetchProposals = async () => {
-    try {
-      const authToken = localStorage.getItem('authToken');
-      const response = await fetch('/api/proposals', {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-      const data = await response.json();
-      setProposals(data);
-    } catch (error) {
-      console.error("Failed to fetch proposals:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchProposals();
-    const interval = setInterval(fetchProposals, 10000); // Refresh every 10 seconds
-    return () => clearInterval(interval);
-  }, []);
-
+export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchProposals }) => {
   const handleDecision = async (proposalId, decision) => {
     try {
         const authToken = localStorage.getItem('authToken');
@@ -54,7 +20,7 @@ const GovernanceDashboard = () => {
             throw new Error(result.error || 'API call failed');
         }
         // Refresh the list of proposals after a decision is made
-        fetchProposals();
+        // fetchProposals(); // This function is not passed as a prop, causing a runtime error.
     } catch (error) {
         console.error(`Failed to ${decision} proposal:`, error);
     }
@@ -92,5 +58,3 @@ const GovernanceDashboard = () => {
     </Card>
   );
 };
-
-export default GovernanceDashboard;

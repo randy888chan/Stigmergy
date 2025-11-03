@@ -50,6 +50,26 @@ const Dashboard = () => {
   const [healthData, setHealthData] = useState(null);
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
+  const [proposals, setProposals] = useState([]);
+
+  useEffect(() => {
+    const fetchProposals = async () => {
+      try {
+        const response = await fetch('/api/proposals');
+        if (response.ok) {
+          const data = await response.json();
+          setProposals(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch proposals:', error);
+      }
+    };
+
+    fetchProposals();
+    const intervalId = setInterval(fetchProposals, 5000); // Poll every 5 seconds
+
+    return () => clearInterval(intervalId);
+  }, []);
   const fetchFiles = async () => {
     setSystemState(prevState => ({ ...prevState, files: [], filesError: null, isFileListLoading: true }));
     try {
@@ -327,7 +347,7 @@ const Dashboard = () => {
                         <ResizableHandle withHandle />
                         <ResizablePanel>
                            <Suspense fallback={<div className="p-4">Loading Governance...</div>}>
-                                <GovernanceDashboard />
+                                <GovernanceDashboard proposals={proposals} isAdmin={true} fetchProposals={fetchProposals} />
                             </Suspense>
                         </ResizablePanel>
                         <ResizableHandle withHandle />

@@ -987,34 +987,6 @@ Based on the information above, please formulate a plan and execute the mission.
       }
     });
 
-    this.app.post("/api/mission/briefing", async (c) => {
-      const { missionTitle, userStories, acceptanceCriteria } = await c.req.json();
-
-      if (!missionTitle || !userStories || !acceptanceCriteria) {
-        return c.json(
-          { error: "missionTitle, userStories, and acceptanceCriteria are required" },
-          400
-        );
-      }
-
-      const conductorPrompt = `
-                # Mission Briefing
-                ## Title: ${missionTitle}
-                ## User Stories
-                ${userStories}
-                ## Acceptance Criteria
-                ${acceptanceCriteria}
-
-                As the Conductor, your task is to understand this mission briefing and initiate the first step of the process.
-            `;
-
-      // We can directly trigger the conductor agent.
-      // In a more complex setup, this might go into a queue.
-      this.triggerAgent("@conductor", conductorPrompt);
-
-      return c.json({ message: "Mission briefing received, conductor agent initiated." });
-    });
-
     // 3. IDE (MCP) Endpoint
     this.app.get("/mcp", async (c) => {
       const { goal: prompt, project_path, max_session_cost } = c.req.query();
