@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, mock, afterEach } from 'bun:test';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
@@ -29,10 +30,11 @@ describe('ProjectSelector', () => {
       return new Response('Not Found', { status: 404 });
     });
 
+    const user = userEvent.setup();
     render(<ProjectSelector onProjectSelect={() => {}} />);
 
     // Simulate a user clicking the "Find Projects" button
-    fireEvent.click(screen.getByRole('button', { name: /find projects/i }));
+    await user.click(screen.getByRole('button', { name: /find projects/i }));
 
     // Wait for the component to render the project names from the mock response
     await waitFor(() => {
