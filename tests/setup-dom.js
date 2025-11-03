@@ -24,8 +24,3 @@ global.fetch = () =>
     json: () => Promise.resolve({ projects: ["project-a", "project-b"] }),
     ok: true,
   });
-
-// This ensures that React's testing library can find the DOM.
-if (typeof window === "undefined") {
-  global.window = {};
-}
