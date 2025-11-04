@@ -33,12 +33,7 @@ const poll = async (fn, timeout, interval) => {
 };
 
 describe("API-Level E2E Test", () => {
-  // TODO: This test is skipped because it passes in isolation but fails when run
-  // as part of the full `bun test` suite. This indicates a test pollution issue
-  // where state from a previous test (likely an integration test) is not being
-  // properly cleaned up, causing this test to fail. A deeper investigation into
-  // the test setup and teardown process is required.
-  test.skip("should transition to PLANNING_PHASE after a mission briefing", async () => {
+  test("should transition to PLANNING_PHASE after a mission briefing", async () => {
     const mission = {
       missionTitle: "E2E Test Mission",
       userStories: "- As a user, I want this test to pass.",

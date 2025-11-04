@@ -1,56 +1,59 @@
+// This is the definitive, working version of the test, combining architectural and code-level fixes.
+import '../../../../tests/setup-dom.js'; // 1. Use the correct, comprehensive DOM setup.
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, mock, afterEach } from 'bun:test';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { describe, it, expect, mock, beforeEach } from 'bun:test';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
 
-// Mock the path-browserify module
+// 2. Mock modules that are problematic in a test environment.
 mock.module('path-browserify', () => ({
   join: (...args) => args.join('/'),
 }));
 
+// 3. Mock the complex UI component that was causing crashes.
+mock.module('../../../../dashboard/src/components/ui/select.jsx', () => ({
+  Select: ({ children, onValueChange }) => <select onChange={(e) => onValueChange(e.target.value)}>{children}</select>,
+  SelectContent: ({ children }) => <>{children}</>,
+  SelectItem: ({ children, value }) => <option value={value}>{children}</option>,
+  SelectTrigger: ({ children }) => <button>{children}</button>,
+  SelectValue: ({ placeholder }) => <>{placeholder}</>,
+}));
+
+// 4. Set up a clean fetch mock for each test.
+beforeEach(() => {
+  global.fetch = mock(() =>
+    Promise.resolve({
+      ok: true,
+      json: () => Promise.resolve(['project-a', 'project-b']),
+    })
+  );
+});
+
 describe('ProjectSelector', () => {
-  // Restore fetch mock after each test
-  const originalFetch = global.fetch;
-  afterEach(() => {
-    global.fetch = originalFetch;
-  });
+  it('should fetch and display projects when the button is clicked', async () => {
+    const user = userEvent.setup();
+    const handleProjectSelect = mock(() => {});
+    render(<ProjectSelector onProjectSelect={handleProjectSelect} />);
 
-  // TODO: Skipping this test due to a persistent and difficult-to-diagnose
-  // issue with the JSDOM test environment where the component does not render
-  // correctly for interaction, even though debug output shows it in the DOM.
-  it.skip('should fetch and display projects when the button is clicked', async () => {
-    // Mock the global fetch API
-    global.fetch = mock(async (url) => {
-      if (url.toString().endsWith('/api/projects')) {
-        return new Response(JSON.stringify(['project-a', 'project-b']), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-      return new Response('Not Found', { status: 404 });
+    // Click the button to fetch projects
+    const findButton = screen.getByRole('button', { name: /find projects/i });
+    await user.click(findButton);
+
+    // Wait for the mocked <select> to be populated with <option>s
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'project-a' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'project-b' })).toBeInTheDocument();
     });
 
-    const onProjectSelect = mock(() => {});
-    render(<ProjectSelector onProjectSelect={onProjectSelect} />);
+    // Simulate selecting a project from the dropdown
+    const selectElement = screen.getByRole('combobox');
+    await user.selectOptions(selectElement, 'project-b');
 
-    // Simulate a user clicking the "Find Projects" button
+    // Verify that the parent component's callback was triggered with the correct full path
     await waitFor(() => {
-      fireEvent.click(screen.getByRole('button', { name: /find projects/i }));
-    });
-
-    // Wait for the component to render the project names from the mock response
-    await waitFor(() => {
-      expect(screen.getByText('project-a')).toBeInTheDocument();
-      expect(screen.getByText('project-b')).toBeInTheDocument();
-    });
-
-    // Simulate a user selecting a project
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'project-a' } });
-
-    // Wait for the onProjectSelect callback to be called with the correct project path
-    await waitFor(() => {
-      expect(onProjectSelect).toHaveBeenCalledWith('~/project-a');
+        expect(handleProjectSelect).toHaveBeenCalledWith('~/project-b');
     });
   });
 });
