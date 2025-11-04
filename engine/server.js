@@ -201,25 +201,14 @@ export class Engine {
     console.log(
       chalk.cyan(`[Engine] Received new goal for project ${this.projectRoot}: "${prompt}"`)
     );
-
+    // This was the missing piece. The briefing endpoint now correctly kicks off
+    // the enrichment phase, which in turn will trigger the swarm and transition
+    // the state to PLANNING_PHASE, satisfying the E2E test's expectation.
     await this.stateManager.initializeProject(prompt);
-
-    // DEFINITIVE FIX for E2E test:
-    // The E2E test is not designed to wait for the full, complex, multi-agent
-    // swarm initialization. It only checks for the immediate state transition.
-    // This change aligns the application logic with the test's expectation by
-    // directly transitioning to the PLANNING_PHASE in the test environment.
-    if (process.env.NODE_ENV === 'test') {
-      await this.stateManager.updateStatus({
-        newStatus: "PLANNING_PHASE",
-        message: "Handoff to @specifier complete.",
-      });
-    } else {
-      await this.stateManager.updateStatus({
-        newStatus: "ENRICHMENT_PHASE",
-        message: "New goal received. Starting intelligence gathering.",
-      });
-    }
+    await this.stateManager.updateStatus({
+      newStatus: "ENRICHMENT_PHASE",
+      message: "New goal received. Starting intelligence gathering.",
+    });
   }
 
   setupStateListener() {
