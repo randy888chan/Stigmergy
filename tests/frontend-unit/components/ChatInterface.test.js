@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, mock } from 'bun:test';
-import { ChatInterface, BUSY_STATUSES } from './ChatInterface';
-import '../../../../tests/setup-dom';
+import { ChatInterface, BUSY_STATUSES } from '../../../dashboard/src/components/ChatInterface';
+import '@testing-library/jest-dom';
 
 mock.module('@ai-sdk/react', () => ({
   useChat: mock(() => ({

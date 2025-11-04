@@ -11,3 +11,14 @@ jsxImportSource = "react"
 
 # These point to the scripts that run once after the entire test suite.
 teardown = "./tests/teardown.js"
+
+# Directory pattern to search for tests - limit to our new tests directory
+dir = [
+  "./tests/unit/HttpStorageAdapter.test.js",
+  "./tests/unit/ai",
+  "./tests/unit/localization.test.js",
+  "./tests/unit/system_validator.test.js",
+  "./tests/unit/tools",
+  "./tests/unit/utils",
+  "./tests/integration"
+]

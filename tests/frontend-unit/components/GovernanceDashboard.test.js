@@ -1,7 +1,6 @@
-import "../../../../tests/setup-frontend.js";
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import { GovernanceDashboard } from '../../../../dashboard/src/components/GovernanceDashboard';
+import { GovernanceDashboard } from '../../../dashboard/src/components/GovernanceDashboard';
 import '@testing-library/jest-dom';
 import { mock, describe, it, expect, beforeEach } from 'bun:test';
 
@@ -9,7 +8,7 @@ import { mock, describe, it, expect, beforeEach } from 'bun:test';
 global.fetch = mock();
 
 // Mock the entire accordion component module to prevent issues with Radix UI in tests
-mock.module('../../../../dashboard/src/components/ui/accordion.jsx', () => ({
+mock.module('../../../dashboard/src/components/ui/accordion.jsx', () => ({
   Accordion: ({ children, ...props }) => <div {...props}>{children}</div>,
   AccordionItem: ({ children, ...props }) => <div {...props}>{children}</div>,
   AccordionTrigger: ({ children, ...props }) => <button {...props}>{children}</button>,

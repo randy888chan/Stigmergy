@@ -2,13 +2,21 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, mock, afterEach } from 'bun:test';
-import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
+import { ProjectSelector } from '../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
-import "../../../../tests/setup-dom.js";
 
 // Mock the path-browserify module
 mock.module('path-browserify', () => ({
   join: (...args) => args.join('/'),
+}));
+
+// Mock the select component module
+mock.module('../../../dashboard/src/components/ui/select.jsx', () => ({
+  Select: ({ children }) => <div>{children}</div>,
+  SelectContent: ({ children }) => <div>{children}</div>,
+  SelectItem: ({ children, value }) => <option value={value}>{children}</option>,
+  SelectTrigger: ({ children }) => <button>{children}</button>,
+  SelectValue: () => <span>Select a project</span>,
 }));
 
 describe('ProjectSelector', () => {
@@ -18,10 +26,7 @@ describe('ProjectSelector', () => {
     global.fetch = originalFetch;
   });
 
-  it.skip('should fetch and display projects when the button is clicked', async () => {
-    // TODO: This test is skipped due to a persistent issue with the Bun test runner's JSDOM environment.
-    // The test runner crashes silently when this test is run, even with extensive mocking and environment
-    // configuration. The test should be re-enabled once the underlying issue with the test runner is resolved.
+  it('should fetch and display projects when the button is clicked', async () => {
     // Mock the global fetch API
     global.fetch = mock(async (url) => {
       if (url.toString().endsWith('/api/projects')) {
