@@ -1,4 +1,2 @@
 [test]
 preload = ["./tests/setup-dom.js"]
-jsx = "react-jsx"
-jsxImportSource = "react"
