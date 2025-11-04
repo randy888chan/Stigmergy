@@ -32,7 +32,7 @@
     "test": "NODE_ENV=test bun test",
     "test:local": "bun run test:unit",
     "test:unit": "bun test tests/unit/**",
-    "test:unit:frontend": "bun --bunfig-path ./bunfig.frontend.toml test tests/unit/dashboard/**",
+    "test:unit:frontend": "bun test --preload ./tests/setup-dom.js tests/unit/dashboard/**",
     "test:integration": "bun test tests/integration/**",
     "test:e2e": "pm2 delete stigmergy-mock || true && pm2 start ecosystem.config.cjs --env test --name stigmergy-mock && npx wait-on --timeout 60000 http://localhost:3011/health && bun test tests/e2e/**; EXIT_CODE=$?; pm2 delete stigmergy-mock && (exit $EXIT_CODE)",
     "test:watch": "bun test --watch",
