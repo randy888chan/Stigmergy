@@ -3,11 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from './ui/
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion.jsx';
 import { Button } from './ui/button.jsx';
 
-export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchProposals }) => {
+export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchProposals, authToken, adminToken }) => {
   const handleDecision = async (proposalId, decision) => {
     try {
-        const authToken = localStorage.getItem('authToken');
-        const adminToken = localStorage.getItem('adminToken');
         const response = await fetch(`/api/proposals/${proposalId}/${decision}`, {
             method: 'POST',
             headers: {

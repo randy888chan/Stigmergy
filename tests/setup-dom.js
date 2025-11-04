@@ -1,6 +1,9 @@
 // DEFINITIVE FIX: Replace happy-dom with jsdom for a stable, feature-complete environment.
 import { JSDOM } from "jsdom";
 import { TextEncoder, TextDecoder } from "util";
+import { afterEach } from 'bun:test';
+import { cleanup } from '@testing-library/react';
+import '@testing-library/jest-dom';
 
 // Create a new JSDOM instance.
 const dom = new JSDOM('<!DOCTYPE html><div id="root"></div>', {
@@ -53,3 +56,29 @@ global.fetch = () =>
     json: () => Promise.resolve({ projects: ["project-a", "project-b"] }),
     ok: true,
   });
+
+// Mock localStorage
+const localStorageMock = (() => {
+  let store = {};
+  return {
+    getItem: (key) => store[key] || null,
+    setItem: (key, value) => {
+      store[key] = value.toString();
+    },
+    removeItem: (key) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+  };
+})();
+
+Object.defineProperty(window, 'localStorage', {
+  value: localStorageMock,
+});
+
+// Automatically run cleanup after each test
+afterEach(() => {
+  cleanup();
+});

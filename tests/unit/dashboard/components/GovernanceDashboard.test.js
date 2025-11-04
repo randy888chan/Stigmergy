@@ -1,10 +1,8 @@
-import "../../../../tests/setup-frontend.js";
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
-import "../../../../tests/setup-dom.js";
 import { GovernanceDashboard } from '../../../../dashboard/src/components/GovernanceDashboard';
-import '@testing-library/jest-dom';
 import { mock, describe, it, expect, beforeEach } from 'bun:test';
+import '@testing-library/jest-dom';
 
 // Mock fetch API
 global.fetch = mock();
@@ -42,7 +40,7 @@ describe('GovernanceDashboard', () => {
   });
 
   it('renders a list of mock proposals', () => {
-    const { getByText } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} />);
+    const { getByText } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
     // Check that the reason for each proposal is displayed
     expect(getByText('First test proposal reason')).toBeInTheDocument();
@@ -53,7 +51,7 @@ describe('GovernanceDashboard', () => {
     // Mock a successful fetch response
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
 
-    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} />);
+    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
     // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');
@@ -73,7 +71,7 @@ describe('GovernanceDashboard', () => {
     // Mock a successful fetch response
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
 
-    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} />);
+    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
     // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');
@@ -90,7 +88,7 @@ describe('GovernanceDashboard', () => {
   });
 
   it('does not show approve/reject buttons if isAdmin is false', () => {
-    const { getByText, queryAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={false} fetchProposals={() => {}} />);
+    const { getByText, queryAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={false} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
     // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');

@@ -1,14 +1,17 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, mock, afterEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach } from 'bun:test';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
-import "../../../../tests/setup-dom.js";
 
 // Mock the path-browserify module
-mock.module('path-browserify', () => ({
+const mockPath = {
   join: (...args) => args.join('/'),
+};
+mock.module('path-browserify', () => ({
+  ...mockPath,
+  default: mockPath,
 }));
 
 // Mock the shadcn/ui components
@@ -26,24 +29,23 @@ mock.module('../../../../dashboard/src/components/ui/select.jsx', () => ({
   SelectValue: ({ children, ...props }) => <div {...props}>{children}</div>,
 }));
 
+// Mock the global fetch API to be a spy
+global.fetch = mock();
+
 describe('ProjectSelector', () => {
-  // Restore fetch mock after each test
-  const originalFetch = global.fetch;
-  afterEach(() => {
-    global.fetch = originalFetch;
+  beforeEach(() => {
+    // Clear mock history before each test
+    fetch.mockClear();
   });
 
   it('should fetch and display projects when the button is clicked', async () => {
-    // Mock the global fetch API
-    global.fetch = mock(async (url) => {
-      if (url.toString().endsWith('/api/projects')) {
-        return new Response(JSON.stringify(['project-a', 'project-b']), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        });
-      }
-      return new Response('Not Found', { status: 404 });
-    });
+    // Provide a mock implementation for this specific test
+    fetch.mockResolvedValueOnce(
+      new Response(JSON.stringify(['project-a', 'project-b']), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
 
     const user = userEvent.setup();
     render(<ProjectSelector onProjectSelect={() => {}} />);
@@ -56,5 +58,9 @@ describe('ProjectSelector', () => {
       expect(screen.getByText('project-a')).toBeInTheDocument();
       expect(screen.getByText('project-b')).toBeInTheDocument();
     });
+
+    // Verify fetch was called correctly
+    expect(fetch).toHaveBeenCalledWith('/api/projects?basePath=~');
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
