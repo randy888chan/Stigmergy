@@ -11,6 +11,21 @@ mock.module('path-browserify', () => ({
   join: (...args) => args.join('/'),
 }));
 
+// Mock the shadcn/ui components
+mock.module('../../../../dashboard/src/components/ui/button.jsx', () => ({
+  Button: ({ children, ...props }) => <button {...props}>{children}</button>,
+}));
+mock.module('../../../../dashboard/src/components/ui/input.jsx', () => ({
+  Input: (props) => <input {...props} />,
+}));
+mock.module('../../../../dashboard/src/components/ui/select.jsx', () => ({
+  Select: ({ children, ...props }) => <select {...props}>{children}</select>,
+  SelectContent: ({ children, ...props }) => <div {...props}>{children}</div>,
+  SelectItem: ({ children, ...props }) => <option {...props}>{children}</option>,
+  SelectTrigger: ({ children, ...props }) => <div {...props}>{children}</div>,
+  SelectValue: ({ children, ...props }) => <div {...props}>{children}</div>,
+}));
+
 describe('ProjectSelector', () => {
   // Restore fetch mock after each test
   const originalFetch = global.fetch;
@@ -34,7 +49,7 @@ describe('ProjectSelector', () => {
     render(<ProjectSelector onProjectSelect={() => {}} />);
 
     // Simulate a user clicking the "Find Projects" button
-    await user.click(screen.getByRole('button', { name: /find projects/i }));
+    await user.click(screen.getByTestId('find-projects-button'));
 
     // Wait for the component to render the project names from the mock response
     await waitFor(() => {

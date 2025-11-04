@@ -67,7 +67,7 @@ export const ProjectSelector = ({ onProjectSelect }) => {
         onKeyDown={(e) => e.key === 'Enter' && fetchProjects()}
         className="w-[250px]"
       />
-      <Button onClick={fetchProjects} disabled={isLoading}>
+      <button onClick={fetchProjects} disabled={isLoading} data-testid="find-projects-button">
         {isLoading ? 'Loading...' : 'Find Projects'}
       </Button>
       {error && <p className="text-sm text-red-500">{error}</p>}

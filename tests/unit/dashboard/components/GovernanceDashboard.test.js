@@ -1,6 +1,7 @@
 import "../../../../tests/setup-frontend.js";
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
+import "../../../../tests/setup-dom.js";
 import { GovernanceDashboard } from '../../../../dashboard/src/components/GovernanceDashboard';
 import '@testing-library/jest-dom';
 import { mock, describe, it, expect, beforeEach } from 'bun:test';
