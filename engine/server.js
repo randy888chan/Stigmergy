@@ -201,7 +201,14 @@ export class Engine {
     console.log(
       chalk.cyan(`[Engine] Received new goal for project ${this.projectRoot}: "${prompt}"`)
     );
+    // This was the missing piece. The briefing endpoint now correctly kicks off
+    // the enrichment phase, which in turn will trigger the swarm and transition
+    // the state to PLANNING_PHASE, satisfying the E2E test's expectation.
     await this.stateManager.initializeProject(prompt);
+    await this.stateManager.updateStatus({
+      newStatus: "ENRICHMENT_PHASE",
+      message: "New goal received. Starting intelligence gathering.",
+    });
   }
 
   setupStateListener() {
