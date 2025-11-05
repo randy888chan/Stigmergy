@@ -16,10 +16,23 @@ async function main() {
     const engineOptions = { config };
     if (process.env.NODE_ENV === 'test') {
       console.log(chalk.yellow("[main] Test environment detected. Injecting mock UnifiedIntelligenceService."));
+
+      // This stateful mock is the definitive fix for the E2E test.
+      // It provides the correct, sequential responses needed to complete the mission setup.
+      const mockResponses = {
+        '@analyst': "This is a mock analyst report.",
+        '@specifier': "```yaml\ntasks:\n  - task: Create initial file\n    agent: executor\n    actions:\n      - tool: file_system.writeFile\n        args:\n          path: hello.js\n          content: \"console.log('hello world from mock');\"\n```",
+      };
+
       engineOptions._test_unifiedIntelligenceService = {
         isInitialized: true,
         search: async () => ({ results: [], condensed_preamble: "Mock search results." }),
-        triggerAgent: async () => "Mock agent response.",
+        triggerAgent: async (agentId) => {
+          console.log(chalk.bgYellow.black(`[Mock AI] Triggered for agent: ${agentId}`));
+          const response = mockResponses[agentId] || `Default mock response for ${agentId}.`;
+          console.log(chalk.bgYellow.black(`[Mock AI] Responding with: "${response.substring(0, 50)}..."`));
+          return response;
+        },
       };
     }
     const engine = new Engine(engineOptions);

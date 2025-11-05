@@ -1,3 +1,4 @@
+import '../../../../tests/setup-dom.js';
 import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react';
 import { GovernanceDashboard } from '../../../../dashboard/src/components/GovernanceDashboard';
