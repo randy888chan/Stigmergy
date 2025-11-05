@@ -232,7 +232,13 @@ export class Engine {
       this.broadcastEvent("state_update", newState);
 
       if (newState.project_status === "ENRICHMENT_PHASE") {
-        if (this._test_onEnrichment) {
+        if (process.env.USE_MOCK_SWARM === "true") {
+          console.log(chalk.yellow("[Engine] Mock swarm enabled. Skipping intelligence gathering."));
+          await this.stateManager.updateStatus({
+            newStatus: "PLANNING_PHASE",
+            message: "Handoff to @specifier complete.",
+          });
+        } else if (this._test_onEnrichment) {
           await this._test_onEnrichment(newState);
         } else {
           await this.initiateAutonomousSwarm(newState);
