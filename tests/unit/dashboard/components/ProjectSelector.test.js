@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, mock, beforeEach } from 'bun:test';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
@@ -36,6 +36,8 @@ describe('ProjectSelector', () => {
   beforeEach(() => {
     // Clear mock history before each test
     fetch.mockClear();
+    // Reset DOM between tests
+    document.body.innerHTML = '';
   });
 
   it('should fetch and display projects when the button is clicked', async () => {
@@ -48,15 +50,15 @@ describe('ProjectSelector', () => {
     );
 
     const user = userEvent.setup();
-    render(<ProjectSelector onProjectSelect={() => {}} />);
+    const { getByTestId, getByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
 
     // Simulate a user clicking the "Find Projects" button
-    await user.click(screen.getByTestId('find-projects-button'));
+    await user.click(getByTestId('find-projects-button'));
 
     // Wait for the component to render the project names from the mock response
     await waitFor(() => {
-      expect(screen.getByText('project-a')).toBeInTheDocument();
-      expect(screen.getByText('project-b')).toBeInTheDocument();
+      expect(getByText('project-a')).toBeInTheDocument();
+      expect(getByText('project-b')).toBeInTheDocument();
     });
 
     // Verify fetch was called correctly
