@@ -16,6 +16,9 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    projectRoot = "/app/test-project-planning";
+    await vol.promises.mkdir(projectRoot, { recursive: true });
+
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);
     mock.module("ai", () => ({ streamText: mockStreamText }));

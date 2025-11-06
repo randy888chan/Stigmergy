@@ -17,6 +17,7 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
 
   beforeEach(async () => {
     vol.reset();
+    await mockFs.promises.mkdir(projectRoot, { recursive: true });
     mockSemanticSearch.mockClear();
     mockCalculateMetrics.mockClear();
     mockFindArchitecturalIssues.mockClear();

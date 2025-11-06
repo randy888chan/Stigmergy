@@ -27,6 +27,7 @@ async function main() {
       engineOptions._test_unifiedIntelligenceService = {
         isInitialized: true,
         search: async () => ({ results: [], condensed_preamble: "Mock search results." }),
+        scanCodebase: async () => ({ report: "Mock codebase scan report." }),
         triggerAgent: async (agentId) => {
           console.log(chalk.bgYellow.black(`[Mock AI] Triggered for agent: ${agentId}`));
           const response = mockResponses[agentId] || `Default mock response for ${agentId}.`;

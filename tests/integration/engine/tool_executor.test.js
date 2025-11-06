@@ -42,6 +42,7 @@ describe("Tool Executor Security (Definitive Fix)", () => {
     vol.reset();
     mock.restore();
 
+    await vol.promises.mkdir(projectRoot, { recursive: true });
     mockFs = (await import("../../mocks/fs.js")).default;
     mock.module("fs", () => mockFs);
     mock.module("fs-extra", () => mockFs);

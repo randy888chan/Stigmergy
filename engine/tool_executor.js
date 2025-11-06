@@ -204,7 +204,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     return acc;
   }, {});
 
-  const coderagTools = createCoderagTool(engine, { unifiedIntelligenceService });
+  const coderagTools = createCoderagTool(unifiedIntelligenceService);
   // Cache semantic_search calls to prevent redundant searches within a single agent execution loop
   coderagTools.semantic_search = cachedQuery("semantic_search", coderagTools.semantic_search);
 

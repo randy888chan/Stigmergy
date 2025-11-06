@@ -13,6 +13,9 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    // Create the root directory for the in-memory file system
+    await mockFs.promises.mkdir(projectRoot, { recursive: true });
+
     // DEFINITIVE FIX: Mock all services BEFORE importing any application code
     mock.module("../../../services/tracing.js", () => ({
       sdk: { shutdown: () => Promise.resolve() },

@@ -117,7 +117,9 @@ export class Engine {
     }
 
     // Setup routes and listeners
-    this.setupRoutes();
+    if (this.shouldStartServer) {
+      this.setupRoutes();
+    }
     // this.setupStateListener(); // This will be called after state manager is initialized
 
     // DEFINITIVE FIX: Chain the initialization promises to enforce correct order.
@@ -276,7 +278,7 @@ export class Engine {
       // 2. Local Indexing: Trigger the CodeRAG indexing process
       console.log(chalk.blue("[Engine] Triggering local codebase indexing via CodeRAG."));
       await this.stateManager.updateStatus({ message: "Phase 2: Indexing local codebase..." });
-      const coderag = createCoderagTool(this, { unifiedIntelligenceService: this.unifiedIntelligenceService });
+      const coderag = createCoderagTool(this.unifiedIntelligenceService);
       await coderag.scan_codebase({ project_root: this.projectRoot });
       console.log(chalk.green("[Engine] Local codebase indexing complete."));
       await this.stateManager.updateStatus({ message: "Local codebase indexed." });
@@ -564,7 +566,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
       const { query } = c.req.query();
       if (!query) return c.json({ error: "Query is required" }, 400);
       try {
-        const coderag = createCoderagTool(this, { unifiedIntelligenceService: this.unifiedIntelligenceService });
+        const coderag = createCoderagTool(this.unifiedIntelligenceService);
         const results = await coderag.semantic_search({ query, project_root: this.projectRoot });
         return c.json(results);
       } catch (error) {

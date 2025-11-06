@@ -149,8 +149,7 @@ class ConfigService {
     console.log(`🔧 Loading environment configuration for: ${nodeEnv}`);
 
     // 1. Attempt to load from Doppler first
-    // DEFINITIVE FIX: Only attempt Doppler connection in non-test environments.
-    if (nodeEnv !== "test") {
+    if (nodeEnv !== 'test') {
       const configDir = path.join(os.homedir(), ".stigmergy");
       const configFile = path.join(configDir, "config.json");
       let dopplerToken;

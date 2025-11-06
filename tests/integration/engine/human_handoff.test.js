@@ -16,6 +16,9 @@ describe("Human Handoff Workflow", () => {
     vol.reset();
     mockStreamText.mockClear();
 
+    projectRoot = path.resolve("/test-handoff-project");
+    await vol.promises.mkdir(projectRoot, { recursive: true });
+
     // DEFINITIVE FIX: The 'Async-First Mocking' Pattern
     const mockFs = (await import("../../mocks/fs.js")).default;
     mock.module("fs", () => mockFs);

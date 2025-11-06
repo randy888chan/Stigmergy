@@ -15,6 +15,9 @@ describe("Full E-to-E Workflow (Isolated)", () => {
     vol.reset(); // PRISTINE STATE
     mockStreamText.mockClear();
 
+    projectRoot = path.resolve("/test-project");
+    await vol.promises.mkdir(projectRoot, { recursive: true });
+
     // DEFINITIVE FIX: Mock all services BEFORE importing any application code
     mock.module("../../../services/tracing.js", () => ({
       sdk: { shutdown: () => Promise.resolve() },
