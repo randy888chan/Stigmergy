@@ -13,6 +13,9 @@ describe("Research Workflow", () => {
   beforeEach(async () => {
     vol.reset();
     mockStreamText.mockClear();
+
+    const projectRoot = path.join(process.cwd(), "test-project-research");
+    await vol.promises.mkdir(projectRoot, { recursive: true });
     executeMock.mockClear();
 
     mock.module("fs", () => mockFs);
@@ -27,7 +30,6 @@ describe("Research Workflow", () => {
       },
     }));
 
-    const projectRoot = path.join(process.cwd(), "test-project-research");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.ensureDir(agentDir);

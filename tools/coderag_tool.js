@@ -4,7 +4,7 @@
  * advanced code analysis, search, and metric calculation.
  * The project_root context is passed in by the tool executor.
  */
-export const createCoderagTool = (engine, { unifiedIntelligenceService }) => ({
+export const createCoderagTool = (unifiedIntelligenceService) => ({
   /**
    * Performs a comprehensive scan of the entire codebase to build or update the intelligence index.
    * @param {object} args An object containing the project_root.

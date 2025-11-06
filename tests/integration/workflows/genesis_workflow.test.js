@@ -17,6 +17,8 @@ describe("Genesis Agent Workflow", () => {
 
   beforeEach(async () => {
     vol.reset();
+    projectRoot = path.resolve("/test-genesis-project");
+    await vol.promises.mkdir(projectRoot, { recursive: true });
     mockInit.mockClear();
     mockCommit.mockClear();
     mockStreamText.mockClear();
