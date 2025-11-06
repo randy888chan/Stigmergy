@@ -3,6 +3,7 @@
 preload = ["./tests/setup-globals.js"]
 jsx = "react-jsx"
 jsxImportSource = "react"
+paths = { "@/*": ["dashboard/src/*"], "@stigmergy/coderag/*": ["packages/coderag/*"] }
 # This file will run BEFORE every test file.
 # setup-globals.js creates our temporary test directory.
 # NOTE: setup-dom.js has been removed from preload to prevent polluting the
@@ -20,5 +21,6 @@ dir = [
   "./tests/unit/system_validator.test.js",
   "./tests/unit/tools",
   "./tests/unit/utils",
-  "./tests/integration"
+  "./tests/integration",
+  "./packages/coderag/tests"
 ]
