@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'stigmergy-mock',
-      script: './engine/main.js',
+      script: './engine/e2e-test-server.js',
       interpreter: 'bun',
       out_file: './.logs/stigmergy-mock.log',
       error_file: './.logs/stigmergy-mock.log',
