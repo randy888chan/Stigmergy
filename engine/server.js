@@ -1241,7 +1241,7 @@ Based on the information above, please formulate a plan and execute the mission.
     }
 
     // 2. Unregister event listeners to prevent memory leaks
-    if (this.stateManager) {
+    if (this.stateManager && typeof this.stateManager.off === 'function') {
       this.stateManager.off("stateChanged", this.stateChangedListener);
       this.stateManager.off("triggerAgent", this.triggerAgentListener);
     }

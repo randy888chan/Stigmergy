@@ -29,7 +29,7 @@
     "dev": "concurrently \"bun --hot run engine/server.js\" \"bun run watch:dashboard\"",
     "dev:ai": "bun run build:dashboard && bun --hot engine/server.js",
     "dev:reset": "sudo docker compose down -v && sudo docker compose up --build stigmergy",
-    "test": "bun run test:unit && bun run test:unit:frontend && bun run test:integration && npx pm2 delete stigmergy-mock --silent && bun run test:e2e",
+    "test": "bun run test:unit && bun run test:unit:frontend && bun run test:integration && bun run test:e2e",
     "test:local": "bun run test:unit",
     "test:unit": "bun test tests/unit/ai/** tests/unit/tools/** tests/unit/utils/** tests/unit/HttpStorageAdapter.test.js tests/unit/localization.test.js tests/unit/system_validator.test.js",
     "test:unit:frontend": "bun test --preload ./tests/setup-dom.js tests/unit/dashboard/**",
