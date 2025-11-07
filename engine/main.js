@@ -15,7 +15,7 @@ async function main() {
 
     // 2. Create the engine instance with the loaded configuration.
     const engineOptions = { config };
-    if (process.env.NODE_ENV === 'test') {
+    if (process.env.NODE_ENV === 'test' && process.env.USE_MOCK_SWARM !== 'true') {
       console.log(chalk.yellow("[main] Test environment detected. Injecting mock UnifiedIntelligenceService."));
 
       // This stateful mock is the definitive fix for the E2E test.
@@ -61,10 +61,6 @@ async function main() {
   } catch (error) {
     console.error(chalk.red("Failed to start the Stigmergy Engine:"), error);
     process.exit(1);
-  } finally {
-    if (engine) {
-      await engine.stop();
-    }
   }
 }
 

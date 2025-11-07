@@ -98,6 +98,7 @@ export class Engine {
     this.clients = new Set();
     this.pendingApprovals = new Map(); // For Human Handoff
     this.server = null;
+    this.port = null;
     this._test_streamText =
       options._test_streamText ||
       (() => Promise.resolve({ toolCalls: [], finishReason: "stop", text: "" }));
@@ -1222,7 +1223,8 @@ Based on the information above, please formulate a plan and execute the mission.
         port: PORT,
       },
       (info) => {
-        console.log(`Stigmergy engine is running on http://localhost:${info.port}`);
+        this.port = info.port; // DEFINITIVE FIX: Capture the actual port
+        console.log(`Stigmergy engine is running on http://localhost:${this.port}`);
       }
     );
   }
