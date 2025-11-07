@@ -10,6 +10,7 @@ module.exports = {
       env_test: {
         NODE_ENV: 'test',
         USE_MOCK_AI: 'true',
+        USE_MOCK_SWARM: 'true',
         STIGMERGY_PORT: 3011,
         OPENROUTER_API_KEY: 'mock-key',
         OPENROUTER_BASE_URL: 'http://localhost/mock',

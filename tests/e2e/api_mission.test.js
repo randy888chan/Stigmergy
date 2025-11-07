@@ -1,5 +1,5 @@
-import { describe, test, expect } from "bun:test";
-import { execSync } from "child_process";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { spawn } from "bun";
 import fs from "fs-extra";
 import path from "path";
 
@@ -33,6 +33,40 @@ const poll = async (fn, timeout, interval) => {
 };
 
 describe("API-Level E2E Test", () => {
+  let server;
+
+  beforeAll(async () => {
+    server = spawn(["bun", "run", "start:mock"], {
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+
+    const reader = server.stdout.getReader();
+    const decoder = new TextDecoder();
+    let output = "";
+
+    // Wait for the server to log the startup message
+    await new Promise(async (resolve, reject) => {
+      const timeout = setTimeout(() => reject(new Error("Server startup timed out")), 30000);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        output += decoder.decode(value);
+        if (output.includes("Stigmergy engine is running")) {
+          clearTimeout(timeout);
+          resolve();
+          break;
+        }
+      }
+    });
+  }, 35000);
+
+  afterAll(async () => {
+    if (server) {
+      server.kill();
+      await server.exited;
+    }
+  });
+
   test("should transition to PLANNING_PHASE after a mission briefing", async () => {
     const mission = {
       missionTitle: "E2E Test Mission",

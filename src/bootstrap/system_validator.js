@@ -9,9 +9,11 @@ import { CoreBackup } from "../../services/core_backup.js";
  * Validates the health of the entire Stigmergy system.
  */
 export class SystemValidator {
-  constructor() {
+  constructor(fsOverride = fs, osOverride = os) {
     this.results = {};
     this.coreBackup = new CoreBackup();
+    this.fs = fsOverride;
+    this.os = osOverride;
   }
 
   async comprehensiveCheck() {
@@ -33,7 +35,7 @@ export class SystemValidator {
 
   async validateCoreIntegrity() {
     const corePath = path.join(process.cwd(), ".stigmergy-core");
-    if (!fs.existsSync(corePath)) {
+    if (!this.fs.existsSync(corePath)) {
       return { success: false, error: ".stigmergy-core directory not found." };
     }
     return { success: true, message: "Core integrity verified" };
@@ -41,12 +43,12 @@ export class SystemValidator {
 
   async validateGovernance() {
     const governancePath = path.join(process.cwd(), ".stigmergy-core", "governance");
-    if (!fs.existsSync(governancePath)) {
+    if (!this.fs.existsSync(governancePath)) {
       return { success: false, error: ".stigmergy-core/governance directory not found." };
     }
     
     const constitutionPath = path.join(governancePath, "constitution.md");
-    if (!fs.existsSync(constitutionPath)) {
+    if (!this.fs.existsSync(constitutionPath)) {
       return { success: false, error: "Constitution file not found in governance directory." };
     }
     
@@ -55,11 +57,11 @@ export class SystemValidator {
 
   async validateBackups() {
     try {
-      const backupDir = path.join(os.homedir(), ".stigmergy-backups");
-      if (!fs.existsSync(backupDir)) {
+      const backupDir = path.join(this.os.homedir(), ".stigmergy-backups");
+      if (!this.fs.existsSync(backupDir)) {
         return { success: false, error: "Backup directory not found." };
       }
-      const backupFiles = await fs.readdir(backupDir);
+      const backupFiles = await this.fs.readdir(backupDir);
       if (backupFiles.length === 0) {
         return { success: false, error: "No backup files found." };
       }
@@ -67,7 +69,7 @@ export class SystemValidator {
       const latestBackupFile = backupFiles
         .map((file) => ({
           file,
-          mtime: fs.statSync(path.join(backupDir, file)).mtime,
+          mtime: this.fs.statSync(path.join(backupDir, file)).mtime,
         }))
         .sort((a, b) => b.mtime.getTime() - a.mtime.getTime())[0].file;
 

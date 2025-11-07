@@ -7,6 +7,7 @@ import chalk from "chalk";
  * This is the correct, asynchronous way to start the application.
  */
 async function main() {
+  let engine;
   try {
     // 1. Initialize the configuration service. This is the source of all config.
     await configService.initialize();
@@ -60,6 +61,10 @@ async function main() {
   } catch (error) {
     console.error(chalk.red("Failed to start the Stigmergy Engine:"), error);
     process.exit(1);
+  } finally {
+    if (engine) {
+      await engine.stop();
+    }
   }
 }
 
