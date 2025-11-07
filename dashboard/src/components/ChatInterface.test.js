@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, it, expect, mock } from 'bun:test';
 import { ChatInterface, BUSY_STATUSES } from './ChatInterface';
-import '../../../../tests/setup-dom';
+import '../../../tests/setup-dom.js';
 
 // High-fidelity mock for the useChat hook
 const mockUseChat = mock(() => ({
@@ -21,6 +21,22 @@ mock.module('@ai-sdk/react', () => ({
 import { useChat } from '@ai-sdk/react';
 
 describe('ChatInterface', () => {
+  // This is the definitive fix for the test failures.
+  // We must clear the mock's history and reset its implementation
+  // before each test to ensure they are isolated from one another.
+  beforeEach(() => {
+    mockUseChat.mockClear();
+    // Provide a default mock implementation for all tests
+    mockUseChat.mockReturnValue({
+      messages: [],
+      input: '',
+      handleInputChange: mock(),
+      handleSubmit: mock(),
+      isLoading: false,
+      error: null,
+    });
+  });
+
   it('should disable input and button when no project is active', () => {
     render(<ChatInterface engineStatus="IDLE" activeProject={null} />);
     expect(screen.getByPlaceholderText('Set a project first...')).toBeDisabled();
