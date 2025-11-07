@@ -4,13 +4,18 @@ import { describe, it, expect, mock } from 'bun:test';
 import { ChatInterface, BUSY_STATUSES } from './ChatInterface';
 import '../../../../tests/setup-dom';
 
+// High-fidelity mock for the useChat hook
+const mockUseChat = mock(() => ({
+  messages: [],
+  input: '',
+  handleInputChange: mock(),
+  handleSubmit: mock(),
+  isLoading: false,
+  error: null,
+}));
+
 mock.module('@ai-sdk/react', () => ({
-  useChat: mock(() => ({
-    messages: [],
-    input: '',
-    handleInputChange: mock(),
-    handleSubmit: mock(),
-  })),
+  useChat: mockUseChat,
 }));
 
 import { useChat } from '@ai-sdk/react';

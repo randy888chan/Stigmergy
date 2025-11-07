@@ -34,7 +34,7 @@
     "test:unit": "bun test tests/unit/ai/** tests/unit/tools/** tests/unit/utils/** tests/unit/HttpStorageAdapter.test.js tests/unit/localization.test.js tests/unit/system_validator.test.js",
     "test:unit:frontend": "bun test --preload ./tests/setup-dom.js tests/unit/dashboard/**",
     "test:integration": "bun test tests/integration/**",
-    "test:e2e": "npx pm2 restart ecosystem.config.cjs --env test --name stigmergy-mock && npx wait-on --timeout 60000 http://localhost:3011/health && bun test --preload ./tests/setup-globals.js tests/e2e/**; EXIT_CODE=$?; npx pm2 delete stigmergy-mock && (exit $EXIT_CODE)",
+    "test:e2e": "bun test --preload ./tests/setup-globals.js tests/e2e/**",
     "test:watch": "bun test --watch",
     "build": "bun run build:dashboard && bun run build:agents",
     "build:dashboard": "npx tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css && bun build ./dashboard/src/index.js --outdir ./dashboard/public",

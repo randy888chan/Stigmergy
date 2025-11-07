@@ -29,7 +29,7 @@ describe("SystemValidator", () => {
     mock.restore(); // Restore all spies before each test
     // Dynamically import to ensure mocks and env vars are set
     SystemValidator = (await import("../../src/bootstrap/system_validator.js")).SystemValidator;
-    validator = new SystemValidator();
+    validator = new SystemValidator(fs, os);
   });
 
   afterAll(() => {

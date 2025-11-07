@@ -6,6 +6,12 @@ console.log("--- [SETUP] Applying global mock for UnifiedIntelligenceService ---
 // This is the definitive fix for the E2E test failures.
 // By mocking the *entire module*, we ensure that any part of the application
 // that imports this service during a test run will receive the mock instead
+mock.module("inquirer", () => ({
+  default: {
+    prompt: async () => ({}),
+    ui: { BottomBar: class {} },
+  },
+}));
 // of the real implementation. This prevents any unwanted side effects,
 // such as network requests or complex initialization logic.
 
