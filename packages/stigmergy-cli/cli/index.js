@@ -386,7 +386,9 @@ This command reads a .cypher script and sends it to a running Stigmergy engine t
 
 // Register commands from external files
 import { createLoginCommand } from './commands/login.js';
+import { createAdminCommand } from './commands/admin.js';
 program.addCommand(createLoginCommand());
+program.addCommand(createAdminCommand());
 
 // Override the default help command to add examples
 program.addHelpText('after', `
