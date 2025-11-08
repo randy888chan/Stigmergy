@@ -51,12 +51,6 @@ global.ResizeObserver = class ResizeObserver {
   }
 };
 
-global.fetch = () =>
-  Promise.resolve({
-    json: () => Promise.resolve({ projects: ["project-a", "project-b"] }),
-    ok: true,
-  });
-
 // Mock localStorage
 const localStorageMock = (() => {
   let store = {};

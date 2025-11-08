@@ -1,23 +1,16 @@
 import '../../../../tests/setup-dom.js';
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react';
+// REMOVED `screen` from this import
+import { render, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { GovernanceDashboard } from '../../../../dashboard/src/components/GovernanceDashboard';
 import { mock, describe, it, expect, beforeEach } from 'bun:test';
 import '@testing-library/jest-dom';
 
-// Mock fetch API
+// Mock fetch API globally for this test file
 global.fetch = mock();
 
-// Mock the entire accordion component module to prevent issues with Radix UI in tests
-mock.module('../../../../dashboard/src/components/ui/accordion.jsx', () => ({
-  Accordion: ({ children, ...props }) => <div {...props}>{children}</div>,
-  AccordionItem: ({ children, ...props }) => <div {...props}>{children}</div>,
-  AccordionTrigger: ({ children, ...props }) => <button {...props}>{children}</button>,
-  AccordionContent: ({ children, ...props }) => <div {...props}>{children}</div>,
-}));
-
 describe('GovernanceDashboard', () => {
-  // Updated mock data to match the component's expectations
   const mockProposals = [
     {
       id: 'prop1',
@@ -34,72 +27,92 @@ describe('GovernanceDashboard', () => {
   ];
 
   beforeEach(() => {
-    // Clear mock history before each test
     fetch.mockClear();
-     // Reset DOM between tests
     document.body.innerHTML = '';
   });
 
-  it('renders a list of mock proposals', () => {
-    const { getByText } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
+  it('renders a list of mock proposals but hides content initially', () => {
+    const { getByText, queryByText } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
-    // Check that the reason for each proposal is displayed
+    // Reasons (triggers) should be visible
     expect(getByText('First test proposal reason')).toBeInTheDocument();
     expect(getByText('Second test proposal reason')).toBeInTheDocument();
+
+    // Content should not be visible because the accordion is collapsed
+    expect(queryByText('console.log("hello");')).not.toBeInTheDocument();
   });
 
-  it('sends an approve request on button click', async () => {
-    // Mock a successful fetch response
+  it('expands proposal on click and shows content', async () => {
+    const user = userEvent.setup();
+    const { getByText, findByText, getByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
+
+    const trigger = getByText('First test proposal reason');
+    await user.click(trigger);
+
+    // Content should now be visible
+    const fileContent = await findByText('console.log("hello");');
+    expect(fileContent).toBeVisible();
+
+    const approveButton = getByRole('button', { name: /approve/i });
+    expect(approveButton).toBeVisible();
+  });
+
+  it('sends an approve request and refreshes proposals on button click', async () => {
+    const user = userEvent.setup();
+    const mockFetchProposals = mock(() => {});
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
 
-    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
+    const { getByText, findByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={mockFetchProposals} authToken="test-token" adminToken="test-admin-token" />);
 
     // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');
-    fireEvent.click(trigger);
+    await user.click(trigger);
 
     // Find and click the approve button
-    const approveButton = getAllByRole('button', { name: /approve/i })[0];
-    fireEvent.click(approveButton);
+    const approveButton = await findByRole('button', { name: /approve/i });
+    await user.click(approveButton);
 
-    // Wait for the fetch call to have been made with the correct parameters
+    // Assert fetch was called correctly
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/proposals/prop1/approve', expect.any(Object));
     });
+
+    // Assert the refresh function was called
+    expect(mockFetchProposals).toHaveBeenCalledTimes(1);
   });
 
-  it('sends a reject request on button click', async () => {
-    // Mock a successful fetch response
+  it('sends a reject request and refreshes proposals on button click', async () => {
+    const user = userEvent.setup();
+    const mockFetchProposals = mock(() => {});
     fetch.mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) });
 
-    const { getByText, getAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
+    const { getByText, findByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={true} fetchProposals={mockFetchProposals} authToken="test-token" adminToken="test-admin-token" />);
 
-    // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');
-    fireEvent.click(trigger);
+    await user.click(trigger);
 
-    // Find and click the reject button
-    const rejectButton = getAllByRole('button', { name: /reject/i })[0];
-    fireEvent.click(rejectButton);
+    const rejectButton = await findByRole('button', { name: /reject/i });
+    await user.click(rejectButton);
 
-    // Wait for the fetch call to have been made with the correct parameters
     await waitFor(() => {
       expect(fetch).toHaveBeenCalledWith('/api/proposals/prop1/reject', expect.any(Object));
     });
+
+    expect(mockFetchProposals).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show approve/reject buttons if isAdmin is false', () => {
-    const { getByText, queryAllByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={false} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
+  it('does not show approve/reject buttons if isAdmin is false', async () => {
+    const user = userEvent.setup();
+    const { getByText, findByText, queryByRole } = render(<GovernanceDashboard proposals={mockProposals} isAdmin={false} fetchProposals={() => {}} authToken="test-token" adminToken="test-admin-token" />);
 
-    // Click the trigger to make the content visible
     const trigger = getByText('First test proposal reason');
-    fireEvent.click(trigger);
+    await user.click(trigger);
 
-    // Verify that no approve or reject buttons are in the document
-    const approveButtons = queryAllByRole('button', { name: /approve/i });
-    const rejectButtons = queryAllByRole('button', { name: /reject/i });
+    // Content should be visible
+    expect(await findByText('console.log("hello");')).toBeVisible();
 
-    expect(approveButtons.length).toBe(0);
-    expect(rejectButtons.length).toBe(0);
+    // But buttons should not be present
+    expect(queryByRole('button', { name: /approve/i })).not.toBeInTheDocument();
+    expect(queryByRole('button', { name: /reject/i })).not.toBeInTheDocument();
   });
 });
