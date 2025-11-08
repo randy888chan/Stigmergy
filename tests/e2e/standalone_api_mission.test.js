@@ -78,7 +78,10 @@ async function main() {
 
     const response = await fetch(`${MOCK_SERVER_URL}/api/mission/briefing`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer stg_key_admin_replace_this_default_key"
+      },
       body: JSON.stringify(mission),
     });
 
@@ -88,7 +91,11 @@ async function main() {
 
     const finalState = await poll(
       async () => {
-        const stateResponse = await fetch(`${MOCK_SERVER_URL}/api/state`);
+        const stateResponse = await fetch(`${MOCK_SERVER_URL}/api/state`, {
+          headers: {
+            "Authorization": "Bearer stg_key_admin_replace_this_default_key"
+          }
+        });
         if (!stateResponse.ok) return false;
         const state = await stateResponse.json();
         return state.project_status === "PLANNING_PHASE" ? state : false;

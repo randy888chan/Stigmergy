@@ -117,36 +117,57 @@ Stigmergy can operate in "Team Mode," where multiple developers can connect thei
 
 Now, when you run missions, your engine will coordinate with the central team server.
 
-## 🔒 Production Deployment: Secure Secrets Management
+## 🔒 Production Deployment: Secure API Key Management
 
-For production or team environments, using a dedicated secrets manager is **required** to ensure security and proper configuration. Stigmergy integrates with [Doppler](https://www.doppler.com/) as the primary and prioritized method for handling secrets.
+For production or team environments, a Role-Based Access Control (RBAC) system is used to manage access and permissions. Authentication is handled via API keys, which are mapped to specific roles and users in a central configuration file.
 
 ### How it Works
 
-When the `stigmergy login` command is used, the system securely fetches all **secrets** (like API keys) from your Doppler project and injects them as environment variables.
+The Stigmergy engine is protected by an authentication middleware that requires a valid API key for all incoming requests. This key determines the user's role and the permissions they have within the system.
 
-**Doppler is the single source of truth for secrets and will always override `.env` files if a token is present.**
+The central configuration for this system is located at:
+`.stigmergy-core/governance/rbac.yml`
 
-However, other environment-specific configurations, such as `REASONING_PROVIDER` or `REASONING_MODEL`, are still managed via environment variables or an `.env.production` file. This allows for a flexible setup where secrets are kept secure in Doppler while non-sensitive configurations can be version-controlled or set directly in the deployment environment.
+This file defines roles, assigns permissions to them, and maps users to these roles along with their unique API keys.
 
-### Step 1: Log in with Doppler
+### Step 1: Configure Your Admin Key
 
-To configure your environment with Doppler, use the `login` command.
+For a simple, single-user setup, you only need to configure the default admin key.
 
-1.  **Get your Doppler Service Token:**
-    - Go to your Doppler project.
-    - Navigate to the `config` you want to use (e.g., `prd`).
-    - Find the `DOPPLER_TOKEN` value. This is your service token.
-
-2.  **Run the login command:**
+1.  **Open the RBAC configuration file:**
     ```bash
-    stigmergy login <your-doppler-service-token>
+    code .stigmergy-core/governance/rbac.yml
     ```
-    This command saves your token securely to a local configuration file at `~/.stigmergy/config.json`.
+2.  **Set your Admin Key:**
+    Find the `default-admin` user and replace the default key with a new, secure, randomly generated string.
+    ```yaml
+    users:
+      - username: default-admin
+        role: Admin
+        key: "stg_key_admin_your_new_secure_key_here" # <-- REPLACE THIS
+    ```
 
-### Step 2: Restart the Engine
+### Step 2: Use the API Key in Your Client
 
-After logging in, restart the Stigmergy engine. It will automatically detect the token and begin fetching secrets from Doppler, securely providing API keys and other credentials to the system.
+All clients (like the CLI or custom scripts) that interact with the Stigmergy engine must provide this API key in the `Authorization` header.
+
+**Example:**
+When making a request, include the header `Authorization: Bearer stg_key_admin_your_new_secure_key_here`. The `stigmergy run` CLI and other integrated tools will automatically use the key configured for the `default-admin`.
+
+### (Optional) Step 3: Create New Keys with the CLI
+
+For multi-user or more complex setups, you can easily generate new API keys for different roles using the CLI.
+
+```bash
+stigmergy admin create-key <username> <RoleName>
+```
+
+**Example:**
+To create a key for a new user named `dev-jane` with the `Developer` role:
+```bash
+stigmergy admin create-key dev-jane Developer
+```
+The command will output a new, secure API key for that user, which will also be automatically added to your `rbac.yml` file.
 
 ## 🆘 Troubleshooting: Hard Reset Protocol
 

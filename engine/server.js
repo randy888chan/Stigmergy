@@ -24,6 +24,16 @@ import { TrajectoryRecorder } from "../services/trajectory_recorder.js";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { sdk } from "../services/tracing.js";
 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const projectRoot = path.resolve(__dirname, '..');
+const rbacConfigPath = path.join(projectRoot, '.stigmergy-core', 'governance', 'rbac.yml');
+const rbacConfig = yaml.load(fs.readFileSync(rbacConfigPath, 'utf8'));
+const usersByKey = new Map(rbacConfig.users.map(u => [u.key, u]));
+const rolesToPermissions = new Map(Object.entries(rbacConfig.roles || {}).map(([role, perms]) => [role, new Set(perms)]));
+
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
@@ -59,40 +69,27 @@ export class Engine {
     this.app = new Hono();
     this.app.use("*", cors());
 
-    // --- Phase 36: Authentication Middleware ---
-    this.app.use("*", async (c, next) => {
-      const authHeader = c.req.header("Authorization");
-      const headerToken = authHeader?.split(" ")[1];
-      const queryToken = c.req.query("token");
-      const token = headerToken || queryToken;
-      const authToken = process.env.STIGMERGY_AUTH_TOKEN;
-
-      // Allow health check to pass without auth
-      if (c.req.path === "/health") {
+    this.app.use('*', async (c, next) => {
+      if (c.req.path === '/health') {
         return next();
       }
+      const authHeader = c.req.header('Authorization');
+      const token = authHeader?.split(' ')[1] || c.req.query('token');
 
-      if (!authToken || token === authToken) {
-        // For RBAC, check for admin token on sensitive routes
-        if (["POST", "DELETE"].includes(c.req.method)) {
-          const adminToken = process.env.STIGMERGY_ADMIN_TOKEN;
-          if (adminToken && token !== adminToken) {
-            // This is a sensitive operation, but the user is not an admin.
-            // We can check if the specific route is one that needs admin privileges.
-            // For now, let's assume all POST/DELETE need it for simplicity.
-            const adminTokenHeader = c.req.header("X-Admin-Token");
-            if (adminTokenHeader !== adminToken) {
-              console.warn(`[Auth] Admin token missing for ${c.req.method} ${c.req.path}`);
-              return c.json({ error: "Unauthorized: Admin privileges required." }, 403);
-            }
-          }
-        }
-        c.set("stateManager", this); // Pass the whole engine instance
-        await next();
-      } else {
-        console.warn(`[Auth] Invalid token received for ${c.req.path}`);
-        return c.json({ error: "Unauthorized" }, 401);
+      if (!token) {
+        return c.json({ error: 'Unauthorized: Missing API Key' }, 401);
       }
+      const user = usersByKey.get(token);
+
+      if (!user) {
+        return c.json({ error: 'Unauthorized: Invalid API Key' }, 403);
+      }
+      const permissions = rolesToPermissions.get(user.role) || new Set();
+
+      c.set('user', user);
+      c.set('permissions', permissions);
+      c.set('stateManager', this);
+      await next();
     });
 
     this.clients = new Set();
@@ -476,6 +473,17 @@ Based on all the information above, please create the initial \`plan.md\` file t
   }
 
   setupRoutes() {
+
+    const requirePermission = (permission) => {
+      return async (c, next) => {
+        const userPermissions = c.get('permissions');
+        if (userPermissions && userPermissions.has(permission)) {
+          await next();
+        } else {
+          return c.json({ error: `Forbidden: Requires '${permission}' permission` }, 403);
+        }
+      };
+    };
     // --- THIS IS THE CRITICAL FIX: DEFINE SPECIFIC ROUTES FIRST ---
 
     // 1. Health Check Endpoint
@@ -611,7 +619,7 @@ Based on all the information above, please create the initial \`plan.md\` file t
       }
     });
 
-    this.app.post("/api/proposals/:id/approve", async (c) => {
+    this.app.post('/api/proposals/:id/approve', requirePermission('governance:approve'), async (c) => {
       const { id } = c.req.param();
       const proposalsDir = path.join(this.corePath, "proposals");
       const proposalPath = path.join(proposalsDir, `${id}.json`);
@@ -866,7 +874,7 @@ Execute the file write operation now. Upon success, respond with a confirmation 
       }
     });
 
-    this.app.post("/api/mission/briefing", async (c) => {
+    this.app.post('/api/mission/briefing', requirePermission('mission:run'), async (c) => {
       const engine = c.get("stateManager"); // It's the engine instance
       if (!engine) {
         return c.json({ error: "Engine not available" }, 500);
@@ -1000,34 +1008,6 @@ Based on the information above, please formulate a plan and execute the mission.
         console.error(chalk.red("[Engine] Knowledge import failed:"), error);
         return c.json({ error: `Failed to import knowledge graph: ${error.message}` }, 500);
       }
-    });
-
-    this.app.post("/api/mission/briefing", async (c) => {
-      const { missionTitle, userStories, acceptanceCriteria } = await c.req.json();
-
-      if (!missionTitle || !userStories || !acceptanceCriteria) {
-        return c.json(
-          { error: "missionTitle, userStories, and acceptanceCriteria are required" },
-          400
-        );
-      }
-
-      const conductorPrompt = `
-                # Mission Briefing
-                ## Title: ${missionTitle}
-                ## User Stories
-                ${userStories}
-                ## Acceptance Criteria
-                ${acceptanceCriteria}
-
-                As the Conductor, your task is to understand this mission briefing and initiate the first step of the process.
-            `;
-
-      // We can directly trigger the conductor agent.
-      // In a more complex setup, this might go into a queue.
-      this.triggerAgent("@conductor", conductorPrompt);
-
-      return c.json({ message: "Mission briefing received, conductor agent initiated." });
     });
 
     // 3. IDE (MCP) Endpoint

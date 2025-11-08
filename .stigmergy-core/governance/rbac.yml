@@ -1,0 +1,34 @@
+# .stigmergy-core/governance/rbac.yml
+
+roles:
+  Admin:
+    - mission:run
+    - governance:propose
+    - governance:approve
+    - project:manage
+    - system:view:health
+    - system:view:logs
+    - user:manage
+  ProjectManager:
+    - mission:run
+    - governance:propose
+    - governance:approve
+    - project:manage
+    - system:view:health
+    - system:view:logs
+  Developer:
+    - mission:run
+    - governance:propose
+    - system:view:health
+    - system:view:logs
+  Viewer:
+    - system:view:health
+  Agent:
+    - governance:propose # For agents like @metis
+
+# This section maps API keys to users and their roles.
+# For a simple, single-user setup, only one user (e.g., an Admin) is needed.
+users:
+  - username: default-admin
+    role: Admin
+    key: "stg_key_admin_replace_this_default_key"
