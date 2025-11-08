@@ -37,6 +37,14 @@ describe('ProjectSelector', () => {
   beforeEach(() => {
     // Reset DOM between tests
     document.body.innerHTML = '';
+
+    // Provide a mock implementation for this specific test
+    fetchSpy = spyOn(global, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify(['project-a', 'project-b']), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    );
   });
 
   afterEach(() => {
@@ -47,13 +55,6 @@ describe('ProjectSelector', () => {
   });
 
   it('should fetch and display projects when the button is clicked', async () => {
-    // Provide a mock implementation for this specific test
-    fetchSpy = spyOn(global, 'fetch').mockResolvedValueOnce(
-      new Response(JSON.stringify(['project-a', 'project-b']), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      })
-    );
 
     const user = userEvent.setup();
     const { getByTestId, getByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
