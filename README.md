@@ -123,9 +123,11 @@ For production or team environments, using a dedicated secrets manager is **requ
 
 ### How it Works
 
-When the `stigmergy login` command is used, the system securely fetches all secrets from your Doppler project and injects them as environment variables. **If a Doppler token is detected, the system will completely ignore any `.env` files, ensuring that Doppler remains the single source of truth for all secrets.**
+When the `stigmergy login` command is used, the system securely fetches all **secrets** (like API keys) from your Doppler project and injects them as environment variables.
 
-For local development, you can still use a `.env.development` file for convenience, but for any production-like or shared environment, Doppler is the required standard.
+**Doppler is the single source of truth for secrets and will always override `.env` files if a token is present.**
+
+However, other environment-specific configurations, such as `REASONING_PROVIDER` or `REASONING_MODEL`, are still managed via environment variables or an `.env.production` file. This allows for a flexible setup where secrets are kept secure in Doppler while non-sensitive configurations can be version-controlled or set directly in the deployment environment.
 
 ### Step 1: Log in with Doppler
 

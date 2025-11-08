@@ -2,9 +2,10 @@ import '../../../../tests/setup-dom.js';
 import React from 'react';
 import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
+import { describe, it, expect, mock, beforeEach, afterEach } from 'bun:test';
 import { ProjectSelector } from '../../../../dashboard/src/components/ProjectSelector';
 import '@testing-library/jest-dom';
+import { spyOn } from 'bun:test';
 
 // Mock the path-browserify module
 const mockPath = {
@@ -30,20 +31,24 @@ mock.module('../../../../dashboard/src/components/ui/select.jsx', () => ({
   SelectValue: ({ children, ...props }) => <div {...props}>{children}</div>,
 }));
 
-// Mock the global fetch API to be a spy
-global.fetch = mock();
-
 describe('ProjectSelector', () => {
+    let fetchSpy;
+
   beforeEach(() => {
-    // Clear mock history before each test
-    fetch.mockClear();
     // Reset DOM between tests
     document.body.innerHTML = '';
   });
 
+  afterEach(() => {
+    // Restore the original fetch function to avoid side effects
+    if (fetchSpy) {
+      fetchSpy.mockRestore();
+    }
+  });
+
   it('should fetch and display projects when the button is clicked', async () => {
     // Provide a mock implementation for this specific test
-    fetch.mockResolvedValueOnce(
+    fetchSpy = spyOn(global, 'fetch').mockResolvedValueOnce(
       new Response(JSON.stringify(['project-a', 'project-b']), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
@@ -63,7 +68,7 @@ describe('ProjectSelector', () => {
     });
 
     // Verify fetch was called correctly
-    expect(fetch).toHaveBeenCalledWith('/api/projects?basePath=~');
-    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~');
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });

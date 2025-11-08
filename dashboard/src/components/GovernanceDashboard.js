@@ -18,7 +18,7 @@ export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchPropos
             throw new Error(result.error || 'API call failed');
         }
         // Refresh the list of proposals after a decision is made
-        // fetchProposals(); // This function is not passed as a prop, causing a runtime error.
+        fetchProposals();
     } catch (error) {
         console.error(`Failed to ${decision} proposal:`, error);
     }
