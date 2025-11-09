@@ -13,6 +13,9 @@ const toolSchemas = {
     // This is not exhaustive but is a good starting point.
     path: z.string().regex(/^[\w\/\.-]+$/, "Invalid characters in path"),
   },
+  'file_system.pathExists': {
+      path: z.string().min(1),
+  },
   // Example schema for a 'shell.run' tool
   'shell.run': {
     command: z.string().min(1),
