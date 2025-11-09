@@ -25,6 +25,9 @@ Agents MUST NOT directly modify build artifacts or files in generated directorie
 ### 7. Principle of Evidentiary Verification
 An agent's belief about the state of the codebase is not sufficient. Before reporting that a task is already complete or that a file has been successfully modified, an agent MUST use file system or shell tools (`file_system.readFile`, `shell.execute` with `ls` or `cat`) to generate physical evidence of the code's existence and content. This evidence must be included in its final thought process. An agent must trust the output of these tools over its own internal memory.
 
+### 8. The Principle of Observability
+All new or modified business logic must be instrumented with structured logging to provide visibility into its runtime behavior. Critical operations must include logs for success, failure, and key decision points.
+
 ## Agent Protocols
 
 ### Constitutional Compliance Protocol

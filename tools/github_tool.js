@@ -44,28 +44,94 @@ export async function create_issue({ title, body, labels = ['protocol-proposal']
 }
 
 export async function create_pull_request({ title, head, base = 'main' }) {
-await configService.initialize();
-const config = configService.getConfig();
-const { owner, repo } = config.github || {};
-const githubToken = process.env.GITHUB_TOKEN;
+    await configService.initialize();
+    const config = configService.getConfig();
+    const { owner, repo } = config.github || {};
+    const githubToken = process.env.GITHUB_TOKEN;
 
-if (!owner || !repo || !githubToken) {
-throw new Error("GitHub configuration (owner, repo, token) is missing.");
+    if (!owner || !repo || !githubToken) {
+        throw new Error("GitHub configuration (owner, repo, token) is missing.");
+    }
+
+    const octokit = new Octokit({ auth: githubToken });
+
+    try {
+        const response = await octokit.pulls.create({
+            owner,
+            repo,
+            title,
+            head,
+            base,
+            body: `Pull request created by Stigmergy agent swarm.`,
+        });
+        return `Successfully created pull request: ${response.data.html_url}`;
+    } catch (error) {
+        return `EXECUTION FAILED: ${error.message}`;
+    }
 }
 
-const octokit = new Octokit({ auth: githubToken });
+/**
+ * Gets the status of a GitHub pull request.
+ * @param {object} args - The arguments for the function.
+ * @param {number} args.pr_number - The number of the pull request.
+ * @returns {Promise<string>} A promise that resolves with the status of the pull request.
+ */
+export async function get_pr_status({ pr_number }) {
+    await configService.initialize();
+    const config = configService.getConfig();
+    const { owner, repo } = config.github || {};
+    const githubToken = process.env.GITHUB_TOKEN;
 
-try {
-const response = await octokit.pulls.create({
-owner,
-repo,
-title,
-head,
-base,
-body: `Pull request created by Stigmergy agent swarm.`,
-});
-return `Successfully created pull request: ${response.data.html_url}`;
-} catch (error) {
-return `EXECUTION FAILED: ${error.message}`;
+    if (!owner || !repo || !githubToken) {
+        throw new Error("GitHub configuration (owner, repo, token) is missing.");
+    }
+
+    const octokit = new Octokit({ auth: githubToken });
+
+    try {
+        const response = await octokit.pulls.get({
+            owner,
+            repo,
+            pull_number: pr_number,
+        });
+        return response.data.state; // e.g., 'open', 'closed'
+    } catch (error) {
+        return `EXECUTION FAILED: ${error.message}`;
+    }
 }
+
+/**
+ * Gets the status of CI check runs for a specific branch.
+ * @param {object} args - The arguments for the function.
+ * @param {string} args.branch_name - The name of the branch.
+ * @returns {Promise<object>} A promise that resolves with the status and conclusion of the check runs.
+ */
+export async function get_check_runs({ branch_name }) {
+    await configService.initialize();
+    const config = configService.getConfig();
+    const { owner, repo } = config.github || {};
+    const githubToken = process.env.GITHUB_TOKEN;
+
+    if (!owner || !repo || !githubToken) {
+        throw new Error("GitHub configuration (owner, repo, token) is missing.");
+    }
+
+    const octokit = new Octokit({ auth: githubToken });
+
+    try {
+        const response = await octokit.checks.listForRef({
+            owner,
+            repo,
+            ref: branch_name,
+        });
+
+        const check_runs = response.data.check_runs.map(run => ({
+            status: run.status, // e.g., 'queued', 'in_progress', 'completed'
+            conclusion: run.conclusion, // e.g., 'success', 'failure', 'neutral', 'cancelled', 'skipped', 'timed_out', 'action_required'
+        }));
+
+        return check_runs;
+    } catch (error) {
+        return `EXECUTION FAILED: ${error.message}`;
+    }
 }
