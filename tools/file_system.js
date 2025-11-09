@@ -58,3 +58,14 @@ export async function appendFile({ path: filePath, content }, fs = defaultFs) {
         return `EXECUTION FAILED: ${error.message}`;
     }
 }
+
+export async function pathExists({ path: targetPath }, fs = defaultFs) {
+  try {
+    // This tool expects `targetPath` to be a secure, absolute path
+    // provided by the tool_executor.
+    const exists = await fs.pathExists(targetPath);
+    return `Path '${targetPath}' exists: ${exists}`;
+  } catch (error) {
+    return `EXECUTION FAILED: Error checking path '${targetPath}': ${error.message}`;
+  }
+}

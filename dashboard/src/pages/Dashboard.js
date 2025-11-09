@@ -269,7 +269,7 @@ const Dashboard = () => {
                 <Button
                   onClick={handlePauseMission}
                   variant="outline"
-                  disabled={!['ENRICHMENT_PHASE', 'PLANNING_PHASE', 'EXECUTION_PHASE'].includes(systemState.project_status)}
+                  disabled={!['ENRICHMENT_PHASE', 'PLANNING_PHASE', 'EXECUTION_PHASE', 'AGENT_EXECUTING'].includes(systemState.project_status)}
                 >
                   Pause Mission
                 </Button>
