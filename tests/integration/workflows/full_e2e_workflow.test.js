@@ -52,6 +52,23 @@ describe("Full E-to-E Workflow (Isolated)", () => {
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.ensureDir(agentDir);
 
+    // Create mock rbac.yml required by the engine
+    const governanceDir = path.join(process.env.STIGMERGY_CORE_PATH, "governance");
+    await mockFs.ensureDir(governanceDir);
+    const rbacContent = `
+roles:
+  Admin:
+    - mission:run
+    - governance:propose
+    - governance:approve
+    - system:updateStatus # Allow the mock tool call
+users:
+  - username: test-admin
+    role: Admin
+    key: "test-key"
+`;
+    await mockFs.promises.writeFile(path.join(governanceDir, 'rbac.yml'), rbacContent);
+
     const createAgentFile = async (name) => {
       const content = `
 \`\`\`yaml
