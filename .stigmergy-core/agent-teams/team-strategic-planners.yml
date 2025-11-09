@@ -1,5 +1,6 @@
 # Use Case: Starting a new project from a high-level idea, often in a Web UI.
 # Output: A complete set of project documents (business-plan.md, architecture_blueprint.yml, etc.).
+lead_agent: "@specifier"
 bundle:
   name: "Strategic Planners"
   icon: "📜"
