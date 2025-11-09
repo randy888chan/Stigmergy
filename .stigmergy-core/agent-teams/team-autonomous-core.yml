@@ -1,6 +1,7 @@
 # Use Case: Full, end-to-end autonomous development.
 # Environment: Local IDE
 # Output: Production-ready code and tests.
+lead_agent: "@specifier"
 bundle:
   name: "Autonomous Core"
   icon: "⚙️"

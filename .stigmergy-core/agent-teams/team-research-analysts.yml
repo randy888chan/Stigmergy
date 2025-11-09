@@ -1,6 +1,7 @@
 # Use Case: Answering questions like "Analyze the market for AI-powered to-do apps".
 # Environment: Web UI or Local IDE
 # Output: A comprehensive Markdown report.
+lead_agent: "@analyst"
 bundle:
   name: "Research & Analysis"
   icon: "📊"
