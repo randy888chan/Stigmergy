@@ -108,6 +108,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^14.12.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
@@ -136,8 +137,7 @@
     "semantic-release": "^25.0.1",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "wait-on": "^9.0.1",
-    "@happy-dom/global-registrator": "^14.12.0"
+    "wait-on": "^9.0.1"
   },
   "overrides": {
     "highlight.js": "11.9.0"
