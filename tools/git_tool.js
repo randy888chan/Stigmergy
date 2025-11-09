@@ -24,6 +24,37 @@ export async function init({ path: repoPath }) {
   }
 }
 
+export async function create_branch({ branchName, workingDirectory }) {
+try {
+const git = simpleGit(workingDirectory);
+await git.checkoutLocalBranch(branchName);
+return `Successfully created and switched to new branch: ${branchName}`;
+} catch (error) {
+return `EXECUTION FAILED: ${error.message}`;
+}
+}
+
+export async function add({ files, workingDirectory }) {
+try {
+const git = simpleGit(workingDirectory);
+await git.add(files);
+return `Successfully staged: ${Array.isArray(files) ? files.join(', ') : files}`;
+} catch (error) {
+return `EXECUTION FAILED: ${error.message}`;
+}
+}
+
+export async function delete_branch_locally({ branchName, workingDirectory }) {
+try {
+const git = simpleGit(workingDirectory);
+await git.checkout('main'); // Or your default branch
+await git.deleteLocalBranch(branchName, true); // Force delete
+return `Successfully deleted local branch: ${branchName}`;
+} catch (error) {
+return `EXECUTION FAILED: ${error.message}`;
+}
+}
+
 /**
  * Gets the diff of staged changes.
  * @param {object} args - The arguments for the function.

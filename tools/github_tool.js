@@ -42,3 +42,30 @@ export async function create_issue({ title, body, labels = ['protocol-proposal']
         throw new Error(`Failed to create GitHub issue: ${error.message}`);
     }
 }
+
+export async function create_pull_request({ title, head, base = 'main' }) {
+await configService.initialize();
+const config = configService.getConfig();
+const { owner, repo } = config.github || {};
+const githubToken = process.env.GITHUB_TOKEN;
+
+if (!owner || !repo || !githubToken) {
+throw new Error("GitHub configuration (owner, repo, token) is missing.");
+}
+
+const octokit = new Octokit({ auth: githubToken });
+
+try {
+const response = await octokit.pulls.create({
+owner,
+repo,
+title,
+head,
+base,
+body: `Pull request created by Stigmergy agent swarm.`,
+});
+return `Successfully created pull request: ${response.data.html_url}`;
+} catch (error) {
+return `EXECUTION FAILED: ${error.message}`;
+}
+}
