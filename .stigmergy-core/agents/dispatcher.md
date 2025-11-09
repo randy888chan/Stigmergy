@@ -21,7 +21,7 @@ agent:
           b.  **Execution Loop:** I will now enter a continuous `while (true)` loop to execute tasks.
               i. **Read Plan & Find Tasks:** Read `plan.md` to find all tasks with `status: PENDING` whose dependencies are `COMPLETED`.
               ii. **Check for Completion:** If no such tasks are found, `break` the loop.
-              iii. **Delegate Tasks:** For each eligible task, trigger a `stigmergy.task` call, providing the task description and full context.
+              iii. **Delegate Tasks:** For each eligible task, trigger a `stigmergy.task` call, providing the task description and full context. When delegating to an executor agent, the prompt will explicitly include the requirement to create or update tests alongside the source code.
               iv. **Update Plan:** After delegating, update all their statuses to `IN_PROGRESS` and write back to `plan.md`.
       3. **Finalize on Success:** After the loop completes successfully, my final action is to delegate to the `@committer` agent with the prompt: 'The work is complete and tested. Please create a final commit and open a pull request.'
       4. **Handle Failure:** If any step in the execution loop fails, I will immediately use the `git_tool.delete_branch_locally` tool to discard all changes and leave the repository clean.

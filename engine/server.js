@@ -94,6 +94,9 @@ export class Engine {
 
     this.clients = new Set();
     this.pendingApprovals = new Map(); // For Human Handoff
+    this.pausedState = null;
+    this.pausedAgent = null;
+    this.lastAgentContext = null;
     this.server = null;
     this.port = null;
     this._test_streamText =
@@ -231,6 +234,10 @@ export class Engine {
       console.log(chalk.magenta(`[Engine] State changed to: ${newState.project_status}`));
       this.broadcastEvent("state_update", newState);
 
+      if (newState.project_status === "PAUSED_FOR_FEEDBACK") {
+        console.log(chalk.yellow("[Engine] Mission paused for user feedback."));
+        return;
+      }
       if (newState.project_status === "ENRICHMENT_PHASE") {
         if (process.env.USE_MOCK_SWARM === "true") {
           console.log(chalk.yellow("[Engine] Mock swarm enabled. Skipping intelligence gathering."));
@@ -322,6 +329,8 @@ Based on all the information above, please create the initial \`plan.md\` file t
     return tracer.startActiveSpan(`triggerAgent:${agentId}`, async (span) => {
       span.setAttribute("agent.id", agentId);
       span.setAttribute("prompt", prompt);
+
+      this.lastAgentContext = { agentId, prompt };
 
       await this.toolExecutorPromise;
       await this.stateManagerInitializationPromise;
@@ -484,6 +493,15 @@ Based on all the information above, please create the initial \`plan.md\` file t
         }
       };
     };
+    this.app.post('/api/mission/pause', async (c) => {
+      this.pausedState = await this.stateManager.getState();
+      await this.stateManager.updateStatus({
+        newStatus: 'PAUSED_FOR_FEEDBACK',
+        message: 'Mission paused by user.',
+      });
+      const newState = await this.stateManager.getState();
+      return c.json({ message: 'Mission paused successfully.', state: newState });
+    });
     // --- THIS IS THE CRITICAL FIX: DEFINE SPECIFIC ROUTES FIRST ---
 
     // 1. Health Check Endpoint
@@ -915,6 +933,44 @@ Based on the information above, please formulate a plan and execute the mission.
         console.error(chalk.red("[Engine] Error processing mission briefing:"), error);
         return c.json({ error: "Failed to process mission briefing." }, 500);
       }
+    });
+
+    this.app.post('/api/mission/pause', requirePermission('mission:pause'), async (c) => {
+      this.pausedState = await this.stateManager.getState();
+      await this.stateManager.updateStatus({
+        newStatus: 'PAUSED_FOR_FEEDBACK',
+        message: 'Mission paused by user.',
+      });
+      const newState = await this.stateManager.getState();
+      return c.json({ message: 'Mission paused successfully.', state: newState });
+    });
+
+    this.app.post('/api/mission/resume', async (c) => {
+      const { feedback } = await c.req.json();
+      if (!this.pausedState || !this.lastAgentContext) {
+        return c.json({ error: 'No mission is currently paused or agent context is missing.' }, 400);
+      }
+
+      // Restore the state before the pause
+      await this.stateManager.updateStatus({
+        newStatus: this.pausedState.project_status,
+        message: 'Resuming mission with user feedback.',
+      });
+
+      const { agentId, prompt } = this.lastAgentContext;
+
+      const newPrompt = `You were previously working on this task: "${prompt}". A human operator has paused your work and provided the following corrective feedback: "${feedback}". Please re-evaluate your approach based on this new information and continue the mission.`;
+
+      // Retrigger the agent
+      this.triggerAgent(agentId, newPrompt).catch(err => {
+        console.error(chalk.red(`[Engine] Error resuming agent ${agentId}:`), err);
+      });
+
+      this.pausedState = null;
+      this.pausedAgent = null;
+
+      const newState = await this.stateManager.getState();
+      return c.json({ message: 'Mission is resuming with new feedback.', state: newState });
     });
 
     this.app.get("/api/mission/summary", async (c) => {

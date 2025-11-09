@@ -6,6 +6,7 @@ import { Separator } from "../components/ui/separator.jsx";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card.jsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog.jsx";
 import { Button } from "../components/ui/button.jsx";
+import { Textarea } from "../components/ui/textarea.jsx";
 import { ScrollArea } from "../components/ui/scroll-area.jsx";
 import CurrentObjective from '../components/CurrentObjective.js';
 
@@ -51,6 +52,24 @@ const Dashboard = () => {
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const [proposals, setProposals] = useState([]);
+  const [feedback, setFeedback] = useState('');
+
+  const handleResumeMission = async () => {
+    try {
+      const response = await fetch('/api/mission/resume', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback }),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to resume mission');
+      }
+      setFeedback('');
+      console.log('Mission resume request sent.');
+    } catch (error) {
+      console.error('Error resuming mission:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchProposals = async () => {
@@ -144,6 +163,21 @@ const Dashboard = () => {
     setHumanApprovalRequest(null); // Close the dialog after responding
   };
 
+  const handlePauseMission = async () => {
+    try {
+      const response = await fetch('/api/mission/pause', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to pause mission');
+      }
+      console.log('Mission pause request sent.');
+    } catch (error) {
+      console.error('Error pausing mission:', error);
+    }
+  };
+
   const handleProjectSelect = (selectedPath) => {
     if (selectedPath) {
       sendMessage({ type: 'set_project', payload: { path: selectedPath } });
@@ -232,6 +266,24 @@ const Dashboard = () => {
                     <ProjectSelector onProjectSelect={handleProjectSelect} />
                 </Suspense>
                 <Button onClick={() => setIsBriefingOpen(true)} variant="outline">New Mission Briefing</Button>
+                <Button
+                  onClick={handlePauseMission}
+                  variant="outline"
+                  disabled={!['ENRICHMENT_PHASE', 'PLANNING_PHASE', 'EXECUTION_PHASE'].includes(systemState.project_status)}
+                >
+                  Pause Mission
+                </Button>
+                {systemState.project_status === 'PAUSED_FOR_FEEDBACK' && (
+                  <>
+                    <Textarea
+                      value={feedback}
+                      onChange={(e) => setFeedback(e.target.value)}
+                      placeholder="Provide corrective feedback..."
+                      className="w-64"
+                    />
+                    <Button onClick={handleResumeMission}>Resume Mission</Button>
+                  </>
+                )}
             </div>
             <div className="flex items-center gap-4 text-sm">
                 <span><b>Active Project:</b> {systemState.project_path || 'None'}</span>
