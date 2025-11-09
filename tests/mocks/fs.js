@@ -1,10 +1,10 @@
+// In tests/mocks/fs.js
+
 import { Volume } from "memfs";
 import { promisify } from "util";
 
 // This is the definitive, high-fidelity mock for the `fs-extra` library.
-// The root cause of previous failures was an incomplete mock that did not
-// correctly replicate `fs-extra`'s dual promise/callback API for all methods.
-// This version fixes that by ensuring every mocked function behaves as expected.
+// It correctly replicates fs-extra's dual promise/callback API for all methods.
 
 // The single, shared in-memory volume for all tests
 export const vol = new Volume();
@@ -13,7 +13,6 @@ export const vol = new Volume();
 const memfs = require("memfs").createFsFromVolume(vol);
 
 // 2. A robust helper to wrap a promise-returning function so it also accepts a callback.
-// This is the core of the `fs-extra` compatibility.
 const promisifyWithCallback =
   (fn) =>
   (...args) => {
@@ -46,11 +45,10 @@ mockFs.promises = {
   stat: promisify(memfs.stat).bind(memfs),
   unlink: promisify(memfs.unlink).bind(memfs),
   writeFile: promisify(memfs.writeFile).bind(memfs),
-  exists: promisify(memfs.exists).bind(memfs), // exists is a special case
+  exists: promisify(memfs.exists).bind(memfs),
 };
 
-// 5. DEFINITIVE FIX: Re-implement the top-level functions to support both promises and callbacks.
-// The previous mock was missing this for standard methods like `writeFile`.
+// 5. Re-implement the top-level functions to support both promises and callbacks.
 mockFs.readFile = promisifyWithCallback(mockFs.promises.readFile);
 mockFs.writeFile = promisifyWithCallback(mockFs.promises.writeFile);
 mockFs.appendFile = promisifyWithCallback(mockFs.promises.appendFile);
@@ -73,7 +71,7 @@ mockFs.ensureDirSync = (path, options) => {
   return mockFs.mkdirSync(path, { recursive: true, ...options });
 };
 
-// 6. Final Export Structure: Supports `import fs from 'fs-extra'` and `import { promises } from 'fs-extra'`.
+// 6. Final Export Structure
 const definitiveMock = {
   ...mockFs,
   default: mockFs,

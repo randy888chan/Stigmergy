@@ -28,11 +28,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const projectRoot = path.resolve(__dirname, '..');
-const rbacConfigPath = path.join(projectRoot, '.stigmergy-core', 'governance', 'rbac.yml');
-const rbacConfig = yaml.load(fs.readFileSync(rbacConfigPath, 'utf8'));
-const usersByKey = new Map(rbacConfig.users.map(u => [u.key, u]));
-const rolesToPermissions = new Map(Object.entries(rbacConfig.roles || {}).map(([role, perms]) => [role, new Set(perms)]));
+
 
 export class Engine {
   constructor(options = {}) {
@@ -44,6 +40,7 @@ export class Engine {
     if (!this.config) {
       throw new Error("Engine requires a 'config' object in its constructor options.");
     }
+    this.fs = options._test_fs || fs;
     this.stateManager = null;
     this.stateChangedListener = this._onStateChanged.bind(this);
     this.triggerAgentListener = this._onTriggerAgent.bind(this);
@@ -57,6 +54,19 @@ export class Engine {
     this.shouldStartServer = options.startServer !== false;
     this.app = new Hono();
     this.app.use("*", cors());
+
+    // Load RBAC configuration using the provided fs
+    const rbacConfigPath = path.join(this.corePath, 'governance', 'rbac.yml');
+    try {
+        const rbacConfig = yaml.load(this.fs.readFileSync(rbacConfigPath, 'utf8'));
+        this.usersByKey = new Map(rbacConfig.users.map(u => [u.key, u]));
+        this.rolesToPermissions = new Map(Object.entries(rbacConfig.roles || {}).map(([role, perms]) => [role, new Set(perms)]));
+    } catch (e) {
+        console.error(chalk.red(`[Engine] CRITICAL: Could not load RBAC config from ${rbacConfigPath}. Auth will fail.`), e);
+        this.usersByKey = new Map();
+        this.rolesToPermissions = new Map();
+    }
+
     this.app.use('*', async (c, next) => {
       if (c.req.path === '/health') {
         return next();
@@ -66,11 +76,11 @@ export class Engine {
       if (!token) {
         return c.json({ error: 'Unauthorized: Missing API Key' }, 401);
       }
-      const user = usersByKey.get(token);
+      const user = this.usersByKey.get(token);
       if (!user) {
         return c.json({ error: 'Unauthorized: Invalid API Key' }, 403);
       }
-      const permissions = rolesToPermissions.get(user.role) || new Set();
+      const permissions = this.rolesToPermissions.get(user.role) || new Set();
       c.set('user', user);
       c.set('permissions', permissions);
       c.set('stateManager', this);
@@ -126,12 +136,12 @@ export class Engine {
 
   async initializeToolExecutor() {
     const executorFactory = this._test_executorFactory || createExecutor;
-    const fsProvider = this._test_fs || fs;
+    // The executor factory needs the engine's fs provider to ensure mocks are used.
     this.toolExecutor = await executorFactory(
       this,
       this.ai,
       { config: this.config, unifiedIntelligenceService: this.unifiedIntelligenceService },
-      fsProvider
+      this.fs // Use the engine's fs instance, which will be the mock in tests.
     );
   }
 
@@ -293,10 +303,10 @@ Based on all the information above, please create the initial \`plan.md\` file t
         const agentName = agentId.replace("@", "");
         let lastTextResponse = null;
         const workingDirectory = path.join(this.projectRoot, ".stigmergy", "sandboxes", agentName);
-        await fs.ensureDir(workingDirectory);
+        await this.fs.ensureDir(workingDirectory);
         const executeTool = this.toolExecutor;
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
-        const agentFileContent = await fs.readFile(agentPath, "utf-8");
+        const agentFileContent = await this.fs.promises.readFile(agentPath, "utf-8");
         const yamlMatch = agentFileContent.match(/```yaml\n([\s\S]*?)\n```/);
         let systemPrompt = "You are a helpful AI assistant.";
         if (yamlMatch && yamlMatch[1]) {
