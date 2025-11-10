@@ -335,6 +335,38 @@ This command creates a boilerplate file in the custom tools directory
   `);
 
 program
+  .command("docs:generate")
+  .description("Triggers the @documentarian agent to generate system documentation.")
+  .action(async () => {
+    const docsGeneratePath = path.resolve(__dirname, './commands/docs-generate.js');
+    const { handler } = await import(docsGeneratePath);
+    await handler();
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy docs:generate
+
+This command triggers the @documentarian agent to scan the system's agents and tools,
+and generate comprehensive Markdown documentation in the 'docs/generated' directory.
+  `);
+
+program
+  .command("maintenance:dependencies")
+  .description("Triggers the @mechanic agent to audit and propose dependency updates.")
+  .action(async () => {
+    const maintenanceDependenciesPath = path.resolve(__dirname, './commands/maintenance-dependencies.js');
+    const { handler } = await import(maintenanceDependenciesPath);
+    await handler();
+  })
+  .addHelpText('after', `
+Examples:
+  $ stigmergy maintenance:dependencies
+
+This command triggers the @mechanic agent to audit the project's dependencies,
+research any high-risk updates, and propose safe updates to the guardian.
+  `);
+
+program
   .command("add-agent")
   .description("Creates a new custom agent definition file.")
   .option('--name <name>', 'The name of the new agent (e.g., my_agent)')

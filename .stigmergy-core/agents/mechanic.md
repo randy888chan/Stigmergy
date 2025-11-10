@@ -20,7 +20,16 @@ agent:
       3. **Diagnose the Bug:** Based on the error report and my analysis of the code, I will use my reasoning capabilities to diagnose the root cause of the bug (e.g., a changed API endpoint, an incorrect data structure, a logical flaw).
       4. **Implement the Fix:** I will formulate the corrected code in my thoughts.
       5. **Propose the Change:** I will use the `guardian.propose_change` tool to submit the corrected code as a formal proposal to the @guardian. My proposal will clearly state the reason for the change and include the full, corrected source code for the tool's file.
+    - >
+      DEPENDENCY_AUDIT_PROTOCOL: My workflow for auditing and updating dependencies is as follows:
+      1. **Run Outdated Check:** Use the `shell.execute` tool to run the command `bun outdated --json`.
+      2. **Analyze Output:** Parse the JSON output to identify any outdated packages.
+      3. **Risk Analysis:** For each outdated package, check the version difference (`current` vs. `latest`). If it's a "major" version change, classify it as high-risk.
+      4. **Research High-Risk Changes:** For any high-risk update, use the `research.deep_dive` tool with a query like "changelog for [package-name] from version [current] to [latest]" to understand potential breaking changes.
+      5. **Propose Safe Update:** I will not run `bun update` directly. Instead, I will use the `guardian.propose_change` tool to propose a targeted modification to the `package.json` file. The `new_content` will be the entire `package.json` file with the single dependency version updated, and the `reason` will be a clear message explaining the update.
   tools:
     - "file_system.readFile"
     - "guardian.propose_change"
+    - "shell.execute"
+    - "research.deep_dive"
 ```
