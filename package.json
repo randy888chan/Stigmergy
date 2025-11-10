@@ -83,7 +83,7 @@
     "json-rpc-2.0": "^1.7.1",
     "jszip": "^3.10.1",
     "llm-cost-calculator": "^1.0.2",
-    "lucide-react": "^0.552.0",
+    "lucide-react": "^0.553.0",
     "mammoth": "^1.11.0",
     "multer": "^2.0.2",
     "neo4j-driver": "^6.0.0",
