@@ -99,6 +99,7 @@ export class GraphStateManager extends EventEmitter {
           project_status: "NEEDS_INITIALIZATION",
           project_manifest: { tasks: [] },
           history: [],
+          task_queue: [],
         }
       );
     }
@@ -107,6 +108,7 @@ export class GraphStateManager extends EventEmitter {
       project_status: "NEEDS_INITIALIZATION",
       project_manifest: { tasks: [] },
       history: [],
+      task_queue: [],
     };
 
     if (this.connectionStatus !== "INITIALIZED") {
@@ -130,6 +132,10 @@ export class GraphStateManager extends EventEmitter {
       }
       if (projectNode.history && typeof projectNode.history === "string") {
         projectNode.history = JSON.parse(projectNode.history);
+      }
+
+      if (projectNode.task_queue && typeof projectNode.task_queue === "string") {
+        projectNode.task_queue = JSON.parse(projectNode.task_queue);
       }
 
       return { ...defaultState, ...projectNode };
@@ -167,6 +173,9 @@ export class GraphStateManager extends EventEmitter {
     }
     if (propertiesToSet.history) {
       propertiesToSet.history = JSON.stringify(propertiesToSet.history, null, 2);
+    }
+    if (propertiesToSet.task_queue) {
+      propertiesToSet.task_queue = JSON.stringify(propertiesToSet.task_queue, null, 2);
     }
 
     try {

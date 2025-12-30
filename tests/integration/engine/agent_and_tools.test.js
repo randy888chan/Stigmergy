@@ -31,6 +31,11 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     await mockFs.ensureDir(path.join(process.env.STIGMERGY_CORE_PATH, "agents"));
 
+    // Create a dummy rbac.yml to prevent ENOENT errors during Engine initialization
+    const governanceDir = path.join(process.env.STIGMERGY_CORE_PATH, "governance");
+    await mockFs.ensureDir(governanceDir);
+    await mockFs.promises.writeFile(path.join(governanceDir, "rbac.yml"), "users:\n  - key: test-key\n    role: admin\nroles:\n  admin:\n    - '*' ");
+
     const mockDebuggerAgentContent = `
 \`\`\`yaml
 agent:

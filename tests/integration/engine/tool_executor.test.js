@@ -77,6 +77,10 @@ describe("Tool Executor Security (Definitive Fix)", () => {
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     mockFs.ensureDirSync(agentDir);
+
+    const governanceDir = path.join(process.env.STIGMERGY_CORE_PATH, "governance");
+    mockFs.ensureDirSync(governanceDir);
+    mockFs.writeFileSync(path.join(governanceDir, "rbac.yml"), "users:\n  - key: test-key\n    role: admin\nroles:\n  admin:\n    - '*' ");
     mockFs.ensureDirSync(path.join(projectRoot, "src"));
     mockFs.ensureDirSync(path.join(projectRoot, "dist"));
     mockFs.ensureDirSync(path.join(projectRoot, "unsafe"));
