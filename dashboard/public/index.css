@@ -818,6 +818,10 @@ body {
   width: 1rem;
 }
 
+.w-64 {
+  width: 16rem;
+}
+
 .w-\[120px\] {
   width: 120px;
 }
