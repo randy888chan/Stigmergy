@@ -37,6 +37,10 @@ describe("Phase-Based E2E Test: Planning and Review Handoff", () => {
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.ensureDir(agentDir);
 
+    const governanceDir = path.join(process.env.STIGMERGY_CORE_PATH, "governance");
+    await mockFs.ensureDir(governanceDir);
+    await mockFs.promises.writeFile(path.join(governanceDir, "rbac.yml"), "users:\n  - key: test-key\n    role: admin\nroles:\n  admin:\n    - '*' ");
+
     const createAgentFile = async (name, tools) => {
       const content = `
 \`\`\`yaml

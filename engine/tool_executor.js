@@ -25,6 +25,7 @@ import { lightweight_archon_query } from "../services/lightweight_archon.js";
 import { query_deepwiki } from "../services/deepwiki_mcp.js";
 import * as git_tool from "../tools/git_tool.js";
 import * as github_tool from "../tools/github_tool.js";
+import * as queue from "../tools/task_queue_tools.js";
 
 // Import core engine services
 import { clearFileCache } from "./llm_adapter.js";
@@ -228,6 +229,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     deepwiki: { query: query_deepwiki },
     git_tool: git_tool,
     github_tool: github_tool,
+    queue,
     stigmergy: {
       task: async ({ subagent_type, description }, sourceAgentId) => {
         if (!subagent_type || !description) {

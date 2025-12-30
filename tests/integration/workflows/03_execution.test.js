@@ -42,28 +42,6 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
       appendLog: mock(async () => {}),
     }));
 
-    // Create mock rbac.yml required by the engine *before* importing the engine
-    const appCorePath = "/app/.stigmergy-core";
-    const appGovernanceDir = path.join(appCorePath, "governance");
-    await mockFs.promises.mkdir(appGovernanceDir, { recursive: true });
-    const rbacContent = `
-roles:
-  Admin:
-    - mission:run
-    - governance:propose
-    - governance:approve
-    - mission:pause
-    - mission:resume
-    - "stigmergy.task"
-    - "system.updateStatus"
-users:
-  - username: test-admin
-    role: Admin
-    key: "test-key"
-`;
-    await mockFs.promises.writeFile(path.join(appGovernanceDir, 'rbac.yml'), rbacContent);
-
-
     // DEFINITIVE FIX: Dynamically import Engine and other dependencies AFTER mocks are established
     const stateManagerModule = await import(
       "../../../src/infrastructure/state/GraphStateManager.js"
@@ -77,6 +55,10 @@ users:
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.promises.mkdir(agentDir, { recursive: true });
+
+    const governanceDir = path.join(process.env.STIGMERGY_CORE_PATH, "governance");
+    await mockFs.promises.mkdir(governanceDir, { recursive: true });
+    await mockFs.promises.writeFile(path.join(governanceDir, "rbac.yml"), "users:\n  - key: test-key\n    role: admin\nroles:\n  admin:\n    - '*' ");
 
     const dispatcherContent = `
 \`\`\`yaml
