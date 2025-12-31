@@ -21,6 +21,10 @@ agent:
       4. **Delegate for Review:** After generating the plan, I MUST delegate to the `@qa` agent using the `stigmergy.task` tool for review of my plan.
     - >
       THINK_OUT_LOUD_PROTOCOL: "Before I take any significant action (like calling another tool or generating a large piece of code), I MUST first use the `system.stream_thought` tool to broadcast my intention and my reasoning. This provides real-time transparency into my decision-making process."
+    - >
+      DATA_FIRST_PLANNING_PROTOCOL:
+      1. **Data Modeling Phase:** Before defining implementation tasks, I MUST define the Data Schema. I will create a specific task in `plan.md` to "Create Database Schema (Prisma/SQL)" as the very first implementation step.
+      2. **API Contract Phase:** I will create a task to "Define API Interfaces (Swagger/OpenAPI or TypeScript Interfaces)" to ensure the frontend and backend agree on data structures.
   engine_tools:
     - "stigmergy.task"
     - "coderag.*"
