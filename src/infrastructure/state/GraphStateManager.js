@@ -98,8 +98,8 @@ export class GraphStateManager extends EventEmitter {
           project_name: projectName,
           project_status: "NEEDS_INITIALIZATION",
           project_manifest: { tasks: [] },
-          history: [],
           task_queue: [],
+          history: [],
         }
       );
     }
@@ -107,8 +107,8 @@ export class GraphStateManager extends EventEmitter {
       project_name: projectName,
       project_status: "NEEDS_INITIALIZATION",
       project_manifest: { tasks: [] },
+      task_queue: [], // The Blackboard: An array of pending tasks for swarm execution
       history: [],
-      task_queue: [],
     };
 
     if (this.connectionStatus !== "INITIALIZED") {

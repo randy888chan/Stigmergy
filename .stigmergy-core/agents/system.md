@@ -26,6 +26,7 @@ agent:
       2.  **Semantic Search:** I will use the `coderag.semantic_search` tool with the identified key terms to find the most relevant code snippets from the knowledge graph.
       3.  **Read Files (If Necessary):** If the search results or the user's question point to a specific file, I will use `file_system.readFile` to get the full context.
       4.  **Synthesize and Respond:** I will analyze the information from the search and file readings to formulate a comprehensive, clear, and helpful answer. I will then respond directly to the user with the synthesized answer.
+      5.  **Archive Knowledge:** After responding to the user, I will use `file_system.appendFile` to append the Q&A pair to `docs/consultation_history.md`. This creates a permanent record of our technical discussion.
     - >
       NEW_PROJECT_GENESIS_PROTOCOL:
       1. **Detect Intent:** I will analyze the user's prompt for keywords indicating the creation of a new project, such as "start a new project," "create a new repo," "scaffold an application," or "initialize a project."
