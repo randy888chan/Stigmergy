@@ -120,13 +120,6 @@ const Dashboard = () => {
       console.error("Failed to fetch file content:", error);
       setSystemState(prevState => ({
         ...prevState,
-        fileContent: data.content,
-        isFileContentLoading: false,
-      }));
-    } catch (error) {
-      console.error("Failed to fetch file content:", error);
-      setSystemState(prevState => ({
-        ...prevState,
         fileContent: `Error loading file: ${error.message}`,
         isFileContentLoading: false,
       }));
