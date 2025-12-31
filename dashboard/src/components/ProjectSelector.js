@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "./ui/select.jsx";
 import path from 'path-browserify';
+import authenticatedFetch from '../lib/api'; // Import the wrapper
 
 export const ProjectSelector = ({ onProjectSelect }) => {
   const [basePath, setBasePath] = useState('~');
@@ -28,17 +29,8 @@ export const ProjectSelector = ({ onProjectSelect }) => {
     setSelectedProject(null);
 
     try {
-      // We need to resolve the tilde `~` to an actual home directory path for the API.
-      // Since this is frontend code, we can't access the user's home directory directly.
-      // We will assume the API knows how to handle it or we expect an absolute path.
-      // For now, we'll just send it as is, but a more robust solution might be needed.
-      const response = await fetch(`/api/projects?basePath=${encodeURIComponent(basePath)}`);
-      const data = await response.json(); // Read the body ONCE.
-      if (!response.ok) {
-        // If response is not ok, throw an error using the parsed data.
-        throw new Error(data.error || `Error: ${response.status}`);
-      }
-      // If response is ok, set the projects.
+      // Use the authenticatedFetch wrapper for the API call
+      const data = await authenticatedFetch(`/api/projects?basePath=${encodeURIComponent(basePath)}`);
       setProjects(data);
     } catch (err) {
       setError(err.message);

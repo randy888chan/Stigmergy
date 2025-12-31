@@ -38,6 +38,25 @@ describe('ProjectSelector', () => {
     // Reset DOM between tests
     document.body.innerHTML = '';
 
+    // Mock localStorage
+    const localStorageMock = (() => {
+      let store = {};
+      return {
+        getItem: (key) => store[key] || null,
+        setItem: (key, value) => {
+          store[key] = value.toString();
+        },
+        removeItem: (key) => {
+          delete store[key];
+        },
+        clear: () => {
+          store = {};
+        },
+      };
+    })();
+    Object.defineProperty(global, 'localStorage', { value: localStorageMock });
+
+
     // Provide a mock implementation for this specific test
     fetchSpy = spyOn(global, 'fetch').mockResolvedValue(
       new Response(JSON.stringify(['project-a', 'project-b']), {
@@ -69,7 +88,7 @@ describe('ProjectSelector', () => {
     });
 
     // Verify fetch was called correctly
-    expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~');
+    expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~', expect.any(Object));
     expect(fetchSpy).toHaveBeenCalledTimes(1);
   });
 });
