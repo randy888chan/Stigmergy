@@ -1,3 +1,4 @@
+```yml
 agent:
   id: "conductor"
   alias: "@conductor"
@@ -27,3 +28,4 @@ engine_tools:
   - "file_system.readFile"
   - "system.stream_thought"
   - "coderag.*"
+```
