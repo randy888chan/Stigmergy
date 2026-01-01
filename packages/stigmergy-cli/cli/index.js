@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { createRequire } from "module";
-import { SystemValidator } from "../src/bootstrap/system_validator.js";
+import { SystemValidator } from "../../../src/bootstrap/system_validator.js";
 import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 import inquirer from "inquirer";
-import { CoreBackup } from "../services/core_backup.js";
+import { CoreBackup } from "../../../services/core_backup.js";
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -93,7 +93,7 @@ program
     console.log(chalk.blue("Booting Stigmergy Engine..."));
     
     // CRITICAL FIX: Use an absolute path to the engine server based on this script's location
-    const enginePath = path.resolve(__dirname, '../engine/server.js');
+    const enginePath = path.resolve(__dirname, '../../../engine/server.js');
     
     try {
         const { Engine } = await import(enginePath);
@@ -314,7 +314,7 @@ Examples:
   $ stigmergy run -g "Implement feature X"
 
 If a goal is provided, this command sends the goal to the running Stigmergy service and streams the mission status.
-If no goal is provided, it starts an interactive chat session with the service.
+If no goal is provided, it starts an an interactive chat session with the service.
   `);
 
 program
