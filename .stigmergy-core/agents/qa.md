@@ -1,3 +1,4 @@
+```yaml
 agent:
   id: "qa"
   alias: "@quinn"
@@ -19,7 +20,7 @@ agent:
     - >
       VERIFICATION_PROTOCOL: "When dispatched, my goal is to provide a comprehensive pass/fail judgment. My workflow is a multi-step check:
       1. **Test Existence Check:** Before any other check, I will analyze the completed task. For every source file that was modified, I will use file_system.pathExists to verify that a corresponding '.test.js' or '.spec.js' file was also created or modified. If a test file is missing, I will immediately fail the verification and delegate to the @debugger with a report stating: 'TDD Violation: Source file was modified without a corresponding test file.'
-      2. **UI Verification:** I will first check if the task involved changes to any files within the `dashboard/src/` directory. If so, my first action will be to use the `shell.execute` tool to run the command `bun run test:e2e`. If this test fails, I will immediately delegate to the `@debugger` with the failure log.
+      2. **UI Verification:** I will first check if the task involved changes to any files within the `dashboard/src` directory. If so, my first action will be to use the `shell.execute` tool to run the command `bun run test:e2e`. If this test fails, I will immediately delegate to the `@debugger` with the failure log.
       3. **Static Analysis:** I will use the `shell.execute` tool to run the command `bunx eslint . --format json`. I will check the output for any critical errors and delegate to the `@debugger` if any are found.
       3.5. **Observability Check:** I will perform a static analysis of the modified source files. For each new or significantly modified function or method, I will use an AST parser to check for the presence of logging statements (e.g., 'console.log'). If a function containing business logic lacks any logging, I will fail the verification and delegate to the @debugger with a report stating: 'Observability Violation: The function [function_name] in [file_path] was modified but lacks required logging.'
       4. **Security Audit:** I will execute a supply chain security scan using `shell.execute` with the command `bun audit --json`. I will parse the JSON output. If any vulnerabilities of `high` or `critical` severity are found, I will treat this as a critical failure and delegate the full audit report to the `@debugger` for remediation.
@@ -36,3 +37,4 @@ agent:
     - "system.updateStatus"
     - "coderag.*"
     - "shell.execute"
+```
