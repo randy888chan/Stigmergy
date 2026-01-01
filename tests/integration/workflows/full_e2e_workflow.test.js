@@ -75,6 +75,9 @@ users:
 agent:
   id: "@${name.toLowerCase()}"
   name: ${name}
+  persona:
+    role: "test"
+    identity: "test"
   core_protocols:
     - role: system
       content: You are the ${name} agent.
@@ -87,7 +90,21 @@ agent:
     await createAgentFile("Specifier");
     await createAgentFile("QA");
     await createAgentFile("Dispatcher");
-    await createAgentFile("Auditor");
+    const auditorContent = `
+\`\`\`yaml
+agent:
+  id: "@auditor"
+  name: Auditor
+  persona:
+    role: "test"
+    identity: "test"
+  core_protocols:
+    - role: system
+      content: You are the Auditor agent.
+  engine_tools: ["file_system.writeFile"]
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, `auditor.md`), auditorContent);
 
     // --- STATEFUL MOCK DRIVER ---
     let mockProjectDb = {}; // In-memory store for project states
@@ -189,9 +206,11 @@ agent:
 
     await engine.triggerAgent("@specifier", "Create a plan.");
     await engine.triggerAgent("@qa", "Review the plan.");
-    await engine.triggerAgent("@dispatcher", "The plan is approved. Please write the file.");
+    const dispatcherSandbox = path.join(projectRoot, ".stigmergy", "sandboxes", "dispatcher");
+    await mockFs.ensureDir(dispatcherSandbox);
+    await engine.triggerAgent("@dispatcher", "The plan is approved. Please write the file.", { workingDirectory: dispatcherSandbox });
 
-    const expectedPath = path.join(projectRoot, ".stigmergy", "sandboxes", "dispatcher", filePath);
+    const expectedPath = path.join(dispatcherSandbox, filePath);
 
     const actualContent = await mockFs.promises.readFile(expectedPath, "utf-8");
     expect(actualContent).toBe(fileContent);

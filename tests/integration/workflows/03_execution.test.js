@@ -64,6 +64,9 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
 \`\`\`yaml
 agent:
   id: "@dispatcher"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools: ["file_system.*", "stigmergy.task", "system.*"]
 \`\`\`
 `;
@@ -72,6 +75,9 @@ agent:
 \`\`\`yaml
 agent:
   id: "@executor"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools: ["file_system.*"]
 \`\`\`
 `;
@@ -80,10 +86,25 @@ agent:
 \`\`\`yaml
 agent:
   id: "@auditor"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools: []
 \`\`\`
 `;
     await mockFs.promises.writeFile(path.join(agentDir, "auditor.md"), auditorContent);
+
+    const systemAgentContent = `
+\`\`\`yaml
+agent:
+  id: "@system"
+  persona:
+    role: "test"
+    identity: "test"
+  engine_tools: []
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, "system.md"), systemAgentContent);
 
     const mockUnifiedIntelligenceService = {
       initialize: mock(async () => {}),
