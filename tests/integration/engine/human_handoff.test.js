@@ -58,13 +58,27 @@ describe("Human Handoff Workflow", () => {
 \`\`\`yaml
 agent:
   id: "@dispatcher"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools:
     - "system.*"
 \`\`\`
 `;
     await mockFs.promises.writeFile(path.join(agentDir, "dispatcher.md"), mockDispatcherAgent);
 
-    broadcastSpy = mock(() => {});
+    const systemAgentContent = `
+\`\`\`yaml
+agent:
+  id: "@system"
+  persona:
+    role: "test"
+    identity: "test"
+  engine_tools: []
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, "system.md"), systemAgentContent);
+
     stateManager = new GraphStateManager(projectRoot, mockDriver);
 
     const mockUnifiedIntelligenceService = {};
@@ -82,7 +96,6 @@ agent:
       stateManager,
       config: mockConfig, // Inject the mock config
       startServer: false,
-      broadcastEvent: broadcastSpy,
       _test_fs: mockFs,
       _test_streamText: mockStreamText,
       _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,

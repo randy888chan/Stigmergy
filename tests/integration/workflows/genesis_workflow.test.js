@@ -71,6 +71,9 @@ describe("Genesis Agent Workflow", () => {
 \`\`\`yaml
 agent:
   id: "@genesis"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools: ["shell.*", "git_tool.*", "file_system.*"]
 \`\`\`
 `;
@@ -80,10 +83,25 @@ agent:
 \`\`\`yaml
 agent:
   id: "@auditor"
+  persona:
+    role: "test"
+    identity: "test"
   engine_tools: []
 \`\`\`
 `;
     await mockFs.promises.writeFile(path.join(agentDir, "auditor.md"), auditorAgentContent);
+
+    const systemAgentContent = `
+\`\`\`yaml
+agent:
+  id: "@system"
+  persona:
+    role: "test"
+    identity: "test"
+  engine_tools: []
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, "system.md"), systemAgentContent);
 
     let mockProjectDb = {};
     const mockDriver = {

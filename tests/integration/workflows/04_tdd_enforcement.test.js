@@ -25,11 +25,11 @@ describe("TDD Enforcement Workflow", () => {
     debuggerDelegationSpy.mockClear();
 
     const mockAgentFiles = {
-        "dispatcher.md": "```yaml\n" + yaml.dump({ agent: { id: "dispatcher", engine_tools: ["stigmergy.task", "file_system.readFile"] } }) + "\n```",
-        "executor.md": "```yaml\n" + yaml.dump({ agent: { id: "executor", engine_tools: ["file_system.writeFile"] } }) + "\n```",
-        "qa.md": "```yaml\n" + yaml.dump({ agent: { id: "qa", engine_tools: ["file_system.pathExists", "stigmergy.task"] } }) + "\n```",
-        "debugger.md": "```yaml\n" + yaml.dump({ agent: { id: "debugger", engine_tools: [] } }) + "\n```",
-        "auditor.md": "```yaml\n" + yaml.dump({ agent: { id: "auditor" } }) + "\n```",
+      "dispatcher.md": "```yaml\n" + yaml.dump({ agent: { id: "dispatcher", persona: { role: "test", identity: "test" }, engine_tools: ["stigmergy.task", "file_system.readFile"] } }) + "\n```",
+      "executor.md": "```yaml\n" + yaml.dump({ agent: { id: "executor", persona: { role: "test", identity: "test" }, engine_tools: ["file_system.writeFile"] } }) + "\n```",
+      "qa.md": "```yaml\n" + yaml.dump({ agent: { id: "qa", persona: { role: "test", identity: "test" }, engine_tools: ["file_system.pathExists", "stigmergy.task"] } }) + "\n```",
+      "debugger.md": "```yaml\n" + yaml.dump({ agent: { id: "debugger", persona: { role: "test", identity: "test" }, engine_tools: [] } }) + "\n```",
+      "auditor.md": "```yaml\n" + yaml.dump({ agent: { id: "auditor", persona: { role: "test", identity: "test" } } }) + "\n```",
     };
     // Create mock files in the in-memory filesystem
     const agentsPath = path.join(CORE_PATH, "agents");
