@@ -13,6 +13,7 @@ class UnifiedIntelligenceService {
     this.search = null;
     this.client = null;
     this.initialized = false;
+    this.cache = new Map();
   }
 
   async initialize() {
@@ -83,11 +84,20 @@ class UnifiedIntelligenceService {
   async semanticSearch({ query, project_root }) {
     await this.#ensureInitialized();
     if (!project_root) throw new Error("project_root is required for semanticSearch.");
-    console.log(`Performing semantic search for: "${query}"`);
-    return await this.search.semanticSearch({
+
+    if (this.cache.has(query)) {
+      console.log(`[Cache HIT] for query: "${query}"`);
+      return this.cache.get(query);
+    }
+    console.log(`[Cache MISS] Performing semantic search for: "${query}"`);
+
+    const results = await this.search.semanticSearch({
         query,
         project_id: project_root.split('/').pop()
     });
+
+    this.cache.set(query, results);
+    return results;
   }
 
   async findArchitecturalIssues() {
