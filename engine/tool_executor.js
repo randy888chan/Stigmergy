@@ -68,9 +68,10 @@ function resolvePath(
 
   // --- Step 2: Perform all security checks on the CANONICAL path. ---
 
-  // Security Check 1: Ensure the resolved path is still within the project scope.
+  // Security Check 1: Ensure the resolved path is still within the project scope,
+  // unless it's the explicitly allowed external workspace.
   // This is the primary defense against path traversal attacks (e.g., `../..`).
-  if (!resolvedPath.startsWith(projectScope)) {
+  if (!resolvedPath.startsWith(projectScope) && !resolvedPath.startsWith("/workspace")) {
     throw new OperationalError(
       `Security violation: Path traversal attempt. Resolved path "${resolvedPath}" is outside the project scope.`
     );

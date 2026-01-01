@@ -18,7 +18,7 @@ function getProviderDetails(providerEnvVar) {
 const staticConfig = {
   corePath: ".stigmergy-core",
   security: {
-    allowedDirs: ["src", "public", "docs", "tests", "scripts", "agents", ".ai", ".vscode", "specs"],
+    allowedDirs: ["src", "public", "docs", "tests", "scripts", "agents", ".ai", ".vscode", "specs", "/workspace"],
     maxFileSizeMB: 1,
     generatedPaths: ["dashboard/public", "dist", "build", "coverage"],
   },
