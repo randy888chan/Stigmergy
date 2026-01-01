@@ -1,0 +1,15 @@
+# Use Case: Fixing existing broken applications, debugging, and refactoring.
+# Environment: Local IDE / External Projects
+lead_agent: "@conductor" # Conductor analyzes the bug report first
+bundle:
+  name: "Rescue & Repair"
+  icon: "🚑"
+  description: "A specialized team for diagnosing failures, analyzing codebases, and applying fixes to broken applications."
+  agents:
+    - "system"
+    - "conductor"
+    - "analyst"    # To understand the codebase structure
+    - "debugger"   # The primary fixer
+    - "qa"         # To verify the fix
+    - "executor"   # To apply large-scale changes if needed
+    - "metis"      # To learn from the error
