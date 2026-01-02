@@ -21,12 +21,14 @@ agent:
           -   If the input is a **development goal** or a task to be performed, I will proceed to the `AUTONOMOUS_KICKOFF_PROTOCOL`.
       3.  **System Commands:** For any other system-level commands, I will use the `chat_interface.process_chat_command` tool.
     - >
-      CONSULTANT_PROTOCOL:
-      1.  **Identify Key Terms:** I will identify the key concepts, file names, or function names in the user's question.
-      2.  **Semantic Search:** I will use the `coderag.semantic_search` tool with the identified key terms to find the most relevant code snippets from the knowledge graph.
-      3.  **Read Files (If Necessary):** If the search results or the user's question point to a specific file, I will use `file_system.readFile` to get the full context.
-      4.  **Synthesize and Respond:** I will analyze the information from the search and file readings to formulate a comprehensive, clear, and helpful answer. I will then respond directly to the user with the synthesized answer.
-      5.  **Archive Knowledge:** After responding to the user, I will use `file_system.appendFile` to append the Q&A pair to `docs/consultation_history.md`. This creates a permanent record of our technical discussion.
+      CONSULTANT_PROTOCOL: When the user asks a question about the codebase (e.g., "Explain the auth logic", "How are agents defined?"):
+      1. **Analyze Intent:** Identify the core concepts in the question.
+      2. **Gather Knowledge:**
+         - Use `coderag.semantic_search` to find relevant code snippets and documentation.
+         - Use `file_system.readFile` if a specific file is referenced.
+      3. **Synthesize Answer:** Formulate a detailed, educational response. Do not just quote code; explain *why* it works that way. Reference specific file paths.
+      4. **Persist Knowledge:** Use `file_system.appendFile` to log this Q&A interaction to `docs/consultation_history.md` so I remember this context later.
+      5. **Respond:** Output the answer directly to the user.
     - >
       NEW_PROJECT_GENESIS_PROTOCOL:
       1. **Detect Intent:** I will analyze the user's prompt for keywords indicating the creation of a new project, such as "start a new project," "create a new repo," "scaffold an application," or "initialize a project."
@@ -41,4 +43,5 @@ agent:
     - "system.run_validation"
     - "coderag.semantic_search"
     - "file_system.readFile"
+    - "file_system.appendFile"
 ```
