@@ -42,6 +42,9 @@ export class Engine {
     this.unifiedIntelligenceService = this._test_unifiedIntelligenceService || unifiedIntelligenceService;
 
     // State Manager & Tool Executor Initialization Chains
+    // FIX: Determine ownership. If passed in options, we borrow it (don't close it).
+    this.ownsStateManager = !options.stateManager;
+
     this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
     this.stateManagerInitializationPromise = options.stateManager ? Promise.resolve() : this.stateManager.initialize();
 
@@ -78,7 +81,11 @@ export class Engine {
   }
 
   async triggerAgent(agentId, prompt, options = {}) {
-    const { timeout = 300000, workingDirectory } = options;
+    const { timeout = 300000 } = options;
+    const agentName = agentId.replace("@", "");
+    const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+    await this.fs.promises.mkdir(workingDirectory, { recursive: true });
+
     // Simplified trigger logic (No Tracing Spans to prevent deadlocks)
     console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
     await this.toolExecutorPromise;
@@ -128,7 +135,7 @@ export class Engine {
             const result = await streamTextFunc({
                 model,
                 messages,
-                tools: executeTool.getTools()
+                tools: await executeTool.getTools(agentName)
             });
 
             const { toolCalls, finishReason, text } = result;
@@ -141,6 +148,7 @@ export class Engine {
                 const toolResults = [];
                 for (const call of toolCalls) {
                     try {
+                        console.log(`[Engine] Executing tool: ${call.toolName} with args: ${JSON.stringify(call.args)} in working directory: ${workingDirectory}`);
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
                         toolResults.push({
                             role: "tool",
@@ -204,10 +212,19 @@ export class Engine {
   }
 
   async stop() {
-    if (this.server) await this.server.close();
-    if (this.stateManager && typeof this.stateManager.closeDriver === 'function') {
-        await this.stateManager.closeDriver();
+    if (this.server) {
+        await this.server.close();
+        this.server = null;
     }
+
+    // FIX: Only close the driver if we created it.
+    if (this.ownsStateManager && this.stateManager && typeof this.stateManager.closeDriver === 'function') {
+        console.log("GraphStateManager: Closing Neo4j driver (Owner).");
+        await this.stateManager.closeDriver();
+    } else {
+        console.log("GraphStateManager: Skipping driver close (Shared Instance).");
+    }
+
     // Also close all WebSocket connections
     for (const client of this.clients) {
       client.close();
