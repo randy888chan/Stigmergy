@@ -67,6 +67,15 @@ agent:
 `;
     await mockFs.promises.writeFile(path.join(agentDir, "dispatcher.md"), mockDispatcherAgent);
 
+    const auditorContent = `
+\`\`\`yaml
+agent:
+  id: "@auditor"
+  engine_tools: []
+\`\`\`
+`;
+    await mockFs.promises.writeFile(path.join(agentDir, "auditor.md"), auditorContent);
+
     const systemAgentContent = `
 \`\`\`yaml
 agent:
@@ -101,6 +110,9 @@ agent:
       _test_unifiedIntelligenceService: mockUnifiedIntelligenceService,
       _test_executorFactory: testExecutorFactory,
     });
+
+    broadcastSpy = mock();
+    engine.broadcastEvent = broadcastSpy;
   });
 
   afterEach(async () => {
@@ -127,6 +139,10 @@ agent:
         text: "I need to ask for approval.",
         toolCalls: [toolCall],
         finishReason: "tool-calls",
+      })
+      .mockResolvedValueOnce({
+        text: JSON.stringify({ compliant: true }),
+        finishReason: "stop",
       })
       .mockResolvedValueOnce({
         text: "Approval received: approved. Handoff complete.",
