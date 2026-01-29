@@ -8,10 +8,6 @@ describe("External Service Health Check: Neo4j Database", () => {
   let uri, user, password;
 
   beforeEach(() => {
-    // Clear env vars to prevent test pollution
-    delete process.env.NEO4J_URI;
-    delete process.env.NEO4J_USER;
-    delete process.env.NEO4J_PASSWORD;
     uri = process.env.NEO4J_URI;
     user = process.env.NEO4J_USER;
     password = process.env.NEO4J_PASSWORD;
@@ -22,7 +18,7 @@ describe("External Service Health Check: Neo4j Database", () => {
   // from running in automated environments.
   const isLiveTestEnvironment = uri && user && password && !process.env.CI;
 
-  test.if(isLiveTestEnvironment)(
+  test(
     "LIVE: should connect to the configured Neo4j database successfully",
     async () => {
       let driver;

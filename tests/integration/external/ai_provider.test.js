@@ -10,7 +10,7 @@ describe('External Service Health Check: AI Provider', () => {
   // The key should exist AND not be the mock key used in other tests.
   const credentialsArePresent = apiKey && baseURL && apiKey !== 'mock-api-key';
 
-  test.if(credentialsArePresent)('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
+  test('LIVE: should connect to OpenRouter and receive a valid model list', async () => {
     try {
       const response = await axios.get(`${baseURL}/models`, {
         headers: {
