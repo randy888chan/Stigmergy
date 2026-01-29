@@ -80,3 +80,5 @@ export const ProjectSelector = ({ onProjectSelect }) => {
     </div>
   );
 };
+
+export default ProjectSelector;

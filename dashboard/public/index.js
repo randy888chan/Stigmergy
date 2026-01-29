@@ -33307,6 +33307,7 @@ var require_path_browserify = __commonJS((exports, module) => {
 // dashboard/src/components/ProjectSelector.js
 var exports_ProjectSelector = {};
 __export(exports_ProjectSelector, {
+  default: () => ProjectSelector_default,
   ProjectSelector: () => ProjectSelector
 });
 var import_react12, import_path_browserify, jsx_dev_runtime8, ProjectSelector = ({ onProjectSelect }) => {
@@ -33383,7 +33384,7 @@ var import_react12, import_path_browserify, jsx_dev_runtime8, ProjectSelector = 
       }, undefined, true, undefined, this)
     ]
   }, undefined, true, undefined, this);
-};
+}, ProjectSelector_default;
 var init_ProjectSelector = __esm(() => {
   import_react12 = __toESM(require_react(), 1);
   init_button();
@@ -33392,6 +33393,7 @@ var init_ProjectSelector = __esm(() => {
   import_path_browserify = __toESM(require_path_browserify(), 1);
   init_api();
   jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
+  ProjectSelector_default = ProjectSelector;
 });
 
 // dashboard/src/components/ui/table.jsx
@@ -67622,7 +67624,7 @@ var import_react20, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
     }
   };
   return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
-    className: "flex flex-col h-full bg-zinc-950 p-4 rounded-lg",
+    className: "flex flex-col h-full bg-transparent p-4 rounded-lg",
     children: [
       /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(ScrollArea2, {
         className: "flex-grow mb-4",
@@ -67631,7 +67633,7 @@ var import_react20, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
           children: messages.length > 0 ? messages.map((m) => /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
             className: `flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`,
             children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
-              className: `p-4 rounded-xl max-w-xl prose prose-invert ${m.role === "user" ? "ml-auto bg-blue-600 text-white" : "bg-zinc-800"}`,
+              className: `p-4 prose prose-invert max-w-xl ${m.role === "user" ? "ml-auto bg-blue-600/80 backdrop-blur-sm rounded-2xl rounded-tr-none text-white" : "bg-white/5 border border-white/10 rounded-2xl rounded-tl-none"}`,
               children: [
                 /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Markdown, {
                   remarkPlugins: [remarkGfm],
@@ -68262,13 +68264,13 @@ var import_react2 = __toESM(require_react(), 1);
 var jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
 var Layout = ({ sidebar, children, rightPanel }) => {
   return /* @__PURE__ */ jsx_dev_runtime.jsxDEV("div", {
-    className: "flex h-screen bg-zinc-950 text-white font-sans",
+    className: "flex h-screen bg-gradient-to-br from-zinc-900 to-black text-zinc-300 font-sans",
     children: [
       /* @__PURE__ */ jsx_dev_runtime.jsxDEV("aside", {
-        className: "w-64 flex-shrink-0 bg-zinc-900 p-4 flex flex-col space-y-4",
+        className: "w-64 flex-shrink-0 bg-black/40 backdrop-blur-xl border-r border-white/10 p-4 flex flex-col space-y-4",
         children: [
           /* @__PURE__ */ jsx_dev_runtime.jsxDEV("h1", {
-            className: "text-xl font-semibold mb-4 text-center",
+            className: "text-xl text-white font-tracking-tight font-semibold mb-4 text-center",
             children: "Stigmergy"
           }, undefined, false, undefined, this),
           sidebar
@@ -68279,7 +68281,7 @@ var Layout = ({ sidebar, children, rightPanel }) => {
         children
       }, undefined, false, undefined, this),
       /* @__PURE__ */ jsx_dev_runtime.jsxDEV("aside", {
-        className: "w-96 bg-zinc-900 p-2 rounded-l-xl",
+        className: "w-96 bg-black/40 backdrop-blur-xl border-l border-white/10 p-2 rounded-l-xl",
         children: rightPanel
       }, undefined, false, undefined, this)
     ]

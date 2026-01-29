@@ -181,6 +181,12 @@ export class Engine {
 
     this.app.get("/health", (c) => c.json({ status: "ok", mode: "restored" }));
 
+    // Files API
+    this.app.get("/api/files", async (c) => {
+      const files = await fileSystem.listDirectory({ path: this.projectRoot });
+      return c.json(files);
+    });
+
     // API State
     this.app.get("/api/state", async (c) => {
         const state = await this.stateManager.getState();

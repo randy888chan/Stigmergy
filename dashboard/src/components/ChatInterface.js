@@ -36,16 +36,16 @@ export const ChatInterface = ({ engineStatus, activeProject, thoughtStream }) =>
   };
 
   return (
-    <div className="flex flex-col h-full bg-zinc-950 p-4 rounded-lg">
+    <div className="flex flex-col h-full bg-transparent p-4 rounded-lg">
       <ScrollArea className="flex-grow mb-4">
         <div className="space-y-6 pr-4">
           {messages.length > 0 ? (
             messages.map(m => (
               <div key={m.id} className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}>
-                <div className={`p-4 rounded-xl max-w-xl prose prose-invert ${
+                <div className={`p-4 prose prose-invert max-w-xl ${
                   m.role === 'user'
-                    ? 'ml-auto bg-blue-600 text-white'
-                    : 'bg-zinc-800'
+                    ? 'ml-auto bg-blue-600/80 backdrop-blur-sm rounded-2xl rounded-tr-none text-white'
+                    : 'bg-white/5 border border-white/10 rounded-2xl rounded-tl-none'
                 }`}>
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {m.content}
