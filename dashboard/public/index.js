@@ -28415,11 +28415,29 @@ var init_chevron_up = __esm(() => {
   ChevronUp = createLucideIcon("chevron-up", __iconNode3);
 });
 
-// node_modules/lucide-react/dist/esm/icons/send.js
-var __iconNode4, Send;
-var init_send = __esm(() => {
+// node_modules/lucide-react/dist/esm/icons/save.js
+var __iconNode4, Save;
+var init_save = __esm(() => {
   init_createLucideIcon();
   __iconNode4 = [
+    [
+      "path",
+      {
+        d: "M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
+        key: "1c8476"
+      }
+    ],
+    ["path", { d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7", key: "1ydtos" }],
+    ["path", { d: "M7 3v4a1 1 0 0 0 1 1h7", key: "t51u73" }]
+  ];
+  Save = createLucideIcon("save", __iconNode4);
+});
+
+// node_modules/lucide-react/dist/esm/icons/send.js
+var __iconNode5, Send;
+var init_send = __esm(() => {
+  init_createLucideIcon();
+  __iconNode5 = [
     [
       "path",
       {
@@ -28429,18 +28447,18 @@ var init_send = __esm(() => {
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  Send = createLucideIcon("send", __iconNode4);
+  Send = createLucideIcon("send", __iconNode5);
 });
 
 // node_modules/lucide-react/dist/esm/icons/x.js
-var __iconNode5, X;
+var __iconNode6, X;
 var init_x = __esm(() => {
   init_createLucideIcon();
-  __iconNode5 = [
+  __iconNode6 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  X = createLucideIcon("x", __iconNode5);
+  X = createLucideIcon("x", __iconNode6);
 });
 
 // node_modules/lucide-react/dist/esm/lucide-react.js
@@ -28448,6 +28466,7 @@ var init_lucide_react = __esm(() => {
   init_check();
   init_chevron_down();
   init_chevron_up();
+  init_save();
   init_send();
   init_x();
 });
@@ -68210,53 +68229,843 @@ var init_CodeBrowser = __esm(() => {
   CodeBrowser_default = CodeBrowser;
 });
 
+// node_modules/@monaco-editor/loader/lib/es/_virtual/_rollupPluginBabelHelpers.js
+function _arrayLikeToArray(r2, a) {
+  (a == null || a > r2.length) && (a = r2.length);
+  for (var e = 0, n = Array(a);e < a; e++)
+    n[e] = r2[e];
+  return n;
+}
+function _arrayWithHoles(r2) {
+  if (Array.isArray(r2))
+    return r2;
+}
+function _defineProperty2(e, r2, t) {
+  return (r2 = _toPropertyKey2(r2)) in e ? Object.defineProperty(e, r2, {
+    value: t,
+    enumerable: true,
+    configurable: true,
+    writable: true
+  }) : e[r2] = t, e;
+}
+function _iterableToArrayLimit(r2, l) {
+  var t = r2 == null ? null : typeof Symbol != "undefined" && r2[Symbol.iterator] || r2["@@iterator"];
+  if (t != null) {
+    var e, n, i, u, a = [], f = true, o = false;
+    try {
+      if (i = (t = t.call(r2)).next, l === 0)
+        ;
+      else
+        for (;!(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = true)
+          ;
+    } catch (r3) {
+      o = true, n = r3;
+    } finally {
+      try {
+        if (!f && t.return != null && (u = t.return(), Object(u) !== u))
+          return;
+      } finally {
+        if (o)
+          throw n;
+      }
+    }
+    return a;
+  }
+}
+function _nonIterableRest() {
+  throw new TypeError(`Invalid attempt to destructure non-iterable instance.
+In order to be iterable, non-array objects must have a [Symbol.iterator]() method.`);
+}
+function ownKeys2(e, r2) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r2 && (o = o.filter(function(r3) {
+      return Object.getOwnPropertyDescriptor(e, r3).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread2(e) {
+  for (var r2 = 1;r2 < arguments.length; r2++) {
+    var t = arguments[r2] != null ? arguments[r2] : {};
+    r2 % 2 ? ownKeys2(Object(t), true).forEach(function(r3) {
+      _defineProperty2(e, r3, t[r3]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys2(Object(t)).forEach(function(r3) {
+      Object.defineProperty(e, r3, Object.getOwnPropertyDescriptor(t, r3));
+    });
+  }
+  return e;
+}
+function _objectWithoutProperties2(e, t) {
+  if (e == null)
+    return {};
+  var o, r2, i = _objectWithoutPropertiesLoose2(e, t);
+  if (Object.getOwnPropertySymbols) {
+    var n = Object.getOwnPropertySymbols(e);
+    for (r2 = 0;r2 < n.length; r2++)
+      o = n[r2], t.indexOf(o) === -1 && {}.propertyIsEnumerable.call(e, o) && (i[o] = e[o]);
+  }
+  return i;
+}
+function _objectWithoutPropertiesLoose2(r2, e) {
+  if (r2 == null)
+    return {};
+  var t = {};
+  for (var n in r2)
+    if ({}.hasOwnProperty.call(r2, n)) {
+      if (e.indexOf(n) !== -1)
+        continue;
+      t[n] = r2[n];
+    }
+  return t;
+}
+function _slicedToArray(r2, e) {
+  return _arrayWithHoles(r2) || _iterableToArrayLimit(r2, e) || _unsupportedIterableToArray(r2, e) || _nonIterableRest();
+}
+function _toPrimitive2(t, r2) {
+  if (typeof t != "object" || !t)
+    return t;
+  var e = t[Symbol.toPrimitive];
+  if (e !== undefined) {
+    var i = e.call(t, r2);
+    if (typeof i != "object")
+      return i;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (r2 === "string" ? String : Number)(t);
+}
+function _toPropertyKey2(t) {
+  var i = _toPrimitive2(t, "string");
+  return typeof i == "symbol" ? i : i + "";
+}
+function _unsupportedIterableToArray(r2, a) {
+  if (r2) {
+    if (typeof r2 == "string")
+      return _arrayLikeToArray(r2, a);
+    var t = {}.toString.call(r2).slice(8, -1);
+    return t === "Object" && r2.constructor && (t = r2.constructor.name), t === "Map" || t === "Set" ? Array.from(r2) : t === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(t) ? _arrayLikeToArray(r2, a) : undefined;
+  }
+}
+var init__rollupPluginBabelHelpers = () => {};
+
+// node_modules/state-local/lib/es/state-local.js
+function _defineProperty3(obj, key, value) {
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+function ownKeys3(object3, enumerableOnly) {
+  var keys2 = Object.keys(object3);
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object3);
+    if (enumerableOnly)
+      symbols = symbols.filter(function(sym) {
+        return Object.getOwnPropertyDescriptor(object3, sym).enumerable;
+      });
+    keys2.push.apply(keys2, symbols);
+  }
+  return keys2;
+}
+function _objectSpread22(target) {
+  for (var i = 1;i < arguments.length; i++) {
+    var source = arguments[i] != null ? arguments[i] : {};
+    if (i % 2) {
+      ownKeys3(Object(source), true).forEach(function(key) {
+        _defineProperty3(target, key, source[key]);
+      });
+    } else if (Object.getOwnPropertyDescriptors) {
+      Object.defineProperties(target, Object.getOwnPropertyDescriptors(source));
+    } else {
+      ownKeys3(Object(source)).forEach(function(key) {
+        Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+      });
+    }
+  }
+  return target;
+}
+function compose() {
+  for (var _len = arguments.length, fns = new Array(_len), _key = 0;_key < _len; _key++) {
+    fns[_key] = arguments[_key];
+  }
+  return function(x) {
+    return fns.reduceRight(function(y, f) {
+      return f(y);
+    }, x);
+  };
+}
+function curry(fn) {
+  return function curried() {
+    var _this = this;
+    for (var _len2 = arguments.length, args = new Array(_len2), _key2 = 0;_key2 < _len2; _key2++) {
+      args[_key2] = arguments[_key2];
+    }
+    return args.length >= fn.length ? fn.apply(this, args) : function() {
+      for (var _len3 = arguments.length, nextArgs = new Array(_len3), _key3 = 0;_key3 < _len3; _key3++) {
+        nextArgs[_key3] = arguments[_key3];
+      }
+      return curried.apply(_this, [].concat(args, nextArgs));
+    };
+  };
+}
+function isObject2(value) {
+  return {}.toString.call(value).includes("Object");
+}
+function isEmpty(obj) {
+  return !Object.keys(obj).length;
+}
+function isFunction2(value) {
+  return typeof value === "function";
+}
+function hasOwnProperty2(object3, property) {
+  return Object.prototype.hasOwnProperty.call(object3, property);
+}
+function validateChanges(initial, changes) {
+  if (!isObject2(changes))
+    errorHandler("changeType");
+  if (Object.keys(changes).some(function(field) {
+    return !hasOwnProperty2(initial, field);
+  }))
+    errorHandler("changeField");
+  return changes;
+}
+function validateSelector(selector) {
+  if (!isFunction2(selector))
+    errorHandler("selectorType");
+}
+function validateHandler(handler) {
+  if (!(isFunction2(handler) || isObject2(handler)))
+    errorHandler("handlerType");
+  if (isObject2(handler) && Object.values(handler).some(function(_handler) {
+    return !isFunction2(_handler);
+  }))
+    errorHandler("handlersType");
+}
+function validateInitial(initial) {
+  if (!initial)
+    errorHandler("initialIsRequired");
+  if (!isObject2(initial))
+    errorHandler("initialType");
+  if (isEmpty(initial))
+    errorHandler("initialContent");
+}
+function throwError(errorMessages, type) {
+  throw new Error(errorMessages[type] || errorMessages["default"]);
+}
+function create2(initial) {
+  var handler = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  validators.initial(initial);
+  validators.handler(handler);
+  var state = {
+    current: initial
+  };
+  var didUpdate = curry(didStateUpdate)(state, handler);
+  var update = curry(updateState)(state);
+  var validate = curry(validators.changes)(initial);
+  var getChanges = curry(extractChanges)(state);
+  function getState4() {
+    var selector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function(state2) {
+      return state2;
+    };
+    validators.selector(selector);
+    return selector(state.current);
+  }
+  function setState(causedChanges) {
+    compose(didUpdate, update, validate, getChanges)(causedChanges);
+  }
+  return [getState4, setState];
+}
+function extractChanges(state, causedChanges) {
+  return isFunction2(causedChanges) ? causedChanges(state.current) : causedChanges;
+}
+function updateState(state, changes) {
+  state.current = _objectSpread22(_objectSpread22({}, state.current), changes);
+  return changes;
+}
+function didStateUpdate(state, handler, changes) {
+  isFunction2(handler) ? handler(state.current) : Object.keys(changes).forEach(function(field) {
+    var _handler$field;
+    return (_handler$field = handler[field]) === null || _handler$field === undefined ? undefined : _handler$field.call(handler, state.current[field]);
+  });
+  return changes;
+}
+var errorMessages, errorHandler, validators, index3, state_local_default;
+var init_state_local = __esm(() => {
+  errorMessages = {
+    initialIsRequired: "initial state is required",
+    initialType: "initial state should be an object",
+    initialContent: "initial state shouldn't be an empty object",
+    handlerType: "handler should be an object or a function",
+    handlersType: "all handlers should be a functions",
+    selectorType: "selector should be a function",
+    changeType: "provided value of changes should be an object",
+    changeField: 'it seams you want to change a field in the state which is not specified in the "initial" state',
+    default: "an unknown error accured in `state-local` package"
+  };
+  errorHandler = curry(throwError)(errorMessages);
+  validators = {
+    changes: validateChanges,
+    selector: validateSelector,
+    handler: validateHandler,
+    initial: validateInitial
+  };
+  index3 = {
+    create: create2
+  };
+  state_local_default = index3;
+});
+
+// node_modules/@monaco-editor/loader/lib/es/config/index.js
+var config2;
+var init_config2 = __esm(() => {
+  config2 = {
+    paths: {
+      vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs"
+    }
+  };
+});
+
+// node_modules/@monaco-editor/loader/lib/es/utils/curry.js
+function curry2(fn) {
+  return function curried() {
+    var _this = this;
+    for (var _len = arguments.length, args = new Array(_len), _key = 0;_key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+    return args.length >= fn.length ? fn.apply(this, args) : function() {
+      for (var _len2 = arguments.length, nextArgs = new Array(_len2), _key2 = 0;_key2 < _len2; _key2++) {
+        nextArgs[_key2] = arguments[_key2];
+      }
+      return curried.apply(_this, [].concat(args, nextArgs));
+    };
+  };
+}
+var init_curry = () => {};
+
+// node_modules/@monaco-editor/loader/lib/es/utils/isObject.js
+function isObject3(value) {
+  return {}.toString.call(value).includes("Object");
+}
+var init_isObject = () => {};
+
+// node_modules/@monaco-editor/loader/lib/es/validators/index.js
+function validateConfig(config3) {
+  if (!config3)
+    errorHandler2("configIsRequired");
+  if (!isObject3(config3))
+    errorHandler2("configType");
+  if (config3.urls) {
+    informAboutDeprecation();
+    return {
+      paths: {
+        vs: config3.urls.monacoBase
+      }
+    };
+  }
+  return config3;
+}
+function informAboutDeprecation() {
+  console.warn(errorMessages2.deprecation);
+}
+function throwError2(errorMessages2, type) {
+  throw new Error(errorMessages2[type] || errorMessages2["default"]);
+}
+var errorMessages2, errorHandler2, validators2;
+var init_validators = __esm(() => {
+  init_curry();
+  init_isObject();
+  errorMessages2 = {
+    configIsRequired: "the configuration object is required",
+    configType: "the configuration object should be an object",
+    default: "an unknown error accured in `@monaco-editor/loader` package",
+    deprecation: `Deprecation warning!
+    You are using deprecated way of configuration.
+
+    Instead of using
+      monaco.config({ urls: { monacoBase: '...' } })
+    use
+      monaco.config({ paths: { vs: '...' } })
+
+    For more please check the link https://github.com/suren-atoyan/monaco-loader#config
+  `
+  };
+  errorHandler2 = curry2(throwError2)(errorMessages2);
+  validators2 = {
+    config: validateConfig
+  };
+});
+
+// node_modules/@monaco-editor/loader/lib/es/utils/compose.js
+var compose2 = function compose3() {
+  for (var _len = arguments.length, fns = new Array(_len), _key = 0;_key < _len; _key++) {
+    fns[_key] = arguments[_key];
+  }
+  return function(x) {
+    return fns.reduceRight(function(y, f) {
+      return f(y);
+    }, x);
+  };
+};
+var init_compose = () => {};
+
+// node_modules/@monaco-editor/loader/lib/es/utils/deepMerge.js
+function merge3(target, source) {
+  Object.keys(source).forEach(function(key) {
+    if (source[key] instanceof Object) {
+      if (target[key]) {
+        Object.assign(source[key], merge3(target[key], source[key]));
+      }
+    }
+  });
+  return _objectSpread2(_objectSpread2({}, target), source);
+}
+var init_deepMerge = __esm(() => {
+  init__rollupPluginBabelHelpers();
+});
+
+// node_modules/@monaco-editor/loader/lib/es/utils/makeCancelable.js
+function makeCancelable(promise2) {
+  var hasCanceled_ = false;
+  var wrappedPromise = new Promise(function(resolve2, reject) {
+    promise2.then(function(val) {
+      return hasCanceled_ ? reject(CANCELATION_MESSAGE) : resolve2(val);
+    });
+    promise2["catch"](reject);
+  });
+  return wrappedPromise.cancel = function() {
+    return hasCanceled_ = true;
+  }, wrappedPromise;
+}
+var CANCELATION_MESSAGE;
+var init_makeCancelable = __esm(() => {
+  CANCELATION_MESSAGE = {
+    type: "cancelation",
+    msg: "operation is manually canceled"
+  };
+});
+
+// node_modules/@monaco-editor/loader/lib/es/loader/index.js
+function config3(globalConfig2) {
+  var _validators$config = validators2.config(globalConfig2), monaco = _validators$config.monaco, config4 = _objectWithoutProperties2(_validators$config, _excluded2);
+  setState(function(state) {
+    return {
+      config: merge3(state.config, config4),
+      monaco
+    };
+  });
+}
+function init() {
+  var state = getState4(function(_ref) {
+    var { monaco, isInitialized, resolve: resolve2 } = _ref;
+    return {
+      monaco,
+      isInitialized,
+      resolve: resolve2
+    };
+  });
+  if (!state.isInitialized) {
+    setState({
+      isInitialized: true
+    });
+    if (state.monaco) {
+      state.resolve(state.monaco);
+      return makeCancelable(wrapperPromise);
+    }
+    if (window.monaco && window.monaco.editor) {
+      storeMonacoInstance(window.monaco);
+      state.resolve(window.monaco);
+      return makeCancelable(wrapperPromise);
+    }
+    compose2(injectScripts, getMonacoLoaderScript)(configureLoader);
+  }
+  return makeCancelable(wrapperPromise);
+}
+function injectScripts(script) {
+  return document.body.appendChild(script);
+}
+function createScript(src) {
+  var script = document.createElement("script");
+  return src && (script.src = src), script;
+}
+function getMonacoLoaderScript(configureLoader) {
+  var state = getState4(function(_ref2) {
+    var { config: config4, reject } = _ref2;
+    return {
+      config: config4,
+      reject
+    };
+  });
+  var loaderScript = createScript("".concat(state.config.paths.vs, "/loader.js"));
+  loaderScript.onload = function() {
+    return configureLoader();
+  };
+  loaderScript.onerror = state.reject;
+  return loaderScript;
+}
+function configureLoader() {
+  var state = getState4(function(_ref3) {
+    var { config: config4, resolve: resolve2, reject } = _ref3;
+    return {
+      config: config4,
+      resolve: resolve2,
+      reject
+    };
+  });
+  var require2 = window.require;
+  require2.config(state.config);
+  require2(["vs/editor/editor.main"], function(loaded) {
+    var monaco = loaded.m || loaded;
+    storeMonacoInstance(monaco);
+    state.resolve(monaco);
+  }, function(error46) {
+    state.reject(error46);
+  });
+}
+function storeMonacoInstance(monaco) {
+  if (!getState4().monaco) {
+    setState({
+      monaco
+    });
+  }
+}
+function __getMonacoInstance() {
+  return getState4(function(_ref4) {
+    var monaco = _ref4.monaco;
+    return monaco;
+  });
+}
+var _excluded2, _state$create, _state$create2, getState4, setState, wrapperPromise, loader;
+var init_loader = __esm(() => {
+  init__rollupPluginBabelHelpers();
+  init_state_local();
+  init_config2();
+  init_validators();
+  init_compose();
+  init_deepMerge();
+  init_makeCancelable();
+  _excluded2 = ["monaco"];
+  _state$create = state_local_default.create({
+    config: config2,
+    isInitialized: false,
+    resolve: null,
+    reject: null,
+    monaco: null
+  });
+  _state$create2 = _slicedToArray(_state$create, 2);
+  getState4 = _state$create2[0];
+  setState = _state$create2[1];
+  wrapperPromise = new Promise(function(resolve2, reject) {
+    return setState({
+      resolve: resolve2,
+      reject
+    });
+  });
+  loader = {
+    config: config3,
+    init,
+    __getMonacoInstance
+  };
+});
+
+// node_modules/@monaco-editor/loader/lib/es/index.js
+var init_es2 = __esm(() => {
+  init_loader();
+});
+
+// node_modules/@monaco-editor/react/dist/index.mjs
+function Me({ children: e }) {
+  return import_react31.default.createElement("div", { style: Y.container }, e);
+}
+function Ee({ width: e, height: r2, isEditorReady: n, loading: t, _ref: a, className: m, wrapperProps: E }) {
+  return import_react30.default.createElement("section", { style: { ...v.wrapper, width: e, height: r2 }, ...E }, !n && import_react30.default.createElement($, null, t), import_react30.default.createElement("div", { ref: a, style: { ...v.fullWidth, ...!n && v.hide }, className: m }));
+}
+function Ce(e) {
+  import_react32.useEffect(e, []);
+}
+function he(e, r2, n = true) {
+  let t = import_react33.useRef(true);
+  import_react33.useEffect(t.current || !n ? () => {
+    t.current = false;
+  } : e, r2);
+}
+function D() {}
+function h(e, r2, n, t) {
+  return De(e, t) || be(e, r2, n, t);
+}
+function De(e, r2) {
+  return e.editor.getModel(te(e, r2));
+}
+function be(e, r2, n, t) {
+  return e.editor.createModel(r2, n, t ? te(e, t) : undefined);
+}
+function te(e, r2) {
+  return e.Uri.parse(r2);
+}
+function Oe({ original: e, modified: r2, language: n, originalLanguage: t, modifiedLanguage: a, originalModelPath: m, modifiedModelPath: E, keepCurrentOriginalModel: g = false, keepCurrentModifiedModel: N = false, theme: x = "light", loading: P = "Loading...", options: y = {}, height: V = "100%", width: z = "100%", className: F, wrapperProps: j = {}, beforeMount: A = D, onMount: q = D }) {
+  let [M, O] = import_react28.useState(false), [T, s] = import_react28.useState(true), u = import_react28.useRef(null), c = import_react28.useRef(null), w = import_react28.useRef(null), d = import_react28.useRef(q), o = import_react28.useRef(A), b = import_react28.useRef(false);
+  k(() => {
+    let i = loader.init();
+    return i.then((f) => (c.current = f) && s(false)).catch((f) => f?.type !== "cancelation" && console.error("Monaco initialization: error:", f)), () => u.current ? I() : i.cancel();
+  }), l(() => {
+    if (u.current && c.current) {
+      let i = u.current.getOriginalEditor(), f = h(c.current, e || "", t || n || "text", m || "");
+      f !== i.getModel() && i.setModel(f);
+    }
+  }, [m], M), l(() => {
+    if (u.current && c.current) {
+      let i = u.current.getModifiedEditor(), f = h(c.current, r2 || "", a || n || "text", E || "");
+      f !== i.getModel() && i.setModel(f);
+    }
+  }, [E], M), l(() => {
+    let i = u.current.getModifiedEditor();
+    i.getOption(c.current.editor.EditorOption.readOnly) ? i.setValue(r2 || "") : r2 !== i.getValue() && (i.executeEdits("", [{ range: i.getModel().getFullModelRange(), text: r2 || "", forceMoveMarkers: true }]), i.pushUndoStop());
+  }, [r2], M), l(() => {
+    u.current?.getModel()?.original.setValue(e || "");
+  }, [e], M), l(() => {
+    let { original: i, modified: f } = u.current.getModel();
+    c.current.editor.setModelLanguage(i, t || n || "text"), c.current.editor.setModelLanguage(f, a || n || "text");
+  }, [n, t, a], M), l(() => {
+    c.current?.editor.setTheme(x);
+  }, [x], M), l(() => {
+    u.current?.updateOptions(y);
+  }, [y], M);
+  let L = import_react28.useCallback(() => {
+    if (!c.current)
+      return;
+    o.current(c.current);
+    let i = h(c.current, e || "", t || n || "text", m || ""), f = h(c.current, r2 || "", a || n || "text", E || "");
+    u.current?.setModel({ original: i, modified: f });
+  }, [n, r2, a, e, t, m, E]), U = import_react28.useCallback(() => {
+    !b.current && w.current && (u.current = c.current.editor.createDiffEditor(w.current, { automaticLayout: true, ...y }), L(), c.current?.editor.setTheme(x), O(true), b.current = true);
+  }, [y, x, L]);
+  import_react28.useEffect(() => {
+    M && d.current(u.current, c.current);
+  }, [M]), import_react28.useEffect(() => {
+    !T && !M && U();
+  }, [T, M, U]);
+  function I() {
+    let i = u.current?.getModel();
+    g || i?.original?.dispose(), N || i?.modified?.dispose(), u.current?.dispose();
+  }
+  return import_react28.default.createElement(H, { width: z, height: V, isEditorReady: M, loading: P, _ref: w, className: F, wrapperProps: j });
+}
+function He(e) {
+  let r2 = import_react37.useRef();
+  return import_react37.useEffect(() => {
+    r2.current = e;
+  }, [e]), r2.current;
+}
+function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, language: a, path: m, theme: E = "light", line: g, loading: N = "Loading...", options: x = {}, overrideServices: P = {}, saveViewState: y = true, keepCurrentModel: V = false, width: z = "100%", height: F = "100%", className: j, wrapperProps: A = {}, beforeMount: q = D, onMount: M = D, onChange: O, onValidate: T = D }) {
+  let [s, u] = import_react36.useState(false), [c, w] = import_react36.useState(true), d = import_react36.useRef(null), o = import_react36.useRef(null), b = import_react36.useRef(null), L = import_react36.useRef(M), U = import_react36.useRef(q), I = import_react36.useRef(), i = import_react36.useRef(t), f = se(m), Q = import_react36.useRef(false), B = import_react36.useRef(false);
+  k(() => {
+    let p = loader.init();
+    return p.then((R) => (d.current = R) && w(false)).catch((R) => R?.type !== "cancelation" && console.error("Monaco initialization: error:", R)), () => o.current ? pe() : p.cancel();
+  }), l(() => {
+    let p = h(d.current, e || t || "", r2 || a || "", m || n || "");
+    p !== o.current?.getModel() && (y && _.set(f, o.current?.saveViewState()), o.current?.setModel(p), y && o.current?.restoreViewState(_.get(m)));
+  }, [m], s), l(() => {
+    o.current?.updateOptions(x);
+  }, [x], s), l(() => {
+    !o.current || t === undefined || (o.current.getOption(d.current.editor.EditorOption.readOnly) ? o.current.setValue(t) : t !== o.current.getValue() && (B.current = true, o.current.executeEdits("", [{ range: o.current.getModel().getFullModelRange(), text: t, forceMoveMarkers: true }]), o.current.pushUndoStop(), B.current = false));
+  }, [t], s), l(() => {
+    let p = o.current?.getModel();
+    p && a && d.current?.editor.setModelLanguage(p, a);
+  }, [a], s), l(() => {
+    g !== undefined && o.current?.revealLine(g);
+  }, [g], s), l(() => {
+    d.current?.editor.setTheme(E);
+  }, [E], s);
+  let X2 = import_react36.useCallback(() => {
+    if (!(!b.current || !d.current) && !Q.current) {
+      U.current(d.current);
+      let p = m || n, R = h(d.current, t || e || "", r2 || a || "", p || "");
+      o.current = d.current?.editor.create(b.current, { model: R, automaticLayout: true, ...x }, P), y && o.current.restoreViewState(_.get(p)), d.current.editor.setTheme(E), g !== undefined && o.current.revealLine(g), u(true), Q.current = true;
+    }
+  }, [e, r2, n, t, a, m, x, P, y, E, g]);
+  import_react36.useEffect(() => {
+    s && L.current(o.current, d.current);
+  }, [s]), import_react36.useEffect(() => {
+    !c && !s && X2();
+  }, [c, s, X2]), i.current = t, import_react36.useEffect(() => {
+    s && O && (I.current?.dispose(), I.current = o.current?.onDidChangeModelContent((p) => {
+      B.current || O(o.current.getValue(), p);
+    }));
+  }, [s, O]), import_react36.useEffect(() => {
+    if (s) {
+      let p = d.current.editor.onDidChangeMarkers((R) => {
+        let G = o.current.getModel()?.uri;
+        if (G && R.find((J) => J.path === G.path)) {
+          let J = d.current.editor.getModelMarkers({ resource: G });
+          T?.(J);
+        }
+      });
+      return () => {
+        p?.dispose();
+      };
+    }
+    return () => {};
+  }, [s, T]);
+  function pe() {
+    I.current?.dispose(), V ? y && _.set(m, o.current.saveViewState()) : o.current.getModel()?.dispose(), o.current.dispose();
+  }
+  return import_react36.default.createElement(H, { width: z, height: F, isEditorReady: s, loading: N, _ref: b, className: j, wrapperProps: A });
+}
+var import_react27, import_react28, import_react29, import_react30, import_react31, import_react32, import_react33, import_react34, import_react35, import_react36, import_react37, le, v, ae, Y, Z, $, ee, H, k, l, ie, we, se, _, fe, de, Ft;
+var init_dist36 = __esm(() => {
+  init_es2();
+  import_react27 = __toESM(require_react(), 1);
+  import_react28 = __toESM(require_react(), 1);
+  init_es2();
+  import_react29 = __toESM(require_react(), 1);
+  import_react30 = __toESM(require_react(), 1);
+  import_react31 = __toESM(require_react(), 1);
+  import_react32 = __toESM(require_react(), 1);
+  import_react33 = __toESM(require_react(), 1);
+  import_react34 = __toESM(require_react(), 1);
+  init_es2();
+  import_react35 = __toESM(require_react(), 1);
+  import_react36 = __toESM(require_react(), 1);
+  init_es2();
+  import_react37 = __toESM(require_react(), 1);
+  le = { wrapper: { display: "flex", position: "relative", textAlign: "initial" }, fullWidth: { width: "100%" }, hide: { display: "none" } };
+  v = le;
+  ae = { container: { display: "flex", height: "100%", width: "100%", justifyContent: "center", alignItems: "center" } };
+  Y = ae;
+  Z = Me;
+  $ = Z;
+  ee = Ee;
+  H = import_react29.memo(ee);
+  k = Ce;
+  l = he;
+  ie = Oe;
+  we = import_react27.memo(ie);
+  se = He;
+  _ = new Map;
+  fe = Ve;
+  de = import_react35.memo(fe);
+  Ft = de;
+});
+
 // dashboard/src/components/FileViewer.js
 var exports_FileViewer = {};
 __export(exports_FileViewer, {
   default: () => FileViewer_default
 });
-var import_react27, jsx_dev_runtime20, FileViewer = ({ filePath, content: content3, isLoading }) => {
+var import_react38, jsx_dev_runtime20, FileViewer = ({ filePath, content: initialContent, isLoading }) => {
+  const [content3, setContent] = import_react38.useState(initialContent || "");
+  const [isSaving, setIsSaving] = import_react38.useState(false);
+  import_react38.useEffect(() => {
+    setContent(initialContent || "");
+  }, [initialContent]);
+  const handleSave = async () => {
+    if (!filePath)
+      return;
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/file-content", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ path: filePath, content: content3 })
+      });
+      if (!response.ok)
+        throw new Error("Save failed");
+      alert("File saved successfully!");
+    } catch (e) {
+      alert("Error saving file: " + e.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+  const getLanguage = (path3) => {
+    if (!path3)
+      return "plaintext";
+    if (path3.endsWith(".js") || path3.endsWith(".jsx"))
+      return "javascript";
+    if (path3.endsWith(".ts") || path3.endsWith(".tsx"))
+      return "typescript";
+    if (path3.endsWith(".json"))
+      return "json";
+    if (path3.endsWith(".html"))
+      return "html";
+    if (path3.endsWith(".css"))
+      return "css";
+    if (path3.endsWith(".md"))
+      return "markdown";
+    return "plaintext";
+  };
   return /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Card, {
-    className: "h-full w-full flex flex-col",
+    className: "h-full w-full flex flex-col border-white/10 bg-black/40 backdrop-blur-xl",
     children: [
       /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardTitle, {
-          className: "truncate",
-          children: isLoading ? "Loading..." : filePath || "Select a file to view"
-        }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this),
+        className: "flex flex-row items-center justify-between py-3 border-b border-white/10",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardTitle, {
+            className: "text-sm font-mono text-zinc-300 truncate",
+            children: isLoading ? "Loading..." : filePath || "No file selected"
+          }, undefined, false, undefined, this),
+          filePath && /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Button, {
+            size: "sm",
+            onClick: handleSave,
+            disabled: isSaving || isLoading,
+            className: "gap-2 bg-blue-600 hover:bg-blue-500",
+            children: [
+              /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Save, {
+                className: "w-4 h-4"
+              }, undefined, false, undefined, this),
+              isSaving ? "Saving..." : "Save"
+            ]
+          }, undefined, true, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
       /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardContent, {
-        className: "flex-grow overflow-hidden",
-        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ScrollArea2, {
-          className: "h-full w-full",
-          children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("pre", {
-            className: "text-sm p-4",
-            children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("code", {
-              children: isLoading ? "Loading file content..." : content3 || "No content to display."
-            }, undefined, false, undefined, this)
-          }, undefined, false, undefined, this)
+        className: "flex-grow p-0 overflow-hidden",
+        children: isLoading ? /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
+          className: "flex items-center justify-center h-full text-zinc-500",
+          children: "Loading editor..."
+        }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Ft, {
+          height: "100%",
+          language: getLanguage(filePath),
+          value: content3,
+          theme: "vs-dark",
+          onChange: (value) => setContent(value),
+          options: {
+            minimap: { enabled: false },
+            fontSize: 13,
+            scrollBeyondLastLine: false,
+            automaticLayout: true
+          }
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
 }, FileViewer_default;
 var init_FileViewer = __esm(() => {
-  import_react27 = __toESM(require_react(), 1);
-  init_scroll_area();
+  import_react38 = __toESM(require_react(), 1);
+  init_dist36();
   init_card();
+  init_button();
+  init_lucide_react();
   jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
   FileViewer_default = FileViewer;
 });
 
 // dashboard/src/index.js
-var import_react32 = __toESM(require_react(), 1);
+var import_react44 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react30 = __toESM(require_react(), 1);
+var import_react42 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react28 = __toESM(require_react(), 1);
+var import_react40 = __toESM(require_react(), 1);
 init_useWebSocket();
 
 // dashboard/src/components/Layout.js
@@ -68667,13 +69476,13 @@ init_button();
 init_scroll_area();
 init_api();
 var jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react28.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var ActivityLog2 = import_react28.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react28.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var ToolHealthMonitor2 = import_react28.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SwarmVisualizer2 = import_react28.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
-var CodeBrowser2 = import_react28.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var FileViewer2 = import_react28.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+var ProjectSelector2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var ActivityLog2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var ToolHealthMonitor2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SwarmVisualizer2 = import_react40.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
+var CodeBrowser2 = import_react40.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var FileViewer2 = import_react40.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -68690,11 +69499,11 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default();
-  const [systemState, setSystemState] = import_react28.useState(INITIAL_STATE);
-  const [humanApprovalRequest, setHumanApprovalRequest] = import_react28.useState(null);
-  const [thoughtStream, setThoughtStream] = import_react28.useState([]);
-  const [healthData, setHealthData] = import_react28.useState(null);
-  import_react28.useEffect(() => {
+  const [systemState, setSystemState] = import_react40.useState(INITIAL_STATE);
+  const [humanApprovalRequest, setHumanApprovalRequest] = import_react40.useState(null);
+  const [thoughtStream, setThoughtStream] = import_react40.useState([]);
+  const [healthData, setHealthData] = import_react40.useState(null);
+  import_react40.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -68785,7 +69594,7 @@ var Dashboard = () => {
         className: "w-full mb-4",
         children: "+ New Chat"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68802,7 +69611,7 @@ var Dashboard = () => {
   const rightPanelTabs = [
     {
       label: "Activity",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68813,7 +69622,7 @@ var Dashboard = () => {
     },
     {
       label: "Swarm",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68822,7 +69631,7 @@ var Dashboard = () => {
     },
     {
       label: "Health",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68833,7 +69642,7 @@ var Dashboard = () => {
     },
     {
       label: "Files",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68848,7 +69657,7 @@ var Dashboard = () => {
     },
     {
       label: "Viewer",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -68863,7 +69672,7 @@ var Dashboard = () => {
   return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
     className: "dark",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(jsx_dev_runtime21.Fragment, {}, undefined, false, undefined, this),
         children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Dialog2, {
           open: !!humanApprovalRequest,
@@ -68920,7 +69729,7 @@ var Dashboard = () => {
         rightPanel: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Tabs_default, {
           tabs: rightPanelTabs
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react28.Suspense, {
+        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
           fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
             className: "p-4",
             children: "Loading Chat..."
@@ -68939,11 +69748,11 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/components/Login.js
-var import_react29 = __toESM(require_react(), 1);
+var import_react41 = __toESM(require_react(), 1);
 var jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
 var Login = ({ onLogin }) => {
-  const [token, setToken] = import_react29.useState("");
-  const [adminToken, setAdminToken] = import_react29.useState("");
+  const [token, setToken] = import_react41.useState("");
+  const [adminToken, setAdminToken] = import_react41.useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
     onLogin(token, adminToken);
@@ -68987,8 +69796,8 @@ var Login_default = Login;
 // dashboard/src/App.js
 var jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = import_react30.useState(false);
-  import_react30.useEffect(() => {
+  const [isAuthenticated, setIsAuthenticated] = import_react42.useState(false);
+  import_react42.useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       setIsAuthenticated(true);
@@ -69011,10 +69820,10 @@ function App() {
 var App_default = App;
 
 // dashboard/src/components/ErrorBoundary.js
-var import_react31 = __toESM(require_react(), 1);
+var import_react43 = __toESM(require_react(), 1);
 var jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
 
-class ErrorBoundary extends import_react31.default.Component {
+class ErrorBoundary extends import_react43.default.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -69065,7 +69874,7 @@ var ErrorBoundary_default = ErrorBoundary;
 // dashboard/src/index.js
 var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
 var root4 = import_client.default.createRoot(document.getElementById("root"));
-root4.render(/* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react32.default.StrictMode, {
+root4.render(/* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react44.default.StrictMode, {
   children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ErrorBoundary_default, {
     children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(App_default, {}, undefined, false, undefined, this)
   }, undefined, false, undefined, this)
