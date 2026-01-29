@@ -76,6 +76,12 @@ const staticConfig = {
       base_url_env: "CODESTRAL_BASE_URL",
       model_name: "codestral-latest",
     },
+    research_tier: {
+      provider: "openrouter",
+      model_name: "alibaba/tongyi-deepresearch-30b-a3b",
+      api_key_env: "OPENROUTER_API_KEY",
+      base_url_env: "OPENROUTER_BASE_URL",
+    },
     openrouter_reasoning: {
       provider: "openrouter",
       api_key_env: "OPENROUTER_API_KEY",
@@ -254,6 +260,12 @@ class ConfigService {
           ...getProviderDetails("UTILITY_PROVIDER"),
         },
         codestral_utility: { ...staticConfig.model_tiers.codestral_utility },
+        research_tier: {
+          ...staticConfig.model_tiers.research_tier,
+          provider: process.env.RESEARCH_PROVIDER || "openrouter",
+          model_name: process.env.RESEARCH_MODEL || "alibaba/tongyi-deepresearch-30b-a3b",
+          ...getProviderDetails("RESEARCH_PROVIDER"),
+        },
         openrouter_reasoning: {
           ...staticConfig.model_tiers.openrouter_reasoning,
           model_name: process.env.OPENROUTER_REASONING_MODEL || "deepseek/deepseek-chat-v3.1:free",

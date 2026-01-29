@@ -96,6 +96,12 @@ const config = {
       capabilities: ["code_completion", "fast_utility", "code_refactoring"],
       use_cases: ["code_snippet_generation", "test_case_generation", "code_formatting"]
     },
+    research_tier: {
+      provider: "openrouter",
+      model_name: "alibaba/tongyi-deepresearch-30b-a3b", // Specialized for deep research
+      api_key_env: "OPENROUTER_API_KEY",
+      base_url_env: "OPENROUTER_BASE_URL",
+    },
   },
   collaboration: {
     mode: 'single-player', // 'single-player' or 'team'
