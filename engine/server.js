@@ -193,6 +193,29 @@ export class Engine {
         return c.json(state);
     });
 
+    this.app.post("/api/file-content", async (c) => {
+      try {
+        await this.toolExecutorPromise;
+        const { path: filePath, content } = await c.req.json();
+        if (!filePath || typeof content !== 'string') {
+           return c.json({ error: "Missing path or content" }, 400);
+        }
+
+        // Use the existing tool logic to ensure security/path resolution
+        const output = await this.toolExecutor.execute(
+            "file_system.writeFile",
+            { path: filePath, content },
+            "user-ide", // agentId
+            this.projectRoot // workingDirectory
+        );
+
+        return c.json({ success: true, message: "File saved successfully." });
+      } catch (e) {
+        console.error("Save Error:", e);
+        return c.json({ error: e.message }, 500);
+      }
+    });
+
     // WebSocket (Placeholder for full implementation)
     this.app.get("/ws", upgradeWebSocket((c) => ({
        onOpen: () => console.log("WS Open"),
