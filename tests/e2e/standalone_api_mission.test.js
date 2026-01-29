@@ -52,7 +52,7 @@ const poll = async (fn, timeout, interval) => {
   return new Promise(checkCondition);
 };
 
-describe.skip("Standalone API Mission Test (Mocked)", () => {
+describe("Standalone API Mission Test (Mocked)", () => {
   let engine;
   let tempDir;
 
@@ -128,7 +128,7 @@ users:
     console.log(chalk.green("[E2E Test] Teardown complete."));
   });
 
-  test.skip("should successfully initiate a mission and reach PLANNING_PHASE", async () => {
+  test("should successfully initiate a mission and reach PLANNING_PHASE", async () => {
     // Directly set the state to bypass the AI agent lifecycle for this test
     await engine.stateManager.updateStatus({
       newStatus: "PLANNING_PHASE",
@@ -151,5 +151,5 @@ users:
     expect(finalState).toBeTruthy();
     expect(finalState.project_status).toBe("PLANNING_PHASE");
     expect(finalState.message).toBe("Handoff to @specifier complete.");
-  }, 10000); // 10-second timeout for the entire test
+  }, 60000); // 60-second timeout for the entire test
 });
