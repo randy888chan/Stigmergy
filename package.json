@@ -46,7 +46,7 @@
     "init": "bun run cli/index.js init"
   },
   "dependencies": {
-    "@ai-sdk/google": "^2.0.26",
+    "@ai-sdk/google": "^3.0.20",
     "@ai-sdk/openai": "^2.0.59",
     "@ai-sdk/react": "^2.0.86",
     "@babel/parser": "^7.28.4",
