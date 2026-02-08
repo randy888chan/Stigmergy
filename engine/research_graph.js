@@ -1,12 +1,12 @@
 import { END, StateGraph } from "@langchain/langgraph";
 import * as research from "../tools/research.js";
-import { createGraphStore } from "../src/infrastructure/graph_db/graphStore.js";
-import { GraphStateManager } from "../src/infrastructure/state/GraphStateManager.js";
+// import { createGraphStore } from "../src/infrastructure/graph_db/graphStore.js";
+import { GraphStateManager } from "../services/GraphStateManager.js";
 
 import config from "../stigmergy.config.js"; // Import config
 
-const graphStore = createGraphStore();
-const stateManager = new GraphStateManager(graphStore);
+// const graphStore = createGraphStore();
+const stateManager = new GraphStateManager();
 
 // Define the graph state structure
 const graphState = {

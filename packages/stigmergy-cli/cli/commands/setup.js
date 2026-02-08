@@ -1,6 +1,6 @@
 import inquirer from 'inquirer';
 import { init } from './init.js';
-import { ComprehensiveHealthCheck } from '../../scripts/health-check.js';
+import { ComprehensiveHealthCheck } from '../../../../scripts/health-check.js';
 import { startService } from './service.js';
 import { OutputFormatter } from '../utils/output_formatter.js';
 import { writeFile } from 'fs/promises';

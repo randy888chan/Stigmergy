@@ -1,6 +1,6 @@
 import { test, expect, describe, beforeEach, it } from "bun:test";
 import neo4j from "neo4j-driver";
-import { GraphStateManager } from "../../../src/infrastructure/state/GraphStateManager.js";
+import { GraphStateManager } from "../../../services/GraphStateManager.js";
 
 const LIVE_TEST_TIMEOUT = 30000;
 

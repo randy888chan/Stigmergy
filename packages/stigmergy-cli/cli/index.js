@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { createRequire } from "module";
-import { SystemValidator } from "../../../src/bootstrap/system_validator.js";
+import { SystemValidator } from "../../../services/system_validator.js";
 import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";

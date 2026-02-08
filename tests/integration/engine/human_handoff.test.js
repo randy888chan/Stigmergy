@@ -33,7 +33,7 @@ describe("Human Handoff Workflow", () => {
     // Dynamically import modules after mocks
     Engine = (await import("../../../engine/server.js")).Engine;
     const { GraphStateManager } = await import(
-      "../../../src/infrastructure/state/GraphStateManager.js"
+      "../../../services/GraphStateManager.js"
     );
     const { createExecutor: realCreateExecutor } = await import("../../../engine/tool_executor.js");
 

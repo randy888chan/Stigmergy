@@ -1,5 +1,9 @@
 // database/migrations/001-initial-schema.js
-import { logger } from "../src/utils/logger.js";
+// import { logger } from "../src/utils/logger.js";
+const logger = {
+  info: (msg) => console.log(`[INFO] ${msg}`),
+  error: (msg) => console.error(`[ERROR] ${msg}`)
+};
 
 export const description = "Initial schema setup for core project entities";
 
