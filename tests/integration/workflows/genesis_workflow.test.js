@@ -110,7 +110,7 @@ describe("Genesis Agent Workflow", () => {
 
     const engineModule = await import("../../../engine/server.js");
     Engine = engineModule.Engine;
-    const stateManagerModule = await import("../../../services/GraphStateManager.js");
+    const stateManagerModule = await import("../../../engine/infrastructure/state/GraphStateManager.js");
     const GraphStateManager = stateManagerModule.GraphStateManager;
     const toolExecutorModule = await import("../../../engine/tool_executor.js");
     const realCreateExecutor = toolExecutorModule.createExecutor;

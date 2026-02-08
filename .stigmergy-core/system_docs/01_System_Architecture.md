@@ -57,3 +57,11 @@ graph TD
     c. Delegates the task to an executor agent (e.g., `@executor`).
     d. Updates the task's status in `plan.md` and saves the file.
 4.  **Completion**: When all tasks in `plan.md` are `COMPLETED`, the dispatcher reports back that the goal has been achieved.
+
+## 🧠 Advanced Capabilities
+
+### Blackboard Architecture (Task Queue)
+Stigmergy implements a **Blackboard Architecture** via a centralized Task Queue. This allows multiple agents to observe the system state and pick up non-dependent tasks in parallel, significantly increasing development speed. The `GraphStateManager` acts as the central coordinator, ensuring data consistency across the swarm.
+
+### Deep Code Intelligence (CodeRAG)
+The **CodeRAG (Code Retrieval-Augmented Generation)** module provides "Deep Code Intelligence." It automatically scans the codebase, extracts semantic relationships, and stores them in the Neo4j Knowledge Graph. This allows agents to understand complex dependencies and "Consult" with the codebase to answer architectural questions with high precision.

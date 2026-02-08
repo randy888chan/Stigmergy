@@ -11,7 +11,7 @@ import { streamText } from "ai";
 import { getEstimatedCost } from "llm-cost-calculator";
 
 // Core Services
-import { GraphStateManager } from "../services/GraphStateManager.js";
+import { GraphStateManager } from "./infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from "../ai/providers.js";
 import { unifiedIntelligenceService } from "../services/unified_intelligence.js";

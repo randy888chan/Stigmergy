@@ -69,7 +69,7 @@ describe("Tool Executor Security (Definitive Fix)", () => {
     // --- DEFINITIVE FIX: Dynamic Import ---
     // Import modules *after* the mocks are established.
     Engine = (await import("../../../engine/server.js")).Engine;
-    GraphStateManager = (await import("../../../services/GraphStateManager.js"))
+    GraphStateManager = (await import("../../../engine/infrastructure/state/GraphStateManager.js"))
       .GraphStateManager;
     const errorHandlerModule = await import("../../../utils/errorHandler.js");
     OperationalError = errorHandlerModule.OperationalError;

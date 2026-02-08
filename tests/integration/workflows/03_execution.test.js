@@ -37,7 +37,7 @@ describe("Execution Workflow: @dispatcher and @executor", () => {
     mock.module("../../../services/model_monitoring.js", () => ({ trackToolUsage: mock() }));
 
     const { Engine } = await import("../../../engine/server.js");
-    const { GraphStateManager } = await import("../../../services/GraphStateManager.js");
+    const { GraphStateManager } = await import("../../../engine/infrastructure/state/GraphStateManager.js");
     const { createExecutor: realCreateExecutor } = await import("../../../engine/tool_executor.js");
 
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");

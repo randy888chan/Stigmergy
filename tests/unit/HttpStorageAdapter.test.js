@@ -1,5 +1,5 @@
 import { describe, it, expect, spyOn } from "bun:test";
-import { HttpStorageAdapter } from "../../services/HttpStorageAdapter.js";
+import { HttpStorageAdapter } from "../../engine/infrastructure/state/HttpStorageAdapter.js";
 
 const TEST_ORG_ID = "test-org";
 const TEST_PROJ_ID = "test-proj";

@@ -41,7 +41,7 @@ describe("Full E-to-E Workflow (Isolated)", () => {
     const engineModule = await import("../../../engine/server.js");
     Engine = engineModule.Engine;
     const stateManagerModule = await import(
-      "../../../services/GraphStateManager.js"
+      "../../../engine/infrastructure/state/GraphStateManager.js"
     );
     const GraphStateManager = stateManagerModule.GraphStateManager;
     const toolExecutorModule = await import("../../../engine/tool_executor.js");

@@ -46,7 +46,7 @@ describe("Rescue Workflow", () => {
     await mockFs.promises.writeFile(path.join(appGovernanceDir, 'rbac.yml'), 'roles: { Admin: ["*"] }\nusers: [{username: "test", role: "Admin", key: "test-key"}]');
 
     // Dynamic Imports
-    const stateManagerModule = await import("../../../services/GraphStateManager.js");
+    const stateManagerModule = await import("../../../engine/infrastructure/state/GraphStateManager.js");
     GraphStateManager = stateManagerModule.GraphStateManager;
     const toolExecutorModule = await import("../../../engine/tool_executor.js");
     realCreateExecutor = toolExecutorModule.createExecutor;
