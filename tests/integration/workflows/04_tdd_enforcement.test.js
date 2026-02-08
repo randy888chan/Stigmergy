@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, mock } from "bun:test";
 import { Engine } from "../../../engine/server.js";
-import { GraphStateManager } from "../../../services/GraphStateManager.js";
+import { GraphStateManager } from "../../../engine/infrastructure/state/GraphStateManager.js";
 import mockFs, { vol } from "../../mocks/fs.js";
 import path from "path";
 import yaml from "js-yaml";

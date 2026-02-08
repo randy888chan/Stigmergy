@@ -1,7 +1,7 @@
 import { test, describe, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "path";
 import mockFs, { vol } from "../../mocks/fs.js";
-import { GraphStateManager } from "../../../services/GraphStateManager.js";
+import { GraphStateManager } from "../../../engine/infrastructure/state/GraphStateManager.js";
 import { Engine } from "../../../engine/server.js";
 import { createExecutor as realCreateExecutor } from "../../../engine/tool_executor.js";
 
