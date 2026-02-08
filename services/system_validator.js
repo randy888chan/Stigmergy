@@ -2,8 +2,8 @@ import "dotenv/config";
 import fs from "fs-extra";
 import path from "path";
 import os from "os";
-import { Neo4jValidator } from "../../engine/neo4j_validator.js";
-import { CoreBackup } from "../../services/core_backup.js";
+import { Neo4jValidator } from "../engine/neo4j_validator.js";
+import { CoreBackup } from "./core_backup.js";
 
 /**
  * Validates the health of the entire Stigmergy system.

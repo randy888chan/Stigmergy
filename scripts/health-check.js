@@ -2,7 +2,7 @@ import chalk from 'chalk';
 import * as fs from 'fs-extra';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { SystemValidator } from '../src/bootstrap/system_validator.js';
+import { SystemValidator } from '../services/system_validator.js';
 import { CodeIntelligenceService } from '../services/code_intelligence_service.js';
 import config from '../stigmergy.config.js';
 import { validateAgents } from '../cli/commands/validate.js';

@@ -1,7 +1,7 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
-import { GraphStateManager } from '../../src/infrastructure/state/GraphStateManager.js';
-import { FileStorageAdapter } from '../../src/infrastructure/state/FileStorageAdapter.js';
+import { GraphStateManager } from '../../services/GraphStateManager.js';
+import { FileStorageAdapter } from '../../services/FileStorageAdapter.js';
 import path from 'path';
 import fs from 'fs-extra';
 

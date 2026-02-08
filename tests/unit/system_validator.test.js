@@ -28,7 +28,7 @@ describe("SystemValidator", () => {
     mockNeo4jValidate.mockReset();
     mock.restore(); // Restore all spies before each test
     // Dynamically import to ensure mocks and env vars are set
-    SystemValidator = (await import("../../src/bootstrap/system_validator.js")).SystemValidator;
+    SystemValidator = (await import("../../services/system_validator.js")).SystemValidator;
     validator = new SystemValidator(fs, os);
   });
 
