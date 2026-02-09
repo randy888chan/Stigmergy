@@ -270,11 +270,17 @@ export class Engine {
   }
 
   async start() {
-    console.log(chalk.green(`[Engine] Starting on port ${this.port}`));
+    console.log(chalk.gray(`[Engine] Initializing server...`));
+
     this.server = serve({
       fetch: this.app.fetch,
       port: this.port
     });
+
+    console.log(""); // Empty line for spacing
+    console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
+    console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
+    console.log(""); // Empty line
   }
 
   async stop() {
