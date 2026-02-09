@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import { upgradeWebSocket } from "hono/bun";
 import { serveStatic } from "@hono/node-server/serve-static";
 import path from "path";
+import os from "os";
 import chalk from "chalk";
 import fs from "fs-extra";
 import yaml from "js-yaml";
@@ -181,10 +182,46 @@ export class Engine {
 
     this.app.get("/health", (c) => c.json({ status: "ok", mode: "restored" }));
 
-    // Files API
+    // Projects & Files API
+    const resolveSafePath = (inputPath) => {
+      if (!inputPath) return this.projectRoot;
+      if (inputPath.startsWith("~")) {
+        return path.join(os.homedir(), inputPath.slice(1));
+      }
+      if (path.isAbsolute(inputPath)) {
+        return inputPath;
+      }
+      return path.resolve(this.projectRoot, inputPath);
+    };
+
+    this.app.get("/api/projects", async (c) => {
+      try {
+        const basePath = resolveSafePath(c.req.query("basePath") || "~");
+        const entries = await fs.readdir(basePath, { withFileTypes: true });
+        const directories = entries
+          .filter(entry => entry.isDirectory())
+          .map(entry => entry.name);
+        return c.json(directories);
+      } catch (e) {
+        console.error("API Projects Error:", e);
+        return c.json({ error: e.message }, 500);
+      }
+    });
+
     this.app.get("/api/files", async (c) => {
-      const files = await fileSystem.listDirectory({ path: this.projectRoot });
-      return c.json(files);
+      try {
+        const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
+        const files = await fileSystem.listDirectory({ path: targetPath });
+
+        if (typeof files === 'string' && files.startsWith("EXECUTION FAILED")) {
+            return c.json({ error: files }, 500);
+        }
+
+        return c.json(files);
+      } catch (e) {
+        console.error("API Files Error:", e);
+        return c.json({ error: e.message }, 500);
+      }
     });
 
     // API State

@@ -71,6 +71,7 @@ const localStorageMock = (() => {
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
+global.localStorage = window.localStorage;
 
 // Automatically run cleanup after each test
 afterEach(() => {

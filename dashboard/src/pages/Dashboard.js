@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
   const [thoughtStream, setThoughtStream] = useState([]);
   const [healthData, setHealthData] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     if (data) {
@@ -109,6 +110,10 @@ const Dashboard = () => {
       isFileContentLoading: true,
       fileContent: '',
     }));
+
+    // Switch to Viewer tab (index 4)
+    setActiveTab(4);
+
     try {
       const data = await authenticatedFetch(`/api/file-content?path=${encodeURIComponent(filePath)}`);
       setSystemState(prevState => ({
@@ -226,7 +231,7 @@ const Dashboard = () => {
             </Dialog>
         </Suspense>
 
-        <Layout sidebar={sidebarContent} rightPanel={<Tabs tabs={rightPanelTabs} />}>
+        <Layout sidebar={sidebarContent} rightPanel={<Tabs tabs={rightPanelTabs} activeTab={activeTab} onTabChange={setActiveTab} />}>
             <Suspense fallback={<div className="p-4">Loading Chat...</div>}>
                 <ChatInterface
                     sendMessage={sendMessage}
