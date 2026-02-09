@@ -27495,26 +27495,6 @@ var init_useMergeRef = __esm(() => {
 var init_es2015 = __esm(() => {
   init_useMergeRef();
 });
-// node_modules/use-sidecar/dist/es2015/env.js
-var init_env = () => {};
-
-// node_modules/use-sidecar/dist/es2015/hook.js
-var import_react5, cache;
-var init_hook = __esm(() => {
-  import_react5 = __toESM(require_react(), 1);
-  init_env();
-  cache = new WeakMap;
-});
-
-// node_modules/use-sidecar/dist/es2015/hoc.js
-var React19;
-var init_hoc = __esm(() => {
-  React19 = __toESM(require_react(), 1);
-  init_hook();
-});
-
-// node_modules/use-sidecar/dist/es2015/config.js
-var init_config = () => {};
 
 // node_modules/use-sidecar/dist/es2015/medium.js
 function ItoI(a) {
@@ -27605,19 +27585,12 @@ var init_medium = __esm(() => {
   init_tslib_es6();
 });
 
-// node_modules/use-sidecar/dist/es2015/renderProp.js
-var React20, import_react6;
-var init_renderProp = __esm(() => {
-  React20 = __toESM(require_react(), 1);
-  import_react6 = __toESM(require_react(), 1);
-});
-
 // node_modules/use-sidecar/dist/es2015/exports.js
 function exportSidecar(medium, exported) {
   medium.useMedium(exported);
   return SideCar;
 }
-var React21, SideCar = function(_a) {
+var React19, SideCar = function(_a) {
   var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
   if (!sideCar) {
     throw new Error("Sidecar: please provide `sideCar` property to import the right car");
@@ -27626,21 +27599,17 @@ var React21, SideCar = function(_a) {
   if (!Target) {
     throw new Error("Sidecar medium not found");
   }
-  return React21.createElement(Target, __assign({}, rest));
+  return React19.createElement(Target, __assign({}, rest));
 };
 var init_exports = __esm(() => {
   init_tslib_es6();
-  React21 = __toESM(require_react(), 1);
+  React19 = __toESM(require_react(), 1);
   SideCar.isSideCarExport = true;
 });
 
 // node_modules/use-sidecar/dist/es2015/index.js
 var init_es20152 = __esm(() => {
-  init_hoc();
-  init_hook();
-  init_config();
   init_medium();
-  init_renderProp();
   init_exports();
 });
 
@@ -27652,17 +27621,17 @@ var init_medium2 = __esm(() => {
 });
 
 // node_modules/react-remove-scroll/dist/es2015/UI.js
-var React24, nothing = function() {
+var React20, nothing = function() {
   return;
 }, RemoveScroll;
 var init_UI = __esm(() => {
   init_tslib_es6();
-  React24 = __toESM(require_react(), 1);
+  React20 = __toESM(require_react(), 1);
   init_es2015();
   init_medium2();
-  RemoveScroll = React24.forwardRef(function(props, parentRef) {
-    var ref = React24.useRef(null);
-    var _a = React24.useState({
+  RemoveScroll = React20.forwardRef(function(props, parentRef) {
+    var ref = React20.useRef(null);
+    var _a = React20.useState({
       onScrollCapture: nothing,
       onWheelCapture: nothing,
       onTouchMoveCapture: nothing
@@ -27671,7 +27640,7 @@ var init_UI = __esm(() => {
     var SideCar2 = sideCar;
     var containerRef = useMergeRefs([ref, parentRef]);
     var containerProps = __assign(__assign({}, rest), callbacks);
-    return React24.createElement(React24.Fragment, null, enabled && React24.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React24.cloneElement(React24.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React24.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
+    return React20.createElement(React20.Fragment, null, enabled && React20.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React20.cloneElement(React20.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React20.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
   });
   RemoveScroll.defaultProps = {
     enabled: true,
@@ -27743,10 +27712,10 @@ var stylesheetSingleton = function() {
 var init_singleton = () => {};
 
 // node_modules/react-style-singleton/dist/es2015/hook.js
-var React26, styleHookSingleton = function() {
+var React21, styleHookSingleton = function() {
   var sheet = stylesheetSingleton();
   return function(styles, isDynamic) {
-    React26.useEffect(function() {
+    React21.useEffect(function() {
       sheet.add(styles);
       return function() {
         sheet.remove();
@@ -27754,8 +27723,8 @@ var React26, styleHookSingleton = function() {
     }, [styles && isDynamic]);
   };
 };
-var init_hook2 = __esm(() => {
-  React26 = __toESM(require_react(), 1);
+var init_hook = __esm(() => {
+  React21 = __toESM(require_react(), 1);
   init_singleton();
 });
 
@@ -27770,14 +27739,14 @@ var styleSingleton = function() {
   return Sheet;
 };
 var init_component = __esm(() => {
-  init_hook2();
+  init_hook();
 });
 
 // node_modules/react-style-singleton/dist/es2015/index.js
 var init_es20153 = __esm(() => {
   init_component();
   init_singleton();
-  init_hook2();
+  init_hook();
 });
 
 // node_modules/react-remove-scroll-bar/dist/es2015/utils.js
@@ -27816,7 +27785,7 @@ var init_utils2 = __esm(() => {
 });
 
 // node_modules/react-remove-scroll-bar/dist/es2015/component.js
-var React27, Style, lockAttribute = "data-scroll-locked", getStyles = function(_a, allowRelative, gapMode, important) {
+var React24, Style, lockAttribute = "data-scroll-locked", getStyles = function(_a, allowRelative, gapMode, important) {
   var { left, top, right, gap } = _a;
   if (gapMode === undefined) {
     gapMode = "margin";
@@ -27842,23 +27811,23 @@ var React27, Style, lockAttribute = "data-scroll-locked", getStyles = function(_
     gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
   ].filter(Boolean).join(""), `
   }
-
+  
   .`).concat(zeroRightClassName, ` {
     right: `).concat(gap, "px ").concat(important, `;
   }
-
+  
   .`).concat(fullWidthClassName, ` {
     margin-right: `).concat(gap, "px ").concat(important, `;
   }
-
+  
   .`).concat(zeroRightClassName, " .").concat(zeroRightClassName, ` {
     right: 0 `).concat(important, `;
   }
-
+  
   .`).concat(fullWidthClassName, " .").concat(fullWidthClassName, ` {
     margin-right: 0 `).concat(important, `;
   }
-
+  
   body[`).concat(lockAttribute, `] {
     `).concat(removedBarSizeVariable, ": ").concat(gap, `px;
   }
@@ -27867,7 +27836,7 @@ var React27, Style, lockAttribute = "data-scroll-locked", getStyles = function(_
   var counter = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
   return isFinite(counter) ? counter : 0;
 }, useLockAttribute = function() {
-  React27.useEffect(function() {
+  React24.useEffect(function() {
     document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
     return function() {
       var newCounter = getCurrentUseCounter() - 1;
@@ -27881,13 +27850,13 @@ var React27, Style, lockAttribute = "data-scroll-locked", getStyles = function(_
 }, RemoveScrollBar = function(_a) {
   var { noRelative, noImportant, gapMode: _b } = _a, gapMode = _b === undefined ? "margin" : _b;
   useLockAttribute();
-  var gap = React27.useMemo(function() {
+  var gap = React24.useMemo(function() {
     return getGapWidth(gapMode);
   }, [gapMode]);
-  return React27.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
+  return React24.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
 };
 var init_component2 = __esm(() => {
-  React27 = __toESM(require_react(), 1);
+  React24 = __toESM(require_react(), 1);
   init_es20153();
   init_utils2();
   Style = styleSingleton();
@@ -28003,16 +27972,16 @@ var alwaysContainsScroll = function(node) {
 
 // node_modules/react-remove-scroll/dist/es2015/SideEffect.js
 function RemoveScrollSideCar(props) {
-  var shouldPreventQueue = React28.useRef([]);
-  var touchStartRef = React28.useRef([0, 0]);
-  var activeAxis = React28.useRef();
-  var id = React28.useState(idCounter++)[0];
-  var Style2 = React28.useState(styleSingleton)[0];
-  var lastProps = React28.useRef(props);
-  React28.useEffect(function() {
+  var shouldPreventQueue = React26.useRef([]);
+  var touchStartRef = React26.useRef([0, 0]);
+  var activeAxis = React26.useRef();
+  var id = React26.useState(idCounter++)[0];
+  var Style2 = React26.useState(styleSingleton)[0];
+  var lastProps = React26.useRef(props);
+  React26.useEffect(function() {
     lastProps.current = props;
   }, [props]);
-  React28.useEffect(function() {
+  React26.useEffect(function() {
     if (props.inert) {
       document.body.classList.add("block-interactivity-".concat(id));
       var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
@@ -28028,7 +27997,7 @@ function RemoveScrollSideCar(props) {
     }
     return;
   }, [props.inert, props.lockRef.current, props.shards]);
-  var shouldCancelEvent = React28.useCallback(function(event, parent) {
+  var shouldCancelEvent = React26.useCallback(function(event, parent) {
     if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
       return !lastProps.current.allowPinchZoom;
     }
@@ -28064,7 +28033,7 @@ function RemoveScrollSideCar(props) {
     var cancelingAxis = activeAxis.current || currentAxis;
     return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY, true);
   }, []);
-  var shouldPrevent = React28.useCallback(function(_event) {
+  var shouldPrevent = React26.useCallback(function(_event) {
     var event = _event;
     if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
       return;
@@ -28091,7 +28060,7 @@ function RemoveScrollSideCar(props) {
       }
     }
   }, []);
-  var shouldCancel = React28.useCallback(function(name, delta, target, should) {
+  var shouldCancel = React26.useCallback(function(name, delta, target, should) {
     var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
     shouldPreventQueue.current.push(event);
     setTimeout(function() {
@@ -28100,17 +28069,17 @@ function RemoveScrollSideCar(props) {
       });
     }, 1);
   }, []);
-  var scrollTouchStart = React28.useCallback(function(event) {
+  var scrollTouchStart = React26.useCallback(function(event) {
     touchStartRef.current = getTouchXY(event);
     activeAxis.current = undefined;
   }, []);
-  var scrollWheel = React28.useCallback(function(event) {
+  var scrollWheel = React26.useCallback(function(event) {
     shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
   }, []);
-  var scrollTouchMove = React28.useCallback(function(event) {
+  var scrollTouchMove = React26.useCallback(function(event) {
     shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
   }, []);
-  React28.useEffect(function() {
+  React26.useEffect(function() {
     lockStack.push(Style2);
     props.setCallbacks({
       onScrollCapture: scrollWheel,
@@ -28130,7 +28099,7 @@ function RemoveScrollSideCar(props) {
     };
   }, []);
   var { removeScrollBar, inert } = props;
-  return React28.createElement(React28.Fragment, null, inert ? React28.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React28.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null);
+  return React26.createElement(React26.Fragment, null, inert ? React26.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React26.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null);
 }
 function getOutermostShadowParent(node) {
   var shadowParent = null;
@@ -28143,7 +28112,7 @@ function getOutermostShadowParent(node) {
   }
   return shadowParent;
 }
-var React28, getTouchXY = function(event) {
+var React26, getTouchXY = function(event) {
   return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
 }, getDeltaXY = function(event) {
   return [event.deltaX, event.deltaY];
@@ -28159,7 +28128,7 @@ var React28, getTouchXY = function(event) {
 }, idCounter = 0, lockStack;
 var init_SideEffect = __esm(() => {
   init_tslib_es6();
-  React28 = __toESM(require_react(), 1);
+  React26 = __toESM(require_react(), 1);
   init_es20154();
   init_es20153();
   init_aggresiveCapture();
@@ -28176,14 +28145,14 @@ var init_sidecar = __esm(() => {
 });
 
 // node_modules/react-remove-scroll/dist/es2015/Combination.js
-var React29, ReactRemoveScroll, Combination_default;
+var React27, ReactRemoveScroll, Combination_default;
 var init_Combination = __esm(() => {
   init_tslib_es6();
-  React29 = __toESM(require_react(), 1);
+  React27 = __toESM(require_react(), 1);
   init_UI();
   init_sidecar();
-  ReactRemoveScroll = React29.forwardRef(function(props, ref) {
-    return React29.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: sidecar_default }));
+  ReactRemoveScroll = React27.forwardRef(function(props, ref) {
+    return React27.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: sidecar_default }));
   });
   ReactRemoveScroll.classNames = RemoveScroll.classNames;
   Combination_default = ReactRemoveScroll;
@@ -28344,12 +28313,12 @@ var init_defaultAttributes = __esm(() => {
 });
 
 // node_modules/lucide-react/dist/esm/Icon.js
-var import_react7, Icon;
+var import_react5, Icon;
 var init_Icon = __esm(() => {
-  import_react7 = __toESM(require_react(), 1);
+  import_react5 = __toESM(require_react(), 1);
   init_defaultAttributes();
   init_utils3();
-  Icon = import_react7.forwardRef(({
+  Icon = import_react5.forwardRef(({
     color = "currentColor",
     size = 24,
     strokeWidth = 2,
@@ -28358,7 +28327,7 @@ var init_Icon = __esm(() => {
     children,
     iconNode,
     ...rest
-  }, ref) => import_react7.createElement("svg", {
+  }, ref) => import_react5.createElement("svg", {
     ref,
     ...defaultAttributes,
     width: size,
@@ -28369,14 +28338,14 @@ var init_Icon = __esm(() => {
     ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
     ...rest
   }, [
-    ...iconNode.map(([tag, attrs]) => import_react7.createElement(tag, attrs)),
+    ...iconNode.map(([tag, attrs]) => import_react5.createElement(tag, attrs)),
     ...Array.isArray(children) ? children : [children]
   ]));
 });
 
 // node_modules/lucide-react/dist/esm/createLucideIcon.js
-var import_react8, createLucideIcon = (iconName, iconNode) => {
-  const Component = import_react8.forwardRef(({ className, ...props }, ref) => import_react8.createElement(Icon, {
+var import_react6, createLucideIcon = (iconName, iconNode) => {
+  const Component = import_react6.forwardRef(({ className, ...props }, ref) => import_react6.createElement(Icon, {
     ref,
     iconNode,
     className: mergeClasses(`lucide-${toKebabCase(toPascalCase(iconName))}`, `lucide-${iconName}`, className),
@@ -28386,7 +28355,7 @@ var import_react8, createLucideIcon = (iconName, iconNode) => {
   return Component;
 };
 var init_createLucideIcon = __esm(() => {
-  import_react8 = __toESM(require_react(), 1);
+  import_react6 = __toESM(require_react(), 1);
   init_utils3();
   init_Icon();
 });
@@ -28473,14 +28442,14 @@ var init_lucide_react = __esm(() => {
 
 // node_modules/@radix-ui/react-direction/dist/index.mjs
 function useDirection(localDir) {
-  const globalDir = React32.useContext(DirectionContext);
+  const globalDir = React30.useContext(DirectionContext);
   return localDir || globalDir || "ltr";
 }
-var React32, import_jsx_runtime8, DirectionContext;
+var React30, import_jsx_runtime8, DirectionContext;
 var init_dist17 = __esm(() => {
-  React32 = __toESM(require_react(), 1);
+  React30 = __toESM(require_react(), 1);
   import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-  DirectionContext = React32.createContext(undefined);
+  DirectionContext = React30.createContext(undefined);
 });
 
 // node_modules/@radix-ui/number/dist/index.mjs
@@ -28491,7 +28460,7 @@ var init_dist18 = () => {};
 
 // node_modules/@radix-ui/react-scroll-area/dist/index.mjs
 function useStateMachine2(initialState, machine) {
-  return React33.useReducer((state, event) => {
+  return React31.useReducer((state, event) => {
     const nextState = machine[state][event];
     return nextState ?? state;
   }, initialState);
@@ -28569,7 +28538,7 @@ function useResizeObserver(element, onResize) {
     }
   }, [element, handleResize]);
 }
-var React25, React33, import_jsx_runtime9, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
+var React25, React31, import_jsx_runtime9, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
   let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
   let rAF = 0;
   (function loop() {
@@ -28594,7 +28563,7 @@ var init_dist19 = __esm(() => {
   init_dist6();
   init_dist18();
   init_dist4();
-  React33 = __toESM(require_react(), 1);
+  React31 = __toESM(require_react(), 1);
   import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createScrollAreaContext, createScrollAreaScope] = createContextScope(SCROLL_AREA_NAME);
@@ -29145,14 +29114,14 @@ var init_dist19 = __esm(() => {
 });
 
 // dashboard/src/components/ui/scroll-area.jsx
-var React34, jsx_dev_runtime5, ScrollArea2, ScrollBar;
+var React32, jsx_dev_runtime5, ScrollArea2, ScrollBar;
 var init_scroll_area = __esm(() => {
-  React34 = __toESM(require_react(), 1);
+  React32 = __toESM(require_react(), 1);
   init_dist19();
   init_utils();
   jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
-  ScrollArea2 = React34.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Root2, {
+  ScrollArea2 = React32.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Root2, {
     ref,
     className: cn("relative overflow-hidden", className),
     ...props,
@@ -29166,7 +29135,7 @@ var init_scroll_area = __esm(() => {
     ]
   }, undefined, true, undefined, this));
   ScrollArea2.displayName = Root2.displayName;
-  ScrollBar = React34.forwardRef(({ className, orientation = "vertical", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Scrollbar, {
+  ScrollBar = React32.forwardRef(({ className, orientation = "vertical", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Scrollbar, {
     ref,
     orientation,
     className: cn("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
@@ -29202,12 +29171,12 @@ var init_api = __esm(() => {
 });
 
 // dashboard/src/components/ui/input.jsx
-var React35, jsx_dev_runtime6, Input;
+var React33, jsx_dev_runtime6, Input;
 var init_input = __esm(() => {
-  React35 = __toESM(require_react(), 1);
+  React33 = __toESM(require_react(), 1);
   init_utils();
   jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
-  Input = React35.forwardRef(({ className, type, ...props }, ref) => {
+  Input = React33.forwardRef(({ className, type, ...props }, ref) => {
     return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("input", {
       type,
       className: cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
@@ -29225,14 +29194,14 @@ function createCollection(name) {
   const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map });
   const CollectionProvider = (props) => {
     const { scope, children } = props;
-    const ref = import_react9.default.useRef(null);
-    const itemMap = import_react9.default.useRef(/* @__PURE__ */ new Map).current;
+    const ref = import_react7.default.useRef(null);
+    const itemMap = import_react7.default.useRef(/* @__PURE__ */ new Map).current;
     return /* @__PURE__ */ import_jsx_runtime10.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
   };
   CollectionProvider.displayName = PROVIDER_NAME;
   const COLLECTION_SLOT_NAME = name + "CollectionSlot";
   const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = import_react9.default.forwardRef((props, forwardedRef) => {
+  const CollectionSlot = import_react7.default.forwardRef((props, forwardedRef) => {
     const { scope, children } = props;
     const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
     const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
@@ -29242,12 +29211,12 @@ function createCollection(name) {
   const ITEM_SLOT_NAME = name + "CollectionItemSlot";
   const ITEM_DATA_ATTR = "data-radix-collection-item";
   const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = import_react9.default.forwardRef((props, forwardedRef) => {
+  const CollectionItemSlot = import_react7.default.forwardRef((props, forwardedRef) => {
     const { scope, children, ...itemData } = props;
-    const ref = import_react9.default.useRef(null);
+    const ref = import_react7.default.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-    import_react9.default.useEffect(() => {
+    import_react7.default.useEffect(() => {
       context.itemMap.set(ref, { ref, ...itemData });
       return () => void context.itemMap.delete(ref);
     });
@@ -29256,7 +29225,7 @@ function createCollection(name) {
   CollectionItemSlot.displayName = ITEM_SLOT_NAME;
   function useCollection(scope) {
     const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = import_react9.default.useCallback(() => {
+    const getItems = import_react7.default.useCallback(() => {
       const collectionNode = context.collectionRef.current;
       if (!collectionNode)
         return [];
@@ -29289,14 +29258,14 @@ function toSafeIndex(array, index) {
 function toSafeInteger(number) {
   return number !== number || number === 0 ? 0 : Math.trunc(number);
 }
-var import_react9, import_jsx_runtime10, import_react10, import_jsx_runtime11, __instanciated, OrderedDict;
+var import_react7, import_jsx_runtime10, import_react8, import_jsx_runtime11, __instanciated, OrderedDict;
 var init_dist20 = __esm(() => {
-  import_react9 = __toESM(require_react(), 1);
+  import_react7 = __toESM(require_react(), 1);
   init_dist5();
   init_dist();
   init_dist2();
   import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
-  import_react10 = __toESM(require_react(), 1);
+  import_react8 = __toESM(require_react(), 1);
   import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
   "use client";
   __instanciated = /* @__PURE__ */ new WeakMap;
@@ -30428,7 +30397,7 @@ function hasWindow() {
   return typeof window !== "undefined";
 }
 function getNodeName(node) {
-  if (isNode2(node)) {
+  if (isNode(node)) {
     return (node.nodeName || "").toLowerCase();
   }
   return "#document";
@@ -30439,9 +30408,9 @@ function getWindow(node) {
 }
 function getDocumentElement(node) {
   var _ref;
-  return (_ref = (isNode2(node) ? node.ownerDocument : node.document) || window.document) == null ? undefined : _ref.documentElement;
+  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? undefined : _ref.documentElement;
 }
-function isNode2(value) {
+function isNode(value) {
   if (!hasWindow()) {
     return false;
   }
@@ -30846,8 +30815,8 @@ function hasFixedPositionAncestor(element, stopNode) {
   }
   return getComputedStyle2(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
 }
-function getClippingElementAncestors(element, cache2) {
-  const cachedResult = cache2.get(element);
+function getClippingElementAncestors(element, cache) {
+  const cachedResult = cache.get(element);
   if (cachedResult) {
     return cachedResult;
   }
@@ -30869,7 +30838,7 @@ function getClippingElementAncestors(element, cache2) {
     }
     currentNode = getParentNode(currentNode);
   }
-  cache2.set(element, result);
+  cache.set(element, result);
   return result;
 }
 function getClippingRect(_ref) {
@@ -31146,14 +31115,14 @@ var noOffsets, SCROLLBAR_MAX = 25, absoluteOrFixed, getElementRects = async func
     }
   };
 }, platform, offset2, shift2, flip2, size2, hide2, arrow2, limitShift2, computePosition2 = (reference, floating, options2) => {
-  const cache2 = new Map;
+  const cache = new Map;
   const mergedOptions = {
     platform,
     ...options2
   };
   const platformWithCache = {
     ...mergedOptions.platform,
-    _c: cache2
+    _c: cache
   };
   return computePosition(reference, floating, {
     ...mergedOptions,
@@ -31248,7 +31217,7 @@ function roundByDPR(element, value) {
   return Math.round(value * dpr) / dpr;
 }
 function useLatestRef(value) {
-  const ref = React37.useRef(value);
+  const ref = React35.useRef(value);
   index(() => {
     ref.current = value;
   });
@@ -31271,7 +31240,7 @@ function useFloating(options2) {
     whileElementsMounted,
     open
   } = options2;
-  const [data, setData] = React37.useState({
+  const [data, setData] = React35.useState({
     x: 0,
     y: 0,
     strategy,
@@ -31279,19 +31248,19 @@ function useFloating(options2) {
     middlewareData: {},
     isPositioned: false
   });
-  const [latestMiddleware, setLatestMiddleware] = React37.useState(middleware);
+  const [latestMiddleware, setLatestMiddleware] = React35.useState(middleware);
   if (!deepEqual(latestMiddleware, middleware)) {
     setLatestMiddleware(middleware);
   }
-  const [_reference, _setReference] = React37.useState(null);
-  const [_floating, _setFloating] = React37.useState(null);
-  const setReference = React37.useCallback((node) => {
+  const [_reference, _setReference] = React35.useState(null);
+  const [_floating, _setFloating] = React35.useState(null);
+  const setReference = React35.useCallback((node) => {
     if (node !== referenceRef.current) {
       referenceRef.current = node;
       _setReference(node);
     }
   }, []);
-  const setFloating = React37.useCallback((node) => {
+  const setFloating = React35.useCallback((node) => {
     if (node !== floatingRef.current) {
       floatingRef.current = node;
       _setFloating(node);
@@ -31299,14 +31268,14 @@ function useFloating(options2) {
   }, []);
   const referenceEl = externalReference || _reference;
   const floatingEl = externalFloating || _floating;
-  const referenceRef = React37.useRef(null);
-  const floatingRef = React37.useRef(null);
-  const dataRef = React37.useRef(data);
+  const referenceRef = React35.useRef(null);
+  const floatingRef = React35.useRef(null);
+  const dataRef = React35.useRef(data);
   const hasWhileElementsMounted = whileElementsMounted != null;
   const whileElementsMountedRef = useLatestRef(whileElementsMounted);
   const platformRef = useLatestRef(platform2);
   const openRef = useLatestRef(open);
-  const update = React37.useCallback(() => {
+  const update = React35.useCallback(() => {
     if (!referenceRef.current || !floatingRef.current) {
       return;
     }
@@ -31340,7 +31309,7 @@ function useFloating(options2) {
       }));
     }
   }, [open]);
-  const isMountedRef = React37.useRef(false);
+  const isMountedRef = React35.useRef(false);
   index(() => {
     isMountedRef.current = true;
     return () => {
@@ -31359,17 +31328,17 @@ function useFloating(options2) {
       update();
     }
   }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React37.useMemo(() => ({
+  const refs = React35.useMemo(() => ({
     reference: referenceRef,
     floating: floatingRef,
     setReference,
     setFloating
   }), [setReference, setFloating]);
-  const elements = React37.useMemo(() => ({
+  const elements = React35.useMemo(() => ({
     reference: referenceEl,
     floating: floatingEl
   }), [referenceEl, floatingEl]);
-  const floatingStyles = React37.useMemo(() => {
+  const floatingStyles = React35.useMemo(() => {
     const initialStyles = {
       position: strategy,
       left: 0,
@@ -31395,7 +31364,7 @@ function useFloating(options2) {
       top: y
     };
   }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React37.useMemo(() => ({
+  return React35.useMemo(() => ({
     ...data,
     update,
     refs,
@@ -31403,7 +31372,7 @@ function useFloating(options2) {
     floatingStyles
   }), [data, update, refs, elements, floatingStyles]);
 }
-var React37, import_react11, ReactDOM3, isClient, noop = function noop2() {}, index, arrow$1 = (options2) => {
+var React35, import_react9, ReactDOM3, isClient, noop = function noop2() {}, index, arrow$1 = (options2) => {
   function isRef(value) {
     return {}.hasOwnProperty.call(value, "current");
   }
@@ -31458,20 +31427,20 @@ var React37, import_react11, ReactDOM3, isClient, noop = function noop2() {}, in
 var init_floating_ui_react_dom = __esm(() => {
   init_floating_ui_dom();
   init_floating_ui_dom();
-  React37 = __toESM(require_react(), 1);
-  import_react11 = __toESM(require_react(), 1);
+  React35 = __toESM(require_react(), 1);
+  import_react9 = __toESM(require_react(), 1);
   ReactDOM3 = __toESM(require_react_dom(), 1);
   isClient = typeof document !== "undefined";
-  index = isClient ? import_react11.useLayoutEffect : noop;
+  index = isClient ? import_react9.useLayoutEffect : noop;
 });
 
 // node_modules/@radix-ui/react-arrow/dist/index.mjs
-var React38, import_jsx_runtime12, NAME = "Arrow", Arrow, Root3;
+var React36, import_jsx_runtime12, NAME = "Arrow", Arrow, Root3;
 var init_dist21 = __esm(() => {
-  React38 = __toESM(require_react(), 1);
+  React36 = __toESM(require_react(), 1);
   init_dist9();
   import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
-  Arrow = React38.forwardRef((props, forwardedRef) => {
+  Arrow = React36.forwardRef((props, forwardedRef) => {
     const { children, width = 10, height = 5, ...arrowProps } = props;
     return /* @__PURE__ */ import_jsx_runtime12.jsx(Primitive.svg, {
       ...arrowProps,
@@ -31489,7 +31458,7 @@ var init_dist21 = __esm(() => {
 
 // node_modules/@radix-ui/react-use-size/dist/index.mjs
 function useSize(element) {
-  const [size4, setSize] = React39.useState(undefined);
+  const [size4, setSize] = React37.useState(undefined);
   useLayoutEffect2(() => {
     if (element) {
       setSize({ width: element.offsetWidth, height: element.offsetHeight });
@@ -31522,9 +31491,9 @@ function useSize(element) {
   }, [element]);
   return size4;
 }
-var React39;
+var React37;
 var init_dist22 = __esm(() => {
-  React39 = __toESM(require_react(), 1);
+  React37 = __toESM(require_react(), 1);
   init_dist6();
 });
 
@@ -31536,9 +31505,9 @@ function getSideAndAlignFromPlacement(placement) {
   const [side, align = "center"] = placement.split("-");
   return [side, align];
 }
-var React40, import_jsx_runtime13, POPPER_NAME = "Popper", createPopperContext, createPopperScope, PopperProvider, usePopperContext, Popper = (props) => {
+var React38, import_jsx_runtime13, POPPER_NAME = "Popper", createPopperContext, createPopperScope, PopperProvider, usePopperContext, Popper = (props) => {
   const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = React40.useState(null);
+  const [anchor, setAnchor] = React38.useState(null);
   return /* @__PURE__ */ import_jsx_runtime13.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
 }, ANCHOR_NAME = "PopperAnchor", PopperAnchor, CONTENT_NAME2 = "PopperContent", PopperContentProvider, useContentContext, PopperContent, ARROW_NAME = "PopperArrow", OPPOSITE_SIDE, PopperArrow, transformOrigin = (options2) => ({
   name: "transformOrigin",
@@ -31572,7 +31541,7 @@ var React40, import_jsx_runtime13, POPPER_NAME = "Popper", createPopperContext, 
   }
 }), Root22, Anchor, Content2, Arrow2;
 var init_dist23 = __esm(() => {
-  React40 = __toESM(require_react(), 1);
+  React38 = __toESM(require_react(), 1);
   init_floating_ui_react_dom();
   init_dist21();
   init_dist();
@@ -31586,13 +31555,13 @@ var init_dist23 = __esm(() => {
   [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
   [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
   Popper.displayName = POPPER_NAME;
-  PopperAnchor = React40.forwardRef((props, forwardedRef) => {
+  PopperAnchor = React38.forwardRef((props, forwardedRef) => {
     const { __scopePopper, virtualRef, ...anchorProps } = props;
     const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React40.useRef(null);
+    const ref = React38.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = React40.useRef(null);
-    React40.useEffect(() => {
+    const anchorRef = React38.useRef(null);
+    React38.useEffect(() => {
       const previousAnchor = anchorRef.current;
       anchorRef.current = virtualRef?.current || ref.current;
       if (previousAnchor !== anchorRef.current) {
@@ -31603,7 +31572,7 @@ var init_dist23 = __esm(() => {
   });
   PopperAnchor.displayName = ANCHOR_NAME;
   [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME2);
-  PopperContent = React40.forwardRef((props, forwardedRef) => {
+  PopperContent = React38.forwardRef((props, forwardedRef) => {
     const {
       __scopePopper,
       side = "bottom",
@@ -31621,9 +31590,9 @@ var init_dist23 = __esm(() => {
       ...contentProps
     } = props;
     const context = usePopperContext(CONTENT_NAME2, __scopePopper);
-    const [content, setContent] = React40.useState(null);
+    const [content, setContent] = React38.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow4, setArrow] = React40.useState(null);
+    const [arrow4, setArrow] = React38.useState(null);
     const arrowSize = useSize(arrow4);
     const arrowWidth = arrowSize?.width ?? 0;
     const arrowHeight = arrowSize?.height ?? 0;
@@ -31683,7 +31652,7 @@ var init_dist23 = __esm(() => {
     const arrowX = middlewareData.arrow?.x;
     const arrowY = middlewareData.arrow?.y;
     const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React40.useState();
+    const [contentZIndex, setContentZIndex] = React38.useState();
     useLayoutEffect2(() => {
       if (content)
         setContentZIndex(window.getComputedStyle(content).zIndex);
@@ -31733,7 +31702,7 @@ var init_dist23 = __esm(() => {
     bottom: "top",
     left: "right"
   };
-  PopperArrow = React40.forwardRef(function PopperArrow2(props, forwardedRef) {
+  PopperArrow = React38.forwardRef(function PopperArrow2(props, forwardedRef) {
     const { __scopePopper, ...arrowProps } = props;
     const contentContext = useContentContext(ARROW_NAME, __scopePopper);
     const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
@@ -31777,8 +31746,8 @@ var init_dist23 = __esm(() => {
 
 // node_modules/@radix-ui/react-use-previous/dist/index.mjs
 function usePrevious(value) {
-  const ref = React41.useRef({ value, previous: value });
-  return React41.useMemo(() => {
+  const ref = React39.useRef({ value, previous: value });
+  return React39.useMemo(() => {
     if (ref.current.value !== value) {
       ref.current.previous = ref.current.value;
       ref.current.value = value;
@@ -31786,15 +31755,15 @@ function usePrevious(value) {
     return ref.current.previous;
   }, [value]);
 }
-var React41;
+var React39;
 var init_dist24 = __esm(() => {
-  React41 = __toESM(require_react(), 1);
+  React39 = __toESM(require_react(), 1);
 });
 
 // node_modules/@radix-ui/react-visually-hidden/dist/index.mjs
-var React42, import_jsx_runtime14, VISUALLY_HIDDEN_STYLES, NAME2 = "VisuallyHidden", VisuallyHidden;
+var React40, import_jsx_runtime14, VISUALLY_HIDDEN_STYLES, NAME2 = "VisuallyHidden", VisuallyHidden;
 var init_dist25 = __esm(() => {
-  React42 = __toESM(require_react(), 1);
+  React40 = __toESM(require_react(), 1);
   init_dist9();
   import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
   VISUALLY_HIDDEN_STYLES = Object.freeze({
@@ -31809,7 +31778,7 @@ var init_dist25 = __esm(() => {
     whiteSpace: "nowrap",
     wordWrap: "normal"
   });
-  VisuallyHidden = React42.forwardRef((props, forwardedRef) => {
+  VisuallyHidden = React40.forwardRef((props, forwardedRef) => {
     return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, {
       ...props,
       ref: forwardedRef,
@@ -31825,9 +31794,9 @@ function shouldShowPlaceholder(value) {
 }
 function useTypeaheadSearch(onSearchChange) {
   const handleSearchChange = useCallbackRef(onSearchChange);
-  const searchRef = React43.useRef("");
-  const timerRef = React43.useRef(0);
-  const handleTypeaheadSearch = React43.useCallback((key) => {
+  const searchRef = React41.useRef("");
+  const timerRef = React41.useRef(0);
+  const handleTypeaheadSearch = React41.useCallback((key) => {
     const search = searchRef.current + key;
     handleSearchChange(search);
     (function updateSearch(value) {
@@ -31837,11 +31806,11 @@ function useTypeaheadSearch(onSearchChange) {
         timerRef.current = window.setTimeout(() => updateSearch(""), 1000);
     })(search);
   }, [handleSearchChange]);
-  const resetTypeahead = React43.useCallback(() => {
+  const resetTypeahead = React41.useCallback(() => {
     searchRef.current = "";
     window.clearTimeout(timerRef.current);
   }, []);
-  React43.useEffect(() => {
+  React41.useEffect(() => {
     return () => window.clearTimeout(timerRef.current);
   }, []);
   return [searchRef, handleTypeaheadSearch, resetTypeahead];
@@ -31860,7 +31829,7 @@ function findNextItem(items, search, currentItem) {
 function wrapArray(array, startIndex) {
   return array.map((_, index2) => array[(startIndex + index2) % array.length]);
 }
-var React43, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_NAME = "Select", Collection, useCollection, createCollectionScope, createSelectContext, createSelectScope, usePopperScope, SelectProvider, useSelectContext, SelectNativeOptionsProvider, useSelectNativeOptionsContext, Select = (props) => {
+var React41, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_NAME = "Select", Collection, useCollection, createCollectionScope, createSelectContext, createSelectScope, usePopperScope, SelectProvider, useSelectContext, SelectNativeOptionsProvider, useSelectNativeOptionsContext, Select = (props) => {
   const {
     __scopeSelect,
     children,
@@ -31878,9 +31847,9 @@ var React43, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_
     form
   } = props;
   const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = React43.useState(null);
-  const [valueNode, setValueNode] = React43.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = React43.useState(false);
+  const [trigger, setTrigger] = React41.useState(null);
+  const [valueNode, setValueNode] = React41.useState(null);
+  const [valueNodeHasChildren, setValueNodeHasChildren] = React41.useState(false);
   const direction = useDirection(dir);
   const [open, setOpen] = useControllableState({
     prop: openProp,
@@ -31894,9 +31863,9 @@ var React43, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_
     onChange: onValueChange,
     caller: SELECT_NAME
   });
-  const triggerPointerDownPosRef = React43.useRef(null);
+  const triggerPointerDownPosRef = React41.useRef(null);
   const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = React43.useState(/* @__PURE__ */ new Set);
+  const [nativeOptionsSet, setNativeOptionsSet] = React41.useState(/* @__PURE__ */ new Set);
   const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
   return /* @__PURE__ */ import_jsx_runtime15.jsx(Root22, { ...popperScope, children: /* @__PURE__ */ import_jsx_runtime15.jsxs(SelectProvider, {
     required,
@@ -31918,10 +31887,10 @@ var React43, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_
     children: [
       /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime15.jsx(SelectNativeOptionsProvider, {
         scope: props.__scopeSelect,
-        onNativeOptionAdd: React43.useCallback((option) => {
+        onNativeOptionAdd: React41.useCallback((option) => {
           setNativeOptionsSet((prev) => new Set(prev).add(option));
         }, []),
-        onNativeOptionRemove: React43.useCallback((option) => {
+        onNativeOptionRemove: React41.useCallback((option) => {
           setNativeOptionsSet((prev) => {
             const optionsSet = new Set(prev);
             optionsSet.delete(option);
@@ -31951,7 +31920,7 @@ var React43, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_
   return /* @__PURE__ */ import_jsx_runtime15.jsx(Portal, { asChild: true, ...props });
 }, CONTENT_NAME3 = "SelectContent", SelectContent, CONTENT_MARGIN = 10, SelectContentProvider, useSelectContentContext, CONTENT_IMPL_NAME = "SelectContentImpl", Slot3, SelectContentImpl, ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition", SelectItemAlignedPosition, POPPER_POSITION_NAME = "SelectPopperPosition", SelectPopperPosition, SelectViewportProvider, useSelectViewportContext, VIEWPORT_NAME2 = "SelectViewport", SelectViewport, GROUP_NAME = "SelectGroup", SelectGroupContextProvider, useSelectGroupContext, SelectGroup, LABEL_NAME = "SelectLabel", SelectLabel, ITEM_NAME = "SelectItem", SelectItemContextProvider, useSelectItemContext, SelectItem, ITEM_TEXT_NAME = "SelectItemText", SelectItemText, ITEM_INDICATOR_NAME = "SelectItemIndicator", SelectItemIndicator, SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton", SelectScrollUpButton, SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton", SelectScrollDownButton, SelectScrollButtonImpl, SEPARATOR_NAME = "SelectSeparator", SelectSeparator, ARROW_NAME2 = "SelectArrow", SelectArrow, BUBBLE_INPUT_NAME = "SelectBubbleInput", SelectBubbleInput, Root23, Trigger2, Value, Icon2, Portal3, Content22, Viewport2, Label, Item, ItemText, ItemIndicator, ScrollUpButton, ScrollDownButton, Separator;
 var init_dist26 = __esm(() => {
-  React43 = __toESM(require_react(), 1);
+  React41 = __toESM(require_react(), 1);
   ReactDOM4 = __toESM(require_react_dom(), 1);
   init_dist18();
   init_dist4();
@@ -31988,14 +31957,14 @@ var init_dist26 = __esm(() => {
   [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
   [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
   Select.displayName = SELECT_NAME;
-  SelectTrigger = React43.forwardRef((props, forwardedRef) => {
+  SelectTrigger = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, disabled = false, ...triggerProps } = props;
     const popperScope = usePopperScope(__scopeSelect);
     const context = useSelectContext(TRIGGER_NAME2, __scopeSelect);
     const isDisabled = context.disabled || disabled;
     const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
     const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = React43.useRef("touch");
+    const pointerTypeRef = React41.useRef("touch");
     const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
       const enabledItems = getItems().filter((item) => !item.disabled);
       const currentItem = enabledItems.find((item) => item.value === context.value);
@@ -32062,7 +32031,7 @@ var init_dist26 = __esm(() => {
     }) });
   });
   SelectTrigger.displayName = TRIGGER_NAME2;
-  SelectValue = React43.forwardRef((props, forwardedRef) => {
+  SelectValue = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
     const context = useSelectContext(VALUE_NAME, __scopeSelect);
     const { onValueNodeHasChildrenChange } = context;
@@ -32079,15 +32048,15 @@ var init_dist26 = __esm(() => {
     });
   });
   SelectValue.displayName = VALUE_NAME;
-  SelectIcon = React43.forwardRef((props, forwardedRef) => {
+  SelectIcon = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, children, ...iconProps } = props;
     return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "▼" });
   });
   SelectIcon.displayName = ICON_NAME;
   SelectPortal.displayName = PORTAL_NAME3;
-  SelectContent = React43.forwardRef((props, forwardedRef) => {
+  SelectContent = React41.forwardRef((props, forwardedRef) => {
     const context = useSelectContext(CONTENT_NAME3, props.__scopeSelect);
-    const [fragment, setFragment] = React43.useState();
+    const [fragment, setFragment] = React41.useState();
     useLayoutEffect2(() => {
       setFragment(new DocumentFragment);
     }, []);
@@ -32100,7 +32069,7 @@ var init_dist26 = __esm(() => {
   SelectContent.displayName = CONTENT_NAME3;
   [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME3);
   Slot3 = createSlot("SelectContent.RemoveScroll");
-  SelectContentImpl = React43.forwardRef((props, forwardedRef) => {
+  SelectContentImpl = React41.forwardRef((props, forwardedRef) => {
     const {
       __scopeSelect,
       position = "item-aligned",
@@ -32120,20 +32089,20 @@ var init_dist26 = __esm(() => {
       ...contentProps
     } = props;
     const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
-    const [content, setContent] = React43.useState(null);
-    const [viewport, setViewport] = React43.useState(null);
+    const [content, setContent] = React41.useState(null);
+    const [viewport, setViewport] = React41.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = React43.useState(null);
-    const [selectedItemText, setSelectedItemText] = React43.useState(null);
+    const [selectedItem, setSelectedItem] = React41.useState(null);
+    const [selectedItemText, setSelectedItemText] = React41.useState(null);
     const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = React43.useState(false);
-    const firstValidItemFoundRef = React43.useRef(false);
-    React43.useEffect(() => {
+    const [isPositioned, setIsPositioned] = React41.useState(false);
+    const firstValidItemFoundRef = React41.useRef(false);
+    React41.useEffect(() => {
       if (content)
         return hideOthers(content);
     }, [content]);
     useFocusGuards();
-    const focusFirst2 = React43.useCallback((candidates) => {
+    const focusFirst2 = React41.useCallback((candidates) => {
       const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
       const [lastItem] = restItems.slice(-1);
       const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
@@ -32150,14 +32119,14 @@ var init_dist26 = __esm(() => {
           return;
       }
     }, [getItems, viewport]);
-    const focusSelectedItem = React43.useCallback(() => focusFirst2([selectedItem, content]), [focusFirst2, selectedItem, content]);
-    React43.useEffect(() => {
+    const focusSelectedItem = React41.useCallback(() => focusFirst2([selectedItem, content]), [focusFirst2, selectedItem, content]);
+    React41.useEffect(() => {
       if (isPositioned) {
         focusSelectedItem();
       }
     }, [isPositioned, focusSelectedItem]);
     const { onOpenChange, triggerPointerDownPosRef } = context;
-    React43.useEffect(() => {
+    React41.useEffect(() => {
       if (content) {
         let pointerMoveDelta = { x: 0, y: 0 };
         const handlePointerMove = (event) => {
@@ -32187,7 +32156,7 @@ var init_dist26 = __esm(() => {
         };
       }
     }, [content, onOpenChange, triggerPointerDownPosRef]);
-    React43.useEffect(() => {
+    React41.useEffect(() => {
       const close = () => onOpenChange(false);
       window.addEventListener("blur", close);
       window.addEventListener("resize", close);
@@ -32204,7 +32173,7 @@ var init_dist26 = __esm(() => {
         setTimeout(() => nextItem.ref.current.focus());
       }
     });
-    const itemRefCallback = React43.useCallback((node, value, disabled) => {
+    const itemRefCallback = React41.useCallback((node, value, disabled) => {
       const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
       const isSelectedItem = context.value !== undefined && context.value === value;
       if (isSelectedItem || isFirstValidItem) {
@@ -32213,8 +32182,8 @@ var init_dist26 = __esm(() => {
           firstValidItemFoundRef.current = true;
       }
     }, [context.value]);
-    const handleItemLeave = React43.useCallback(() => content?.focus(), [content]);
-    const itemTextRefCallback = React43.useCallback((node, value, disabled) => {
+    const handleItemLeave = React41.useCallback(() => content?.focus(), [content]);
+    const itemTextRefCallback = React41.useCallback((node, value, disabled) => {
       const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
       const isSelectedItem = context.value !== undefined && context.value === value;
       if (isSelectedItem || isFirstValidItem) {
@@ -32308,18 +32277,18 @@ var init_dist26 = __esm(() => {
     });
   });
   SelectContentImpl.displayName = CONTENT_IMPL_NAME;
-  SelectItemAlignedPosition = React43.forwardRef((props, forwardedRef) => {
+  SelectItemAlignedPosition = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, onPlaced, ...popperProps } = props;
     const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
     const contentContext = useSelectContentContext(CONTENT_NAME3, __scopeSelect);
-    const [contentWrapper, setContentWrapper] = React43.useState(null);
-    const [content, setContent] = React43.useState(null);
+    const [contentWrapper, setContentWrapper] = React41.useState(null);
+    const [content, setContent] = React41.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
     const getItems = useCollection(__scopeSelect);
-    const shouldExpandOnScrollRef = React43.useRef(false);
-    const shouldRepositionRef = React43.useRef(true);
+    const shouldExpandOnScrollRef = React41.useRef(false);
+    const shouldRepositionRef = React41.useRef(true);
     const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-    const position = React43.useCallback(() => {
+    const position = React41.useCallback(() => {
       if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
         const triggerRect = context.trigger.getBoundingClientRect();
         const contentRect = content.getBoundingClientRect();
@@ -32406,12 +32375,12 @@ var init_dist26 = __esm(() => {
       onPlaced
     ]);
     useLayoutEffect2(() => position(), [position]);
-    const [contentZIndex, setContentZIndex] = React43.useState();
+    const [contentZIndex, setContentZIndex] = React41.useState();
     useLayoutEffect2(() => {
       if (content)
         setContentZIndex(window.getComputedStyle(content).zIndex);
     }, [content]);
-    const handleScrollButtonChange = React43.useCallback((node) => {
+    const handleScrollButtonChange = React41.useCallback((node) => {
       if (node && shouldRepositionRef.current === true) {
         position();
         focusSelectedItem?.();
@@ -32444,7 +32413,7 @@ var init_dist26 = __esm(() => {
     });
   });
   SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
-  SelectPopperPosition = React43.forwardRef((props, forwardedRef) => {
+  SelectPopperPosition = React41.forwardRef((props, forwardedRef) => {
     const {
       __scopeSelect,
       align = "start",
@@ -32473,12 +32442,12 @@ var init_dist26 = __esm(() => {
   });
   SelectPopperPosition.displayName = POPPER_POSITION_NAME;
   [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME3, {});
-  SelectViewport = React43.forwardRef((props, forwardedRef) => {
+  SelectViewport = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, nonce, ...viewportProps } = props;
     const contentContext = useSelectContentContext(VIEWPORT_NAME2, __scopeSelect);
     const viewportContext = useSelectViewportContext(VIEWPORT_NAME2, __scopeSelect);
     const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = React43.useRef(0);
+    const prevScrollTopRef = React41.useRef(0);
     return /* @__PURE__ */ import_jsx_runtime15.jsxs(import_jsx_runtime15.Fragment, { children: [
       /* @__PURE__ */ import_jsx_runtime15.jsx("style", {
         dangerouslySetInnerHTML: {
@@ -32526,20 +32495,20 @@ var init_dist26 = __esm(() => {
   });
   SelectViewport.displayName = VIEWPORT_NAME2;
   [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-  SelectGroup = React43.forwardRef((props, forwardedRef) => {
+  SelectGroup = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, ...groupProps } = props;
     const groupId = useId();
     return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
   });
   SelectGroup.displayName = GROUP_NAME;
-  SelectLabel = React43.forwardRef((props, forwardedRef) => {
+  SelectLabel = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, ...labelProps } = props;
     const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
     return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
   });
   SelectLabel.displayName = LABEL_NAME;
   [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-  SelectItem = React43.forwardRef((props, forwardedRef) => {
+  SelectItem = React41.forwardRef((props, forwardedRef) => {
     const {
       __scopeSelect,
       value,
@@ -32550,11 +32519,11 @@ var init_dist26 = __esm(() => {
     const context = useSelectContext(ITEM_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
     const isSelected = context.value === value;
-    const [textValue, setTextValue] = React43.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = React43.useState(false);
+    const [textValue, setTextValue] = React41.useState(textValueProp ?? "");
+    const [isFocused, setIsFocused] = React41.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, (node) => contentContext.itemRefCallback?.(node, value, disabled));
     const textId = useId();
-    const pointerTypeRef = React43.useRef("touch");
+    const pointerTypeRef = React41.useRef("touch");
     const handleSelect = () => {
       if (!disabled) {
         context.onValueChange(value);
@@ -32570,7 +32539,7 @@ var init_dist26 = __esm(() => {
       disabled,
       textId,
       isSelected,
-      onItemTextChange: React43.useCallback((node) => {
+      onItemTextChange: React41.useCallback((node) => {
         setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
       }, []),
       children: /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.ItemSlot, {
@@ -32629,16 +32598,16 @@ var init_dist26 = __esm(() => {
     });
   });
   SelectItem.displayName = ITEM_NAME;
-  SelectItemText = React43.forwardRef((props, forwardedRef) => {
+  SelectItemText = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, className, style, ...itemTextProps } = props;
     const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
     const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
     const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
     const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = React43.useState(null);
+    const [itemTextNode, setItemTextNode] = React41.useState(null);
     const composedRefs = useComposedRefs(forwardedRef, (node) => setItemTextNode(node), itemContext.onItemTextChange, (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled));
     const textContent = itemTextNode?.textContent;
-    const nativeOption = React43.useMemo(() => /* @__PURE__ */ import_jsx_runtime15.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value), [itemContext.disabled, itemContext.value, textContent]);
+    const nativeOption = React41.useMemo(() => /* @__PURE__ */ import_jsx_runtime15.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value), [itemContext.disabled, itemContext.value, textContent]);
     const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
     useLayoutEffect2(() => {
       onNativeOptionAdd(nativeOption);
@@ -32650,16 +32619,16 @@ var init_dist26 = __esm(() => {
     ] });
   });
   SelectItemText.displayName = ITEM_TEXT_NAME;
-  SelectItemIndicator = React43.forwardRef((props, forwardedRef) => {
+  SelectItemIndicator = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, ...itemIndicatorProps } = props;
     const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
     return itemContext.isSelected ? /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
   });
   SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
-  SelectScrollUpButton = React43.forwardRef((props, forwardedRef) => {
+  SelectScrollUpButton = React41.forwardRef((props, forwardedRef) => {
     const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
     const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-    const [canScrollUp, setCanScrollUp] = React43.useState(false);
+    const [canScrollUp, setCanScrollUp] = React41.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
     useLayoutEffect2(() => {
       if (contentContext.viewport && contentContext.isPositioned) {
@@ -32686,10 +32655,10 @@ var init_dist26 = __esm(() => {
     }) : null;
   });
   SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
-  SelectScrollDownButton = React43.forwardRef((props, forwardedRef) => {
+  SelectScrollDownButton = React41.forwardRef((props, forwardedRef) => {
     const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
     const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-    const [canScrollDown, setCanScrollDown] = React43.useState(false);
+    const [canScrollDown, setCanScrollDown] = React41.useState(false);
     const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
     useLayoutEffect2(() => {
       if (contentContext.viewport && contentContext.isPositioned) {
@@ -32717,18 +32686,18 @@ var init_dist26 = __esm(() => {
     }) : null;
   });
   SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
-  SelectScrollButtonImpl = React43.forwardRef((props, forwardedRef) => {
+  SelectScrollButtonImpl = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
     const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-    const autoScrollTimerRef = React43.useRef(null);
+    const autoScrollTimerRef = React41.useRef(null);
     const getItems = useCollection(__scopeSelect);
-    const clearAutoScrollTimer = React43.useCallback(() => {
+    const clearAutoScrollTimer = React41.useCallback(() => {
       if (autoScrollTimerRef.current !== null) {
         window.clearInterval(autoScrollTimerRef.current);
         autoScrollTimerRef.current = null;
       }
     }, []);
-    React43.useEffect(() => {
+    React41.useEffect(() => {
       return () => clearAutoScrollTimer();
     }, [clearAutoScrollTimer]);
     useLayoutEffect2(() => {
@@ -32756,12 +32725,12 @@ var init_dist26 = __esm(() => {
       })
     });
   });
-  SelectSeparator = React43.forwardRef((props, forwardedRef) => {
+  SelectSeparator = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, ...separatorProps } = props;
     return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
   });
   SelectSeparator.displayName = SEPARATOR_NAME;
-  SelectArrow = React43.forwardRef((props, forwardedRef) => {
+  SelectArrow = React41.forwardRef((props, forwardedRef) => {
     const { __scopeSelect, ...arrowProps } = props;
     const popperScope = usePopperScope(__scopeSelect);
     const context = useSelectContext(ARROW_NAME2, __scopeSelect);
@@ -32769,11 +32738,11 @@ var init_dist26 = __esm(() => {
     return context.open && contentContext.position === "popper" ? /* @__PURE__ */ import_jsx_runtime15.jsx(Arrow2, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
   });
   SelectArrow.displayName = ARROW_NAME2;
-  SelectBubbleInput = React43.forwardRef(({ __scopeSelect, value, ...props }, forwardedRef) => {
-    const ref = React43.useRef(null);
+  SelectBubbleInput = React41.forwardRef(({ __scopeSelect, value, ...props }, forwardedRef) => {
+    const ref = React41.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
     const prevValue = usePrevious(value);
-    React43.useEffect(() => {
+    React41.useEffect(() => {
       const select = ref.current;
       if (!select)
         return;
@@ -32811,9 +32780,9 @@ var init_dist26 = __esm(() => {
 });
 
 // dashboard/src/components/ui/select.jsx
-var React44, jsx_dev_runtime7, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
+var React42, jsx_dev_runtime7, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
 var init_select = __esm(() => {
-  React44 = __toESM(require_react(), 1);
+  React42 = __toESM(require_react(), 1);
   init_dist26();
   init_lucide_react();
   init_utils();
@@ -32821,7 +32790,7 @@ var init_select = __esm(() => {
   "use client";
   Select2 = Root23;
   SelectValue2 = Value;
-  SelectTrigger2 = React44.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Trigger2, {
+  SelectTrigger2 = React42.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Trigger2, {
     ref,
     className: cn("flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1", className),
     ...props,
@@ -32836,7 +32805,7 @@ var init_select = __esm(() => {
     ]
   }, undefined, true, undefined, this));
   SelectTrigger2.displayName = Trigger2.displayName;
-  SelectScrollUpButton2 = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollUpButton, {
+  SelectScrollUpButton2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollUpButton, {
     ref,
     className: cn("flex cursor-default items-center justify-center py-1", className),
     ...props,
@@ -32845,7 +32814,7 @@ var init_select = __esm(() => {
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
   SelectScrollUpButton2.displayName = ScrollUpButton.displayName;
-  SelectScrollDownButton2 = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollDownButton, {
+  SelectScrollDownButton2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollDownButton, {
     ref,
     className: cn("flex cursor-default items-center justify-center py-1", className),
     ...props,
@@ -32854,7 +32823,7 @@ var init_select = __esm(() => {
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
   SelectScrollDownButton2.displayName = ScrollDownButton.displayName;
-  SelectContent2 = React44.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Portal3, {
+  SelectContent2 = React42.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Portal3, {
     children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Content22, {
       ref,
       className: cn("relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className),
@@ -32871,13 +32840,13 @@ var init_select = __esm(() => {
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
   SelectContent2.displayName = Content22.displayName;
-  SelectLabel2 = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Label, {
+  SelectLabel2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Label, {
     ref,
     className: cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
     ...props
   }, undefined, false, undefined, this));
   SelectLabel2.displayName = Label.displayName;
-  SelectItem2 = React44.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Item, {
+  SelectItem2 = React42.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Item, {
     ref,
     className: cn("relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className),
     ...props,
@@ -32896,7 +32865,7 @@ var init_select = __esm(() => {
     ]
   }, undefined, true, undefined, this));
   SelectItem2.displayName = Item.displayName;
-  SelectSeparator2 = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Separator, {
+  SelectSeparator2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Separator, {
     ref,
     className: cn("-mx-1 my-1 h-px bg-muted", className),
     ...props
@@ -33329,13 +33298,13 @@ __export(exports_ProjectSelector, {
   default: () => ProjectSelector_default,
   ProjectSelector: () => ProjectSelector
 });
-var import_react12, import_path_browserify, jsx_dev_runtime8, ProjectSelector = ({ onProjectSelect }) => {
-  const [basePath, setBasePath] = import_react12.useState("~");
-  const [projects, setProjects] = import_react12.useState([]);
-  const [isLoading, setIsLoading] = import_react12.useState(false);
-  const [error, setError] = import_react12.useState("");
-  const [selectedProject, setSelectedProject] = import_react12.useState(null);
-  const fetchProjects = import_react12.useCallback(async () => {
+var import_react10, import_path_browserify, jsx_dev_runtime8, ProjectSelector = ({ onProjectSelect }) => {
+  const [basePath, setBasePath] = import_react10.useState("~");
+  const [projects, setProjects] = import_react10.useState([]);
+  const [isLoading, setIsLoading] = import_react10.useState(false);
+  const [error, setError] = import_react10.useState("");
+  const [selectedProject, setSelectedProject] = import_react10.useState(null);
+  const fetchProjects = import_react10.useCallback(async () => {
     if (!basePath) {
       setError("Please provide a base path.");
       return;
@@ -33405,7 +33374,7 @@ var import_react12, import_path_browserify, jsx_dev_runtime8, ProjectSelector = 
   }, undefined, true, undefined, this);
 }, ProjectSelector_default;
 var init_ProjectSelector = __esm(() => {
-  import_react12 = __toESM(require_react(), 1);
+  import_react10 = __toESM(require_react(), 1);
   init_button();
   init_input();
   init_select();
@@ -33416,54 +33385,54 @@ var init_ProjectSelector = __esm(() => {
 });
 
 // dashboard/src/components/ui/table.jsx
-var React46, jsx_dev_runtime9, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
+var React44, jsx_dev_runtime9, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
 var init_table = __esm(() => {
-  React46 = __toESM(require_react(), 1);
+  React44 = __toESM(require_react(), 1);
   init_utils();
   jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
-  Table = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("table", {
+  Table = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("table", {
     ref,
     className: cn("w-full caption-bottom text-sm", className),
     ...props
   }, undefined, false, undefined, this));
   Table.displayName = "Table";
-  TableHeader = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("thead", {
+  TableHeader = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("thead", {
     ref,
     className: cn("[&_tr]:border-b", className),
     ...props
   }, undefined, false, undefined, this));
   TableHeader.displayName = "TableHeader";
-  TableBody = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tbody", {
+  TableBody = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tbody", {
     ref,
     className: cn("[&_tr:last-child]:border-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableBody.displayName = "TableBody";
-  TableFooter = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tfoot", {
+  TableFooter = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tfoot", {
     ref,
     className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableFooter.displayName = "TableFooter";
-  TableRow = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tr", {
+  TableRow = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tr", {
     ref,
     className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
     ...props
   }, undefined, false, undefined, this));
   TableRow.displayName = "TableRow";
-  TableHead = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("th", {
+  TableHead = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("th", {
     ref,
     className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableHead.displayName = "TableHead";
-  TableCell = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("td", {
+  TableCell = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("td", {
     ref,
     className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableCell.displayName = "TableCell";
-  TableCaption = React46.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("caption", {
+  TableCaption = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("caption", {
     ref,
     className: cn("mt-4 text-sm text-muted-foreground", className),
     ...props
@@ -33472,42 +33441,42 @@ var init_table = __esm(() => {
 });
 
 // dashboard/src/components/ui/card.jsx
-var React47, jsx_dev_runtime10, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter;
+var React45, jsx_dev_runtime10, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter;
 var init_card = __esm(() => {
-  React47 = __toESM(require_react(), 1);
+  React45 = __toESM(require_react(), 1);
   init_utils();
   jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
-  Card = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  Card = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
     ref,
     className: cn("rounded-lg border bg-card text-card-foreground shadow-sm", className),
     ...props
   }, undefined, false, undefined, this));
   Card.displayName = "Card";
-  CardHeader = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardHeader = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
     ref,
     className: cn("flex flex-col space-y-1.5 p-6", className),
     ...props
   }, undefined, false, undefined, this));
   CardHeader.displayName = "CardHeader";
-  CardTitle = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("h3", {
+  CardTitle = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("h3", {
     ref,
     className: cn("text-2xl font-semibold leading-none tracking-tight", className),
     ...props
   }, undefined, false, undefined, this));
   CardTitle.displayName = "CardTitle";
-  CardDescription = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("p", {
+  CardDescription = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("p", {
     ref,
     className: cn("text-sm text-muted-foreground", className),
     ...props
   }, undefined, false, undefined, this));
   CardDescription.displayName = "CardDescription";
-  CardContent = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardContent = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
     ref,
     className: cn("p-6 pt-0", className),
     ...props
   }, undefined, false, undefined, this));
   CardContent.displayName = "CardContent";
-  CardFooter = React47.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardFooter = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
     ref,
     className: cn("flex items-center p-6 pt-0", className),
     ...props
@@ -33526,9 +33495,9 @@ function Badge({
     ...props
   }, undefined, false, undefined, this);
 }
-var React48, jsx_dev_runtime11, badgeVariants;
+var React46, jsx_dev_runtime11, badgeVariants;
 var init_badge = __esm(() => {
-  React48 = __toESM(require_react(), 1);
+  React46 = __toESM(require_react(), 1);
   init_dist3();
   init_utils();
   jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
@@ -33553,7 +33522,7 @@ var exports_ActivityLog = {};
 __export(exports_ActivityLog, {
   default: () => ActivityLog_default
 });
-var import_react13, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
+var import_react11, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
   const formatContent = (item) => {
     switch (item.type) {
       case "agent_start":
@@ -33644,7 +33613,7 @@ var import_react13, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
   }, undefined, true, undefined, this);
 }, ActivityLog_default;
 var init_ActivityLog = __esm(() => {
-  import_react13 = __toESM(require_react(), 1);
+  import_react11 = __toESM(require_react(), 1);
   init_table();
   init_card();
   init_scroll_area();
@@ -36573,8 +36542,8 @@ var init_schemas = __esm(() => {
             path: iss.path ? [${k}, ...iss.path] : [${k}]
           })));
         }
-
-
+        
+        
         if (${id}.value === undefined) {
           if (${k} in input) {
             newResult[${k}] = undefined;
@@ -36582,7 +36551,7 @@ var init_schemas = __esm(() => {
         } else {
           newResult[${k}] = ${id}.value;
         }
-
+        
       `);
       }
       doc.write(`payload.value = newResult;`);
@@ -53728,23 +53697,23 @@ function useChat({
   resume = false,
   ...options2
 } = {}) {
-  const chatRef = import_react14.useRef("chat" in options2 ? options2.chat : new Chat(options2));
+  const chatRef = import_react12.useRef("chat" in options2 ? options2.chat : new Chat(options2));
   const shouldRecreateChat = "chat" in options2 && options2.chat !== chatRef.current || "id" in options2 && chatRef.current.id !== options2.id;
   if (shouldRecreateChat) {
     chatRef.current = "chat" in options2 ? options2.chat : new Chat(options2);
   }
   const optionsId = "id" in options2 ? options2.id : null;
-  const subscribeToMessages = import_react14.useCallback((update) => chatRef.current["~registerMessagesCallback"](update, throttleWaitMs), [throttleWaitMs, optionsId]);
-  const messages = import_react14.useSyncExternalStore(subscribeToMessages, () => chatRef.current.messages, () => chatRef.current.messages);
-  const status = import_react14.useSyncExternalStore(chatRef.current["~registerStatusCallback"], () => chatRef.current.status, () => chatRef.current.status);
-  const error46 = import_react14.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
-  const setMessages = import_react14.useCallback((messagesParam) => {
+  const subscribeToMessages = import_react12.useCallback((update) => chatRef.current["~registerMessagesCallback"](update, throttleWaitMs), [throttleWaitMs, optionsId]);
+  const messages = import_react12.useSyncExternalStore(subscribeToMessages, () => chatRef.current.messages, () => chatRef.current.messages);
+  const status = import_react12.useSyncExternalStore(chatRef.current["~registerStatusCallback"], () => chatRef.current.status, () => chatRef.current.status);
+  const error46 = import_react12.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
+  const setMessages = import_react12.useCallback((messagesParam) => {
     if (typeof messagesParam === "function") {
       messagesParam = messagesParam(chatRef.current.messages);
     }
     chatRef.current.messages = messagesParam;
   }, [chatRef]);
-  import_react14.useEffect(() => {
+  import_react12.useEffect(() => {
     if (resume) {
       chatRef.current.resumeStream();
     }
@@ -53764,7 +53733,7 @@ function useChat({
     addToolOutput: chatRef.current.addToolOutput
   };
 }
-var import_react14, import_throttleit, import_react15, import_react16, __accessCheck = (obj, member, msg) => {
+var import_react12, import_throttleit, import_react13, import_react14, __accessCheck = (obj, member, msg) => {
   if (!member.has(obj))
     throw TypeError("Cannot " + msg);
 }, __privateGet = (obj, member, getter) => {
@@ -53856,11 +53825,11 @@ var import_react14, import_throttleit, import_react15, import_react16, __accessC
   }
 }, _state, Chat;
 var init_dist32 = __esm(() => {
-  import_react14 = __toESM(require_react(), 1);
+  import_react12 = __toESM(require_react(), 1);
   init_dist31();
   import_throttleit = __toESM(require_throttleit(), 1);
-  import_react15 = __toESM(require_react(), 1);
-  import_react16 = __toESM(require_react(), 1);
+  import_react13 = __toESM(require_react(), 1);
+  import_react14 = __toESM(require_react(), 1);
   _messages = new WeakMap;
   _status = new WeakMap;
   _error = new WeakMap;
@@ -60248,7 +60217,7 @@ var require_ms = __commonJS((exports, module) => {
 
 // node_modules/debug/src/common.js
 var require_common = __commonJS((exports, module) => {
-  function setup(env2) {
+  function setup(env) {
     createDebug.debug = createDebug;
     createDebug.default = createDebug;
     createDebug.coerce = coerce;
@@ -60257,8 +60226,8 @@ var require_common = __commonJS((exports, module) => {
     createDebug.enabled = enabled;
     createDebug.humanize = require_ms();
     createDebug.destroy = destroy;
-    Object.keys(env2).forEach((key) => {
-      createDebug[key] = env2[key];
+    Object.keys(env).forEach((key) => {
+      createDebug[key] = env[key];
     });
     createDebug.names = [];
     createDebug.skips = [];
@@ -62370,7 +62339,7 @@ var init_handlers = __esm(() => {
 var VOID = -1, PRIMITIVE = 0, ARRAY = 1, OBJECT = 2, DATE = 3, REGEXP = 4, MAP = 5, SET = 6, ERROR = 7, BIGINT = 8;
 
 // node_modules/@ungap/structured-clone/esm/deserialize.js
-var env2, deserializer = ($, _) => {
+var env, deserializer = ($, _) => {
   const as = (out, index3) => {
     $.set(index3, out);
     return out;
@@ -62415,7 +62384,7 @@ var env2, deserializer = ($, _) => {
       }
       case ERROR: {
         const { name: name17, message } = value;
-        return as(new env2[name17](message), index3);
+        return as(new env[name17](message), index3);
       }
       case BIGINT:
         return as(BigInt(value), index3);
@@ -62428,12 +62397,12 @@ var env2, deserializer = ($, _) => {
         return as(new DataView(buffer), value);
       }
     }
-    return as(new env2[type](value), index3);
+    return as(new env[type](value), index3);
   };
   return unpair;
 }, deserialize = (serialized) => deserializer(new Map, serialized)(0);
 var init_deserialize = __esm(() => {
-  env2 = typeof self === "object" ? self : globalThis;
+  env = typeof self === "object" ? self : globalThis;
 });
 
 // node_modules/@ungap/structured-clone/esm/serialize.js
@@ -64065,13 +64034,13 @@ function defaultUrlTransform(value) {
   }
   return "";
 }
-var import_jsx_runtime16, import_react17, changelog = "https://github.com/remarkjs/react-markdown/blob/main/changelog.md", emptyPlugins, emptyRemarkRehypeOptions, safeProtocol, deprecations;
+var import_jsx_runtime16, import_react15, changelog = "https://github.com/remarkjs/react-markdown/blob/main/changelog.md", emptyPlugins, emptyRemarkRehypeOptions, safeProtocol, deprecations;
 var init_lib16 = __esm(() => {
   init_development();
   init_hast_util_to_jsx_runtime();
   init_html_url_attributes();
   import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
-  import_react17 = __toESM(require_react(), 1);
+  import_react15 = __toESM(require_react(), 1);
   init_remark_parse();
   init_remark_rehype();
   init_unified();
@@ -67139,12 +67108,12 @@ var init_remark_gfm = __esm(() => {
 });
 
 // dashboard/src/components/ui/textarea.jsx
-var React50, jsx_dev_runtime13, Textarea;
+var React48, jsx_dev_runtime13, Textarea;
 var init_textarea = __esm(() => {
-  React50 = __toESM(require_react(), 1);
+  React48 = __toESM(require_react(), 1);
   init_utils();
   jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
-  Textarea = React50.forwardRef(({ className, ...props }, ref) => {
+  Textarea = React48.forwardRef(({ className, ...props }, ref) => {
     return /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("textarea", {
       className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
       ref,
@@ -67158,9 +67127,9 @@ var init_textarea = __esm(() => {
 function getState2(open) {
   return open ? "open" : "closed";
 }
-var React51, import_jsx_runtime17, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME3 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME4 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root4, Trigger3, Content3;
+var React49, import_jsx_runtime17, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME3 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME4 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root4, Trigger3, Content3;
 var init_dist34 = __esm(() => {
-  React51 = __toESM(require_react(), 1);
+  React49 = __toESM(require_react(), 1);
   init_dist4();
   init_dist5();
   init_dist8();
@@ -67173,7 +67142,7 @@ var init_dist34 = __esm(() => {
   "use client";
   [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
   [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
-  Collapsible = React51.forwardRef((props, forwardedRef) => {
+  Collapsible = React49.forwardRef((props, forwardedRef) => {
     const {
       __scopeCollapsible,
       open: openProp,
@@ -67193,7 +67162,7 @@ var init_dist34 = __esm(() => {
       disabled,
       contentId: useId(),
       open,
-      onOpenToggle: React51.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+      onOpenToggle: React49.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
       children: /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
         "data-state": getState2(open),
         "data-disabled": disabled ? "" : undefined,
@@ -67203,7 +67172,7 @@ var init_dist34 = __esm(() => {
     });
   });
   Collapsible.displayName = COLLAPSIBLE_NAME;
-  CollapsibleTrigger = React51.forwardRef((props, forwardedRef) => {
+  CollapsibleTrigger = React49.forwardRef((props, forwardedRef) => {
     const { __scopeCollapsible, ...triggerProps } = props;
     const context = useCollapsibleContext(TRIGGER_NAME3, __scopeCollapsible);
     return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.button, {
@@ -67219,26 +67188,26 @@ var init_dist34 = __esm(() => {
     });
   });
   CollapsibleTrigger.displayName = TRIGGER_NAME3;
-  CollapsibleContent = React51.forwardRef((props, forwardedRef) => {
+  CollapsibleContent = React49.forwardRef((props, forwardedRef) => {
     const { forceMount, ...contentProps } = props;
     const context = useCollapsibleContext(CONTENT_NAME4, props.__scopeCollapsible);
     return /* @__PURE__ */ import_jsx_runtime17.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime17.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
   });
   CollapsibleContent.displayName = CONTENT_NAME4;
-  CollapsibleContentImpl = React51.forwardRef((props, forwardedRef) => {
+  CollapsibleContentImpl = React49.forwardRef((props, forwardedRef) => {
     const { __scopeCollapsible, present, children, ...contentProps } = props;
     const context = useCollapsibleContext(CONTENT_NAME4, __scopeCollapsible);
-    const [isPresent, setIsPresent] = React51.useState(present);
-    const ref = React51.useRef(null);
+    const [isPresent, setIsPresent] = React49.useState(present);
+    const ref = React49.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const heightRef = React51.useRef(0);
+    const heightRef = React49.useRef(0);
     const height = heightRef.current;
-    const widthRef = React51.useRef(0);
+    const widthRef = React49.useRef(0);
     const width = widthRef.current;
     const isOpen = context.open || isPresent;
-    const isMountAnimationPreventedRef = React51.useRef(isOpen);
-    const originalStylesRef = React51.useRef(undefined);
-    React51.useEffect(() => {
+    const isMountAnimationPreventedRef = React49.useRef(isOpen);
+    const originalStylesRef = React49.useRef(undefined);
+    React49.useEffect(() => {
       const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
       return () => cancelAnimationFrame(rAF);
     }, []);
@@ -67285,9 +67254,9 @@ var init_dist34 = __esm(() => {
 function getState3(open) {
   return open ? "open" : "closed";
 }
-var import_react18, import_jsx_runtime18, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME4 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME5 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content23;
+var import_react16, import_jsx_runtime18, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME4 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME5 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content23;
 var init_dist35 = __esm(() => {
-  import_react18 = __toESM(require_react(), 1);
+  import_react16 = __toESM(require_react(), 1);
   init_dist5();
   init_dist20();
   init_dist();
@@ -67307,7 +67276,7 @@ var init_dist35 = __esm(() => {
     createCollapsibleScope
   ]);
   useCollapsibleScope = createCollapsibleScope();
-  Accordion = import_react18.default.forwardRef((props, forwardedRef) => {
+  Accordion = import_react16.default.forwardRef((props, forwardedRef) => {
     const { type, ...accordionProps } = props;
     const singleProps = accordionProps;
     const multipleProps = accordionProps;
@@ -67316,7 +67285,7 @@ var init_dist35 = __esm(() => {
   Accordion.displayName = ACCORDION_NAME;
   [AccordionValueProvider, useAccordionValueContext] = createAccordionContext(ACCORDION_NAME);
   [AccordionCollapsibleProvider, useAccordionCollapsibleContext] = createAccordionContext(ACCORDION_NAME, { collapsible: false });
-  AccordionImplSingle = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionImplSingle = import_react16.default.forwardRef((props, forwardedRef) => {
     const {
       value: valueProp,
       defaultValue,
@@ -67332,13 +67301,13 @@ var init_dist35 = __esm(() => {
     });
     return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
       scope: props.__scopeAccordion,
-      value: import_react18.default.useMemo(() => value ? [value] : [], [value]),
+      value: import_react16.default.useMemo(() => value ? [value] : [], [value]),
       onItemOpen: setValue,
-      onItemClose: import_react18.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
+      onItemClose: import_react16.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
       children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
     });
   });
-  AccordionImplMultiple = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionImplMultiple = import_react16.default.forwardRef((props, forwardedRef) => {
     const {
       value: valueProp,
       defaultValue,
@@ -67351,8 +67320,8 @@ var init_dist35 = __esm(() => {
       onChange: onValueChange,
       caller: ACCORDION_NAME
     });
-    const handleItemOpen = import_react18.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
-    const handleItemClose = import_react18.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
+    const handleItemOpen = import_react16.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
+    const handleItemClose = import_react16.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
     return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
       scope: props.__scopeAccordion,
       value,
@@ -67362,9 +67331,9 @@ var init_dist35 = __esm(() => {
     });
   });
   [AccordionImplProvider, useAccordionContext] = createAccordionContext(ACCORDION_NAME);
-  AccordionImpl = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionImpl = import_react16.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, disabled, dir, orientation = "vertical", ...accordionProps } = props;
-    const accordionRef = import_react18.default.useRef(null);
+    const accordionRef = import_react16.default.useRef(null);
     const composedRefs = useComposedRefs(accordionRef, forwardedRef);
     const getItems = useCollection2(__scopeAccordion);
     const direction = useDirection(dir);
@@ -67447,7 +67416,7 @@ var init_dist35 = __esm(() => {
     });
   });
   [AccordionItemProvider, useAccordionItemContext] = createAccordionContext(ITEM_NAME2);
-  AccordionItem = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionItem = import_react16.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, value, ...accordionItemProps } = props;
     const accordionContext = useAccordionContext(ITEM_NAME2, __scopeAccordion);
     const valueContext = useAccordionValueContext(ITEM_NAME2, __scopeAccordion);
@@ -67479,7 +67448,7 @@ var init_dist35 = __esm(() => {
     });
   });
   AccordionItem.displayName = ITEM_NAME2;
-  AccordionHeader = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionHeader = import_react16.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...headerProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
     const itemContext = useAccordionItemContext(HEADER_NAME, __scopeAccordion);
@@ -67492,7 +67461,7 @@ var init_dist35 = __esm(() => {
     });
   });
   AccordionHeader.displayName = HEADER_NAME;
-  AccordionTrigger = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionTrigger = import_react16.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...triggerProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
     const itemContext = useAccordionItemContext(TRIGGER_NAME4, __scopeAccordion);
@@ -67508,7 +67477,7 @@ var init_dist35 = __esm(() => {
     }) });
   });
   AccordionTrigger.displayName = TRIGGER_NAME4;
-  AccordionContent = import_react18.default.forwardRef((props, forwardedRef) => {
+  AccordionContent = import_react16.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...contentProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
     const itemContext = useAccordionItemContext(CONTENT_NAME5, __scopeAccordion);
@@ -67536,22 +67505,22 @@ var init_dist35 = __esm(() => {
 });
 
 // dashboard/src/components/ui/accordion.jsx
-var React53, jsx_dev_runtime14, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
+var React51, jsx_dev_runtime14, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
 var init_accordion = __esm(() => {
-  React53 = __toESM(require_react(), 1);
+  React51 = __toESM(require_react(), 1);
   init_dist35();
   init_lucide_react();
   init_utils();
   jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
   Accordion2 = Root24;
-  AccordionItem2 = React53.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Item2, {
+  AccordionItem2 = React51.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Item2, {
     ref,
     className: cn("border-b", className),
     ...props
   }, undefined, false, undefined, this));
   AccordionItem2.displayName = "AccordionItem";
-  AccordionTrigger2 = React53.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Header, {
+  AccordionTrigger2 = React51.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Header, {
     className: "flex",
     children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Trigger22, {
       ref,
@@ -67566,7 +67535,7 @@ var init_accordion = __esm(() => {
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
   AccordionTrigger2.displayName = Trigger22.displayName;
-  AccordionContent2 = React53.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Content23, {
+  AccordionContent2 = React51.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Content23, {
     ref,
     className: "overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
     ...props,
@@ -67579,7 +67548,7 @@ var init_accordion = __esm(() => {
 });
 
 // dashboard/src/components/ThoughtStream.js
-var import_react19, jsx_dev_runtime15, ThoughtStream = ({ thoughts }) => {
+var import_react17, jsx_dev_runtime15, ThoughtStream = ({ thoughts }) => {
   if (!thoughts || thoughts.length === 0) {
     return null;
   }
@@ -67614,7 +67583,7 @@ var import_react19, jsx_dev_runtime15, ThoughtStream = ({ thoughts }) => {
   }, undefined, false, undefined, this);
 }, ThoughtStream_default;
 var init_ThoughtStream = __esm(() => {
-  import_react19 = __toESM(require_react(), 1);
+  import_react17 = __toESM(require_react(), 1);
   init_accordion();
   init_scroll_area();
   jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
@@ -67628,7 +67597,7 @@ __export(exports_ChatInterface, {
   ChatInterface: () => ChatInterface,
   BUSY_STATUSES: () => BUSY_STATUSES
 });
-var import_react20, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject, thoughtStream }) => {
+var import_react18, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject, thoughtStream }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     body: {
       project_path: activeProject
@@ -67699,7 +67668,7 @@ var import_react20, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
   }, undefined, true, undefined, this);
 }, ChatInterface_default;
 var init_ChatInterface = __esm(() => {
-  import_react20 = __toESM(require_react(), 1);
+  import_react18 = __toESM(require_react(), 1);
   init_dist32();
   init_react_markdown();
   init_remark_gfm();
@@ -67726,7 +67695,7 @@ var exports_ToolHealthMonitor = {};
 __export(exports_ToolHealthMonitor, {
   default: () => ToolHealthMonitor_default
 });
-var import_react22, jsx_dev_runtime17, ToolHealthMonitor = ({ healthData }) => {
+var import_react20, jsx_dev_runtime17, ToolHealthMonitor = ({ healthData }) => {
   const tools = healthData?.metrics?.performance?.metrics?.tools || [];
   return /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Card, {
     children: [
@@ -67781,7 +67750,7 @@ var import_react22, jsx_dev_runtime17, ToolHealthMonitor = ({ healthData }) => {
   }, undefined, true, undefined, this);
 }, ToolHealthMonitor_default;
 var init_ToolHealthMonitor = __esm(() => {
-  import_react22 = __toESM(require_react(), 1);
+  import_react20 = __toESM(require_react(), 1);
   init_card();
   init_table();
   jsx_dev_runtime17 = __toESM(require_jsx_dev_runtime(), 1);
@@ -67793,11 +67762,11 @@ var exports_SwarmVisualizer = {};
 __export(exports_SwarmVisualizer, {
   default: () => SwarmVisualizer_default
 });
-var import_react23, jsx_dev_runtime18, SwarmVisualizer = () => {
-  const canvasRef = import_react23.useRef(null);
+var import_react21, jsx_dev_runtime18, SwarmVisualizer = () => {
+  const canvasRef = import_react21.useRef(null);
   const { lastMessage } = useWebSocket_default();
-  const [graph, setGraph] = import_react23.useState({ nodes: {}, edges: [] });
-  import_react23.useEffect(() => {
+  const [graph, setGraph] = import_react21.useState({ nodes: {}, edges: [] });
+  import_react21.useEffect(() => {
     if (lastMessage) {
       try {
         const event = JSON.parse(lastMessage);
@@ -67824,7 +67793,7 @@ var import_react23, jsx_dev_runtime18, SwarmVisualizer = () => {
       }
     }
   }, [lastMessage]);
-  import_react23.useEffect(() => {
+  import_react21.useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     canvas.width = canvas.offsetWidth;
@@ -67861,7 +67830,7 @@ var import_react23, jsx_dev_runtime18, SwarmVisualizer = () => {
   }, undefined, false, undefined, this);
 }, SwarmVisualizer_default;
 var init_SwarmVisualizer = __esm(() => {
-  import_react23 = __toESM(require_react(), 1);
+  import_react21 = __toESM(require_react(), 1);
   init_useWebSocket();
   jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
   SwarmVisualizer_default = SwarmVisualizer;
@@ -67871,9 +67840,9 @@ var init_SwarmVisualizer = __esm(() => {
 var init_iconsManifest = () => {};
 
 // node_modules/react-icons/lib/iconContext.mjs
-var import_react24, DefaultContext, IconContext;
+var import_react22, DefaultContext, IconContext;
 var init_iconContext = __esm(() => {
-  import_react24 = __toESM(require_react(), 1);
+  import_react22 = __toESM(require_react(), 1);
   DefaultContext = {
     color: undefined,
     size: undefined,
@@ -67881,7 +67850,7 @@ var init_iconContext = __esm(() => {
     style: undefined,
     attr: undefined
   };
-  IconContext = import_react24.default.createContext && /* @__PURE__ */ import_react24.default.createContext(DefaultContext);
+  IconContext = import_react22.default.createContext && /* @__PURE__ */ import_react22.default.createContext(DefaultContext);
 });
 
 // node_modules/react-icons/lib/iconBase.mjs
@@ -67977,12 +67946,12 @@ function _toPrimitive(t, r2) {
   return (r2 === "string" ? String : Number)(t);
 }
 function Tree2Element(tree) {
-  return tree && tree.map((node2, i) => /* @__PURE__ */ import_react25.default.createElement(node2.tag, _objectSpread({
+  return tree && tree.map((node2, i) => /* @__PURE__ */ import_react23.default.createElement(node2.tag, _objectSpread({
     key: i
   }, node2.attr), Tree2Element(node2.child)));
 }
 function GenIcon(data) {
-  return (props) => /* @__PURE__ */ import_react25.default.createElement(IconBase, _extends({
+  return (props) => /* @__PURE__ */ import_react23.default.createElement(IconBase, _extends({
     attr: _objectSpread({}, data.attr)
   }, props), Tree2Element(data.child));
 }
@@ -67999,7 +67968,7 @@ function IconBase(props) {
       className = conf.className;
     if (props.className)
       className = (className ? className + " " : "") + props.className;
-    return /* @__PURE__ */ import_react25.default.createElement("svg", _extends({
+    return /* @__PURE__ */ import_react23.default.createElement("svg", _extends({
       stroke: "currentColor",
       fill: "currentColor",
       strokeWidth: "0"
@@ -68011,13 +67980,13 @@ function IconBase(props) {
       height: computedSize,
       width: computedSize,
       xmlns: "http://www.w3.org/2000/svg"
-    }), title && /* @__PURE__ */ import_react25.default.createElement("title", null, title), props.children);
+    }), title && /* @__PURE__ */ import_react23.default.createElement("title", null, title), props.children);
   };
-  return IconContext !== undefined ? /* @__PURE__ */ import_react25.default.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
+  return IconContext !== undefined ? /* @__PURE__ */ import_react23.default.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
 }
-var import_react25, _excluded;
+var import_react23, _excluded;
 var init_iconBase = __esm(() => {
-  import_react25 = __toESM(require_react(), 1);
+  import_react23 = __toESM(require_react(), 1);
   init_iconContext();
   _excluded = ["attr", "size", "title"];
 });
@@ -68051,11 +68020,11 @@ var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react26, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
-  const [searchQuery, setSearchQuery] = import_react26.useState("");
-  const [searchResults, setSearchResults] = import_react26.useState([]);
-  const [isSearchLoading, setIsSearchLoading] = import_react26.useState(false);
-  const [searchError, setSearchError] = import_react26.useState("");
+var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
+  const [searchQuery, setSearchQuery] = import_react24.useState("");
+  const [searchResults, setSearchResults] = import_react24.useState([]);
+  const [isSearchLoading, setIsSearchLoading] = import_react24.useState(false);
+  const [searchError, setSearchError] = import_react24.useState("");
   const handleFileClick = (file2) => {
     if (file2.type === "folder")
       return;
@@ -68218,7 +68187,7 @@ var import_react26, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
   }, undefined, true, undefined, this);
 }, CodeBrowser_default;
 var init_CodeBrowser = __esm(() => {
-  import_react26 = __toESM(require_react(), 1);
+  import_react24 = __toESM(require_react(), 1);
   init_fi2();
   init_scroll_area();
   init_button();
@@ -68525,7 +68494,7 @@ var init_state_local = __esm(() => {
 
 // node_modules/@monaco-editor/loader/lib/es/config/index.js
 var config2;
-var init_config2 = __esm(() => {
+var init_config = __esm(() => {
   config2 = {
     paths: {
       vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs"
@@ -68746,7 +68715,7 @@ var _excluded2, _state$create, _state$create2, getState4, setState, wrapperPromi
 var init_loader = __esm(() => {
   init__rollupPluginBabelHelpers();
   init_state_local();
-  init_config2();
+  init_config();
   init_validators();
   init_compose();
   init_deepMerge();
@@ -68782,17 +68751,17 @@ var init_es2 = __esm(() => {
 
 // node_modules/@monaco-editor/react/dist/index.mjs
 function Me({ children: e }) {
-  return import_react31.default.createElement("div", { style: Y.container }, e);
+  return import_react29.default.createElement("div", { style: Y.container }, e);
 }
 function Ee({ width: e, height: r2, isEditorReady: n, loading: t, _ref: a, className: m, wrapperProps: E }) {
-  return import_react30.default.createElement("section", { style: { ...v.wrapper, width: e, height: r2 }, ...E }, !n && import_react30.default.createElement($, null, t), import_react30.default.createElement("div", { ref: a, style: { ...v.fullWidth, ...!n && v.hide }, className: m }));
+  return import_react28.default.createElement("section", { style: { ...v.wrapper, width: e, height: r2 }, ...E }, !n && import_react28.default.createElement($, null, t), import_react28.default.createElement("div", { ref: a, style: { ...v.fullWidth, ...!n && v.hide }, className: m }));
 }
 function Ce(e) {
-  import_react32.useEffect(e, []);
+  import_react30.useEffect(e, []);
 }
 function he(e, r2, n = true) {
-  let t = import_react33.useRef(true);
-  import_react33.useEffect(t.current || !n ? () => {
+  let t = import_react31.useRef(true);
+  import_react31.useEffect(t.current || !n ? () => {
     t.current = false;
   } : e, r2);
 }
@@ -68810,7 +68779,7 @@ function te(e, r2) {
   return e.Uri.parse(r2);
 }
 function Oe({ original: e, modified: r2, language: n, originalLanguage: t, modifiedLanguage: a, originalModelPath: m, modifiedModelPath: E, keepCurrentOriginalModel: g = false, keepCurrentModifiedModel: N = false, theme: x = "light", loading: P = "Loading...", options: y = {}, height: V = "100%", width: z = "100%", className: F, wrapperProps: j = {}, beforeMount: A = D, onMount: q = D }) {
-  let [M, O] = import_react28.useState(false), [T, s] = import_react28.useState(true), u = import_react28.useRef(null), c = import_react28.useRef(null), w = import_react28.useRef(null), d = import_react28.useRef(q), o = import_react28.useRef(A), b = import_react28.useRef(false);
+  let [M, O] = import_react26.useState(false), [T, s] = import_react26.useState(true), u = import_react26.useRef(null), c = import_react26.useRef(null), w = import_react26.useRef(null), d = import_react26.useRef(q), o = import_react26.useRef(A), b = import_react26.useRef(false);
   k(() => {
     let i = loader.init();
     return i.then((f) => (c.current = f) && s(false)).catch((f) => f?.type !== "cancelation" && console.error("Monaco initialization: error:", f)), () => u.current ? I() : i.cancel();
@@ -68837,34 +68806,34 @@ function Oe({ original: e, modified: r2, language: n, originalLanguage: t, modif
   }, [x], M), l(() => {
     u.current?.updateOptions(y);
   }, [y], M);
-  let L = import_react28.useCallback(() => {
+  let L = import_react26.useCallback(() => {
     if (!c.current)
       return;
     o.current(c.current);
     let i = h(c.current, e || "", t || n || "text", m || ""), f = h(c.current, r2 || "", a || n || "text", E || "");
     u.current?.setModel({ original: i, modified: f });
-  }, [n, r2, a, e, t, m, E]), U = import_react28.useCallback(() => {
+  }, [n, r2, a, e, t, m, E]), U = import_react26.useCallback(() => {
     !b.current && w.current && (u.current = c.current.editor.createDiffEditor(w.current, { automaticLayout: true, ...y }), L(), c.current?.editor.setTheme(x), O(true), b.current = true);
   }, [y, x, L]);
-  import_react28.useEffect(() => {
+  import_react26.useEffect(() => {
     M && d.current(u.current, c.current);
-  }, [M]), import_react28.useEffect(() => {
+  }, [M]), import_react26.useEffect(() => {
     !T && !M && U();
   }, [T, M, U]);
   function I() {
     let i = u.current?.getModel();
     g || i?.original?.dispose(), N || i?.modified?.dispose(), u.current?.dispose();
   }
-  return import_react28.default.createElement(H, { width: z, height: V, isEditorReady: M, loading: P, _ref: w, className: F, wrapperProps: j });
+  return import_react26.default.createElement(H, { width: z, height: V, isEditorReady: M, loading: P, _ref: w, className: F, wrapperProps: j });
 }
 function He(e) {
-  let r2 = import_react37.useRef();
-  return import_react37.useEffect(() => {
+  let r2 = import_react35.useRef();
+  return import_react35.useEffect(() => {
     r2.current = e;
   }, [e]), r2.current;
 }
 function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, language: a, path: m, theme: E = "light", line: g, loading: N = "Loading...", options: x = {}, overrideServices: P = {}, saveViewState: y = true, keepCurrentModel: V = false, width: z = "100%", height: F = "100%", className: j, wrapperProps: A = {}, beforeMount: q = D, onMount: M = D, onChange: O, onValidate: T = D }) {
-  let [s, u] = import_react36.useState(false), [c, w] = import_react36.useState(true), d = import_react36.useRef(null), o = import_react36.useRef(null), b = import_react36.useRef(null), L = import_react36.useRef(M), U = import_react36.useRef(q), I = import_react36.useRef(), i = import_react36.useRef(t), f = se(m), Q = import_react36.useRef(false), B = import_react36.useRef(false);
+  let [s, u] = import_react34.useState(false), [c, w] = import_react34.useState(true), d = import_react34.useRef(null), o = import_react34.useRef(null), b = import_react34.useRef(null), L = import_react34.useRef(M), U = import_react34.useRef(q), I = import_react34.useRef(), i = import_react34.useRef(t), f = se(m), Q = import_react34.useRef(false), B = import_react34.useRef(false);
   k(() => {
     let p = loader.init();
     return p.then((R) => (d.current = R) && w(false)).catch((R) => R?.type !== "cancelation" && console.error("Monaco initialization: error:", R)), () => o.current ? pe() : p.cancel();
@@ -68883,22 +68852,22 @@ function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, la
   }, [g], s), l(() => {
     d.current?.editor.setTheme(E);
   }, [E], s);
-  let X2 = import_react36.useCallback(() => {
+  let X2 = import_react34.useCallback(() => {
     if (!(!b.current || !d.current) && !Q.current) {
       U.current(d.current);
       let p = m || n, R = h(d.current, t || e || "", r2 || a || "", p || "");
       o.current = d.current?.editor.create(b.current, { model: R, automaticLayout: true, ...x }, P), y && o.current.restoreViewState(_.get(p)), d.current.editor.setTheme(E), g !== undefined && o.current.revealLine(g), u(true), Q.current = true;
     }
   }, [e, r2, n, t, a, m, x, P, y, E, g]);
-  import_react36.useEffect(() => {
+  import_react34.useEffect(() => {
     s && L.current(o.current, d.current);
-  }, [s]), import_react36.useEffect(() => {
+  }, [s]), import_react34.useEffect(() => {
     !c && !s && X2();
-  }, [c, s, X2]), i.current = t, import_react36.useEffect(() => {
+  }, [c, s, X2]), i.current = t, import_react34.useEffect(() => {
     s && O && (I.current?.dispose(), I.current = o.current?.onDidChangeModelContent((p) => {
       B.current || O(o.current.getValue(), p);
     }));
-  }, [s, O]), import_react36.useEffect(() => {
+  }, [s, O]), import_react34.useEffect(() => {
     if (s) {
       let p = d.current.editor.onDidChangeMarkers((R) => {
         let G = o.current.getModel()?.uri;
@@ -68916,25 +68885,25 @@ function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, la
   function pe() {
     I.current?.dispose(), V ? y && _.set(m, o.current.saveViewState()) : o.current.getModel()?.dispose(), o.current.dispose();
   }
-  return import_react36.default.createElement(H, { width: z, height: F, isEditorReady: s, loading: N, _ref: b, className: j, wrapperProps: A });
+  return import_react34.default.createElement(H, { width: z, height: F, isEditorReady: s, loading: N, _ref: b, className: j, wrapperProps: A });
 }
-var import_react27, import_react28, import_react29, import_react30, import_react31, import_react32, import_react33, import_react34, import_react35, import_react36, import_react37, le, v, ae, Y, Z, $, ee, H, k, l, ie, we, se, _, fe, de, Ft;
+var import_react25, import_react26, import_react27, import_react28, import_react29, import_react30, import_react31, import_react32, import_react33, import_react34, import_react35, le, v, ae, Y, Z, $, ee, H, k, l, ie, we, se, _, fe, de, Ft;
 var init_dist36 = __esm(() => {
+  init_es2();
+  import_react25 = __toESM(require_react(), 1);
+  import_react26 = __toESM(require_react(), 1);
   init_es2();
   import_react27 = __toESM(require_react(), 1);
   import_react28 = __toESM(require_react(), 1);
-  init_es2();
   import_react29 = __toESM(require_react(), 1);
   import_react30 = __toESM(require_react(), 1);
   import_react31 = __toESM(require_react(), 1);
   import_react32 = __toESM(require_react(), 1);
+  init_es2();
   import_react33 = __toESM(require_react(), 1);
   import_react34 = __toESM(require_react(), 1);
   init_es2();
   import_react35 = __toESM(require_react(), 1);
-  import_react36 = __toESM(require_react(), 1);
-  init_es2();
-  import_react37 = __toESM(require_react(), 1);
   le = { wrapper: { display: "flex", position: "relative", textAlign: "initial" }, fullWidth: { width: "100%" }, hide: { display: "none" } };
   v = le;
   ae = { container: { display: "flex", height: "100%", width: "100%", justifyContent: "center", alignItems: "center" } };
@@ -68942,15 +68911,15 @@ var init_dist36 = __esm(() => {
   Z = Me;
   $ = Z;
   ee = Ee;
-  H = import_react29.memo(ee);
+  H = import_react27.memo(ee);
   k = Ce;
   l = he;
   ie = Oe;
-  we = import_react27.memo(ie);
+  we = import_react25.memo(ie);
   se = He;
   _ = new Map;
   fe = Ve;
-  de = import_react35.memo(fe);
+  de = import_react33.memo(fe);
   Ft = de;
 });
 
@@ -68959,10 +68928,10 @@ var exports_FileViewer = {};
 __export(exports_FileViewer, {
   default: () => FileViewer_default
 });
-var import_react38, jsx_dev_runtime20, FileViewer = ({ filePath, content: initialContent, isLoading }) => {
-  const [content3, setContent] = import_react38.useState(initialContent || "");
-  const [isSaving, setIsSaving] = import_react38.useState(false);
-  import_react38.useEffect(() => {
+var import_react36, jsx_dev_runtime20, FileViewer = ({ filePath, content: initialContent, isLoading }) => {
+  const [content3, setContent] = import_react36.useState(initialContent || "");
+  const [isSaving, setIsSaving] = import_react36.useState(false);
+  import_react36.useEffect(() => {
     setContent(initialContent || "");
   }, [initialContent]);
   const handleSave = async () => {
@@ -69048,7 +69017,7 @@ var import_react38, jsx_dev_runtime20, FileViewer = ({ filePath, content: initia
   }, undefined, true, undefined, this);
 }, FileViewer_default;
 var init_FileViewer = __esm(() => {
-  import_react38 = __toESM(require_react(), 1);
+  import_react36 = __toESM(require_react(), 1);
   init_dist36();
   init_card();
   init_button();
@@ -69058,14 +69027,14 @@ var init_FileViewer = __esm(() => {
 });
 
 // dashboard/src/index.js
-var import_react44 = __toESM(require_react(), 1);
+var import_react42 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react42 = __toESM(require_react(), 1);
+var import_react40 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react40 = __toESM(require_react(), 1);
+var import_react38 = __toESM(require_react(), 1);
 init_useWebSocket();
 
 // dashboard/src/components/Layout.js
@@ -69126,10 +69095,10 @@ var Tabs = ({ tabs }) => {
 var Tabs_default = Tabs;
 
 // dashboard/src/components/ui/dialog.jsx
-var React31 = __toESM(require_react(), 1);
+var React29 = __toESM(require_react(), 1);
 
 // node_modules/@radix-ui/react-dialog/dist/index.mjs
-var React30 = __toESM(require_react(), 1);
+var React28 = __toESM(require_react(), 1);
 init_dist4();
 init_dist();
 init_dist5();
@@ -69158,8 +69127,8 @@ var Dialog = (props) => {
     onOpenChange,
     modal = true
   } = props;
-  const triggerRef = React30.useRef(null);
-  const contentRef = React30.useRef(null);
+  const triggerRef = React28.useRef(null);
+  const contentRef = React28.useRef(null);
   const [open, setOpen] = useControllableState({
     prop: openProp,
     defaultProp: defaultOpen ?? false,
@@ -69175,14 +69144,14 @@ var Dialog = (props) => {
     descriptionId: useId(),
     open,
     onOpenChange: setOpen,
-    onOpenToggle: React30.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+    onOpenToggle: React28.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
     modal,
     children
   });
 };
 Dialog.displayName = DIALOG_NAME;
 var TRIGGER_NAME = "DialogTrigger";
-var DialogTrigger = React30.forwardRef((props, forwardedRef) => {
+var DialogTrigger = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...triggerProps } = props;
   const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
   const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
@@ -69205,11 +69174,11 @@ var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME2, {
 var DialogPortal = (props) => {
   const { __scopeDialog, forceMount, children, container } = props;
   const context = useDialogContext(PORTAL_NAME2, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime7.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React30.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime7.jsx(Portal, { asChild: true, container, children: child }) })) });
+  return /* @__PURE__ */ import_jsx_runtime7.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React28.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime7.jsx(Portal, { asChild: true, container, children: child }) })) });
 };
 DialogPortal.displayName = PORTAL_NAME2;
 var OVERLAY_NAME = "DialogOverlay";
-var DialogOverlay = React30.forwardRef((props, forwardedRef) => {
+var DialogOverlay = React28.forwardRef((props, forwardedRef) => {
   const portalContext = usePortalContext(OVERLAY_NAME, props.__scopeDialog);
   const { forceMount = portalContext.forceMount, ...overlayProps } = props;
   const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
@@ -69217,7 +69186,7 @@ var DialogOverlay = React30.forwardRef((props, forwardedRef) => {
 });
 DialogOverlay.displayName = OVERLAY_NAME;
 var Slot2 = createSlot("DialogOverlay.RemoveScroll");
-var DialogOverlayImpl = React30.forwardRef((props, forwardedRef) => {
+var DialogOverlayImpl = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...overlayProps } = props;
   const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, shards: [context.contentRef], children: /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.div, {
@@ -69228,18 +69197,18 @@ var DialogOverlayImpl = React30.forwardRef((props, forwardedRef) => {
   }) });
 });
 var CONTENT_NAME = "DialogContent";
-var DialogContent = React30.forwardRef((props, forwardedRef) => {
+var DialogContent = React28.forwardRef((props, forwardedRef) => {
   const portalContext = usePortalContext(CONTENT_NAME, props.__scopeDialog);
   const { forceMount = portalContext.forceMount, ...contentProps } = props;
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: context.modal ? /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentModal, { ...contentProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentNonModal, { ...contentProps, ref: forwardedRef }) });
 });
 DialogContent.displayName = CONTENT_NAME;
-var DialogContentModal = React30.forwardRef((props, forwardedRef) => {
+var DialogContentModal = React28.forwardRef((props, forwardedRef) => {
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
-  const contentRef = React30.useRef(null);
+  const contentRef = React28.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
-  React30.useEffect(() => {
+  React28.useEffect(() => {
     const content = contentRef.current;
     if (content)
       return hideOthers(content);
@@ -69263,10 +69232,10 @@ var DialogContentModal = React30.forwardRef((props, forwardedRef) => {
     onFocusOutside: composeEventHandlers(props.onFocusOutside, (event) => event.preventDefault())
   });
 });
-var DialogContentNonModal = React30.forwardRef((props, forwardedRef) => {
+var DialogContentNonModal = React28.forwardRef((props, forwardedRef) => {
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
-  const hasInteractedOutsideRef = React30.useRef(false);
-  const hasPointerDownOutsideRef = React30.useRef(false);
+  const hasInteractedOutsideRef = React28.useRef(false);
+  const hasPointerDownOutsideRef = React28.useRef(false);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentImpl, {
     ...props,
     ref: forwardedRef,
@@ -69300,10 +69269,10 @@ var DialogContentNonModal = React30.forwardRef((props, forwardedRef) => {
     }
   });
 });
-var DialogContentImpl = React30.forwardRef((props, forwardedRef) => {
+var DialogContentImpl = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
   const context = useDialogContext(CONTENT_NAME, __scopeDialog);
-  const contentRef = React30.useRef(null);
+  const contentRef = React28.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, contentRef);
   useFocusGuards();
   return /* @__PURE__ */ import_jsx_runtime7.jsxs(import_jsx_runtime7.Fragment, { children: [
@@ -69331,21 +69300,21 @@ var DialogContentImpl = React30.forwardRef((props, forwardedRef) => {
   ] });
 });
 var TITLE_NAME = "DialogTitle";
-var DialogTitle = React30.forwardRef((props, forwardedRef) => {
+var DialogTitle = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...titleProps } = props;
   const context = useDialogContext(TITLE_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.h2, { id: context.titleId, ...titleProps, ref: forwardedRef });
 });
 DialogTitle.displayName = TITLE_NAME;
 var DESCRIPTION_NAME = "DialogDescription";
-var DialogDescription = React30.forwardRef((props, forwardedRef) => {
+var DialogDescription = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...descriptionProps } = props;
   const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.p, { id: context.descriptionId, ...descriptionProps, ref: forwardedRef });
 });
 DialogDescription.displayName = DESCRIPTION_NAME;
 var CLOSE_NAME = "DialogClose";
-var DialogClose = React30.forwardRef((props, forwardedRef) => {
+var DialogClose = React28.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...closeProps } = props;
   const context = useDialogContext(CLOSE_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.button, {
@@ -69372,7 +69341,7 @@ var TitleWarning = ({ titleId }) => {
 If you want to hide the \`${titleWarningContext.titleName}\`, you can wrap it with our VisuallyHidden component.
 
 For more information, see https://radix-ui.com/primitives/docs/components/${titleWarningContext.docsSlug}`;
-  React30.useEffect(() => {
+  React28.useEffect(() => {
     if (titleId) {
       const hasTitle = document.getElementById(titleId);
       if (!hasTitle)
@@ -69385,7 +69354,7 @@ var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
 var DescriptionWarning = ({ contentRef, descriptionId }) => {
   const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
   const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
-  React30.useEffect(() => {
+  React28.useEffect(() => {
     const describedById = contentRef.current?.getAttribute("aria-describedby");
     if (descriptionId && describedById) {
       const hasDescription = document.getElementById(descriptionId);
@@ -69410,13 +69379,13 @@ var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
 "use client";
 var Dialog2 = Root;
 var DialogPortal2 = Portal2;
-var DialogOverlay2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
+var DialogOverlay2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
   ref,
   className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
   ...props
 }, undefined, false, undefined, this));
 DialogOverlay2.displayName = Overlay.displayName;
-var DialogContent2 = React31.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
+var DialogContent2 = React29.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
   children: [
     /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogOverlay2, {}, undefined, false, undefined, this),
     /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Content, {
@@ -69458,13 +69427,13 @@ var DialogFooter = ({
   ...props
 }, undefined, false, undefined, this);
 DialogFooter.displayName = "DialogFooter";
-var DialogTitle2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
+var DialogTitle2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
   ref,
   className: cn("text-lg font-semibold leading-none tracking-tight", className),
   ...props
 }, undefined, false, undefined, this));
 DialogTitle2.displayName = Title.displayName;
-var DialogDescription2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
+var DialogDescription2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
   ref,
   className: cn("text-sm text-muted-foreground", className),
   ...props
@@ -69476,13 +69445,13 @@ init_button();
 init_scroll_area();
 init_api();
 var jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var ActivityLog2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var ToolHealthMonitor2 = import_react40.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SwarmVisualizer2 = import_react40.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
-var CodeBrowser2 = import_react40.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var FileViewer2 = import_react40.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+var ProjectSelector2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var ActivityLog2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var ToolHealthMonitor2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SwarmVisualizer2 = import_react38.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
+var CodeBrowser2 = import_react38.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var FileViewer2 = import_react38.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -69499,11 +69468,11 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default();
-  const [systemState, setSystemState] = import_react40.useState(INITIAL_STATE);
-  const [humanApprovalRequest, setHumanApprovalRequest] = import_react40.useState(null);
-  const [thoughtStream, setThoughtStream] = import_react40.useState([]);
-  const [healthData, setHealthData] = import_react40.useState(null);
-  import_react40.useEffect(() => {
+  const [systemState, setSystemState] = import_react38.useState(INITIAL_STATE);
+  const [humanApprovalRequest, setHumanApprovalRequest] = import_react38.useState(null);
+  const [thoughtStream, setThoughtStream] = import_react38.useState([]);
+  const [healthData, setHealthData] = import_react38.useState(null);
+  import_react38.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -69594,7 +69563,7 @@ var Dashboard = () => {
         className: "w-full mb-4",
         children: "+ New Chat"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69611,7 +69580,7 @@ var Dashboard = () => {
   const rightPanelTabs = [
     {
       label: "Activity",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69622,7 +69591,7 @@ var Dashboard = () => {
     },
     {
       label: "Swarm",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69631,7 +69600,7 @@ var Dashboard = () => {
     },
     {
       label: "Health",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69642,7 +69611,7 @@ var Dashboard = () => {
     },
     {
       label: "Files",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69657,7 +69626,7 @@ var Dashboard = () => {
     },
     {
       label: "Viewer",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
@@ -69672,7 +69641,7 @@ var Dashboard = () => {
   return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
     className: "dark",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
         fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(jsx_dev_runtime21.Fragment, {}, undefined, false, undefined, this),
         children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Dialog2, {
           open: !!humanApprovalRequest,
@@ -69729,7 +69698,7 @@ var Dashboard = () => {
         rightPanel: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Tabs_default, {
           tabs: rightPanelTabs
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react40.Suspense, {
+        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
           fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
             className: "p-4",
             children: "Loading Chat..."
@@ -69748,11 +69717,11 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/components/Login.js
-var import_react41 = __toESM(require_react(), 1);
+var import_react39 = __toESM(require_react(), 1);
 var jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
 var Login = ({ onLogin }) => {
-  const [token, setToken] = import_react41.useState("");
-  const [adminToken, setAdminToken] = import_react41.useState("");
+  const [token, setToken] = import_react39.useState("");
+  const [adminToken, setAdminToken] = import_react39.useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
     onLogin(token, adminToken);
@@ -69796,8 +69765,8 @@ var Login_default = Login;
 // dashboard/src/App.js
 var jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = import_react42.useState(false);
-  import_react42.useEffect(() => {
+  const [isAuthenticated, setIsAuthenticated] = import_react40.useState(false);
+  import_react40.useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       setIsAuthenticated(true);
@@ -69820,10 +69789,10 @@ function App() {
 var App_default = App;
 
 // dashboard/src/components/ErrorBoundary.js
-var import_react43 = __toESM(require_react(), 1);
+var import_react41 = __toESM(require_react(), 1);
 var jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
 
-class ErrorBoundary extends import_react43.default.Component {
+class ErrorBoundary extends import_react41.default.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -69874,7 +69843,7 @@ var ErrorBoundary_default = ErrorBoundary;
 // dashboard/src/index.js
 var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
 var root4 = import_client.default.createRoot(document.getElementById("root"));
-root4.render(/* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react44.default.StrictMode, {
+root4.render(/* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react42.default.StrictMode, {
   children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ErrorBoundary_default, {
     children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(App_default, {}, undefined, false, undefined, this)
   }, undefined, false, undefined, this)
