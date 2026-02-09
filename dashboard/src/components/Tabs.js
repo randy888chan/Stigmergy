@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from './ui/button'; // Assuming shadcn/ui button
 
-const Tabs = ({ tabs }) => {
-  const [activeTab, setActiveTab] = useState(0);
+const Tabs = ({ tabs, activeTab: externalActiveTab, onTabChange }) => {
+  const [internalActiveTab, setInternalActiveTab] = useState(0);
+
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const setActiveTab = onTabChange || setInternalActiveTab;
 
   return (
     <div className="flex flex-col h-full">

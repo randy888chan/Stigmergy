@@ -23,12 +23,15 @@ mock.module('../../../../dashboard/src/components/ui/button.jsx', () => ({
 mock.module('../../../../dashboard/src/components/ui/input.jsx', () => ({
   Input: (props) => <input {...props} />,
 }));
-mock.module('../../../../dashboard/src/components/ui/select.jsx', () => ({
-  Select: ({ children, ...props }) => <select {...props}>{children}</select>,
-  SelectContent: ({ children, ...props }) => <div {...props}>{children}</div>,
-  SelectItem: ({ children, ...props }) => <option {...props}>{children}</option>,
-  SelectTrigger: ({ children, ...props }) => <div {...props}>{children}</div>,
-  SelectValue: ({ children, ...props }) => <div {...props}>{children}</div>,
+mock.module('../../../../dashboard/src/components/ui/scroll-area.jsx', () => ({
+  ScrollArea: ({ children }) => <div>{children}</div>,
+}));
+
+// Mock lucide-react
+mock.module('lucide-react', () => ({
+  Folder: () => <span>FolderIcon</span>,
+  FolderUp: () => <span>FolderUpIcon</span>,
+  Check: () => <span>CheckIcon</span>,
 }));
 
 describe('ProjectSelector', () => {
@@ -37,25 +40,6 @@ describe('ProjectSelector', () => {
   beforeEach(() => {
     // Reset DOM between tests
     document.body.innerHTML = '';
-
-    // Mock localStorage
-    const localStorageMock = (() => {
-      let store = {};
-      return {
-        getItem: (key) => store[key] || null,
-        setItem: (key, value) => {
-          store[key] = value.toString();
-        },
-        removeItem: (key) => {
-          delete store[key];
-        },
-        clear: () => {
-          store = {};
-        },
-      };
-    })();
-    Object.defineProperty(global, 'localStorage', { value: localStorageMock });
-
 
     // Provide a mock implementation for this specific test
     fetchSpy = spyOn(global, 'fetch').mockResolvedValue(
@@ -73,13 +57,8 @@ describe('ProjectSelector', () => {
     }
   });
 
-  it('should fetch and display projects when the button is clicked', async () => {
-
-    const user = userEvent.setup();
-    const { getByTestId, getByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
-
-    // Simulate a user clicking the "Find Projects" button
-    await user.click(getByTestId('find-projects-button'));
+  it('should fetch and display folders on mount', async () => {
+    const { getByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
 
     // Wait for the component to render the project names from the mock response
     await waitFor(() => {
@@ -89,6 +68,17 @@ describe('ProjectSelector', () => {
 
     // Verify fetch was called correctly
     expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~', expect.any(Object));
-    expect(fetchSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should call onProjectSelect with current path when Select This Folder is clicked', async () => {
+    const onSelect = mock(() => {});
+    const { getByText } = render(<ProjectSelector onProjectSelect={onSelect} />);
+
+    await waitFor(() => getByText('project-a'));
+
+    const user = userEvent.setup();
+    await user.click(getByText('Select This Folder'));
+
+    expect(onSelect).toHaveBeenCalledWith('~');
   });
 });
