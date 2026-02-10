@@ -121,7 +121,7 @@ export class Engine {
         while (!isDone && turnCount < 10) {
             turnCount++;
             const streamTextFunc = this._test_streamText || streamText;
-
+            
             // Get Model
             let model = null;
             if (!this._test_streamText) {
@@ -200,8 +200,7 @@ export class Engine {
     this.app.get("/api/projects", async (c) => {
       try {
         const basePath = resolveSafePath(c.req.query("basePath"), os.homedir());
-        console.log(chalk.blue(`[API] Listing projects in: ${basePath}`));
-
+        
         if (!await fs.pathExists(basePath)) {
             return c.json({ error: "Path does not exist", currentPath: basePath, folders: [] }, 404);
         }
