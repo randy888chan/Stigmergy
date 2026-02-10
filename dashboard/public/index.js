@@ -26751,469 +26751,6 @@ var init_dist10 = __esm(() => {
   React11 = __toESM(require_react(), 1);
 });
 
-// node_modules/@radix-ui/react-use-escape-keydown/dist/index.mjs
-function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
-  const onEscapeKeyDown = useCallbackRef(onEscapeKeyDownProp);
-  React12.useEffect(() => {
-    const handleKeyDown = (event) => {
-      if (event.key === "Escape") {
-        onEscapeKeyDown(event);
-      }
-    };
-    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
-    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
-  }, [onEscapeKeyDown, ownerDocument]);
-}
-var React12;
-var init_dist11 = __esm(() => {
-  React12 = __toESM(require_react(), 1);
-  init_dist10();
-});
-
-// node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
-function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
-  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside);
-  const isPointerInsideReactTreeRef = React13.useRef(false);
-  const handleClickRef = React13.useRef(() => {});
-  React13.useEffect(() => {
-    const handlePointerDown = (event) => {
-      if (event.target && !isPointerInsideReactTreeRef.current) {
-        let handleAndDispatchPointerDownOutsideEvent2 = function() {
-          handleAndDispatchCustomEvent(POINTER_DOWN_OUTSIDE, handlePointerDownOutside, eventDetail, { discrete: true });
-        };
-        var handleAndDispatchPointerDownOutsideEvent = handleAndDispatchPointerDownOutsideEvent2;
-        const eventDetail = { originalEvent: event };
-        if (event.pointerType === "touch") {
-          ownerDocument.removeEventListener("click", handleClickRef.current);
-          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
-          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
-        } else {
-          handleAndDispatchPointerDownOutsideEvent2();
-        }
-      } else {
-        ownerDocument.removeEventListener("click", handleClickRef.current);
-      }
-      isPointerInsideReactTreeRef.current = false;
-    };
-    const timerId = window.setTimeout(() => {
-      ownerDocument.addEventListener("pointerdown", handlePointerDown);
-    }, 0);
-    return () => {
-      window.clearTimeout(timerId);
-      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
-      ownerDocument.removeEventListener("click", handleClickRef.current);
-    };
-  }, [ownerDocument, handlePointerDownOutside]);
-  return {
-    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
-  };
-}
-function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
-  const handleFocusOutside = useCallbackRef(onFocusOutside);
-  const isFocusInsideReactTreeRef = React13.useRef(false);
-  React13.useEffect(() => {
-    const handleFocus = (event) => {
-      if (event.target && !isFocusInsideReactTreeRef.current) {
-        const eventDetail = { originalEvent: event };
-        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
-          discrete: false
-        });
-      }
-    };
-    ownerDocument.addEventListener("focusin", handleFocus);
-    return () => ownerDocument.removeEventListener("focusin", handleFocus);
-  }, [ownerDocument, handleFocusOutside]);
-  return {
-    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
-    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
-  };
-}
-function dispatchUpdate() {
-  const event = new CustomEvent(CONTEXT_UPDATE);
-  document.dispatchEvent(event);
-}
-function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
-  const target = detail.originalEvent.target;
-  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
-  if (handler)
-    target.addEventListener(name, handler, { once: true });
-  if (discrete) {
-    dispatchDiscreteCustomEvent(target, event);
-  } else {
-    target.dispatchEvent(event);
-  }
-}
-var React13, import_jsx_runtime4, DISMISSABLE_LAYER_NAME = "DismissableLayer", CONTEXT_UPDATE = "dismissableLayer.update", POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside", FOCUS_OUTSIDE = "dismissableLayer.focusOutside", originalBodyPointerEvents, DismissableLayerContext, DismissableLayer, BRANCH_NAME = "DismissableLayerBranch", DismissableLayerBranch;
-var init_dist12 = __esm(() => {
-  React13 = __toESM(require_react(), 1);
-  init_dist4();
-  init_dist9();
-  init_dist();
-  init_dist10();
-  init_dist11();
-  import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  DismissableLayerContext = React13.createContext({
-    layers: /* @__PURE__ */ new Set,
-    layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set,
-    branches: /* @__PURE__ */ new Set
-  });
-  DismissableLayer = React13.forwardRef((props, forwardedRef) => {
-    const {
-      disableOutsidePointerEvents = false,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      onFocusOutside,
-      onInteractOutside,
-      onDismiss,
-      ...layerProps
-    } = props;
-    const context = React13.useContext(DismissableLayerContext);
-    const [node, setNode] = React13.useState(null);
-    const ownerDocument = node?.ownerDocument ?? globalThis?.document;
-    const [, force] = React13.useState({});
-    const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
-    const layers = Array.from(context.layers);
-    const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
-    const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
-    const index = node ? layers.indexOf(node) : -1;
-    const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
-    const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
-    const pointerDownOutside = usePointerDownOutside((event) => {
-      const target = event.target;
-      const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (!isPointerEventsEnabled || isPointerDownOnBranch)
-        return;
-      onPointerDownOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented)
-        onDismiss?.();
-    }, ownerDocument);
-    const focusOutside = useFocusOutside((event) => {
-      const target = event.target;
-      const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
-      if (isFocusInBranch)
-        return;
-      onFocusOutside?.(event);
-      onInteractOutside?.(event);
-      if (!event.defaultPrevented)
-        onDismiss?.();
-    }, ownerDocument);
-    useEscapeKeydown((event) => {
-      const isHighestLayer = index === context.layers.size - 1;
-      if (!isHighestLayer)
-        return;
-      onEscapeKeyDown?.(event);
-      if (!event.defaultPrevented && onDismiss) {
-        event.preventDefault();
-        onDismiss();
-      }
-    }, ownerDocument);
-    React13.useEffect(() => {
-      if (!node)
-        return;
-      if (disableOutsidePointerEvents) {
-        if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
-          originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
-          ownerDocument.body.style.pointerEvents = "none";
-        }
-        context.layersWithOutsidePointerEventsDisabled.add(node);
-      }
-      context.layers.add(node);
-      dispatchUpdate();
-      return () => {
-        if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
-          ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
-        }
-      };
-    }, [node, ownerDocument, disableOutsidePointerEvents, context]);
-    React13.useEffect(() => {
-      return () => {
-        if (!node)
-          return;
-        context.layers.delete(node);
-        context.layersWithOutsidePointerEventsDisabled.delete(node);
-        dispatchUpdate();
-      };
-    }, [node, context]);
-    React13.useEffect(() => {
-      const handleUpdate = () => force({});
-      document.addEventListener(CONTEXT_UPDATE, handleUpdate);
-      return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
-    }, []);
-    return /* @__PURE__ */ import_jsx_runtime4.jsx(Primitive.div, {
-      ...layerProps,
-      ref: composedRefs,
-      style: {
-        pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : undefined,
-        ...props.style
-      },
-      onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
-      onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
-      onPointerDownCapture: composeEventHandlers(props.onPointerDownCapture, pointerDownOutside.onPointerDownCapture)
-    });
-  });
-  DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
-  DismissableLayerBranch = React13.forwardRef((props, forwardedRef) => {
-    const context = React13.useContext(DismissableLayerContext);
-    const ref = React13.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    React13.useEffect(() => {
-      const node = ref.current;
-      if (node) {
-        context.branches.add(node);
-        return () => {
-          context.branches.delete(node);
-        };
-      }
-    }, [context.branches]);
-    return /* @__PURE__ */ import_jsx_runtime4.jsx(Primitive.div, { ...props, ref: composedRefs });
-  });
-  DismissableLayerBranch.displayName = BRANCH_NAME;
-});
-
-// node_modules/@radix-ui/react-focus-scope/dist/index.mjs
-function focusFirst(candidates, { select = false } = {}) {
-  const previouslyFocusedElement = document.activeElement;
-  for (const candidate of candidates) {
-    focus(candidate, { select });
-    if (document.activeElement !== previouslyFocusedElement)
-      return;
-  }
-}
-function getTabbableEdges(container) {
-  const candidates = getTabbableCandidates(container);
-  const first = findVisible(candidates, container);
-  const last = findVisible(candidates.reverse(), container);
-  return [first, last];
-}
-function getTabbableCandidates(container) {
-  const nodes = [];
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
-    acceptNode: (node) => {
-      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
-      if (node.disabled || node.hidden || isHiddenInput)
-        return NodeFilter.FILTER_SKIP;
-      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
-    }
-  });
-  while (walker.nextNode())
-    nodes.push(walker.currentNode);
-  return nodes;
-}
-function findVisible(elements, container) {
-  for (const element of elements) {
-    if (!isHidden(element, { upTo: container }))
-      return element;
-  }
-}
-function isHidden(node, { upTo }) {
-  if (getComputedStyle(node).visibility === "hidden")
-    return true;
-  while (node) {
-    if (upTo !== undefined && node === upTo)
-      return false;
-    if (getComputedStyle(node).display === "none")
-      return true;
-    node = node.parentElement;
-  }
-  return false;
-}
-function isSelectableInput(element) {
-  return element instanceof HTMLInputElement && "select" in element;
-}
-function focus(element, { select = false } = {}) {
-  if (element && element.focus) {
-    const previouslyFocusedElement = document.activeElement;
-    element.focus({ preventScroll: true });
-    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
-      element.select();
-  }
-}
-function createFocusScopesStack() {
-  let stack = [];
-  return {
-    add(focusScope) {
-      const activeFocusScope = stack[0];
-      if (focusScope !== activeFocusScope) {
-        activeFocusScope?.pause();
-      }
-      stack = arrayRemove(stack, focusScope);
-      stack.unshift(focusScope);
-    },
-    remove(focusScope) {
-      stack = arrayRemove(stack, focusScope);
-      stack[0]?.resume();
-    }
-  };
-}
-function arrayRemove(array, item) {
-  const updatedArray = [...array];
-  const index = updatedArray.indexOf(item);
-  if (index !== -1) {
-    updatedArray.splice(index, 1);
-  }
-  return updatedArray;
-}
-function removeLinks(items) {
-  return items.filter((item) => item.tagName !== "A");
-}
-var React14, import_jsx_runtime5, AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount", AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount", EVENT_OPTIONS, FOCUS_SCOPE_NAME = "FocusScope", FocusScope, focusScopesStack;
-var init_dist13 = __esm(() => {
-  React14 = __toESM(require_react(), 1);
-  init_dist();
-  init_dist9();
-  init_dist10();
-  import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  EVENT_OPTIONS = { bubbles: false, cancelable: true };
-  FocusScope = React14.forwardRef((props, forwardedRef) => {
-    const {
-      loop = false,
-      trapped = false,
-      onMountAutoFocus: onMountAutoFocusProp,
-      onUnmountAutoFocus: onUnmountAutoFocusProp,
-      ...scopeProps
-    } = props;
-    const [container, setContainer] = React14.useState(null);
-    const onMountAutoFocus = useCallbackRef(onMountAutoFocusProp);
-    const onUnmountAutoFocus = useCallbackRef(onUnmountAutoFocusProp);
-    const lastFocusedElementRef = React14.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
-    const focusScope = React14.useRef({
-      paused: false,
-      pause() {
-        this.paused = true;
-      },
-      resume() {
-        this.paused = false;
-      }
-    }).current;
-    React14.useEffect(() => {
-      if (trapped) {
-        let handleFocusIn2 = function(event) {
-          if (focusScope.paused || !container)
-            return;
-          const target = event.target;
-          if (container.contains(target)) {
-            lastFocusedElementRef.current = target;
-          } else {
-            focus(lastFocusedElementRef.current, { select: true });
-          }
-        }, handleFocusOut2 = function(event) {
-          if (focusScope.paused || !container)
-            return;
-          const relatedTarget = event.relatedTarget;
-          if (relatedTarget === null)
-            return;
-          if (!container.contains(relatedTarget)) {
-            focus(lastFocusedElementRef.current, { select: true });
-          }
-        }, handleMutations2 = function(mutations) {
-          const focusedElement = document.activeElement;
-          if (focusedElement !== document.body)
-            return;
-          for (const mutation of mutations) {
-            if (mutation.removedNodes.length > 0)
-              focus(container);
-          }
-        };
-        var handleFocusIn = handleFocusIn2, handleFocusOut = handleFocusOut2, handleMutations = handleMutations2;
-        document.addEventListener("focusin", handleFocusIn2);
-        document.addEventListener("focusout", handleFocusOut2);
-        const mutationObserver = new MutationObserver(handleMutations2);
-        if (container)
-          mutationObserver.observe(container, { childList: true, subtree: true });
-        return () => {
-          document.removeEventListener("focusin", handleFocusIn2);
-          document.removeEventListener("focusout", handleFocusOut2);
-          mutationObserver.disconnect();
-        };
-      }
-    }, [trapped, container, focusScope.paused]);
-    React14.useEffect(() => {
-      if (container) {
-        focusScopesStack.add(focusScope);
-        const previouslyFocusedElement = document.activeElement;
-        const hasFocusedCandidate = container.contains(previouslyFocusedElement);
-        if (!hasFocusedCandidate) {
-          const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
-          container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-          container.dispatchEvent(mountEvent);
-          if (!mountEvent.defaultPrevented) {
-            focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
-            if (document.activeElement === previouslyFocusedElement) {
-              focus(container);
-            }
-          }
-        }
-        return () => {
-          container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
-          setTimeout(() => {
-            const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
-            container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-            container.dispatchEvent(unmountEvent);
-            if (!unmountEvent.defaultPrevented) {
-              focus(previouslyFocusedElement ?? document.body, { select: true });
-            }
-            container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
-            focusScopesStack.remove(focusScope);
-          }, 0);
-        };
-      }
-    }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
-    const handleKeyDown = React14.useCallback((event) => {
-      if (!loop && !trapped)
-        return;
-      if (focusScope.paused)
-        return;
-      const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
-      const focusedElement = document.activeElement;
-      if (isTabKey && focusedElement) {
-        const container2 = event.currentTarget;
-        const [first, last] = getTabbableEdges(container2);
-        const hasTabbableElementsInside = first && last;
-        if (!hasTabbableElementsInside) {
-          if (focusedElement === container2)
-            event.preventDefault();
-        } else {
-          if (!event.shiftKey && focusedElement === last) {
-            event.preventDefault();
-            if (loop)
-              focus(first, { select: true });
-          } else if (event.shiftKey && focusedElement === first) {
-            event.preventDefault();
-            if (loop)
-              focus(last, { select: true });
-          }
-        }
-      }
-    }, [loop, trapped, focusScope.paused]);
-    return /* @__PURE__ */ import_jsx_runtime5.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
-  });
-  FocusScope.displayName = FOCUS_SCOPE_NAME;
-  focusScopesStack = createFocusScopesStack();
-});
-
-// node_modules/@radix-ui/react-portal/dist/index.mjs
-var React15, import_react_dom, import_jsx_runtime6, PORTAL_NAME = "Portal", Portal;
-var init_dist14 = __esm(() => {
-  React15 = __toESM(require_react(), 1);
-  import_react_dom = __toESM(require_react_dom(), 1);
-  init_dist9();
-  init_dist6();
-  import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  Portal = React15.forwardRef((props, forwardedRef) => {
-    const { container: containerProp, ...portalProps } = props;
-    const [mounted, setMounted] = React15.useState(false);
-    useLayoutEffect2(() => setMounted(true), []);
-    const container = containerProp || mounted && globalThis?.document?.body;
-    return container ? import_react_dom.default.createPortal(/* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
-  });
-  Portal.displayName = PORTAL_NAME;
-});
-
 // node_modules/@radix-ui/react-presence/dist/index.mjs
 function useStateMachine(initialState, machine) {
   return React16.useReducer((state, event) => {
@@ -27336,949 +26873,13 @@ var React23, React16, Presence = (props) => {
   const forceMount = typeof children === "function";
   return forceMount || presence.isPresent ? React23.cloneElement(child, { ref }) : null;
 };
-var init_dist15 = __esm(() => {
+var init_dist11 = __esm(() => {
   React23 = __toESM(require_react(), 1);
   init_dist();
   init_dist6();
   React16 = __toESM(require_react(), 1);
   "use client";
   Presence.displayName = "Presence";
-});
-
-// node_modules/@radix-ui/react-focus-guards/dist/index.mjs
-function useFocusGuards() {
-  React17.useEffect(() => {
-    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
-    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
-    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
-    count2++;
-    return () => {
-      if (count2 === 1) {
-        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
-      }
-      count2--;
-    };
-  }, []);
-}
-function createFocusGuard() {
-  const element = document.createElement("span");
-  element.setAttribute("data-radix-focus-guard", "");
-  element.tabIndex = 0;
-  element.style.outline = "none";
-  element.style.opacity = "0";
-  element.style.position = "fixed";
-  element.style.pointerEvents = "none";
-  return element;
-}
-var React17, count2 = 0;
-var init_dist16 = __esm(() => {
-  React17 = __toESM(require_react(), 1);
-  "use client";
-});
-
-// node_modules/tslib/tslib.es6.mjs
-function __rest(s, e) {
-  var t = {};
-  for (var p in s)
-    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-      t[p] = s[p];
-  if (s != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i = 0, p = Object.getOwnPropertySymbols(s);i < p.length; i++) {
-      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-        t[p[i]] = s[p[i]];
-    }
-  return t;
-}
-function __spreadArray(to, from, pack) {
-  if (pack || arguments.length === 2)
-    for (var i = 0, l = from.length, ar;i < l; i++) {
-      if (ar || !(i in from)) {
-        if (!ar)
-          ar = Array.prototype.slice.call(from, 0, i);
-        ar[i] = from[i];
-      }
-    }
-  return to.concat(ar || Array.prototype.slice.call(from));
-}
-var __assign = function() {
-  __assign = Object.assign || function __assign(t) {
-    for (var s, i = 1, n = arguments.length;i < n; i++) {
-      s = arguments[i];
-      for (var p in s)
-        if (Object.prototype.hasOwnProperty.call(s, p))
-          t[p] = s[p];
-    }
-    return t;
-  };
-  return __assign.apply(this, arguments);
-};
-var init_tslib_es6 = () => {};
-
-// node_modules/react-remove-scroll-bar/dist/es2015/constants.js
-var zeroRightClassName = "right-scroll-bar-position", fullWidthClassName = "width-before-scroll-bar", noScrollbarsClassName = "with-scroll-bars-hidden", removedBarSizeVariable = "--removed-body-scroll-bar-size";
-
-// node_modules/use-callback-ref/dist/es2015/assignRef.js
-function assignRef(ref, value) {
-  if (typeof ref === "function") {
-    ref(value);
-  } else if (ref) {
-    ref.current = value;
-  }
-  return ref;
-}
-
-// node_modules/use-callback-ref/dist/es2015/useRef.js
-function useCallbackRef2(initialValue, callback) {
-  var ref = import_react4.useState(function() {
-    return {
-      value: initialValue,
-      callback,
-      facade: {
-        get current() {
-          return ref.value;
-        },
-        set current(value) {
-          var last = ref.value;
-          if (last !== value) {
-            ref.value = value;
-            ref.callback(value, last);
-          }
-        }
-      }
-    };
-  })[0];
-  ref.callback = callback;
-  return ref.facade;
-}
-var import_react4;
-var init_useRef = __esm(() => {
-  import_react4 = __toESM(require_react(), 1);
-});
-
-// node_modules/use-callback-ref/dist/es2015/useMergeRef.js
-function useMergeRefs(refs, defaultValue) {
-  var callbackRef = useCallbackRef2(defaultValue || null, function(newValue) {
-    return refs.forEach(function(ref) {
-      return assignRef(ref, newValue);
-    });
-  });
-  useIsomorphicLayoutEffect(function() {
-    var oldValue = currentValues.get(callbackRef);
-    if (oldValue) {
-      var prevRefs_1 = new Set(oldValue);
-      var nextRefs_1 = new Set(refs);
-      var current_1 = callbackRef.current;
-      prevRefs_1.forEach(function(ref) {
-        if (!nextRefs_1.has(ref)) {
-          assignRef(ref, null);
-        }
-      });
-      nextRefs_1.forEach(function(ref) {
-        if (!prevRefs_1.has(ref)) {
-          assignRef(ref, current_1);
-        }
-      });
-    }
-    currentValues.set(callbackRef, refs);
-  }, [refs]);
-  return callbackRef;
-}
-var React18, useIsomorphicLayoutEffect, currentValues;
-var init_useMergeRef = __esm(() => {
-  React18 = __toESM(require_react(), 1);
-  init_useRef();
-  useIsomorphicLayoutEffect = typeof window !== "undefined" ? React18.useLayoutEffect : React18.useEffect;
-  currentValues = new WeakMap;
-});
-
-// node_modules/use-callback-ref/dist/es2015/index.js
-var init_es2015 = __esm(() => {
-  init_useMergeRef();
-});
-
-// node_modules/use-sidecar/dist/es2015/medium.js
-function ItoI(a) {
-  return a;
-}
-function innerCreateMedium(defaults, middleware) {
-  if (middleware === undefined) {
-    middleware = ItoI;
-  }
-  var buffer = [];
-  var assigned = false;
-  var medium = {
-    read: function() {
-      if (assigned) {
-        throw new Error("Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.");
-      }
-      if (buffer.length) {
-        return buffer[buffer.length - 1];
-      }
-      return defaults;
-    },
-    useMedium: function(data) {
-      var item = middleware(data, assigned);
-      buffer.push(item);
-      return function() {
-        buffer = buffer.filter(function(x) {
-          return x !== item;
-        });
-      };
-    },
-    assignSyncMedium: function(cb) {
-      assigned = true;
-      while (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-      }
-      buffer = {
-        push: function(x) {
-          return cb(x);
-        },
-        filter: function() {
-          return buffer;
-        }
-      };
-    },
-    assignMedium: function(cb) {
-      assigned = true;
-      var pendingQueue = [];
-      if (buffer.length) {
-        var cbs = buffer;
-        buffer = [];
-        cbs.forEach(cb);
-        pendingQueue = buffer;
-      }
-      var executeQueue = function() {
-        var cbs2 = pendingQueue;
-        pendingQueue = [];
-        cbs2.forEach(cb);
-      };
-      var cycle = function() {
-        return Promise.resolve().then(executeQueue);
-      };
-      cycle();
-      buffer = {
-        push: function(x) {
-          pendingQueue.push(x);
-          cycle();
-        },
-        filter: function(filter) {
-          pendingQueue = pendingQueue.filter(filter);
-          return buffer;
-        }
-      };
-    }
-  };
-  return medium;
-}
-function createSidecarMedium(options) {
-  if (options === undefined) {
-    options = {};
-  }
-  var medium = innerCreateMedium(null);
-  medium.options = __assign({ async: true, ssr: false }, options);
-  return medium;
-}
-var init_medium = __esm(() => {
-  init_tslib_es6();
-});
-
-// node_modules/use-sidecar/dist/es2015/exports.js
-function exportSidecar(medium, exported) {
-  medium.useMedium(exported);
-  return SideCar;
-}
-var React19, SideCar = function(_a) {
-  var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
-  if (!sideCar) {
-    throw new Error("Sidecar: please provide `sideCar` property to import the right car");
-  }
-  var Target = sideCar.read();
-  if (!Target) {
-    throw new Error("Sidecar medium not found");
-  }
-  return React19.createElement(Target, __assign({}, rest));
-};
-var init_exports = __esm(() => {
-  init_tslib_es6();
-  React19 = __toESM(require_react(), 1);
-  SideCar.isSideCarExport = true;
-});
-
-// node_modules/use-sidecar/dist/es2015/index.js
-var init_es20152 = __esm(() => {
-  init_medium();
-  init_exports();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/medium.js
-var effectCar;
-var init_medium2 = __esm(() => {
-  init_es20152();
-  effectCar = createSidecarMedium();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/UI.js
-var React20, nothing = function() {
-  return;
-}, RemoveScroll;
-var init_UI = __esm(() => {
-  init_tslib_es6();
-  React20 = __toESM(require_react(), 1);
-  init_es2015();
-  init_medium2();
-  RemoveScroll = React20.forwardRef(function(props, parentRef) {
-    var ref = React20.useRef(null);
-    var _a = React20.useState({
-      onScrollCapture: nothing,
-      onWheelCapture: nothing,
-      onTouchMoveCapture: nothing
-    }), callbacks = _a[0], setCallbacks = _a[1];
-    var { forwardProps, children, className, removeScrollBar, enabled, shards, sideCar, noRelative, noIsolation, inert, allowPinchZoom, as: _b } = props, Container = _b === undefined ? "div" : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
-    var SideCar2 = sideCar;
-    var containerRef = useMergeRefs([ref, parentRef]);
-    var containerProps = __assign(__assign({}, rest), callbacks);
-    return React20.createElement(React20.Fragment, null, enabled && React20.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React20.cloneElement(React20.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React20.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
-  });
-  RemoveScroll.defaultProps = {
-    enabled: true,
-    removeScrollBar: true,
-    inert: false
-  };
-  RemoveScroll.classNames = {
-    fullWidth: fullWidthClassName,
-    zeroRight: zeroRightClassName
-  };
-});
-
-// node_modules/get-nonce/dist/es2015/index.js
-var currentNonce, getNonce = function() {
-  if (currentNonce) {
-    return currentNonce;
-  }
-  if (typeof __webpack_nonce__ !== "undefined") {
-    return __webpack_nonce__;
-  }
-  return;
-};
-
-// node_modules/react-style-singleton/dist/es2015/singleton.js
-function makeStyleTag() {
-  if (!document)
-    return null;
-  var tag = document.createElement("style");
-  tag.type = "text/css";
-  var nonce = getNonce();
-  if (nonce) {
-    tag.setAttribute("nonce", nonce);
-  }
-  return tag;
-}
-function injectStyles(tag, css) {
-  if (tag.styleSheet) {
-    tag.styleSheet.cssText = css;
-  } else {
-    tag.appendChild(document.createTextNode(css));
-  }
-}
-function insertStyleTag(tag) {
-  var head = document.head || document.getElementsByTagName("head")[0];
-  head.appendChild(tag);
-}
-var stylesheetSingleton = function() {
-  var counter = 0;
-  var stylesheet = null;
-  return {
-    add: function(style) {
-      if (counter == 0) {
-        if (stylesheet = makeStyleTag()) {
-          injectStyles(stylesheet, style);
-          insertStyleTag(stylesheet);
-        }
-      }
-      counter++;
-    },
-    remove: function() {
-      counter--;
-      if (!counter && stylesheet) {
-        stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
-        stylesheet = null;
-      }
-    }
-  };
-};
-var init_singleton = () => {};
-
-// node_modules/react-style-singleton/dist/es2015/hook.js
-var React21, styleHookSingleton = function() {
-  var sheet = stylesheetSingleton();
-  return function(styles, isDynamic) {
-    React21.useEffect(function() {
-      sheet.add(styles);
-      return function() {
-        sheet.remove();
-      };
-    }, [styles && isDynamic]);
-  };
-};
-var init_hook = __esm(() => {
-  React21 = __toESM(require_react(), 1);
-  init_singleton();
-});
-
-// node_modules/react-style-singleton/dist/es2015/component.js
-var styleSingleton = function() {
-  var useStyle = styleHookSingleton();
-  var Sheet = function(_a) {
-    var { styles, dynamic } = _a;
-    useStyle(styles, dynamic);
-    return null;
-  };
-  return Sheet;
-};
-var init_component = __esm(() => {
-  init_hook();
-});
-
-// node_modules/react-style-singleton/dist/es2015/index.js
-var init_es20153 = __esm(() => {
-  init_component();
-  init_singleton();
-  init_hook();
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/utils.js
-var zeroGap, parse = function(x) {
-  return parseInt(x || "", 10) || 0;
-}, getOffset = function(gapMode) {
-  var cs = window.getComputedStyle(document.body);
-  var left = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
-  var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
-  var right = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
-  return [parse(left), parse(top), parse(right)];
-}, getGapWidth = function(gapMode) {
-  if (gapMode === undefined) {
-    gapMode = "margin";
-  }
-  if (typeof window === "undefined") {
-    return zeroGap;
-  }
-  var offsets = getOffset(gapMode);
-  var documentWidth = document.documentElement.clientWidth;
-  var windowWidth = window.innerWidth;
-  return {
-    left: offsets[0],
-    top: offsets[1],
-    right: offsets[2],
-    gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0])
-  };
-};
-var init_utils2 = __esm(() => {
-  zeroGap = {
-    left: 0,
-    top: 0,
-    right: 0,
-    gap: 0
-  };
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/component.js
-var React24, Style, lockAttribute = "data-scroll-locked", getStyles = function(_a, allowRelative, gapMode, important) {
-  var { left, top, right, gap } = _a;
-  if (gapMode === undefined) {
-    gapMode = "margin";
-  }
-  return `
-  .`.concat(noScrollbarsClassName, ` {
-   overflow: hidden `).concat(important, `;
-   padding-right: `).concat(gap, "px ").concat(important, `;
-  }
-  body[`).concat(lockAttribute, `] {
-    overflow: hidden `).concat(important, `;
-    overscroll-behavior: contain;
-    `).concat([
-    allowRelative && "position: relative ".concat(important, ";"),
-    gapMode === "margin" && `
-    padding-left: `.concat(left, `px;
-    padding-top: `).concat(top, `px;
-    padding-right: `).concat(right, `px;
-    margin-left:0;
-    margin-top:0;
-    margin-right: `).concat(gap, "px ").concat(important, `;
-    `),
-    gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
-  ].filter(Boolean).join(""), `
-  }
-  
-  .`).concat(zeroRightClassName, ` {
-    right: `).concat(gap, "px ").concat(important, `;
-  }
-  
-  .`).concat(fullWidthClassName, ` {
-    margin-right: `).concat(gap, "px ").concat(important, `;
-  }
-  
-  .`).concat(zeroRightClassName, " .").concat(zeroRightClassName, ` {
-    right: 0 `).concat(important, `;
-  }
-  
-  .`).concat(fullWidthClassName, " .").concat(fullWidthClassName, ` {
-    margin-right: 0 `).concat(important, `;
-  }
-  
-  body[`).concat(lockAttribute, `] {
-    `).concat(removedBarSizeVariable, ": ").concat(gap, `px;
-  }
-`);
-}, getCurrentUseCounter = function() {
-  var counter = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
-  return isFinite(counter) ? counter : 0;
-}, useLockAttribute = function() {
-  React24.useEffect(function() {
-    document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
-    return function() {
-      var newCounter = getCurrentUseCounter() - 1;
-      if (newCounter <= 0) {
-        document.body.removeAttribute(lockAttribute);
-      } else {
-        document.body.setAttribute(lockAttribute, newCounter.toString());
-      }
-    };
-  }, []);
-}, RemoveScrollBar = function(_a) {
-  var { noRelative, noImportant, gapMode: _b } = _a, gapMode = _b === undefined ? "margin" : _b;
-  useLockAttribute();
-  var gap = React24.useMemo(function() {
-    return getGapWidth(gapMode);
-  }, [gapMode]);
-  return React24.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
-};
-var init_component2 = __esm(() => {
-  React24 = __toESM(require_react(), 1);
-  init_es20153();
-  init_utils2();
-  Style = styleSingleton();
-});
-
-// node_modules/react-remove-scroll-bar/dist/es2015/index.js
-var init_es20154 = __esm(() => {
-  init_component2();
-  init_utils2();
-});
-
-// node_modules/react-remove-scroll/dist/es2015/aggresiveCapture.js
-var passiveSupported = false, options, nonPassive;
-var init_aggresiveCapture = __esm(() => {
-  if (typeof window !== "undefined") {
-    try {
-      options = Object.defineProperty({}, "passive", {
-        get: function() {
-          passiveSupported = true;
-          return true;
-        }
-      });
-      window.addEventListener("test", options, options);
-      window.removeEventListener("test", options, options);
-    } catch (err) {
-      passiveSupported = false;
-    }
-  }
-  nonPassive = passiveSupported ? { passive: false } : false;
-});
-
-// node_modules/react-remove-scroll/dist/es2015/handleScroll.js
-var alwaysContainsScroll = function(node) {
-  return node.tagName === "TEXTAREA";
-}, elementCanBeScrolled = function(node, overflow) {
-  if (!(node instanceof Element)) {
-    return false;
-  }
-  var styles = window.getComputedStyle(node);
-  return styles[overflow] !== "hidden" && !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === "visible");
-}, elementCouldBeVScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowY");
-}, elementCouldBeHScrolled = function(node) {
-  return elementCanBeScrolled(node, "overflowX");
-}, locationCouldBeScrolled = function(axis, node) {
-  var ownerDocument = node.ownerDocument;
-  var current = node;
-  do {
-    if (typeof ShadowRoot !== "undefined" && current instanceof ShadowRoot) {
-      current = current.host;
-    }
-    var isScrollable = elementCouldBeScrolled(axis, current);
-    if (isScrollable) {
-      var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
-      if (scrollHeight > clientHeight) {
-        return true;
-      }
-    }
-    current = current.parentNode;
-  } while (current && current !== ownerDocument.body);
-  return false;
-}, getVScrollVariables = function(_a) {
-  var { scrollTop, scrollHeight, clientHeight } = _a;
-  return [
-    scrollTop,
-    scrollHeight,
-    clientHeight
-  ];
-}, getHScrollVariables = function(_a) {
-  var { scrollLeft, scrollWidth, clientWidth } = _a;
-  return [
-    scrollLeft,
-    scrollWidth,
-    clientWidth
-  ];
-}, elementCouldBeScrolled = function(axis, node) {
-  return axis === "v" ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
-}, getScrollVariables = function(axis, node) {
-  return axis === "v" ? getVScrollVariables(node) : getHScrollVariables(node);
-}, getDirectionFactor = function(axis, direction) {
-  return axis === "h" && direction === "rtl" ? -1 : 1;
-}, handleScroll = function(axis, endTarget, event, sourceDelta, noOverscroll) {
-  var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
-  var delta = directionFactor * sourceDelta;
-  var target = event.target;
-  var targetInLock = endTarget.contains(target);
-  var shouldCancelScroll = false;
-  var isDeltaPositive = delta > 0;
-  var availableScroll = 0;
-  var availableScrollTop = 0;
-  do {
-    if (!target) {
-      break;
-    }
-    var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
-    var elementScroll = scroll_1 - capacity - directionFactor * position;
-    if (position || elementScroll) {
-      if (elementCouldBeScrolled(axis, target)) {
-        availableScroll += elementScroll;
-        availableScrollTop += position;
-      }
-    }
-    var parent_1 = target.parentNode;
-    target = parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1;
-  } while (!targetInLock && target !== document.body || targetInLock && (endTarget.contains(target) || endTarget === target));
-  if (isDeltaPositive && (noOverscroll && Math.abs(availableScroll) < 1 || !noOverscroll && delta > availableScroll)) {
-    shouldCancelScroll = true;
-  } else if (!isDeltaPositive && (noOverscroll && Math.abs(availableScrollTop) < 1 || !noOverscroll && -delta > availableScrollTop)) {
-    shouldCancelScroll = true;
-  }
-  return shouldCancelScroll;
-};
-
-// node_modules/react-remove-scroll/dist/es2015/SideEffect.js
-function RemoveScrollSideCar(props) {
-  var shouldPreventQueue = React26.useRef([]);
-  var touchStartRef = React26.useRef([0, 0]);
-  var activeAxis = React26.useRef();
-  var id = React26.useState(idCounter++)[0];
-  var Style2 = React26.useState(styleSingleton)[0];
-  var lastProps = React26.useRef(props);
-  React26.useEffect(function() {
-    lastProps.current = props;
-  }, [props]);
-  React26.useEffect(function() {
-    if (props.inert) {
-      document.body.classList.add("block-interactivity-".concat(id));
-      var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
-      allow_1.forEach(function(el) {
-        return el.classList.add("allow-interactivity-".concat(id));
-      });
-      return function() {
-        document.body.classList.remove("block-interactivity-".concat(id));
-        allow_1.forEach(function(el) {
-          return el.classList.remove("allow-interactivity-".concat(id));
-        });
-      };
-    }
-    return;
-  }, [props.inert, props.lockRef.current, props.shards]);
-  var shouldCancelEvent = React26.useCallback(function(event, parent) {
-    if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
-      return !lastProps.current.allowPinchZoom;
-    }
-    var touch = getTouchXY(event);
-    var touchStart = touchStartRef.current;
-    var deltaX = "deltaX" in event ? event.deltaX : touchStart[0] - touch[0];
-    var deltaY = "deltaY" in event ? event.deltaY : touchStart[1] - touch[1];
-    var currentAxis;
-    var target = event.target;
-    var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? "h" : "v";
-    if ("touches" in event && moveDirection === "h" && target.type === "range") {
-      return false;
-    }
-    var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    if (!canBeScrolledInMainDirection) {
-      return true;
-    }
-    if (canBeScrolledInMainDirection) {
-      currentAxis = moveDirection;
-    } else {
-      currentAxis = moveDirection === "v" ? "h" : "v";
-      canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
-    }
-    if (!canBeScrolledInMainDirection) {
-      return false;
-    }
-    if (!activeAxis.current && "changedTouches" in event && (deltaX || deltaY)) {
-      activeAxis.current = currentAxis;
-    }
-    if (!currentAxis) {
-      return true;
-    }
-    var cancelingAxis = activeAxis.current || currentAxis;
-    return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY, true);
-  }, []);
-  var shouldPrevent = React26.useCallback(function(_event) {
-    var event = _event;
-    if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
-      return;
-    }
-    var delta = "deltaY" in event ? getDeltaXY(event) : getTouchXY(event);
-    var sourceEvent = shouldPreventQueue.current.filter(function(e) {
-      return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta);
-    })[0];
-    if (sourceEvent && sourceEvent.should) {
-      if (event.cancelable) {
-        event.preventDefault();
-      }
-      return;
-    }
-    if (!sourceEvent) {
-      var shardNodes = (lastProps.current.shards || []).map(extractRef).filter(Boolean).filter(function(node) {
-        return node.contains(event.target);
-      });
-      var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
-      if (shouldStop) {
-        if (event.cancelable) {
-          event.preventDefault();
-        }
-      }
-    }
-  }, []);
-  var shouldCancel = React26.useCallback(function(name, delta, target, should) {
-    var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
-    shouldPreventQueue.current.push(event);
-    setTimeout(function() {
-      shouldPreventQueue.current = shouldPreventQueue.current.filter(function(e) {
-        return e !== event;
-      });
-    }, 1);
-  }, []);
-  var scrollTouchStart = React26.useCallback(function(event) {
-    touchStartRef.current = getTouchXY(event);
-    activeAxis.current = undefined;
-  }, []);
-  var scrollWheel = React26.useCallback(function(event) {
-    shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-  }, []);
-  var scrollTouchMove = React26.useCallback(function(event) {
-    shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
-  }, []);
-  React26.useEffect(function() {
-    lockStack.push(Style2);
-    props.setCallbacks({
-      onScrollCapture: scrollWheel,
-      onWheelCapture: scrollWheel,
-      onTouchMoveCapture: scrollTouchMove
-    });
-    document.addEventListener("wheel", shouldPrevent, nonPassive);
-    document.addEventListener("touchmove", shouldPrevent, nonPassive);
-    document.addEventListener("touchstart", scrollTouchStart, nonPassive);
-    return function() {
-      lockStack = lockStack.filter(function(inst) {
-        return inst !== Style2;
-      });
-      document.removeEventListener("wheel", shouldPrevent, nonPassive);
-      document.removeEventListener("touchmove", shouldPrevent, nonPassive);
-      document.removeEventListener("touchstart", scrollTouchStart, nonPassive);
-    };
-  }, []);
-  var { removeScrollBar, inert } = props;
-  return React26.createElement(React26.Fragment, null, inert ? React26.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React26.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null);
-}
-function getOutermostShadowParent(node) {
-  var shadowParent = null;
-  while (node !== null) {
-    if (node instanceof ShadowRoot) {
-      shadowParent = node.host;
-      node = node.host;
-    }
-    node = node.parentNode;
-  }
-  return shadowParent;
-}
-var React26, getTouchXY = function(event) {
-  return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
-}, getDeltaXY = function(event) {
-  return [event.deltaX, event.deltaY];
-}, extractRef = function(ref) {
-  return ref && "current" in ref ? ref.current : ref;
-}, deltaCompare = function(x, y) {
-  return x[0] === y[0] && x[1] === y[1];
-}, generateStyle = function(id) {
-  return `
-  .block-interactivity-`.concat(id, ` {pointer-events: none;}
-  .allow-interactivity-`).concat(id, ` {pointer-events: all;}
-`);
-}, idCounter = 0, lockStack;
-var init_SideEffect = __esm(() => {
-  init_tslib_es6();
-  React26 = __toESM(require_react(), 1);
-  init_es20154();
-  init_es20153();
-  init_aggresiveCapture();
-  lockStack = [];
-});
-
-// node_modules/react-remove-scroll/dist/es2015/sidecar.js
-var sidecar_default;
-var init_sidecar = __esm(() => {
-  init_es20152();
-  init_SideEffect();
-  init_medium2();
-  sidecar_default = exportSidecar(effectCar, RemoveScrollSideCar);
-});
-
-// node_modules/react-remove-scroll/dist/es2015/Combination.js
-var React27, ReactRemoveScroll, Combination_default;
-var init_Combination = __esm(() => {
-  init_tslib_es6();
-  React27 = __toESM(require_react(), 1);
-  init_UI();
-  init_sidecar();
-  ReactRemoveScroll = React27.forwardRef(function(props, ref) {
-    return React27.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: sidecar_default }));
-  });
-  ReactRemoveScroll.classNames = RemoveScroll.classNames;
-  Combination_default = ReactRemoveScroll;
-});
-
-// node_modules/react-remove-scroll/dist/es2015/index.js
-var init_es20155 = __esm(() => {
-  init_Combination();
-});
-
-// node_modules/aria-hidden/dist/es2015/index.js
-var getDefaultParent = function(originalTarget) {
-  if (typeof document === "undefined") {
-    return null;
-  }
-  var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
-  return sampleTarget.ownerDocument.body;
-}, counterMap, uncontrolledNodes, markerMap, lockCount = 0, unwrapHost = function(node) {
-  return node && (node.host || unwrapHost(node.parentNode));
-}, correctTargets = function(parent, targets) {
-  return targets.map(function(target) {
-    if (parent.contains(target)) {
-      return target;
-    }
-    var correctedTarget = unwrapHost(target);
-    if (correctedTarget && parent.contains(correctedTarget)) {
-      return correctedTarget;
-    }
-    console.error("aria-hidden", target, "in not contained inside", parent, ". Doing nothing");
-    return null;
-  }).filter(function(x) {
-    return Boolean(x);
-  });
-}, applyAttributeToOthers = function(originalTarget, parentNode, markerName, controlAttribute) {
-  var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  if (!markerMap[markerName]) {
-    markerMap[markerName] = new WeakMap;
-  }
-  var markerCounter = markerMap[markerName];
-  var hiddenNodes = [];
-  var elementsToKeep = new Set;
-  var elementsToStop = new Set(targets);
-  var keep = function(el) {
-    if (!el || elementsToKeep.has(el)) {
-      return;
-    }
-    elementsToKeep.add(el);
-    keep(el.parentNode);
-  };
-  targets.forEach(keep);
-  var deep = function(parent) {
-    if (!parent || elementsToStop.has(parent)) {
-      return;
-    }
-    Array.prototype.forEach.call(parent.children, function(node) {
-      if (elementsToKeep.has(node)) {
-        deep(node);
-      } else {
-        try {
-          var attr = node.getAttribute(controlAttribute);
-          var alreadyHidden = attr !== null && attr !== "false";
-          var counterValue = (counterMap.get(node) || 0) + 1;
-          var markerValue = (markerCounter.get(node) || 0) + 1;
-          counterMap.set(node, counterValue);
-          markerCounter.set(node, markerValue);
-          hiddenNodes.push(node);
-          if (counterValue === 1 && alreadyHidden) {
-            uncontrolledNodes.set(node, true);
-          }
-          if (markerValue === 1) {
-            node.setAttribute(markerName, "true");
-          }
-          if (!alreadyHidden) {
-            node.setAttribute(controlAttribute, "true");
-          }
-        } catch (e) {
-          console.error("aria-hidden: cannot operate on ", node, e);
-        }
-      }
-    });
-  };
-  deep(parentNode);
-  elementsToKeep.clear();
-  lockCount++;
-  return function() {
-    hiddenNodes.forEach(function(node) {
-      var counterValue = counterMap.get(node) - 1;
-      var markerValue = markerCounter.get(node) - 1;
-      counterMap.set(node, counterValue);
-      markerCounter.set(node, markerValue);
-      if (!counterValue) {
-        if (!uncontrolledNodes.has(node)) {
-          node.removeAttribute(controlAttribute);
-        }
-        uncontrolledNodes.delete(node);
-      }
-      if (!markerValue) {
-        node.removeAttribute(markerName);
-      }
-    });
-    lockCount--;
-    if (!lockCount) {
-      counterMap = new WeakMap;
-      counterMap = new WeakMap;
-      uncontrolledNodes = new WeakMap;
-      markerMap = {};
-    }
-  };
-}, hideOthers = function(originalTarget, parentNode, markerName) {
-  if (markerName === undefined) {
-    markerName = "data-aria-hidden";
-  }
-  var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
-  var activeParentNode = parentNode || getDefaultParent(originalTarget);
-  if (!activeParentNode) {
-    return function() {
-      return null;
-    };
-  }
-  targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
-  return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
-};
-var init_es20156 = __esm(() => {
-  counterMap = new WeakMap;
-  uncontrolledNodes = new WeakMap;
-  markerMap = {};
 });
 
 // node_modules/lucide-react/dist/esm/shared/src/utils.js
@@ -28294,7 +26895,7 @@ var toKebabCase = (string) => string.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLo
     }
   }
 };
-var init_utils3 = () => {};
+var init_utils2 = () => {};
 
 // node_modules/lucide-react/dist/esm/defaultAttributes.js
 var defaultAttributes;
@@ -28313,12 +26914,12 @@ var init_defaultAttributes = __esm(() => {
 });
 
 // node_modules/lucide-react/dist/esm/Icon.js
-var import_react5, Icon;
+var import_react7, Icon;
 var init_Icon = __esm(() => {
-  import_react5 = __toESM(require_react(), 1);
+  import_react7 = __toESM(require_react(), 1);
   init_defaultAttributes();
-  init_utils3();
-  Icon = import_react5.forwardRef(({
+  init_utils2();
+  Icon = import_react7.forwardRef(({
     color = "currentColor",
     size = 24,
     strokeWidth = 2,
@@ -28327,7 +26928,7 @@ var init_Icon = __esm(() => {
     children,
     iconNode,
     ...rest
-  }, ref) => import_react5.createElement("svg", {
+  }, ref) => import_react7.createElement("svg", {
     ref,
     ...defaultAttributes,
     width: size,
@@ -28338,14 +26939,14 @@ var init_Icon = __esm(() => {
     ...!children && !hasA11yProp(rest) && { "aria-hidden": "true" },
     ...rest
   }, [
-    ...iconNode.map(([tag, attrs]) => import_react5.createElement(tag, attrs)),
+    ...iconNode.map(([tag, attrs]) => import_react7.createElement(tag, attrs)),
     ...Array.isArray(children) ? children : [children]
   ]));
 });
 
 // node_modules/lucide-react/dist/esm/createLucideIcon.js
-var import_react6, createLucideIcon = (iconName, iconNode) => {
-  const Component = import_react6.forwardRef(({ className, ...props }, ref) => import_react6.createElement(Icon, {
+var import_react8, createLucideIcon = (iconName, iconNode) => {
+  const Component = import_react8.forwardRef(({ className, ...props }, ref) => import_react8.createElement(Icon, {
     ref,
     iconNode,
     className: mergeClasses(`lucide-${toKebabCase(toPascalCase(iconName))}`, `lucide-${iconName}`, className),
@@ -28355,40 +26956,67 @@ var import_react6, createLucideIcon = (iconName, iconNode) => {
   return Component;
 };
 var init_createLucideIcon = __esm(() => {
-  import_react6 = __toESM(require_react(), 1);
-  init_utils3();
+  import_react8 = __toESM(require_react(), 1);
+  init_utils2();
   init_Icon();
 });
 
+// node_modules/lucide-react/dist/esm/icons/arrow-up.js
+var __iconNode, ArrowUp;
+var init_arrow_up = __esm(() => {
+  init_createLucideIcon();
+  __iconNode = [
+    ["path", { d: "m5 12 7-7 7 7", key: "hav0vg" }],
+    ["path", { d: "M12 19V5", key: "x0mq9r" }]
+  ];
+  ArrowUp = createLucideIcon("arrow-up", __iconNode);
+});
+
 // node_modules/lucide-react/dist/esm/icons/check.js
-var __iconNode, Check;
+var __iconNode2, Check;
 var init_check = __esm(() => {
   init_createLucideIcon();
-  __iconNode = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-  Check = createLucideIcon("check", __iconNode);
+  __iconNode2 = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+  Check = createLucideIcon("check", __iconNode2);
 });
 
 // node_modules/lucide-react/dist/esm/icons/chevron-down.js
-var __iconNode2, ChevronDown;
+var __iconNode3, ChevronDown;
 var init_chevron_down = __esm(() => {
   init_createLucideIcon();
-  __iconNode2 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-  ChevronDown = createLucideIcon("chevron-down", __iconNode2);
+  __iconNode3 = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  ChevronDown = createLucideIcon("chevron-down", __iconNode3);
 });
 
-// node_modules/lucide-react/dist/esm/icons/chevron-up.js
-var __iconNode3, ChevronUp;
-var init_chevron_up = __esm(() => {
+// node_modules/lucide-react/dist/esm/icons/folder.js
+var __iconNode4, Folder;
+var init_folder = __esm(() => {
   init_createLucideIcon();
-  __iconNode3 = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-  ChevronUp = createLucideIcon("chevron-up", __iconNode3);
+  __iconNode4 = [
+    [
+      "path",
+      {
+        d: "M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z",
+        key: "1kt360"
+      }
+    ]
+  ];
+  Folder = createLucideIcon("folder", __iconNode4);
+});
+
+// node_modules/lucide-react/dist/esm/icons/loader-circle.js
+var __iconNode5, LoaderCircle;
+var init_loader_circle = __esm(() => {
+  init_createLucideIcon();
+  __iconNode5 = [["path", { d: "M21 12a9 9 0 1 1-6.219-8.56", key: "13zald" }]];
+  LoaderCircle = createLucideIcon("loader-circle", __iconNode5);
 });
 
 // node_modules/lucide-react/dist/esm/icons/save.js
-var __iconNode4, Save;
+var __iconNode6, Save;
 var init_save = __esm(() => {
   init_createLucideIcon();
-  __iconNode4 = [
+  __iconNode6 = [
     [
       "path",
       {
@@ -28399,14 +27027,14 @@ var init_save = __esm(() => {
     ["path", { d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7", key: "1ydtos" }],
     ["path", { d: "M7 3v4a1 1 0 0 0 1 1h7", key: "t51u73" }]
   ];
-  Save = createLucideIcon("save", __iconNode4);
+  Save = createLucideIcon("save", __iconNode6);
 });
 
 // node_modules/lucide-react/dist/esm/icons/send.js
-var __iconNode5, Send;
+var __iconNode7, Send;
 var init_send = __esm(() => {
   init_createLucideIcon();
-  __iconNode5 = [
+  __iconNode7 = [
     [
       "path",
       {
@@ -28416,25 +27044,27 @@ var init_send = __esm(() => {
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  Send = createLucideIcon("send", __iconNode5);
+  Send = createLucideIcon("send", __iconNode7);
 });
 
 // node_modules/lucide-react/dist/esm/icons/x.js
-var __iconNode6, X;
+var __iconNode8, X;
 var init_x = __esm(() => {
   init_createLucideIcon();
-  __iconNode6 = [
+  __iconNode8 = [
     ["path", { d: "M18 6 6 18", key: "1bl5f8" }],
     ["path", { d: "m6 6 12 12", key: "d8bk6v" }]
   ];
-  X = createLucideIcon("x", __iconNode6);
+  X = createLucideIcon("x", __iconNode8);
 });
 
 // node_modules/lucide-react/dist/esm/lucide-react.js
 var init_lucide_react = __esm(() => {
+  init_loader_circle();
+  init_arrow_up();
   init_check();
   init_chevron_down();
-  init_chevron_up();
+  init_folder();
   init_save();
   init_send();
   init_x();
@@ -28442,25 +27072,25 @@ var init_lucide_react = __esm(() => {
 
 // node_modules/@radix-ui/react-direction/dist/index.mjs
 function useDirection(localDir) {
-  const globalDir = React30.useContext(DirectionContext);
+  const globalDir = React32.useContext(DirectionContext);
   return localDir || globalDir || "ltr";
 }
-var React30, import_jsx_runtime8, DirectionContext;
-var init_dist17 = __esm(() => {
-  React30 = __toESM(require_react(), 1);
+var React32, import_jsx_runtime8, DirectionContext;
+var init_dist12 = __esm(() => {
+  React32 = __toESM(require_react(), 1);
   import_jsx_runtime8 = __toESM(require_jsx_runtime(), 1);
-  DirectionContext = React30.createContext(undefined);
+  DirectionContext = React32.createContext(undefined);
 });
 
 // node_modules/@radix-ui/number/dist/index.mjs
 function clamp(value, [min, max]) {
   return Math.min(max, Math.max(min, value));
 }
-var init_dist18 = () => {};
+var init_dist13 = () => {};
 
 // node_modules/@radix-ui/react-scroll-area/dist/index.mjs
 function useStateMachine2(initialState, machine) {
-  return React31.useReducer((state, event) => {
+  return React33.useReducer((state, event) => {
     const nextState = machine[state][event];
     return nextState ?? state;
   }, initialState);
@@ -28538,7 +27168,7 @@ function useResizeObserver(element, onResize) {
     }
   }, [element, handleResize]);
 }
-var React25, React31, import_jsx_runtime9, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
+var React25, React33, import_jsx_runtime9, SCROLL_AREA_NAME = "ScrollArea", createScrollAreaContext, createScrollAreaScope, ScrollAreaProvider, useScrollAreaContext, ScrollArea, VIEWPORT_NAME = "ScrollAreaViewport", ScrollAreaViewport, SCROLLBAR_NAME = "ScrollAreaScrollbar", ScrollAreaScrollbar, ScrollAreaScrollbarHover, ScrollAreaScrollbarScroll, ScrollAreaScrollbarAuto, ScrollAreaScrollbarVisible, ScrollAreaScrollbarX, ScrollAreaScrollbarY, ScrollbarProvider, useScrollbarContext, ScrollAreaScrollbarImpl, THUMB_NAME = "ScrollAreaThumb", ScrollAreaThumb, ScrollAreaThumbImpl, CORNER_NAME = "ScrollAreaCorner", ScrollAreaCorner, ScrollAreaCornerImpl, addUnlinkedScrollListener = (node, handler = () => {}) => {
   let prevPosition = { left: node.scrollLeft, top: node.scrollTop };
   let rAF = 0;
   (function loop() {
@@ -28552,18 +27182,18 @@ var React25, React31, import_jsx_runtime9, SCROLL_AREA_NAME = "ScrollArea", crea
   })();
   return () => window.cancelAnimationFrame(rAF);
 }, Root2, Viewport, Scrollbar, Thumb, Corner;
-var init_dist19 = __esm(() => {
+var init_dist14 = __esm(() => {
   React25 = __toESM(require_react(), 1);
   init_dist9();
-  init_dist15();
+  init_dist11();
   init_dist5();
   init_dist();
   init_dist10();
-  init_dist17();
+  init_dist12();
   init_dist6();
-  init_dist18();
+  init_dist13();
   init_dist4();
-  React31 = __toESM(require_react(), 1);
+  React33 = __toESM(require_react(), 1);
   import_jsx_runtime9 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createScrollAreaContext, createScrollAreaScope] = createContextScope(SCROLL_AREA_NAME);
@@ -29114,14 +27744,14 @@ var init_dist19 = __esm(() => {
 });
 
 // dashboard/src/components/ui/scroll-area.jsx
-var React32, jsx_dev_runtime5, ScrollArea2, ScrollBar;
+var React34, jsx_dev_runtime5, ScrollArea2, ScrollBar;
 var init_scroll_area = __esm(() => {
-  React32 = __toESM(require_react(), 1);
-  init_dist19();
+  React34 = __toESM(require_react(), 1);
+  init_dist14();
   init_utils();
   jsx_dev_runtime5 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
-  ScrollArea2 = React32.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Root2, {
+  ScrollArea2 = React34.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Root2, {
     ref,
     className: cn("relative overflow-hidden", className),
     ...props,
@@ -29135,7 +27765,7 @@ var init_scroll_area = __esm(() => {
     ]
   }, undefined, true, undefined, this));
   ScrollArea2.displayName = Root2.displayName;
-  ScrollBar = React32.forwardRef(({ className, orientation = "vertical", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Scrollbar, {
+  ScrollBar = React34.forwardRef(({ className, orientation = "vertical", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime5.jsxDEV(Scrollbar, {
     ref,
     orientation,
     className: cn("flex touch-none select-none transition-colors", orientation === "vertical" && "h-full w-2.5 border-l border-l-transparent p-[1px]", orientation === "horizontal" && "h-2.5 flex-col border-t border-t-transparent p-[1px]", className),
@@ -29147,4292 +27777,176 @@ var init_scroll_area = __esm(() => {
   ScrollBar.displayName = Scrollbar.displayName;
 });
 
-// dashboard/src/lib/api.js
-var authenticatedFetch = async (url, options2 = {}) => {
-  const token = localStorage.getItem("authToken");
-  const headers = {
-    ...options2.headers,
-    "Content-Type": "application/json"
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-  const response = await fetch(url, {
-    ...options2,
-    headers
-  });
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  return response.json();
-}, api_default;
-var init_api = __esm(() => {
-  api_default = authenticatedFetch;
-});
-
-// dashboard/src/components/ui/input.jsx
-var React33, jsx_dev_runtime6, Input;
-var init_input = __esm(() => {
-  React33 = __toESM(require_react(), 1);
-  init_utils();
-  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
-  Input = React33.forwardRef(({ className, type, ...props }, ref) => {
-    return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("input", {
-      type,
-      className: cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
-      ref,
-      ...props
-    }, undefined, false, undefined, this);
-  });
-  Input.displayName = "Input";
-});
-
-// node_modules/@radix-ui/react-collection/dist/index.mjs
-function createCollection(name) {
-  const PROVIDER_NAME = name + "CollectionProvider";
-  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME);
-  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map });
-  const CollectionProvider = (props) => {
-    const { scope, children } = props;
-    const ref = import_react7.default.useRef(null);
-    const itemMap = import_react7.default.useRef(/* @__PURE__ */ new Map).current;
-    return /* @__PURE__ */ import_jsx_runtime10.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
-  };
-  CollectionProvider.displayName = PROVIDER_NAME;
-  const COLLECTION_SLOT_NAME = name + "CollectionSlot";
-  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
-  const CollectionSlot = import_react7.default.forwardRef((props, forwardedRef) => {
-    const { scope, children } = props;
-    const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
-    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
-    return /* @__PURE__ */ import_jsx_runtime10.jsx(CollectionSlotImpl, { ref: composedRefs, children });
-  });
-  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
-  const ITEM_SLOT_NAME = name + "CollectionItemSlot";
-  const ITEM_DATA_ATTR = "data-radix-collection-item";
-  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
-  const CollectionItemSlot = import_react7.default.forwardRef((props, forwardedRef) => {
-    const { scope, children, ...itemData } = props;
-    const ref = import_react7.default.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const context = useCollectionContext(ITEM_SLOT_NAME, scope);
-    import_react7.default.useEffect(() => {
-      context.itemMap.set(ref, { ref, ...itemData });
-      return () => void context.itemMap.delete(ref);
-    });
-    return /* @__PURE__ */ import_jsx_runtime10.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
-  });
-  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
-  function useCollection(scope) {
-    const context = useCollectionContext(name + "CollectionConsumer", scope);
-    const getItems = import_react7.default.useCallback(() => {
-      const collectionNode = context.collectionRef.current;
-      if (!collectionNode)
-        return [];
-      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
-      const items = Array.from(context.itemMap.values());
-      const orderedItems = items.sort((a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current));
-      return orderedItems;
-    }, [context.collectionRef, context.itemMap]);
-    return getItems;
-  }
-  return [
-    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
-    useCollection,
-    createCollectionScope
-  ];
-}
-function at(array, index) {
-  if ("at" in Array.prototype) {
-    return Array.prototype.at.call(array, index);
-  }
-  const actualIndex = toSafeIndex(array, index);
-  return actualIndex === -1 ? undefined : array[actualIndex];
-}
-function toSafeIndex(array, index) {
-  const length = array.length;
-  const relativeIndex = toSafeInteger(index);
-  const actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
-  return actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
-}
-function toSafeInteger(number) {
-  return number !== number || number === 0 ? 0 : Math.trunc(number);
-}
-var import_react7, import_jsx_runtime10, import_react8, import_jsx_runtime11, __instanciated, OrderedDict;
-var init_dist20 = __esm(() => {
-  import_react7 = __toESM(require_react(), 1);
-  init_dist5();
-  init_dist();
-  init_dist2();
-  import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
-  import_react8 = __toESM(require_react(), 1);
-  import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  __instanciated = /* @__PURE__ */ new WeakMap;
-  OrderedDict = class _OrderedDict extends Map {
-    #keys;
-    constructor(entries) {
-      super(entries);
-      this.#keys = [...super.keys()];
-      __instanciated.set(this, true);
-    }
-    set(key, value) {
-      if (__instanciated.get(this)) {
-        if (this.has(key)) {
-          this.#keys[this.#keys.indexOf(key)] = key;
-        } else {
-          this.#keys.push(key);
-        }
-      }
-      super.set(key, value);
-      return this;
-    }
-    insert(index, key, value) {
-      const has = this.has(key);
-      const length = this.#keys.length;
-      const relativeIndex = toSafeInteger(index);
-      let actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
-      const safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
-      if (safeIndex === this.size || has && safeIndex === this.size - 1 || safeIndex === -1) {
-        this.set(key, value);
-        return this;
-      }
-      const size = this.size + (has ? 0 : 1);
-      if (relativeIndex < 0) {
-        actualIndex++;
-      }
-      const keys = [...this.#keys];
-      let nextValue;
-      let shouldSkip = false;
-      for (let i = actualIndex;i < size; i++) {
-        if (actualIndex === i) {
-          let nextKey = keys[i];
-          if (keys[i] === key) {
-            nextKey = keys[i + 1];
-          }
-          if (has) {
-            this.delete(key);
-          }
-          nextValue = this.get(nextKey);
-          this.set(key, value);
-        } else {
-          if (!shouldSkip && keys[i - 1] === key) {
-            shouldSkip = true;
-          }
-          const currentKey = keys[shouldSkip ? i : i - 1];
-          const currentValue = nextValue;
-          nextValue = this.get(currentKey);
-          this.delete(currentKey);
-          this.set(currentKey, currentValue);
-        }
-      }
-      return this;
-    }
-    with(index, key, value) {
-      const copy = new _OrderedDict(this);
-      copy.insert(index, key, value);
-      return copy;
-    }
-    before(key) {
-      const index = this.#keys.indexOf(key) - 1;
-      if (index < 0) {
-        return;
-      }
-      return this.entryAt(index);
-    }
-    setBefore(key, newKey, value) {
-      const index = this.#keys.indexOf(key);
-      if (index === -1) {
-        return this;
-      }
-      return this.insert(index, newKey, value);
-    }
-    after(key) {
-      let index = this.#keys.indexOf(key);
-      index = index === -1 || index === this.size - 1 ? -1 : index + 1;
-      if (index === -1) {
-        return;
-      }
-      return this.entryAt(index);
-    }
-    setAfter(key, newKey, value) {
-      const index = this.#keys.indexOf(key);
-      if (index === -1) {
-        return this;
-      }
-      return this.insert(index + 1, newKey, value);
-    }
-    first() {
-      return this.entryAt(0);
-    }
-    last() {
-      return this.entryAt(-1);
-    }
-    clear() {
-      this.#keys = [];
-      return super.clear();
-    }
-    delete(key) {
-      const deleted = super.delete(key);
-      if (deleted) {
-        this.#keys.splice(this.#keys.indexOf(key), 1);
-      }
-      return deleted;
-    }
-    deleteAt(index) {
-      const key = this.keyAt(index);
-      if (key !== undefined) {
-        return this.delete(key);
-      }
-      return false;
-    }
-    at(index) {
-      const key = at(this.#keys, index);
-      if (key !== undefined) {
-        return this.get(key);
-      }
-    }
-    entryAt(index) {
-      const key = at(this.#keys, index);
-      if (key !== undefined) {
-        return [key, this.get(key)];
-      }
-    }
-    indexOf(key) {
-      return this.#keys.indexOf(key);
-    }
-    keyAt(index) {
-      return at(this.#keys, index);
-    }
-    from(key, offset) {
-      const index = this.indexOf(key);
-      if (index === -1) {
-        return;
-      }
-      let dest = index + offset;
-      if (dest < 0)
-        dest = 0;
-      if (dest >= this.size)
-        dest = this.size - 1;
-      return this.at(dest);
-    }
-    keyFrom(key, offset) {
-      const index = this.indexOf(key);
-      if (index === -1) {
-        return;
-      }
-      let dest = index + offset;
-      if (dest < 0)
-        dest = 0;
-      if (dest >= this.size)
-        dest = this.size - 1;
-      return this.keyAt(dest);
-    }
-    find(predicate, thisArg) {
-      let index = 0;
-      for (const entry of this) {
-        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
-          return entry;
-        }
-        index++;
-      }
-      return;
-    }
-    findIndex(predicate, thisArg) {
-      let index = 0;
-      for (const entry of this) {
-        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
-          return index;
-        }
-        index++;
-      }
-      return -1;
-    }
-    filter(predicate, thisArg) {
-      const entries = [];
-      let index = 0;
-      for (const entry of this) {
-        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
-          entries.push(entry);
-        }
-        index++;
-      }
-      return new _OrderedDict(entries);
-    }
-    map(callbackfn, thisArg) {
-      const entries = [];
-      let index = 0;
-      for (const entry of this) {
-        entries.push([entry[0], Reflect.apply(callbackfn, thisArg, [entry, index, this])]);
-        index++;
-      }
-      return new _OrderedDict(entries);
-    }
-    reduce(...args) {
-      const [callbackfn, initialValue] = args;
-      let index = 0;
-      let accumulator = initialValue ?? this.at(0);
-      for (const entry of this) {
-        if (index === 0 && args.length === 1) {
-          accumulator = entry;
-        } else {
-          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index, this]);
-        }
-        index++;
-      }
-      return accumulator;
-    }
-    reduceRight(...args) {
-      const [callbackfn, initialValue] = args;
-      let accumulator = initialValue ?? this.at(-1);
-      for (let index = this.size - 1;index >= 0; index--) {
-        const entry = this.at(index);
-        if (index === this.size - 1 && args.length === 1) {
-          accumulator = entry;
-        } else {
-          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index, this]);
-        }
-      }
-      return accumulator;
-    }
-    toSorted(compareFn) {
-      const entries = [...this.entries()].sort(compareFn);
-      return new _OrderedDict(entries);
-    }
-    toReversed() {
-      const reversed = new _OrderedDict;
-      for (let index = this.size - 1;index >= 0; index--) {
-        const key = this.keyAt(index);
-        const element = this.get(key);
-        reversed.set(key, element);
-      }
-      return reversed;
-    }
-    toSpliced(...args) {
-      const entries = [...this.entries()];
-      entries.splice(...args);
-      return new _OrderedDict(entries);
-    }
-    slice(start, end) {
-      const result = new _OrderedDict;
-      let stop = this.size - 1;
-      if (start === undefined) {
-        return result;
-      }
-      if (start < 0) {
-        start = start + this.size;
-      }
-      if (end !== undefined && end > 0) {
-        stop = end - 1;
-      }
-      for (let index = start;index <= stop; index++) {
-        const key = this.keyAt(index);
-        const element = this.get(key);
-        result.set(key, element);
-      }
-      return result;
-    }
-    every(predicate, thisArg) {
-      let index = 0;
-      for (const entry of this) {
-        if (!Reflect.apply(predicate, thisArg, [entry, index, this])) {
-          return false;
-        }
-        index++;
-      }
-      return true;
-    }
-    some(predicate, thisArg) {
-      let index = 0;
-      for (const entry of this) {
-        if (Reflect.apply(predicate, thisArg, [entry, index, this])) {
-          return true;
-        }
-        index++;
-      }
-      return false;
-    }
-  };
-});
-
-// node_modules/@floating-ui/utils/dist/floating-ui.utils.mjs
-function clamp2(start, value, end) {
-  return max(start, min(value, end));
-}
-function evaluate(value, param) {
-  return typeof value === "function" ? value(param) : value;
-}
-function getSide(placement) {
-  return placement.split("-")[0];
-}
-function getAlignment(placement) {
-  return placement.split("-")[1];
-}
-function getOppositeAxis(axis) {
-  return axis === "x" ? "y" : "x";
-}
-function getAxisLength(axis) {
-  return axis === "y" ? "height" : "width";
-}
-function getSideAxis(placement) {
-  return yAxisSides.has(getSide(placement)) ? "y" : "x";
-}
-function getAlignmentAxis(placement) {
-  return getOppositeAxis(getSideAxis(placement));
-}
-function getAlignmentSides(placement, rects, rtl) {
-  if (rtl === undefined) {
-    rtl = false;
-  }
-  const alignment = getAlignment(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const length = getAxisLength(alignmentAxis);
-  let mainAlignmentSide = alignmentAxis === "x" ? alignment === (rtl ? "end" : "start") ? "right" : "left" : alignment === "start" ? "bottom" : "top";
-  if (rects.reference[length] > rects.floating[length]) {
-    mainAlignmentSide = getOppositePlacement(mainAlignmentSide);
-  }
-  return [mainAlignmentSide, getOppositePlacement(mainAlignmentSide)];
-}
-function getExpandedPlacements(placement) {
-  const oppositePlacement = getOppositePlacement(placement);
-  return [getOppositeAlignmentPlacement(placement), oppositePlacement, getOppositeAlignmentPlacement(oppositePlacement)];
-}
-function getOppositeAlignmentPlacement(placement) {
-  return placement.replace(/start|end/g, (alignment) => oppositeAlignmentMap[alignment]);
-}
-function getSideList(side, isStart, rtl) {
-  switch (side) {
-    case "top":
-    case "bottom":
-      if (rtl)
-        return isStart ? rlPlacement : lrPlacement;
-      return isStart ? lrPlacement : rlPlacement;
-    case "left":
-    case "right":
-      return isStart ? tbPlacement : btPlacement;
-    default:
-      return [];
-  }
-}
-function getOppositeAxisPlacements(placement, flipAlignment, direction, rtl) {
-  const alignment = getAlignment(placement);
-  let list = getSideList(getSide(placement), direction === "start", rtl);
-  if (alignment) {
-    list = list.map((side) => side + "-" + alignment);
-    if (flipAlignment) {
-      list = list.concat(list.map(getOppositeAlignmentPlacement));
-    }
-  }
-  return list;
-}
-function getOppositePlacement(placement) {
-  return placement.replace(/left|right|bottom|top/g, (side) => oppositeSideMap[side]);
-}
-function expandPaddingObject(padding) {
-  return {
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    ...padding
-  };
-}
-function getPaddingObject(padding) {
-  return typeof padding !== "number" ? expandPaddingObject(padding) : {
-    top: padding,
-    right: padding,
-    bottom: padding,
-    left: padding
-  };
-}
-function rectToClientRect(rect) {
-  const {
-    x,
-    y,
-    width,
-    height
-  } = rect;
-  return {
-    width,
-    height,
-    top: y,
-    left: x,
-    right: x + width,
-    bottom: y + height,
-    x,
-    y
-  };
-}
-var sides, min, max, round, floor, createCoords = (v) => ({
-  x: v,
-  y: v
-}), oppositeSideMap, oppositeAlignmentMap, yAxisSides, lrPlacement, rlPlacement, tbPlacement, btPlacement;
-var init_floating_ui_utils = __esm(() => {
-  sides = ["top", "right", "bottom", "left"];
-  min = Math.min;
-  max = Math.max;
-  round = Math.round;
-  floor = Math.floor;
-  oppositeSideMap = {
-    left: "right",
-    right: "left",
-    bottom: "top",
-    top: "bottom"
-  };
-  oppositeAlignmentMap = {
-    start: "end",
-    end: "start"
-  };
-  yAxisSides = /* @__PURE__ */ new Set(["top", "bottom"]);
-  lrPlacement = ["left", "right"];
-  rlPlacement = ["right", "left"];
-  tbPlacement = ["top", "bottom"];
-  btPlacement = ["bottom", "top"];
-});
-
-// node_modules/@floating-ui/core/dist/floating-ui.core.mjs
-function computeCoordsFromPlacement(_ref, placement, rtl) {
-  let {
-    reference,
-    floating
-  } = _ref;
-  const sideAxis = getSideAxis(placement);
-  const alignmentAxis = getAlignmentAxis(placement);
-  const alignLength = getAxisLength(alignmentAxis);
-  const side = getSide(placement);
-  const isVertical = sideAxis === "y";
-  const commonX = reference.x + reference.width / 2 - floating.width / 2;
-  const commonY = reference.y + reference.height / 2 - floating.height / 2;
-  const commonAlign = reference[alignLength] / 2 - floating[alignLength] / 2;
-  let coords;
-  switch (side) {
-    case "top":
-      coords = {
-        x: commonX,
-        y: reference.y - floating.height
-      };
-      break;
-    case "bottom":
-      coords = {
-        x: commonX,
-        y: reference.y + reference.height
-      };
-      break;
-    case "right":
-      coords = {
-        x: reference.x + reference.width,
-        y: commonY
-      };
-      break;
-    case "left":
-      coords = {
-        x: reference.x - floating.width,
-        y: commonY
-      };
-      break;
-    default:
-      coords = {
-        x: reference.x,
-        y: reference.y
-      };
-  }
-  switch (getAlignment(placement)) {
-    case "start":
-      coords[alignmentAxis] -= commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-    case "end":
-      coords[alignmentAxis] += commonAlign * (rtl && isVertical ? -1 : 1);
-      break;
-  }
-  return coords;
-}
-async function detectOverflow(state, options2) {
-  var _await$platform$isEle;
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  const {
-    x,
-    y,
-    platform,
-    rects,
-    elements,
-    strategy
-  } = state;
-  const {
-    boundary = "clippingAncestors",
-    rootBoundary = "viewport",
-    elementContext = "floating",
-    altBoundary = false,
-    padding = 0
-  } = evaluate(options2, state);
-  const paddingObject = getPaddingObject(padding);
-  const altContext = elementContext === "floating" ? "reference" : "floating";
-  const element = elements[altBoundary ? altContext : elementContext];
-  const clippingClientRect = rectToClientRect(await platform.getClippingRect({
-    element: ((_await$platform$isEle = await (platform.isElement == null ? undefined : platform.isElement(element))) != null ? _await$platform$isEle : true) ? element : element.contextElement || await (platform.getDocumentElement == null ? undefined : platform.getDocumentElement(elements.floating)),
-    boundary,
-    rootBoundary,
-    strategy
-  }));
-  const rect = elementContext === "floating" ? {
-    x,
-    y,
-    width: rects.floating.width,
-    height: rects.floating.height
-  } : rects.reference;
-  const offsetParent = await (platform.getOffsetParent == null ? undefined : platform.getOffsetParent(elements.floating));
-  const offsetScale = await (platform.isElement == null ? undefined : platform.isElement(offsetParent)) ? await (platform.getScale == null ? undefined : platform.getScale(offsetParent)) || {
-    x: 1,
-    y: 1
-  } : {
-    x: 1,
-    y: 1
-  };
-  const elementClientRect = rectToClientRect(platform.convertOffsetParentRelativeRectToViewportRelativeRect ? await platform.convertOffsetParentRelativeRectToViewportRelativeRect({
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  }) : rect);
-  return {
-    top: (clippingClientRect.top - elementClientRect.top + paddingObject.top) / offsetScale.y,
-    bottom: (elementClientRect.bottom - clippingClientRect.bottom + paddingObject.bottom) / offsetScale.y,
-    left: (clippingClientRect.left - elementClientRect.left + paddingObject.left) / offsetScale.x,
-    right: (elementClientRect.right - clippingClientRect.right + paddingObject.right) / offsetScale.x
-  };
-}
-function getSideOffsets(overflow, rect) {
-  return {
-    top: overflow.top - rect.height,
-    right: overflow.right - rect.width,
-    bottom: overflow.bottom - rect.height,
-    left: overflow.left - rect.width
-  };
-}
-function isAnySideFullyClipped(overflow) {
-  return sides.some((side) => overflow[side] >= 0);
-}
-async function convertValueToCoords(state, options2) {
-  const {
-    placement,
-    platform,
-    elements
-  } = state;
-  const rtl = await (platform.isRTL == null ? undefined : platform.isRTL(elements.floating));
-  const side = getSide(placement);
-  const alignment = getAlignment(placement);
-  const isVertical = getSideAxis(placement) === "y";
-  const mainAxisMulti = originSides.has(side) ? -1 : 1;
-  const crossAxisMulti = rtl && isVertical ? -1 : 1;
-  const rawValue = evaluate(options2, state);
-  let {
-    mainAxis,
-    crossAxis,
-    alignmentAxis
-  } = typeof rawValue === "number" ? {
-    mainAxis: rawValue,
-    crossAxis: 0,
-    alignmentAxis: null
-  } : {
-    mainAxis: rawValue.mainAxis || 0,
-    crossAxis: rawValue.crossAxis || 0,
-    alignmentAxis: rawValue.alignmentAxis
-  };
-  if (alignment && typeof alignmentAxis === "number") {
-    crossAxis = alignment === "end" ? alignmentAxis * -1 : alignmentAxis;
-  }
-  return isVertical ? {
-    x: crossAxis * crossAxisMulti,
-    y: mainAxis * mainAxisMulti
-  } : {
-    x: mainAxis * mainAxisMulti,
-    y: crossAxis * crossAxisMulti
-  };
-}
-var computePosition = async (reference, floating, config) => {
-  const {
-    placement = "bottom",
-    strategy = "absolute",
-    middleware = [],
-    platform
-  } = config;
-  const validMiddleware = middleware.filter(Boolean);
-  const rtl = await (platform.isRTL == null ? undefined : platform.isRTL(floating));
-  let rects = await platform.getElementRects({
-    reference,
-    floating,
-    strategy
-  });
-  let {
-    x,
-    y
-  } = computeCoordsFromPlacement(rects, placement, rtl);
-  let statefulPlacement = placement;
-  let middlewareData = {};
-  let resetCount = 0;
-  for (let i = 0;i < validMiddleware.length; i++) {
-    const {
-      name,
-      fn
-    } = validMiddleware[i];
-    const {
-      x: nextX,
-      y: nextY,
-      data,
-      reset
-    } = await fn({
-      x,
-      y,
-      initialPlacement: placement,
-      placement: statefulPlacement,
-      strategy,
-      middlewareData,
-      rects,
-      platform,
-      elements: {
-        reference,
-        floating
-      }
-    });
-    x = nextX != null ? nextX : x;
-    y = nextY != null ? nextY : y;
-    middlewareData = {
-      ...middlewareData,
-      [name]: {
-        ...middlewareData[name],
-        ...data
-      }
-    };
-    if (reset && resetCount <= 50) {
-      resetCount++;
-      if (typeof reset === "object") {
-        if (reset.placement) {
-          statefulPlacement = reset.placement;
-        }
-        if (reset.rects) {
-          rects = reset.rects === true ? await platform.getElementRects({
-            reference,
-            floating,
-            strategy
-          }) : reset.rects;
-        }
-        ({
-          x,
-          y
-        } = computeCoordsFromPlacement(rects, statefulPlacement, rtl));
-      }
-      i = -1;
-    }
-  }
-  return {
-    x,
-    y,
-    placement: statefulPlacement,
-    strategy,
-    middlewareData
-  };
-}, arrow = (options2) => ({
-  name: "arrow",
-  options: options2,
-  async fn(state) {
-    const {
-      x,
-      y,
-      placement,
-      rects,
-      platform,
-      elements,
-      middlewareData
-    } = state;
-    const {
-      element,
-      padding = 0
-    } = evaluate(options2, state) || {};
-    if (element == null) {
-      return {};
-    }
-    const paddingObject = getPaddingObject(padding);
-    const coords = {
-      x,
-      y
-    };
-    const axis = getAlignmentAxis(placement);
-    const length = getAxisLength(axis);
-    const arrowDimensions = await platform.getDimensions(element);
-    const isYAxis = axis === "y";
-    const minProp = isYAxis ? "top" : "left";
-    const maxProp = isYAxis ? "bottom" : "right";
-    const clientProp = isYAxis ? "clientHeight" : "clientWidth";
-    const endDiff = rects.reference[length] + rects.reference[axis] - coords[axis] - rects.floating[length];
-    const startDiff = coords[axis] - rects.reference[axis];
-    const arrowOffsetParent = await (platform.getOffsetParent == null ? undefined : platform.getOffsetParent(element));
-    let clientSize = arrowOffsetParent ? arrowOffsetParent[clientProp] : 0;
-    if (!clientSize || !await (platform.isElement == null ? undefined : platform.isElement(arrowOffsetParent))) {
-      clientSize = elements.floating[clientProp] || rects.floating[length];
-    }
-    const centerToReference = endDiff / 2 - startDiff / 2;
-    const largestPossiblePadding = clientSize / 2 - arrowDimensions[length] / 2 - 1;
-    const minPadding = min(paddingObject[minProp], largestPossiblePadding);
-    const maxPadding = min(paddingObject[maxProp], largestPossiblePadding);
-    const min$1 = minPadding;
-    const max2 = clientSize - arrowDimensions[length] - maxPadding;
-    const center = clientSize / 2 - arrowDimensions[length] / 2 + centerToReference;
-    const offset = clamp2(min$1, center, max2);
-    const shouldAddOffset = !middlewareData.arrow && getAlignment(placement) != null && center !== offset && rects.reference[length] / 2 - (center < min$1 ? minPadding : maxPadding) - arrowDimensions[length] / 2 < 0;
-    const alignmentOffset = shouldAddOffset ? center < min$1 ? center - min$1 : center - max2 : 0;
-    return {
-      [axis]: coords[axis] + alignmentOffset,
-      data: {
-        [axis]: offset,
-        centerOffset: center - offset - alignmentOffset,
-        ...shouldAddOffset && {
-          alignmentOffset
-        }
-      },
-      reset: shouldAddOffset
-    };
-  }
-}), flip = function(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  return {
-    name: "flip",
-    options: options2,
-    async fn(state) {
-      var _middlewareData$arrow, _middlewareData$flip;
-      const {
-        placement,
-        middlewareData,
-        rects,
-        initialPlacement,
-        platform,
-        elements
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true,
-        fallbackPlacements: specifiedFallbackPlacements,
-        fallbackStrategy = "bestFit",
-        fallbackAxisSideDirection = "none",
-        flipAlignment = true,
-        ...detectOverflowOptions
-      } = evaluate(options2, state);
-      if ((_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      const side = getSide(placement);
-      const initialSideAxis = getSideAxis(initialPlacement);
-      const isBasePlacement = getSide(initialPlacement) === initialPlacement;
-      const rtl = await (platform.isRTL == null ? undefined : platform.isRTL(elements.floating));
-      const fallbackPlacements = specifiedFallbackPlacements || (isBasePlacement || !flipAlignment ? [getOppositePlacement(initialPlacement)] : getExpandedPlacements(initialPlacement));
-      const hasFallbackAxisSideDirection = fallbackAxisSideDirection !== "none";
-      if (!specifiedFallbackPlacements && hasFallbackAxisSideDirection) {
-        fallbackPlacements.push(...getOppositeAxisPlacements(initialPlacement, flipAlignment, fallbackAxisSideDirection, rtl));
-      }
-      const placements2 = [initialPlacement, ...fallbackPlacements];
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const overflows = [];
-      let overflowsData = ((_middlewareData$flip = middlewareData.flip) == null ? undefined : _middlewareData$flip.overflows) || [];
-      if (checkMainAxis) {
-        overflows.push(overflow[side]);
-      }
-      if (checkCrossAxis) {
-        const sides2 = getAlignmentSides(placement, rects, rtl);
-        overflows.push(overflow[sides2[0]], overflow[sides2[1]]);
-      }
-      overflowsData = [...overflowsData, {
-        placement,
-        overflows
-      }];
-      if (!overflows.every((side2) => side2 <= 0)) {
-        var _middlewareData$flip2, _overflowsData$filter;
-        const nextIndex = (((_middlewareData$flip2 = middlewareData.flip) == null ? undefined : _middlewareData$flip2.index) || 0) + 1;
-        const nextPlacement = placements2[nextIndex];
-        if (nextPlacement) {
-          const ignoreCrossAxisOverflow = checkCrossAxis === "alignment" ? initialSideAxis !== getSideAxis(nextPlacement) : false;
-          if (!ignoreCrossAxisOverflow || overflowsData.every((d) => getSideAxis(d.placement) === initialSideAxis ? d.overflows[0] > 0 : true)) {
-            return {
-              data: {
-                index: nextIndex,
-                overflows: overflowsData
-              },
-              reset: {
-                placement: nextPlacement
-              }
-            };
-          }
-        }
-        let resetPlacement = (_overflowsData$filter = overflowsData.filter((d) => d.overflows[0] <= 0).sort((a, b) => a.overflows[1] - b.overflows[1])[0]) == null ? undefined : _overflowsData$filter.placement;
-        if (!resetPlacement) {
-          switch (fallbackStrategy) {
-            case "bestFit": {
-              var _overflowsData$filter2;
-              const placement2 = (_overflowsData$filter2 = overflowsData.filter((d) => {
-                if (hasFallbackAxisSideDirection) {
-                  const currentSideAxis = getSideAxis(d.placement);
-                  return currentSideAxis === initialSideAxis || currentSideAxis === "y";
-                }
-                return true;
-              }).map((d) => [d.placement, d.overflows.filter((overflow2) => overflow2 > 0).reduce((acc, overflow2) => acc + overflow2, 0)]).sort((a, b) => a[1] - b[1])[0]) == null ? undefined : _overflowsData$filter2[0];
-              if (placement2) {
-                resetPlacement = placement2;
-              }
-              break;
-            }
-            case "initialPlacement":
-              resetPlacement = initialPlacement;
-              break;
-          }
-        }
-        if (placement !== resetPlacement) {
-          return {
-            reset: {
-              placement: resetPlacement
-            }
-          };
-        }
-      }
-      return {};
-    }
-  };
-}, hide = function(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  return {
-    name: "hide",
-    options: options2,
-    async fn(state) {
-      const {
-        rects
-      } = state;
-      const {
-        strategy = "referenceHidden",
-        ...detectOverflowOptions
-      } = evaluate(options2, state);
-      switch (strategy) {
-        case "referenceHidden": {
-          const overflow = await detectOverflow(state, {
-            ...detectOverflowOptions,
-            elementContext: "reference"
-          });
-          const offsets = getSideOffsets(overflow, rects.reference);
-          return {
-            data: {
-              referenceHiddenOffsets: offsets,
-              referenceHidden: isAnySideFullyClipped(offsets)
-            }
-          };
-        }
-        case "escaped": {
-          const overflow = await detectOverflow(state, {
-            ...detectOverflowOptions,
-            altBoundary: true
-          });
-          const offsets = getSideOffsets(overflow, rects.floating);
-          return {
-            data: {
-              escapedOffsets: offsets,
-              escaped: isAnySideFullyClipped(offsets)
-            }
-          };
-        }
-        default: {
-          return {};
-        }
-      }
-    }
-  };
-}, originSides, offset = function(options2) {
-  if (options2 === undefined) {
-    options2 = 0;
-  }
-  return {
-    name: "offset",
-    options: options2,
-    async fn(state) {
-      var _middlewareData$offse, _middlewareData$arrow;
-      const {
-        x,
-        y,
-        placement,
-        middlewareData
-      } = state;
-      const diffCoords = await convertValueToCoords(state, options2);
-      if (placement === ((_middlewareData$offse = middlewareData.offset) == null ? undefined : _middlewareData$offse.placement) && (_middlewareData$arrow = middlewareData.arrow) != null && _middlewareData$arrow.alignmentOffset) {
-        return {};
-      }
-      return {
-        x: x + diffCoords.x,
-        y: y + diffCoords.y,
-        data: {
-          ...diffCoords,
-          placement
-        }
-      };
-    }
-  };
-}, shift = function(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  return {
-    name: "shift",
-    options: options2,
-    async fn(state) {
-      const {
-        x,
-        y,
-        placement
-      } = state;
-      const {
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = false,
-        limiter = {
-          fn: (_ref) => {
-            let {
-              x: x2,
-              y: y2
-            } = _ref;
-            return {
-              x: x2,
-              y: y2
-            };
-          }
-        },
-        ...detectOverflowOptions
-      } = evaluate(options2, state);
-      const coords = {
-        x,
-        y
-      };
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const crossAxis = getSideAxis(getSide(placement));
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      if (checkMainAxis) {
-        const minSide = mainAxis === "y" ? "top" : "left";
-        const maxSide = mainAxis === "y" ? "bottom" : "right";
-        const min2 = mainAxisCoord + overflow[minSide];
-        const max2 = mainAxisCoord - overflow[maxSide];
-        mainAxisCoord = clamp2(min2, mainAxisCoord, max2);
-      }
-      if (checkCrossAxis) {
-        const minSide = crossAxis === "y" ? "top" : "left";
-        const maxSide = crossAxis === "y" ? "bottom" : "right";
-        const min2 = crossAxisCoord + overflow[minSide];
-        const max2 = crossAxisCoord - overflow[maxSide];
-        crossAxisCoord = clamp2(min2, crossAxisCoord, max2);
-      }
-      const limitedCoords = limiter.fn({
-        ...state,
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      });
-      return {
-        ...limitedCoords,
-        data: {
-          x: limitedCoords.x - x,
-          y: limitedCoords.y - y,
-          enabled: {
-            [mainAxis]: checkMainAxis,
-            [crossAxis]: checkCrossAxis
-          }
-        }
-      };
-    }
-  };
-}, limitShift = function(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  return {
-    options: options2,
-    fn(state) {
-      const {
-        x,
-        y,
-        placement,
-        rects,
-        middlewareData
-      } = state;
-      const {
-        offset: offset2 = 0,
-        mainAxis: checkMainAxis = true,
-        crossAxis: checkCrossAxis = true
-      } = evaluate(options2, state);
-      const coords = {
-        x,
-        y
-      };
-      const crossAxis = getSideAxis(placement);
-      const mainAxis = getOppositeAxis(crossAxis);
-      let mainAxisCoord = coords[mainAxis];
-      let crossAxisCoord = coords[crossAxis];
-      const rawOffset = evaluate(offset2, state);
-      const computedOffset = typeof rawOffset === "number" ? {
-        mainAxis: rawOffset,
-        crossAxis: 0
-      } : {
-        mainAxis: 0,
-        crossAxis: 0,
-        ...rawOffset
-      };
-      if (checkMainAxis) {
-        const len = mainAxis === "y" ? "height" : "width";
-        const limitMin = rects.reference[mainAxis] - rects.floating[len] + computedOffset.mainAxis;
-        const limitMax = rects.reference[mainAxis] + rects.reference[len] - computedOffset.mainAxis;
-        if (mainAxisCoord < limitMin) {
-          mainAxisCoord = limitMin;
-        } else if (mainAxisCoord > limitMax) {
-          mainAxisCoord = limitMax;
-        }
-      }
-      if (checkCrossAxis) {
-        var _middlewareData$offse, _middlewareData$offse2;
-        const len = mainAxis === "y" ? "width" : "height";
-        const isOriginSide = originSides.has(getSide(placement));
-        const limitMin = rects.reference[crossAxis] - rects.floating[len] + (isOriginSide ? ((_middlewareData$offse = middlewareData.offset) == null ? undefined : _middlewareData$offse[crossAxis]) || 0 : 0) + (isOriginSide ? 0 : computedOffset.crossAxis);
-        const limitMax = rects.reference[crossAxis] + rects.reference[len] + (isOriginSide ? 0 : ((_middlewareData$offse2 = middlewareData.offset) == null ? undefined : _middlewareData$offse2[crossAxis]) || 0) - (isOriginSide ? computedOffset.crossAxis : 0);
-        if (crossAxisCoord < limitMin) {
-          crossAxisCoord = limitMin;
-        } else if (crossAxisCoord > limitMax) {
-          crossAxisCoord = limitMax;
-        }
-      }
-      return {
-        [mainAxis]: mainAxisCoord,
-        [crossAxis]: crossAxisCoord
-      };
-    }
-  };
-}, size = function(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  return {
-    name: "size",
-    options: options2,
-    async fn(state) {
-      var _state$middlewareData, _state$middlewareData2;
-      const {
-        placement,
-        rects,
-        platform,
-        elements
-      } = state;
-      const {
-        apply = () => {},
-        ...detectOverflowOptions
-      } = evaluate(options2, state);
-      const overflow = await detectOverflow(state, detectOverflowOptions);
-      const side = getSide(placement);
-      const alignment = getAlignment(placement);
-      const isYAxis = getSideAxis(placement) === "y";
-      const {
-        width,
-        height
-      } = rects.floating;
-      let heightSide;
-      let widthSide;
-      if (side === "top" || side === "bottom") {
-        heightSide = side;
-        widthSide = alignment === (await (platform.isRTL == null ? undefined : platform.isRTL(elements.floating)) ? "start" : "end") ? "left" : "right";
-      } else {
-        widthSide = side;
-        heightSide = alignment === "end" ? "top" : "bottom";
-      }
-      const maximumClippingHeight = height - overflow.top - overflow.bottom;
-      const maximumClippingWidth = width - overflow.left - overflow.right;
-      const overflowAvailableHeight = min(height - overflow[heightSide], maximumClippingHeight);
-      const overflowAvailableWidth = min(width - overflow[widthSide], maximumClippingWidth);
-      const noShift = !state.middlewareData.shift;
-      let availableHeight = overflowAvailableHeight;
-      let availableWidth = overflowAvailableWidth;
-      if ((_state$middlewareData = state.middlewareData.shift) != null && _state$middlewareData.enabled.x) {
-        availableWidth = maximumClippingWidth;
-      }
-      if ((_state$middlewareData2 = state.middlewareData.shift) != null && _state$middlewareData2.enabled.y) {
-        availableHeight = maximumClippingHeight;
-      }
-      if (noShift && !alignment) {
-        const xMin = max(overflow.left, 0);
-        const xMax = max(overflow.right, 0);
-        const yMin = max(overflow.top, 0);
-        const yMax = max(overflow.bottom, 0);
-        if (isYAxis) {
-          availableWidth = width - 2 * (xMin !== 0 || xMax !== 0 ? xMin + xMax : max(overflow.left, overflow.right));
-        } else {
-          availableHeight = height - 2 * (yMin !== 0 || yMax !== 0 ? yMin + yMax : max(overflow.top, overflow.bottom));
-        }
-      }
-      await apply({
-        ...state,
-        availableWidth,
-        availableHeight
-      });
-      const nextDimensions = await platform.getDimensions(elements.floating);
-      if (width !== nextDimensions.width || height !== nextDimensions.height) {
-        return {
-          reset: {
-            rects: true
-          }
-        };
-      }
-      return {};
-    }
-  };
-};
-var init_floating_ui_core = __esm(() => {
-  init_floating_ui_utils();
-  init_floating_ui_utils();
-  originSides = /* @__PURE__ */ new Set(["left", "top"]);
-});
-
-// node_modules/@floating-ui/utils/dist/floating-ui.utils.dom.mjs
-function hasWindow() {
-  return typeof window !== "undefined";
-}
-function getNodeName(node) {
-  if (isNode(node)) {
-    return (node.nodeName || "").toLowerCase();
-  }
-  return "#document";
-}
-function getWindow(node) {
-  var _node$ownerDocument;
-  return (node == null || (_node$ownerDocument = node.ownerDocument) == null ? undefined : _node$ownerDocument.defaultView) || window;
-}
-function getDocumentElement(node) {
-  var _ref;
-  return (_ref = (isNode(node) ? node.ownerDocument : node.document) || window.document) == null ? undefined : _ref.documentElement;
-}
-function isNode(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Node || value instanceof getWindow(value).Node;
-}
-function isElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof Element || value instanceof getWindow(value).Element;
-}
-function isHTMLElement(value) {
-  if (!hasWindow()) {
-    return false;
-  }
-  return value instanceof HTMLElement || value instanceof getWindow(value).HTMLElement;
-}
-function isShadowRoot(value) {
-  if (!hasWindow() || typeof ShadowRoot === "undefined") {
-    return false;
-  }
-  return value instanceof ShadowRoot || value instanceof getWindow(value).ShadowRoot;
-}
-function isOverflowElement(element) {
-  const {
-    overflow,
-    overflowX,
-    overflowY,
-    display
-  } = getComputedStyle2(element);
-  return /auto|scroll|overlay|hidden|clip/.test(overflow + overflowY + overflowX) && !invalidOverflowDisplayValues.has(display);
-}
-function isTableElement(element) {
-  return tableElements.has(getNodeName(element));
-}
-function isTopLayer(element) {
-  return topLayerSelectors.some((selector) => {
-    try {
-      return element.matches(selector);
-    } catch (_e) {
-      return false;
-    }
-  });
-}
-function isContainingBlock(elementOrCss) {
-  const webkit = isWebKit();
-  const css = isElement(elementOrCss) ? getComputedStyle2(elementOrCss) : elementOrCss;
-  return transformProperties.some((value) => css[value] ? css[value] !== "none" : false) || (css.containerType ? css.containerType !== "normal" : false) || !webkit && (css.backdropFilter ? css.backdropFilter !== "none" : false) || !webkit && (css.filter ? css.filter !== "none" : false) || willChangeValues.some((value) => (css.willChange || "").includes(value)) || containValues.some((value) => (css.contain || "").includes(value));
-}
-function getContainingBlock(element) {
-  let currentNode = getParentNode(element);
-  while (isHTMLElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    if (isContainingBlock(currentNode)) {
-      return currentNode;
-    } else if (isTopLayer(currentNode)) {
-      return null;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  return null;
-}
-function isWebKit() {
-  if (typeof CSS === "undefined" || !CSS.supports)
-    return false;
-  return CSS.supports("-webkit-backdrop-filter", "none");
-}
-function isLastTraversableNode(node) {
-  return lastTraversableNodeNames.has(getNodeName(node));
-}
-function getComputedStyle2(element) {
-  return getWindow(element).getComputedStyle(element);
-}
-function getNodeScroll(element) {
-  if (isElement(element)) {
-    return {
-      scrollLeft: element.scrollLeft,
-      scrollTop: element.scrollTop
-    };
-  }
-  return {
-    scrollLeft: element.scrollX,
-    scrollTop: element.scrollY
-  };
-}
-function getParentNode(node) {
-  if (getNodeName(node) === "html") {
-    return node;
-  }
-  const result = node.assignedSlot || node.parentNode || isShadowRoot(node) && node.host || getDocumentElement(node);
-  return isShadowRoot(result) ? result.host : result;
-}
-function getNearestOverflowAncestor(node) {
-  const parentNode = getParentNode(node);
-  if (isLastTraversableNode(parentNode)) {
-    return node.ownerDocument ? node.ownerDocument.body : node.body;
-  }
-  if (isHTMLElement(parentNode) && isOverflowElement(parentNode)) {
-    return parentNode;
-  }
-  return getNearestOverflowAncestor(parentNode);
-}
-function getOverflowAncestors(node, list, traverseIframes) {
-  var _node$ownerDocument2;
-  if (list === undefined) {
-    list = [];
-  }
-  if (traverseIframes === undefined) {
-    traverseIframes = true;
-  }
-  const scrollableAncestor = getNearestOverflowAncestor(node);
-  const isBody = scrollableAncestor === ((_node$ownerDocument2 = node.ownerDocument) == null ? undefined : _node$ownerDocument2.body);
-  const win = getWindow(scrollableAncestor);
-  if (isBody) {
-    const frameElement = getFrameElement(win);
-    return list.concat(win, win.visualViewport || [], isOverflowElement(scrollableAncestor) ? scrollableAncestor : [], frameElement && traverseIframes ? getOverflowAncestors(frameElement) : []);
-  }
-  return list.concat(scrollableAncestor, getOverflowAncestors(scrollableAncestor, [], traverseIframes));
-}
-function getFrameElement(win) {
-  return win.parent && Object.getPrototypeOf(win.parent) ? win.frameElement : null;
-}
-var invalidOverflowDisplayValues, tableElements, topLayerSelectors, transformProperties, willChangeValues, containValues, lastTraversableNodeNames;
-var init_floating_ui_utils_dom = __esm(() => {
-  invalidOverflowDisplayValues = /* @__PURE__ */ new Set(["inline", "contents"]);
-  tableElements = /* @__PURE__ */ new Set(["table", "td", "th"]);
-  topLayerSelectors = [":popover-open", ":modal"];
-  transformProperties = ["transform", "translate", "scale", "rotate", "perspective"];
-  willChangeValues = ["transform", "translate", "scale", "rotate", "perspective", "filter"];
-  containValues = ["paint", "layout", "strict", "content"];
-  lastTraversableNodeNames = /* @__PURE__ */ new Set(["html", "body", "#document"]);
-});
-
-// node_modules/@floating-ui/dom/dist/floating-ui.dom.mjs
-function getCssDimensions(element) {
-  const css = getComputedStyle2(element);
-  let width = parseFloat(css.width) || 0;
-  let height = parseFloat(css.height) || 0;
-  const hasOffset = isHTMLElement(element);
-  const offsetWidth = hasOffset ? element.offsetWidth : width;
-  const offsetHeight = hasOffset ? element.offsetHeight : height;
-  const shouldFallback = round(width) !== offsetWidth || round(height) !== offsetHeight;
-  if (shouldFallback) {
-    width = offsetWidth;
-    height = offsetHeight;
-  }
-  return {
-    width,
-    height,
-    $: shouldFallback
-  };
-}
-function unwrapElement(element) {
-  return !isElement(element) ? element.contextElement : element;
-}
-function getScale(element) {
-  const domElement = unwrapElement(element);
-  if (!isHTMLElement(domElement)) {
-    return createCoords(1);
-  }
-  const rect = domElement.getBoundingClientRect();
-  const {
-    width,
-    height,
-    $
-  } = getCssDimensions(domElement);
-  let x = ($ ? round(rect.width) : rect.width) / width;
-  let y = ($ ? round(rect.height) : rect.height) / height;
-  if (!x || !Number.isFinite(x)) {
-    x = 1;
-  }
-  if (!y || !Number.isFinite(y)) {
-    y = 1;
-  }
-  return {
-    x,
-    y
-  };
-}
-function getVisualOffsets(element) {
-  const win = getWindow(element);
-  if (!isWebKit() || !win.visualViewport) {
-    return noOffsets;
-  }
-  return {
-    x: win.visualViewport.offsetLeft,
-    y: win.visualViewport.offsetTop
-  };
-}
-function shouldAddVisualOffsets(element, isFixed, floatingOffsetParent) {
-  if (isFixed === undefined) {
-    isFixed = false;
-  }
-  if (!floatingOffsetParent || isFixed && floatingOffsetParent !== getWindow(element)) {
-    return false;
-  }
-  return isFixed;
-}
-function getBoundingClientRect(element, includeScale, isFixedStrategy, offsetParent) {
-  if (includeScale === undefined) {
-    includeScale = false;
-  }
-  if (isFixedStrategy === undefined) {
-    isFixedStrategy = false;
-  }
-  const clientRect = element.getBoundingClientRect();
-  const domElement = unwrapElement(element);
-  let scale = createCoords(1);
-  if (includeScale) {
-    if (offsetParent) {
-      if (isElement(offsetParent)) {
-        scale = getScale(offsetParent);
-      }
-    } else {
-      scale = getScale(element);
-    }
-  }
-  const visualOffsets = shouldAddVisualOffsets(domElement, isFixedStrategy, offsetParent) ? getVisualOffsets(domElement) : createCoords(0);
-  let x = (clientRect.left + visualOffsets.x) / scale.x;
-  let y = (clientRect.top + visualOffsets.y) / scale.y;
-  let width = clientRect.width / scale.x;
-  let height = clientRect.height / scale.y;
-  if (domElement) {
-    const win = getWindow(domElement);
-    const offsetWin = offsetParent && isElement(offsetParent) ? getWindow(offsetParent) : offsetParent;
-    let currentWin = win;
-    let currentIFrame = getFrameElement(currentWin);
-    while (currentIFrame && offsetParent && offsetWin !== currentWin) {
-      const iframeScale = getScale(currentIFrame);
-      const iframeRect = currentIFrame.getBoundingClientRect();
-      const css = getComputedStyle2(currentIFrame);
-      const left = iframeRect.left + (currentIFrame.clientLeft + parseFloat(css.paddingLeft)) * iframeScale.x;
-      const top = iframeRect.top + (currentIFrame.clientTop + parseFloat(css.paddingTop)) * iframeScale.y;
-      x *= iframeScale.x;
-      y *= iframeScale.y;
-      width *= iframeScale.x;
-      height *= iframeScale.y;
-      x += left;
-      y += top;
-      currentWin = getWindow(currentIFrame);
-      currentIFrame = getFrameElement(currentWin);
-    }
-  }
-  return rectToClientRect({
-    width,
-    height,
-    x,
-    y
-  });
-}
-function getWindowScrollBarX(element, rect) {
-  const leftScroll = getNodeScroll(element).scrollLeft;
-  if (!rect) {
-    return getBoundingClientRect(getDocumentElement(element)).left + leftScroll;
-  }
-  return rect.left + leftScroll;
-}
-function getHTMLOffset(documentElement, scroll) {
-  const htmlRect = documentElement.getBoundingClientRect();
-  const x = htmlRect.left + scroll.scrollLeft - getWindowScrollBarX(documentElement, htmlRect);
-  const y = htmlRect.top + scroll.scrollTop;
-  return {
-    x,
-    y
-  };
-}
-function convertOffsetParentRelativeRectToViewportRelativeRect(_ref) {
-  let {
-    elements,
-    rect,
-    offsetParent,
-    strategy
-  } = _ref;
-  const isFixed = strategy === "fixed";
-  const documentElement = getDocumentElement(offsetParent);
-  const topLayer = elements ? isTopLayer(elements.floating) : false;
-  if (offsetParent === documentElement || topLayer && isFixed) {
-    return rect;
-  }
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  let scale = createCoords(1);
-  const offsets = createCoords(0);
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isHTMLElement(offsetParent)) {
-      const offsetRect = getBoundingClientRect(offsetParent);
-      scale = getScale(offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    }
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  return {
-    width: rect.width * scale.x,
-    height: rect.height * scale.y,
-    x: rect.x * scale.x - scroll.scrollLeft * scale.x + offsets.x + htmlOffset.x,
-    y: rect.y * scale.y - scroll.scrollTop * scale.y + offsets.y + htmlOffset.y
-  };
-}
-function getClientRects(element) {
-  return Array.from(element.getClientRects());
-}
-function getDocumentRect(element) {
-  const html = getDocumentElement(element);
-  const scroll = getNodeScroll(element);
-  const body = element.ownerDocument.body;
-  const width = max(html.scrollWidth, html.clientWidth, body.scrollWidth, body.clientWidth);
-  const height = max(html.scrollHeight, html.clientHeight, body.scrollHeight, body.clientHeight);
-  let x = -scroll.scrollLeft + getWindowScrollBarX(element);
-  const y = -scroll.scrollTop;
-  if (getComputedStyle2(body).direction === "rtl") {
-    x += max(html.clientWidth, body.clientWidth) - width;
-  }
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-function getViewportRect(element, strategy) {
-  const win = getWindow(element);
-  const html = getDocumentElement(element);
-  const visualViewport = win.visualViewport;
-  let width = html.clientWidth;
-  let height = html.clientHeight;
-  let x = 0;
-  let y = 0;
-  if (visualViewport) {
-    width = visualViewport.width;
-    height = visualViewport.height;
-    const visualViewportBased = isWebKit();
-    if (!visualViewportBased || visualViewportBased && strategy === "fixed") {
-      x = visualViewport.offsetLeft;
-      y = visualViewport.offsetTop;
-    }
-  }
-  const windowScrollbarX = getWindowScrollBarX(html);
-  if (windowScrollbarX <= 0) {
-    const doc = html.ownerDocument;
-    const body = doc.body;
-    const bodyStyles = getComputedStyle(body);
-    const bodyMarginInline = doc.compatMode === "CSS1Compat" ? parseFloat(bodyStyles.marginLeft) + parseFloat(bodyStyles.marginRight) || 0 : 0;
-    const clippingStableScrollbarWidth = Math.abs(html.clientWidth - body.clientWidth - bodyMarginInline);
-    if (clippingStableScrollbarWidth <= SCROLLBAR_MAX) {
-      width -= clippingStableScrollbarWidth;
-    }
-  } else if (windowScrollbarX <= SCROLLBAR_MAX) {
-    width += windowScrollbarX;
-  }
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-function getInnerBoundingClientRect(element, strategy) {
-  const clientRect = getBoundingClientRect(element, true, strategy === "fixed");
-  const top = clientRect.top + element.clientTop;
-  const left = clientRect.left + element.clientLeft;
-  const scale = isHTMLElement(element) ? getScale(element) : createCoords(1);
-  const width = element.clientWidth * scale.x;
-  const height = element.clientHeight * scale.y;
-  const x = left * scale.x;
-  const y = top * scale.y;
-  return {
-    width,
-    height,
-    x,
-    y
-  };
-}
-function getClientRectFromClippingAncestor(element, clippingAncestor, strategy) {
-  let rect;
-  if (clippingAncestor === "viewport") {
-    rect = getViewportRect(element, strategy);
-  } else if (clippingAncestor === "document") {
-    rect = getDocumentRect(getDocumentElement(element));
-  } else if (isElement(clippingAncestor)) {
-    rect = getInnerBoundingClientRect(clippingAncestor, strategy);
-  } else {
-    const visualOffsets = getVisualOffsets(element);
-    rect = {
-      x: clippingAncestor.x - visualOffsets.x,
-      y: clippingAncestor.y - visualOffsets.y,
-      width: clippingAncestor.width,
-      height: clippingAncestor.height
-    };
-  }
-  return rectToClientRect(rect);
-}
-function hasFixedPositionAncestor(element, stopNode) {
-  const parentNode = getParentNode(element);
-  if (parentNode === stopNode || !isElement(parentNode) || isLastTraversableNode(parentNode)) {
-    return false;
-  }
-  return getComputedStyle2(parentNode).position === "fixed" || hasFixedPositionAncestor(parentNode, stopNode);
-}
-function getClippingElementAncestors(element, cache) {
-  const cachedResult = cache.get(element);
-  if (cachedResult) {
-    return cachedResult;
-  }
-  let result = getOverflowAncestors(element, [], false).filter((el) => isElement(el) && getNodeName(el) !== "body");
-  let currentContainingBlockComputedStyle = null;
-  const elementIsFixed = getComputedStyle2(element).position === "fixed";
-  let currentNode = elementIsFixed ? getParentNode(element) : element;
-  while (isElement(currentNode) && !isLastTraversableNode(currentNode)) {
-    const computedStyle = getComputedStyle2(currentNode);
-    const currentNodeIsContaining = isContainingBlock(currentNode);
-    if (!currentNodeIsContaining && computedStyle.position === "fixed") {
-      currentContainingBlockComputedStyle = null;
-    }
-    const shouldDropCurrentNode = elementIsFixed ? !currentNodeIsContaining && !currentContainingBlockComputedStyle : !currentNodeIsContaining && computedStyle.position === "static" && !!currentContainingBlockComputedStyle && absoluteOrFixed.has(currentContainingBlockComputedStyle.position) || isOverflowElement(currentNode) && !currentNodeIsContaining && hasFixedPositionAncestor(element, currentNode);
-    if (shouldDropCurrentNode) {
-      result = result.filter((ancestor) => ancestor !== currentNode);
-    } else {
-      currentContainingBlockComputedStyle = computedStyle;
-    }
-    currentNode = getParentNode(currentNode);
-  }
-  cache.set(element, result);
-  return result;
-}
-function getClippingRect(_ref) {
-  let {
-    element,
-    boundary,
-    rootBoundary,
-    strategy
-  } = _ref;
-  const elementClippingAncestors = boundary === "clippingAncestors" ? isTopLayer(element) ? [] : getClippingElementAncestors(element, this._c) : [].concat(boundary);
-  const clippingAncestors = [...elementClippingAncestors, rootBoundary];
-  const firstClippingAncestor = clippingAncestors[0];
-  const clippingRect = clippingAncestors.reduce((accRect, clippingAncestor) => {
-    const rect = getClientRectFromClippingAncestor(element, clippingAncestor, strategy);
-    accRect.top = max(rect.top, accRect.top);
-    accRect.right = min(rect.right, accRect.right);
-    accRect.bottom = min(rect.bottom, accRect.bottom);
-    accRect.left = max(rect.left, accRect.left);
-    return accRect;
-  }, getClientRectFromClippingAncestor(element, firstClippingAncestor, strategy));
-  return {
-    width: clippingRect.right - clippingRect.left,
-    height: clippingRect.bottom - clippingRect.top,
-    x: clippingRect.left,
-    y: clippingRect.top
-  };
-}
-function getDimensions(element) {
-  const {
-    width,
-    height
-  } = getCssDimensions(element);
-  return {
-    width,
-    height
-  };
-}
-function getRectRelativeToOffsetParent(element, offsetParent, strategy) {
-  const isOffsetParentAnElement = isHTMLElement(offsetParent);
-  const documentElement = getDocumentElement(offsetParent);
-  const isFixed = strategy === "fixed";
-  const rect = getBoundingClientRect(element, true, isFixed, offsetParent);
-  let scroll = {
-    scrollLeft: 0,
-    scrollTop: 0
-  };
-  const offsets = createCoords(0);
-  function setLeftRTLScrollbarOffset() {
-    offsets.x = getWindowScrollBarX(documentElement);
-  }
-  if (isOffsetParentAnElement || !isOffsetParentAnElement && !isFixed) {
-    if (getNodeName(offsetParent) !== "body" || isOverflowElement(documentElement)) {
-      scroll = getNodeScroll(offsetParent);
-    }
-    if (isOffsetParentAnElement) {
-      const offsetRect = getBoundingClientRect(offsetParent, true, isFixed, offsetParent);
-      offsets.x = offsetRect.x + offsetParent.clientLeft;
-      offsets.y = offsetRect.y + offsetParent.clientTop;
-    } else if (documentElement) {
-      setLeftRTLScrollbarOffset();
-    }
-  }
-  if (isFixed && !isOffsetParentAnElement && documentElement) {
-    setLeftRTLScrollbarOffset();
-  }
-  const htmlOffset = documentElement && !isOffsetParentAnElement && !isFixed ? getHTMLOffset(documentElement, scroll) : createCoords(0);
-  const x = rect.left + scroll.scrollLeft - offsets.x - htmlOffset.x;
-  const y = rect.top + scroll.scrollTop - offsets.y - htmlOffset.y;
-  return {
-    x,
-    y,
-    width: rect.width,
-    height: rect.height
-  };
-}
-function isStaticPositioned(element) {
-  return getComputedStyle2(element).position === "static";
-}
-function getTrueOffsetParent(element, polyfill) {
-  if (!isHTMLElement(element) || getComputedStyle2(element).position === "fixed") {
-    return null;
-  }
-  if (polyfill) {
-    return polyfill(element);
-  }
-  let rawOffsetParent = element.offsetParent;
-  if (getDocumentElement(element) === rawOffsetParent) {
-    rawOffsetParent = rawOffsetParent.ownerDocument.body;
-  }
-  return rawOffsetParent;
-}
-function getOffsetParent(element, polyfill) {
-  const win = getWindow(element);
-  if (isTopLayer(element)) {
-    return win;
-  }
-  if (!isHTMLElement(element)) {
-    let svgOffsetParent = getParentNode(element);
-    while (svgOffsetParent && !isLastTraversableNode(svgOffsetParent)) {
-      if (isElement(svgOffsetParent) && !isStaticPositioned(svgOffsetParent)) {
-        return svgOffsetParent;
-      }
-      svgOffsetParent = getParentNode(svgOffsetParent);
-    }
-    return win;
-  }
-  let offsetParent = getTrueOffsetParent(element, polyfill);
-  while (offsetParent && isTableElement(offsetParent) && isStaticPositioned(offsetParent)) {
-    offsetParent = getTrueOffsetParent(offsetParent, polyfill);
-  }
-  if (offsetParent && isLastTraversableNode(offsetParent) && isStaticPositioned(offsetParent) && !isContainingBlock(offsetParent)) {
-    return win;
-  }
-  return offsetParent || getContainingBlock(element) || win;
-}
-function isRTL(element) {
-  return getComputedStyle2(element).direction === "rtl";
-}
-function rectsAreEqual(a, b) {
-  return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
-}
-function observeMove(element, onMove) {
-  let io = null;
-  let timeoutId;
-  const root = getDocumentElement(element);
-  function cleanup() {
-    var _io;
-    clearTimeout(timeoutId);
-    (_io = io) == null || _io.disconnect();
-    io = null;
-  }
-  function refresh(skip, threshold) {
-    if (skip === undefined) {
-      skip = false;
-    }
-    if (threshold === undefined) {
-      threshold = 1;
-    }
-    cleanup();
-    const elementRectForRootMargin = element.getBoundingClientRect();
-    const {
-      left,
-      top,
-      width,
-      height
-    } = elementRectForRootMargin;
-    if (!skip) {
-      onMove();
-    }
-    if (!width || !height) {
-      return;
-    }
-    const insetTop = floor(top);
-    const insetRight = floor(root.clientWidth - (left + width));
-    const insetBottom = floor(root.clientHeight - (top + height));
-    const insetLeft = floor(left);
-    const rootMargin = -insetTop + "px " + -insetRight + "px " + -insetBottom + "px " + -insetLeft + "px";
-    const options2 = {
-      rootMargin,
-      threshold: max(0, min(1, threshold)) || 1
-    };
-    let isFirstUpdate = true;
-    function handleObserve(entries) {
-      const ratio = entries[0].intersectionRatio;
-      if (ratio !== threshold) {
-        if (!isFirstUpdate) {
-          return refresh();
-        }
-        if (!ratio) {
-          timeoutId = setTimeout(() => {
-            refresh(false, 0.0000001);
-          }, 1000);
-        } else {
-          refresh(false, ratio);
-        }
-      }
-      if (ratio === 1 && !rectsAreEqual(elementRectForRootMargin, element.getBoundingClientRect())) {
-        refresh();
-      }
-      isFirstUpdate = false;
-    }
-    try {
-      io = new IntersectionObserver(handleObserve, {
-        ...options2,
-        root: root.ownerDocument
-      });
-    } catch (_e) {
-      io = new IntersectionObserver(handleObserve, options2);
-    }
-    io.observe(element);
-  }
-  refresh(true);
-  return cleanup;
-}
-function autoUpdate(reference, floating, update, options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  const {
-    ancestorScroll = true,
-    ancestorResize = true,
-    elementResize = typeof ResizeObserver === "function",
-    layoutShift = typeof IntersectionObserver === "function",
-    animationFrame = false
-  } = options2;
-  const referenceEl = unwrapElement(reference);
-  const ancestors = ancestorScroll || ancestorResize ? [...referenceEl ? getOverflowAncestors(referenceEl) : [], ...getOverflowAncestors(floating)] : [];
-  ancestors.forEach((ancestor) => {
-    ancestorScroll && ancestor.addEventListener("scroll", update, {
-      passive: true
-    });
-    ancestorResize && ancestor.addEventListener("resize", update);
-  });
-  const cleanupIo = referenceEl && layoutShift ? observeMove(referenceEl, update) : null;
-  let reobserveFrame = -1;
-  let resizeObserver = null;
-  if (elementResize) {
-    resizeObserver = new ResizeObserver((_ref) => {
-      let [firstEntry] = _ref;
-      if (firstEntry && firstEntry.target === referenceEl && resizeObserver) {
-        resizeObserver.unobserve(floating);
-        cancelAnimationFrame(reobserveFrame);
-        reobserveFrame = requestAnimationFrame(() => {
-          var _resizeObserver;
-          (_resizeObserver = resizeObserver) == null || _resizeObserver.observe(floating);
-        });
-      }
-      update();
-    });
-    if (referenceEl && !animationFrame) {
-      resizeObserver.observe(referenceEl);
-    }
-    resizeObserver.observe(floating);
-  }
-  let frameId;
-  let prevRefRect = animationFrame ? getBoundingClientRect(reference) : null;
-  if (animationFrame) {
-    frameLoop();
-  }
-  function frameLoop() {
-    const nextRefRect = getBoundingClientRect(reference);
-    if (prevRefRect && !rectsAreEqual(prevRefRect, nextRefRect)) {
-      update();
-    }
-    prevRefRect = nextRefRect;
-    frameId = requestAnimationFrame(frameLoop);
-  }
-  update();
-  return () => {
-    var _resizeObserver2;
-    ancestors.forEach((ancestor) => {
-      ancestorScroll && ancestor.removeEventListener("scroll", update);
-      ancestorResize && ancestor.removeEventListener("resize", update);
-    });
-    cleanupIo == null || cleanupIo();
-    (_resizeObserver2 = resizeObserver) == null || _resizeObserver2.disconnect();
-    resizeObserver = null;
-    if (animationFrame) {
-      cancelAnimationFrame(frameId);
-    }
-  };
-}
-var noOffsets, SCROLLBAR_MAX = 25, absoluteOrFixed, getElementRects = async function(data) {
-  const getOffsetParentFn = this.getOffsetParent || getOffsetParent;
-  const getDimensionsFn = this.getDimensions;
-  const floatingDimensions = await getDimensionsFn(data.floating);
-  return {
-    reference: getRectRelativeToOffsetParent(data.reference, await getOffsetParentFn(data.floating), data.strategy),
-    floating: {
-      x: 0,
-      y: 0,
-      width: floatingDimensions.width,
-      height: floatingDimensions.height
-    }
-  };
-}, platform, offset2, shift2, flip2, size2, hide2, arrow2, limitShift2, computePosition2 = (reference, floating, options2) => {
-  const cache = new Map;
-  const mergedOptions = {
-    platform,
-    ...options2
-  };
-  const platformWithCache = {
-    ...mergedOptions.platform,
-    _c: cache
-  };
-  return computePosition(reference, floating, {
-    ...mergedOptions,
-    platform: platformWithCache
-  });
-};
-var init_floating_ui_dom = __esm(() => {
-  init_floating_ui_core();
-  init_floating_ui_utils();
-  init_floating_ui_utils_dom();
-  noOffsets = /* @__PURE__ */ createCoords(0);
-  absoluteOrFixed = /* @__PURE__ */ new Set(["absolute", "fixed"]);
-  platform = {
-    convertOffsetParentRelativeRectToViewportRelativeRect,
-    getDocumentElement,
-    getClippingRect,
-    getOffsetParent,
-    getElementRects,
-    getClientRects,
-    getDimensions,
-    getScale,
-    isElement,
-    isRTL
-  };
-  offset2 = offset;
-  shift2 = shift;
-  flip2 = flip;
-  size2 = size;
-  hide2 = hide;
-  arrow2 = arrow;
-  limitShift2 = limitShift;
-});
-
-// node_modules/@floating-ui/react-dom/dist/floating-ui.react-dom.mjs
-function deepEqual(a, b) {
-  if (a === b) {
-    return true;
-  }
-  if (typeof a !== typeof b) {
-    return false;
-  }
-  if (typeof a === "function" && a.toString() === b.toString()) {
-    return true;
-  }
-  let length;
-  let i;
-  let keys;
-  if (a && b && typeof a === "object") {
-    if (Array.isArray(a)) {
-      length = a.length;
-      if (length !== b.length)
-        return false;
-      for (i = length;i-- !== 0; ) {
-        if (!deepEqual(a[i], b[i])) {
-          return false;
-        }
-      }
-      return true;
-    }
-    keys = Object.keys(a);
-    length = keys.length;
-    if (length !== Object.keys(b).length) {
-      return false;
-    }
-    for (i = length;i-- !== 0; ) {
-      if (!{}.hasOwnProperty.call(b, keys[i])) {
-        return false;
-      }
-    }
-    for (i = length;i-- !== 0; ) {
-      const key = keys[i];
-      if (key === "_owner" && a.$$typeof) {
-        continue;
-      }
-      if (!deepEqual(a[key], b[key])) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return a !== a && b !== b;
-}
-function getDPR(element) {
-  if (typeof window === "undefined") {
-    return 1;
-  }
-  const win = element.ownerDocument.defaultView || window;
-  return win.devicePixelRatio || 1;
-}
-function roundByDPR(element, value) {
-  const dpr = getDPR(element);
-  return Math.round(value * dpr) / dpr;
-}
-function useLatestRef(value) {
-  const ref = React35.useRef(value);
-  index(() => {
-    ref.current = value;
-  });
-  return ref;
-}
-function useFloating(options2) {
-  if (options2 === undefined) {
-    options2 = {};
-  }
-  const {
-    placement = "bottom",
-    strategy = "absolute",
-    middleware = [],
-    platform: platform2,
-    elements: {
-      reference: externalReference,
-      floating: externalFloating
-    } = {},
-    transform = true,
-    whileElementsMounted,
-    open
-  } = options2;
-  const [data, setData] = React35.useState({
-    x: 0,
-    y: 0,
-    strategy,
-    placement,
-    middlewareData: {},
-    isPositioned: false
-  });
-  const [latestMiddleware, setLatestMiddleware] = React35.useState(middleware);
-  if (!deepEqual(latestMiddleware, middleware)) {
-    setLatestMiddleware(middleware);
-  }
-  const [_reference, _setReference] = React35.useState(null);
-  const [_floating, _setFloating] = React35.useState(null);
-  const setReference = React35.useCallback((node) => {
-    if (node !== referenceRef.current) {
-      referenceRef.current = node;
-      _setReference(node);
-    }
-  }, []);
-  const setFloating = React35.useCallback((node) => {
-    if (node !== floatingRef.current) {
-      floatingRef.current = node;
-      _setFloating(node);
-    }
-  }, []);
-  const referenceEl = externalReference || _reference;
-  const floatingEl = externalFloating || _floating;
-  const referenceRef = React35.useRef(null);
-  const floatingRef = React35.useRef(null);
-  const dataRef = React35.useRef(data);
-  const hasWhileElementsMounted = whileElementsMounted != null;
-  const whileElementsMountedRef = useLatestRef(whileElementsMounted);
-  const platformRef = useLatestRef(platform2);
-  const openRef = useLatestRef(open);
-  const update = React35.useCallback(() => {
-    if (!referenceRef.current || !floatingRef.current) {
-      return;
-    }
-    const config = {
-      placement,
-      strategy,
-      middleware: latestMiddleware
-    };
-    if (platformRef.current) {
-      config.platform = platformRef.current;
-    }
-    computePosition2(referenceRef.current, floatingRef.current, config).then((data2) => {
-      const fullData = {
-        ...data2,
-        isPositioned: openRef.current !== false
-      };
-      if (isMountedRef.current && !deepEqual(dataRef.current, fullData)) {
-        dataRef.current = fullData;
-        ReactDOM3.flushSync(() => {
-          setData(fullData);
-        });
-      }
-    });
-  }, [latestMiddleware, placement, strategy, platformRef, openRef]);
-  index(() => {
-    if (open === false && dataRef.current.isPositioned) {
-      dataRef.current.isPositioned = false;
-      setData((data2) => ({
-        ...data2,
-        isPositioned: false
-      }));
-    }
-  }, [open]);
-  const isMountedRef = React35.useRef(false);
-  index(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-  index(() => {
-    if (referenceEl)
-      referenceRef.current = referenceEl;
-    if (floatingEl)
-      floatingRef.current = floatingEl;
-    if (referenceEl && floatingEl) {
-      if (whileElementsMountedRef.current) {
-        return whileElementsMountedRef.current(referenceEl, floatingEl, update);
-      }
-      update();
-    }
-  }, [referenceEl, floatingEl, update, whileElementsMountedRef, hasWhileElementsMounted]);
-  const refs = React35.useMemo(() => ({
-    reference: referenceRef,
-    floating: floatingRef,
-    setReference,
-    setFloating
-  }), [setReference, setFloating]);
-  const elements = React35.useMemo(() => ({
-    reference: referenceEl,
-    floating: floatingEl
-  }), [referenceEl, floatingEl]);
-  const floatingStyles = React35.useMemo(() => {
-    const initialStyles = {
-      position: strategy,
-      left: 0,
-      top: 0
-    };
-    if (!elements.floating) {
-      return initialStyles;
-    }
-    const x = roundByDPR(elements.floating, data.x);
-    const y = roundByDPR(elements.floating, data.y);
-    if (transform) {
-      return {
-        ...initialStyles,
-        transform: "translate(" + x + "px, " + y + "px)",
-        ...getDPR(elements.floating) >= 1.5 && {
-          willChange: "transform"
-        }
-      };
-    }
-    return {
-      position: strategy,
-      left: x,
-      top: y
-    };
-  }, [strategy, transform, elements.floating, data.x, data.y]);
-  return React35.useMemo(() => ({
-    ...data,
-    update,
-    refs,
-    elements,
-    floatingStyles
-  }), [data, update, refs, elements, floatingStyles]);
-}
-var React35, import_react9, ReactDOM3, isClient, noop = function noop2() {}, index, arrow$1 = (options2) => {
-  function isRef(value) {
-    return {}.hasOwnProperty.call(value, "current");
-  }
-  return {
-    name: "arrow",
-    options: options2,
-    fn(state) {
-      const {
-        element,
-        padding
-      } = typeof options2 === "function" ? options2(state) : options2;
-      if (element && isRef(element)) {
-        if (element.current != null) {
-          return arrow2({
-            element: element.current,
-            padding
-          }).fn(state);
-        }
-        return {};
-      }
-      if (element) {
-        return arrow2({
-          element,
-          padding
-        }).fn(state);
-      }
-      return {};
-    }
-  };
-}, offset3 = (options2, deps) => ({
-  ...offset2(options2),
-  options: [options2, deps]
-}), shift3 = (options2, deps) => ({
-  ...shift2(options2),
-  options: [options2, deps]
-}), limitShift3 = (options2, deps) => ({
-  ...limitShift2(options2),
-  options: [options2, deps]
-}), flip3 = (options2, deps) => ({
-  ...flip2(options2),
-  options: [options2, deps]
-}), size3 = (options2, deps) => ({
-  ...size2(options2),
-  options: [options2, deps]
-}), hide3 = (options2, deps) => ({
-  ...hide2(options2),
-  options: [options2, deps]
-}), arrow3 = (options2, deps) => ({
-  ...arrow$1(options2),
-  options: [options2, deps]
-});
-var init_floating_ui_react_dom = __esm(() => {
-  init_floating_ui_dom();
-  init_floating_ui_dom();
-  React35 = __toESM(require_react(), 1);
-  import_react9 = __toESM(require_react(), 1);
-  ReactDOM3 = __toESM(require_react_dom(), 1);
-  isClient = typeof document !== "undefined";
-  index = isClient ? import_react9.useLayoutEffect : noop;
-});
-
-// node_modules/@radix-ui/react-arrow/dist/index.mjs
-var React36, import_jsx_runtime12, NAME = "Arrow", Arrow, Root3;
-var init_dist21 = __esm(() => {
-  React36 = __toESM(require_react(), 1);
-  init_dist9();
-  import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
-  Arrow = React36.forwardRef((props, forwardedRef) => {
-    const { children, width = 10, height = 5, ...arrowProps } = props;
-    return /* @__PURE__ */ import_jsx_runtime12.jsx(Primitive.svg, {
-      ...arrowProps,
-      ref: forwardedRef,
-      width,
-      height,
-      viewBox: "0 0 30 10",
-      preserveAspectRatio: "none",
-      children: props.asChild ? children : /* @__PURE__ */ import_jsx_runtime12.jsx("polygon", { points: "0,0 30,0 15,10" })
-    });
-  });
-  Arrow.displayName = NAME;
-  Root3 = Arrow;
-});
-
-// node_modules/@radix-ui/react-use-size/dist/index.mjs
-function useSize(element) {
-  const [size4, setSize] = React37.useState(undefined);
-  useLayoutEffect2(() => {
-    if (element) {
-      setSize({ width: element.offsetWidth, height: element.offsetHeight });
-      const resizeObserver = new ResizeObserver((entries) => {
-        if (!Array.isArray(entries)) {
-          return;
-        }
-        if (!entries.length) {
-          return;
-        }
-        const entry = entries[0];
-        let width;
-        let height;
-        if ("borderBoxSize" in entry) {
-          const borderSizeEntry = entry["borderBoxSize"];
-          const borderSize = Array.isArray(borderSizeEntry) ? borderSizeEntry[0] : borderSizeEntry;
-          width = borderSize["inlineSize"];
-          height = borderSize["blockSize"];
-        } else {
-          width = element.offsetWidth;
-          height = element.offsetHeight;
-        }
-        setSize({ width, height });
-      });
-      resizeObserver.observe(element, { box: "border-box" });
-      return () => resizeObserver.unobserve(element);
-    } else {
-      setSize(undefined);
-    }
-  }, [element]);
-  return size4;
-}
-var React37;
-var init_dist22 = __esm(() => {
-  React37 = __toESM(require_react(), 1);
-  init_dist6();
-});
-
-// node_modules/@radix-ui/react-popper/dist/index.mjs
-function isNotNull(value) {
-  return value !== null;
-}
-function getSideAndAlignFromPlacement(placement) {
-  const [side, align = "center"] = placement.split("-");
-  return [side, align];
-}
-var React38, import_jsx_runtime13, POPPER_NAME = "Popper", createPopperContext, createPopperScope, PopperProvider, usePopperContext, Popper = (props) => {
-  const { __scopePopper, children } = props;
-  const [anchor, setAnchor] = React38.useState(null);
-  return /* @__PURE__ */ import_jsx_runtime13.jsx(PopperProvider, { scope: __scopePopper, anchor, onAnchorChange: setAnchor, children });
-}, ANCHOR_NAME = "PopperAnchor", PopperAnchor, CONTENT_NAME2 = "PopperContent", PopperContentProvider, useContentContext, PopperContent, ARROW_NAME = "PopperArrow", OPPOSITE_SIDE, PopperArrow, transformOrigin = (options2) => ({
-  name: "transformOrigin",
-  options: options2,
-  fn(data) {
-    const { placement, rects, middlewareData } = data;
-    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const isArrowHidden = cannotCenterArrow;
-    const arrowWidth = isArrowHidden ? 0 : options2.arrowWidth;
-    const arrowHeight = isArrowHidden ? 0 : options2.arrowHeight;
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const noArrowAlign = { start: "0%", center: "50%", end: "100%" }[placedAlign];
-    const arrowXCenter = (middlewareData.arrow?.x ?? 0) + arrowWidth / 2;
-    const arrowYCenter = (middlewareData.arrow?.y ?? 0) + arrowHeight / 2;
-    let x = "";
-    let y = "";
-    if (placedSide === "bottom") {
-      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y = `${-arrowHeight}px`;
-    } else if (placedSide === "top") {
-      x = isArrowHidden ? noArrowAlign : `${arrowXCenter}px`;
-      y = `${rects.floating.height + arrowHeight}px`;
-    } else if (placedSide === "right") {
-      x = `${-arrowHeight}px`;
-      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    } else if (placedSide === "left") {
-      x = `${rects.floating.width + arrowHeight}px`;
-      y = isArrowHidden ? noArrowAlign : `${arrowYCenter}px`;
-    }
-    return { data: { x, y } };
-  }
-}), Root22, Anchor, Content2, Arrow2;
-var init_dist23 = __esm(() => {
-  React38 = __toESM(require_react(), 1);
-  init_floating_ui_react_dom();
-  init_dist21();
-  init_dist();
-  init_dist5();
-  init_dist9();
-  init_dist10();
-  init_dist6();
-  init_dist22();
-  import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  [createPopperContext, createPopperScope] = createContextScope(POPPER_NAME);
-  [PopperProvider, usePopperContext] = createPopperContext(POPPER_NAME);
-  Popper.displayName = POPPER_NAME;
-  PopperAnchor = React38.forwardRef((props, forwardedRef) => {
-    const { __scopePopper, virtualRef, ...anchorProps } = props;
-    const context = usePopperContext(ANCHOR_NAME, __scopePopper);
-    const ref = React38.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const anchorRef = React38.useRef(null);
-    React38.useEffect(() => {
-      const previousAnchor = anchorRef.current;
-      anchorRef.current = virtualRef?.current || ref.current;
-      if (previousAnchor !== anchorRef.current) {
-        context.onAnchorChange(anchorRef.current);
-      }
-    });
-    return virtualRef ? null : /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.div, { ...anchorProps, ref: composedRefs });
-  });
-  PopperAnchor.displayName = ANCHOR_NAME;
-  [PopperContentProvider, useContentContext] = createPopperContext(CONTENT_NAME2);
-  PopperContent = React38.forwardRef((props, forwardedRef) => {
-    const {
-      __scopePopper,
-      side = "bottom",
-      sideOffset = 0,
-      align = "center",
-      alignOffset = 0,
-      arrowPadding = 0,
-      avoidCollisions = true,
-      collisionBoundary = [],
-      collisionPadding: collisionPaddingProp = 0,
-      sticky = "partial",
-      hideWhenDetached = false,
-      updatePositionStrategy = "optimized",
-      onPlaced,
-      ...contentProps
-    } = props;
-    const context = usePopperContext(CONTENT_NAME2, __scopePopper);
-    const [content, setContent] = React38.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [arrow4, setArrow] = React38.useState(null);
-    const arrowSize = useSize(arrow4);
-    const arrowWidth = arrowSize?.width ?? 0;
-    const arrowHeight = arrowSize?.height ?? 0;
-    const desiredPlacement = side + (align !== "center" ? "-" + align : "");
-    const collisionPadding = typeof collisionPaddingProp === "number" ? collisionPaddingProp : { top: 0, right: 0, bottom: 0, left: 0, ...collisionPaddingProp };
-    const boundary = Array.isArray(collisionBoundary) ? collisionBoundary : [collisionBoundary];
-    const hasExplicitBoundaries = boundary.length > 0;
-    const detectOverflowOptions = {
-      padding: collisionPadding,
-      boundary: boundary.filter(isNotNull),
-      altBoundary: hasExplicitBoundaries
-    };
-    const { refs, floatingStyles, placement, isPositioned, middlewareData } = useFloating({
-      strategy: "fixed",
-      placement: desiredPlacement,
-      whileElementsMounted: (...args) => {
-        const cleanup = autoUpdate(...args, {
-          animationFrame: updatePositionStrategy === "always"
-        });
-        return cleanup;
-      },
-      elements: {
-        reference: context.anchor
-      },
-      middleware: [
-        offset3({ mainAxis: sideOffset + arrowHeight, alignmentAxis: alignOffset }),
-        avoidCollisions && shift3({
-          mainAxis: true,
-          crossAxis: false,
-          limiter: sticky === "partial" ? limitShift3() : undefined,
-          ...detectOverflowOptions
-        }),
-        avoidCollisions && flip3({ ...detectOverflowOptions }),
-        size3({
-          ...detectOverflowOptions,
-          apply: ({ elements, rects, availableWidth, availableHeight }) => {
-            const { width: anchorWidth, height: anchorHeight } = rects.reference;
-            const contentStyle = elements.floating.style;
-            contentStyle.setProperty("--radix-popper-available-width", `${availableWidth}px`);
-            contentStyle.setProperty("--radix-popper-available-height", `${availableHeight}px`);
-            contentStyle.setProperty("--radix-popper-anchor-width", `${anchorWidth}px`);
-            contentStyle.setProperty("--radix-popper-anchor-height", `${anchorHeight}px`);
-          }
-        }),
-        arrow4 && arrow3({ element: arrow4, padding: arrowPadding }),
-        transformOrigin({ arrowWidth, arrowHeight }),
-        hideWhenDetached && hide3({ strategy: "referenceHidden", ...detectOverflowOptions })
-      ]
-    });
-    const [placedSide, placedAlign] = getSideAndAlignFromPlacement(placement);
-    const handlePlaced = useCallbackRef(onPlaced);
-    useLayoutEffect2(() => {
-      if (isPositioned) {
-        handlePlaced?.();
-      }
-    }, [isPositioned, handlePlaced]);
-    const arrowX = middlewareData.arrow?.x;
-    const arrowY = middlewareData.arrow?.y;
-    const cannotCenterArrow = middlewareData.arrow?.centerOffset !== 0;
-    const [contentZIndex, setContentZIndex] = React38.useState();
-    useLayoutEffect2(() => {
-      if (content)
-        setContentZIndex(window.getComputedStyle(content).zIndex);
-    }, [content]);
-    return /* @__PURE__ */ import_jsx_runtime13.jsx("div", {
-      ref: refs.setFloating,
-      "data-radix-popper-content-wrapper": "",
-      style: {
-        ...floatingStyles,
-        transform: isPositioned ? floatingStyles.transform : "translate(0, -200%)",
-        minWidth: "max-content",
-        zIndex: contentZIndex,
-        ["--radix-popper-transform-origin"]: [
-          middlewareData.transformOrigin?.x,
-          middlewareData.transformOrigin?.y
-        ].join(" "),
-        ...middlewareData.hide?.referenceHidden && {
-          visibility: "hidden",
-          pointerEvents: "none"
-        }
-      },
-      dir: props.dir,
-      children: /* @__PURE__ */ import_jsx_runtime13.jsx(PopperContentProvider, {
-        scope: __scopePopper,
-        placedSide,
-        onArrowChange: setArrow,
-        arrowX,
-        arrowY,
-        shouldHideArrow: cannotCenterArrow,
-        children: /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.div, {
-          "data-side": placedSide,
-          "data-align": placedAlign,
-          ...contentProps,
-          ref: composedRefs,
-          style: {
-            ...contentProps.style,
-            animation: !isPositioned ? "none" : undefined
-          }
-        })
-      })
-    });
-  });
-  PopperContent.displayName = CONTENT_NAME2;
-  OPPOSITE_SIDE = {
-    top: "bottom",
-    right: "left",
-    bottom: "top",
-    left: "right"
-  };
-  PopperArrow = React38.forwardRef(function PopperArrow2(props, forwardedRef) {
-    const { __scopePopper, ...arrowProps } = props;
-    const contentContext = useContentContext(ARROW_NAME, __scopePopper);
-    const baseSide = OPPOSITE_SIDE[contentContext.placedSide];
-    return /* @__PURE__ */ import_jsx_runtime13.jsx("span", {
-      ref: contentContext.onArrowChange,
-      style: {
-        position: "absolute",
-        left: contentContext.arrowX,
-        top: contentContext.arrowY,
-        [baseSide]: 0,
-        transformOrigin: {
-          top: "",
-          right: "0 0",
-          bottom: "center 0",
-          left: "100% 0"
-        }[contentContext.placedSide],
-        transform: {
-          top: "translateY(100%)",
-          right: "translateY(50%) rotate(90deg) translateX(-50%)",
-          bottom: `rotate(180deg)`,
-          left: "translateY(50%) rotate(-90deg) translateX(50%)"
-        }[contentContext.placedSide],
-        visibility: contentContext.shouldHideArrow ? "hidden" : undefined
-      },
-      children: /* @__PURE__ */ import_jsx_runtime13.jsx(Root3, {
-        ...arrowProps,
-        ref: forwardedRef,
-        style: {
-          ...arrowProps.style,
-          display: "block"
-        }
-      })
-    });
-  });
-  PopperArrow.displayName = ARROW_NAME;
-  Root22 = Popper;
-  Anchor = PopperAnchor;
-  Content2 = PopperContent;
-  Arrow2 = PopperArrow;
-});
-
-// node_modules/@radix-ui/react-use-previous/dist/index.mjs
-function usePrevious(value) {
-  const ref = React39.useRef({ value, previous: value });
-  return React39.useMemo(() => {
-    if (ref.current.value !== value) {
-      ref.current.previous = ref.current.value;
-      ref.current.value = value;
-    }
-    return ref.current.previous;
-  }, [value]);
-}
-var React39;
-var init_dist24 = __esm(() => {
-  React39 = __toESM(require_react(), 1);
-});
-
-// node_modules/@radix-ui/react-visually-hidden/dist/index.mjs
-var React40, import_jsx_runtime14, VISUALLY_HIDDEN_STYLES, NAME2 = "VisuallyHidden", VisuallyHidden;
-var init_dist25 = __esm(() => {
-  React40 = __toESM(require_react(), 1);
-  init_dist9();
-  import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
-  VISUALLY_HIDDEN_STYLES = Object.freeze({
-    position: "absolute",
-    border: 0,
-    width: 1,
-    height: 1,
-    padding: 0,
-    margin: -1,
-    overflow: "hidden",
-    clip: "rect(0, 0, 0, 0)",
-    whiteSpace: "nowrap",
-    wordWrap: "normal"
-  });
-  VisuallyHidden = React40.forwardRef((props, forwardedRef) => {
-    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.span, {
-      ...props,
-      ref: forwardedRef,
-      style: { ...VISUALLY_HIDDEN_STYLES, ...props.style }
-    });
-  });
-  VisuallyHidden.displayName = NAME2;
-});
-
-// node_modules/@radix-ui/react-select/dist/index.mjs
-function shouldShowPlaceholder(value) {
-  return value === "" || value === undefined;
-}
-function useTypeaheadSearch(onSearchChange) {
-  const handleSearchChange = useCallbackRef(onSearchChange);
-  const searchRef = React41.useRef("");
-  const timerRef = React41.useRef(0);
-  const handleTypeaheadSearch = React41.useCallback((key) => {
-    const search = searchRef.current + key;
-    handleSearchChange(search);
-    (function updateSearch(value) {
-      searchRef.current = value;
-      window.clearTimeout(timerRef.current);
-      if (value !== "")
-        timerRef.current = window.setTimeout(() => updateSearch(""), 1000);
-    })(search);
-  }, [handleSearchChange]);
-  const resetTypeahead = React41.useCallback(() => {
-    searchRef.current = "";
-    window.clearTimeout(timerRef.current);
-  }, []);
-  React41.useEffect(() => {
-    return () => window.clearTimeout(timerRef.current);
-  }, []);
-  return [searchRef, handleTypeaheadSearch, resetTypeahead];
-}
-function findNextItem(items, search, currentItem) {
-  const isRepeated = search.length > 1 && Array.from(search).every((char) => char === search[0]);
-  const normalizedSearch = isRepeated ? search[0] : search;
-  const currentItemIndex = currentItem ? items.indexOf(currentItem) : -1;
-  let wrappedItems = wrapArray(items, Math.max(currentItemIndex, 0));
-  const excludeCurrentItem = normalizedSearch.length === 1;
-  if (excludeCurrentItem)
-    wrappedItems = wrappedItems.filter((v) => v !== currentItem);
-  const nextItem = wrappedItems.find((item) => item.textValue.toLowerCase().startsWith(normalizedSearch.toLowerCase()));
-  return nextItem !== currentItem ? nextItem : undefined;
-}
-function wrapArray(array, startIndex) {
-  return array.map((_, index2) => array[(startIndex + index2) % array.length]);
-}
-var React41, ReactDOM4, import_jsx_runtime15, OPEN_KEYS, SELECTION_KEYS, SELECT_NAME = "Select", Collection, useCollection, createCollectionScope, createSelectContext, createSelectScope, usePopperScope, SelectProvider, useSelectContext, SelectNativeOptionsProvider, useSelectNativeOptionsContext, Select = (props) => {
-  const {
-    __scopeSelect,
-    children,
-    open: openProp,
-    defaultOpen,
-    onOpenChange,
-    value: valueProp,
-    defaultValue,
-    onValueChange,
-    dir,
-    name,
-    autoComplete,
-    disabled,
-    required,
-    form
-  } = props;
-  const popperScope = usePopperScope(__scopeSelect);
-  const [trigger, setTrigger] = React41.useState(null);
-  const [valueNode, setValueNode] = React41.useState(null);
-  const [valueNodeHasChildren, setValueNodeHasChildren] = React41.useState(false);
-  const direction = useDirection(dir);
-  const [open, setOpen] = useControllableState({
-    prop: openProp,
-    defaultProp: defaultOpen ?? false,
-    onChange: onOpenChange,
-    caller: SELECT_NAME
-  });
-  const [value, setValue] = useControllableState({
-    prop: valueProp,
-    defaultProp: defaultValue,
-    onChange: onValueChange,
-    caller: SELECT_NAME
-  });
-  const triggerPointerDownPosRef = React41.useRef(null);
-  const isFormControl = trigger ? form || !!trigger.closest("form") : true;
-  const [nativeOptionsSet, setNativeOptionsSet] = React41.useState(/* @__PURE__ */ new Set);
-  const nativeSelectKey = Array.from(nativeOptionsSet).map((option) => option.props.value).join(";");
-  return /* @__PURE__ */ import_jsx_runtime15.jsx(Root22, { ...popperScope, children: /* @__PURE__ */ import_jsx_runtime15.jsxs(SelectProvider, {
-    required,
-    scope: __scopeSelect,
-    trigger,
-    onTriggerChange: setTrigger,
-    valueNode,
-    onValueNodeChange: setValueNode,
-    valueNodeHasChildren,
-    onValueNodeHasChildrenChange: setValueNodeHasChildren,
-    contentId: useId(),
-    value,
-    onValueChange: setValue,
-    open,
-    onOpenChange: setOpen,
-    dir: direction,
-    triggerPointerDownPosRef,
-    disabled,
-    children: [
-      /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.Provider, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime15.jsx(SelectNativeOptionsProvider, {
-        scope: props.__scopeSelect,
-        onNativeOptionAdd: React41.useCallback((option) => {
-          setNativeOptionsSet((prev) => new Set(prev).add(option));
-        }, []),
-        onNativeOptionRemove: React41.useCallback((option) => {
-          setNativeOptionsSet((prev) => {
-            const optionsSet = new Set(prev);
-            optionsSet.delete(option);
-            return optionsSet;
-          });
-        }, []),
-        children
-      }) }),
-      isFormControl ? /* @__PURE__ */ import_jsx_runtime15.jsxs(SelectBubbleInput, {
-        "aria-hidden": true,
-        required,
-        tabIndex: -1,
-        name,
-        autoComplete,
-        value,
-        onChange: (event) => setValue(event.target.value),
-        disabled,
-        form,
-        children: [
-          value === undefined ? /* @__PURE__ */ import_jsx_runtime15.jsx("option", { value: "" }) : null,
-          Array.from(nativeOptionsSet)
-        ]
-      }, nativeSelectKey) : null
-    ]
-  }) });
-}, TRIGGER_NAME2 = "SelectTrigger", SelectTrigger, VALUE_NAME = "SelectValue", SelectValue, ICON_NAME = "SelectIcon", SelectIcon, PORTAL_NAME3 = "SelectPortal", SelectPortal = (props) => {
-  return /* @__PURE__ */ import_jsx_runtime15.jsx(Portal, { asChild: true, ...props });
-}, CONTENT_NAME3 = "SelectContent", SelectContent, CONTENT_MARGIN = 10, SelectContentProvider, useSelectContentContext, CONTENT_IMPL_NAME = "SelectContentImpl", Slot3, SelectContentImpl, ITEM_ALIGNED_POSITION_NAME = "SelectItemAlignedPosition", SelectItemAlignedPosition, POPPER_POSITION_NAME = "SelectPopperPosition", SelectPopperPosition, SelectViewportProvider, useSelectViewportContext, VIEWPORT_NAME2 = "SelectViewport", SelectViewport, GROUP_NAME = "SelectGroup", SelectGroupContextProvider, useSelectGroupContext, SelectGroup, LABEL_NAME = "SelectLabel", SelectLabel, ITEM_NAME = "SelectItem", SelectItemContextProvider, useSelectItemContext, SelectItem, ITEM_TEXT_NAME = "SelectItemText", SelectItemText, ITEM_INDICATOR_NAME = "SelectItemIndicator", SelectItemIndicator, SCROLL_UP_BUTTON_NAME = "SelectScrollUpButton", SelectScrollUpButton, SCROLL_DOWN_BUTTON_NAME = "SelectScrollDownButton", SelectScrollDownButton, SelectScrollButtonImpl, SEPARATOR_NAME = "SelectSeparator", SelectSeparator, ARROW_NAME2 = "SelectArrow", SelectArrow, BUBBLE_INPUT_NAME = "SelectBubbleInput", SelectBubbleInput, Root23, Trigger2, Value, Icon2, Portal3, Content22, Viewport2, Label, Item, ItemText, ItemIndicator, ScrollUpButton, ScrollDownButton, Separator;
-var init_dist26 = __esm(() => {
-  React41 = __toESM(require_react(), 1);
-  ReactDOM4 = __toESM(require_react_dom(), 1);
-  init_dist18();
-  init_dist4();
-  init_dist20();
-  init_dist();
-  init_dist5();
-  init_dist17();
-  init_dist12();
-  init_dist16();
-  init_dist13();
-  init_dist7();
-  init_dist23();
-  init_dist23();
-  init_dist14();
-  init_dist9();
-  init_dist2();
-  init_dist10();
-  init_dist8();
-  init_dist6();
-  init_dist24();
-  init_dist25();
-  init_es20156();
-  init_es20155();
-  import_jsx_runtime15 = __toESM(require_jsx_runtime(), 1);
-  "use client";
-  OPEN_KEYS = [" ", "Enter", "ArrowUp", "ArrowDown"];
-  SELECTION_KEYS = [" ", "Enter"];
-  [Collection, useCollection, createCollectionScope] = createCollection(SELECT_NAME);
-  [createSelectContext, createSelectScope] = createContextScope(SELECT_NAME, [
-    createCollectionScope,
-    createPopperScope
-  ]);
-  usePopperScope = createPopperScope();
-  [SelectProvider, useSelectContext] = createSelectContext(SELECT_NAME);
-  [SelectNativeOptionsProvider, useSelectNativeOptionsContext] = createSelectContext(SELECT_NAME);
-  Select.displayName = SELECT_NAME;
-  SelectTrigger = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, disabled = false, ...triggerProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(TRIGGER_NAME2, __scopeSelect);
-    const isDisabled = context.disabled || disabled;
-    const composedRefs = useComposedRefs(forwardedRef, context.onTriggerChange);
-    const getItems = useCollection(__scopeSelect);
-    const pointerTypeRef = React41.useRef("touch");
-    const [searchRef, handleTypeaheadSearch, resetTypeahead] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.value === context.value);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem !== undefined) {
-        context.onValueChange(nextItem.value);
-      }
-    });
-    const handleOpen = (pointerEvent) => {
-      if (!isDisabled) {
-        context.onOpenChange(true);
-        resetTypeahead();
-      }
-      if (pointerEvent) {
-        context.triggerPointerDownPosRef.current = {
-          x: Math.round(pointerEvent.pageX),
-          y: Math.round(pointerEvent.pageY)
-        };
-      }
-    };
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Anchor, { asChild: true, ...popperScope, children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.button, {
-      type: "button",
-      role: "combobox",
-      "aria-controls": context.contentId,
-      "aria-expanded": context.open,
-      "aria-required": context.required,
-      "aria-autocomplete": "none",
-      dir: context.dir,
-      "data-state": context.open ? "open" : "closed",
-      disabled: isDisabled,
-      "data-disabled": isDisabled ? "" : undefined,
-      "data-placeholder": shouldShowPlaceholder(context.value) ? "" : undefined,
-      ...triggerProps,
-      ref: composedRefs,
-      onClick: composeEventHandlers(triggerProps.onClick, (event) => {
-        event.currentTarget.focus();
-        if (pointerTypeRef.current !== "mouse") {
-          handleOpen(event);
-        }
-      }),
-      onPointerDown: composeEventHandlers(triggerProps.onPointerDown, (event) => {
-        pointerTypeRef.current = event.pointerType;
-        const target = event.target;
-        if (target.hasPointerCapture(event.pointerId)) {
-          target.releasePointerCapture(event.pointerId);
-        }
-        if (event.button === 0 && event.ctrlKey === false && event.pointerType === "mouse") {
-          handleOpen(event);
-          event.preventDefault();
-        }
-      }),
-      onKeyDown: composeEventHandlers(triggerProps.onKeyDown, (event) => {
-        const isTypingAhead = searchRef.current !== "";
-        const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-        if (!isModifierKey && event.key.length === 1)
-          handleTypeaheadSearch(event.key);
-        if (isTypingAhead && event.key === " ")
-          return;
-        if (OPEN_KEYS.includes(event.key)) {
-          handleOpen();
-          event.preventDefault();
-        }
-      })
-    }) });
-  });
-  SelectTrigger.displayName = TRIGGER_NAME2;
-  SelectValue = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, className, style, children, placeholder = "", ...valueProps } = props;
-    const context = useSelectContext(VALUE_NAME, __scopeSelect);
-    const { onValueNodeHasChildrenChange } = context;
-    const hasChildren = children !== undefined;
-    const composedRefs = useComposedRefs(forwardedRef, context.onValueNodeChange);
-    useLayoutEffect2(() => {
-      onValueNodeHasChildrenChange(hasChildren);
-    }, [onValueNodeHasChildrenChange, hasChildren]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, {
-      ...valueProps,
-      ref: composedRefs,
-      style: { pointerEvents: "none" },
-      children: shouldShowPlaceholder(context.value) ? /* @__PURE__ */ import_jsx_runtime15.jsx(import_jsx_runtime15.Fragment, { children: placeholder }) : children
-    });
-  });
-  SelectValue.displayName = VALUE_NAME;
-  SelectIcon = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, children, ...iconProps } = props;
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, { "aria-hidden": true, ...iconProps, ref: forwardedRef, children: children || "▼" });
-  });
-  SelectIcon.displayName = ICON_NAME;
-  SelectPortal.displayName = PORTAL_NAME3;
-  SelectContent = React41.forwardRef((props, forwardedRef) => {
-    const context = useSelectContext(CONTENT_NAME3, props.__scopeSelect);
-    const [fragment, setFragment] = React41.useState();
-    useLayoutEffect2(() => {
-      setFragment(new DocumentFragment);
-    }, []);
-    if (!context.open) {
-      const frag = fragment;
-      return frag ? ReactDOM4.createPortal(/* @__PURE__ */ import_jsx_runtime15.jsx(SelectContentProvider, { scope: props.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.Slot, { scope: props.__scopeSelect, children: /* @__PURE__ */ import_jsx_runtime15.jsx("div", { children: props.children }) }) }), frag) : null;
-    }
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectContentImpl, { ...props, ref: forwardedRef });
-  });
-  SelectContent.displayName = CONTENT_NAME3;
-  [SelectContentProvider, useSelectContentContext] = createSelectContext(CONTENT_NAME3);
-  Slot3 = createSlot("SelectContent.RemoveScroll");
-  SelectContentImpl = React41.forwardRef((props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      position = "item-aligned",
-      onCloseAutoFocus,
-      onEscapeKeyDown,
-      onPointerDownOutside,
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions,
-      ...contentProps
-    } = props;
-    const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
-    const [content, setContent] = React41.useState(null);
-    const [viewport, setViewport] = React41.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const [selectedItem, setSelectedItem] = React41.useState(null);
-    const [selectedItemText, setSelectedItemText] = React41.useState(null);
-    const getItems = useCollection(__scopeSelect);
-    const [isPositioned, setIsPositioned] = React41.useState(false);
-    const firstValidItemFoundRef = React41.useRef(false);
-    React41.useEffect(() => {
-      if (content)
-        return hideOthers(content);
-    }, [content]);
-    useFocusGuards();
-    const focusFirst2 = React41.useCallback((candidates) => {
-      const [firstItem, ...restItems] = getItems().map((item) => item.ref.current);
-      const [lastItem] = restItems.slice(-1);
-      const PREVIOUSLY_FOCUSED_ELEMENT = document.activeElement;
-      for (const candidate of candidates) {
-        if (candidate === PREVIOUSLY_FOCUSED_ELEMENT)
-          return;
-        candidate?.scrollIntoView({ block: "nearest" });
-        if (candidate === firstItem && viewport)
-          viewport.scrollTop = 0;
-        if (candidate === lastItem && viewport)
-          viewport.scrollTop = viewport.scrollHeight;
-        candidate?.focus();
-        if (document.activeElement !== PREVIOUSLY_FOCUSED_ELEMENT)
-          return;
-      }
-    }, [getItems, viewport]);
-    const focusSelectedItem = React41.useCallback(() => focusFirst2([selectedItem, content]), [focusFirst2, selectedItem, content]);
-    React41.useEffect(() => {
-      if (isPositioned) {
-        focusSelectedItem();
-      }
-    }, [isPositioned, focusSelectedItem]);
-    const { onOpenChange, triggerPointerDownPosRef } = context;
-    React41.useEffect(() => {
-      if (content) {
-        let pointerMoveDelta = { x: 0, y: 0 };
-        const handlePointerMove = (event) => {
-          pointerMoveDelta = {
-            x: Math.abs(Math.round(event.pageX) - (triggerPointerDownPosRef.current?.x ?? 0)),
-            y: Math.abs(Math.round(event.pageY) - (triggerPointerDownPosRef.current?.y ?? 0))
-          };
-        };
-        const handlePointerUp = (event) => {
-          if (pointerMoveDelta.x <= 10 && pointerMoveDelta.y <= 10) {
-            event.preventDefault();
-          } else {
-            if (!content.contains(event.target)) {
-              onOpenChange(false);
-            }
-          }
-          document.removeEventListener("pointermove", handlePointerMove);
-          triggerPointerDownPosRef.current = null;
-        };
-        if (triggerPointerDownPosRef.current !== null) {
-          document.addEventListener("pointermove", handlePointerMove);
-          document.addEventListener("pointerup", handlePointerUp, { capture: true, once: true });
-        }
-        return () => {
-          document.removeEventListener("pointermove", handlePointerMove);
-          document.removeEventListener("pointerup", handlePointerUp, { capture: true });
-        };
-      }
-    }, [content, onOpenChange, triggerPointerDownPosRef]);
-    React41.useEffect(() => {
-      const close = () => onOpenChange(false);
-      window.addEventListener("blur", close);
-      window.addEventListener("resize", close);
-      return () => {
-        window.removeEventListener("blur", close);
-        window.removeEventListener("resize", close);
-      };
-    }, [onOpenChange]);
-    const [searchRef, handleTypeaheadSearch] = useTypeaheadSearch((search) => {
-      const enabledItems = getItems().filter((item) => !item.disabled);
-      const currentItem = enabledItems.find((item) => item.ref.current === document.activeElement);
-      const nextItem = findNextItem(enabledItems, search, currentItem);
-      if (nextItem) {
-        setTimeout(() => nextItem.ref.current.focus());
-      }
-    });
-    const itemRefCallback = React41.useCallback((node, value, disabled) => {
-      const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-      const isSelectedItem = context.value !== undefined && context.value === value;
-      if (isSelectedItem || isFirstValidItem) {
-        setSelectedItem(node);
-        if (isFirstValidItem)
-          firstValidItemFoundRef.current = true;
-      }
-    }, [context.value]);
-    const handleItemLeave = React41.useCallback(() => content?.focus(), [content]);
-    const itemTextRefCallback = React41.useCallback((node, value, disabled) => {
-      const isFirstValidItem = !firstValidItemFoundRef.current && !disabled;
-      const isSelectedItem = context.value !== undefined && context.value === value;
-      if (isSelectedItem || isFirstValidItem) {
-        setSelectedItemText(node);
-      }
-    }, [context.value]);
-    const SelectPosition = position === "popper" ? SelectPopperPosition : SelectItemAlignedPosition;
-    const popperContentProps = SelectPosition === SelectPopperPosition ? {
-      side,
-      sideOffset,
-      align,
-      alignOffset,
-      arrowPadding,
-      collisionBoundary,
-      collisionPadding,
-      sticky,
-      hideWhenDetached,
-      avoidCollisions
-    } : {};
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectContentProvider, {
-      scope: __scopeSelect,
-      content,
-      viewport,
-      onViewportChange: setViewport,
-      itemRefCallback,
-      selectedItem,
-      onItemLeave: handleItemLeave,
-      itemTextRefCallback,
-      focusSelectedItem,
-      selectedItemText,
-      position,
-      isPositioned,
-      searchRef,
-      children: /* @__PURE__ */ import_jsx_runtime15.jsx(Combination_default, { as: Slot3, allowPinchZoom: true, children: /* @__PURE__ */ import_jsx_runtime15.jsx(FocusScope, {
-        asChild: true,
-        trapped: context.open,
-        onMountAutoFocus: (event) => {
-          event.preventDefault();
-        },
-        onUnmountAutoFocus: composeEventHandlers(onCloseAutoFocus, (event) => {
-          context.trigger?.focus({ preventScroll: true });
-          event.preventDefault();
-        }),
-        children: /* @__PURE__ */ import_jsx_runtime15.jsx(DismissableLayer, {
-          asChild: true,
-          disableOutsidePointerEvents: true,
-          onEscapeKeyDown,
-          onPointerDownOutside,
-          onFocusOutside: (event) => event.preventDefault(),
-          onDismiss: () => context.onOpenChange(false),
-          children: /* @__PURE__ */ import_jsx_runtime15.jsx(SelectPosition, {
-            role: "listbox",
-            id: context.contentId,
-            "data-state": context.open ? "open" : "closed",
-            dir: context.dir,
-            onContextMenu: (event) => event.preventDefault(),
-            ...contentProps,
-            ...popperContentProps,
-            onPlaced: () => setIsPositioned(true),
-            ref: composedRefs,
-            style: {
-              display: "flex",
-              flexDirection: "column",
-              outline: "none",
-              ...contentProps.style
-            },
-            onKeyDown: composeEventHandlers(contentProps.onKeyDown, (event) => {
-              const isModifierKey = event.ctrlKey || event.altKey || event.metaKey;
-              if (event.key === "Tab")
-                event.preventDefault();
-              if (!isModifierKey && event.key.length === 1)
-                handleTypeaheadSearch(event.key);
-              if (["ArrowUp", "ArrowDown", "Home", "End"].includes(event.key)) {
-                const items = getItems().filter((item) => !item.disabled);
-                let candidateNodes = items.map((item) => item.ref.current);
-                if (["ArrowUp", "End"].includes(event.key)) {
-                  candidateNodes = candidateNodes.slice().reverse();
-                }
-                if (["ArrowUp", "ArrowDown"].includes(event.key)) {
-                  const currentElement = event.target;
-                  const currentIndex = candidateNodes.indexOf(currentElement);
-                  candidateNodes = candidateNodes.slice(currentIndex + 1);
-                }
-                setTimeout(() => focusFirst2(candidateNodes));
-                event.preventDefault();
-              }
-            })
-          })
-        })
-      }) })
-    });
-  });
-  SelectContentImpl.displayName = CONTENT_IMPL_NAME;
-  SelectItemAlignedPosition = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, onPlaced, ...popperProps } = props;
-    const context = useSelectContext(CONTENT_NAME3, __scopeSelect);
-    const contentContext = useSelectContentContext(CONTENT_NAME3, __scopeSelect);
-    const [contentWrapper, setContentWrapper] = React41.useState(null);
-    const [content, setContent] = React41.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setContent(node));
-    const getItems = useCollection(__scopeSelect);
-    const shouldExpandOnScrollRef = React41.useRef(false);
-    const shouldRepositionRef = React41.useRef(true);
-    const { viewport, selectedItem, selectedItemText, focusSelectedItem } = contentContext;
-    const position = React41.useCallback(() => {
-      if (context.trigger && context.valueNode && contentWrapper && content && viewport && selectedItem && selectedItemText) {
-        const triggerRect = context.trigger.getBoundingClientRect();
-        const contentRect = content.getBoundingClientRect();
-        const valueNodeRect = context.valueNode.getBoundingClientRect();
-        const itemTextRect = selectedItemText.getBoundingClientRect();
-        if (context.dir !== "rtl") {
-          const itemTextOffset = itemTextRect.left - contentRect.left;
-          const left = valueNodeRect.left - itemTextOffset;
-          const leftDelta = triggerRect.left - left;
-          const minContentWidth = triggerRect.width + leftDelta;
-          const contentWidth = Math.max(minContentWidth, contentRect.width);
-          const rightEdge = window.innerWidth - CONTENT_MARGIN;
-          const clampedLeft = clamp(left, [
-            CONTENT_MARGIN,
-            Math.max(CONTENT_MARGIN, rightEdge - contentWidth)
-          ]);
-          contentWrapper.style.minWidth = minContentWidth + "px";
-          contentWrapper.style.left = clampedLeft + "px";
-        } else {
-          const itemTextOffset = contentRect.right - itemTextRect.right;
-          const right = window.innerWidth - valueNodeRect.right - itemTextOffset;
-          const rightDelta = window.innerWidth - triggerRect.right - right;
-          const minContentWidth = triggerRect.width + rightDelta;
-          const contentWidth = Math.max(minContentWidth, contentRect.width);
-          const leftEdge = window.innerWidth - CONTENT_MARGIN;
-          const clampedRight = clamp(right, [
-            CONTENT_MARGIN,
-            Math.max(CONTENT_MARGIN, leftEdge - contentWidth)
-          ]);
-          contentWrapper.style.minWidth = minContentWidth + "px";
-          contentWrapper.style.right = clampedRight + "px";
-        }
-        const items = getItems();
-        const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-        const itemsHeight = viewport.scrollHeight;
-        const contentStyles = window.getComputedStyle(content);
-        const contentBorderTopWidth = parseInt(contentStyles.borderTopWidth, 10);
-        const contentPaddingTop = parseInt(contentStyles.paddingTop, 10);
-        const contentBorderBottomWidth = parseInt(contentStyles.borderBottomWidth, 10);
-        const contentPaddingBottom = parseInt(contentStyles.paddingBottom, 10);
-        const fullContentHeight = contentBorderTopWidth + contentPaddingTop + itemsHeight + contentPaddingBottom + contentBorderBottomWidth;
-        const minContentHeight = Math.min(selectedItem.offsetHeight * 5, fullContentHeight);
-        const viewportStyles = window.getComputedStyle(viewport);
-        const viewportPaddingTop = parseInt(viewportStyles.paddingTop, 10);
-        const viewportPaddingBottom = parseInt(viewportStyles.paddingBottom, 10);
-        const topEdgeToTriggerMiddle = triggerRect.top + triggerRect.height / 2 - CONTENT_MARGIN;
-        const triggerMiddleToBottomEdge = availableHeight - topEdgeToTriggerMiddle;
-        const selectedItemHalfHeight = selectedItem.offsetHeight / 2;
-        const itemOffsetMiddle = selectedItem.offsetTop + selectedItemHalfHeight;
-        const contentTopToItemMiddle = contentBorderTopWidth + contentPaddingTop + itemOffsetMiddle;
-        const itemMiddleToContentBottom = fullContentHeight - contentTopToItemMiddle;
-        const willAlignWithoutTopOverflow = contentTopToItemMiddle <= topEdgeToTriggerMiddle;
-        if (willAlignWithoutTopOverflow) {
-          const isLastItem = items.length > 0 && selectedItem === items[items.length - 1].ref.current;
-          contentWrapper.style.bottom = "0px";
-          const viewportOffsetBottom = content.clientHeight - viewport.offsetTop - viewport.offsetHeight;
-          const clampedTriggerMiddleToBottomEdge = Math.max(triggerMiddleToBottomEdge, selectedItemHalfHeight + (isLastItem ? viewportPaddingBottom : 0) + viewportOffsetBottom + contentBorderBottomWidth);
-          const height = contentTopToItemMiddle + clampedTriggerMiddleToBottomEdge;
-          contentWrapper.style.height = height + "px";
-        } else {
-          const isFirstItem = items.length > 0 && selectedItem === items[0].ref.current;
-          contentWrapper.style.top = "0px";
-          const clampedTopEdgeToTriggerMiddle = Math.max(topEdgeToTriggerMiddle, contentBorderTopWidth + viewport.offsetTop + (isFirstItem ? viewportPaddingTop : 0) + selectedItemHalfHeight);
-          const height = clampedTopEdgeToTriggerMiddle + itemMiddleToContentBottom;
-          contentWrapper.style.height = height + "px";
-          viewport.scrollTop = contentTopToItemMiddle - topEdgeToTriggerMiddle + viewport.offsetTop;
-        }
-        contentWrapper.style.margin = `${CONTENT_MARGIN}px 0`;
-        contentWrapper.style.minHeight = minContentHeight + "px";
-        contentWrapper.style.maxHeight = availableHeight + "px";
-        onPlaced?.();
-        requestAnimationFrame(() => shouldExpandOnScrollRef.current = true);
-      }
-    }, [
-      getItems,
-      context.trigger,
-      context.valueNode,
-      contentWrapper,
-      content,
-      viewport,
-      selectedItem,
-      selectedItemText,
-      context.dir,
-      onPlaced
-    ]);
-    useLayoutEffect2(() => position(), [position]);
-    const [contentZIndex, setContentZIndex] = React41.useState();
-    useLayoutEffect2(() => {
-      if (content)
-        setContentZIndex(window.getComputedStyle(content).zIndex);
-    }, [content]);
-    const handleScrollButtonChange = React41.useCallback((node) => {
-      if (node && shouldRepositionRef.current === true) {
-        position();
-        focusSelectedItem?.();
-        shouldRepositionRef.current = false;
-      }
-    }, [position, focusSelectedItem]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectViewportProvider, {
-      scope: __scopeSelect,
-      contentWrapper,
-      shouldExpandOnScrollRef,
-      onScrollButtonChange: handleScrollButtonChange,
-      children: /* @__PURE__ */ import_jsx_runtime15.jsx("div", {
-        ref: setContentWrapper,
-        style: {
-          display: "flex",
-          flexDirection: "column",
-          position: "fixed",
-          zIndex: contentZIndex
-        },
-        children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-          ...popperProps,
-          ref: composedRefs,
-          style: {
-            boxSizing: "border-box",
-            maxHeight: "100%",
-            ...popperProps.style
-          }
-        })
-      })
-    });
-  });
-  SelectItemAlignedPosition.displayName = ITEM_ALIGNED_POSITION_NAME;
-  SelectPopperPosition = React41.forwardRef((props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      align = "start",
-      collisionPadding = CONTENT_MARGIN,
-      ...popperProps
-    } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Content2, {
-      ...popperScope,
-      ...popperProps,
-      ref: forwardedRef,
-      align,
-      collisionPadding,
-      style: {
-        boxSizing: "border-box",
-        ...popperProps.style,
-        ...{
-          "--radix-select-content-transform-origin": "var(--radix-popper-transform-origin)",
-          "--radix-select-content-available-width": "var(--radix-popper-available-width)",
-          "--radix-select-content-available-height": "var(--radix-popper-available-height)",
-          "--radix-select-trigger-width": "var(--radix-popper-anchor-width)",
-          "--radix-select-trigger-height": "var(--radix-popper-anchor-height)"
-        }
-      }
-    });
-  });
-  SelectPopperPosition.displayName = POPPER_POSITION_NAME;
-  [SelectViewportProvider, useSelectViewportContext] = createSelectContext(CONTENT_NAME3, {});
-  SelectViewport = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, nonce, ...viewportProps } = props;
-    const contentContext = useSelectContentContext(VIEWPORT_NAME2, __scopeSelect);
-    const viewportContext = useSelectViewportContext(VIEWPORT_NAME2, __scopeSelect);
-    const composedRefs = useComposedRefs(forwardedRef, contentContext.onViewportChange);
-    const prevScrollTopRef = React41.useRef(0);
-    return /* @__PURE__ */ import_jsx_runtime15.jsxs(import_jsx_runtime15.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime15.jsx("style", {
-        dangerouslySetInnerHTML: {
-          __html: `[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch;}[data-radix-select-viewport]::-webkit-scrollbar{display:none}`
-        },
-        nonce
-      }),
-      /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.Slot, { scope: __scopeSelect, children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-        "data-radix-select-viewport": "",
-        role: "presentation",
-        ...viewportProps,
-        ref: composedRefs,
-        style: {
-          position: "relative",
-          flex: 1,
-          overflow: "hidden auto",
-          ...viewportProps.style
-        },
-        onScroll: composeEventHandlers(viewportProps.onScroll, (event) => {
-          const viewport = event.currentTarget;
-          const { contentWrapper, shouldExpandOnScrollRef } = viewportContext;
-          if (shouldExpandOnScrollRef?.current && contentWrapper) {
-            const scrolledBy = Math.abs(prevScrollTopRef.current - viewport.scrollTop);
-            if (scrolledBy > 0) {
-              const availableHeight = window.innerHeight - CONTENT_MARGIN * 2;
-              const cssMinHeight = parseFloat(contentWrapper.style.minHeight);
-              const cssHeight = parseFloat(contentWrapper.style.height);
-              const prevHeight = Math.max(cssMinHeight, cssHeight);
-              if (prevHeight < availableHeight) {
-                const nextHeight = prevHeight + scrolledBy;
-                const clampedNextHeight = Math.min(availableHeight, nextHeight);
-                const heightDiff = nextHeight - clampedNextHeight;
-                contentWrapper.style.height = clampedNextHeight + "px";
-                if (contentWrapper.style.bottom === "0px") {
-                  viewport.scrollTop = heightDiff > 0 ? heightDiff : 0;
-                  contentWrapper.style.justifyContent = "flex-end";
-                }
-              }
-            }
-          }
-          prevScrollTopRef.current = viewport.scrollTop;
-        })
-      }) })
-    ] });
-  });
-  SelectViewport.displayName = VIEWPORT_NAME2;
-  [SelectGroupContextProvider, useSelectGroupContext] = createSelectContext(GROUP_NAME);
-  SelectGroup = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, ...groupProps } = props;
-    const groupId = useId();
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectGroupContextProvider, { scope: __scopeSelect, id: groupId, children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { role: "group", "aria-labelledby": groupId, ...groupProps, ref: forwardedRef }) });
-  });
-  SelectGroup.displayName = GROUP_NAME;
-  SelectLabel = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, ...labelProps } = props;
-    const groupContext = useSelectGroupContext(LABEL_NAME, __scopeSelect);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { id: groupContext.id, ...labelProps, ref: forwardedRef });
-  });
-  SelectLabel.displayName = LABEL_NAME;
-  [SelectItemContextProvider, useSelectItemContext] = createSelectContext(ITEM_NAME);
-  SelectItem = React41.forwardRef((props, forwardedRef) => {
-    const {
-      __scopeSelect,
-      value,
-      disabled = false,
-      textValue: textValueProp,
-      ...itemProps
-    } = props;
-    const context = useSelectContext(ITEM_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_NAME, __scopeSelect);
-    const isSelected = context.value === value;
-    const [textValue, setTextValue] = React41.useState(textValueProp ?? "");
-    const [isFocused, setIsFocused] = React41.useState(false);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => contentContext.itemRefCallback?.(node, value, disabled));
-    const textId = useId();
-    const pointerTypeRef = React41.useRef("touch");
-    const handleSelect = () => {
-      if (!disabled) {
-        context.onValueChange(value);
-        context.onOpenChange(false);
-      }
-    };
-    if (value === "") {
-      throw new Error("A <Select.Item /> must have a value prop that is not an empty string. This is because the Select value can be set to an empty string to clear the selection and show the placeholder.");
-    }
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(SelectItemContextProvider, {
-      scope: __scopeSelect,
-      value,
-      disabled,
-      textId,
-      isSelected,
-      onItemTextChange: React41.useCallback((node) => {
-        setTextValue((prevTextValue) => prevTextValue || (node?.textContent ?? "").trim());
-      }, []),
-      children: /* @__PURE__ */ import_jsx_runtime15.jsx(Collection.ItemSlot, {
-        scope: __scopeSelect,
-        value,
-        disabled,
-        textValue,
-        children: /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-          role: "option",
-          "aria-labelledby": textId,
-          "data-highlighted": isFocused ? "" : undefined,
-          "aria-selected": isSelected && isFocused,
-          "data-state": isSelected ? "checked" : "unchecked",
-          "aria-disabled": disabled || undefined,
-          "data-disabled": disabled ? "" : undefined,
-          tabIndex: disabled ? undefined : -1,
-          ...itemProps,
-          ref: composedRefs,
-          onFocus: composeEventHandlers(itemProps.onFocus, () => setIsFocused(true)),
-          onBlur: composeEventHandlers(itemProps.onBlur, () => setIsFocused(false)),
-          onClick: composeEventHandlers(itemProps.onClick, () => {
-            if (pointerTypeRef.current !== "mouse")
-              handleSelect();
-          }),
-          onPointerUp: composeEventHandlers(itemProps.onPointerUp, () => {
-            if (pointerTypeRef.current === "mouse")
-              handleSelect();
-          }),
-          onPointerDown: composeEventHandlers(itemProps.onPointerDown, (event) => {
-            pointerTypeRef.current = event.pointerType;
-          }),
-          onPointerMove: composeEventHandlers(itemProps.onPointerMove, (event) => {
-            pointerTypeRef.current = event.pointerType;
-            if (disabled) {
-              contentContext.onItemLeave?.();
-            } else if (pointerTypeRef.current === "mouse") {
-              event.currentTarget.focus({ preventScroll: true });
-            }
-          }),
-          onPointerLeave: composeEventHandlers(itemProps.onPointerLeave, (event) => {
-            if (event.currentTarget === document.activeElement) {
-              contentContext.onItemLeave?.();
-            }
-          }),
-          onKeyDown: composeEventHandlers(itemProps.onKeyDown, (event) => {
-            const isTypingAhead = contentContext.searchRef?.current !== "";
-            if (isTypingAhead && event.key === " ")
-              return;
-            if (SELECTION_KEYS.includes(event.key))
-              handleSelect();
-            if (event.key === " ")
-              event.preventDefault();
-          })
-        })
-      })
-    });
-  });
-  SelectItem.displayName = ITEM_NAME;
-  SelectItemText = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, className, style, ...itemTextProps } = props;
-    const context = useSelectContext(ITEM_TEXT_NAME, __scopeSelect);
-    const contentContext = useSelectContentContext(ITEM_TEXT_NAME, __scopeSelect);
-    const itemContext = useSelectItemContext(ITEM_TEXT_NAME, __scopeSelect);
-    const nativeOptionsContext = useSelectNativeOptionsContext(ITEM_TEXT_NAME, __scopeSelect);
-    const [itemTextNode, setItemTextNode] = React41.useState(null);
-    const composedRefs = useComposedRefs(forwardedRef, (node) => setItemTextNode(node), itemContext.onItemTextChange, (node) => contentContext.itemTextRefCallback?.(node, itemContext.value, itemContext.disabled));
-    const textContent = itemTextNode?.textContent;
-    const nativeOption = React41.useMemo(() => /* @__PURE__ */ import_jsx_runtime15.jsx("option", { value: itemContext.value, disabled: itemContext.disabled, children: textContent }, itemContext.value), [itemContext.disabled, itemContext.value, textContent]);
-    const { onNativeOptionAdd, onNativeOptionRemove } = nativeOptionsContext;
-    useLayoutEffect2(() => {
-      onNativeOptionAdd(nativeOption);
-      return () => onNativeOptionRemove(nativeOption);
-    }, [onNativeOptionAdd, onNativeOptionRemove, nativeOption]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsxs(import_jsx_runtime15.Fragment, { children: [
-      /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, { id: itemContext.textId, ...itemTextProps, ref: composedRefs }),
-      itemContext.isSelected && context.valueNode && !context.valueNodeHasChildren ? ReactDOM4.createPortal(itemTextProps.children, context.valueNode) : null
-    ] });
-  });
-  SelectItemText.displayName = ITEM_TEXT_NAME;
-  SelectItemIndicator = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, ...itemIndicatorProps } = props;
-    const itemContext = useSelectItemContext(ITEM_INDICATOR_NAME, __scopeSelect);
-    return itemContext.isSelected ? /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.span, { "aria-hidden": true, ...itemIndicatorProps, ref: forwardedRef }) : null;
-  });
-  SelectItemIndicator.displayName = ITEM_INDICATOR_NAME;
-  SelectScrollUpButton = React41.forwardRef((props, forwardedRef) => {
-    const contentContext = useSelectContentContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-    const viewportContext = useSelectViewportContext(SCROLL_UP_BUTTON_NAME, props.__scopeSelect);
-    const [canScrollUp, setCanScrollUp] = React41.useState(false);
-    const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-    useLayoutEffect2(() => {
-      if (contentContext.viewport && contentContext.isPositioned) {
-        let handleScroll22 = function() {
-          const canScrollUp2 = viewport.scrollTop > 0;
-          setCanScrollUp(canScrollUp2);
-        };
-        var handleScroll2 = handleScroll22;
-        const viewport = contentContext.viewport;
-        handleScroll22();
-        viewport.addEventListener("scroll", handleScroll22);
-        return () => viewport.removeEventListener("scroll", handleScroll22);
-      }
-    }, [contentContext.viewport, contentContext.isPositioned]);
-    return canScrollUp ? /* @__PURE__ */ import_jsx_runtime15.jsx(SelectScrollButtonImpl, {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop - selectedItem.offsetHeight;
-        }
-      }
-    }) : null;
-  });
-  SelectScrollUpButton.displayName = SCROLL_UP_BUTTON_NAME;
-  SelectScrollDownButton = React41.forwardRef((props, forwardedRef) => {
-    const contentContext = useSelectContentContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-    const viewportContext = useSelectViewportContext(SCROLL_DOWN_BUTTON_NAME, props.__scopeSelect);
-    const [canScrollDown, setCanScrollDown] = React41.useState(false);
-    const composedRefs = useComposedRefs(forwardedRef, viewportContext.onScrollButtonChange);
-    useLayoutEffect2(() => {
-      if (contentContext.viewport && contentContext.isPositioned) {
-        let handleScroll22 = function() {
-          const maxScroll = viewport.scrollHeight - viewport.clientHeight;
-          const canScrollDown2 = Math.ceil(viewport.scrollTop) < maxScroll;
-          setCanScrollDown(canScrollDown2);
-        };
-        var handleScroll2 = handleScroll22;
-        const viewport = contentContext.viewport;
-        handleScroll22();
-        viewport.addEventListener("scroll", handleScroll22);
-        return () => viewport.removeEventListener("scroll", handleScroll22);
-      }
-    }, [contentContext.viewport, contentContext.isPositioned]);
-    return canScrollDown ? /* @__PURE__ */ import_jsx_runtime15.jsx(SelectScrollButtonImpl, {
-      ...props,
-      ref: composedRefs,
-      onAutoScroll: () => {
-        const { viewport, selectedItem } = contentContext;
-        if (viewport && selectedItem) {
-          viewport.scrollTop = viewport.scrollTop + selectedItem.offsetHeight;
-        }
-      }
-    }) : null;
-  });
-  SelectScrollDownButton.displayName = SCROLL_DOWN_BUTTON_NAME;
-  SelectScrollButtonImpl = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, onAutoScroll, ...scrollIndicatorProps } = props;
-    const contentContext = useSelectContentContext("SelectScrollButton", __scopeSelect);
-    const autoScrollTimerRef = React41.useRef(null);
-    const getItems = useCollection(__scopeSelect);
-    const clearAutoScrollTimer = React41.useCallback(() => {
-      if (autoScrollTimerRef.current !== null) {
-        window.clearInterval(autoScrollTimerRef.current);
-        autoScrollTimerRef.current = null;
-      }
-    }, []);
-    React41.useEffect(() => {
-      return () => clearAutoScrollTimer();
-    }, [clearAutoScrollTimer]);
-    useLayoutEffect2(() => {
-      const activeItem = getItems().find((item) => item.ref.current === document.activeElement);
-      activeItem?.ref.current?.scrollIntoView({ block: "nearest" });
-    }, [getItems]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, {
-      "aria-hidden": true,
-      ...scrollIndicatorProps,
-      ref: forwardedRef,
-      style: { flexShrink: 0, ...scrollIndicatorProps.style },
-      onPointerDown: composeEventHandlers(scrollIndicatorProps.onPointerDown, () => {
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerMove: composeEventHandlers(scrollIndicatorProps.onPointerMove, () => {
-        contentContext.onItemLeave?.();
-        if (autoScrollTimerRef.current === null) {
-          autoScrollTimerRef.current = window.setInterval(onAutoScroll, 50);
-        }
-      }),
-      onPointerLeave: composeEventHandlers(scrollIndicatorProps.onPointerLeave, () => {
-        clearAutoScrollTimer();
-      })
-    });
-  });
-  SelectSeparator = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, ...separatorProps } = props;
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.div, { "aria-hidden": true, ...separatorProps, ref: forwardedRef });
-  });
-  SelectSeparator.displayName = SEPARATOR_NAME;
-  SelectArrow = React41.forwardRef((props, forwardedRef) => {
-    const { __scopeSelect, ...arrowProps } = props;
-    const popperScope = usePopperScope(__scopeSelect);
-    const context = useSelectContext(ARROW_NAME2, __scopeSelect);
-    const contentContext = useSelectContentContext(ARROW_NAME2, __scopeSelect);
-    return context.open && contentContext.position === "popper" ? /* @__PURE__ */ import_jsx_runtime15.jsx(Arrow2, { ...popperScope, ...arrowProps, ref: forwardedRef }) : null;
-  });
-  SelectArrow.displayName = ARROW_NAME2;
-  SelectBubbleInput = React41.forwardRef(({ __scopeSelect, value, ...props }, forwardedRef) => {
-    const ref = React41.useRef(null);
-    const composedRefs = useComposedRefs(forwardedRef, ref);
-    const prevValue = usePrevious(value);
-    React41.useEffect(() => {
-      const select = ref.current;
-      if (!select)
-        return;
-      const selectProto = window.HTMLSelectElement.prototype;
-      const descriptor = Object.getOwnPropertyDescriptor(selectProto, "value");
-      const setValue = descriptor.set;
-      if (prevValue !== value && setValue) {
-        const event = new Event("change", { bubbles: true });
-        setValue.call(select, value);
-        select.dispatchEvent(event);
-      }
-    }, [prevValue, value]);
-    return /* @__PURE__ */ import_jsx_runtime15.jsx(Primitive.select, {
-      ...props,
-      style: { ...VISUALLY_HIDDEN_STYLES, ...props.style },
-      ref: composedRefs,
-      defaultValue: value
-    });
-  });
-  SelectBubbleInput.displayName = BUBBLE_INPUT_NAME;
-  Root23 = Select;
-  Trigger2 = SelectTrigger;
-  Value = SelectValue;
-  Icon2 = SelectIcon;
-  Portal3 = SelectPortal;
-  Content22 = SelectContent;
-  Viewport2 = SelectViewport;
-  Label = SelectLabel;
-  Item = SelectItem;
-  ItemText = SelectItemText;
-  ItemIndicator = SelectItemIndicator;
-  ScrollUpButton = SelectScrollUpButton;
-  ScrollDownButton = SelectScrollDownButton;
-  Separator = SelectSeparator;
-});
-
-// dashboard/src/components/ui/select.jsx
-var React42, jsx_dev_runtime7, Select2, SelectValue2, SelectTrigger2, SelectScrollUpButton2, SelectScrollDownButton2, SelectContent2, SelectLabel2, SelectItem2, SelectSeparator2;
-var init_select = __esm(() => {
-  React42 = __toESM(require_react(), 1);
-  init_dist26();
-  init_lucide_react();
-  init_utils();
-  jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
-  "use client";
-  Select2 = Root23;
-  SelectValue2 = Value;
-  SelectTrigger2 = React42.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Trigger2, {
-    ref,
-    className: cn("flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1", className),
-    ...props,
-    children: [
-      children,
-      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Icon2, {
-        asChild: true,
-        children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ChevronDown, {
-          className: "h-4 w-4 opacity-50"
-        }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this)
-    ]
-  }, undefined, true, undefined, this));
-  SelectTrigger2.displayName = Trigger2.displayName;
-  SelectScrollUpButton2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollUpButton, {
-    ref,
-    className: cn("flex cursor-default items-center justify-center py-1", className),
-    ...props,
-    children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ChevronUp, {
-      className: "h-4 w-4"
-    }, undefined, false, undefined, this)
-  }, undefined, false, undefined, this));
-  SelectScrollUpButton2.displayName = ScrollUpButton.displayName;
-  SelectScrollDownButton2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ScrollDownButton, {
-    ref,
-    className: cn("flex cursor-default items-center justify-center py-1", className),
-    ...props,
-    children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ChevronDown, {
-      className: "h-4 w-4"
-    }, undefined, false, undefined, this)
-  }, undefined, false, undefined, this));
-  SelectScrollDownButton2.displayName = ScrollDownButton.displayName;
-  SelectContent2 = React42.forwardRef(({ className, children, position = "popper", ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Portal3, {
-    children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Content22, {
-      ref,
-      className: cn("relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2", position === "popper" && "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1", className),
-      position,
-      ...props,
-      children: [
-        /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectScrollUpButton2, {}, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Viewport2, {
-          className: cn("p-1", position === "popper" && "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]"),
-          children
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(SelectScrollDownButton2, {}, undefined, false, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this));
-  SelectContent2.displayName = Content22.displayName;
-  SelectLabel2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Label, {
-    ref,
-    className: cn("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
-    ...props
-  }, undefined, false, undefined, this));
-  SelectLabel2.displayName = Label.displayName;
-  SelectItem2 = React42.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Item, {
-    ref,
-    className: cn("relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50", className),
-    ...props,
-    children: [
-      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("span", {
-        className: "absolute left-2 flex h-3.5 w-3.5 items-center justify-center",
-        children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ItemIndicator, {
-          children: /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Check, {
-            className: "h-4 w-4"
-          }, undefined, false, undefined, this)
-        }, undefined, false, undefined, this)
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(ItemText, {
-        children
-      }, undefined, false, undefined, this)
-    ]
-  }, undefined, true, undefined, this));
-  SelectItem2.displayName = Item.displayName;
-  SelectSeparator2 = React42.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV(Separator, {
-    ref,
-    className: cn("-mx-1 my-1 h-px bg-muted", className),
-    ...props
-  }, undefined, false, undefined, this));
-  SelectSeparator2.displayName = Separator.displayName;
-});
-
-// node_modules/path-browserify/index.js
-var require_path_browserify = __commonJS((exports, module) => {
-  function assertPath(path) {
-    if (typeof path !== "string") {
-      throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
-    }
-  }
-  function normalizeStringPosix(path, allowAboveRoot) {
-    var res = "";
-    var lastSegmentLength = 0;
-    var lastSlash = -1;
-    var dots = 0;
-    var code;
-    for (var i = 0;i <= path.length; ++i) {
-      if (i < path.length)
-        code = path.charCodeAt(i);
-      else if (code === 47)
-        break;
-      else
-        code = 47;
-      if (code === 47) {
-        if (lastSlash === i - 1 || dots === 1) {} else if (lastSlash !== i - 1 && dots === 2) {
-          if (res.length < 2 || lastSegmentLength !== 2 || res.charCodeAt(res.length - 1) !== 46 || res.charCodeAt(res.length - 2) !== 46) {
-            if (res.length > 2) {
-              var lastSlashIndex = res.lastIndexOf("/");
-              if (lastSlashIndex !== res.length - 1) {
-                if (lastSlashIndex === -1) {
-                  res = "";
-                  lastSegmentLength = 0;
-                } else {
-                  res = res.slice(0, lastSlashIndex);
-                  lastSegmentLength = res.length - 1 - res.lastIndexOf("/");
-                }
-                lastSlash = i;
-                dots = 0;
-                continue;
-              }
-            } else if (res.length === 2 || res.length === 1) {
-              res = "";
-              lastSegmentLength = 0;
-              lastSlash = i;
-              dots = 0;
-              continue;
-            }
-          }
-          if (allowAboveRoot) {
-            if (res.length > 0)
-              res += "/..";
-            else
-              res = "..";
-            lastSegmentLength = 2;
-          }
-        } else {
-          if (res.length > 0)
-            res += "/" + path.slice(lastSlash + 1, i);
-          else
-            res = path.slice(lastSlash + 1, i);
-          lastSegmentLength = i - lastSlash - 1;
-        }
-        lastSlash = i;
-        dots = 0;
-      } else if (code === 46 && dots !== -1) {
-        ++dots;
-      } else {
-        dots = -1;
-      }
-    }
-    return res;
-  }
-  function _format(sep, pathObject) {
-    var dir = pathObject.dir || pathObject.root;
-    var base = pathObject.base || (pathObject.name || "") + (pathObject.ext || "");
-    if (!dir) {
-      return base;
-    }
-    if (dir === pathObject.root) {
-      return dir + base;
-    }
-    return dir + sep + base;
-  }
-  var posix = {
-    resolve: function resolve() {
-      var resolvedPath = "";
-      var resolvedAbsolute = false;
-      var cwd;
-      for (var i = arguments.length - 1;i >= -1 && !resolvedAbsolute; i--) {
-        var path;
-        if (i >= 0)
-          path = arguments[i];
-        else {
-          if (cwd === undefined)
-            cwd = process.cwd();
-          path = cwd;
-        }
-        assertPath(path);
-        if (path.length === 0) {
-          continue;
-        }
-        resolvedPath = path + "/" + resolvedPath;
-        resolvedAbsolute = path.charCodeAt(0) === 47;
-      }
-      resolvedPath = normalizeStringPosix(resolvedPath, !resolvedAbsolute);
-      if (resolvedAbsolute) {
-        if (resolvedPath.length > 0)
-          return "/" + resolvedPath;
-        else
-          return "/";
-      } else if (resolvedPath.length > 0) {
-        return resolvedPath;
-      } else {
-        return ".";
-      }
-    },
-    normalize: function normalize(path) {
-      assertPath(path);
-      if (path.length === 0)
-        return ".";
-      var isAbsolute = path.charCodeAt(0) === 47;
-      var trailingSeparator = path.charCodeAt(path.length - 1) === 47;
-      path = normalizeStringPosix(path, !isAbsolute);
-      if (path.length === 0 && !isAbsolute)
-        path = ".";
-      if (path.length > 0 && trailingSeparator)
-        path += "/";
-      if (isAbsolute)
-        return "/" + path;
-      return path;
-    },
-    isAbsolute: function isAbsolute(path) {
-      assertPath(path);
-      return path.length > 0 && path.charCodeAt(0) === 47;
-    },
-    join: function join() {
-      if (arguments.length === 0)
-        return ".";
-      var joined;
-      for (var i = 0;i < arguments.length; ++i) {
-        var arg = arguments[i];
-        assertPath(arg);
-        if (arg.length > 0) {
-          if (joined === undefined)
-            joined = arg;
-          else
-            joined += "/" + arg;
-        }
-      }
-      if (joined === undefined)
-        return ".";
-      return posix.normalize(joined);
-    },
-    relative: function relative(from, to) {
-      assertPath(from);
-      assertPath(to);
-      if (from === to)
-        return "";
-      from = posix.resolve(from);
-      to = posix.resolve(to);
-      if (from === to)
-        return "";
-      var fromStart = 1;
-      for (;fromStart < from.length; ++fromStart) {
-        if (from.charCodeAt(fromStart) !== 47)
-          break;
-      }
-      var fromEnd = from.length;
-      var fromLen = fromEnd - fromStart;
-      var toStart = 1;
-      for (;toStart < to.length; ++toStart) {
-        if (to.charCodeAt(toStart) !== 47)
-          break;
-      }
-      var toEnd = to.length;
-      var toLen = toEnd - toStart;
-      var length = fromLen < toLen ? fromLen : toLen;
-      var lastCommonSep = -1;
-      var i = 0;
-      for (;i <= length; ++i) {
-        if (i === length) {
-          if (toLen > length) {
-            if (to.charCodeAt(toStart + i) === 47) {
-              return to.slice(toStart + i + 1);
-            } else if (i === 0) {
-              return to.slice(toStart + i);
-            }
-          } else if (fromLen > length) {
-            if (from.charCodeAt(fromStart + i) === 47) {
-              lastCommonSep = i;
-            } else if (i === 0) {
-              lastCommonSep = 0;
-            }
-          }
-          break;
-        }
-        var fromCode = from.charCodeAt(fromStart + i);
-        var toCode = to.charCodeAt(toStart + i);
-        if (fromCode !== toCode)
-          break;
-        else if (fromCode === 47)
-          lastCommonSep = i;
-      }
-      var out = "";
-      for (i = fromStart + lastCommonSep + 1;i <= fromEnd; ++i) {
-        if (i === fromEnd || from.charCodeAt(i) === 47) {
-          if (out.length === 0)
-            out += "..";
-          else
-            out += "/..";
-        }
-      }
-      if (out.length > 0)
-        return out + to.slice(toStart + lastCommonSep);
-      else {
-        toStart += lastCommonSep;
-        if (to.charCodeAt(toStart) === 47)
-          ++toStart;
-        return to.slice(toStart);
-      }
-    },
-    _makeLong: function _makeLong(path) {
-      return path;
-    },
-    dirname: function dirname(path) {
-      assertPath(path);
-      if (path.length === 0)
-        return ".";
-      var code = path.charCodeAt(0);
-      var hasRoot = code === 47;
-      var end = -1;
-      var matchedSlash = true;
-      for (var i = path.length - 1;i >= 1; --i) {
-        code = path.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            end = i;
-            break;
-          }
-        } else {
-          matchedSlash = false;
-        }
-      }
-      if (end === -1)
-        return hasRoot ? "/" : ".";
-      if (hasRoot && end === 1)
-        return "//";
-      return path.slice(0, end);
-    },
-    basename: function basename(path, ext) {
-      if (ext !== undefined && typeof ext !== "string")
-        throw new TypeError('"ext" argument must be a string');
-      assertPath(path);
-      var start = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var i;
-      if (ext !== undefined && ext.length > 0 && ext.length <= path.length) {
-        if (ext.length === path.length && ext === path)
-          return "";
-        var extIdx = ext.length - 1;
-        var firstNonSlashEnd = -1;
-        for (i = path.length - 1;i >= 0; --i) {
-          var code = path.charCodeAt(i);
-          if (code === 47) {
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else {
-            if (firstNonSlashEnd === -1) {
-              matchedSlash = false;
-              firstNonSlashEnd = i + 1;
-            }
-            if (extIdx >= 0) {
-              if (code === ext.charCodeAt(extIdx)) {
-                if (--extIdx === -1) {
-                  end = i;
-                }
-              } else {
-                extIdx = -1;
-                end = firstNonSlashEnd;
-              }
-            }
-          }
-        }
-        if (start === end)
-          end = firstNonSlashEnd;
-        else if (end === -1)
-          end = path.length;
-        return path.slice(start, end);
-      } else {
-        for (i = path.length - 1;i >= 0; --i) {
-          if (path.charCodeAt(i) === 47) {
-            if (!matchedSlash) {
-              start = i + 1;
-              break;
-            }
-          } else if (end === -1) {
-            matchedSlash = false;
-            end = i + 1;
-          }
-        }
-        if (end === -1)
-          return "";
-        return path.slice(start, end);
-      }
-    },
-    extname: function extname(path) {
-      assertPath(path);
-      var startDot = -1;
-      var startPart = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var preDotState = 0;
-      for (var i = path.length - 1;i >= 0; --i) {
-        var code = path.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-        if (end === -1) {
-          matchedSlash = false;
-          end = i + 1;
-        }
-        if (code === 46) {
-          if (startDot === -1)
-            startDot = i;
-          else if (preDotState !== 1)
-            preDotState = 1;
-        } else if (startDot !== -1) {
-          preDotState = -1;
-        }
-      }
-      if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-        return "";
-      }
-      return path.slice(startDot, end);
-    },
-    format: function format(pathObject) {
-      if (pathObject === null || typeof pathObject !== "object") {
-        throw new TypeError('The "pathObject" argument must be of type Object. Received type ' + typeof pathObject);
-      }
-      return _format("/", pathObject);
-    },
-    parse: function parse(path) {
-      assertPath(path);
-      var ret = { root: "", dir: "", base: "", ext: "", name: "" };
-      if (path.length === 0)
-        return ret;
-      var code = path.charCodeAt(0);
-      var isAbsolute = code === 47;
-      var start;
-      if (isAbsolute) {
-        ret.root = "/";
-        start = 1;
-      } else {
-        start = 0;
-      }
-      var startDot = -1;
-      var startPart = 0;
-      var end = -1;
-      var matchedSlash = true;
-      var i = path.length - 1;
-      var preDotState = 0;
-      for (;i >= start; --i) {
-        code = path.charCodeAt(i);
-        if (code === 47) {
-          if (!matchedSlash) {
-            startPart = i + 1;
-            break;
-          }
-          continue;
-        }
-        if (end === -1) {
-          matchedSlash = false;
-          end = i + 1;
-        }
-        if (code === 46) {
-          if (startDot === -1)
-            startDot = i;
-          else if (preDotState !== 1)
-            preDotState = 1;
-        } else if (startDot !== -1) {
-          preDotState = -1;
-        }
-      }
-      if (startDot === -1 || end === -1 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
-        if (end !== -1) {
-          if (startPart === 0 && isAbsolute)
-            ret.base = ret.name = path.slice(1, end);
-          else
-            ret.base = ret.name = path.slice(startPart, end);
-        }
-      } else {
-        if (startPart === 0 && isAbsolute) {
-          ret.name = path.slice(1, startDot);
-          ret.base = path.slice(1, end);
-        } else {
-          ret.name = path.slice(startPart, startDot);
-          ret.base = path.slice(startPart, end);
-        }
-        ret.ext = path.slice(startDot, end);
-      }
-      if (startPart > 0)
-        ret.dir = path.slice(0, startPart - 1);
-      else if (isAbsolute)
-        ret.dir = "/";
-      return ret;
-    },
-    sep: "/",
-    delimiter: ":",
-    win32: null,
-    posix: null
-  };
-  posix.posix = posix;
-  module.exports = posix;
-});
-
 // dashboard/src/components/ProjectSelector.js
 var exports_ProjectSelector = {};
 __export(exports_ProjectSelector, {
-  default: () => ProjectSelector_default,
-  ProjectSelector: () => ProjectSelector
+  default: () => ProjectSelector
 });
-var import_react10, import_path_browserify, jsx_dev_runtime8, ProjectSelector = ({ onProjectSelect }) => {
-  const [basePath, setBasePath] = import_react10.useState("~");
-  const [projects, setProjects] = import_react10.useState([]);
-  const [isLoading, setIsLoading] = import_react10.useState(false);
-  const [error, setError] = import_react10.useState("");
-  const [selectedProject, setSelectedProject] = import_react10.useState(null);
-  const fetchProjects = import_react10.useCallback(async () => {
-    if (!basePath) {
-      setError("Please provide a base path.");
-      return;
-    }
-    setIsLoading(true);
-    setError("");
-    setProjects([]);
-    setSelectedProject(null);
+function ProjectSelector({ onProjectSelect }) {
+  const [currentPath, setCurrentPath] = import_react9.useState("~");
+  const [folders, setFolders] = import_react9.useState([]);
+  const [loading, setLoading] = import_react9.useState(false);
+  const [error, setError] = import_react9.useState(null);
+  const fetchFolders = async (path) => {
+    setLoading(true);
+    setError(null);
     try {
-      const data = await api_default(`/api/projects?basePath=${encodeURIComponent(basePath)}`);
-      setProjects(data);
+      const res = await fetch(`/api/projects?basePath=${encodeURIComponent(path)}`);
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.error || "Failed to load");
+      setCurrentPath(data.currentPath);
+      setFolders(data.folders);
     } catch (err) {
       setError(err.message);
     } finally {
-      setIsLoading(false);
-    }
-  }, [basePath]);
-  const handleSelectChange = (projectName) => {
-    if (projectName) {
-      const fullPath = import_path_browserify.default.join(basePath, projectName);
-      setSelectedProject(fullPath);
-      if (onProjectSelect) {
-        onProjectSelect(fullPath);
-      }
+      setLoading(false);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
-    className: "flex items-center gap-2",
+  import_react9.useEffect(() => {
+    fetchFolders(currentPath);
+  }, []);
+  const navigateTo = (folderName) => {
+    const separator = currentPath.includes("\\") ? "\\" : "/";
+    const newPath = currentPath.endsWith(separator) ? `${currentPath}${folderName}` : `${currentPath}${separator}${folderName}`;
+    fetchFolders(newPath);
+  };
+  const goUp = () => {
+    const separator = currentPath.includes("\\") ? "\\" : "/";
+    const parts = currentPath.split(separator);
+    parts.pop();
+    const parent = parts.join(separator) || separator;
+    fetchFolders(parent);
+  };
+  return /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+    className: "w-[300px] flex flex-col gap-2",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Input, {
-        type: "text",
-        placeholder: "Base path for projects...",
-        value: basePath,
-        onChange: (e) => setBasePath(e.target.value),
-        onKeyDown: (e) => e.key === "Enter" && fetchProjects(),
-        className: "w-[250px]"
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Button, {
-        onClick: fetchProjects,
-        disabled: isLoading,
-        "data-testid": "find-projects-button",
-        children: isLoading ? "Loading..." : "Find Projects"
-      }, undefined, false, undefined, this),
-      error && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
-        className: "text-sm text-red-500",
-        children: error
-      }, undefined, false, undefined, this),
-      projects.length > 0 && /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Select2, {
-        onValueChange: handleSelectChange,
-        disabled: !projects.length,
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+        className: "flex items-center gap-2",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectTrigger2, {
-            className: "w-[280px]",
-            children: /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectValue2, {
-              placeholder: "Select a project"
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Button, {
+            variant: "outline",
+            size: "icon",
+            onClick: goUp,
+            disabled: loading,
+            children: /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(ArrowUp, {
+              className: "w-4 h-4"
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectContent2, {
-            children: projects.map((project) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(SelectItem2, {
-              value: project,
-              children: project
-            }, project, false, undefined, this))
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+            className: "text-xs font-mono truncate bg-zinc-900 p-2 rounded flex-grow text-zinc-400 border border-white/10",
+            title: currentPath,
+            children: currentPath
           }, undefined, false, undefined, this)
+        ]
+      }, undefined, true, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+        className: "border border-white/10 rounded-md bg-zinc-900/50 h-[300px] flex flex-col",
+        children: loading ? /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+          className: "flex items-center justify-center h-full text-zinc-500 gap-2",
+          children: [
+            /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(LoaderCircle, {
+              className: "w-4 h-4 animate-spin"
+            }, undefined, false, undefined, this),
+            " Loading..."
+          ]
+        }, undefined, true, undefined, this) : error ? /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+          className: "p-4 text-red-400 text-xs",
+          children: error
+        }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(ScrollArea2, {
+          className: "flex-grow p-1",
+          children: [
+            folders.length === 0 && /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("div", {
+              className: "p-2 text-zinc-500 text-xs",
+              children: "No folders found."
+            }, undefined, false, undefined, this),
+            folders.map((folder) => /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("button", {
+              onClick: () => navigateTo(folder),
+              className: "flex items-center gap-2 w-full p-2 hover:bg-white/5 rounded text-left text-sm text-zinc-300 transition-colors",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Folder, {
+                  className: "w-4 h-4 text-blue-500 shrink-0"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime6.jsxDEV("span", {
+                  className: "truncate",
+                  children: folder
+                }, undefined, false, undefined, this)
+              ]
+            }, folder, true, undefined, this))
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Button, {
+        onClick: () => onProjectSelect(currentPath),
+        className: "w-full bg-green-600 hover:bg-green-500 text-white gap-2",
+        children: [
+          /* @__PURE__ */ jsx_dev_runtime6.jsxDEV(Check, {
+            className: "w-4 h-4"
+          }, undefined, false, undefined, this),
+          "Select This Project"
         ]
       }, undefined, true, undefined, this)
     ]
   }, undefined, true, undefined, this);
-}, ProjectSelector_default;
+}
+var import_react9, jsx_dev_runtime6;
 var init_ProjectSelector = __esm(() => {
-  import_react10 = __toESM(require_react(), 1);
+  import_react9 = __toESM(require_react(), 1);
   init_button();
-  init_input();
-  init_select();
-  import_path_browserify = __toESM(require_path_browserify(), 1);
-  init_api();
-  jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
-  ProjectSelector_default = ProjectSelector;
+  init_lucide_react();
+  init_scroll_area();
+  jsx_dev_runtime6 = __toESM(require_jsx_dev_runtime(), 1);
 });
 
 // dashboard/src/components/ui/table.jsx
-var React44, jsx_dev_runtime9, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
+var React36, jsx_dev_runtime7, Table, TableHeader, TableBody, TableFooter, TableRow, TableHead, TableCell, TableCaption;
 var init_table = __esm(() => {
-  React44 = __toESM(require_react(), 1);
+  React36 = __toESM(require_react(), 1);
   init_utils();
-  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
-  Table = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("table", {
+  jsx_dev_runtime7 = __toESM(require_jsx_dev_runtime(), 1);
+  Table = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("table", {
     ref,
     className: cn("w-full caption-bottom text-sm", className),
     ...props
   }, undefined, false, undefined, this));
   Table.displayName = "Table";
-  TableHeader = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("thead", {
+  TableHeader = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("thead", {
     ref,
     className: cn("[&_tr]:border-b", className),
     ...props
   }, undefined, false, undefined, this));
   TableHeader.displayName = "TableHeader";
-  TableBody = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tbody", {
+  TableBody = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("tbody", {
     ref,
     className: cn("[&_tr:last-child]:border-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableBody.displayName = "TableBody";
-  TableFooter = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tfoot", {
+  TableFooter = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("tfoot", {
     ref,
     className: cn("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableFooter.displayName = "TableFooter";
-  TableRow = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("tr", {
+  TableRow = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("tr", {
     ref,
     className: cn("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
     ...props
   }, undefined, false, undefined, this));
   TableRow.displayName = "TableRow";
-  TableHead = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("th", {
+  TableHead = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("th", {
     ref,
     className: cn("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableHead.displayName = "TableHead";
-  TableCell = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("td", {
+  TableCell = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("td", {
     ref,
     className: cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
     ...props
   }, undefined, false, undefined, this));
   TableCell.displayName = "TableCell";
-  TableCaption = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("caption", {
+  TableCaption = React36.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime7.jsxDEV("caption", {
     ref,
     className: cn("mt-4 text-sm text-muted-foreground", className),
     ...props
@@ -33441,42 +27955,42 @@ var init_table = __esm(() => {
 });
 
 // dashboard/src/components/ui/card.jsx
-var React45, jsx_dev_runtime10, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter;
+var React37, jsx_dev_runtime8, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter;
 var init_card = __esm(() => {
-  React45 = __toESM(require_react(), 1);
+  React37 = __toESM(require_react(), 1);
   init_utils();
-  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
-  Card = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  jsx_dev_runtime8 = __toESM(require_jsx_dev_runtime(), 1);
+  Card = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
     ref,
     className: cn("rounded-lg border bg-card text-card-foreground shadow-sm", className),
     ...props
   }, undefined, false, undefined, this));
   Card.displayName = "Card";
-  CardHeader = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardHeader = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
     ref,
     className: cn("flex flex-col space-y-1.5 p-6", className),
     ...props
   }, undefined, false, undefined, this));
   CardHeader.displayName = "CardHeader";
-  CardTitle = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("h3", {
+  CardTitle = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("h3", {
     ref,
     className: cn("text-2xl font-semibold leading-none tracking-tight", className),
     ...props
   }, undefined, false, undefined, this));
   CardTitle.displayName = "CardTitle";
-  CardDescription = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("p", {
+  CardDescription = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("p", {
     ref,
     className: cn("text-sm text-muted-foreground", className),
     ...props
   }, undefined, false, undefined, this));
   CardDescription.displayName = "CardDescription";
-  CardContent = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardContent = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
     ref,
     className: cn("p-6 pt-0", className),
     ...props
   }, undefined, false, undefined, this));
   CardContent.displayName = "CardContent";
-  CardFooter = React45.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("div", {
+  CardFooter = React37.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime8.jsxDEV("div", {
     ref,
     className: cn("flex items-center p-6 pt-0", className),
     ...props
@@ -33490,17 +28004,17 @@ function Badge({
   variant,
   ...props
 }) {
-  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime9.jsxDEV("div", {
     className: cn(badgeVariants({ variant }), className),
     ...props
   }, undefined, false, undefined, this);
 }
-var React46, jsx_dev_runtime11, badgeVariants;
+var React38, jsx_dev_runtime9, badgeVariants;
 var init_badge = __esm(() => {
-  React46 = __toESM(require_react(), 1);
+  React38 = __toESM(require_react(), 1);
   init_dist3();
   init_utils();
-  jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
   badgeVariants = cva("inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2", {
     variants: {
       variant: {
@@ -33522,7 +28036,7 @@ var exports_ActivityLog = {};
 __export(exports_ActivityLog, {
   default: () => ActivityLog_default
 });
-var import_react11, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
+var import_react10, jsx_dev_runtime10, ActivityLog = ({ agentActivity }) => {
   const formatContent = (item) => {
     switch (item.type) {
       case "agent_start":
@@ -33547,58 +28061,58 @@ var import_react11, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
       return "destructive";
     return "outline";
   };
-  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(CardTitle, {
           children: "Live Activity Feed"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(ScrollArea2, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ScrollArea2, {
           className: "h-96",
-          children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Table, {
+          children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Table, {
             children: [
-              /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableHeader, {
-                children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableHeader, {
+                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableHead, {
                       className: "w-[120px]",
                       children: "Agent"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableHead, {
                       className: "w-[150px]",
                       children: "Event"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableHead, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableHead, {
                       children: "Details"
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableBody, {
-                children: agentActivity.length > 0 ? agentActivity.map((item, index2) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableRow, {
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableBody, {
+                children: agentActivity.length > 0 ? agentActivity.map((item, index) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableRow, {
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableCell, {
                       className: "font-medium",
                       children: [
                         "@",
                         item.agent
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableCell, {
-                      children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Badge, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableCell, {
+                      children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Badge, {
                         variant: getBadgeVariant(item.type),
                         children: item.tool ? `${item.type} (${item.tool})` : item.type
                       }, undefined, false, undefined, this)
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableCell, {
+                    /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableCell, {
                       className: "text-xs text-muted-foreground",
                       children: formatContent(item)
                     }, undefined, false, undefined, this)
                   ]
-                }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableRow, {
-                  children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(TableCell, {
+                }, index, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableRow, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(TableCell, {
                     colSpan: "3",
                     className: "h-24 text-center",
                     children: "No agent activity yet."
@@ -33613,12 +28127,12 @@ var import_react11, jsx_dev_runtime12, ActivityLog = ({ agentActivity }) => {
   }, undefined, true, undefined, this);
 }, ActivityLog_default;
 var init_ActivityLog = __esm(() => {
-  import_react11 = __toESM(require_react(), 1);
+  import_react10 = __toESM(require_react(), 1);
   init_table();
   init_card();
   init_scroll_area();
   init_badge();
-  jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
   ActivityLog_default = ActivityLog;
 });
 
@@ -33636,7 +28150,7 @@ function getErrorMessage(error) {
   return JSON.stringify(error);
 }
 var marker = "vercel.ai.error", symbol, _a, _AISDKError, AISDKError, name = "AI_APICallError", marker2, symbol2, _a2, name2 = "AI_EmptyResponseBodyError", marker3, symbol3, _a3, name3 = "AI_InvalidArgumentError", marker4, symbol4, _a4, InvalidArgumentError, name4 = "AI_InvalidPromptError", marker5, symbol5, _a5, name5 = "AI_InvalidResponseDataError", marker6, symbol6, _a6, name6 = "AI_JSONParseError", marker7, symbol7, _a7, JSONParseError, name7 = "AI_LoadAPIKeyError", marker8, symbol8, _a8, name8 = "AI_LoadSettingError", marker9, symbol9, _a9, name9 = "AI_NoContentGeneratedError", marker10, symbol10, _a10, name10 = "AI_NoSuchModelError", marker11, symbol11, _a11, name11 = "AI_TooManyEmbeddingValuesForCallError", marker12, symbol12, _a12, name12 = "AI_TypeValidationError", marker13, symbol13, _a13, _TypeValidationError, TypeValidationError, name13 = "AI_UnsupportedFunctionalityError", marker14, symbol14, _a14;
-var init_dist27 = __esm(() => {
+var init_dist15 = __esm(() => {
   symbol = Symbol.for(marker);
   _AISDKError = class _AISDKError2 extends Error {
     constructor({
@@ -33752,11 +28266,11 @@ Error message: ${getErrorMessage(cause)}`,
 });
 
 // node_modules/eventsource-parser/dist/index.js
-function noop3(_arg) {}
+function noop(_arg) {}
 function createParser(callbacks) {
   if (typeof callbacks == "function")
     throw new TypeError("`callbacks` must be an object, got a function instead. Did you mean `{onEvent: fn}`?");
-  const { onEvent = noop3, onError = noop3, onRetry = noop3, onComment } = callbacks;
+  const { onEvent = noop, onError = noop, onRetry = noop, onComment } = callbacks;
   let incompleteLine = "", isFirstChunk = true, id, data = "", eventType = "";
   function feed(newChunk) {
     const chunk = isFirstChunk ? newChunk.replace(/^\xEF\xBB\xBF/, "") : newChunk, [complete, incomplete] = splitLines(`${incompleteLine}${chunk}`);
@@ -33775,7 +28289,7 @@ function createParser(callbacks) {
     }
     const fieldSeparatorIndex = line.indexOf(":");
     if (fieldSeparatorIndex !== -1) {
-      const field = line.slice(0, fieldSeparatorIndex), offset4 = line[fieldSeparatorIndex + 1] === " " ? 2 : 1, value = line.slice(fieldSeparatorIndex + offset4);
+      const field = line.slice(0, fieldSeparatorIndex), offset = line[fieldSeparatorIndex + 1] === " " ? 2 : 1, value = line.slice(fieldSeparatorIndex + offset);
       processField(field, value, line);
       return;
     }
@@ -33837,7 +28351,7 @@ function splitLines(chunk) {
   return [lines, incompleteLine];
 }
 var ParseError;
-var init_dist28 = __esm(() => {
+var init_dist16 = __esm(() => {
   ParseError = class ParseError extends Error {
     constructor(message, options2) {
       super(message), this.name = "ParseError", this.type = options2.type, this.field = options2.field, this.value = options2.value, this.line = options2.line;
@@ -33848,7 +28362,7 @@ var init_dist28 = __esm(() => {
 // node_modules/eventsource-parser/dist/stream.js
 var EventSourceParserStream;
 var init_stream = __esm(() => {
-  init_dist28();
+  init_dist16();
   EventSourceParserStream = class EventSourceParserStream extends TransformStream {
     constructor({ onError, onRetry, onComment } = {}) {
       let parser;
@@ -34109,10 +28623,10 @@ function mergeDefs(...defs) {
 function cloneDef(schema) {
   return mergeDefs(schema._zod.def);
 }
-function getElementAtPath(obj, path2) {
-  if (!path2)
+function getElementAtPath(obj, path) {
+  if (!path)
     return obj;
-  return path2.reduce((acc, key) => acc?.[key], obj);
+  return path.reduce((acc, key) => acc?.[key], obj);
 }
 function promiseAllObject(promisesObj) {
   const keys = Object.keys(promisesObj);
@@ -34401,11 +28915,11 @@ function aborted(x, startIndex = 0) {
   }
   return false;
 }
-function prefixIssues(path2, issues) {
+function prefixIssues(path, issues) {
   return issues.map((iss) => {
     var _a15;
     (_a15 = iss).path ?? (_a15.path = []);
-    iss.path.unshift(path2);
+    iss.path.unshift(path);
     return iss;
   });
 }
@@ -34622,7 +29136,7 @@ function formatError(error, mapper = (issue2) => issue2.message) {
 }
 function treeifyError(error, mapper = (issue2) => issue2.message) {
   const result = { errors: [] };
-  const processError = (error2, path2 = []) => {
+  const processError = (error2, path = []) => {
     var _a15, _b;
     for (const issue2 of error2.issues) {
       if (issue2.code === "invalid_union" && issue2.errors.length) {
@@ -34632,7 +29146,7 @@ function treeifyError(error, mapper = (issue2) => issue2.message) {
       } else if (issue2.code === "invalid_element") {
         processError({ issues: issue2.issues }, issue2.path);
       } else {
-        const fullpath = [...path2, ...issue2.path];
+        const fullpath = [...path, ...issue2.path];
         if (fullpath.length === 0) {
           result.errors.push(mapper(issue2));
           continue;
@@ -34664,8 +29178,8 @@ function treeifyError(error, mapper = (issue2) => issue2.message) {
 }
 function toDotPath(_path) {
   const segs = [];
-  const path2 = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
-  for (const seg of path2) {
+  const path = _path.map((seg) => typeof seg === "object" ? seg.key : seg);
+  for (const seg of path) {
     if (typeof seg === "number")
       segs.push(`[${seg}]`);
     else if (typeof seg === "symbol")
@@ -35169,8 +29683,8 @@ var init_checks = __esm(() => {
     });
     inst._zod.check = (payload) => {
       const input = payload.value;
-      const size4 = input.size;
-      if (size4 <= def.maximum)
+      const size = input.size;
+      if (size <= def.maximum)
         return;
       payload.issues.push({
         origin: getSizableOrigin(input),
@@ -35197,8 +29711,8 @@ var init_checks = __esm(() => {
     });
     inst._zod.check = (payload) => {
       const input = payload.value;
-      const size4 = input.size;
-      if (size4 >= def.minimum)
+      const size = input.size;
+      if (size >= def.minimum)
         return;
       payload.issues.push({
         origin: getSizableOrigin(input),
@@ -35226,10 +29740,10 @@ var init_checks = __esm(() => {
     });
     inst._zod.check = (payload) => {
       const input = payload.value;
-      const size4 = input.size;
-      if (size4 === def.size)
+      const size = input.size;
+      if (size === def.size)
         return;
-      const tooBig = size4 > def.size;
+      const tooBig = size > def.size;
       payload.issues.push({
         origin: getSizableOrigin(input),
         ...tooBig ? { code: "too_big", maximum: def.size } : { code: "too_small", minimum: def.size },
@@ -35582,11 +30096,11 @@ function isValidJWT(token, algorithm = null) {
     return false;
   }
 }
-function handleArrayResult(result, final, index2) {
+function handleArrayResult(result, final, index) {
   if (result.issues.length) {
-    final.issues.push(...prefixIssues(index2, result.issues));
+    final.issues.push(...prefixIssues(index, result.issues));
   }
-  final.value[index2] = result.value;
+  final.value[index] = result.value;
 }
 function handlePropertyResult(result, final, key, input) {
   if (result.issues.length) {
@@ -35697,14 +30211,14 @@ function mergeValues(a, b) {
       return { valid: false, mergeErrorPath: [] };
     }
     const newArray = [];
-    for (let index2 = 0;index2 < a.length; index2++) {
-      const itemA = a[index2];
-      const itemB = b[index2];
+    for (let index = 0;index < a.length; index++) {
+      const itemA = a[index];
+      const itemB = b[index];
       const sharedValue = mergeValues(itemA, itemB);
       if (!sharedValue.valid) {
         return {
           valid: false,
-          mergeErrorPath: [index2, ...sharedValue.mergeErrorPath]
+          mergeErrorPath: [index, ...sharedValue.mergeErrorPath]
         };
       }
       newArray.push(sharedValue.data);
@@ -35729,11 +30243,11 @@ function handleIntersectionResults(result, left, right) {
   result.value = merged.data;
   return result;
 }
-function handleTupleResult(result, final, index2) {
+function handleTupleResult(result, final, index) {
   if (result.issues.length) {
-    final.issues.push(...prefixIssues(index2, result.issues));
+    final.issues.push(...prefixIssues(index, result.issues));
   }
-  final.value[index2] = result.value;
+  final.value[index] = result.value;
 }
 function handleMapResult(keyResult, valueResult, final, key, input, inst, ctx) {
   if (keyResult.issues.length) {
@@ -43760,11 +38274,11 @@ function _minSize(minimum, params) {
     minimum
   });
 }
-function _size(size4, params) {
+function _size(size, params) {
   return new $ZodCheckSizeEquals({
     check: "size_equals",
     ...normalizeParams(params),
-    size: size4
+    size
   });
 }
 function _maxLength(maximum, params) {
@@ -44153,7 +38667,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   return inst;
 }
 var TimePrecision;
-var init_api2 = __esm(() => {
+var init_api = __esm(() => {
   init_checks();
   init_schemas();
   init_util();
@@ -45253,7 +39767,7 @@ var init_core2 = __esm(() => {
   init_regexes();
   init_locales();
   init_registries();
-  init_api2();
+  init_api();
   init_to_json_schema();
   init_json_schema();
 });
@@ -46228,8 +40742,8 @@ var init_schemas2 = __esm(() => {
   ZodFile = /* @__PURE__ */ $constructor("ZodFile", (inst, def) => {
     $ZodFile.init(inst, def);
     ZodType.init(inst, def);
-    inst.min = (size4, params) => inst.check(_minSize(size4, params));
-    inst.max = (size4, params) => inst.check(_maxSize(size4, params));
+    inst.min = (size, params) => inst.check(_minSize(size, params));
+    inst.max = (size, params) => inst.check(_maxSize(size, params));
     inst.mime = (types, params) => inst.check(_mime(Array.isArray(types) ? types : [types], params));
   });
   ZodTransform = /* @__PURE__ */ $constructor("ZodTransform", (inst, def) => {
@@ -47095,8 +41609,8 @@ class ParseStatus {
   }
 }
 var makeIssue = (params) => {
-  const { data, path: path2, errorMaps, issueData } = params;
-  const fullPath = [...path2, ...issueData.path || []];
+  const { data, path, errorMaps, issueData } = params;
+  const fullPath = [...path, ...issueData.path || []];
   const fullIssue = {
     ...issueData,
     path: fullPath
@@ -47141,11 +41655,11 @@ var init_errorUtil = __esm(() => {
 
 // node_modules/zod/v3/types.js
 class ParseInputLazyPath {
-  constructor(parent, value, path2, key) {
+  constructor(parent, value, path, key) {
     this._cachedPath = [];
     this.parent = parent;
     this.data = value;
-    this._path = path2;
+    this._path = path;
     this._key = key;
   }
   get path() {
@@ -47584,9 +42098,9 @@ function mergeValues2(a, b) {
       return { valid: false };
     }
     const newArray = [];
-    for (let index2 = 0;index2 < a.length; index2++) {
-      const itemA = a[index2];
-      const itemB = b[index2];
+    for (let index = 0;index < a.length; index++) {
+      const itemA = a[index];
+      const itemB = b[index];
       const sharedValue = mergeValues2(itemA, itemB);
       if (!sharedValue.valid) {
         return { valid: false };
@@ -48192,24 +42706,24 @@ var init_types = __esm(() => {
       return !!this._def.checks.find((ch) => ch.kind === "base64url");
     }
     get minLength() {
-      let min2 = null;
+      let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min2 === null || ch.value > min2)
-            min2 = ch.value;
+          if (min === null || ch.value > min)
+            min = ch.value;
         }
       }
-      return min2;
+      return min;
     }
     get maxLength() {
-      let max2 = null;
+      let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max2 === null || ch.value < max2)
-            max2 = ch.value;
+          if (max === null || ch.value < max)
+            max = ch.value;
         }
       }
-      return max2;
+      return max;
     }
   };
   ZodString2.create = (params) => {
@@ -48405,43 +42919,43 @@ var init_types = __esm(() => {
       });
     }
     get minValue() {
-      let min2 = null;
+      let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min2 === null || ch.value > min2)
-            min2 = ch.value;
+          if (min === null || ch.value > min)
+            min = ch.value;
         }
       }
-      return min2;
+      return min;
     }
     get maxValue() {
-      let max2 = null;
+      let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max2 === null || ch.value < max2)
-            max2 = ch.value;
+          if (max === null || ch.value < max)
+            max = ch.value;
         }
       }
-      return max2;
+      return max;
     }
     get isInt() {
       return !!this._def.checks.find((ch) => ch.kind === "int" || ch.kind === "multipleOf" && util.isInteger(ch.value));
     }
     get isFinite() {
-      let max2 = null;
-      let min2 = null;
+      let max = null;
+      let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "finite" || ch.kind === "int" || ch.kind === "multipleOf") {
           return true;
         } else if (ch.kind === "min") {
-          if (min2 === null || ch.value > min2)
-            min2 = ch.value;
+          if (min === null || ch.value > min)
+            min = ch.value;
         } else if (ch.kind === "max") {
-          if (max2 === null || ch.value < max2)
-            max2 = ch.value;
+          if (max === null || ch.value < max)
+            max = ch.value;
         }
       }
-      return Number.isFinite(min2) && Number.isFinite(max2);
+      return Number.isFinite(min) && Number.isFinite(max);
     }
   };
   ZodNumber2.create = (params) => {
@@ -48596,24 +43110,24 @@ var init_types = __esm(() => {
       });
     }
     get minValue() {
-      let min2 = null;
+      let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min2 === null || ch.value > min2)
-            min2 = ch.value;
+          if (min === null || ch.value > min)
+            min = ch.value;
         }
       }
-      return min2;
+      return min;
     }
     get maxValue() {
-      let max2 = null;
+      let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max2 === null || ch.value < max2)
-            max2 = ch.value;
+          if (max === null || ch.value < max)
+            max = ch.value;
         }
       }
-      return max2;
+      return max;
     }
   };
   ZodBigInt2.create = (params) => {
@@ -48730,24 +43244,24 @@ var init_types = __esm(() => {
       });
     }
     get minDate() {
-      let min2 = null;
+      let min = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "min") {
-          if (min2 === null || ch.value > min2)
-            min2 = ch.value;
+          if (min === null || ch.value > min)
+            min = ch.value;
         }
       }
-      return min2 != null ? new Date(min2) : null;
+      return min != null ? new Date(min) : null;
     }
     get maxDate() {
-      let max2 = null;
+      let max = null;
       for (const ch of this._def.checks) {
         if (ch.kind === "max") {
-          if (max2 === null || ch.value < max2)
-            max2 = ch.value;
+          if (max === null || ch.value < max)
+            max = ch.value;
         }
       }
-      return max2 != null ? new Date(max2) : null;
+      return max != null ? new Date(max) : null;
     }
   };
   ZodDate2.create = (params) => {
@@ -49145,10 +43659,10 @@ var init_types = __esm(() => {
     setKey(key, schema) {
       return this.augment({ [key]: schema });
     }
-    catchall(index2) {
+    catchall(index) {
       return new ZodObject2({
         ...this._def,
-        catchall: index2
+        catchall: index
       });
     }
     pick(mask) {
@@ -49594,10 +44108,10 @@ var init_types = __esm(() => {
       }
       const keyType = this._def.keyType;
       const valueType = this._def.valueType;
-      const pairs = [...ctx.data.entries()].map(([key, value], index2) => {
+      const pairs = [...ctx.data.entries()].map(([key, value], index) => {
         return {
-          key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index2, "key"])),
-          value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index2, "value"]))
+          key: keyType._parse(new ParseInputLazyPath(ctx, key, ctx.path, [index, "key"])),
+          value: valueType._parse(new ParseInputLazyPath(ctx, value, ctx.path, [index, "value"]))
         };
       });
       if (ctx.common.async) {
@@ -49710,8 +44224,8 @@ var init_types = __esm(() => {
         maxSize: { value: maxSize, message: errorUtil.toString(message) }
       });
     }
-    size(size4, message) {
-      return this.min(size4, message).max(size4, message);
+    size(size, message) {
+      return this.min(size, message).max(size, message);
     }
     nonempty(message) {
       return this.min(1, message);
@@ -50466,7 +44980,7 @@ var init_v3 = __esm(() => {
 });
 
 // node_modules/@standard-schema/spec/dist/index.js
-var init_dist29 = () => {};
+var init_dist17 = () => {};
 
 // node_modules/@ai-sdk/provider-utils/dist/index.mjs
 function getRuntimeEnvironmentUserAgent(globalThisAny = globalThis) {
@@ -51427,14 +45941,14 @@ function asSchema(schema) {
 }
 var createIdGenerator = ({
   prefix,
-  size: size4 = 16,
+  size = 16,
   alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
   separator = "-"
 } = {}) => {
   const generator = () => {
     const alphabetLength = alphabet.length;
-    const chars = new Array(size4);
-    for (let i = 0;i < size4; i++) {
+    const chars = new Array(size);
+    for (let i = 0;i < size; i++) {
       chars[i] = alphabet[Math.random() * alphabetLength | 0];
     }
     return chars.join("");
@@ -51602,7 +46116,7 @@ var createIdGenerator = ({
       return { $ref: getRelativePath(refs.currentPath, item.path) };
     case "none":
     case "seen": {
-      if (item.path.length < refs.currentPath.length && item.path.every((value, index2) => refs.currentPath[index2] === value)) {
+      if (item.path.length < refs.currentPath.length && item.path.every((value, index) => refs.currentPath[index] === value)) {
         console.warn(`Recursive reference detected at ${refs.currentPath.join("/")}! Defaulting to any`);
         return parseAnyDef();
       }
@@ -51669,17 +46183,17 @@ var createIdGenerator = ({
   combined.$schema = "http://json-schema.org/draft-07/schema#";
   return combined;
 }, zod_to_json_schema_default, schemaSymbol;
-var init_dist30 = __esm(() => {
-  init_dist27();
-  init_dist27();
-  init_dist27();
-  init_dist27();
+var init_dist18 = __esm(() => {
+  init_dist15();
+  init_dist15();
+  init_dist15();
+  init_dist15();
   init_stream();
   init_v4();
   init_v3();
   init_v3();
   init_v3();
-  init_dist29();
+  init_dist17();
   generateId = createIdGenerator();
   suspectProtoRx = /"__proto__"\s*:/;
   suspectConstructorRx = /"constructor"\s*:/;
@@ -53074,26 +47588,26 @@ var __defProp2, __export2 = (target, all) => {
     }
   }
 }, uiMessagesSchema;
-var init_dist31 = __esm(() => {
-  init_dist30();
-  init_dist27();
+var init_dist19 = __esm(() => {
+  init_dist18();
+  init_dist15();
   init_v4();
   init_v4();
   init_v4();
   init_v4();
   init_v4();
-  init_dist30();
-  init_dist30();
+  init_dist18();
+  init_dist18();
   init_v4();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
-  init_dist30();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
+  init_dist18();
   init_v4();
   __defProp2 = Object.defineProperty;
   marker15 = `vercel.ai.error.${name14}`;
@@ -53697,23 +48211,23 @@ function useChat({
   resume = false,
   ...options2
 } = {}) {
-  const chatRef = import_react12.useRef("chat" in options2 ? options2.chat : new Chat(options2));
+  const chatRef = import_react11.useRef("chat" in options2 ? options2.chat : new Chat(options2));
   const shouldRecreateChat = "chat" in options2 && options2.chat !== chatRef.current || "id" in options2 && chatRef.current.id !== options2.id;
   if (shouldRecreateChat) {
     chatRef.current = "chat" in options2 ? options2.chat : new Chat(options2);
   }
   const optionsId = "id" in options2 ? options2.id : null;
-  const subscribeToMessages = import_react12.useCallback((update) => chatRef.current["~registerMessagesCallback"](update, throttleWaitMs), [throttleWaitMs, optionsId]);
-  const messages = import_react12.useSyncExternalStore(subscribeToMessages, () => chatRef.current.messages, () => chatRef.current.messages);
-  const status = import_react12.useSyncExternalStore(chatRef.current["~registerStatusCallback"], () => chatRef.current.status, () => chatRef.current.status);
-  const error46 = import_react12.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
-  const setMessages = import_react12.useCallback((messagesParam) => {
+  const subscribeToMessages = import_react11.useCallback((update) => chatRef.current["~registerMessagesCallback"](update, throttleWaitMs), [throttleWaitMs, optionsId]);
+  const messages = import_react11.useSyncExternalStore(subscribeToMessages, () => chatRef.current.messages, () => chatRef.current.messages);
+  const status = import_react11.useSyncExternalStore(chatRef.current["~registerStatusCallback"], () => chatRef.current.status, () => chatRef.current.status);
+  const error46 = import_react11.useSyncExternalStore(chatRef.current["~registerErrorCallback"], () => chatRef.current.error, () => chatRef.current.error);
+  const setMessages = import_react11.useCallback((messagesParam) => {
     if (typeof messagesParam === "function") {
       messagesParam = messagesParam(chatRef.current.messages);
     }
     chatRef.current.messages = messagesParam;
   }, [chatRef]);
-  import_react12.useEffect(() => {
+  import_react11.useEffect(() => {
     if (resume) {
       chatRef.current.resumeStream();
     }
@@ -53733,7 +48247,7 @@ function useChat({
     addToolOutput: chatRef.current.addToolOutput
   };
 }
-var import_react12, import_throttleit, import_react13, import_react14, __accessCheck = (obj, member, msg) => {
+var import_react11, import_throttleit, import_react12, import_react13, __accessCheck = (obj, member, msg) => {
   if (!member.has(obj))
     throw TypeError("Cannot " + msg);
 }, __privateGet = (obj, member, getter) => {
@@ -53763,11 +48277,11 @@ var import_react12, import_throttleit, import_react13, import_react14, __accessC
       __privateSet(this, _messages, __privateGet(this, _messages).slice(0, -1));
       __privateGet(this, _callMessagesCallbacks).call(this);
     };
-    this.replaceMessage = (index2, message) => {
+    this.replaceMessage = (index, message) => {
       __privateSet(this, _messages, [
-        ...__privateGet(this, _messages).slice(0, index2),
+        ...__privateGet(this, _messages).slice(0, index),
         this.snapshot(message),
-        ...__privateGet(this, _messages).slice(index2 + 1)
+        ...__privateGet(this, _messages).slice(index + 1)
       ]);
       __privateGet(this, _callMessagesCallbacks).call(this);
     };
@@ -53824,12 +48338,12 @@ var import_react12, import_throttleit, import_react13, import_react14, __accessC
     __privateGet(this, _callMessagesCallbacks).call(this);
   }
 }, _state, Chat;
-var init_dist32 = __esm(() => {
-  import_react12 = __toESM(require_react(), 1);
-  init_dist31();
+var init_dist20 = __esm(() => {
+  import_react11 = __toESM(require_react(), 1);
+  init_dist19();
   import_throttleit = __toESM(require_throttleit(), 1);
+  import_react12 = __toESM(require_react(), 1);
   import_react13 = __toESM(require_react(), 1);
-  import_react14 = __toESM(require_react(), 1);
   _messages = new WeakMap;
   _status = new WeakMap;
   _error = new WeakMap;
@@ -53854,7 +48368,7 @@ var init_dist32 = __esm(() => {
 });
 
 // node_modules/dequal/dist/index.mjs
-var init_dist33 = () => {};
+var init_dist21 = () => {};
 
 // node_modules/devlop/lib/development.js
 function ok(value, message) {
@@ -53870,7 +48384,7 @@ function assert2(bool, actual, expected, operator, defaultMessage, userMessage) 
 }
 var codesWarned, AssertionError;
 var init_development = __esm(() => {
-  init_dist33();
+  init_dist21();
   codesWarned = new Set;
   AssertionError = class AssertionError extends Error {
     name = "Assertion";
@@ -54025,13 +48539,13 @@ var init_defined_info = __esm(() => {
   checks3 = Object.keys(exports_types);
   DefinedInfo = class DefinedInfo extends Info {
     constructor(property, attribute, mask, space) {
-      let index2 = -1;
+      let index = -1;
       super(property, attribute);
       mark(this, "space", space);
       if (typeof mask === "number") {
-        while (++index2 < checks3.length) {
-          const check2 = checks3[index2];
-          mark(this, checks3[index2], (mask & exports_types[check2]) === exports_types[check2]);
+        while (++index < checks3.length) {
+          const check2 = checks3[index];
+          mark(this, checks3[index], (mask & exports_types[check2]) === exports_types[check2]);
         }
       }
     }
@@ -55159,7 +49673,7 @@ var require_cjs = __commonJS((exports, module) => {
   var EMPTY_STRING = "";
   var TYPE_COMMENT = "comment";
   var TYPE_DECLARATION = "declaration";
-  function index2(style, options2) {
+  function index(style, options2) {
     if (typeof style !== "string") {
       throw new TypeError("First argument must be a string");
     }
@@ -55281,7 +49795,7 @@ var require_cjs = __commonJS((exports, module) => {
   function trim(str) {
     return str ? str.replace(TRIM_REGEX, EMPTY_STRING) : EMPTY_STRING;
   }
-  module.exports = index2;
+  module.exports = index;
 });
 
 // node_modules/style-to-object/cjs/index.js
@@ -55423,12 +49937,12 @@ function stringifyPosition(value) {
   return "";
 }
 function point2(point3) {
-  return index2(point3 && point3.line) + ":" + index2(point3 && point3.column);
+  return index(point3 && point3.line) + ":" + index(point3 && point3.column);
 }
 function position2(pos) {
   return point2(pos && pos.start) + "-" + point2(pos && pos.end);
 }
-function index2(value) {
+function index(value) {
   return value && typeof value === "number" ? value : 1;
 }
 
@@ -55471,12 +49985,12 @@ var init_lib4 = __esm(() => {
         options2.cause = causeOrReason;
       }
       if (!options2.ruleId && !options2.source && typeof origin === "string") {
-        const index3 = origin.indexOf(":");
-        if (index3 === -1) {
+        const index2 = origin.indexOf(":");
+        if (index2 === -1) {
           options2.ruleId = origin;
         } else {
-          options2.source = origin.slice(0, index3);
-          options2.ruleId = origin.slice(index3 + 1);
+          options2.source = origin.slice(0, index2);
+          options2.ruleId = origin.slice(index2 + 1);
         }
       }
       if (!options2.place && options2.ancestors && options2.ancestors) {
@@ -55598,7 +50112,7 @@ function element(state, node, key) {
   const type = findComponentFromName(state, node.tagName, false);
   const props = createElementProps(state, node);
   let children = createChildren(state, node);
-  if (tableElements2.has(node.tagName)) {
+  if (tableElements.has(node.tagName)) {
     children = children.filter(function(child) {
       return typeof child === "string" ? !whitespace(child) : true;
     });
@@ -55662,20 +50176,20 @@ function addChildren(props, children) {
     }
   }
 }
-function productionCreate(_, jsx15, jsxs4) {
+function productionCreate(_, jsx10, jsxs3) {
   return create2;
   function create2(_2, type, props, key) {
     const isStaticChildren = Array.isArray(props.children);
-    const fn = isStaticChildren ? jsxs4 : jsx15;
+    const fn = isStaticChildren ? jsxs3 : jsx10;
     return key ? fn(type, props, key) : fn(type, props);
   }
 }
-function developmentCreate(filePath, jsxDEV13) {
+function developmentCreate(filePath, jsxDEV11) {
   return create2;
   function create2(node, type, props, key) {
     const isStaticChildren = Array.isArray(props.children);
     const point3 = pointStart(node);
-    return jsxDEV13(type, props, key, isStaticChildren, {
+    return jsxDEV11(type, props, key, isStaticChildren, {
       columnNumber: point3 ? point3.column - 1 : undefined,
       fileName: filePath,
       lineNumber: point3 ? point3.line : undefined
@@ -55743,10 +50257,10 @@ function createJsxElementProps(state, node) {
 }
 function createChildren(state, node) {
   const children = [];
-  let index3 = -1;
+  let index2 = -1;
   const countsByName = state.passKeys ? new Map : emptyMap;
-  while (++index3 < node.children.length) {
-    const child = node.children[index3];
+  while (++index2 < node.children.length) {
+    const child = node.children[index2];
     let key;
     if (state.passKeys) {
       const name17 = child.type === "element" ? child.tagName : child.type === "mdxJsxFlowElement" || child.type === "mdxJsxTextElement" ? child.name : undefined;
@@ -55807,15 +50321,15 @@ function findComponentFromName(state, name17, allowExpression) {
     result = { type: "Literal", value: name17 };
   } else if (name17.includes(".")) {
     const identifiers = name17.split(".");
-    let index3 = -1;
+    let index2 = -1;
     let node;
-    while (++index3 < identifiers.length) {
-      const prop = name16(identifiers[index3]) ? { type: "Identifier", name: identifiers[index3] } : { type: "Literal", value: identifiers[index3] };
+    while (++index2 < identifiers.length) {
+      const prop = name16(identifiers[index2]) ? { type: "Identifier", name: identifiers[index2] } : { type: "Literal", value: identifiers[index2] };
       node = node ? {
         type: "MemberExpression",
         object: node,
         property: prop,
-        computed: Boolean(index3 && prop.type === "Literal"),
+        computed: Boolean(index2 && prop.type === "Literal"),
         optional: false
       } : prop;
     }
@@ -55863,7 +50377,7 @@ function transformStyleToCssCasing(from) {
 function toDash($0) {
   return "-" + $0.toLowerCase();
 }
-var import_style_to_js, own, emptyMap, cap2, tableElements2, tableCellElement, docs = "https://github.com/syntax-tree/hast-util-to-jsx-runtime";
+var import_style_to_js, own, emptyMap, cap2, tableElements, tableCellElement, docs = "https://github.com/syntax-tree/hast-util-to-jsx-runtime";
 var init_lib5 = __esm(() => {
   init_development();
   init_estree_util_is_identifier_name();
@@ -55875,7 +50389,7 @@ var init_lib5 = __esm(() => {
   own = {}.hasOwnProperty;
   emptyMap = new Map;
   cap2 = /[A-Z]/g;
-  tableElements2 = new Set(["table", "tbody", "thead", "tfoot", "tr"]);
+  tableElements = new Set(["table", "tbody", "thead", "tfoot", "tr"]);
   tableCellElement = new Set(["td", "th"]);
 });
 
@@ -55943,9 +50457,9 @@ function one2(value, includeImageAlt, includeHtml) {
 }
 function all(values, includeImageAlt, includeHtml) {
   const result = [];
-  let index3 = -1;
-  while (++index3 < values.length) {
-    result[index3] = one2(values[index3], includeImageAlt, includeHtml);
+  let index2 = -1;
+  while (++index2 < values.length) {
+    result[index2] = one2(values[index2], includeImageAlt, includeHtml);
   }
   return result.join("");
 }
@@ -56427,9 +50941,9 @@ var init_dev = __esm(() => {
 // node_modules/micromark-util-combine-extensions/index.js
 function combineExtensions(extensions) {
   const all2 = {};
-  let index3 = -1;
-  while (++index3 < extensions.length) {
-    syntaxExtension(all2, extensions[index3]);
+  let index2 = -1;
+  while (++index2 < extensions.length) {
+    syntaxExtension(all2, extensions[index2]);
   }
   return all2;
 }
@@ -56451,10 +50965,10 @@ function syntaxExtension(all2, extension) {
   }
 }
 function constructs(existing, list) {
-  let index3 = -1;
+  let index2 = -1;
   const before = [];
-  while (++index3 < list.length) {
-    (list[index3].add === "after" ? existing : before).push(list[index3]);
+  while (++index2 < list.length) {
+    (list[index2].add === "after" ? existing : before).push(list[index2]);
   }
   splice(existing, 0, 0, before);
 }
@@ -56519,20 +51033,20 @@ var init_dev4 = __esm(() => {
 // node_modules/micromark-util-sanitize-uri/dev/index.js
 function normalizeUri(value) {
   const result = [];
-  let index3 = -1;
+  let index2 = -1;
   let start2 = 0;
   let skip = 0;
-  while (++index3 < value.length) {
-    const code = value.charCodeAt(index3);
+  while (++index2 < value.length) {
+    const code = value.charCodeAt(index2);
     let replace = "";
-    if (code === codes.percentSign && asciiAlphanumeric(value.charCodeAt(index3 + 1)) && asciiAlphanumeric(value.charCodeAt(index3 + 2))) {
+    if (code === codes.percentSign && asciiAlphanumeric(value.charCodeAt(index2 + 1)) && asciiAlphanumeric(value.charCodeAt(index2 + 2))) {
       skip = 2;
     } else if (code < 128) {
       if (!/[!#$&-;=?-Z_a-z~]/.test(String.fromCharCode(code))) {
         replace = String.fromCharCode(code);
       }
     } else if (code > 55295 && code < 57344) {
-      const next = value.charCodeAt(index3 + 1);
+      const next = value.charCodeAt(index2 + 1);
       if (code < 56320 && next > 56319 && next < 57344) {
         replace = String.fromCharCode(code, next);
         skip = 1;
@@ -56543,12 +51057,12 @@ function normalizeUri(value) {
       replace = String.fromCharCode(code);
     }
     if (replace) {
-      result.push(value.slice(start2, index3), encodeURIComponent(replace));
-      start2 = index3 + skip + 1;
+      result.push(value.slice(start2, index2), encodeURIComponent(replace));
+      start2 = index2 + skip + 1;
       replace = "";
     }
     if (skip) {
-      index3 += skip;
+      index2 += skip;
       skip = 0;
     }
   }
@@ -56560,9 +51074,9 @@ var init_dev5 = __esm(() => {
 });
 
 // node_modules/micromark-factory-space/dev/index.js
-function factorySpace(effects, ok2, type, max2) {
-  const limit = max2 ? max2 - 1 : Number.POSITIVE_INFINITY;
-  let size4 = 0;
+function factorySpace(effects, ok2, type, max) {
+  const limit = max ? max - 1 : Number.POSITIVE_INFINITY;
+  let size = 0;
   return start2;
   function start2(code) {
     if (markdownSpace(code)) {
@@ -56572,7 +51086,7 @@ function factorySpace(effects, ok2, type, max2) {
     return ok2(code);
   }
   function prefix(code) {
-    if (markdownSpace(code) && size4++ < limit) {
+    if (markdownSpace(code) && size++ < limit) {
       effects.consume(code);
       return prefix;
     }
@@ -56678,13 +51192,13 @@ function initializeDocument(effects) {
       }
       ok(point3, "could not find previous flow chunk");
       exitContainers(continued);
-      let index3 = indexBeforeExits;
-      while (index3 < self2.events.length) {
-        self2.events[index3][1].end = { ...point3 };
-        index3++;
+      let index2 = indexBeforeExits;
+      while (index2 < self2.events.length) {
+        self2.events[index2][1].end = { ...point3 };
+        index2++;
       }
       splice(self2.events, indexBeforeFlow + 1, 0, self2.events.slice(indexBeforeExits));
-      self2.events.length = index3;
+      self2.events.length = index2;
       return checkNewContainers(code);
     }
     return start2(code);
@@ -56769,9 +51283,9 @@ function initializeDocument(effects) {
     childFlow.defineSkip(token.start);
     childFlow.write(stream);
     if (self2.parser.lazy[token.start.line]) {
-      let index3 = childFlow.events.length;
-      while (index3--) {
-        if (childFlow.events[index3][1].start.offset < lineStartOffset && (!childFlow.events[index3][1].end || childFlow.events[index3][1].end.offset > lineStartOffset)) {
+      let index2 = childFlow.events.length;
+      while (index2--) {
+        if (childFlow.events[index2][1].start.offset < lineStartOffset && (!childFlow.events[index2][1].end || childFlow.events[index2][1].end.offset > lineStartOffset)) {
           return;
         }
       }
@@ -56790,24 +51304,24 @@ function initializeDocument(effects) {
       }
       ok(point3, "could not find previous flow chunk");
       exitContainers(continued);
-      index3 = indexBeforeExits;
-      while (index3 < self2.events.length) {
-        self2.events[index3][1].end = { ...point3 };
-        index3++;
+      index2 = indexBeforeExits;
+      while (index2 < self2.events.length) {
+        self2.events[index2][1].end = { ...point3 };
+        index2++;
       }
       splice(self2.events, indexBeforeFlow + 1, 0, self2.events.slice(indexBeforeExits));
-      self2.events.length = index3;
+      self2.events.length = index2;
     }
   }
-  function exitContainers(size4) {
-    let index3 = stack.length;
-    while (index3-- > size4) {
-      const entry = stack[index3];
+  function exitContainers(size) {
+    let index2 = stack.length;
+    while (index2-- > size) {
+      const entry = stack[index2];
       self2.containerState = entry[1];
       ok(entry[0].exit, "expected `exit` to be defined on container construct");
       entry[0].exit.call(self2, effects);
     }
-    stack.length = size4;
+    stack.length = size;
   }
   function closeFlow() {
     ok(self2.containerState, "expected `containerState` to be defined when closing flow");
@@ -56850,9 +51364,9 @@ var init_dev7 = __esm(() => {
 // node_modules/micromark-util-resolve-all/index.js
 function resolveAll(constructs2, events, context) {
   const called = [];
-  let index3 = -1;
-  while (++index3 < constructs2.length) {
-    const resolve2 = constructs2[index3].resolveAll;
+  let index2 = -1;
+  while (++index2 < constructs2.length) {
+    const resolve2 = constructs2[index2].resolveAll;
     if (resolve2 && !called.includes(resolve2)) {
       events = resolve2(events, context);
       called.push(resolve2);
@@ -56863,7 +51377,7 @@ function resolveAll(constructs2, events, context) {
 
 // node_modules/micromark-core-commonmark/dev/lib/attention.js
 function resolveAllAttention(events, context) {
-  let index3 = -1;
+  let index2 = -1;
   let open;
   let group;
   let text3;
@@ -56871,18 +51385,18 @@ function resolveAllAttention(events, context) {
   let closingSequence;
   let use;
   let nextEvents;
-  let offset4;
-  while (++index3 < events.length) {
-    if (events[index3][0] === "enter" && events[index3][1].type === "attentionSequence" && events[index3][1]._close) {
-      open = index3;
+  let offset;
+  while (++index2 < events.length) {
+    if (events[index2][0] === "enter" && events[index2][1].type === "attentionSequence" && events[index2][1]._close) {
+      open = index2;
       while (open--) {
-        if (events[open][0] === "exit" && events[open][1].type === "attentionSequence" && events[open][1]._open && context.sliceSerialize(events[open][1]).charCodeAt(0) === context.sliceSerialize(events[index3][1]).charCodeAt(0)) {
-          if ((events[open][1]._close || events[index3][1]._open) && (events[index3][1].end.offset - events[index3][1].start.offset) % 3 && !((events[open][1].end.offset - events[open][1].start.offset + events[index3][1].end.offset - events[index3][1].start.offset) % 3)) {
+        if (events[open][0] === "exit" && events[open][1].type === "attentionSequence" && events[open][1]._open && context.sliceSerialize(events[open][1]).charCodeAt(0) === context.sliceSerialize(events[index2][1]).charCodeAt(0)) {
+          if ((events[open][1]._close || events[index2][1]._open) && (events[index2][1].end.offset - events[index2][1].start.offset) % 3 && !((events[open][1].end.offset - events[open][1].start.offset + events[index2][1].end.offset - events[index2][1].start.offset) % 3)) {
             continue;
           }
-          use = events[open][1].end.offset - events[open][1].start.offset > 1 && events[index3][1].end.offset - events[index3][1].start.offset > 1 ? 2 : 1;
+          use = events[open][1].end.offset - events[open][1].start.offset > 1 && events[index2][1].end.offset - events[index2][1].start.offset > 1 ? 2 : 1;
           const start2 = { ...events[open][1].end };
-          const end = { ...events[index3][1].start };
+          const end = { ...events[index2][1].start };
           movePoint(start2, -use);
           movePoint(end, use);
           openingSequence = {
@@ -56892,13 +51406,13 @@ function resolveAllAttention(events, context) {
           };
           closingSequence = {
             type: use > 1 ? types2.strongSequence : types2.emphasisSequence,
-            start: { ...events[index3][1].start },
+            start: { ...events[index2][1].start },
             end
           };
           text3 = {
             type: use > 1 ? types2.strongText : types2.emphasisText,
             start: { ...events[open][1].end },
-            end: { ...events[index3][1].start }
+            end: { ...events[index2][1].start }
           };
           group = {
             type: use > 1 ? types2.strong : types2.emphasis,
@@ -56906,7 +51420,7 @@ function resolveAllAttention(events, context) {
             end: { ...closingSequence.end }
           };
           events[open][1].end = { ...openingSequence.start };
-          events[index3][1].start = { ...closingSequence.end };
+          events[index2][1].start = { ...closingSequence.end };
           nextEvents = [];
           if (events[open][1].end.offset - events[open][1].start.offset) {
             nextEvents = push(nextEvents, [
@@ -56921,33 +51435,33 @@ function resolveAllAttention(events, context) {
             ["enter", text3, context]
           ]);
           ok(context.parser.constructs.insideSpan.null, "expected `insideSpan` to be populated");
-          nextEvents = push(nextEvents, resolveAll(context.parser.constructs.insideSpan.null, events.slice(open + 1, index3), context));
+          nextEvents = push(nextEvents, resolveAll(context.parser.constructs.insideSpan.null, events.slice(open + 1, index2), context));
           nextEvents = push(nextEvents, [
             ["exit", text3, context],
             ["enter", closingSequence, context],
             ["exit", closingSequence, context],
             ["exit", group, context]
           ]);
-          if (events[index3][1].end.offset - events[index3][1].start.offset) {
-            offset4 = 2;
+          if (events[index2][1].end.offset - events[index2][1].start.offset) {
+            offset = 2;
             nextEvents = push(nextEvents, [
-              ["enter", events[index3][1], context],
-              ["exit", events[index3][1], context]
+              ["enter", events[index2][1], context],
+              ["exit", events[index2][1], context]
             ]);
           } else {
-            offset4 = 0;
+            offset = 0;
           }
-          splice(events, open - 1, index3 - open + 3, nextEvents);
-          index3 = open + nextEvents.length - offset4 - 2;
+          splice(events, open - 1, index2 - open + 3, nextEvents);
+          index2 = open + nextEvents.length - offset - 2;
           break;
         }
       }
     }
   }
-  index3 = -1;
-  while (++index3 < events.length) {
-    if (events[index3][1].type === "attentionSequence") {
-      events[index3][1].type = "data";
+  index2 = -1;
+  while (++index2 < events.length) {
+    if (events[index2][1].type === "attentionSequence") {
+      events[index2][1].type = "data";
     }
   }
   return events;
@@ -56979,10 +51493,10 @@ function tokenizeAttention(effects, ok2) {
     return ok2(code);
   }
 }
-function movePoint(point3, offset4) {
-  point3.column += offset4;
-  point3.offset += offset4;
-  point3._bufferIndex += offset4;
+function movePoint(point3, offset) {
+  point3.column += offset;
+  point3.offset += offset;
+  point3._bufferIndex += offset;
 }
 var attention;
 var init_attention = __esm(() => {
@@ -56999,7 +51513,7 @@ var init_attention = __esm(() => {
 
 // node_modules/micromark-core-commonmark/dev/lib/autolink.js
 function tokenizeAutolink(effects, ok2, nok) {
-  let size4 = 0;
+  let size = 0;
   return start2;
   function start2(code) {
     ok(code === codes.lessThan, "expected `<`");
@@ -57022,7 +51536,7 @@ function tokenizeAutolink(effects, ok2, nok) {
   }
   function schemeOrEmailAtext(code) {
     if (code === codes.plusSign || code === codes.dash || code === codes.dot || asciiAlphanumeric(code)) {
-      size4 = 1;
+      size = 1;
       return schemeInsideOrEmailAtext(code);
     }
     return emailAtext(code);
@@ -57030,14 +51544,14 @@ function tokenizeAutolink(effects, ok2, nok) {
   function schemeInsideOrEmailAtext(code) {
     if (code === codes.colon) {
       effects.consume(code);
-      size4 = 0;
+      size = 0;
       return urlInside;
     }
-    if ((code === codes.plusSign || code === codes.dash || code === codes.dot || asciiAlphanumeric(code)) && size4++ < constants.autolinkSchemeSizeMax) {
+    if ((code === codes.plusSign || code === codes.dash || code === codes.dot || asciiAlphanumeric(code)) && size++ < constants.autolinkSchemeSizeMax) {
       effects.consume(code);
       return schemeInsideOrEmailAtext;
     }
-    size4 = 0;
+    size = 0;
     return emailAtext(code);
   }
   function urlInside(code) {
@@ -57072,7 +51586,7 @@ function tokenizeAutolink(effects, ok2, nok) {
   function emailLabel(code) {
     if (code === codes.dot) {
       effects.consume(code);
-      size4 = 0;
+      size = 0;
       return emailAtSignOrDot;
     }
     if (code === codes.greaterThan) {
@@ -57086,7 +51600,7 @@ function tokenizeAutolink(effects, ok2, nok) {
     return emailValue(code);
   }
   function emailValue(code) {
-    if ((code === codes.dash || asciiAlphanumeric(code)) && size4++ < constants.autolinkDomainSizeMax) {
+    if ((code === codes.dash || asciiAlphanumeric(code)) && size++ < constants.autolinkDomainSizeMax) {
       const next = code === codes.dash ? emailValue : emailLabel;
       effects.consume(code);
       return next;
@@ -57219,8 +51733,8 @@ var init_character_escape = __esm(() => {
 // node_modules/micromark-core-commonmark/dev/lib/character-reference.js
 function tokenizeCharacterReference(effects, ok2, nok) {
   const self2 = this;
-  let size4 = 0;
-  let max2;
+  let size = 0;
+  let max;
   let test;
   return start2;
   function start2(code) {
@@ -57239,7 +51753,7 @@ function tokenizeCharacterReference(effects, ok2, nok) {
       return numeric;
     }
     effects.enter(types2.characterReferenceValue);
-    max2 = constants.characterReferenceNamedSizeMax;
+    max = constants.characterReferenceNamedSizeMax;
     test = asciiAlphanumeric;
     return value(code);
   }
@@ -57249,17 +51763,17 @@ function tokenizeCharacterReference(effects, ok2, nok) {
       effects.consume(code);
       effects.exit(types2.characterReferenceMarkerHexadecimal);
       effects.enter(types2.characterReferenceValue);
-      max2 = constants.characterReferenceHexadecimalSizeMax;
+      max = constants.characterReferenceHexadecimalSizeMax;
       test = asciiHexDigit;
       return value;
     }
     effects.enter(types2.characterReferenceValue);
-    max2 = constants.characterReferenceDecimalSizeMax;
+    max = constants.characterReferenceDecimalSizeMax;
     test = asciiDigit;
     return value(code);
   }
   function value(code) {
-    if (code === codes.semicolon && size4) {
+    if (code === codes.semicolon && size) {
       const token = effects.exit(types2.characterReferenceValue);
       if (test === asciiAlphanumeric && !decodeNamedCharacterReference(self2.sliceSerialize(token))) {
         return nok(code);
@@ -57270,7 +51784,7 @@ function tokenizeCharacterReference(effects, ok2, nok) {
       effects.exit(types2.characterReference);
       return ok2;
     }
-    if (test(code) && size4++ < max2) {
+    if (test(code) && size++ < max) {
       effects.consume(code);
       return value;
     }
@@ -57402,7 +51916,7 @@ function tokenizeCodeFenced(effects, ok2, nok) {
     return ok2(code);
   }
   function tokenizeCloseStart(effects2, ok3, nok2) {
-    let size4 = 0;
+    let size = 0;
     return startBefore;
     function startBefore(code) {
       ok(markdownLineEnding(code), "expected eol");
@@ -57425,11 +51939,11 @@ function tokenizeCodeFenced(effects, ok2, nok) {
     }
     function sequenceClose(code) {
       if (code === marker16) {
-        size4++;
+        size++;
         effects2.consume(code);
         return sequenceClose;
       }
-      if (size4 >= sizeOpen) {
+      if (size >= sizeOpen) {
         effects2.exit(types2.codeFencedFenceSequence);
         return markdownSpace(code) ? factorySpace(effects2, sequenceCloseAfter, types2.whitespace)(code) : sequenceCloseAfter(code);
       }
@@ -57551,12 +52065,12 @@ var init_code_indented = __esm(() => {
 function resolveCodeText(events) {
   let tailExitIndex = events.length - 4;
   let headEnterIndex = 3;
-  let index3;
+  let index2;
   let enter;
   if ((events[headEnterIndex][1].type === types2.lineEnding || events[headEnterIndex][1].type === "space") && (events[tailExitIndex][1].type === types2.lineEnding || events[tailExitIndex][1].type === "space")) {
-    index3 = headEnterIndex;
-    while (++index3 < tailExitIndex) {
-      if (events[index3][1].type === types2.codeTextData) {
+    index2 = headEnterIndex;
+    while (++index2 < tailExitIndex) {
+      if (events[index2][1].type === types2.codeTextData) {
         events[headEnterIndex][1].type = types2.codeTextPadding;
         events[tailExitIndex][1].type = types2.codeTextPadding;
         headEnterIndex += 2;
@@ -57565,20 +52079,20 @@ function resolveCodeText(events) {
       }
     }
   }
-  index3 = headEnterIndex - 1;
+  index2 = headEnterIndex - 1;
   tailExitIndex++;
-  while (++index3 <= tailExitIndex) {
+  while (++index2 <= tailExitIndex) {
     if (enter === undefined) {
-      if (index3 !== tailExitIndex && events[index3][1].type !== types2.lineEnding) {
-        enter = index3;
+      if (index2 !== tailExitIndex && events[index2][1].type !== types2.lineEnding) {
+        enter = index2;
       }
-    } else if (index3 === tailExitIndex || events[index3][1].type === types2.lineEnding) {
+    } else if (index2 === tailExitIndex || events[index2][1].type === types2.lineEnding) {
       events[enter][1].type = types2.codeTextData;
-      if (index3 !== enter + 2) {
-        events[enter][1].end = events[index3 - 1][1].end;
-        events.splice(enter + 2, index3 - enter - 2);
-        tailExitIndex -= index3 - enter - 2;
-        index3 = enter + 2;
+      if (index2 !== enter + 2) {
+        events[enter][1].end = events[index2 - 1][1].end;
+        events.splice(enter + 2, index2 - enter - 2);
+        tailExitIndex -= index2 - enter - 2;
+        index2 = enter + 2;
       }
       enter = undefined;
     }
@@ -57591,7 +52105,7 @@ function previous(code) {
 function tokenizeCodeText(effects, ok2, nok) {
   const self2 = this;
   let sizeOpen = 0;
-  let size4;
+  let size;
   let token;
   return start2;
   function start2(code) {
@@ -57622,7 +52136,7 @@ function tokenizeCodeText(effects, ok2, nok) {
     }
     if (code === codes.graveAccent) {
       token = effects.enter(types2.codeTextSequence);
-      size4 = 0;
+      size = 0;
       return sequenceClose(code);
     }
     if (markdownLineEnding(code)) {
@@ -57645,10 +52159,10 @@ function tokenizeCodeText(effects, ok2, nok) {
   function sequenceClose(code) {
     if (code === codes.graveAccent) {
       effects.consume(code);
-      size4++;
+      size++;
       return sequenceClose;
     }
-    if (size4 === sizeOpen) {
+    if (size === sizeOpen) {
       effects.exit(types2.codeTextSequence);
       effects.exit(types2.codeText);
       return ok2(code);
@@ -57676,13 +52190,13 @@ class SpliceBuffer {
     this.left = initial ? [...initial] : [];
     this.right = [];
   }
-  get(index3) {
-    if (index3 < 0 || index3 >= this.left.length + this.right.length) {
-      throw new RangeError("Cannot access index `" + index3 + "` in a splice buffer of size `" + (this.left.length + this.right.length) + "`");
+  get(index2) {
+    if (index2 < 0 || index2 >= this.left.length + this.right.length) {
+      throw new RangeError("Cannot access index `" + index2 + "` in a splice buffer of size `" + (this.left.length + this.right.length) + "`");
     }
-    if (index3 < this.left.length)
-      return this.left[index3];
-    return this.right[this.right.length - index3 + this.left.length - 1];
+    if (index2 < this.left.length)
+      return this.left[index2];
+    return this.right[this.right.length - index2 + this.left.length - 1];
   }
   get length() {
     return this.left.length + this.right.length;
@@ -57759,7 +52273,7 @@ var init_splice_buffer = __esm(() => {
 // node_modules/micromark-util-subtokenize/dev/index.js
 function subtokenize(eventsArray) {
   const jumps = {};
-  let index3 = -1;
+  let index2 = -1;
   let event;
   let lineIndex;
   let otherIndex;
@@ -57768,12 +52282,12 @@ function subtokenize(eventsArray) {
   let subevents;
   let more;
   const events = new SpliceBuffer(eventsArray);
-  while (++index3 < events.length) {
-    while (index3 in jumps) {
-      index3 = jumps[index3];
+  while (++index2 < events.length) {
+    while (index2 in jumps) {
+      index2 = jumps[index2];
     }
-    event = events.get(index3);
-    if (index3 && event[1].type === types2.chunkFlow && events.get(index3 - 1)[1].type === types2.listItemPrefix) {
+    event = events.get(index2);
+    if (index2 && event[1].type === types2.chunkFlow && events.get(index2 - 1)[1].type === types2.listItemPrefix) {
       ok(event[1]._tokenizer, "expected `_tokenizer` on subtokens");
       subevents = event[1]._tokenizer.events;
       otherIndex = 0;
@@ -57794,12 +52308,12 @@ function subtokenize(eventsArray) {
     }
     if (event[0] === "enter") {
       if (event[1].contentType) {
-        Object.assign(jumps, subcontent(events, index3));
-        index3 = jumps[index3];
+        Object.assign(jumps, subcontent(events, index2));
+        index2 = jumps[index2];
         more = true;
       }
     } else if (event[1]._container) {
-      otherIndex = index3;
+      otherIndex = index2;
       lineIndex = undefined;
       while (otherIndex--) {
         otherEvent = events.get(otherIndex);
@@ -57817,9 +52331,9 @@ function subtokenize(eventsArray) {
       }
       if (lineIndex) {
         event[1].end = { ...events.get(lineIndex)[1].start };
-        parameters = events.slice(lineIndex, index3);
+        parameters = events.slice(lineIndex, index2);
         parameters.unshift(event);
-        events.splice(lineIndex, index3 - lineIndex + 1, parameters);
+        events.splice(lineIndex, index2 - lineIndex + 1, parameters);
       }
     }
   }
@@ -57844,7 +52358,7 @@ function subcontent(events, eventIndex) {
   const gaps = {};
   let stream;
   let previous2;
-  let index3 = -1;
+  let index2 = -1;
   let current = token;
   let adjust = 0;
   let start2 = 0;
@@ -57874,10 +52388,10 @@ function subcontent(events, eventIndex) {
     current = current.next;
   }
   current = token;
-  while (++index3 < childEvents.length) {
-    if (childEvents[index3][0] === "exit" && childEvents[index3 - 1][0] === "enter" && childEvents[index3][1].type === childEvents[index3 - 1][1].type && childEvents[index3][1].start.line !== childEvents[index3][1].end.line) {
+  while (++index2 < childEvents.length) {
+    if (childEvents[index2][0] === "exit" && childEvents[index2 - 1][0] === "enter" && childEvents[index2][1].type === childEvents[index2 - 1][1].type && childEvents[index2][1].start.line !== childEvents[index2][1].end.line) {
       ok(current, "expected a current token");
-      start2 = index3 + 1;
+      start2 = index2 + 1;
       breaks.push(start2);
       current._tokenizer = undefined;
       current.previous = undefined;
@@ -57892,19 +52406,19 @@ function subcontent(events, eventIndex) {
   } else {
     breaks.pop();
   }
-  index3 = breaks.length;
-  while (index3--) {
-    const slice = childEvents.slice(breaks[index3], breaks[index3 + 1]);
+  index2 = breaks.length;
+  while (index2--) {
+    const slice = childEvents.slice(breaks[index2], breaks[index2 + 1]);
     const start3 = startPositions.pop();
     ok(start3 !== undefined, "expected a start position when splicing");
     jumps.push([start3, start3 + slice.length - 1]);
     events.splice(start3, 2, slice);
   }
   jumps.reverse();
-  index3 = -1;
-  while (++index3 < jumps.length) {
-    gaps[adjust + jumps[index3][0]] = adjust + jumps[index3][1];
-    adjust += jumps[index3][1] - jumps[index3][0] - 1;
+  index2 = -1;
+  while (++index2 < jumps.length) {
+    gaps[adjust + jumps[index2][0]] = adjust + jumps[index2][1];
+    adjust += jumps[index2][1] - jumps[index2][0] - 1;
   }
   return gaps;
 }
@@ -57994,8 +52508,8 @@ var init_content2 = __esm(() => {
 });
 
 // node_modules/micromark-factory-destination/dev/index.js
-function factoryDestination(effects, ok2, nok, type, literalType2, literalMarkerType, rawType, stringType2, max2) {
-  const limit = max2 || Number.POSITIVE_INFINITY;
+function factoryDestination(effects, ok2, nok, type, literalType2, literalMarkerType, rawType, stringType2, max) {
+  const limit = max || Number.POSITIVE_INFINITY;
   let balance = 0;
   return start2;
   function start2(code) {
@@ -58088,7 +52602,7 @@ var init_dev9 = __esm(() => {
 // node_modules/micromark-factory-label/dev/index.js
 function factoryLabel(effects, ok2, nok, type, markerType, stringType2) {
   const self2 = this;
-  let size4 = 0;
+  let size = 0;
   let seen;
   return start2;
   function start2(code) {
@@ -58101,7 +52615,7 @@ function factoryLabel(effects, ok2, nok, type, markerType, stringType2) {
     return atBreak;
   }
   function atBreak(code) {
-    if (size4 > constants.linkReferenceSizeMax || code === codes.eof || code === codes.leftSquareBracket || code === codes.rightSquareBracket && !seen || code === codes.caret && !size4 && "_hiddenFootnoteSupport" in self2.parser.constructs) {
+    if (size > constants.linkReferenceSizeMax || code === codes.eof || code === codes.leftSquareBracket || code === codes.rightSquareBracket && !seen || code === codes.caret && !size && "_hiddenFootnoteSupport" in self2.parser.constructs) {
       return nok(code);
     }
     if (code === codes.rightSquareBracket) {
@@ -58122,7 +52636,7 @@ function factoryLabel(effects, ok2, nok, type, markerType, stringType2) {
     return labelInside(code);
   }
   function labelInside(code) {
-    if (code === codes.eof || code === codes.leftSquareBracket || code === codes.rightSquareBracket || markdownLineEnding(code) || size4++ > constants.linkReferenceSizeMax) {
+    if (code === codes.eof || code === codes.leftSquareBracket || code === codes.rightSquareBracket || markdownLineEnding(code) || size++ > constants.linkReferenceSizeMax) {
       effects.exit(types2.chunkString);
       return atBreak(code);
     }
@@ -58134,7 +52648,7 @@ function factoryLabel(effects, ok2, nok, type, markerType, stringType2) {
   function labelEscape(code) {
     if (code === codes.leftSquareBracket || code === codes.backslash || code === codes.rightSquareBracket) {
       effects.consume(code);
-      size4++;
+      size++;
       return labelInside;
     }
     return labelInside(code);
@@ -58374,7 +52888,7 @@ function resolveHeadingAtx(events, context) {
   return events;
 }
 function tokenizeHeadingAtx(effects, ok2, nok) {
-  let size4 = 0;
+  let size = 0;
   return start2;
   function start2(code) {
     effects.enter(types2.atxHeading);
@@ -58386,7 +52900,7 @@ function tokenizeHeadingAtx(effects, ok2, nok) {
     return sequenceOpen(code);
   }
   function sequenceOpen(code) {
-    if (code === codes.numberSign && size4++ < constants.atxHeadingOpeningFenceSizeMax) {
+    if (code === codes.numberSign && size++ < constants.atxHeadingOpeningFenceSizeMax) {
       effects.consume(code);
       return sequenceOpen;
     }
@@ -58514,16 +53028,16 @@ var init_micromark_util_html_tag_name = __esm(() => {
 
 // node_modules/micromark-core-commonmark/dev/lib/html-flow.js
 function resolveToHtmlFlow(events) {
-  let index3 = events.length;
-  while (index3--) {
-    if (events[index3][0] === "enter" && events[index3][1].type === types2.htmlFlow) {
+  let index2 = events.length;
+  while (index2--) {
+    if (events[index2][0] === "enter" && events[index2][1].type === types2.htmlFlow) {
       break;
     }
   }
-  if (index3 > 1 && events[index3 - 2][1].type === types2.linePrefix) {
-    events[index3][1].start = events[index3 - 2][1].start;
-    events[index3 + 1][1].start = events[index3 - 2][1].start;
-    events.splice(index3 - 2, 2);
+  if (index2 > 1 && events[index2 - 2][1].type === types2.linePrefix) {
+    events[index2][1].start = events[index2 - 2][1].start;
+    events[index2 + 1][1].start = events[index2 - 2][1].start;
+    events.splice(index2 - 2, 2);
   }
   return events;
 }
@@ -58532,7 +53046,7 @@ function tokenizeHtmlFlow(effects, ok2, nok) {
   let marker16;
   let closingTag;
   let buffer;
-  let index3;
+  let index2;
   let markerB;
   return start2;
   function start2(code) {
@@ -58577,7 +53091,7 @@ function tokenizeHtmlFlow(effects, ok2, nok) {
     if (code === codes.leftSquareBracket) {
       effects.consume(code);
       marker16 = constants.htmlCdata;
-      index3 = 0;
+      index2 = 0;
       return cdataOpenInside;
     }
     if (asciiAlpha(code)) {
@@ -58596,9 +53110,9 @@ function tokenizeHtmlFlow(effects, ok2, nok) {
   }
   function cdataOpenInside(code) {
     const value = constants.cdataOpeningString;
-    if (code === value.charCodeAt(index3++)) {
+    if (code === value.charCodeAt(index2++)) {
       effects.consume(code);
-      if (index3 === value.length) {
+      if (index2 === value.length) {
         return self2.interrupt ? ok2 : continuation;
       }
       return cdataOpenInside;
@@ -58906,7 +53420,7 @@ var init_html_flow = __esm(() => {
 function tokenizeHtmlText(effects, ok2, nok) {
   const self2 = this;
   let marker16;
-  let index3;
+  let index2;
   let returnState;
   return start2;
   function start2(code) {
@@ -58942,7 +53456,7 @@ function tokenizeHtmlText(effects, ok2, nok) {
     }
     if (code === codes.leftSquareBracket) {
       effects.consume(code);
-      index3 = 0;
+      index2 = 0;
       return cdataOpenInside;
     }
     if (asciiAlpha(code)) {
@@ -58985,9 +53499,9 @@ function tokenizeHtmlText(effects, ok2, nok) {
   }
   function cdataOpenInside(code) {
     const value = constants.cdataOpeningString;
-    if (code === value.charCodeAt(index3++)) {
+    if (code === value.charCodeAt(index2++)) {
       effects.consume(code);
-      return index3 === value.length ? cdata : cdataOpenInside;
+      return index2 === value.length ? cdata : cdataOpenInside;
     }
     return nok(code);
   }
@@ -59218,15 +53732,15 @@ var init_html_text = __esm(() => {
 
 // node_modules/micromark-core-commonmark/dev/lib/label-end.js
 function resolveAllLabelEnd(events) {
-  let index3 = -1;
+  let index2 = -1;
   const newEvents = [];
-  while (++index3 < events.length) {
-    const token = events[index3][1];
-    newEvents.push(events[index3]);
+  while (++index2 < events.length) {
+    const token = events[index2][1];
+    newEvents.push(events[index2]);
     if (token.type === types2.labelImage || token.type === types2.labelLink || token.type === types2.labelEnd) {
-      const offset4 = token.type === types2.labelImage ? 4 : 2;
+      const offset = token.type === types2.labelImage ? 4 : 2;
       token.type = types2.data;
-      index3 += offset4;
+      index2 += offset;
     }
   }
   if (events.length !== newEvents.length) {
@@ -59235,31 +53749,31 @@ function resolveAllLabelEnd(events) {
   return events;
 }
 function resolveToLabelEnd(events, context) {
-  let index3 = events.length;
-  let offset4 = 0;
+  let index2 = events.length;
+  let offset = 0;
   let token;
   let open;
   let close;
   let media;
-  while (index3--) {
-    token = events[index3][1];
+  while (index2--) {
+    token = events[index2][1];
     if (open) {
       if (token.type === types2.link || token.type === types2.labelLink && token._inactive) {
         break;
       }
-      if (events[index3][0] === "enter" && token.type === types2.labelLink) {
+      if (events[index2][0] === "enter" && token.type === types2.labelLink) {
         token._inactive = true;
       }
     } else if (close) {
-      if (events[index3][0] === "enter" && (token.type === types2.labelImage || token.type === types2.labelLink) && !token._balanced) {
-        open = index3;
+      if (events[index2][0] === "enter" && (token.type === types2.labelImage || token.type === types2.labelLink) && !token._balanced) {
+        open = index2;
         if (token.type !== types2.labelLink) {
-          offset4 = 2;
+          offset = 2;
           break;
         }
       }
     } else if (token.type === types2.labelEnd) {
-      close = index3;
+      close = index2;
     }
   }
   ok(open !== undefined, "`open` is supposed to be found");
@@ -59276,17 +53790,17 @@ function resolveToLabelEnd(events, context) {
   };
   const text3 = {
     type: types2.labelText,
-    start: { ...events[open + offset4 + 2][1].end },
+    start: { ...events[open + offset + 2][1].end },
     end: { ...events[close - 2][1].start }
   };
   media = [
     ["enter", group, context],
     ["enter", label, context]
   ];
-  media = push(media, events.slice(open + 1, open + offset4 + 3));
+  media = push(media, events.slice(open + 1, open + offset + 3));
   media = push(media, [["enter", text3, context]]);
   ok(context.parser.constructs.insideSpan.null, "expected `insideSpan.null` to be populated");
-  media = push(media, resolveAll(context.parser.constructs.insideSpan.null, events.slice(open + offset4 + 4, close - 3), context));
+  media = push(media, resolveAll(context.parser.constructs.insideSpan.null, events.slice(open + offset + 4, close - 3), context));
   media = push(media, [
     ["exit", text3, context],
     events[close - 2],
@@ -59300,12 +53814,12 @@ function resolveToLabelEnd(events, context) {
 }
 function tokenizeLabelEnd(effects, ok2, nok) {
   const self2 = this;
-  let index3 = self2.events.length;
+  let index2 = self2.events.length;
   let labelStart;
   let defined;
-  while (index3--) {
-    if ((self2.events[index3][1].type === types2.labelImage || self2.events[index3][1].type === types2.labelLink) && !self2.events[index3][1]._balanced) {
-      labelStart = self2.events[index3][1];
+  while (index2--) {
+    if ((self2.events[index2][1].type === types2.labelImage || self2.events[index2][1].type === types2.labelLink) && !self2.events[index2][1]._balanced) {
+      labelStart = self2.events[index2][1];
       break;
     }
   }
@@ -59537,7 +54051,7 @@ var init_line_ending = __esm(() => {
 
 // node_modules/micromark-core-commonmark/dev/lib/thematic-break.js
 function tokenizeThematicBreak(effects, ok2, nok) {
-  let size4 = 0;
+  let size = 0;
   let marker16;
   return start2;
   function start2(code) {
@@ -59554,7 +54068,7 @@ function tokenizeThematicBreak(effects, ok2, nok) {
       effects.enter(types2.thematicBreakSequence);
       return sequence(code);
     }
-    if (size4 >= constants.thematicBreakMarkerCountMin && (code === codes.eof || markdownLineEnding(code))) {
+    if (size >= constants.thematicBreakMarkerCountMin && (code === codes.eof || markdownLineEnding(code))) {
       effects.exit(types2.thematicBreak);
       return ok2(code);
     }
@@ -59563,7 +54077,7 @@ function tokenizeThematicBreak(effects, ok2, nok) {
   function sequence(code) {
     if (code === marker16) {
       effects.consume(code);
-      size4++;
+      size++;
       return sequence;
     }
     effects.exit(types2.thematicBreakSequence);
@@ -59587,7 +54101,7 @@ function tokenizeListStart(effects, ok2, nok) {
   const self2 = this;
   const tail = self2.events[self2.events.length - 1];
   let initialSize = tail && tail[1].type === types2.linePrefix ? tail[2].sliceSerialize(tail[1], true).length : 0;
-  let size4 = 0;
+  let size = 0;
   return start2;
   function start2(code) {
     ok(self2.containerState, "expected state");
@@ -59611,11 +54125,11 @@ function tokenizeListStart(effects, ok2, nok) {
   }
   function inside(code) {
     ok(self2.containerState, "expected state");
-    if (asciiDigit(code) && ++size4 < constants.listItemValueSizeMax) {
+    if (asciiDigit(code) && ++size < constants.listItemValueSizeMax) {
       effects.consume(code);
       return inside;
     }
-    if ((!self2.interrupt || size4 < 2) && (self2.containerState.marker ? code === self2.containerState.marker : code === codes.rightParenthesis || code === codes.dot)) {
+    if ((!self2.interrupt || size < 2) && (self2.containerState.marker ? code === self2.containerState.marker : code === codes.rightParenthesis || code === codes.dot)) {
       effects.exit(types2.listItemValue);
       return atMarker(code);
     }
@@ -59729,25 +54243,25 @@ var init_list = __esm(() => {
 
 // node_modules/micromark-core-commonmark/dev/lib/setext-underline.js
 function resolveToSetextUnderline(events, context) {
-  let index3 = events.length;
+  let index2 = events.length;
   let content3;
   let text3;
   let definition2;
-  while (index3--) {
-    if (events[index3][0] === "enter") {
-      if (events[index3][1].type === types2.content) {
-        content3 = index3;
+  while (index2--) {
+    if (events[index2][0] === "enter") {
+      if (events[index2][1].type === types2.content) {
+        content3 = index2;
         break;
       }
-      if (events[index3][1].type === types2.paragraph) {
-        text3 = index3;
+      if (events[index2][1].type === types2.paragraph) {
+        text3 = index2;
       }
     } else {
-      if (events[index3][1].type === types2.content) {
-        events.splice(index3, 1);
+      if (events[index2][1].type === types2.content) {
+        events.splice(index2, 1);
       }
-      if (!definition2 && events[index3][1].type === types2.definition) {
-        definition2 = index3;
+      if (!definition2 && events[index2][1].type === types2.definition) {
+        definition2 = index2;
       }
     }
   }
@@ -59776,12 +54290,12 @@ function tokenizeSetextUnderline(effects, ok2, nok) {
   let marker16;
   return start2;
   function start2(code) {
-    let index3 = self2.events.length;
+    let index2 = self2.events.length;
     let paragraph;
     ok(code === codes.dash || code === codes.equalsTo, "expected `=` or `-`");
-    while (index3--) {
-      if (self2.events[index3][1].type !== types2.lineEnding && self2.events[index3][1].type !== types2.linePrefix && self2.events[index3][1].type !== types2.content) {
-        paragraph = self2.events[index3][1].type === types2.paragraph;
+    while (index2--) {
+      if (self2.events[index2][1].type !== types2.lineEnding && self2.events[index2][1].type !== types2.linePrefix && self2.events[index2][1].type !== types2.content) {
+        paragraph = self2.events[index2][1].type === types2.paragraph;
         break;
       }
     }
@@ -59927,11 +54441,11 @@ function initializeFactory(field) {
         return true;
       }
       const list2 = constructs2[code];
-      let index3 = -1;
+      let index2 = -1;
       if (list2) {
         ok(Array.isArray(list2), "expected `disable.null` to be populated");
-        while (++index3 < list2.length) {
-          const item = list2[index3];
+        while (++index2 < list2.length) {
+          const item = list2[index2];
           if (!item.previous || item.previous.call(self2, self2.previous)) {
             return true;
           }
@@ -59944,19 +54458,19 @@ function initializeFactory(field) {
 function createResolver(extraResolver) {
   return resolveAllText;
   function resolveAllText(events, context) {
-    let index3 = -1;
+    let index2 = -1;
     let enter;
-    while (++index3 <= events.length) {
+    while (++index2 <= events.length) {
       if (enter === undefined) {
-        if (events[index3] && events[index3][1].type === types2.data) {
-          enter = index3;
-          index3++;
+        if (events[index2] && events[index2][1].type === types2.data) {
+          enter = index2;
+          index2++;
         }
-      } else if (!events[index3] || events[index3][1].type !== types2.data) {
-        if (index3 !== enter + 2) {
-          events[enter][1].end = events[index3 - 1][1].end;
-          events.splice(enter + 2, index3 - enter - 2);
-          index3 = enter + 2;
+      } else if (!events[index2] || events[index2][1].type !== types2.data) {
+        if (index2 !== enter + 2) {
+          events[enter][1].end = events[index2 - 1][1].end;
+          events.splice(enter + 2, index2 - enter - 2);
+          index2 = enter + 2;
         }
         enter = undefined;
       }
@@ -59970,16 +54484,16 @@ function resolveAllLineSuffixes(events, context) {
     if ((eventIndex === events.length || events[eventIndex][1].type === types2.lineEnding) && events[eventIndex - 1][1].type === types2.data) {
       const data = events[eventIndex - 1][1];
       const chunks = context.sliceStream(data);
-      let index3 = chunks.length;
+      let index2 = chunks.length;
       let bufferIndex = -1;
-      let size4 = 0;
+      let size = 0;
       let tabs;
-      while (index3--) {
-        const chunk = chunks[index3];
+      while (index2--) {
+        const chunk = chunks[index2];
         if (typeof chunk === "string") {
           bufferIndex = chunk.length;
           while (chunk.charCodeAt(bufferIndex - 1) === codes.space) {
-            size4++;
+            size++;
             bufferIndex--;
           }
           if (bufferIndex)
@@ -59987,24 +54501,24 @@ function resolveAllLineSuffixes(events, context) {
           bufferIndex = -1;
         } else if (chunk === codes.horizontalTab) {
           tabs = true;
-          size4++;
+          size++;
         } else if (chunk === codes.virtualSpace) {} else {
-          index3++;
+          index2++;
           break;
         }
       }
       if (context._contentTypeTextTrailing && eventIndex === events.length) {
-        size4 = 0;
+        size = 0;
       }
-      if (size4) {
+      if (size) {
         const token = {
-          type: eventIndex === events.length || tabs || size4 < constants.hardBreakPrefixSizeMin ? types2.lineSuffix : types2.hardBreakTrailing,
+          type: eventIndex === events.length || tabs || size < constants.hardBreakPrefixSizeMin ? types2.lineSuffix : types2.hardBreakTrailing,
           start: {
-            _bufferIndex: index3 ? bufferIndex : data.start._bufferIndex + bufferIndex,
-            _index: data.start._index + index3,
+            _bufferIndex: index2 ? bufferIndex : data.start._bufferIndex + bufferIndex,
+            _index: data.start._index + index2,
             line: data.end.line,
-            column: data.end.column - size4,
-            offset: data.end.offset - size4
+            column: data.end.column - size,
+            offset: data.end.offset - size
           },
           end: { ...data.end }
         };
@@ -60217,7 +54731,7 @@ var require_ms = __commonJS((exports, module) => {
 
 // node_modules/debug/src/common.js
 var require_common = __commonJS((exports, module) => {
-  function setup(env) {
+  function setup(env2) {
     createDebug.debug = createDebug;
     createDebug.default = createDebug;
     createDebug.coerce = coerce;
@@ -60226,8 +54740,8 @@ var require_common = __commonJS((exports, module) => {
     createDebug.enabled = enabled;
     createDebug.humanize = require_ms();
     createDebug.destroy = destroy;
-    Object.keys(env).forEach((key) => {
-      createDebug[key] = env[key];
+    Object.keys(env2).forEach((key) => {
+      createDebug[key] = env2[key];
     });
     createDebug.names = [];
     createDebug.skips = [];
@@ -60261,18 +54775,18 @@ var require_common = __commonJS((exports, module) => {
         if (typeof args[0] !== "string") {
           args.unshift("%O");
         }
-        let index3 = 0;
+        let index2 = 0;
         args[0] = args[0].replace(/%([a-zA-Z%])/g, (match, format) => {
           if (match === "%%") {
             return "%";
           }
-          index3++;
+          index2++;
           const formatter = createDebug.formatters[format];
           if (typeof formatter === "function") {
-            const val = args[index3];
+            const val = args[index2];
             match = formatter.call(self2, val);
-            args.splice(index3, 1);
-            index3--;
+            args.splice(index2, 1);
+            index2--;
           }
           return match;
         });
@@ -60501,15 +55015,15 @@ var require_browser = __commonJS((exports, module) => {
     }
     const c = "color: " + this.color;
     args.splice(1, 0, c, "color: inherit");
-    let index3 = 0;
+    let index2 = 0;
     let lastC = 0;
     args[0].replace(/%[a-zA-Z%]/g, (match) => {
       if (match === "%%") {
         return;
       }
-      index3++;
+      index2++;
       if (match === "%c") {
-        lastC = index3;
+        lastC = index2;
       }
     });
     args.splice(lastC, 0, c);
@@ -60607,8 +55121,8 @@ function createTokenizer(parser, initialize, from) {
     return sliceChunks(chunks, token);
   }
   function now() {
-    const { _bufferIndex, _index, line, column, offset: offset4 } = point3;
-    return { _bufferIndex, _index, line, column, offset: offset4 };
+    const { _bufferIndex, _index, line, column, offset } = point3;
+    return { _bufferIndex, _index, line, column, offset };
   }
   function defineSkip(value) {
     columnStart[value.line] = value.column;
@@ -60821,11 +55335,11 @@ function sliceChunks(chunks, token) {
   return view;
 }
 function serializeChunks(chunks, expandTabs) {
-  let index3 = -1;
+  let index2 = -1;
   const result = [];
   let atTab;
-  while (++index3 < chunks.length) {
-    const chunk = chunks[index3];
+  while (++index2 < chunks.length) {
+    const chunk = chunks[index2];
     let value;
     if (typeof chunk === "string") {
       value = chunk;
@@ -61154,23 +55668,23 @@ function compiler(options2) {
       data
     };
     const listStack = [];
-    let index3 = -1;
-    while (++index3 < events.length) {
-      if (events[index3][1].type === types2.listOrdered || events[index3][1].type === types2.listUnordered) {
-        if (events[index3][0] === "enter") {
-          listStack.push(index3);
+    let index2 = -1;
+    while (++index2 < events.length) {
+      if (events[index2][1].type === types2.listOrdered || events[index2][1].type === types2.listUnordered) {
+        if (events[index2][0] === "enter") {
+          listStack.push(index2);
         } else {
           const tail = listStack.pop();
           ok(typeof tail === "number", "expected list ot be open");
-          index3 = prepareList(events, tail, index3);
+          index2 = prepareList(events, tail, index2);
         }
       }
     }
-    index3 = -1;
-    while (++index3 < events.length) {
-      const handler = config2[events[index3][0]];
-      if (own2.call(handler, events[index3][1].type)) {
-        handler[events[index3][1].type].call(Object.assign({ sliceSerialize: events[index3][2].sliceSerialize }, context), events[index3][1]);
+    index2 = -1;
+    while (++index2 < events.length) {
+      const handler = config2[events[index2][0]];
+      if (own2.call(handler, events[index2][1].type)) {
+        handler[events[index2][1].type].call(Object.assign({ sliceSerialize: events[index2][2].sliceSerialize }, context), events[index2][1]);
       }
     }
     if (context.tokenStack.length > 0) {
@@ -61182,22 +55696,22 @@ function compiler(options2) {
       start: point3(events.length > 0 ? events[0][1].start : { line: 1, column: 1, offset: 0 }),
       end: point3(events.length > 0 ? events[events.length - 2][1].end : { line: 1, column: 1, offset: 0 })
     };
-    index3 = -1;
-    while (++index3 < config2.transforms.length) {
-      tree = config2.transforms[index3](tree) || tree;
+    index2 = -1;
+    while (++index2 < config2.transforms.length) {
+      tree = config2.transforms[index2](tree) || tree;
     }
     return tree;
   }
   function prepareList(events, start2, length) {
-    let index3 = start2 - 1;
+    let index2 = start2 - 1;
     let containerBalance = -1;
     let listSpread = false;
     let listItem2;
     let lineIndex;
     let firstBlankLineIndex;
     let atMarker;
-    while (++index3 <= length) {
-      const event = events[index3];
+    while (++index2 <= length) {
+      const event = events[index2];
       switch (event[1].type) {
         case types2.listUnordered:
         case types2.listOrdered:
@@ -61213,7 +55727,7 @@ function compiler(options2) {
         case types2.lineEndingBlank: {
           if (event[0] === "enter") {
             if (listItem2 && !atMarker && !containerBalance && !firstBlankLineIndex) {
-              firstBlankLineIndex = index3;
+              firstBlankLineIndex = index2;
             }
             atMarker = undefined;
           }
@@ -61232,7 +55746,7 @@ function compiler(options2) {
       }
       if (!containerBalance && event[0] === "enter" && event[1].type === types2.listItemPrefix || containerBalance === -1 && event[0] === "exit" && (event[1].type === types2.listUnordered || event[1].type === types2.listOrdered)) {
         if (listItem2) {
-          let tailIndex = index3;
+          let tailIndex = index2;
           lineIndex = undefined;
           while (tailIndex--) {
             const tailEvent = events[tailIndex];
@@ -61253,8 +55767,8 @@ function compiler(options2) {
             listItem2._spread = true;
           }
           listItem2.end = Object.assign({}, lineIndex ? events[lineIndex][1].start : event[1].end);
-          events.splice(lineIndex || index3, 0, ["exit", listItem2, event[2]]);
-          index3++;
+          events.splice(lineIndex || index2, 0, ["exit", listItem2, event[2]]);
+          index2++;
           length++;
         }
         if (event[1].type === types2.listItemPrefix) {
@@ -61265,8 +55779,8 @@ function compiler(options2) {
             end: undefined
           };
           listItem2 = item;
-          events.splice(index3, 0, ["enter", item, event[2]]);
-          index3++;
+          events.splice(index2, 0, ["enter", item, event[2]]);
+          index2++;
           length++;
           firstBlankLineIndex = undefined;
           atMarker = true;
@@ -61684,9 +56198,9 @@ function point3(d) {
   return { line: d.line, column: d.column, offset: d.offset };
 }
 function configure(combined, extensions) {
-  let index3 = -1;
-  while (++index3 < extensions.length) {
-    const value = extensions[index3];
+  let index2 = -1;
+  while (++index2 < extensions.length) {
+    const value = extensions[index2];
     if (Array.isArray(value)) {
       configure(combined, value);
     } else {
@@ -61847,7 +56361,7 @@ function footnoteReference(state, node2) {
   const clobberPrefix = typeof state.options.clobberPrefix === "string" ? state.options.clobberPrefix : "user-content-";
   const id = String(node2.identifier).toUpperCase();
   const safeId = normalizeUri(id.toLowerCase());
-  const index3 = state.footnoteOrder.indexOf(id);
+  const index2 = state.footnoteOrder.indexOf(id);
   let counter;
   let reuseCounter = state.footnoteCounts.get(id);
   if (reuseCounter === undefined) {
@@ -61855,7 +56369,7 @@ function footnoteReference(state, node2) {
     state.footnoteOrder.push(id);
     counter = state.footnoteOrder.length;
   } else {
-    counter = index3 + 1;
+    counter = index2 + 1;
   }
   reuseCounter += 1;
   state.footnoteCounts.set(id, reuseCounter);
@@ -62053,10 +56567,10 @@ function listItem(state, node2, parent) {
     });
     properties.className = ["task-list-item"];
   }
-  let index3 = -1;
-  while (++index3 < results.length) {
-    const child = results[index3];
-    if (loose || index3 !== 0 || child.type !== "element" || child.tagName !== "p") {
+  let index2 = -1;
+  while (++index2 < results.length) {
+    const child = results[index2];
+    if (loose || index2 !== 0 || child.type !== "element" || child.tagName !== "p") {
       children.push({ type: "text", value: `
 ` });
     }
@@ -62080,9 +56594,9 @@ function listLoose(node2) {
   if (node2.type === "list") {
     loose = node2.spread || false;
     const children = node2.children;
-    let index3 = -1;
-    while (!loose && ++index3 < children.length) {
-      loose = listItemLoose(children[index3]);
+    let index2 = -1;
+    while (!loose && ++index2 < children.length) {
+      loose = listItemLoose(children[index2]);
     }
   }
   return loose;
@@ -62096,12 +56610,12 @@ function listItemLoose(node2) {
 function list2(state, node2) {
   const properties = {};
   const results = state.all(node2);
-  let index3 = -1;
+  let index2 = -1;
   if (typeof node2.start === "number" && node2.start !== 1) {
     properties.start = node2.start;
   }
-  while (++index3 < results.length) {
-    const child = results[index3];
+  while (++index2 < results.length) {
+    const child = results[index2];
     if (child.type === "element" && child.tagName === "li" && child.properties && Array.isArray(child.properties.className) && child.properties.className.includes("task-list-item")) {
       properties.className = ["contains-task-list"];
       break;
@@ -62339,57 +56853,57 @@ var init_handlers = __esm(() => {
 var VOID = -1, PRIMITIVE = 0, ARRAY = 1, OBJECT = 2, DATE = 3, REGEXP = 4, MAP = 5, SET = 6, ERROR = 7, BIGINT = 8;
 
 // node_modules/@ungap/structured-clone/esm/deserialize.js
-var env, deserializer = ($, _) => {
-  const as = (out, index3) => {
-    $.set(index3, out);
+var env2, deserializer = ($, _) => {
+  const as = (out, index2) => {
+    $.set(index2, out);
     return out;
   };
-  const unpair = (index3) => {
-    if ($.has(index3))
-      return $.get(index3);
-    const [type, value] = _[index3];
+  const unpair = (index2) => {
+    if ($.has(index2))
+      return $.get(index2);
+    const [type, value] = _[index2];
     switch (type) {
       case PRIMITIVE:
       case VOID:
-        return as(value, index3);
+        return as(value, index2);
       case ARRAY: {
-        const arr = as([], index3);
-        for (const index4 of value)
-          arr.push(unpair(index4));
+        const arr = as([], index2);
+        for (const index3 of value)
+          arr.push(unpair(index3));
         return arr;
       }
       case OBJECT: {
-        const object3 = as({}, index3);
-        for (const [key, index4] of value)
-          object3[unpair(key)] = unpair(index4);
+        const object3 = as({}, index2);
+        for (const [key, index3] of value)
+          object3[unpair(key)] = unpair(index3);
         return object3;
       }
       case DATE:
-        return as(new Date(value), index3);
+        return as(new Date(value), index2);
       case REGEXP: {
         const { source, flags } = value;
-        return as(new RegExp(source, flags), index3);
+        return as(new RegExp(source, flags), index2);
       }
       case MAP: {
-        const map2 = as(new Map, index3);
-        for (const [key, index4] of value)
-          map2.set(unpair(key), unpair(index4));
+        const map2 = as(new Map, index2);
+        for (const [key, index3] of value)
+          map2.set(unpair(key), unpair(index3));
         return map2;
       }
       case SET: {
-        const set2 = as(new Set, index3);
-        for (const index4 of value)
-          set2.add(unpair(index4));
+        const set2 = as(new Set, index2);
+        for (const index3 of value)
+          set2.add(unpair(index3));
         return set2;
       }
       case ERROR: {
         const { name: name17, message } = value;
-        return as(new env[name17](message), index3);
+        return as(new env2[name17](message), index2);
       }
       case BIGINT:
-        return as(BigInt(value), index3);
+        return as(BigInt(value), index2);
       case "BigInt":
-        return as(Object(BigInt(value)), index3);
+        return as(Object(BigInt(value)), index2);
       case "ArrayBuffer":
         return as(new Uint8Array(value).buffer, value);
       case "DataView": {
@@ -62397,12 +56911,12 @@ var env, deserializer = ($, _) => {
         return as(new DataView(buffer), value);
       }
     }
-    return as(new env[type](value), index3);
+    return as(new env2[type](value), index2);
   };
   return unpair;
 }, deserialize = (serialized) => deserializer(new Map, serialized)(0);
 var init_deserialize = __esm(() => {
-  env = typeof self === "object" ? self : globalThis;
+  env2 = typeof self === "object" ? self : globalThis;
 });
 
 // node_modules/@ungap/structured-clone/esm/serialize.js
@@ -62434,9 +56948,9 @@ var EMPTY = "", toString2, keys, typeOf = (value) => {
   return [OBJECT, asString];
 }, shouldSkip = ([TYPE, type]) => TYPE === PRIMITIVE && (type === "function" || type === "symbol"), serializer = (strict, json2, $, _) => {
   const as = (out, value) => {
-    const index3 = _.push(out) - 1;
-    $.set(value, index3);
-    return index3;
+    const index2 = _.push(out) - 1;
+    $.set(value, index2);
+    return index2;
   };
   const pair = (value) => {
     if ($.has(value))
@@ -62472,10 +56986,10 @@ var EMPTY = "", toString2, keys, typeOf = (value) => {
           return as([type, [...spread]], value);
         }
         const arr = [];
-        const index3 = as([TYPE, arr], value);
+        const index2 = as([TYPE, arr], value);
         for (const entry of value)
           arr.push(pair(entry));
-        return index3;
+        return index2;
       }
       case OBJECT: {
         if (type) {
@@ -62491,12 +57005,12 @@ var EMPTY = "", toString2, keys, typeOf = (value) => {
         if (json2 && "toJSON" in value)
           return pair(value.toJSON());
         const entries = [];
-        const index3 = as([TYPE, entries], value);
+        const index2 = as([TYPE, entries], value);
         for (const key of keys(value)) {
           if (strict || !shouldSkip(typeOf(value[key])))
             entries.push([pair(key), pair(value[key])]);
         }
-        return index3;
+        return index2;
       }
       case DATE:
         return as([TYPE, value.toISOString()], value);
@@ -62506,21 +57020,21 @@ var EMPTY = "", toString2, keys, typeOf = (value) => {
       }
       case MAP: {
         const entries = [];
-        const index3 = as([TYPE, entries], value);
+        const index2 = as([TYPE, entries], value);
         for (const [key, entry] of value) {
           if (strict || !(shouldSkip(typeOf(key)) || shouldSkip(typeOf(entry))))
             entries.push([pair(key), pair(entry)]);
         }
-        return index3;
+        return index2;
       }
       case SET: {
         const entries = [];
-        const index3 = as([TYPE, entries], value);
+        const index2 = as([TYPE, entries], value);
         for (const entry of value) {
           if (strict || !shouldSkip(typeOf(entry)))
             entries.push(pair(entry));
         }
-        return index3;
+        return index2;
       }
     }
     const { message } = value;
@@ -62661,15 +57175,15 @@ var init_footer = __esm(() => {
 // node_modules/unist-util-is/lib/index.js
 function anyFactory(tests) {
   const checks4 = [];
-  let index3 = -1;
-  while (++index3 < tests.length) {
-    checks4[index3] = convert(tests[index3]);
+  let index2 = -1;
+  while (++index2 < tests.length) {
+    checks4[index2] = convert(tests[index2]);
   }
   return castFactory(any2);
   function any2(...parameters) {
-    let index4 = -1;
-    while (++index4 < checks4.length) {
-      if (checks4[index4].apply(this, parameters))
+    let index3 = -1;
+    while (++index3 < checks4.length) {
+      if (checks4[index3].apply(this, parameters))
         return true;
     }
     return false;
@@ -62696,8 +57210,8 @@ function typeFactory(check2) {
 }
 function castFactory(testFunction) {
   return check2;
-  function check2(value, index3, parent) {
-    return Boolean(looksLikeANode(value) && testFunction.call(this, value, typeof index3 === "number" ? index3 : undefined, parent || undefined));
+  function check2(value, index2, parent) {
+    return Boolean(looksLikeANode(value) && testFunction.call(this, value, typeof index2 === "number" ? index2 : undefined, parent || undefined));
   }
 }
 function ok2() {
@@ -62742,7 +57256,7 @@ function visitParents(tree, test, visitor, reverse) {
   const is2 = convert(check2);
   const step = reverse ? -1 : 1;
   factory(tree, undefined, [])();
-  function factory(node2, index3, parents) {
+  function factory(node2, index2, parents) {
     const value = node2 && typeof node2 === "object" ? node2 : {};
     if (typeof value.type === "string") {
       const name17 = typeof value.tagName === "string" ? value.tagName : typeof value.name === "string" ? value.name : undefined;
@@ -62754,9 +57268,9 @@ function visitParents(tree, test, visitor, reverse) {
     function visit() {
       let result = empty2;
       let subresult;
-      let offset4;
+      let offset;
       let grandparents;
-      if (!test || is2(node2, index3, parents[parents.length - 1] || undefined)) {
+      if (!test || is2(node2, index2, parents[parents.length - 1] || undefined)) {
         result = toResult(visitor(node2, parents));
         if (result[0] === EXIT) {
           return result;
@@ -62765,15 +57279,15 @@ function visitParents(tree, test, visitor, reverse) {
       if ("children" in node2 && node2.children) {
         const nodeAsParent = node2;
         if (nodeAsParent.children && result[0] !== SKIP) {
-          offset4 = (reverse ? nodeAsParent.children.length : -1) + step;
+          offset = (reverse ? nodeAsParent.children.length : -1) + step;
           grandparents = parents.concat(nodeAsParent);
-          while (offset4 > -1 && offset4 < nodeAsParent.children.length) {
-            const child = nodeAsParent.children[offset4];
-            subresult = factory(child, offset4, grandparents)();
+          while (offset > -1 && offset < nodeAsParent.children.length) {
+            const child = nodeAsParent.children[offset];
+            subresult = factory(child, offset, grandparents)();
             if (subresult[0] === EXIT) {
               return subresult;
             }
-            offset4 = typeof subresult[1] === "number" ? subresult[1] : offset4 + step;
+            offset = typeof subresult[1] === "number" ? subresult[1] : offset + step;
           }
         }
       }
@@ -62818,8 +57332,8 @@ function visit(tree, testOrVisitor, visitorOrReverse, maybeReverse) {
   visitParents(tree, test, overload, reverse);
   function overload(node2, parents) {
     const parent = parents[parents.length - 1];
-    const index3 = parent ? parent.children.indexOf(node2) : undefined;
-    return visitor(node2, index3, parent);
+    const index2 = parent ? parent.children.indexOf(node2) : undefined;
+    return visitor(node2, index2, parent);
   }
 }
 var init_lib11 = __esm(() => {
@@ -62884,11 +57398,11 @@ function createState(tree, options2) {
     const values2 = [];
     if ("children" in parent) {
       const nodes = parent.children;
-      let index3 = -1;
-      while (++index3 < nodes.length) {
-        const result = state.one(nodes[index3], parent);
+      let index2 = -1;
+      while (++index2 < nodes.length) {
+        const result = state.one(nodes[index2], parent);
         if (result) {
-          if (index3 && nodes[index3 - 1].type === "break") {
+          if (index2 && nodes[index2 - 1].type === "break") {
             if (!Array.isArray(result) && result.type === "text") {
               result.value = trimMarkdownSpaceStart(result.value);
             }
@@ -62950,16 +57464,16 @@ function defaultUnknownHandler(state, node2) {
 }
 function wrap(nodes, loose) {
   const result = [];
-  let index3 = -1;
+  let index2 = -1;
   if (loose) {
     result.push({ type: "text", value: `
 ` });
   }
-  while (++index3 < nodes.length) {
-    if (index3)
+  while (++index2 < nodes.length) {
+    if (index2)
       result.push({ type: "text", value: `
 ` });
-    result.push(nodes[index3]);
+    result.push(nodes[index2]);
   }
   if (loose && nodes.length > 0) {
     result.push({ type: "text", value: `
@@ -62968,13 +57482,13 @@ function wrap(nodes, loose) {
   return result;
 }
 function trimMarkdownSpaceStart(value) {
-  let index3 = 0;
-  let code2 = value.charCodeAt(index3);
+  let index2 = 0;
+  let code2 = value.charCodeAt(index2);
   while (code2 === 9 || code2 === 32) {
-    index3++;
-    code2 = value.charCodeAt(index3);
+    index2++;
+    code2 = value.charCodeAt(index2);
   }
-  return value.slice(index3);
+  return value.slice(index2);
 }
 var own3, emptyOptions3;
 var init_state = __esm(() => {
@@ -63148,14 +57662,14 @@ function trough() {
     next(null, ...values2);
     function next(error46, ...output) {
       const fn = fns[++middlewareIndex];
-      let index3 = -1;
+      let index2 = -1;
       if (error46) {
         callback(error46);
         return;
       }
-      while (++index3 < values2.length) {
-        if (output[index3] === null || output[index3] === undefined) {
-          output[index3] = values2[index3];
+      while (++index2 < values2.length) {
+        if (output[index2] === null || output[index2] === undefined) {
+          output[index2] = values2[index2];
         }
       }
       values2 = output;
@@ -63217,49 +57731,49 @@ function wrap2(middleware, callback) {
 var init_trough = () => {};
 
 // node_modules/vfile/lib/minpath.browser.js
-function basename(path2, extname) {
+function basename(path, extname) {
   if (extname !== undefined && typeof extname !== "string") {
     throw new TypeError('"ext" argument must be a string');
   }
-  assertPath(path2);
+  assertPath(path);
   let start2 = 0;
   let end = -1;
-  let index3 = path2.length;
+  let index2 = path.length;
   let seenNonSlash;
-  if (extname === undefined || extname.length === 0 || extname.length > path2.length) {
-    while (index3--) {
-      if (path2.codePointAt(index3) === 47) {
+  if (extname === undefined || extname.length === 0 || extname.length > path.length) {
+    while (index2--) {
+      if (path.codePointAt(index2) === 47) {
         if (seenNonSlash) {
-          start2 = index3 + 1;
+          start2 = index2 + 1;
           break;
         }
       } else if (end < 0) {
         seenNonSlash = true;
-        end = index3 + 1;
+        end = index2 + 1;
       }
     }
-    return end < 0 ? "" : path2.slice(start2, end);
+    return end < 0 ? "" : path.slice(start2, end);
   }
-  if (extname === path2) {
+  if (extname === path) {
     return "";
   }
   let firstNonSlashEnd = -1;
   let extnameIndex = extname.length - 1;
-  while (index3--) {
-    if (path2.codePointAt(index3) === 47) {
+  while (index2--) {
+    if (path.codePointAt(index2) === 47) {
       if (seenNonSlash) {
-        start2 = index3 + 1;
+        start2 = index2 + 1;
         break;
       }
     } else {
       if (firstNonSlashEnd < 0) {
         seenNonSlash = true;
-        firstNonSlashEnd = index3 + 1;
+        firstNonSlashEnd = index2 + 1;
       }
       if (extnameIndex > -1) {
-        if (path2.codePointAt(index3) === extname.codePointAt(extnameIndex--)) {
+        if (path.codePointAt(index2) === extname.codePointAt(extnameIndex--)) {
           if (extnameIndex < 0) {
-            end = index3;
+            end = index2;
           }
         } else {
           extnameIndex = -1;
@@ -63271,54 +57785,54 @@ function basename(path2, extname) {
   if (start2 === end) {
     end = firstNonSlashEnd;
   } else if (end < 0) {
-    end = path2.length;
+    end = path.length;
   }
-  return path2.slice(start2, end);
+  return path.slice(start2, end);
 }
-function dirname(path2) {
-  assertPath(path2);
-  if (path2.length === 0) {
+function dirname(path) {
+  assertPath(path);
+  if (path.length === 0) {
     return ".";
   }
   let end = -1;
-  let index3 = path2.length;
+  let index2 = path.length;
   let unmatchedSlash;
-  while (--index3) {
-    if (path2.codePointAt(index3) === 47) {
+  while (--index2) {
+    if (path.codePointAt(index2) === 47) {
       if (unmatchedSlash) {
-        end = index3;
+        end = index2;
         break;
       }
     } else if (!unmatchedSlash) {
       unmatchedSlash = true;
     }
   }
-  return end < 0 ? path2.codePointAt(0) === 47 ? "/" : "." : end === 1 && path2.codePointAt(0) === 47 ? "//" : path2.slice(0, end);
+  return end < 0 ? path.codePointAt(0) === 47 ? "/" : "." : end === 1 && path.codePointAt(0) === 47 ? "//" : path.slice(0, end);
 }
-function extname(path2) {
-  assertPath(path2);
-  let index3 = path2.length;
+function extname(path) {
+  assertPath(path);
+  let index2 = path.length;
   let end = -1;
   let startPart = 0;
   let startDot = -1;
   let preDotState = 0;
   let unmatchedSlash;
-  while (index3--) {
-    const code2 = path2.codePointAt(index3);
+  while (index2--) {
+    const code2 = path.codePointAt(index2);
     if (code2 === 47) {
       if (unmatchedSlash) {
-        startPart = index3 + 1;
+        startPart = index2 + 1;
         break;
       }
       continue;
     }
     if (end < 0) {
       unmatchedSlash = true;
-      end = index3 + 1;
+      end = index2 + 1;
     }
     if (code2 === 46) {
       if (startDot < 0) {
-        startDot = index3;
+        startDot = index2;
       } else if (preDotState !== 1) {
         preDotState = 1;
       }
@@ -63329,49 +57843,49 @@ function extname(path2) {
   if (startDot < 0 || end < 0 || preDotState === 0 || preDotState === 1 && startDot === end - 1 && startDot === startPart + 1) {
     return "";
   }
-  return path2.slice(startDot, end);
+  return path.slice(startDot, end);
 }
 function join(...segments) {
-  let index3 = -1;
+  let index2 = -1;
   let joined;
-  while (++index3 < segments.length) {
-    assertPath(segments[index3]);
-    if (segments[index3]) {
-      joined = joined === undefined ? segments[index3] : joined + "/" + segments[index3];
+  while (++index2 < segments.length) {
+    assertPath(segments[index2]);
+    if (segments[index2]) {
+      joined = joined === undefined ? segments[index2] : joined + "/" + segments[index2];
     }
   }
   return joined === undefined ? "." : normalize2(joined);
 }
-function normalize2(path2) {
-  assertPath(path2);
-  const absolute = path2.codePointAt(0) === 47;
-  let value = normalizeString(path2, !absolute);
+function normalize2(path) {
+  assertPath(path);
+  const absolute = path.codePointAt(0) === 47;
+  let value = normalizeString(path, !absolute);
   if (value.length === 0 && !absolute) {
     value = ".";
   }
-  if (value.length > 0 && path2.codePointAt(path2.length - 1) === 47) {
+  if (value.length > 0 && path.codePointAt(path.length - 1) === 47) {
     value += "/";
   }
   return absolute ? "/" + value : value;
 }
-function normalizeString(path2, allowAboveRoot) {
+function normalizeString(path, allowAboveRoot) {
   let result = "";
   let lastSegmentLength = 0;
   let lastSlash = -1;
   let dots = 0;
-  let index3 = -1;
+  let index2 = -1;
   let code2;
   let lastSlashIndex;
-  while (++index3 <= path2.length) {
-    if (index3 < path2.length) {
-      code2 = path2.codePointAt(index3);
+  while (++index2 <= path.length) {
+    if (index2 < path.length) {
+      code2 = path.codePointAt(index2);
     } else if (code2 === 47) {
       break;
     } else {
       code2 = 47;
     }
     if (code2 === 47) {
-      if (lastSlash === index3 - 1 || dots === 1) {} else if (lastSlash !== index3 - 1 && dots === 2) {
+      if (lastSlash === index2 - 1 || dots === 1) {} else if (lastSlash !== index2 - 1 && dots === 2) {
         if (result.length < 2 || lastSegmentLength !== 2 || result.codePointAt(result.length - 1) !== 46 || result.codePointAt(result.length - 2) !== 46) {
           if (result.length > 2) {
             lastSlashIndex = result.lastIndexOf("/");
@@ -63383,14 +57897,14 @@ function normalizeString(path2, allowAboveRoot) {
                 result = result.slice(0, lastSlashIndex);
                 lastSegmentLength = result.length - 1 - result.lastIndexOf("/");
               }
-              lastSlash = index3;
+              lastSlash = index2;
               dots = 0;
               continue;
             }
           } else if (result.length > 0) {
             result = "";
             lastSegmentLength = 0;
-            lastSlash = index3;
+            lastSlash = index2;
             dots = 0;
             continue;
           }
@@ -63401,13 +57915,13 @@ function normalizeString(path2, allowAboveRoot) {
         }
       } else {
         if (result.length > 0) {
-          result += "/" + path2.slice(lastSlash + 1, index3);
+          result += "/" + path.slice(lastSlash + 1, index2);
         } else {
-          result = path2.slice(lastSlash + 1, index3);
+          result = path.slice(lastSlash + 1, index2);
         }
-        lastSegmentLength = index3 - lastSlash - 1;
+        lastSegmentLength = index2 - lastSlash - 1;
       }
-      lastSlash = index3;
+      lastSlash = index2;
       dots = 0;
     } else if (code2 === 46 && dots > -1) {
       dots++;
@@ -63417,9 +57931,9 @@ function normalizeString(path2, allowAboveRoot) {
   }
   return result;
 }
-function assertPath(path2) {
-  if (typeof path2 !== "string") {
-    throw new TypeError("Path must be a string. Received " + JSON.stringify(path2));
+function assertPath(path) {
+  if (typeof path !== "string") {
+    throw new TypeError("Path must be a string. Received " + JSON.stringify(path));
   }
 }
 var minpath;
@@ -63442,20 +57956,20 @@ function isUrl(fileUrlOrPath) {
 }
 
 // node_modules/vfile/lib/minurl.browser.js
-function urlToPath(path2) {
-  if (typeof path2 === "string") {
-    path2 = new URL(path2);
-  } else if (!isUrl(path2)) {
-    const error46 = new TypeError('The "path" argument must be of type string or an instance of URL. Received `' + path2 + "`");
+function urlToPath(path) {
+  if (typeof path === "string") {
+    path = new URL(path);
+  } else if (!isUrl(path)) {
+    const error46 = new TypeError('The "path" argument must be of type string or an instance of URL. Received `' + path + "`");
     error46.code = "ERR_INVALID_ARG_TYPE";
     throw error46;
   }
-  if (path2.protocol !== "file:") {
+  if (path.protocol !== "file:") {
     const error46 = new TypeError("The URL must be of scheme file");
     error46.code = "ERR_INVALID_URL_SCHEME";
     throw error46;
   }
-  return getPathFromURLPosix(path2);
+  return getPathFromURLPosix(path);
 }
 function getPathFromURLPosix(url2) {
   if (url2.hostname !== "") {
@@ -63464,10 +57978,10 @@ function getPathFromURLPosix(url2) {
     throw error46;
   }
   const pathname = url2.pathname;
-  let index3 = -1;
-  while (++index3 < pathname.length) {
-    if (pathname.codePointAt(index3) === 37 && pathname.codePointAt(index3 + 1) === 50) {
-      const third = pathname.codePointAt(index3 + 2);
+  let index2 = -1;
+  while (++index2 < pathname.length) {
+    if (pathname.codePointAt(index2) === 37 && pathname.codePointAt(index2 + 1) === 50) {
+      const third = pathname.codePointAt(index2 + 2);
       if (third === 70 || third === 102) {
         const error46 = new TypeError("File URL path must not include encoded / characters");
         error46.code = "ERR_INVALID_FILE_URL_PATH";
@@ -63500,9 +58014,9 @@ class VFile {
     this.map;
     this.result;
     this.stored;
-    let index3 = -1;
-    while (++index3 < order.length) {
-      const field2 = order[index3];
+    let index2 = -1;
+    while (++index2 < order.length) {
+      const field2 = order[index2];
       if (field2 in options2 && options2[field2] !== undefined && options2[field2] !== null) {
         this[field2] = field2 === "history" ? [...options2[field2]] : options2[field2];
       }
@@ -63548,13 +58062,13 @@ class VFile {
   get path() {
     return this.history[this.history.length - 1];
   }
-  set path(path2) {
-    if (isUrl(path2)) {
-      path2 = urlToPath(path2);
+  set path(path) {
+    if (isUrl(path)) {
+      path = urlToPath(path);
     }
-    assertNonEmpty(path2, "path");
-    if (this.path !== path2) {
-      this.history.push(path2);
+    assertNonEmpty(path, "path");
+    if (this.path !== path) {
+      this.history.push(path);
     }
   }
   get stem() {
@@ -63606,8 +58120,8 @@ function assertNonEmpty(part, name17) {
     throw new Error("`" + name17 + "` cannot be empty");
   }
 }
-function assertPath2(path2, name17) {
-  if (!path2) {
+function assertPath2(path, name17) {
+  if (!path) {
     throw new Error("Setting `" + name17 + "` requires `path` to be set too");
   }
 }
@@ -63708,9 +58222,9 @@ var init_lib15 = __esm(() => {
     }
     copy() {
       const destination = new Processor;
-      let index3 = -1;
-      while (++index3 < this.attachers.length) {
-        const attacher = this.attachers[index3];
+      let index2 = -1;
+      while (++index2 < this.attachers.length) {
+        const attacher = this.attachers[index2];
         destination.use(...attacher);
       }
       destination.data(import_extend.default(true, {}, this.namespace));
@@ -63898,10 +58412,10 @@ var init_lib15 = __esm(() => {
         }
       }
       function addList(plugins) {
-        let index3 = -1;
+        let index2 = -1;
         if (plugins === null || plugins === undefined) {} else if (Array.isArray(plugins)) {
-          while (++index3 < plugins.length) {
-            const thing = plugins[index3];
+          while (++index2 < plugins.length) {
+            const thing = plugins[index2];
             add(thing);
           }
         } else {
@@ -63909,11 +58423,11 @@ var init_lib15 = __esm(() => {
         }
       }
       function addPlugin(plugin, parameters2) {
-        let index3 = -1;
+        let index2 = -1;
         let entryIndex = -1;
-        while (++index3 < attachers.length) {
-          if (attachers[index3][0] === plugin) {
-            entryIndex = index3;
+        while (++index2 < attachers.length) {
+          if (attachers[index2][0] === plugin) {
+            entryIndex = index2;
             break;
           }
         }
@@ -63979,22 +58493,22 @@ function post(tree, options2) {
   }
   visit(tree, transform2);
   return toJsxRuntime(tree, {
-    Fragment: import_jsx_runtime16.Fragment,
+    Fragment: import_jsx_runtime10.Fragment,
     components,
     ignoreInvalidStyle: true,
-    jsx: import_jsx_runtime16.jsx,
-    jsxs: import_jsx_runtime16.jsxs,
+    jsx: import_jsx_runtime10.jsx,
+    jsxs: import_jsx_runtime10.jsxs,
     passKeys: true,
     passNode: true
   });
-  function transform2(node2, index3, parent) {
-    if (node2.type === "raw" && parent && typeof index3 === "number") {
+  function transform2(node2, index2, parent) {
+    if (node2.type === "raw" && parent && typeof index2 === "number") {
       if (skipHtml) {
-        parent.children.splice(index3, 1);
+        parent.children.splice(index2, 1);
       } else {
-        parent.children[index3] = { type: "text", value: node2.value };
+        parent.children[index2] = { type: "text", value: node2.value };
       }
-      return index3;
+      return index2;
     }
     if (node2.type === "element") {
       let key;
@@ -64010,16 +58524,16 @@ function post(tree, options2) {
     }
     if (node2.type === "element") {
       let remove = allowedElements ? !allowedElements.includes(node2.tagName) : disallowedElements ? disallowedElements.includes(node2.tagName) : false;
-      if (!remove && allowElement && typeof index3 === "number") {
-        remove = !allowElement(node2, index3, parent);
+      if (!remove && allowElement && typeof index2 === "number") {
+        remove = !allowElement(node2, index2, parent);
       }
-      if (remove && parent && typeof index3 === "number") {
+      if (remove && parent && typeof index2 === "number") {
         if (unwrapDisallowed && node2.children) {
-          parent.children.splice(index3, 1, ...node2.children);
+          parent.children.splice(index2, 1, ...node2.children);
         } else {
-          parent.children.splice(index3, 1);
+          parent.children.splice(index2, 1);
         }
-        return index3;
+        return index2;
       }
     }
   }
@@ -64034,13 +58548,13 @@ function defaultUrlTransform(value) {
   }
   return "";
 }
-var import_jsx_runtime16, import_react15, changelog = "https://github.com/remarkjs/react-markdown/blob/main/changelog.md", emptyPlugins, emptyRemarkRehypeOptions, safeProtocol, deprecations;
+var import_jsx_runtime10, import_react14, changelog = "https://github.com/remarkjs/react-markdown/blob/main/changelog.md", emptyPlugins, emptyRemarkRehypeOptions, safeProtocol, deprecations;
 var init_lib16 = __esm(() => {
   init_development();
   init_hast_util_to_jsx_runtime();
   init_html_url_attributes();
-  import_jsx_runtime16 = __toESM(require_jsx_runtime(), 1);
-  import_react15 = __toESM(require_react(), 1);
+  import_jsx_runtime10 = __toESM(require_jsx_runtime(), 1);
+  import_react14 = __toESM(require_react(), 1);
   init_remark_parse();
   init_remark_rehype();
   init_unified();
@@ -64097,10 +58611,10 @@ function ccount(value, character) {
     throw new TypeError("Expected character");
   }
   let count3 = 0;
-  let index3 = source.indexOf(character);
-  while (index3 !== -1) {
+  let index2 = source.indexOf(character);
+  while (index2 !== -1) {
     count3++;
-    index3 = source.indexOf(character, index3 + character.length);
+    index2 = source.indexOf(character, index2 + character.length);
   }
   return count3;
 }
@@ -64123,10 +58637,10 @@ function findAndReplace(tree, list3, options2) {
     visitParents(tree, "text", visitor);
   }
   function visitor(node2, parents) {
-    let index3 = -1;
+    let index2 = -1;
     let grandparent;
-    while (++index3 < parents.length) {
-      const parent = parents[index3];
+    while (++index2 < parents.length) {
+      const parent = parents[index2];
       const siblings = grandparent ? grandparent.children : undefined;
       if (ignored(parent, siblings ? siblings.indexOf(parent) : undefined, grandparent)) {
         return;
@@ -64143,7 +58657,7 @@ function findAndReplace(tree, list3, options2) {
     const replace = pairs[pairIndex][1];
     let start2 = 0;
     const siblings = parent.children;
-    const index3 = siblings.indexOf(node2);
+    const index2 = siblings.indexOf(node2);
     let change = false;
     let nodes = [];
     find2.lastIndex = 0;
@@ -64185,11 +58699,11 @@ function findAndReplace(tree, list3, options2) {
       if (start2 < node2.value.length) {
         nodes.push({ type: "text", value: node2.value.slice(start2) });
       }
-      parent.children.splice(index3, 1, ...nodes);
+      parent.children.splice(index2, 1, ...nodes);
     } else {
       nodes = [node2];
     }
-    return index3 + nodes.length;
+    return index2 + nodes.length;
   }
 }
 function toPairs(tupleOrList) {
@@ -64198,9 +58712,9 @@ function toPairs(tupleOrList) {
     throw new TypeError("Expected find and replace tuple or list of tuples");
   }
   const list3 = !tupleOrList[0] || Array.isArray(tupleOrList[0]) ? tupleOrList : [tupleOrList];
-  let index3 = -1;
-  while (++index3 < list3.length) {
-    const tuple2 = list3[index3];
+  let index2 = -1;
+  while (++index2 < list3.length) {
+    const tuple2 = list3[index2];
     result.push([toExpression(tuple2[0]), toFunction(tuple2[1])]);
   }
   return result;
@@ -64295,7 +58809,7 @@ function transformGfmAutolinkLiterals(tree) {
     [/(?<=^|\s|\p{P}|\p{S})([-.\w+]+)@([-\w]+(?:\.[-\w]+)+)/gu, findEmail]
   ], { ignore: ["link", "linkReference"] });
 }
-function findUrl(_, protocol, domain2, path2, match) {
+function findUrl(_, protocol, domain2, path, match) {
   let prefix = "";
   if (!previous2(match)) {
     return false;
@@ -64308,7 +58822,7 @@ function findUrl(_, protocol, domain2, path2, match) {
   if (!isCorrectDomain(domain2)) {
     return false;
   }
-  const parts = splitUrl(domain2 + path2);
+  const parts = splitUrl(domain2 + path);
   if (!parts[0])
     return false;
   const result = {
@@ -64464,10 +58978,10 @@ function gfmFootnoteToMarkdown(options2) {
     return value;
   }
 }
-function mapExceptFirst(line, index3, blank) {
-  return index3 === 0 ? line : mapAll(line, index3, blank);
+function mapExceptFirst(line, index2, blank) {
+  return index2 === 0 ? line : mapAll(line, index2, blank);
 }
-function mapAll(line, index3, blank) {
+function mapAll(line, index2, blank) {
   return (blank ? "" : "    ") + line;
 }
 var init_lib19 = __esm(() => {
@@ -64565,10 +59079,10 @@ function markdownTable(table2, options2) {
     while (++columnIndex2 < table2[rowIndex].length) {
       const cell = serialize2(table2[rowIndex][columnIndex2]);
       if (settings.alignDelimiters !== false) {
-        const size4 = stringLength(cell);
-        sizes2[columnIndex2] = size4;
-        if (longestCellByColumn[columnIndex2] === undefined || size4 > longestCellByColumn[columnIndex2]) {
-          longestCellByColumn[columnIndex2] = size4;
+        const size = stringLength(cell);
+        sizes2[columnIndex2] = size;
+        if (longestCellByColumn[columnIndex2] === undefined || size > longestCellByColumn[columnIndex2]) {
+          longestCellByColumn[columnIndex2] = size;
         }
       }
       row2.push(cell);
@@ -64602,14 +59116,14 @@ function markdownTable(table2, options2) {
     } else if (code2 === 114) {
       after = ":";
     }
-    let size4 = settings.alignDelimiters === false ? 1 : Math.max(1, longestCellByColumn[columnIndex] - before.length - after.length);
-    const cell = before + "-".repeat(size4) + after;
+    let size = settings.alignDelimiters === false ? 1 : Math.max(1, longestCellByColumn[columnIndex] - before.length - after.length);
+    const cell = before + "-".repeat(size) + after;
     if (settings.alignDelimiters !== false) {
-      size4 = before.length + size4 + after.length;
-      if (size4 > longestCellByColumn[columnIndex]) {
-        longestCellByColumn[columnIndex] = size4;
+      size = before.length + size + after.length;
+      if (size > longestCellByColumn[columnIndex]) {
+        longestCellByColumn[columnIndex] = size;
       }
-      sizes[columnIndex] = size4;
+      sizes[columnIndex] = size;
     }
     row[columnIndex] = cell;
   }
@@ -64627,20 +59141,20 @@ function markdownTable(table2, options2) {
       let before = "";
       let after = "";
       if (settings.alignDelimiters !== false) {
-        const size4 = longestCellByColumn[columnIndex] - (sizes2[columnIndex] || 0);
+        const size = longestCellByColumn[columnIndex] - (sizes2[columnIndex] || 0);
         const code2 = alignments[columnIndex];
         if (code2 === 114) {
-          before = " ".repeat(size4);
+          before = " ".repeat(size);
         } else if (code2 === 99) {
-          if (size4 % 2) {
-            before = " ".repeat(size4 / 2 + 0.5);
-            after = " ".repeat(size4 / 2 - 0.5);
+          if (size % 2) {
+            before = " ".repeat(size / 2 + 0.5);
+            after = " ".repeat(size / 2 - 0.5);
           } else {
-            before = " ".repeat(size4 / 2);
+            before = " ".repeat(size / 2);
             after = before;
           }
         } else {
-          after = " ".repeat(size4);
+          after = " ".repeat(size);
         }
       }
       if (settings.delimiterStart !== false && !columnIndex) {
@@ -64701,9 +59215,9 @@ function listInScope(stack, list3, none) {
   if (!list3 || list3.length === 0) {
     return none;
   }
-  let index3 = -1;
-  while (++index3 < list3.length) {
-    if (stack.includes(list3[index3])) {
+  let index2 = -1;
+  while (++index2 < list3.length) {
+    if (stack.includes(list3[index2])) {
       return true;
     }
   }
@@ -64712,10 +59226,10 @@ function listInScope(stack, list3, none) {
 
 // node_modules/mdast-util-to-markdown/lib/handle/break.js
 function hardBreak2(_, _1, state, info) {
-  let index3 = -1;
-  while (++index3 < state.unsafe.length) {
-    if (state.unsafe[index3].character === `
-` && patternInScope(state.stack, state.unsafe[index3])) {
+  let index2 = -1;
+  while (++index2 < state.unsafe.length) {
+    if (state.unsafe[index2].character === `
+` && patternInScope(state.stack, state.unsafe[index2])) {
       return /[ \t]/.test(info.before) ? "" : " ";
     }
   }
@@ -64726,25 +59240,25 @@ var init_break = () => {};
 // node_modules/longest-streak/index.js
 function longestStreak(value, substring) {
   const source = String(value);
-  let index3 = source.indexOf(substring);
-  let expected = index3;
+  let index2 = source.indexOf(substring);
+  let expected = index2;
   let count3 = 0;
-  let max2 = 0;
+  let max = 0;
   if (typeof substring !== "string") {
     throw new TypeError("Expected substring");
   }
-  while (index3 !== -1) {
-    if (index3 === expected) {
-      if (++count3 > max2) {
-        max2 = count3;
+  while (index2 !== -1) {
+    if (index2 === expected) {
+      if (++count3 > max) {
+        max = count3;
       }
     } else {
       count3 = 1;
     }
-    expected = index3 + substring.length;
-    index3 = source.indexOf(substring, expected);
+    expected = index2 + substring.length;
+    index2 = source.indexOf(substring, expected);
   }
-  return max2;
+  return max;
 }
 
 // node_modules/mdast-util-to-markdown/lib/util/format-code-as-indented.js
@@ -65099,15 +59613,15 @@ var init_image_reference2 = __esm(() => {
 function inlineCode2(node2, _, state) {
   let value = node2.value || "";
   let sequence = "`";
-  let index3 = -1;
+  let index2 = -1;
   while (new RegExp("(^|[^`])" + sequence + "([^`]|$)").test(value)) {
     sequence += "`";
   }
   if (/[^ \r\n]/.test(value) && (/^[ \r\n]/.test(value) && /[ \r\n]$/.test(value) || /^`|`$/.test(value))) {
     value = " " + value + " ";
   }
-  while (++index3 < state.unsafe.length) {
-    const pattern = state.unsafe[index3];
+  while (++index2 < state.unsafe.length) {
+    const pattern = state.unsafe[index2];
     const expression = state.compilePattern(pattern);
     let match;
     if (!pattern.atBreak)
@@ -65305,9 +59819,9 @@ function list3(node2, parent, state, info) {
       useDifferentMarker = true;
     }
     if (checkRule(state) === bullet && firstListItem) {
-      let index3 = -1;
-      while (++index3 < node2.children.length) {
-        const item = node2.children[index3];
+      let index2 = -1;
+      while (++index2 < node2.children.length) {
+        const item = node2.children[index2];
         if (item && item.type === "listItem" && item.children && item.children[0] && item.children[0].type === "thematicBreak") {
           useDifferentMarker = true;
           break;
@@ -65345,22 +59859,22 @@ function listItem2(node2, parent, state, info) {
   if (parent && parent.type === "list" && parent.ordered) {
     bullet = (typeof parent.start === "number" && parent.start > -1 ? parent.start : 1) + (state.options.incrementListMarker === false ? 0 : parent.children.indexOf(node2)) + bullet;
   }
-  let size4 = bullet.length + 1;
+  let size = bullet.length + 1;
   if (listItemIndent === "tab" || listItemIndent === "mixed" && (parent && parent.type === "list" && parent.spread || node2.spread)) {
-    size4 = Math.ceil(size4 / 4) * 4;
+    size = Math.ceil(size / 4) * 4;
   }
   const tracker = state.createTracker(info);
-  tracker.move(bullet + " ".repeat(size4 - bullet.length));
-  tracker.shift(size4);
+  tracker.move(bullet + " ".repeat(size - bullet.length));
+  tracker.shift(size);
   const exit2 = state.enter("listItem");
   const value = state.indentLines(state.containerFlow(node2, tracker.current()), map4);
   exit2();
   return value;
-  function map4(line, index3, blank) {
-    if (index3) {
-      return (blank ? "" : " ".repeat(size4)) + line;
+  function map4(line, index2, blank) {
+    if (index2) {
+      return (blank ? "" : " ".repeat(size)) + line;
     }
-    return (blank ? bullet : bullet + " ".repeat(size4 - bullet.length)) + line;
+    return (blank ? bullet : bullet + " ".repeat(size - bullet.length)) + line;
   }
 }
 var init_list_item = () => {};
@@ -65641,22 +60155,22 @@ function gfmTableToMarkdown(options2) {
   }
   function handleTableAsData(node2, state, info) {
     const children = node2.children;
-    let index3 = -1;
+    let index2 = -1;
     const result = [];
     const subexit = state.enter("table");
-    while (++index3 < children.length) {
-      result[index3] = handleTableRowAsData(children[index3], state, info);
+    while (++index2 < children.length) {
+      result[index2] = handleTableRowAsData(children[index2], state, info);
     }
     subexit();
     return result;
   }
   function handleTableRowAsData(node2, state, info) {
     const children = node2.children;
-    let index3 = -1;
+    let index2 = -1;
     const result = [];
     const subexit = state.enter("tableRow");
-    while (++index3 < children.length) {
-      result[index3] = handleTableCell(children[index3], node2, state, info);
+    while (++index2 < children.length) {
+      result[index2] = handleTableCell(children[index2], node2, state, info);
     }
     subexit();
     return result;
@@ -65708,10 +60222,10 @@ function exitParagraphWithTaskListItem(token) {
     const head = node2.children[0];
     if (head && head.type === "text") {
       const siblings = parent.children;
-      let index3 = -1;
+      let index2 = -1;
       let firstParaghraph;
-      while (++index3 < siblings.length) {
-        const sibling = siblings[index3];
+      while (++index2 < siblings.length) {
+        const sibling = siblings[index2];
         if (sibling.type === "paragraph") {
           firstParaghraph = sibling;
           break;
@@ -65857,7 +60371,7 @@ function tokenizeWwwAutolink(effects, ok3, nok) {
     }
     effects.enter("literalAutolink");
     effects.enter("literalAutolinkWww");
-    return effects.check(wwwPrefix, effects.attempt(domain2, effects.attempt(path2, wwwAfter), nok), nok)(code4);
+    return effects.check(wwwPrefix, effects.attempt(domain2, effects.attempt(path, wwwAfter), nok), nok)(code4);
   }
   function wwwAfter(code4) {
     effects.exit("literalAutolinkWww");
@@ -65907,7 +60421,7 @@ function tokenizeProtocolAutolink(effects, ok3, nok) {
     return nok(code4);
   }
   function afterProtocol(code4) {
-    return code4 === codes.eof || asciiControl(code4) || markdownLineEndingOrSpace(code4) || unicodeWhitespace(code4) || unicodePunctuation(code4) ? nok(code4) : effects.attempt(domain2, effects.attempt(path2, protocolAfter), nok)(code4);
+    return code4 === codes.eof || asciiControl(code4) || markdownLineEndingOrSpace(code4) || unicodeWhitespace(code4) || unicodePunctuation(code4) ? nok(code4) : effects.attempt(domain2, effects.attempt(path, protocolAfter), nok)(code4);
   }
   function protocolAfter(code4) {
     effects.exit("literalAutolinkHttp");
@@ -65916,15 +60430,15 @@ function tokenizeProtocolAutolink(effects, ok3, nok) {
   }
 }
 function tokenizeWwwPrefix(effects, ok3, nok) {
-  let size4 = 0;
+  let size = 0;
   return wwwPrefixInside;
   function wwwPrefixInside(code4) {
-    if ((code4 === codes.uppercaseW || code4 === codes.lowercaseW) && size4 < 3) {
-      size4++;
+    if ((code4 === codes.uppercaseW || code4 === codes.lowercaseW) && size < 3) {
+      size++;
       effects.consume(code4);
       return wwwPrefixInside;
     }
-    if (code4 === codes.dot && size4 === 3) {
+    if (code4 === codes.dot && size === 3) {
       effects.consume(code4);
       return wwwPrefixAfter;
     }
@@ -66061,10 +60575,10 @@ function gfmAtext(code4) {
   return code4 === codes.plusSign || code4 === codes.dash || code4 === codes.dot || code4 === codes.underscore || asciiAlphanumeric(code4);
 }
 function previousUnbalanced(events) {
-  let index3 = events.length;
+  let index2 = events.length;
   let result = false;
-  while (index3--) {
-    const token = events[index3][1];
+  while (index2--) {
+    const token = events[index2][1];
     if ((token.type === "labelLink" || token.type === "labelImage") && !token._balanced) {
       result = true;
       break;
@@ -66079,13 +60593,13 @@ function previousUnbalanced(events) {
   }
   return result;
 }
-var wwwPrefix, domain2, path2, trail, emailDomainDotTrail, wwwAutolink, protocolAutolink, emailAutolink, text7, code3;
+var wwwPrefix, domain2, path, trail, emailDomainDotTrail, wwwAutolink, protocolAutolink, emailAutolink, text7, code3;
 var init_syntax = __esm(() => {
   init_dev4();
   init_default();
   wwwPrefix = { tokenize: tokenizeWwwPrefix, partial: true };
   domain2 = { tokenize: tokenizeDomain, partial: true };
-  path2 = { tokenize: tokenizePath, partial: true };
+  path = { tokenize: tokenizePath, partial: true };
   trail = { tokenize: tokenizeTrail, partial: true };
   emailDomainDotTrail = {
     tokenize: tokenizeEmailDomainDotTrail,
@@ -66158,11 +60672,11 @@ function gfmFootnote() {
 }
 function tokenizePotentialGfmFootnoteCall(effects, ok3, nok) {
   const self2 = this;
-  let index3 = self2.events.length;
+  let index2 = self2.events.length;
   const defined = self2.parser.gfmFootnotes || (self2.parser.gfmFootnotes = []);
   let labelStart;
-  while (index3--) {
-    const token = self2.events[index3][1];
+  while (index2--) {
+    const token = self2.events[index2][1];
     if (token.type === types2.labelImage) {
       labelStart = token;
       break;
@@ -66188,26 +60702,26 @@ function tokenizePotentialGfmFootnoteCall(effects, ok3, nok) {
   }
 }
 function resolveToPotentialGfmFootnoteCall(events, context) {
-  let index3 = events.length;
+  let index2 = events.length;
   let labelStart;
-  while (index3--) {
-    if (events[index3][1].type === types2.labelImage && events[index3][0] === "enter") {
-      labelStart = events[index3][1];
+  while (index2--) {
+    if (events[index2][1].type === types2.labelImage && events[index2][0] === "enter") {
+      labelStart = events[index2][1];
       break;
     }
   }
   ok(labelStart, "expected `labelStart` to resolve");
-  events[index3 + 1][1].type = types2.data;
-  events[index3 + 3][1].type = "gfmFootnoteCallLabelMarker";
+  events[index2 + 1][1].type = types2.data;
+  events[index2 + 3][1].type = "gfmFootnoteCallLabelMarker";
   const call = {
     type: "gfmFootnoteCall",
-    start: Object.assign({}, events[index3 + 3][1].start),
+    start: Object.assign({}, events[index2 + 3][1].start),
     end: Object.assign({}, events[events.length - 1][1].end)
   };
   const marker16 = {
     type: "gfmFootnoteCallMarker",
-    start: Object.assign({}, events[index3 + 3][1].end),
-    end: Object.assign({}, events[index3 + 3][1].end)
+    start: Object.assign({}, events[index2 + 3][1].end),
+    end: Object.assign({}, events[index2 + 3][1].end)
   };
   marker16.end.column++;
   marker16.end.offset++;
@@ -66224,11 +60738,11 @@ function resolveToPotentialGfmFootnoteCall(events, context) {
     end: Object.assign({}, string6.end)
   };
   const replacement = [
-    events[index3 + 1],
-    events[index3 + 2],
+    events[index2 + 1],
+    events[index2 + 2],
     ["enter", call, context],
-    events[index3 + 3],
-    events[index3 + 4],
+    events[index2 + 3],
+    events[index2 + 4],
     ["enter", marker16, context],
     ["exit", marker16, context],
     ["enter", string6, context],
@@ -66239,13 +60753,13 @@ function resolveToPotentialGfmFootnoteCall(events, context) {
     events[events.length - 1],
     ["exit", call, context]
   ];
-  events.splice(index3, events.length - index3 + 1, ...replacement);
+  events.splice(index2, events.length - index2 + 1, ...replacement);
   return events;
 }
 function tokenizeGfmFootnoteCall(effects, ok3, nok) {
   const self2 = this;
   const defined = self2.parser.gfmFootnotes || (self2.parser.gfmFootnotes = []);
-  let size4 = 0;
+  let size = 0;
   let data;
   return start2;
   function start2(code4) {
@@ -66267,7 +60781,7 @@ function tokenizeGfmFootnoteCall(effects, ok3, nok) {
     return callData;
   }
   function callData(code4) {
-    if (size4 > constants.linkReferenceSizeMax || code4 === codes.rightSquareBracket && !data || code4 === codes.eof || code4 === codes.leftSquareBracket || markdownLineEndingOrSpace(code4)) {
+    if (size > constants.linkReferenceSizeMax || code4 === codes.rightSquareBracket && !data || code4 === codes.eof || code4 === codes.leftSquareBracket || markdownLineEndingOrSpace(code4)) {
       return nok(code4);
     }
     if (code4 === codes.rightSquareBracket) {
@@ -66285,14 +60799,14 @@ function tokenizeGfmFootnoteCall(effects, ok3, nok) {
     if (!markdownLineEndingOrSpace(code4)) {
       data = true;
     }
-    size4++;
+    size++;
     effects.consume(code4);
     return code4 === codes.backslash ? callEscape : callData;
   }
   function callEscape(code4) {
     if (code4 === codes.leftSquareBracket || code4 === codes.backslash || code4 === codes.rightSquareBracket) {
       effects.consume(code4);
-      size4++;
+      size++;
       return callData;
     }
     return callData(code4);
@@ -66302,7 +60816,7 @@ function tokenizeDefinitionStart(effects, ok3, nok) {
   const self2 = this;
   const defined = self2.parser.gfmFootnotes || (self2.parser.gfmFootnotes = []);
   let identifier;
-  let size4 = 0;
+  let size = 0;
   let data;
   return start2;
   function start2(code4) {
@@ -66326,7 +60840,7 @@ function tokenizeDefinitionStart(effects, ok3, nok) {
     return nok(code4);
   }
   function labelInside(code4) {
-    if (size4 > constants.linkReferenceSizeMax || code4 === codes.rightSquareBracket && !data || code4 === codes.eof || code4 === codes.leftSquareBracket || markdownLineEndingOrSpace(code4)) {
+    if (size > constants.linkReferenceSizeMax || code4 === codes.rightSquareBracket && !data || code4 === codes.eof || code4 === codes.leftSquareBracket || markdownLineEndingOrSpace(code4)) {
       return nok(code4);
     }
     if (code4 === codes.rightSquareBracket) {
@@ -66342,14 +60856,14 @@ function tokenizeDefinitionStart(effects, ok3, nok) {
     if (!markdownLineEndingOrSpace(code4)) {
       data = true;
     }
-    size4++;
+    size++;
     effects.consume(code4);
     return code4 === codes.backslash ? labelEscape : labelInside;
   }
   function labelEscape(code4) {
     if (code4 === codes.leftSquareBracket || code4 === codes.backslash || code4 === codes.rightSquareBracket) {
       effects.consume(code4);
-      size4++;
+      size++;
       return labelInside;
     }
     return labelInside(code4);
@@ -66418,23 +60932,23 @@ function gfmStrikethrough(options2) {
     attentionMarkers: { null: [codes.tilde] }
   };
   function resolveAllStrikethrough(events, context) {
-    let index3 = -1;
-    while (++index3 < events.length) {
-      if (events[index3][0] === "enter" && events[index3][1].type === "strikethroughSequenceTemporary" && events[index3][1]._close) {
-        let open = index3;
+    let index2 = -1;
+    while (++index2 < events.length) {
+      if (events[index2][0] === "enter" && events[index2][1].type === "strikethroughSequenceTemporary" && events[index2][1]._close) {
+        let open = index2;
         while (open--) {
-          if (events[open][0] === "exit" && events[open][1].type === "strikethroughSequenceTemporary" && events[open][1]._open && events[index3][1].end.offset - events[index3][1].start.offset === events[open][1].end.offset - events[open][1].start.offset) {
-            events[index3][1].type = "strikethroughSequence";
+          if (events[open][0] === "exit" && events[open][1].type === "strikethroughSequenceTemporary" && events[open][1]._open && events[index2][1].end.offset - events[index2][1].start.offset === events[open][1].end.offset - events[open][1].start.offset) {
+            events[index2][1].type = "strikethroughSequence";
             events[open][1].type = "strikethroughSequence";
             const strikethrough2 = {
               type: "strikethrough",
               start: Object.assign({}, events[open][1].start),
-              end: Object.assign({}, events[index3][1].end)
+              end: Object.assign({}, events[index2][1].end)
             };
             const text8 = {
               type: "strikethroughText",
               start: Object.assign({}, events[open][1].end),
-              end: Object.assign({}, events[index3][1].start)
+              end: Object.assign({}, events[index2][1].start)
             };
             const nextEvents = [
               ["enter", strikethrough2, context],
@@ -66444,25 +60958,25 @@ function gfmStrikethrough(options2) {
             ];
             const insideSpan2 = context.parser.constructs.insideSpan.null;
             if (insideSpan2) {
-              splice(nextEvents, nextEvents.length, 0, resolveAll(insideSpan2, events.slice(open + 1, index3), context));
+              splice(nextEvents, nextEvents.length, 0, resolveAll(insideSpan2, events.slice(open + 1, index2), context));
             }
             splice(nextEvents, nextEvents.length, 0, [
               ["exit", text8, context],
-              ["enter", events[index3][1], context],
-              ["exit", events[index3][1], context],
+              ["enter", events[index2][1], context],
+              ["exit", events[index2][1], context],
               ["exit", strikethrough2, context]
             ]);
-            splice(events, open - 1, index3 - open + 3, nextEvents);
-            index3 = open + nextEvents.length - 2;
+            splice(events, open - 1, index2 - open + 3, nextEvents);
+            index2 = open + nextEvents.length - 2;
             break;
           }
         }
       }
     }
-    index3 = -1;
-    while (++index3 < events.length) {
-      if (events[index3][1].type === "strikethroughSequenceTemporary") {
-        events[index3][1].type = types2.data;
+    index2 = -1;
+    while (++index2 < events.length) {
+      if (events[index2][1].type === "strikethroughSequenceTemporary") {
+        events[index2][1].type = types2.data;
       }
     }
     return events;
@@ -66470,7 +60984,7 @@ function gfmStrikethrough(options2) {
   function tokenizeStrikethrough(effects, ok3, nok) {
     const previous3 = this.previous;
     const events = this.events;
-    let size4 = 0;
+    let size = 0;
     return start2;
     function start2(code4) {
       ok(code4 === codes.tilde, "expected `~`");
@@ -66483,13 +60997,13 @@ function gfmStrikethrough(options2) {
     function more(code4) {
       const before = classifyCharacter(previous3);
       if (code4 === codes.tilde) {
-        if (size4 > 1)
+        if (size > 1)
           return nok(code4);
         effects.consume(code4);
-        size4++;
+        size++;
         return more;
       }
-      if (size4 < 2 && !single)
+      if (size < 2 && !single)
         return nok(code4);
       const token = effects.exit("strikethroughSequenceTemporary");
       const after = classifyCharacter(code4);
@@ -66516,8 +61030,8 @@ class EditMap {
   constructor() {
     this.map = [];
   }
-  add(index3, remove, add) {
-    addImplementation(this, index3, remove, add);
+  add(index2, remove, add) {
+    addImplementation(this, index2, remove, add);
   }
   consume(events) {
     this.map.sort(function(a, b) {
@@ -66526,12 +61040,12 @@ class EditMap {
     if (this.map.length === 0) {
       return;
     }
-    let index3 = this.map.length;
+    let index2 = this.map.length;
     const vecs = [];
-    while (index3 > 0) {
-      index3 -= 1;
-      vecs.push(events.slice(this.map[index3][0] + this.map[index3][1]), this.map[index3][2]);
-      events.length = this.map[index3][0];
+    while (index2 > 0) {
+      index2 -= 1;
+      vecs.push(events.slice(this.map[index2][0] + this.map[index2][1]), this.map[index2][2]);
+      events.length = this.map[index2][0];
     }
     vecs.push(events.slice());
     events.length = 0;
@@ -66545,36 +61059,36 @@ class EditMap {
     this.map.length = 0;
   }
 }
-function addImplementation(editMap, at2, remove, add) {
-  let index3 = 0;
+function addImplementation(editMap, at, remove, add) {
+  let index2 = 0;
   if (remove === 0 && add.length === 0) {
     return;
   }
-  while (index3 < editMap.map.length) {
-    if (editMap.map[index3][0] === at2) {
-      editMap.map[index3][1] += remove;
-      editMap.map[index3][2].push(...add);
+  while (index2 < editMap.map.length) {
+    if (editMap.map[index2][0] === at) {
+      editMap.map[index2][1] += remove;
+      editMap.map[index2][2].push(...add);
       return;
     }
-    index3 += 1;
+    index2 += 1;
   }
-  editMap.map.push([at2, remove, add]);
+  editMap.map.push([at, remove, add]);
 }
 
 // node_modules/micromark-extension-gfm-table/dev/lib/infer.js
-function gfmTableAlign(events, index3) {
-  ok(events[index3][1].type === "table", "expected table");
+function gfmTableAlign(events, index2) {
+  ok(events[index2][1].type === "table", "expected table");
   let inDelimiterRow = false;
   const align = [];
-  while (index3 < events.length) {
-    const event = events[index3];
+  while (index2 < events.length) {
+    const event = events[index2];
     if (inDelimiterRow) {
       if (event[0] === "enter") {
         if (event[1].type === "tableContent") {
-          align.push(events[index3 + 1][1].type === "tableDelimiterMarker" ? "left" : "none");
+          align.push(events[index2 + 1][1].type === "tableDelimiterMarker" ? "left" : "none");
         }
       } else if (event[1].type === "tableContent") {
-        if (events[index3 - 1][1].type === "tableDelimiterMarker") {
+        if (events[index2 - 1][1].type === "tableDelimiterMarker") {
           const alignIndex = align.length - 1;
           align[alignIndex] = align[alignIndex] === "left" ? "center" : "right";
         }
@@ -66584,7 +61098,7 @@ function gfmTableAlign(events, index3) {
     } else if (event[0] === "enter" && event[1].type === "tableDelimiterRow") {
       inDelimiterRow = true;
     }
-    index3 += 1;
+    index2 += 1;
   }
   return align;
 }
@@ -66602,20 +61116,20 @@ function gfmTable() {
 }
 function tokenizeTable(effects, ok3, nok) {
   const self2 = this;
-  let size4 = 0;
+  let size = 0;
   let sizeB = 0;
   let seen;
   return start2;
   function start2(code4) {
-    let index3 = self2.events.length - 1;
-    while (index3 > -1) {
-      const type = self2.events[index3][1].type;
+    let index2 = self2.events.length - 1;
+    while (index2 > -1) {
+      const type = self2.events[index2][1].type;
       if (type === types2.lineEnding || type === types2.linePrefix)
-        index3--;
+        index2--;
       else
         break;
     }
-    const tail = index3 > -1 ? self2.events[index3][1].type : null;
+    const tail = index2 > -1 ? self2.events[index2][1].type : null;
     const next = tail === "tableHead" || tail === "tableRow" ? bodyRowStart : headRowBefore;
     if (next === bodyRowStart && self2.parser.lazy[self2.now().line]) {
       return nok(code4);
@@ -66657,7 +61171,7 @@ function tokenizeTable(effects, ok3, nok) {
     sizeB += 1;
     if (seen) {
       seen = false;
-      size4 += 1;
+      size += 1;
     }
     if (code4 === codes.verticalBar) {
       effects.enter("tableCellDivider");
@@ -66768,7 +61282,7 @@ function tokenizeTable(effects, ok3, nok) {
       return headDelimiterBefore(code4);
     }
     if (code4 === codes.eof || markdownLineEnding(code4)) {
-      if (!seen || size4 !== sizeB) {
+      if (!seen || size !== sizeB) {
         return headDelimiterNok(code4);
       }
       effects.exit("tableDelimiterRow");
@@ -66818,7 +61332,7 @@ function tokenizeTable(effects, ok3, nok) {
   }
 }
 function resolveTable(events, context) {
-  let index3 = -1;
+  let index2 = -1;
   let inFirstCellAwaitingPipe = true;
   let rowKind = 0;
   let lastCell = [0, 0, 0, 0];
@@ -66829,8 +61343,8 @@ function resolveTable(events, context) {
   let currentBody;
   let currentCell;
   const map4 = new EditMap;
-  while (++index3 < events.length) {
-    const event = events[index3];
+  while (++index2 < events.length) {
+    const event = events[index2];
     const token = event[1];
     if (event[0] === "enter") {
       if (token.type === "tableHead") {
@@ -66846,12 +61360,12 @@ function resolveTable(events, context) {
           start: Object.assign({}, token.start),
           end: Object.assign({}, token.end)
         };
-        map4.add(index3, 0, [["enter", currentTable, context]]);
+        map4.add(index2, 0, [["enter", currentTable, context]]);
       } else if (token.type === "tableRow" || token.type === "tableDelimiterRow") {
         inFirstCellAwaitingPipe = true;
         currentCell = undefined;
         lastCell = [0, 0, 0, 0];
-        cell = [0, index3 + 1, 0, 0];
+        cell = [0, index2 + 1, 0, 0];
         if (afterHeadAwaitingFirstBodyRow) {
           afterHeadAwaitingFirstBodyRow = false;
           currentBody = {
@@ -66859,7 +61373,7 @@ function resolveTable(events, context) {
             start: Object.assign({}, token.start),
             end: Object.assign({}, token.end)
           };
-          map4.add(index3, 0, [["enter", currentBody, context]]);
+          map4.add(index2, 0, [["enter", currentBody, context]]);
         }
         rowKind = token.type === "tableDelimiterRow" ? 2 : currentBody ? 3 : 1;
       } else if (rowKind && (token.type === types2.data || token.type === "tableDelimiterMarker" || token.type === "tableDelimiterFiller")) {
@@ -66870,7 +61384,7 @@ function resolveTable(events, context) {
             currentCell = flushCell(map4, context, lastCell, rowKind, undefined, currentCell);
             lastCell = [0, 0, 0, 0];
           }
-          cell[2] = index3;
+          cell[2] = index2;
         }
       } else if (token.type === "tableCellDivider") {
         if (inFirstCellAwaitingPipe) {
@@ -66881,23 +61395,23 @@ function resolveTable(events, context) {
             currentCell = flushCell(map4, context, lastCell, rowKind, undefined, currentCell);
           }
           lastCell = cell;
-          cell = [lastCell[1], index3, 0, 0];
+          cell = [lastCell[1], index2, 0, 0];
         }
       }
     } else if (token.type === "tableHead") {
       afterHeadAwaitingFirstBodyRow = true;
-      lastTableEnd = index3;
+      lastTableEnd = index2;
     } else if (token.type === "tableRow" || token.type === "tableDelimiterRow") {
-      lastTableEnd = index3;
+      lastTableEnd = index2;
       if (lastCell[1] !== 0) {
         cell[0] = cell[1];
-        currentCell = flushCell(map4, context, lastCell, rowKind, index3, currentCell);
+        currentCell = flushCell(map4, context, lastCell, rowKind, index2, currentCell);
       } else if (cell[1] !== 0) {
-        currentCell = flushCell(map4, context, cell, rowKind, index3, currentCell);
+        currentCell = flushCell(map4, context, cell, rowKind, index2, currentCell);
       }
       rowKind = 0;
     } else if (rowKind && (token.type === types2.data || token.type === "tableDelimiterMarker" || token.type === "tableDelimiterFiller")) {
-      cell[3] = index3;
+      cell[3] = index2;
     }
   }
   if (lastTableEnd !== 0) {
@@ -66905,11 +61419,11 @@ function resolveTable(events, context) {
     flushTableEnd(map4, context, lastTableEnd, currentTable, currentBody);
   }
   map4.consume(context.events);
-  index3 = -1;
-  while (++index3 < context.events.length) {
-    const event = context.events[index3];
+  index2 = -1;
+  while (++index2 < context.events.length) {
+    const event = context.events[index2];
     if (event[0] === "enter" && event[1].type === "table") {
-      event[1]._align = gfmTableAlign(context.events, index3);
+      event[1]._align = gfmTableAlign(context.events, index2);
     }
   }
   return events;
@@ -66960,19 +61474,19 @@ function flushCell(map4, context, range, rowKind, rowEnd, previousCell) {
   }
   return previousCell;
 }
-function flushTableEnd(map4, context, index3, table2, tableBody) {
+function flushTableEnd(map4, context, index2, table2, tableBody) {
   const exits = [];
-  const related = getPoint(context.events, index3);
+  const related = getPoint(context.events, index2);
   if (tableBody) {
     tableBody.end = Object.assign({}, related);
     exits.push(["exit", tableBody, context]);
   }
   table2.end = Object.assign({}, related);
   exits.push(["exit", table2, context]);
-  map4.add(index3 + 1, 0, exits);
+  map4.add(index2 + 1, 0, exits);
 }
-function getPoint(events, index3) {
-  const event = events[index3];
+function getPoint(events, index2) {
+  const event = events[index2];
   const side = event[0] === "enter" ? "start" : "end";
   return event[1][side];
 }
@@ -67108,13 +61622,13 @@ var init_remark_gfm = __esm(() => {
 });
 
 // dashboard/src/components/ui/textarea.jsx
-var React48, jsx_dev_runtime13, Textarea;
+var React40, jsx_dev_runtime11, Textarea;
 var init_textarea = __esm(() => {
-  React48 = __toESM(require_react(), 1);
+  React40 = __toESM(require_react(), 1);
   init_utils();
-  jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
-  Textarea = React48.forwardRef(({ className, ...props }, ref) => {
-    return /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("textarea", {
+  jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
+  Textarea = React40.forwardRef(({ className, ...props }, ref) => {
+    return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("textarea", {
       className: cn("flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
       ref,
       ...props
@@ -67123,26 +61637,394 @@ var init_textarea = __esm(() => {
   Textarea.displayName = "Textarea";
 });
 
+// node_modules/@radix-ui/react-collection/dist/index.mjs
+function createCollection(name17) {
+  const PROVIDER_NAME = name17 + "CollectionProvider";
+  const [createCollectionContext, createCollectionScope] = createContextScope(PROVIDER_NAME);
+  const [CollectionProviderImpl, useCollectionContext] = createCollectionContext(PROVIDER_NAME, { collectionRef: { current: null }, itemMap: /* @__PURE__ */ new Map });
+  const CollectionProvider = (props) => {
+    const { scope, children } = props;
+    const ref = import_react15.default.useRef(null);
+    const itemMap = import_react15.default.useRef(/* @__PURE__ */ new Map).current;
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionProviderImpl, { scope, itemMap, collectionRef: ref, children });
+  };
+  CollectionProvider.displayName = PROVIDER_NAME;
+  const COLLECTION_SLOT_NAME = name17 + "CollectionSlot";
+  const CollectionSlotImpl = createSlot(COLLECTION_SLOT_NAME);
+  const CollectionSlot = import_react15.default.forwardRef((props, forwardedRef) => {
+    const { scope, children } = props;
+    const context = useCollectionContext(COLLECTION_SLOT_NAME, scope);
+    const composedRefs = useComposedRefs(forwardedRef, context.collectionRef);
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionSlotImpl, { ref: composedRefs, children });
+  });
+  CollectionSlot.displayName = COLLECTION_SLOT_NAME;
+  const ITEM_SLOT_NAME = name17 + "CollectionItemSlot";
+  const ITEM_DATA_ATTR = "data-radix-collection-item";
+  const CollectionItemSlotImpl = createSlot(ITEM_SLOT_NAME);
+  const CollectionItemSlot = import_react15.default.forwardRef((props, forwardedRef) => {
+    const { scope, children, ...itemData } = props;
+    const ref = import_react15.default.useRef(null);
+    const composedRefs = useComposedRefs(forwardedRef, ref);
+    const context = useCollectionContext(ITEM_SLOT_NAME, scope);
+    import_react15.default.useEffect(() => {
+      context.itemMap.set(ref, { ref, ...itemData });
+      return () => void context.itemMap.delete(ref);
+    });
+    return /* @__PURE__ */ import_jsx_runtime11.jsx(CollectionItemSlotImpl, { ...{ [ITEM_DATA_ATTR]: "" }, ref: composedRefs, children });
+  });
+  CollectionItemSlot.displayName = ITEM_SLOT_NAME;
+  function useCollection(scope) {
+    const context = useCollectionContext(name17 + "CollectionConsumer", scope);
+    const getItems = import_react15.default.useCallback(() => {
+      const collectionNode = context.collectionRef.current;
+      if (!collectionNode)
+        return [];
+      const orderedNodes = Array.from(collectionNode.querySelectorAll(`[${ITEM_DATA_ATTR}]`));
+      const items = Array.from(context.itemMap.values());
+      const orderedItems = items.sort((a, b) => orderedNodes.indexOf(a.ref.current) - orderedNodes.indexOf(b.ref.current));
+      return orderedItems;
+    }, [context.collectionRef, context.itemMap]);
+    return getItems;
+  }
+  return [
+    { Provider: CollectionProvider, Slot: CollectionSlot, ItemSlot: CollectionItemSlot },
+    useCollection,
+    createCollectionScope
+  ];
+}
+function at(array2, index2) {
+  if ("at" in Array.prototype) {
+    return Array.prototype.at.call(array2, index2);
+  }
+  const actualIndex = toSafeIndex(array2, index2);
+  return actualIndex === -1 ? undefined : array2[actualIndex];
+}
+function toSafeIndex(array2, index2) {
+  const length = array2.length;
+  const relativeIndex = toSafeInteger(index2);
+  const actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
+  return actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+}
+function toSafeInteger(number5) {
+  return number5 !== number5 || number5 === 0 ? 0 : Math.trunc(number5);
+}
+var import_react15, import_jsx_runtime11, import_react16, import_jsx_runtime12, __instanciated, OrderedDict;
+var init_dist22 = __esm(() => {
+  import_react15 = __toESM(require_react(), 1);
+  init_dist5();
+  init_dist();
+  init_dist2();
+  import_jsx_runtime11 = __toESM(require_jsx_runtime(), 1);
+  import_react16 = __toESM(require_react(), 1);
+  import_jsx_runtime12 = __toESM(require_jsx_runtime(), 1);
+  "use client";
+  __instanciated = /* @__PURE__ */ new WeakMap;
+  OrderedDict = class _OrderedDict extends Map {
+    #keys;
+    constructor(entries) {
+      super(entries);
+      this.#keys = [...super.keys()];
+      __instanciated.set(this, true);
+    }
+    set(key, value) {
+      if (__instanciated.get(this)) {
+        if (this.has(key)) {
+          this.#keys[this.#keys.indexOf(key)] = key;
+        } else {
+          this.#keys.push(key);
+        }
+      }
+      super.set(key, value);
+      return this;
+    }
+    insert(index2, key, value) {
+      const has = this.has(key);
+      const length = this.#keys.length;
+      const relativeIndex = toSafeInteger(index2);
+      let actualIndex = relativeIndex >= 0 ? relativeIndex : length + relativeIndex;
+      const safeIndex = actualIndex < 0 || actualIndex >= length ? -1 : actualIndex;
+      if (safeIndex === this.size || has && safeIndex === this.size - 1 || safeIndex === -1) {
+        this.set(key, value);
+        return this;
+      }
+      const size = this.size + (has ? 0 : 1);
+      if (relativeIndex < 0) {
+        actualIndex++;
+      }
+      const keys2 = [...this.#keys];
+      let nextValue;
+      let shouldSkip2 = false;
+      for (let i = actualIndex;i < size; i++) {
+        if (actualIndex === i) {
+          let nextKey = keys2[i];
+          if (keys2[i] === key) {
+            nextKey = keys2[i + 1];
+          }
+          if (has) {
+            this.delete(key);
+          }
+          nextValue = this.get(nextKey);
+          this.set(key, value);
+        } else {
+          if (!shouldSkip2 && keys2[i - 1] === key) {
+            shouldSkip2 = true;
+          }
+          const currentKey = keys2[shouldSkip2 ? i : i - 1];
+          const currentValue = nextValue;
+          nextValue = this.get(currentKey);
+          this.delete(currentKey);
+          this.set(currentKey, currentValue);
+        }
+      }
+      return this;
+    }
+    with(index2, key, value) {
+      const copy = new _OrderedDict(this);
+      copy.insert(index2, key, value);
+      return copy;
+    }
+    before(key) {
+      const index2 = this.#keys.indexOf(key) - 1;
+      if (index2 < 0) {
+        return;
+      }
+      return this.entryAt(index2);
+    }
+    setBefore(key, newKey, value) {
+      const index2 = this.#keys.indexOf(key);
+      if (index2 === -1) {
+        return this;
+      }
+      return this.insert(index2, newKey, value);
+    }
+    after(key) {
+      let index2 = this.#keys.indexOf(key);
+      index2 = index2 === -1 || index2 === this.size - 1 ? -1 : index2 + 1;
+      if (index2 === -1) {
+        return;
+      }
+      return this.entryAt(index2);
+    }
+    setAfter(key, newKey, value) {
+      const index2 = this.#keys.indexOf(key);
+      if (index2 === -1) {
+        return this;
+      }
+      return this.insert(index2 + 1, newKey, value);
+    }
+    first() {
+      return this.entryAt(0);
+    }
+    last() {
+      return this.entryAt(-1);
+    }
+    clear() {
+      this.#keys = [];
+      return super.clear();
+    }
+    delete(key) {
+      const deleted = super.delete(key);
+      if (deleted) {
+        this.#keys.splice(this.#keys.indexOf(key), 1);
+      }
+      return deleted;
+    }
+    deleteAt(index2) {
+      const key = this.keyAt(index2);
+      if (key !== undefined) {
+        return this.delete(key);
+      }
+      return false;
+    }
+    at(index2) {
+      const key = at(this.#keys, index2);
+      if (key !== undefined) {
+        return this.get(key);
+      }
+    }
+    entryAt(index2) {
+      const key = at(this.#keys, index2);
+      if (key !== undefined) {
+        return [key, this.get(key)];
+      }
+    }
+    indexOf(key) {
+      return this.#keys.indexOf(key);
+    }
+    keyAt(index2) {
+      return at(this.#keys, index2);
+    }
+    from(key, offset) {
+      const index2 = this.indexOf(key);
+      if (index2 === -1) {
+        return;
+      }
+      let dest = index2 + offset;
+      if (dest < 0)
+        dest = 0;
+      if (dest >= this.size)
+        dest = this.size - 1;
+      return this.at(dest);
+    }
+    keyFrom(key, offset) {
+      const index2 = this.indexOf(key);
+      if (index2 === -1) {
+        return;
+      }
+      let dest = index2 + offset;
+      if (dest < 0)
+        dest = 0;
+      if (dest >= this.size)
+        dest = this.size - 1;
+      return this.keyAt(dest);
+    }
+    find(predicate, thisArg) {
+      let index2 = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index2, this])) {
+          return entry;
+        }
+        index2++;
+      }
+      return;
+    }
+    findIndex(predicate, thisArg) {
+      let index2 = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index2, this])) {
+          return index2;
+        }
+        index2++;
+      }
+      return -1;
+    }
+    filter(predicate, thisArg) {
+      const entries = [];
+      let index2 = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index2, this])) {
+          entries.push(entry);
+        }
+        index2++;
+      }
+      return new _OrderedDict(entries);
+    }
+    map(callbackfn, thisArg) {
+      const entries = [];
+      let index2 = 0;
+      for (const entry of this) {
+        entries.push([entry[0], Reflect.apply(callbackfn, thisArg, [entry, index2, this])]);
+        index2++;
+      }
+      return new _OrderedDict(entries);
+    }
+    reduce(...args) {
+      const [callbackfn, initialValue] = args;
+      let index2 = 0;
+      let accumulator = initialValue ?? this.at(0);
+      for (const entry of this) {
+        if (index2 === 0 && args.length === 1) {
+          accumulator = entry;
+        } else {
+          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index2, this]);
+        }
+        index2++;
+      }
+      return accumulator;
+    }
+    reduceRight(...args) {
+      const [callbackfn, initialValue] = args;
+      let accumulator = initialValue ?? this.at(-1);
+      for (let index2 = this.size - 1;index2 >= 0; index2--) {
+        const entry = this.at(index2);
+        if (index2 === this.size - 1 && args.length === 1) {
+          accumulator = entry;
+        } else {
+          accumulator = Reflect.apply(callbackfn, this, [accumulator, entry, index2, this]);
+        }
+      }
+      return accumulator;
+    }
+    toSorted(compareFn) {
+      const entries = [...this.entries()].sort(compareFn);
+      return new _OrderedDict(entries);
+    }
+    toReversed() {
+      const reversed = new _OrderedDict;
+      for (let index2 = this.size - 1;index2 >= 0; index2--) {
+        const key = this.keyAt(index2);
+        const element3 = this.get(key);
+        reversed.set(key, element3);
+      }
+      return reversed;
+    }
+    toSpliced(...args) {
+      const entries = [...this.entries()];
+      entries.splice(...args);
+      return new _OrderedDict(entries);
+    }
+    slice(start2, end) {
+      const result = new _OrderedDict;
+      let stop = this.size - 1;
+      if (start2 === undefined) {
+        return result;
+      }
+      if (start2 < 0) {
+        start2 = start2 + this.size;
+      }
+      if (end !== undefined && end > 0) {
+        stop = end - 1;
+      }
+      for (let index2 = start2;index2 <= stop; index2++) {
+        const key = this.keyAt(index2);
+        const element3 = this.get(key);
+        result.set(key, element3);
+      }
+      return result;
+    }
+    every(predicate, thisArg) {
+      let index2 = 0;
+      for (const entry of this) {
+        if (!Reflect.apply(predicate, thisArg, [entry, index2, this])) {
+          return false;
+        }
+        index2++;
+      }
+      return true;
+    }
+    some(predicate, thisArg) {
+      let index2 = 0;
+      for (const entry of this) {
+        if (Reflect.apply(predicate, thisArg, [entry, index2, this])) {
+          return true;
+        }
+        index2++;
+      }
+      return false;
+    }
+  };
+});
+
 // node_modules/@radix-ui/react-collapsible/dist/index.mjs
 function getState2(open) {
   return open ? "open" : "closed";
 }
-var React49, import_jsx_runtime17, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME3 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME4 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root4, Trigger3, Content3;
-var init_dist34 = __esm(() => {
-  React49 = __toESM(require_react(), 1);
+var React42, import_jsx_runtime13, COLLAPSIBLE_NAME = "Collapsible", createCollapsibleContext, createCollapsibleScope, CollapsibleProvider, useCollapsibleContext, Collapsible, TRIGGER_NAME2 = "CollapsibleTrigger", CollapsibleTrigger, CONTENT_NAME2 = "CollapsibleContent", CollapsibleContent, CollapsibleContentImpl, Root3, Trigger2, Content2;
+var init_dist23 = __esm(() => {
+  React42 = __toESM(require_react(), 1);
   init_dist4();
   init_dist5();
   init_dist8();
   init_dist6();
   init_dist();
   init_dist9();
-  init_dist15();
+  init_dist11();
   init_dist7();
-  import_jsx_runtime17 = __toESM(require_jsx_runtime(), 1);
+  import_jsx_runtime13 = __toESM(require_jsx_runtime(), 1);
   "use client";
   [createCollapsibleContext, createCollapsibleScope] = createContextScope(COLLAPSIBLE_NAME);
   [CollapsibleProvider, useCollapsibleContext] = createCollapsibleContext(COLLAPSIBLE_NAME);
-  Collapsible = React49.forwardRef((props, forwardedRef) => {
+  Collapsible = React42.forwardRef((props, forwardedRef) => {
     const {
       __scopeCollapsible,
       open: openProp,
@@ -67157,13 +62039,13 @@ var init_dist34 = __esm(() => {
       onChange: onOpenChange,
       caller: COLLAPSIBLE_NAME
     });
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(CollapsibleProvider, {
+    return /* @__PURE__ */ import_jsx_runtime13.jsx(CollapsibleProvider, {
       scope: __scopeCollapsible,
       disabled,
       contentId: useId(),
       open,
-      onOpenToggle: React49.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
-      children: /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
+      onOpenToggle: React42.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+      children: /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.div, {
         "data-state": getState2(open),
         "data-disabled": disabled ? "" : undefined,
         ...collapsibleProps,
@@ -67172,10 +62054,10 @@ var init_dist34 = __esm(() => {
     });
   });
   Collapsible.displayName = COLLAPSIBLE_NAME;
-  CollapsibleTrigger = React49.forwardRef((props, forwardedRef) => {
+  CollapsibleTrigger = React42.forwardRef((props, forwardedRef) => {
     const { __scopeCollapsible, ...triggerProps } = props;
-    const context = useCollapsibleContext(TRIGGER_NAME3, __scopeCollapsible);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.button, {
+    const context = useCollapsibleContext(TRIGGER_NAME2, __scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.button, {
       type: "button",
       "aria-controls": context.contentId,
       "aria-expanded": context.open || false,
@@ -67187,27 +62069,27 @@ var init_dist34 = __esm(() => {
       onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
     });
   });
-  CollapsibleTrigger.displayName = TRIGGER_NAME3;
-  CollapsibleContent = React49.forwardRef((props, forwardedRef) => {
+  CollapsibleTrigger.displayName = TRIGGER_NAME2;
+  CollapsibleContent = React42.forwardRef((props, forwardedRef) => {
     const { forceMount, ...contentProps } = props;
-    const context = useCollapsibleContext(CONTENT_NAME4, props.__scopeCollapsible);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime17.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
+    const context = useCollapsibleContext(CONTENT_NAME2, props.__scopeCollapsible);
+    return /* @__PURE__ */ import_jsx_runtime13.jsx(Presence, { present: forceMount || context.open, children: ({ present }) => /* @__PURE__ */ import_jsx_runtime13.jsx(CollapsibleContentImpl, { ...contentProps, ref: forwardedRef, present }) });
   });
-  CollapsibleContent.displayName = CONTENT_NAME4;
-  CollapsibleContentImpl = React49.forwardRef((props, forwardedRef) => {
+  CollapsibleContent.displayName = CONTENT_NAME2;
+  CollapsibleContentImpl = React42.forwardRef((props, forwardedRef) => {
     const { __scopeCollapsible, present, children, ...contentProps } = props;
-    const context = useCollapsibleContext(CONTENT_NAME4, __scopeCollapsible);
-    const [isPresent, setIsPresent] = React49.useState(present);
-    const ref = React49.useRef(null);
+    const context = useCollapsibleContext(CONTENT_NAME2, __scopeCollapsible);
+    const [isPresent, setIsPresent] = React42.useState(present);
+    const ref = React42.useRef(null);
     const composedRefs = useComposedRefs(forwardedRef, ref);
-    const heightRef = React49.useRef(0);
+    const heightRef = React42.useRef(0);
     const height = heightRef.current;
-    const widthRef = React49.useRef(0);
+    const widthRef = React42.useRef(0);
     const width = widthRef.current;
     const isOpen = context.open || isPresent;
-    const isMountAnimationPreventedRef = React49.useRef(isOpen);
-    const originalStylesRef = React49.useRef(undefined);
-    React49.useEffect(() => {
+    const isMountAnimationPreventedRef = React42.useRef(isOpen);
+    const originalStylesRef = React42.useRef(undefined);
+    React42.useEffect(() => {
       const rAF = requestAnimationFrame(() => isMountAnimationPreventedRef.current = false);
       return () => cancelAnimationFrame(rAF);
     }, []);
@@ -67230,7 +62112,7 @@ var init_dist34 = __esm(() => {
         setIsPresent(present);
       }
     }, [context.open, present]);
-    return /* @__PURE__ */ import_jsx_runtime17.jsx(Primitive.div, {
+    return /* @__PURE__ */ import_jsx_runtime13.jsx(Primitive.div, {
       "data-state": getState2(context.open),
       "data-disabled": context.disabled ? "" : undefined,
       id: context.contentId,
@@ -67245,47 +62127,47 @@ var init_dist34 = __esm(() => {
       children: isOpen && children
     });
   });
-  Root4 = Collapsible;
-  Trigger3 = CollapsibleTrigger;
-  Content3 = CollapsibleContent;
+  Root3 = Collapsible;
+  Trigger2 = CollapsibleTrigger;
+  Content2 = CollapsibleContent;
 });
 
 // node_modules/@radix-ui/react-accordion/dist/index.mjs
 function getState3(open) {
   return open ? "open" : "closed";
 }
-var import_react16, import_jsx_runtime18, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection2, useCollection2, createCollectionScope2, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME2 = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME4 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME5 = "AccordionContent", AccordionContent, Root24, Item2, Header, Trigger22, Content23;
-var init_dist35 = __esm(() => {
-  import_react16 = __toESM(require_react(), 1);
+var import_react17, import_jsx_runtime14, ACCORDION_NAME = "Accordion", ACCORDION_KEYS, Collection, useCollection, createCollectionScope, createAccordionContext, createAccordionScope, useCollapsibleScope, Accordion, AccordionValueProvider, useAccordionValueContext, AccordionCollapsibleProvider, useAccordionCollapsibleContext, AccordionImplSingle, AccordionImplMultiple, AccordionImplProvider, useAccordionContext, AccordionImpl, ITEM_NAME = "AccordionItem", AccordionItemProvider, useAccordionItemContext, AccordionItem, HEADER_NAME = "AccordionHeader", AccordionHeader, TRIGGER_NAME3 = "AccordionTrigger", AccordionTrigger, CONTENT_NAME3 = "AccordionContent", AccordionContent, Root22, Item, Header, Trigger22, Content22;
+var init_dist24 = __esm(() => {
+  import_react17 = __toESM(require_react(), 1);
   init_dist5();
-  init_dist20();
+  init_dist22();
   init_dist();
   init_dist4();
   init_dist8();
   init_dist9();
-  init_dist34();
-  init_dist34();
+  init_dist23();
+  init_dist23();
   init_dist7();
-  init_dist17();
-  import_jsx_runtime18 = __toESM(require_jsx_runtime(), 1);
+  init_dist12();
+  import_jsx_runtime14 = __toESM(require_jsx_runtime(), 1);
   "use client";
   ACCORDION_KEYS = ["Home", "End", "ArrowDown", "ArrowUp", "ArrowLeft", "ArrowRight"];
-  [Collection2, useCollection2, createCollectionScope2] = createCollection(ACCORDION_NAME);
+  [Collection, useCollection, createCollectionScope] = createCollection(ACCORDION_NAME);
   [createAccordionContext, createAccordionScope] = createContextScope(ACCORDION_NAME, [
-    createCollectionScope2,
+    createCollectionScope,
     createCollapsibleScope
   ]);
   useCollapsibleScope = createCollapsibleScope();
-  Accordion = import_react16.default.forwardRef((props, forwardedRef) => {
+  Accordion = import_react17.default.forwardRef((props, forwardedRef) => {
     const { type, ...accordionProps } = props;
     const singleProps = accordionProps;
     const multipleProps = accordionProps;
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.Provider, { scope: props.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.Provider, { scope: props.__scopeAccordion, children: type === "multiple" ? /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionImplMultiple, { ...multipleProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionImplSingle, { ...singleProps, ref: forwardedRef }) });
   });
   Accordion.displayName = ACCORDION_NAME;
   [AccordionValueProvider, useAccordionValueContext] = createAccordionContext(ACCORDION_NAME);
   [AccordionCollapsibleProvider, useAccordionCollapsibleContext] = createAccordionContext(ACCORDION_NAME, { collapsible: false });
-  AccordionImplSingle = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionImplSingle = import_react17.default.forwardRef((props, forwardedRef) => {
     const {
       value: valueProp,
       defaultValue,
@@ -67299,15 +62181,15 @@ var init_dist35 = __esm(() => {
       onChange: onValueChange,
       caller: ACCORDION_NAME
     });
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionValueProvider, {
       scope: props.__scopeAccordion,
-      value: import_react16.default.useMemo(() => value ? [value] : [], [value]),
+      value: import_react17.default.useMemo(() => value ? [value] : [], [value]),
       onItemOpen: setValue,
-      onItemClose: import_react16.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
-      children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
+      onItemClose: import_react17.default.useCallback(() => collapsible && setValue(""), [collapsible, setValue]),
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible, children: /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionImpl, { ...accordionSingleProps, ref: forwardedRef }) })
     });
   });
-  AccordionImplMultiple = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionImplMultiple = import_react17.default.forwardRef((props, forwardedRef) => {
     const {
       value: valueProp,
       defaultValue,
@@ -67320,22 +62202,22 @@ var init_dist35 = __esm(() => {
       onChange: onValueChange,
       caller: ACCORDION_NAME
     });
-    const handleItemOpen = import_react16.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
-    const handleItemClose = import_react16.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionValueProvider, {
+    const handleItemOpen = import_react17.default.useCallback((itemValue) => setValue((prevValue = []) => [...prevValue, itemValue]), [setValue]);
+    const handleItemClose = import_react17.default.useCallback((itemValue) => setValue((prevValue = []) => prevValue.filter((value2) => value2 !== itemValue)), [setValue]);
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionValueProvider, {
       scope: props.__scopeAccordion,
       value,
       onItemOpen: handleItemOpen,
       onItemClose: handleItemClose,
-      children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionCollapsibleProvider, { scope: props.__scopeAccordion, collapsible: true, children: /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionImpl, { ...accordionMultipleProps, ref: forwardedRef }) })
     });
   });
   [AccordionImplProvider, useAccordionContext] = createAccordionContext(ACCORDION_NAME);
-  AccordionImpl = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionImpl = import_react17.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, disabled, dir, orientation = "vertical", ...accordionProps } = props;
-    const accordionRef = import_react16.default.useRef(null);
+    const accordionRef = import_react17.default.useRef(null);
     const composedRefs = useComposedRefs(accordionRef, forwardedRef);
-    const getItems = useCollection2(__scopeAccordion);
+    const getItems = useCollection(__scopeAccordion);
     const direction = useDirection(dir);
     const isDirectionLTR = direction === "ltr";
     const handleKeyDown = composeEventHandlers(props.onKeyDown, (event) => {
@@ -67402,12 +62284,12 @@ var init_dist35 = __esm(() => {
       const clampedIndex = nextIndex % triggerCount;
       triggerCollection[clampedIndex].ref.current?.focus();
     });
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionImplProvider, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionImplProvider, {
       scope: __scopeAccordion,
       disabled,
       direction: dir,
       orientation,
-      children: /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime18.jsx(Primitive.div, {
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.Slot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.div, {
         ...accordionProps,
         "data-orientation": orientation,
         ref: composedRefs,
@@ -67415,21 +62297,21 @@ var init_dist35 = __esm(() => {
       }) })
     });
   });
-  [AccordionItemProvider, useAccordionItemContext] = createAccordionContext(ITEM_NAME2);
-  AccordionItem = import_react16.default.forwardRef((props, forwardedRef) => {
+  [AccordionItemProvider, useAccordionItemContext] = createAccordionContext(ITEM_NAME);
+  AccordionItem = import_react17.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, value, ...accordionItemProps } = props;
-    const accordionContext = useAccordionContext(ITEM_NAME2, __scopeAccordion);
-    const valueContext = useAccordionValueContext(ITEM_NAME2, __scopeAccordion);
+    const accordionContext = useAccordionContext(ITEM_NAME, __scopeAccordion);
+    const valueContext = useAccordionValueContext(ITEM_NAME, __scopeAccordion);
     const collapsibleScope = useCollapsibleScope(__scopeAccordion);
     const triggerId = useId();
     const open = value && valueContext.value.includes(value) || false;
     const disabled = accordionContext.disabled || props.disabled;
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(AccordionItemProvider, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(AccordionItemProvider, {
       scope: __scopeAccordion,
       open,
       disabled,
       triggerId,
-      children: /* @__PURE__ */ import_jsx_runtime18.jsx(Root4, {
+      children: /* @__PURE__ */ import_jsx_runtime14.jsx(Root3, {
         "data-orientation": accordionContext.orientation,
         "data-state": getState3(open),
         ...collapsibleScope,
@@ -67447,12 +62329,12 @@ var init_dist35 = __esm(() => {
       })
     });
   });
-  AccordionItem.displayName = ITEM_NAME2;
-  AccordionHeader = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionItem.displayName = ITEM_NAME;
+  AccordionHeader = import_react17.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...headerProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
     const itemContext = useAccordionItemContext(HEADER_NAME, __scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(Primitive.h3, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(Primitive.h3, {
       "data-orientation": accordionContext.orientation,
       "data-state": getState3(itemContext.open),
       "data-disabled": itemContext.disabled ? "" : undefined,
@@ -67461,13 +62343,13 @@ var init_dist35 = __esm(() => {
     });
   });
   AccordionHeader.displayName = HEADER_NAME;
-  AccordionTrigger = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionTrigger = import_react17.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...triggerProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(TRIGGER_NAME4, __scopeAccordion);
-    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME4, __scopeAccordion);
+    const itemContext = useAccordionItemContext(TRIGGER_NAME3, __scopeAccordion);
+    const collapsibleContext = useAccordionCollapsibleContext(TRIGGER_NAME3, __scopeAccordion);
     const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(Collection2.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime18.jsx(Trigger3, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(Collection.ItemSlot, { scope: __scopeAccordion, children: /* @__PURE__ */ import_jsx_runtime14.jsx(Trigger2, {
       "aria-disabled": itemContext.open && !collapsibleContext.collapsible || undefined,
       "data-orientation": accordionContext.orientation,
       id: itemContext.triggerId,
@@ -67476,13 +62358,13 @@ var init_dist35 = __esm(() => {
       ref: forwardedRef
     }) });
   });
-  AccordionTrigger.displayName = TRIGGER_NAME4;
-  AccordionContent = import_react16.default.forwardRef((props, forwardedRef) => {
+  AccordionTrigger.displayName = TRIGGER_NAME3;
+  AccordionContent = import_react17.default.forwardRef((props, forwardedRef) => {
     const { __scopeAccordion, ...contentProps } = props;
     const accordionContext = useAccordionContext(ACCORDION_NAME, __scopeAccordion);
-    const itemContext = useAccordionItemContext(CONTENT_NAME5, __scopeAccordion);
+    const itemContext = useAccordionItemContext(CONTENT_NAME3, __scopeAccordion);
     const collapsibleScope = useCollapsibleScope(__scopeAccordion);
-    return /* @__PURE__ */ import_jsx_runtime18.jsx(Content3, {
+    return /* @__PURE__ */ import_jsx_runtime14.jsx(Content2, {
       role: "region",
       "aria-labelledby": itemContext.triggerId,
       "data-orientation": accordionContext.orientation,
@@ -67496,85 +62378,85 @@ var init_dist35 = __esm(() => {
       }
     });
   });
-  AccordionContent.displayName = CONTENT_NAME5;
-  Root24 = Accordion;
-  Item2 = AccordionItem;
+  AccordionContent.displayName = CONTENT_NAME3;
+  Root22 = Accordion;
+  Item = AccordionItem;
   Header = AccordionHeader;
   Trigger22 = AccordionTrigger;
-  Content23 = AccordionContent;
+  Content22 = AccordionContent;
 });
 
 // dashboard/src/components/ui/accordion.jsx
-var React51, jsx_dev_runtime14, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
+var React44, jsx_dev_runtime12, Accordion2, AccordionItem2, AccordionTrigger2, AccordionContent2;
 var init_accordion = __esm(() => {
-  React51 = __toESM(require_react(), 1);
-  init_dist35();
+  React44 = __toESM(require_react(), 1);
+  init_dist24();
   init_lucide_react();
   init_utils();
-  jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
   "use client";
-  Accordion2 = Root24;
-  AccordionItem2 = React51.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Item2, {
+  Accordion2 = Root22;
+  AccordionItem2 = React44.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Item, {
     ref,
     className: cn("border-b", className),
     ...props
   }, undefined, false, undefined, this));
   AccordionItem2.displayName = "AccordionItem";
-  AccordionTrigger2 = React51.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Header, {
+  AccordionTrigger2 = React44.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Header, {
     className: "flex",
-    children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Trigger22, {
+    children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Trigger22, {
       ref,
       className: cn("flex flex-1 items-center justify-between py-4 font-medium transition-all hover:underline [&[data-state=open]>svg]:rotate-180", className),
       ...props,
       children: [
         children,
-        /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ChevronDown, {
+        /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(ChevronDown, {
           className: "h-4 w-4 shrink-0 transition-transform duration-200"
         }, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
   AccordionTrigger2.displayName = Trigger22.displayName;
-  AccordionContent2 = React51.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Content23, {
+  AccordionContent2 = React44.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Content22, {
     ref,
     className: "overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down",
     ...props,
-    children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
+    children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV("div", {
       className: cn("pb-4 pt-0", className),
       children
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
-  AccordionContent2.displayName = Content23.displayName;
+  AccordionContent2.displayName = Content22.displayName;
 });
 
 // dashboard/src/components/ThoughtStream.js
-var import_react17, jsx_dev_runtime15, ThoughtStream = ({ thoughts }) => {
+var import_react18, jsx_dev_runtime13, ThoughtStream = ({ thoughts }) => {
   if (!thoughts || thoughts.length === 0) {
     return null;
   }
-  return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Accordion2, {
+  return /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Accordion2, {
     type: "single",
     collapsible: true,
     className: "w-full mt-2",
-    children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(AccordionItem2, {
+    children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(AccordionItem2, {
       value: "item-1",
       children: [
-        /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(AccordionTrigger2, {
+        /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(AccordionTrigger2, {
           className: "text-xs text-zinc-400 hover:text-zinc-200",
           children: "View Thought Process..."
         }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(AccordionContent2, {
-          children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(ScrollArea2, {
+        /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(AccordionContent2, {
+          children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(ScrollArea2, {
             className: "h-48 w-full bg-zinc-900/50 p-2 rounded-md",
-            children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
+            children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("div", {
               className: "space-y-2",
-              children: thoughts.map((thought, index3) => /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("div", {
+              children: thoughts.map((thought, index2) => /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("div", {
                 className: "text-xs text-zinc-300 p-2 bg-black/20 rounded",
-                children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV("pre", {
+                children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV("pre", {
                   className: "whitespace-pre-wrap font-mono",
                   children: JSON.stringify(thought, null, 2)
                 }, undefined, false, undefined, this)
-              }, index3, false, undefined, this))
+              }, index2, false, undefined, this))
             }, undefined, false, undefined, this)
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
@@ -67583,10 +62465,10 @@ var import_react17, jsx_dev_runtime15, ThoughtStream = ({ thoughts }) => {
   }, undefined, false, undefined, this);
 }, ThoughtStream_default;
 var init_ThoughtStream = __esm(() => {
-  import_react17 = __toESM(require_react(), 1);
+  import_react18 = __toESM(require_react(), 1);
   init_accordion();
   init_scroll_area();
-  jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
   ThoughtStream_default = ThoughtStream;
 });
 
@@ -67597,7 +62479,7 @@ __export(exports_ChatInterface, {
   ChatInterface: () => ChatInterface,
   BUSY_STATUSES: () => BUSY_STATUSES
 });
-var import_react18, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject, thoughtStream }) => {
+var import_react19, jsx_dev_runtime14, BUSY_STATUSES, ChatInterface = ({ engineStatus, activeProject, thoughtStream }) => {
   const { messages, input, handleInputChange, handleSubmit } = useChat({
     body: {
       project_path: activeProject
@@ -67611,40 +62493,40 @@ var import_react18, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
       handleSubmit(e);
     }
   };
-  return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
     className: "flex flex-col h-full bg-transparent p-4 rounded-lg",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(ScrollArea2, {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ScrollArea2, {
         className: "flex-grow mb-4",
-        children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
           className: "space-y-6 pr-4",
-          children: messages.length > 0 ? messages.map((m) => /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+          children: messages.length > 0 ? messages.map((m) => /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
             className: `flex flex-col ${m.role === "user" ? "items-end" : "items-start"}`,
-            children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+            children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
               className: `p-4 prose prose-invert max-w-xl ${m.role === "user" ? "ml-auto bg-blue-600/80 backdrop-blur-sm rounded-2xl rounded-tr-none text-white" : "bg-white/5 border border-white/10 rounded-2xl rounded-tl-none"}`,
               children: [
-                /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Markdown, {
+                /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Markdown, {
                   remarkPlugins: [remarkGfm],
                   children: m.content
                 }, undefined, false, undefined, this),
-                m.role !== "user" && thoughtStream && thoughtStream.length > 0 && /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(ThoughtStream_default, {
+                m.role !== "user" && thoughtStream && thoughtStream.length > 0 && /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(ThoughtStream_default, {
                   thoughts: thoughtStream
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this)
-          }, m.id, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+          }, m.id, false, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
             className: "text-center text-md text-zinc-500 pt-10",
             children: "Start a new mission by selecting a project and defining your objective."
           }, undefined, false, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("div", {
         className: "bg-zinc-900/50 p-4 rounded-xl border border-zinc-700 shadow-2xl",
-        children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("form", {
+        children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV("form", {
           onSubmit: handleFormSubmit,
           className: "flex items-center gap-4",
           children: [
-            /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Textarea, {
+            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Textarea, {
               value: input,
               onChange: handleInputChange,
               placeholder: !activeProject ? "Please select a project to begin..." : isBusy ? "The agents are working..." : "Describe the mission objective...",
@@ -67652,12 +62534,12 @@ var import_react18, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
               className: "flex-grow bg-transparent border-0 focus:ring-0 focus:outline-none resize-none",
               rows: 2
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Button, {
+            /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Button, {
               type: "submit",
               disabled: !canSubmit,
               size: "icon",
               className: "rounded-full",
-              children: /* @__PURE__ */ jsx_dev_runtime16.jsxDEV(Send, {
+              children: /* @__PURE__ */ jsx_dev_runtime14.jsxDEV(Send, {
                 className: "h-4 w-4"
               }, undefined, false, undefined, this)
             }, undefined, false, undefined, this)
@@ -67668,8 +62550,8 @@ var import_react18, jsx_dev_runtime16, BUSY_STATUSES, ChatInterface = ({ engineS
   }, undefined, true, undefined, this);
 }, ChatInterface_default;
 var init_ChatInterface = __esm(() => {
-  import_react18 = __toESM(require_react(), 1);
-  init_dist32();
+  import_react19 = __toESM(require_react(), 1);
+  init_dist20();
   init_react_markdown();
   init_remark_gfm();
   init_textarea();
@@ -67677,7 +62559,7 @@ var init_ChatInterface = __esm(() => {
   init_scroll_area();
   init_lucide_react();
   init_ThoughtStream();
-  jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime14 = __toESM(require_jsx_dev_runtime(), 1);
   BUSY_STATUSES = [
     "ENRICHMENT_PHASE",
     "PLANNING_PHASE",
@@ -67695,48 +62577,48 @@ var exports_ToolHealthMonitor = {};
 __export(exports_ToolHealthMonitor, {
   default: () => ToolHealthMonitor_default
 });
-var import_react20, jsx_dev_runtime17, ToolHealthMonitor = ({ healthData }) => {
+var import_react21, jsx_dev_runtime15, ToolHealthMonitor = ({ healthData }) => {
   const tools = healthData?.metrics?.performance?.metrics?.tools || [];
-  return /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Card, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardHeader, {
-        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardTitle, {
+      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(CardHeader, {
+        children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(CardTitle, {
           children: "Tool Health"
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(CardContent, {
-        children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(Table, {
+      /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(CardContent, {
+        children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(Table, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHeader, {
-              children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableHeader, {
+              children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableHead, {
                     children: "Tool"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableHead, {
                     children: "Frequency"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableHead, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableHead, {
                     children: "Success Rate"
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this)
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableBody, {
-              children: tools.length > 0 ? tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
+            /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableBody, {
+              children: tools.length > 0 ? tools.map((tool) => /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
                     children: tool.name
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
                     children: tool.frequency
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+                  /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
                     children: tool.successRate
                   }, undefined, false, undefined, this)
                 ]
-              }, tool.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableRow, {
-                children: /* @__PURE__ */ jsx_dev_runtime17.jsxDEV(TableCell, {
+              }, tool.name, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableRow, {
+                children: /* @__PURE__ */ jsx_dev_runtime15.jsxDEV(TableCell, {
                   colSpan: "3",
                   className: "text-center",
                   children: "No tool health data available."
@@ -67750,10 +62632,10 @@ var import_react20, jsx_dev_runtime17, ToolHealthMonitor = ({ healthData }) => {
   }, undefined, true, undefined, this);
 }, ToolHealthMonitor_default;
 var init_ToolHealthMonitor = __esm(() => {
-  import_react20 = __toESM(require_react(), 1);
+  import_react21 = __toESM(require_react(), 1);
   init_card();
   init_table();
-  jsx_dev_runtime17 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime15 = __toESM(require_jsx_dev_runtime(), 1);
   ToolHealthMonitor_default = ToolHealthMonitor;
 });
 
@@ -67762,11 +62644,11 @@ var exports_SwarmVisualizer = {};
 __export(exports_SwarmVisualizer, {
   default: () => SwarmVisualizer_default
 });
-var import_react21, jsx_dev_runtime18, SwarmVisualizer = () => {
-  const canvasRef = import_react21.useRef(null);
+var import_react22, jsx_dev_runtime16, SwarmVisualizer = () => {
+  const canvasRef = import_react22.useRef(null);
   const { lastMessage } = useWebSocket_default();
-  const [graph, setGraph] = import_react21.useState({ nodes: {}, edges: [] });
-  import_react21.useEffect(() => {
+  const [graph, setGraph] = import_react22.useState({ nodes: {}, edges: [] });
+  import_react22.useEffect(() => {
     if (lastMessage) {
       try {
         const event = JSON.parse(lastMessage);
@@ -67793,7 +62675,7 @@ var import_react21, jsx_dev_runtime18, SwarmVisualizer = () => {
       }
     }
   }, [lastMessage]);
-  import_react21.useEffect(() => {
+  import_react22.useEffect(() => {
     const canvas = canvasRef.current;
     const context = canvas.getContext("2d");
     canvas.width = canvas.offsetWidth;
@@ -67824,15 +62706,15 @@ var import_react21, jsx_dev_runtime18, SwarmVisualizer = () => {
       context.fillStyle = "#4a90e2";
     });
   }, [graph]);
-  return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("canvas", {
+  return /* @__PURE__ */ jsx_dev_runtime16.jsxDEV("canvas", {
     ref: canvasRef,
     style: { width: "100%", height: "100%" }
   }, undefined, false, undefined, this);
 }, SwarmVisualizer_default;
 var init_SwarmVisualizer = __esm(() => {
-  import_react21 = __toESM(require_react(), 1);
+  import_react22 = __toESM(require_react(), 1);
   init_useWebSocket();
-  jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime16 = __toESM(require_jsx_dev_runtime(), 1);
   SwarmVisualizer_default = SwarmVisualizer;
 });
 
@@ -67840,9 +62722,9 @@ var init_SwarmVisualizer = __esm(() => {
 var init_iconsManifest = () => {};
 
 // node_modules/react-icons/lib/iconContext.mjs
-var import_react22, DefaultContext, IconContext;
+var import_react23, DefaultContext, IconContext;
 var init_iconContext = __esm(() => {
-  import_react22 = __toESM(require_react(), 1);
+  import_react23 = __toESM(require_react(), 1);
   DefaultContext = {
     color: undefined,
     size: undefined,
@@ -67850,7 +62732,7 @@ var init_iconContext = __esm(() => {
     style: undefined,
     attr: undefined
   };
-  IconContext = import_react22.default.createContext && /* @__PURE__ */ import_react22.default.createContext(DefaultContext);
+  IconContext = import_react23.default.createContext && /* @__PURE__ */ import_react23.default.createContext(DefaultContext);
 });
 
 // node_modules/react-icons/lib/iconBase.mjs
@@ -67946,12 +62828,12 @@ function _toPrimitive(t, r2) {
   return (r2 === "string" ? String : Number)(t);
 }
 function Tree2Element(tree) {
-  return tree && tree.map((node2, i) => /* @__PURE__ */ import_react23.default.createElement(node2.tag, _objectSpread({
+  return tree && tree.map((node2, i) => /* @__PURE__ */ import_react24.default.createElement(node2.tag, _objectSpread({
     key: i
   }, node2.attr), Tree2Element(node2.child)));
 }
 function GenIcon(data) {
-  return (props) => /* @__PURE__ */ import_react23.default.createElement(IconBase, _extends({
+  return (props) => /* @__PURE__ */ import_react24.default.createElement(IconBase, _extends({
     attr: _objectSpread({}, data.attr)
   }, props), Tree2Element(data.child));
 }
@@ -67959,16 +62841,16 @@ function IconBase(props) {
   var elem = (conf) => {
     var {
       attr,
-      size: size4,
+      size,
       title
     } = props, svgProps = _objectWithoutProperties(props, _excluded);
-    var computedSize = size4 || conf.size || "1em";
+    var computedSize = size || conf.size || "1em";
     var className;
     if (conf.className)
       className = conf.className;
     if (props.className)
       className = (className ? className + " " : "") + props.className;
-    return /* @__PURE__ */ import_react23.default.createElement("svg", _extends({
+    return /* @__PURE__ */ import_react24.default.createElement("svg", _extends({
       stroke: "currentColor",
       fill: "currentColor",
       strokeWidth: "0"
@@ -67980,13 +62862,13 @@ function IconBase(props) {
       height: computedSize,
       width: computedSize,
       xmlns: "http://www.w3.org/2000/svg"
-    }), title && /* @__PURE__ */ import_react23.default.createElement("title", null, title), props.children);
+    }), title && /* @__PURE__ */ import_react24.default.createElement("title", null, title), props.children);
   };
-  return IconContext !== undefined ? /* @__PURE__ */ import_react23.default.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
+  return IconContext !== undefined ? /* @__PURE__ */ import_react24.default.createElement(IconContext.Consumer, null, (conf) => elem(conf)) : elem(DefaultContext);
 }
-var import_react23, _excluded;
+var import_react24, _excluded;
 var init_iconBase = __esm(() => {
-  import_react23 = __toESM(require_react(), 1);
+  import_react24 = __toESM(require_react(), 1);
   init_iconContext();
   _excluded = ["attr", "size", "title"];
 });
@@ -68015,16 +62897,33 @@ var init_fi2 = __esm(() => {
   init_lib26();
 });
 
+// dashboard/src/components/ui/input.jsx
+var React51, jsx_dev_runtime17, Input;
+var init_input = __esm(() => {
+  React51 = __toESM(require_react(), 1);
+  init_utils();
+  jsx_dev_runtime17 = __toESM(require_jsx_dev_runtime(), 1);
+  Input = React51.forwardRef(({ className, type, ...props }, ref) => {
+    return /* @__PURE__ */ jsx_dev_runtime17.jsxDEV("input", {
+      type,
+      className: cn("flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50", className),
+      ref,
+      ...props
+    }, undefined, false, undefined, this);
+  });
+  Input.displayName = "Input";
+});
+
 // dashboard/src/components/CodeBrowser.js
 var exports_CodeBrowser = {};
 __export(exports_CodeBrowser, {
   default: () => CodeBrowser_default
 });
-var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
-  const [searchQuery, setSearchQuery] = import_react24.useState("");
-  const [searchResults, setSearchResults] = import_react24.useState([]);
-  const [isSearchLoading, setIsSearchLoading] = import_react24.useState(false);
-  const [searchError, setSearchError] = import_react24.useState("");
+var import_react25, jsx_dev_runtime18, CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
+  const [searchQuery, setSearchQuery] = import_react25.useState("");
+  const [searchResults, setSearchResults] = import_react25.useState([]);
+  const [isSearchLoading, setIsSearchLoading] = import_react25.useState(false);
+  const [searchError, setSearchError] = import_react25.useState("");
   const handleFileClick = (file2) => {
     if (file2.type === "folder")
       return;
@@ -68057,32 +62956,32 @@ var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
     setSearchResults([]);
     setSearchError("");
   };
-  return /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Card, {
     className: "h-full flex flex-col",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardHeader, {
+      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardHeader, {
         children: [
-          /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardTitle, {
+          /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardTitle, {
             children: "Code Intelligence"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+          /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
             className: "flex w-full items-center space-x-2 pt-2",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Input, {
+              /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Input, {
                 type: "text",
                 placeholder: "Semantic search (e.g., 'user auth logic')",
                 value: searchQuery,
                 onChange: (e) => setSearchQuery(e.target.value),
                 onKeyDown: (e) => e.key === "Enter" && handleSearch()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Button, {
+              /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Button, {
                 onClick: handleSearch,
                 disabled: isSearchLoading,
-                children: isSearchLoading ? /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiLoader, {
+                children: isSearchLoading ? /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiLoader, {
                   className: "animate-spin"
                 }, undefined, false, undefined, this) : "Search"
               }, undefined, false, undefined, this),
-              searchResults.length > 0 && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Button, {
+              searchResults.length > 0 && /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Button, {
                 variant: "outline",
                 size: "sm",
                 onClick: clearSearch,
@@ -68092,41 +62991,41 @@ var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(CardContent, {
         className: "flex-grow p-0",
-        children: /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(ScrollArea2, {
+        children: /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(ScrollArea2, {
           className: "h-full w-full p-2",
           children: [
-            isSearchLoading && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+            isSearchLoading && /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
               className: "flex items-center gap-2 p-2 text-muted-foreground",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiLoader, {
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiLoader, {
                   className: "animate-spin"
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                   children: "Searching..."
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this),
-            searchError && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+            searchError && /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
               className: "flex items-center gap-2 p-2 text-destructive",
               children: [
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                   children: searchError
                 }, undefined, false, undefined, this)
               ]
             }, undefined, true, undefined, this),
-            searchResults.length > 0 ? searchResults.map((result, index3) => /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Button, {
+            searchResults.length > 0 ? searchResults.map((result, index2) => /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Button, {
               variant: "ghost",
               className: cn("w-full justify-start gap-2 px-2 text-left h-auto py-2", selectedFile === result.node.source_file && "bg-accent"),
               onClick: () => onFileSelect(result.node.source_file),
               children: [
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiFile, {}, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
                   className: "flex flex-col",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                       className: "font-semibold",
                       children: [
                         result.node.name,
@@ -68135,31 +63034,31 @@ var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
                         ")"
                       ]
                     }, undefined, true, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                       className: "text-xs text-muted-foreground",
                       children: result.node.source_file
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this)
               ]
-            }, index3, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(jsx_dev_runtime19.Fragment, {
+            }, index2, true, undefined, this)) : /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(jsx_dev_runtime18.Fragment, {
               children: [
-                isTreeLoading && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+                isTreeLoading && /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
                   className: "flex items-center gap-2 p-2 text-muted-foreground",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiLoader, {
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiLoader, {
                       className: "animate-spin"
                     }, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                       children: "Loading tree..."
                     }, undefined, false, undefined, this)
                   ]
                 }, undefined, true, undefined, this),
-                treeError && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
+                treeError && /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("div", {
                   className: "flex items-center gap-2 p-2 text-destructive",
                   children: [
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
-                    /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("span", {
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiAlertCircle, {}, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime18.jsxDEV("span", {
                       children: treeError
                     }, undefined, false, undefined, this)
                   ]
@@ -68167,13 +63066,13 @@ var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
                 !isTreeLoading && !treeError && files.map((item) => {
                   const isFolder = item.type === "folder";
                   const isSelected = selectedFile === item.name;
-                  return /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Button, {
+                  return /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(Button, {
                     variant: "ghost",
                     className: cn("w-full justify-start gap-2 px-2", isFolder ? "font-semibold" : "font-normal", isSelected && "bg-accent"),
                     onClick: () => handleFileClick(item),
                     disabled: isFolder,
                     children: [
-                      isFolder ? /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(FiFile, {}, undefined, false, undefined, this),
+                      isFolder ? /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiFolder, {}, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime18.jsxDEV(FiFile, {}, undefined, false, undefined, this),
                       item.name
                     ]
                   }, item.name, true, undefined, this);
@@ -68187,14 +63086,14 @@ var import_react24, jsx_dev_runtime19, CodeBrowser = ({ files, onFileSelect, sel
   }, undefined, true, undefined, this);
 }, CodeBrowser_default;
 var init_CodeBrowser = __esm(() => {
-  import_react24 = __toESM(require_react(), 1);
+  import_react25 = __toESM(require_react(), 1);
   init_fi2();
   init_scroll_area();
   init_button();
   init_input();
   init_card();
   init_utils();
-  jsx_dev_runtime19 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime18 = __toESM(require_jsx_dev_runtime(), 1);
   CodeBrowser_default = CodeBrowser;
 });
 
@@ -68466,7 +63365,7 @@ function didStateUpdate(state, handler, changes) {
   });
   return changes;
 }
-var errorMessages, errorHandler, validators, index3, state_local_default;
+var errorMessages, errorHandler, validators, index2, state_local_default;
 var init_state_local = __esm(() => {
   errorMessages = {
     initialIsRequired: "initial state is required",
@@ -68486,10 +63385,10 @@ var init_state_local = __esm(() => {
     handler: validateHandler,
     initial: validateInitial
   };
-  index3 = {
+  index2 = {
     create: create2
   };
-  state_local_default = index3;
+  state_local_default = index2;
 });
 
 // node_modules/@monaco-editor/loader/lib/es/config/index.js
@@ -68751,17 +63650,17 @@ var init_es2 = __esm(() => {
 
 // node_modules/@monaco-editor/react/dist/index.mjs
 function Me({ children: e }) {
-  return import_react29.default.createElement("div", { style: Y.container }, e);
+  return import_react30.default.createElement("div", { style: Y.container }, e);
 }
 function Ee({ width: e, height: r2, isEditorReady: n, loading: t, _ref: a, className: m, wrapperProps: E }) {
-  return import_react28.default.createElement("section", { style: { ...v.wrapper, width: e, height: r2 }, ...E }, !n && import_react28.default.createElement($, null, t), import_react28.default.createElement("div", { ref: a, style: { ...v.fullWidth, ...!n && v.hide }, className: m }));
+  return import_react29.default.createElement("section", { style: { ...v.wrapper, width: e, height: r2 }, ...E }, !n && import_react29.default.createElement($, null, t), import_react29.default.createElement("div", { ref: a, style: { ...v.fullWidth, ...!n && v.hide }, className: m }));
 }
 function Ce(e) {
-  import_react30.useEffect(e, []);
+  import_react31.useEffect(e, []);
 }
 function he(e, r2, n = true) {
-  let t = import_react31.useRef(true);
-  import_react31.useEffect(t.current || !n ? () => {
+  let t = import_react32.useRef(true);
+  import_react32.useEffect(t.current || !n ? () => {
     t.current = false;
   } : e, r2);
 }
@@ -68779,7 +63678,7 @@ function te(e, r2) {
   return e.Uri.parse(r2);
 }
 function Oe({ original: e, modified: r2, language: n, originalLanguage: t, modifiedLanguage: a, originalModelPath: m, modifiedModelPath: E, keepCurrentOriginalModel: g = false, keepCurrentModifiedModel: N = false, theme: x = "light", loading: P = "Loading...", options: y = {}, height: V = "100%", width: z = "100%", className: F, wrapperProps: j = {}, beforeMount: A = D, onMount: q = D }) {
-  let [M, O] = import_react26.useState(false), [T, s] = import_react26.useState(true), u = import_react26.useRef(null), c = import_react26.useRef(null), w = import_react26.useRef(null), d = import_react26.useRef(q), o = import_react26.useRef(A), b = import_react26.useRef(false);
+  let [M, O] = import_react27.useState(false), [T, s] = import_react27.useState(true), u = import_react27.useRef(null), c = import_react27.useRef(null), w = import_react27.useRef(null), d = import_react27.useRef(q), o = import_react27.useRef(A), b = import_react27.useRef(false);
   k(() => {
     let i = loader.init();
     return i.then((f) => (c.current = f) && s(false)).catch((f) => f?.type !== "cancelation" && console.error("Monaco initialization: error:", f)), () => u.current ? I() : i.cancel();
@@ -68806,34 +63705,34 @@ function Oe({ original: e, modified: r2, language: n, originalLanguage: t, modif
   }, [x], M), l(() => {
     u.current?.updateOptions(y);
   }, [y], M);
-  let L = import_react26.useCallback(() => {
+  let L = import_react27.useCallback(() => {
     if (!c.current)
       return;
     o.current(c.current);
     let i = h(c.current, e || "", t || n || "text", m || ""), f = h(c.current, r2 || "", a || n || "text", E || "");
     u.current?.setModel({ original: i, modified: f });
-  }, [n, r2, a, e, t, m, E]), U = import_react26.useCallback(() => {
+  }, [n, r2, a, e, t, m, E]), U = import_react27.useCallback(() => {
     !b.current && w.current && (u.current = c.current.editor.createDiffEditor(w.current, { automaticLayout: true, ...y }), L(), c.current?.editor.setTheme(x), O(true), b.current = true);
   }, [y, x, L]);
-  import_react26.useEffect(() => {
+  import_react27.useEffect(() => {
     M && d.current(u.current, c.current);
-  }, [M]), import_react26.useEffect(() => {
+  }, [M]), import_react27.useEffect(() => {
     !T && !M && U();
   }, [T, M, U]);
   function I() {
     let i = u.current?.getModel();
     g || i?.original?.dispose(), N || i?.modified?.dispose(), u.current?.dispose();
   }
-  return import_react26.default.createElement(H, { width: z, height: V, isEditorReady: M, loading: P, _ref: w, className: F, wrapperProps: j });
+  return import_react27.default.createElement(H, { width: z, height: V, isEditorReady: M, loading: P, _ref: w, className: F, wrapperProps: j });
 }
 function He(e) {
-  let r2 = import_react35.useRef();
-  return import_react35.useEffect(() => {
+  let r2 = import_react36.useRef();
+  return import_react36.useEffect(() => {
     r2.current = e;
   }, [e]), r2.current;
 }
 function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, language: a, path: m, theme: E = "light", line: g, loading: N = "Loading...", options: x = {}, overrideServices: P = {}, saveViewState: y = true, keepCurrentModel: V = false, width: z = "100%", height: F = "100%", className: j, wrapperProps: A = {}, beforeMount: q = D, onMount: M = D, onChange: O, onValidate: T = D }) {
-  let [s, u] = import_react34.useState(false), [c, w] = import_react34.useState(true), d = import_react34.useRef(null), o = import_react34.useRef(null), b = import_react34.useRef(null), L = import_react34.useRef(M), U = import_react34.useRef(q), I = import_react34.useRef(), i = import_react34.useRef(t), f = se(m), Q = import_react34.useRef(false), B = import_react34.useRef(false);
+  let [s, u] = import_react35.useState(false), [c, w] = import_react35.useState(true), d = import_react35.useRef(null), o = import_react35.useRef(null), b = import_react35.useRef(null), L = import_react35.useRef(M), U = import_react35.useRef(q), I = import_react35.useRef(), i = import_react35.useRef(t), f = se(m), Q = import_react35.useRef(false), B = import_react35.useRef(false);
   k(() => {
     let p = loader.init();
     return p.then((R) => (d.current = R) && w(false)).catch((R) => R?.type !== "cancelation" && console.error("Monaco initialization: error:", R)), () => o.current ? pe() : p.cancel();
@@ -68852,22 +63751,22 @@ function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, la
   }, [g], s), l(() => {
     d.current?.editor.setTheme(E);
   }, [E], s);
-  let X2 = import_react34.useCallback(() => {
+  let X2 = import_react35.useCallback(() => {
     if (!(!b.current || !d.current) && !Q.current) {
       U.current(d.current);
       let p = m || n, R = h(d.current, t || e || "", r2 || a || "", p || "");
       o.current = d.current?.editor.create(b.current, { model: R, automaticLayout: true, ...x }, P), y && o.current.restoreViewState(_.get(p)), d.current.editor.setTheme(E), g !== undefined && o.current.revealLine(g), u(true), Q.current = true;
     }
   }, [e, r2, n, t, a, m, x, P, y, E, g]);
-  import_react34.useEffect(() => {
+  import_react35.useEffect(() => {
     s && L.current(o.current, d.current);
-  }, [s]), import_react34.useEffect(() => {
+  }, [s]), import_react35.useEffect(() => {
     !c && !s && X2();
-  }, [c, s, X2]), i.current = t, import_react34.useEffect(() => {
+  }, [c, s, X2]), i.current = t, import_react35.useEffect(() => {
     s && O && (I.current?.dispose(), I.current = o.current?.onDidChangeModelContent((p) => {
       B.current || O(o.current.getValue(), p);
     }));
-  }, [s, O]), import_react34.useEffect(() => {
+  }, [s, O]), import_react35.useEffect(() => {
     if (s) {
       let p = d.current.editor.onDidChangeMarkers((R) => {
         let G = o.current.getModel()?.uri;
@@ -68885,25 +63784,25 @@ function Ve({ defaultValue: e, defaultLanguage: r2, defaultPath: n, value: t, la
   function pe() {
     I.current?.dispose(), V ? y && _.set(m, o.current.saveViewState()) : o.current.getModel()?.dispose(), o.current.dispose();
   }
-  return import_react34.default.createElement(H, { width: z, height: F, isEditorReady: s, loading: N, _ref: b, className: j, wrapperProps: A });
+  return import_react35.default.createElement(H, { width: z, height: F, isEditorReady: s, loading: N, _ref: b, className: j, wrapperProps: A });
 }
-var import_react25, import_react26, import_react27, import_react28, import_react29, import_react30, import_react31, import_react32, import_react33, import_react34, import_react35, le, v, ae, Y, Z, $, ee, H, k, l, ie, we, se, _, fe, de, Ft;
-var init_dist36 = __esm(() => {
+var import_react26, import_react27, import_react28, import_react29, import_react30, import_react31, import_react32, import_react33, import_react34, import_react35, import_react36, le, v, ae, Y, Z, $, ee, H, k, l, ie, we, se, _, fe, de, Ft;
+var init_dist25 = __esm(() => {
   init_es2();
-  import_react25 = __toESM(require_react(), 1);
   import_react26 = __toESM(require_react(), 1);
-  init_es2();
   import_react27 = __toESM(require_react(), 1);
+  init_es2();
   import_react28 = __toESM(require_react(), 1);
   import_react29 = __toESM(require_react(), 1);
   import_react30 = __toESM(require_react(), 1);
   import_react31 = __toESM(require_react(), 1);
   import_react32 = __toESM(require_react(), 1);
-  init_es2();
   import_react33 = __toESM(require_react(), 1);
-  import_react34 = __toESM(require_react(), 1);
   init_es2();
+  import_react34 = __toESM(require_react(), 1);
   import_react35 = __toESM(require_react(), 1);
+  init_es2();
+  import_react36 = __toESM(require_react(), 1);
   le = { wrapper: { display: "flex", position: "relative", textAlign: "initial" }, fullWidth: { width: "100%" }, hide: { display: "none" } };
   v = le;
   ae = { container: { display: "flex", height: "100%", width: "100%", justifyContent: "center", alignItems: "center" } };
@@ -68911,15 +63810,15 @@ var init_dist36 = __esm(() => {
   Z = Me;
   $ = Z;
   ee = Ee;
-  H = import_react27.memo(ee);
+  H = import_react28.memo(ee);
   k = Ce;
   l = he;
   ie = Oe;
-  we = import_react25.memo(ie);
+  we = import_react26.memo(ie);
   se = He;
   _ = new Map;
   fe = Ve;
-  de = import_react33.memo(fe);
+  de = import_react34.memo(fe);
   Ft = de;
 });
 
@@ -68928,10 +63827,10 @@ var exports_FileViewer = {};
 __export(exports_FileViewer, {
   default: () => FileViewer_default
 });
-var import_react36, jsx_dev_runtime20, FileViewer = ({ filePath, content: initialContent, isLoading }) => {
-  const [content3, setContent] = import_react36.useState(initialContent || "");
-  const [isSaving, setIsSaving] = import_react36.useState(false);
-  import_react36.useEffect(() => {
+var import_react37, jsx_dev_runtime19, FileViewer = ({ filePath, content: initialContent, isLoading }) => {
+  const [content3, setContent] = import_react37.useState(initialContent || "");
+  const [isSaving, setIsSaving] = import_react37.useState(false);
+  import_react37.useEffect(() => {
     setContent(initialContent || "");
   }, [initialContent]);
   const handleSave = async () => {
@@ -68953,40 +63852,40 @@ var import_react36, jsx_dev_runtime20, FileViewer = ({ filePath, content: initia
       setIsSaving(false);
     }
   };
-  const getLanguage = (path3) => {
-    if (!path3)
+  const getLanguage = (path2) => {
+    if (!path2)
       return "plaintext";
-    if (path3.endsWith(".js") || path3.endsWith(".jsx"))
+    if (path2.endsWith(".js") || path2.endsWith(".jsx"))
       return "javascript";
-    if (path3.endsWith(".ts") || path3.endsWith(".tsx"))
+    if (path2.endsWith(".ts") || path2.endsWith(".tsx"))
       return "typescript";
-    if (path3.endsWith(".json"))
+    if (path2.endsWith(".json"))
       return "json";
-    if (path3.endsWith(".html"))
+    if (path2.endsWith(".html"))
       return "html";
-    if (path3.endsWith(".css"))
+    if (path2.endsWith(".css"))
       return "css";
-    if (path3.endsWith(".md"))
+    if (path2.endsWith(".md"))
       return "markdown";
     return "plaintext";
   };
-  return /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Card, {
+  return /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Card, {
     className: "h-full w-full flex flex-col border-white/10 bg-black/40 backdrop-blur-xl",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardHeader, {
+      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardHeader, {
         className: "flex flex-row items-center justify-between py-3 border-b border-white/10",
         children: [
-          /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardTitle, {
+          /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardTitle, {
             className: "text-sm font-mono text-zinc-300 truncate",
             children: isLoading ? "Loading..." : filePath || "No file selected"
           }, undefined, false, undefined, this),
-          filePath && /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Button, {
+          filePath && /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Button, {
             size: "sm",
             onClick: handleSave,
             disabled: isSaving || isLoading,
             className: "gap-2 bg-blue-600 hover:bg-blue-500",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Save, {
+              /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Save, {
                 className: "w-4 h-4"
               }, undefined, false, undefined, this),
               isSaving ? "Saving..." : "Save"
@@ -68994,12 +63893,12 @@ var import_react36, jsx_dev_runtime20, FileViewer = ({ filePath, content: initia
           }, undefined, true, undefined, this)
         ]
       }, undefined, true, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CardContent, {
+      /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(CardContent, {
         className: "flex-grow p-0 overflow-hidden",
-        children: isLoading ? /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
+        children: isLoading ? /* @__PURE__ */ jsx_dev_runtime19.jsxDEV("div", {
           className: "flex items-center justify-center h-full text-zinc-500",
           children: "Loading editor..."
-        }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Ft, {
+        }, undefined, false, undefined, this) : /* @__PURE__ */ jsx_dev_runtime19.jsxDEV(Ft, {
           height: "100%",
           language: getLanguage(filePath),
           value: content3,
@@ -69017,24 +63916,24 @@ var import_react36, jsx_dev_runtime20, FileViewer = ({ filePath, content: initia
   }, undefined, true, undefined, this);
 }, FileViewer_default;
 var init_FileViewer = __esm(() => {
-  import_react36 = __toESM(require_react(), 1);
-  init_dist36();
+  import_react37 = __toESM(require_react(), 1);
+  init_dist25();
   init_card();
   init_button();
   init_lucide_react();
-  jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
+  jsx_dev_runtime19 = __toESM(require_jsx_dev_runtime(), 1);
   FileViewer_default = FileViewer;
 });
 
 // dashboard/src/index.js
-var import_react42 = __toESM(require_react(), 1);
+var import_react43 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // dashboard/src/App.js
-var import_react40 = __toESM(require_react(), 1);
+var import_react41 = __toESM(require_react(), 1);
 
 // dashboard/src/pages/Dashboard.js
-var import_react38 = __toESM(require_react(), 1);
+var import_react39 = __toESM(require_react(), 1);
 init_useWebSocket();
 
 // dashboard/src/components/Layout.js
@@ -69071,8 +63970,10 @@ var Layout_default = Layout;
 var import_react3 = __toESM(require_react(), 1);
 init_button();
 var jsx_dev_runtime3 = __toESM(require_jsx_dev_runtime(), 1);
-var Tabs = ({ tabs }) => {
-  const [activeTab, setActiveTab] = import_react3.useState(0);
+var Tabs = ({ tabs, activeTab: externalActiveTab, onTabChange }) => {
+  const [internalActiveTab, setInternalActiveTab] = import_react3.useState(0);
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const setActiveTab = onTabChange || setInternalActiveTab;
   return /* @__PURE__ */ jsx_dev_runtime3.jsxDEV("div", {
     className: "flex flex-col h-full",
     children: [
@@ -69095,23 +63996,1376 @@ var Tabs = ({ tabs }) => {
 var Tabs_default = Tabs;
 
 // dashboard/src/components/ui/dialog.jsx
-var React29 = __toESM(require_react(), 1);
+var React31 = __toESM(require_react(), 1);
 
 // node_modules/@radix-ui/react-dialog/dist/index.mjs
-var React28 = __toESM(require_react(), 1);
+var React30 = __toESM(require_react(), 1);
 init_dist4();
 init_dist();
 init_dist5();
 init_dist7();
 init_dist8();
-init_dist12();
-init_dist13();
-init_dist14();
-init_dist15();
+
+// node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
+var React13 = __toESM(require_react(), 1);
+init_dist4();
 init_dist9();
-init_dist16();
-init_es20155();
-init_es20156();
+init_dist();
+init_dist10();
+
+// node_modules/@radix-ui/react-use-escape-keydown/dist/index.mjs
+var React12 = __toESM(require_react(), 1);
+init_dist10();
+function useEscapeKeydown(onEscapeKeyDownProp, ownerDocument = globalThis?.document) {
+  const onEscapeKeyDown = useCallbackRef(onEscapeKeyDownProp);
+  React12.useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape") {
+        onEscapeKeyDown(event);
+      }
+    };
+    ownerDocument.addEventListener("keydown", handleKeyDown, { capture: true });
+    return () => ownerDocument.removeEventListener("keydown", handleKeyDown, { capture: true });
+  }, [onEscapeKeyDown, ownerDocument]);
+}
+
+// node_modules/@radix-ui/react-dismissable-layer/dist/index.mjs
+var import_jsx_runtime4 = __toESM(require_jsx_runtime(), 1);
+"use client";
+var DISMISSABLE_LAYER_NAME = "DismissableLayer";
+var CONTEXT_UPDATE = "dismissableLayer.update";
+var POINTER_DOWN_OUTSIDE = "dismissableLayer.pointerDownOutside";
+var FOCUS_OUTSIDE = "dismissableLayer.focusOutside";
+var originalBodyPointerEvents;
+var DismissableLayerContext = React13.createContext({
+  layers: /* @__PURE__ */ new Set,
+  layersWithOutsidePointerEventsDisabled: /* @__PURE__ */ new Set,
+  branches: /* @__PURE__ */ new Set
+});
+var DismissableLayer = React13.forwardRef((props, forwardedRef) => {
+  const {
+    disableOutsidePointerEvents = false,
+    onEscapeKeyDown,
+    onPointerDownOutside,
+    onFocusOutside,
+    onInteractOutside,
+    onDismiss,
+    ...layerProps
+  } = props;
+  const context = React13.useContext(DismissableLayerContext);
+  const [node, setNode] = React13.useState(null);
+  const ownerDocument = node?.ownerDocument ?? globalThis?.document;
+  const [, force] = React13.useState({});
+  const composedRefs = useComposedRefs(forwardedRef, (node2) => setNode(node2));
+  const layers = Array.from(context.layers);
+  const [highestLayerWithOutsidePointerEventsDisabled] = [...context.layersWithOutsidePointerEventsDisabled].slice(-1);
+  const highestLayerWithOutsidePointerEventsDisabledIndex = layers.indexOf(highestLayerWithOutsidePointerEventsDisabled);
+  const index = node ? layers.indexOf(node) : -1;
+  const isBodyPointerEventsDisabled = context.layersWithOutsidePointerEventsDisabled.size > 0;
+  const isPointerEventsEnabled = index >= highestLayerWithOutsidePointerEventsDisabledIndex;
+  const pointerDownOutside = usePointerDownOutside((event) => {
+    const target = event.target;
+    const isPointerDownOnBranch = [...context.branches].some((branch) => branch.contains(target));
+    if (!isPointerEventsEnabled || isPointerDownOnBranch)
+      return;
+    onPointerDownOutside?.(event);
+    onInteractOutside?.(event);
+    if (!event.defaultPrevented)
+      onDismiss?.();
+  }, ownerDocument);
+  const focusOutside = useFocusOutside((event) => {
+    const target = event.target;
+    const isFocusInBranch = [...context.branches].some((branch) => branch.contains(target));
+    if (isFocusInBranch)
+      return;
+    onFocusOutside?.(event);
+    onInteractOutside?.(event);
+    if (!event.defaultPrevented)
+      onDismiss?.();
+  }, ownerDocument);
+  useEscapeKeydown((event) => {
+    const isHighestLayer = index === context.layers.size - 1;
+    if (!isHighestLayer)
+      return;
+    onEscapeKeyDown?.(event);
+    if (!event.defaultPrevented && onDismiss) {
+      event.preventDefault();
+      onDismiss();
+    }
+  }, ownerDocument);
+  React13.useEffect(() => {
+    if (!node)
+      return;
+    if (disableOutsidePointerEvents) {
+      if (context.layersWithOutsidePointerEventsDisabled.size === 0) {
+        originalBodyPointerEvents = ownerDocument.body.style.pointerEvents;
+        ownerDocument.body.style.pointerEvents = "none";
+      }
+      context.layersWithOutsidePointerEventsDisabled.add(node);
+    }
+    context.layers.add(node);
+    dispatchUpdate();
+    return () => {
+      if (disableOutsidePointerEvents && context.layersWithOutsidePointerEventsDisabled.size === 1) {
+        ownerDocument.body.style.pointerEvents = originalBodyPointerEvents;
+      }
+    };
+  }, [node, ownerDocument, disableOutsidePointerEvents, context]);
+  React13.useEffect(() => {
+    return () => {
+      if (!node)
+        return;
+      context.layers.delete(node);
+      context.layersWithOutsidePointerEventsDisabled.delete(node);
+      dispatchUpdate();
+    };
+  }, [node, context]);
+  React13.useEffect(() => {
+    const handleUpdate = () => force({});
+    document.addEventListener(CONTEXT_UPDATE, handleUpdate);
+    return () => document.removeEventListener(CONTEXT_UPDATE, handleUpdate);
+  }, []);
+  return /* @__PURE__ */ import_jsx_runtime4.jsx(Primitive.div, {
+    ...layerProps,
+    ref: composedRefs,
+    style: {
+      pointerEvents: isBodyPointerEventsDisabled ? isPointerEventsEnabled ? "auto" : "none" : undefined,
+      ...props.style
+    },
+    onFocusCapture: composeEventHandlers(props.onFocusCapture, focusOutside.onFocusCapture),
+    onBlurCapture: composeEventHandlers(props.onBlurCapture, focusOutside.onBlurCapture),
+    onPointerDownCapture: composeEventHandlers(props.onPointerDownCapture, pointerDownOutside.onPointerDownCapture)
+  });
+});
+DismissableLayer.displayName = DISMISSABLE_LAYER_NAME;
+var BRANCH_NAME = "DismissableLayerBranch";
+var DismissableLayerBranch = React13.forwardRef((props, forwardedRef) => {
+  const context = React13.useContext(DismissableLayerContext);
+  const ref = React13.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, ref);
+  React13.useEffect(() => {
+    const node = ref.current;
+    if (node) {
+      context.branches.add(node);
+      return () => {
+        context.branches.delete(node);
+      };
+    }
+  }, [context.branches]);
+  return /* @__PURE__ */ import_jsx_runtime4.jsx(Primitive.div, { ...props, ref: composedRefs });
+});
+DismissableLayerBranch.displayName = BRANCH_NAME;
+function usePointerDownOutside(onPointerDownOutside, ownerDocument = globalThis?.document) {
+  const handlePointerDownOutside = useCallbackRef(onPointerDownOutside);
+  const isPointerInsideReactTreeRef = React13.useRef(false);
+  const handleClickRef = React13.useRef(() => {});
+  React13.useEffect(() => {
+    const handlePointerDown = (event) => {
+      if (event.target && !isPointerInsideReactTreeRef.current) {
+        let handleAndDispatchPointerDownOutsideEvent2 = function() {
+          handleAndDispatchCustomEvent(POINTER_DOWN_OUTSIDE, handlePointerDownOutside, eventDetail, { discrete: true });
+        };
+        var handleAndDispatchPointerDownOutsideEvent = handleAndDispatchPointerDownOutsideEvent2;
+        const eventDetail = { originalEvent: event };
+        if (event.pointerType === "touch") {
+          ownerDocument.removeEventListener("click", handleClickRef.current);
+          handleClickRef.current = handleAndDispatchPointerDownOutsideEvent2;
+          ownerDocument.addEventListener("click", handleClickRef.current, { once: true });
+        } else {
+          handleAndDispatchPointerDownOutsideEvent2();
+        }
+      } else {
+        ownerDocument.removeEventListener("click", handleClickRef.current);
+      }
+      isPointerInsideReactTreeRef.current = false;
+    };
+    const timerId = window.setTimeout(() => {
+      ownerDocument.addEventListener("pointerdown", handlePointerDown);
+    }, 0);
+    return () => {
+      window.clearTimeout(timerId);
+      ownerDocument.removeEventListener("pointerdown", handlePointerDown);
+      ownerDocument.removeEventListener("click", handleClickRef.current);
+    };
+  }, [ownerDocument, handlePointerDownOutside]);
+  return {
+    onPointerDownCapture: () => isPointerInsideReactTreeRef.current = true
+  };
+}
+function useFocusOutside(onFocusOutside, ownerDocument = globalThis?.document) {
+  const handleFocusOutside = useCallbackRef(onFocusOutside);
+  const isFocusInsideReactTreeRef = React13.useRef(false);
+  React13.useEffect(() => {
+    const handleFocus = (event) => {
+      if (event.target && !isFocusInsideReactTreeRef.current) {
+        const eventDetail = { originalEvent: event };
+        handleAndDispatchCustomEvent(FOCUS_OUTSIDE, handleFocusOutside, eventDetail, {
+          discrete: false
+        });
+      }
+    };
+    ownerDocument.addEventListener("focusin", handleFocus);
+    return () => ownerDocument.removeEventListener("focusin", handleFocus);
+  }, [ownerDocument, handleFocusOutside]);
+  return {
+    onFocusCapture: () => isFocusInsideReactTreeRef.current = true,
+    onBlurCapture: () => isFocusInsideReactTreeRef.current = false
+  };
+}
+function dispatchUpdate() {
+  const event = new CustomEvent(CONTEXT_UPDATE);
+  document.dispatchEvent(event);
+}
+function handleAndDispatchCustomEvent(name, handler, detail, { discrete }) {
+  const target = detail.originalEvent.target;
+  const event = new CustomEvent(name, { bubbles: false, cancelable: true, detail });
+  if (handler)
+    target.addEventListener(name, handler, { once: true });
+  if (discrete) {
+    dispatchDiscreteCustomEvent(target, event);
+  } else {
+    target.dispatchEvent(event);
+  }
+}
+
+// node_modules/@radix-ui/react-focus-scope/dist/index.mjs
+var React14 = __toESM(require_react(), 1);
+init_dist();
+init_dist9();
+init_dist10();
+var import_jsx_runtime5 = __toESM(require_jsx_runtime(), 1);
+"use client";
+var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
+var AUTOFOCUS_ON_UNMOUNT = "focusScope.autoFocusOnUnmount";
+var EVENT_OPTIONS = { bubbles: false, cancelable: true };
+var FOCUS_SCOPE_NAME = "FocusScope";
+var FocusScope = React14.forwardRef((props, forwardedRef) => {
+  const {
+    loop = false,
+    trapped = false,
+    onMountAutoFocus: onMountAutoFocusProp,
+    onUnmountAutoFocus: onUnmountAutoFocusProp,
+    ...scopeProps
+  } = props;
+  const [container, setContainer] = React14.useState(null);
+  const onMountAutoFocus = useCallbackRef(onMountAutoFocusProp);
+  const onUnmountAutoFocus = useCallbackRef(onUnmountAutoFocusProp);
+  const lastFocusedElementRef = React14.useRef(null);
+  const composedRefs = useComposedRefs(forwardedRef, (node) => setContainer(node));
+  const focusScope = React14.useRef({
+    paused: false,
+    pause() {
+      this.paused = true;
+    },
+    resume() {
+      this.paused = false;
+    }
+  }).current;
+  React14.useEffect(() => {
+    if (trapped) {
+      let handleFocusIn2 = function(event) {
+        if (focusScope.paused || !container)
+          return;
+        const target = event.target;
+        if (container.contains(target)) {
+          lastFocusedElementRef.current = target;
+        } else {
+          focus(lastFocusedElementRef.current, { select: true });
+        }
+      }, handleFocusOut2 = function(event) {
+        if (focusScope.paused || !container)
+          return;
+        const relatedTarget = event.relatedTarget;
+        if (relatedTarget === null)
+          return;
+        if (!container.contains(relatedTarget)) {
+          focus(lastFocusedElementRef.current, { select: true });
+        }
+      }, handleMutations2 = function(mutations) {
+        const focusedElement = document.activeElement;
+        if (focusedElement !== document.body)
+          return;
+        for (const mutation of mutations) {
+          if (mutation.removedNodes.length > 0)
+            focus(container);
+        }
+      };
+      var handleFocusIn = handleFocusIn2, handleFocusOut = handleFocusOut2, handleMutations = handleMutations2;
+      document.addEventListener("focusin", handleFocusIn2);
+      document.addEventListener("focusout", handleFocusOut2);
+      const mutationObserver = new MutationObserver(handleMutations2);
+      if (container)
+        mutationObserver.observe(container, { childList: true, subtree: true });
+      return () => {
+        document.removeEventListener("focusin", handleFocusIn2);
+        document.removeEventListener("focusout", handleFocusOut2);
+        mutationObserver.disconnect();
+      };
+    }
+  }, [trapped, container, focusScope.paused]);
+  React14.useEffect(() => {
+    if (container) {
+      focusScopesStack.add(focusScope);
+      const previouslyFocusedElement = document.activeElement;
+      const hasFocusedCandidate = container.contains(previouslyFocusedElement);
+      if (!hasFocusedCandidate) {
+        const mountEvent = new CustomEvent(AUTOFOCUS_ON_MOUNT, EVENT_OPTIONS);
+        container.addEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+        container.dispatchEvent(mountEvent);
+        if (!mountEvent.defaultPrevented) {
+          focusFirst(removeLinks(getTabbableCandidates(container)), { select: true });
+          if (document.activeElement === previouslyFocusedElement) {
+            focus(container);
+          }
+        }
+      }
+      return () => {
+        container.removeEventListener(AUTOFOCUS_ON_MOUNT, onMountAutoFocus);
+        setTimeout(() => {
+          const unmountEvent = new CustomEvent(AUTOFOCUS_ON_UNMOUNT, EVENT_OPTIONS);
+          container.addEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+          container.dispatchEvent(unmountEvent);
+          if (!unmountEvent.defaultPrevented) {
+            focus(previouslyFocusedElement ?? document.body, { select: true });
+          }
+          container.removeEventListener(AUTOFOCUS_ON_UNMOUNT, onUnmountAutoFocus);
+          focusScopesStack.remove(focusScope);
+        }, 0);
+      };
+    }
+  }, [container, onMountAutoFocus, onUnmountAutoFocus, focusScope]);
+  const handleKeyDown = React14.useCallback((event) => {
+    if (!loop && !trapped)
+      return;
+    if (focusScope.paused)
+      return;
+    const isTabKey = event.key === "Tab" && !event.altKey && !event.ctrlKey && !event.metaKey;
+    const focusedElement = document.activeElement;
+    if (isTabKey && focusedElement) {
+      const container2 = event.currentTarget;
+      const [first, last] = getTabbableEdges(container2);
+      const hasTabbableElementsInside = first && last;
+      if (!hasTabbableElementsInside) {
+        if (focusedElement === container2)
+          event.preventDefault();
+      } else {
+        if (!event.shiftKey && focusedElement === last) {
+          event.preventDefault();
+          if (loop)
+            focus(first, { select: true });
+        } else if (event.shiftKey && focusedElement === first) {
+          event.preventDefault();
+          if (loop)
+            focus(last, { select: true });
+        }
+      }
+    }
+  }, [loop, trapped, focusScope.paused]);
+  return /* @__PURE__ */ import_jsx_runtime5.jsx(Primitive.div, { tabIndex: -1, ...scopeProps, ref: composedRefs, onKeyDown: handleKeyDown });
+});
+FocusScope.displayName = FOCUS_SCOPE_NAME;
+function focusFirst(candidates, { select = false } = {}) {
+  const previouslyFocusedElement = document.activeElement;
+  for (const candidate of candidates) {
+    focus(candidate, { select });
+    if (document.activeElement !== previouslyFocusedElement)
+      return;
+  }
+}
+function getTabbableEdges(container) {
+  const candidates = getTabbableCandidates(container);
+  const first = findVisible(candidates, container);
+  const last = findVisible(candidates.reverse(), container);
+  return [first, last];
+}
+function getTabbableCandidates(container) {
+  const nodes = [];
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_ELEMENT, {
+    acceptNode: (node) => {
+      const isHiddenInput = node.tagName === "INPUT" && node.type === "hidden";
+      if (node.disabled || node.hidden || isHiddenInput)
+        return NodeFilter.FILTER_SKIP;
+      return node.tabIndex >= 0 ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_SKIP;
+    }
+  });
+  while (walker.nextNode())
+    nodes.push(walker.currentNode);
+  return nodes;
+}
+function findVisible(elements, container) {
+  for (const element of elements) {
+    if (!isHidden(element, { upTo: container }))
+      return element;
+  }
+}
+function isHidden(node, { upTo }) {
+  if (getComputedStyle(node).visibility === "hidden")
+    return true;
+  while (node) {
+    if (upTo !== undefined && node === upTo)
+      return false;
+    if (getComputedStyle(node).display === "none")
+      return true;
+    node = node.parentElement;
+  }
+  return false;
+}
+function isSelectableInput(element) {
+  return element instanceof HTMLInputElement && "select" in element;
+}
+function focus(element, { select = false } = {}) {
+  if (element && element.focus) {
+    const previouslyFocusedElement = document.activeElement;
+    element.focus({ preventScroll: true });
+    if (element !== previouslyFocusedElement && isSelectableInput(element) && select)
+      element.select();
+  }
+}
+var focusScopesStack = createFocusScopesStack();
+function createFocusScopesStack() {
+  let stack = [];
+  return {
+    add(focusScope) {
+      const activeFocusScope = stack[0];
+      if (focusScope !== activeFocusScope) {
+        activeFocusScope?.pause();
+      }
+      stack = arrayRemove(stack, focusScope);
+      stack.unshift(focusScope);
+    },
+    remove(focusScope) {
+      stack = arrayRemove(stack, focusScope);
+      stack[0]?.resume();
+    }
+  };
+}
+function arrayRemove(array, item) {
+  const updatedArray = [...array];
+  const index = updatedArray.indexOf(item);
+  if (index !== -1) {
+    updatedArray.splice(index, 1);
+  }
+  return updatedArray;
+}
+function removeLinks(items) {
+  return items.filter((item) => item.tagName !== "A");
+}
+
+// node_modules/@radix-ui/react-portal/dist/index.mjs
+var React15 = __toESM(require_react(), 1);
+var import_react_dom = __toESM(require_react_dom(), 1);
+init_dist9();
+init_dist6();
+var import_jsx_runtime6 = __toESM(require_jsx_runtime(), 1);
+"use client";
+var PORTAL_NAME = "Portal";
+var Portal = React15.forwardRef((props, forwardedRef) => {
+  const { container: containerProp, ...portalProps } = props;
+  const [mounted, setMounted] = React15.useState(false);
+  useLayoutEffect2(() => setMounted(true), []);
+  const container = containerProp || mounted && globalThis?.document?.body;
+  return container ? import_react_dom.default.createPortal(/* @__PURE__ */ import_jsx_runtime6.jsx(Primitive.div, { ...portalProps, ref: forwardedRef }), container) : null;
+});
+Portal.displayName = PORTAL_NAME;
+
+// node_modules/@radix-ui/react-dialog/dist/index.mjs
+init_dist11();
+init_dist9();
+
+// node_modules/@radix-ui/react-focus-guards/dist/index.mjs
+var React17 = __toESM(require_react(), 1);
+"use client";
+var count2 = 0;
+function useFocusGuards() {
+  React17.useEffect(() => {
+    const edgeGuards = document.querySelectorAll("[data-radix-focus-guard]");
+    document.body.insertAdjacentElement("afterbegin", edgeGuards[0] ?? createFocusGuard());
+    document.body.insertAdjacentElement("beforeend", edgeGuards[1] ?? createFocusGuard());
+    count2++;
+    return () => {
+      if (count2 === 1) {
+        document.querySelectorAll("[data-radix-focus-guard]").forEach((node) => node.remove());
+      }
+      count2--;
+    };
+  }, []);
+}
+function createFocusGuard() {
+  const element = document.createElement("span");
+  element.setAttribute("data-radix-focus-guard", "");
+  element.tabIndex = 0;
+  element.style.outline = "none";
+  element.style.opacity = "0";
+  element.style.position = "fixed";
+  element.style.pointerEvents = "none";
+  return element;
+}
+
+// node_modules/tslib/tslib.es6.mjs
+var __assign = function() {
+  __assign = Object.assign || function __assign(t) {
+    for (var s, i = 1, n = arguments.length;i < n; i++) {
+      s = arguments[i];
+      for (var p in s)
+        if (Object.prototype.hasOwnProperty.call(s, p))
+          t[p] = s[p];
+    }
+    return t;
+  };
+  return __assign.apply(this, arguments);
+};
+function __rest(s, e) {
+  var t = {};
+  for (var p in s)
+    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+    for (var i = 0, p = Object.getOwnPropertySymbols(s);i < p.length; i++) {
+      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+        t[p[i]] = s[p[i]];
+    }
+  return t;
+}
+function __spreadArray(to, from, pack) {
+  if (pack || arguments.length === 2)
+    for (var i = 0, l = from.length, ar;i < l; i++) {
+      if (ar || !(i in from)) {
+        if (!ar)
+          ar = Array.prototype.slice.call(from, 0, i);
+        ar[i] = from[i];
+      }
+    }
+  return to.concat(ar || Array.prototype.slice.call(from));
+}
+
+// node_modules/react-remove-scroll/dist/es2015/Combination.js
+var React29 = __toESM(require_react(), 1);
+
+// node_modules/react-remove-scroll/dist/es2015/UI.js
+var React24 = __toESM(require_react(), 1);
+
+// node_modules/react-remove-scroll-bar/dist/es2015/constants.js
+var zeroRightClassName = "right-scroll-bar-position";
+var fullWidthClassName = "width-before-scroll-bar";
+var noScrollbarsClassName = "with-scroll-bars-hidden";
+var removedBarSizeVariable = "--removed-body-scroll-bar-size";
+
+// node_modules/use-callback-ref/dist/es2015/assignRef.js
+function assignRef(ref, value) {
+  if (typeof ref === "function") {
+    ref(value);
+  } else if (ref) {
+    ref.current = value;
+  }
+  return ref;
+}
+
+// node_modules/use-callback-ref/dist/es2015/useRef.js
+var import_react4 = __toESM(require_react(), 1);
+function useCallbackRef2(initialValue, callback) {
+  var ref = import_react4.useState(function() {
+    return {
+      value: initialValue,
+      callback,
+      facade: {
+        get current() {
+          return ref.value;
+        },
+        set current(value) {
+          var last = ref.value;
+          if (last !== value) {
+            ref.value = value;
+            ref.callback(value, last);
+          }
+        }
+      }
+    };
+  })[0];
+  ref.callback = callback;
+  return ref.facade;
+}
+
+// node_modules/use-callback-ref/dist/es2015/useMergeRef.js
+var React18 = __toESM(require_react(), 1);
+var useIsomorphicLayoutEffect = typeof window !== "undefined" ? React18.useLayoutEffect : React18.useEffect;
+var currentValues = new WeakMap;
+function useMergeRefs(refs, defaultValue) {
+  var callbackRef = useCallbackRef2(defaultValue || null, function(newValue) {
+    return refs.forEach(function(ref) {
+      return assignRef(ref, newValue);
+    });
+  });
+  useIsomorphicLayoutEffect(function() {
+    var oldValue = currentValues.get(callbackRef);
+    if (oldValue) {
+      var prevRefs_1 = new Set(oldValue);
+      var nextRefs_1 = new Set(refs);
+      var current_1 = callbackRef.current;
+      prevRefs_1.forEach(function(ref) {
+        if (!nextRefs_1.has(ref)) {
+          assignRef(ref, null);
+        }
+      });
+      nextRefs_1.forEach(function(ref) {
+        if (!prevRefs_1.has(ref)) {
+          assignRef(ref, current_1);
+        }
+      });
+    }
+    currentValues.set(callbackRef, refs);
+  }, [refs]);
+  return callbackRef;
+}
+// node_modules/use-sidecar/dist/es2015/hoc.js
+var React19 = __toESM(require_react(), 1);
+
+// node_modules/use-sidecar/dist/es2015/hook.js
+var import_react5 = __toESM(require_react(), 1);
+var cache = new WeakMap;
+// node_modules/use-sidecar/dist/es2015/medium.js
+function ItoI(a) {
+  return a;
+}
+function innerCreateMedium(defaults, middleware) {
+  if (middleware === undefined) {
+    middleware = ItoI;
+  }
+  var buffer = [];
+  var assigned = false;
+  var medium = {
+    read: function() {
+      if (assigned) {
+        throw new Error("Sidecar: could not `read` from an `assigned` medium. `read` could be used only with `useMedium`.");
+      }
+      if (buffer.length) {
+        return buffer[buffer.length - 1];
+      }
+      return defaults;
+    },
+    useMedium: function(data) {
+      var item = middleware(data, assigned);
+      buffer.push(item);
+      return function() {
+        buffer = buffer.filter(function(x) {
+          return x !== item;
+        });
+      };
+    },
+    assignSyncMedium: function(cb) {
+      assigned = true;
+      while (buffer.length) {
+        var cbs = buffer;
+        buffer = [];
+        cbs.forEach(cb);
+      }
+      buffer = {
+        push: function(x) {
+          return cb(x);
+        },
+        filter: function() {
+          return buffer;
+        }
+      };
+    },
+    assignMedium: function(cb) {
+      assigned = true;
+      var pendingQueue = [];
+      if (buffer.length) {
+        var cbs = buffer;
+        buffer = [];
+        cbs.forEach(cb);
+        pendingQueue = buffer;
+      }
+      var executeQueue = function() {
+        var cbs2 = pendingQueue;
+        pendingQueue = [];
+        cbs2.forEach(cb);
+      };
+      var cycle = function() {
+        return Promise.resolve().then(executeQueue);
+      };
+      cycle();
+      buffer = {
+        push: function(x) {
+          pendingQueue.push(x);
+          cycle();
+        },
+        filter: function(filter) {
+          pendingQueue = pendingQueue.filter(filter);
+          return buffer;
+        }
+      };
+    }
+  };
+  return medium;
+}
+function createSidecarMedium(options) {
+  if (options === undefined) {
+    options = {};
+  }
+  var medium = innerCreateMedium(null);
+  medium.options = __assign({ async: true, ssr: false }, options);
+  return medium;
+}
+// node_modules/use-sidecar/dist/es2015/renderProp.js
+var React20 = __toESM(require_react(), 1);
+var import_react6 = __toESM(require_react(), 1);
+// node_modules/use-sidecar/dist/es2015/exports.js
+var React21 = __toESM(require_react(), 1);
+var SideCar = function(_a) {
+  var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
+  if (!sideCar) {
+    throw new Error("Sidecar: please provide `sideCar` property to import the right car");
+  }
+  var Target = sideCar.read();
+  if (!Target) {
+    throw new Error("Sidecar medium not found");
+  }
+  return React21.createElement(Target, __assign({}, rest));
+};
+SideCar.isSideCarExport = true;
+function exportSidecar(medium, exported) {
+  medium.useMedium(exported);
+  return SideCar;
+}
+// node_modules/react-remove-scroll/dist/es2015/medium.js
+var effectCar = createSidecarMedium();
+
+// node_modules/react-remove-scroll/dist/es2015/UI.js
+var nothing = function() {
+  return;
+};
+var RemoveScroll = React24.forwardRef(function(props, parentRef) {
+  var ref = React24.useRef(null);
+  var _a = React24.useState({
+    onScrollCapture: nothing,
+    onWheelCapture: nothing,
+    onTouchMoveCapture: nothing
+  }), callbacks = _a[0], setCallbacks = _a[1];
+  var { forwardProps, children, className, removeScrollBar, enabled, shards, sideCar, noRelative, noIsolation, inert, allowPinchZoom, as: _b } = props, Container = _b === undefined ? "div" : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noRelative", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
+  var SideCar2 = sideCar;
+  var containerRef = useMergeRefs([ref, parentRef]);
+  var containerProps = __assign(__assign({}, rest), callbacks);
+  return React24.createElement(React24.Fragment, null, enabled && React24.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noRelative, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React24.cloneElement(React24.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React24.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
+});
+RemoveScroll.defaultProps = {
+  enabled: true,
+  removeScrollBar: true,
+  inert: false
+};
+RemoveScroll.classNames = {
+  fullWidth: fullWidthClassName,
+  zeroRight: zeroRightClassName
+};
+
+// node_modules/react-remove-scroll/dist/es2015/SideEffect.js
+var React28 = __toESM(require_react(), 1);
+
+// node_modules/react-remove-scroll-bar/dist/es2015/component.js
+var React27 = __toESM(require_react(), 1);
+
+// node_modules/react-style-singleton/dist/es2015/hook.js
+var React26 = __toESM(require_react(), 1);
+
+// node_modules/get-nonce/dist/es2015/index.js
+var currentNonce;
+var getNonce = function() {
+  if (currentNonce) {
+    return currentNonce;
+  }
+  if (typeof __webpack_nonce__ !== "undefined") {
+    return __webpack_nonce__;
+  }
+  return;
+};
+
+// node_modules/react-style-singleton/dist/es2015/singleton.js
+function makeStyleTag() {
+  if (!document)
+    return null;
+  var tag = document.createElement("style");
+  tag.type = "text/css";
+  var nonce = getNonce();
+  if (nonce) {
+    tag.setAttribute("nonce", nonce);
+  }
+  return tag;
+}
+function injectStyles(tag, css) {
+  if (tag.styleSheet) {
+    tag.styleSheet.cssText = css;
+  } else {
+    tag.appendChild(document.createTextNode(css));
+  }
+}
+function insertStyleTag(tag) {
+  var head = document.head || document.getElementsByTagName("head")[0];
+  head.appendChild(tag);
+}
+var stylesheetSingleton = function() {
+  var counter = 0;
+  var stylesheet = null;
+  return {
+    add: function(style) {
+      if (counter == 0) {
+        if (stylesheet = makeStyleTag()) {
+          injectStyles(stylesheet, style);
+          insertStyleTag(stylesheet);
+        }
+      }
+      counter++;
+    },
+    remove: function() {
+      counter--;
+      if (!counter && stylesheet) {
+        stylesheet.parentNode && stylesheet.parentNode.removeChild(stylesheet);
+        stylesheet = null;
+      }
+    }
+  };
+};
+
+// node_modules/react-style-singleton/dist/es2015/hook.js
+var styleHookSingleton = function() {
+  var sheet = stylesheetSingleton();
+  return function(styles, isDynamic) {
+    React26.useEffect(function() {
+      sheet.add(styles);
+      return function() {
+        sheet.remove();
+      };
+    }, [styles && isDynamic]);
+  };
+};
+
+// node_modules/react-style-singleton/dist/es2015/component.js
+var styleSingleton = function() {
+  var useStyle = styleHookSingleton();
+  var Sheet = function(_a) {
+    var { styles, dynamic } = _a;
+    useStyle(styles, dynamic);
+    return null;
+  };
+  return Sheet;
+};
+// node_modules/react-remove-scroll-bar/dist/es2015/utils.js
+var zeroGap = {
+  left: 0,
+  top: 0,
+  right: 0,
+  gap: 0
+};
+var parse = function(x) {
+  return parseInt(x || "", 10) || 0;
+};
+var getOffset = function(gapMode) {
+  var cs = window.getComputedStyle(document.body);
+  var left = cs[gapMode === "padding" ? "paddingLeft" : "marginLeft"];
+  var top = cs[gapMode === "padding" ? "paddingTop" : "marginTop"];
+  var right = cs[gapMode === "padding" ? "paddingRight" : "marginRight"];
+  return [parse(left), parse(top), parse(right)];
+};
+var getGapWidth = function(gapMode) {
+  if (gapMode === undefined) {
+    gapMode = "margin";
+  }
+  if (typeof window === "undefined") {
+    return zeroGap;
+  }
+  var offsets = getOffset(gapMode);
+  var documentWidth = document.documentElement.clientWidth;
+  var windowWidth = window.innerWidth;
+  return {
+    left: offsets[0],
+    top: offsets[1],
+    right: offsets[2],
+    gap: Math.max(0, windowWidth - documentWidth + offsets[2] - offsets[0])
+  };
+};
+
+// node_modules/react-remove-scroll-bar/dist/es2015/component.js
+var Style = styleSingleton();
+var lockAttribute = "data-scroll-locked";
+var getStyles = function(_a, allowRelative, gapMode, important) {
+  var { left, top, right, gap } = _a;
+  if (gapMode === undefined) {
+    gapMode = "margin";
+  }
+  return `
+  .`.concat(noScrollbarsClassName, ` {
+   overflow: hidden `).concat(important, `;
+   padding-right: `).concat(gap, "px ").concat(important, `;
+  }
+  body[`).concat(lockAttribute, `] {
+    overflow: hidden `).concat(important, `;
+    overscroll-behavior: contain;
+    `).concat([
+    allowRelative && "position: relative ".concat(important, ";"),
+    gapMode === "margin" && `
+    padding-left: `.concat(left, `px;
+    padding-top: `).concat(top, `px;
+    padding-right: `).concat(right, `px;
+    margin-left:0;
+    margin-top:0;
+    margin-right: `).concat(gap, "px ").concat(important, `;
+    `),
+    gapMode === "padding" && "padding-right: ".concat(gap, "px ").concat(important, ";")
+  ].filter(Boolean).join(""), `
+  }
+
+  .`).concat(zeroRightClassName, ` {
+    right: `).concat(gap, "px ").concat(important, `;
+  }
+
+  .`).concat(fullWidthClassName, ` {
+    margin-right: `).concat(gap, "px ").concat(important, `;
+  }
+
+  .`).concat(zeroRightClassName, " .").concat(zeroRightClassName, ` {
+    right: 0 `).concat(important, `;
+  }
+
+  .`).concat(fullWidthClassName, " .").concat(fullWidthClassName, ` {
+    margin-right: 0 `).concat(important, `;
+  }
+
+  body[`).concat(lockAttribute, `] {
+    `).concat(removedBarSizeVariable, ": ").concat(gap, `px;
+  }
+`);
+};
+var getCurrentUseCounter = function() {
+  var counter = parseInt(document.body.getAttribute(lockAttribute) || "0", 10);
+  return isFinite(counter) ? counter : 0;
+};
+var useLockAttribute = function() {
+  React27.useEffect(function() {
+    document.body.setAttribute(lockAttribute, (getCurrentUseCounter() + 1).toString());
+    return function() {
+      var newCounter = getCurrentUseCounter() - 1;
+      if (newCounter <= 0) {
+        document.body.removeAttribute(lockAttribute);
+      } else {
+        document.body.setAttribute(lockAttribute, newCounter.toString());
+      }
+    };
+  }, []);
+};
+var RemoveScrollBar = function(_a) {
+  var { noRelative, noImportant, gapMode: _b } = _a, gapMode = _b === undefined ? "margin" : _b;
+  useLockAttribute();
+  var gap = React27.useMemo(function() {
+    return getGapWidth(gapMode);
+  }, [gapMode]);
+  return React27.createElement(Style, { styles: getStyles(gap, !noRelative, gapMode, !noImportant ? "!important" : "") });
+};
+
+// node_modules/react-remove-scroll/dist/es2015/aggresiveCapture.js
+var passiveSupported = false;
+if (typeof window !== "undefined") {
+  try {
+    options = Object.defineProperty({}, "passive", {
+      get: function() {
+        passiveSupported = true;
+        return true;
+      }
+    });
+    window.addEventListener("test", options, options);
+    window.removeEventListener("test", options, options);
+  } catch (err) {
+    passiveSupported = false;
+  }
+}
+var options;
+var nonPassive = passiveSupported ? { passive: false } : false;
+
+// node_modules/react-remove-scroll/dist/es2015/handleScroll.js
+var alwaysContainsScroll = function(node) {
+  return node.tagName === "TEXTAREA";
+};
+var elementCanBeScrolled = function(node, overflow) {
+  if (!(node instanceof Element)) {
+    return false;
+  }
+  var styles = window.getComputedStyle(node);
+  return styles[overflow] !== "hidden" && !(styles.overflowY === styles.overflowX && !alwaysContainsScroll(node) && styles[overflow] === "visible");
+};
+var elementCouldBeVScrolled = function(node) {
+  return elementCanBeScrolled(node, "overflowY");
+};
+var elementCouldBeHScrolled = function(node) {
+  return elementCanBeScrolled(node, "overflowX");
+};
+var locationCouldBeScrolled = function(axis, node) {
+  var ownerDocument = node.ownerDocument;
+  var current = node;
+  do {
+    if (typeof ShadowRoot !== "undefined" && current instanceof ShadowRoot) {
+      current = current.host;
+    }
+    var isScrollable = elementCouldBeScrolled(axis, current);
+    if (isScrollable) {
+      var _a = getScrollVariables(axis, current), scrollHeight = _a[1], clientHeight = _a[2];
+      if (scrollHeight > clientHeight) {
+        return true;
+      }
+    }
+    current = current.parentNode;
+  } while (current && current !== ownerDocument.body);
+  return false;
+};
+var getVScrollVariables = function(_a) {
+  var { scrollTop, scrollHeight, clientHeight } = _a;
+  return [
+    scrollTop,
+    scrollHeight,
+    clientHeight
+  ];
+};
+var getHScrollVariables = function(_a) {
+  var { scrollLeft, scrollWidth, clientWidth } = _a;
+  return [
+    scrollLeft,
+    scrollWidth,
+    clientWidth
+  ];
+};
+var elementCouldBeScrolled = function(axis, node) {
+  return axis === "v" ? elementCouldBeVScrolled(node) : elementCouldBeHScrolled(node);
+};
+var getScrollVariables = function(axis, node) {
+  return axis === "v" ? getVScrollVariables(node) : getHScrollVariables(node);
+};
+var getDirectionFactor = function(axis, direction) {
+  return axis === "h" && direction === "rtl" ? -1 : 1;
+};
+var handleScroll = function(axis, endTarget, event, sourceDelta, noOverscroll) {
+  var directionFactor = getDirectionFactor(axis, window.getComputedStyle(endTarget).direction);
+  var delta = directionFactor * sourceDelta;
+  var target = event.target;
+  var targetInLock = endTarget.contains(target);
+  var shouldCancelScroll = false;
+  var isDeltaPositive = delta > 0;
+  var availableScroll = 0;
+  var availableScrollTop = 0;
+  do {
+    if (!target) {
+      break;
+    }
+    var _a = getScrollVariables(axis, target), position = _a[0], scroll_1 = _a[1], capacity = _a[2];
+    var elementScroll = scroll_1 - capacity - directionFactor * position;
+    if (position || elementScroll) {
+      if (elementCouldBeScrolled(axis, target)) {
+        availableScroll += elementScroll;
+        availableScrollTop += position;
+      }
+    }
+    var parent_1 = target.parentNode;
+    target = parent_1 && parent_1.nodeType === Node.DOCUMENT_FRAGMENT_NODE ? parent_1.host : parent_1;
+  } while (!targetInLock && target !== document.body || targetInLock && (endTarget.contains(target) || endTarget === target));
+  if (isDeltaPositive && (noOverscroll && Math.abs(availableScroll) < 1 || !noOverscroll && delta > availableScroll)) {
+    shouldCancelScroll = true;
+  } else if (!isDeltaPositive && (noOverscroll && Math.abs(availableScrollTop) < 1 || !noOverscroll && -delta > availableScrollTop)) {
+    shouldCancelScroll = true;
+  }
+  return shouldCancelScroll;
+};
+
+// node_modules/react-remove-scroll/dist/es2015/SideEffect.js
+var getTouchXY = function(event) {
+  return "changedTouches" in event ? [event.changedTouches[0].clientX, event.changedTouches[0].clientY] : [0, 0];
+};
+var getDeltaXY = function(event) {
+  return [event.deltaX, event.deltaY];
+};
+var extractRef = function(ref) {
+  return ref && "current" in ref ? ref.current : ref;
+};
+var deltaCompare = function(x, y) {
+  return x[0] === y[0] && x[1] === y[1];
+};
+var generateStyle = function(id) {
+  return `
+  .block-interactivity-`.concat(id, ` {pointer-events: none;}
+  .allow-interactivity-`).concat(id, ` {pointer-events: all;}
+`);
+};
+var idCounter = 0;
+var lockStack = [];
+function RemoveScrollSideCar(props) {
+  var shouldPreventQueue = React28.useRef([]);
+  var touchStartRef = React28.useRef([0, 0]);
+  var activeAxis = React28.useRef();
+  var id = React28.useState(idCounter++)[0];
+  var Style2 = React28.useState(styleSingleton)[0];
+  var lastProps = React28.useRef(props);
+  React28.useEffect(function() {
+    lastProps.current = props;
+  }, [props]);
+  React28.useEffect(function() {
+    if (props.inert) {
+      document.body.classList.add("block-interactivity-".concat(id));
+      var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
+      allow_1.forEach(function(el) {
+        return el.classList.add("allow-interactivity-".concat(id));
+      });
+      return function() {
+        document.body.classList.remove("block-interactivity-".concat(id));
+        allow_1.forEach(function(el) {
+          return el.classList.remove("allow-interactivity-".concat(id));
+        });
+      };
+    }
+    return;
+  }, [props.inert, props.lockRef.current, props.shards]);
+  var shouldCancelEvent = React28.useCallback(function(event, parent) {
+    if ("touches" in event && event.touches.length === 2 || event.type === "wheel" && event.ctrlKey) {
+      return !lastProps.current.allowPinchZoom;
+    }
+    var touch = getTouchXY(event);
+    var touchStart = touchStartRef.current;
+    var deltaX = "deltaX" in event ? event.deltaX : touchStart[0] - touch[0];
+    var deltaY = "deltaY" in event ? event.deltaY : touchStart[1] - touch[1];
+    var currentAxis;
+    var target = event.target;
+    var moveDirection = Math.abs(deltaX) > Math.abs(deltaY) ? "h" : "v";
+    if ("touches" in event && moveDirection === "h" && target.type === "range") {
+      return false;
+    }
+    var canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+    if (!canBeScrolledInMainDirection) {
+      return true;
+    }
+    if (canBeScrolledInMainDirection) {
+      currentAxis = moveDirection;
+    } else {
+      currentAxis = moveDirection === "v" ? "h" : "v";
+      canBeScrolledInMainDirection = locationCouldBeScrolled(moveDirection, target);
+    }
+    if (!canBeScrolledInMainDirection) {
+      return false;
+    }
+    if (!activeAxis.current && "changedTouches" in event && (deltaX || deltaY)) {
+      activeAxis.current = currentAxis;
+    }
+    if (!currentAxis) {
+      return true;
+    }
+    var cancelingAxis = activeAxis.current || currentAxis;
+    return handleScroll(cancelingAxis, parent, event, cancelingAxis === "h" ? deltaX : deltaY, true);
+  }, []);
+  var shouldPrevent = React28.useCallback(function(_event) {
+    var event = _event;
+    if (!lockStack.length || lockStack[lockStack.length - 1] !== Style2) {
+      return;
+    }
+    var delta = "deltaY" in event ? getDeltaXY(event) : getTouchXY(event);
+    var sourceEvent = shouldPreventQueue.current.filter(function(e) {
+      return e.name === event.type && (e.target === event.target || event.target === e.shadowParent) && deltaCompare(e.delta, delta);
+    })[0];
+    if (sourceEvent && sourceEvent.should) {
+      if (event.cancelable) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (!sourceEvent) {
+      var shardNodes = (lastProps.current.shards || []).map(extractRef).filter(Boolean).filter(function(node) {
+        return node.contains(event.target);
+      });
+      var shouldStop = shardNodes.length > 0 ? shouldCancelEvent(event, shardNodes[0]) : !lastProps.current.noIsolation;
+      if (shouldStop) {
+        if (event.cancelable) {
+          event.preventDefault();
+        }
+      }
+    }
+  }, []);
+  var shouldCancel = React28.useCallback(function(name, delta, target, should) {
+    var event = { name, delta, target, should, shadowParent: getOutermostShadowParent(target) };
+    shouldPreventQueue.current.push(event);
+    setTimeout(function() {
+      shouldPreventQueue.current = shouldPreventQueue.current.filter(function(e) {
+        return e !== event;
+      });
+    }, 1);
+  }, []);
+  var scrollTouchStart = React28.useCallback(function(event) {
+    touchStartRef.current = getTouchXY(event);
+    activeAxis.current = undefined;
+  }, []);
+  var scrollWheel = React28.useCallback(function(event) {
+    shouldCancel(event.type, getDeltaXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
+  }, []);
+  var scrollTouchMove = React28.useCallback(function(event) {
+    shouldCancel(event.type, getTouchXY(event), event.target, shouldCancelEvent(event, props.lockRef.current));
+  }, []);
+  React28.useEffect(function() {
+    lockStack.push(Style2);
+    props.setCallbacks({
+      onScrollCapture: scrollWheel,
+      onWheelCapture: scrollWheel,
+      onTouchMoveCapture: scrollTouchMove
+    });
+    document.addEventListener("wheel", shouldPrevent, nonPassive);
+    document.addEventListener("touchmove", shouldPrevent, nonPassive);
+    document.addEventListener("touchstart", scrollTouchStart, nonPassive);
+    return function() {
+      lockStack = lockStack.filter(function(inst) {
+        return inst !== Style2;
+      });
+      document.removeEventListener("wheel", shouldPrevent, nonPassive);
+      document.removeEventListener("touchmove", shouldPrevent, nonPassive);
+      document.removeEventListener("touchstart", scrollTouchStart, nonPassive);
+    };
+  }, []);
+  var { removeScrollBar, inert } = props;
+  return React28.createElement(React28.Fragment, null, inert ? React28.createElement(Style2, { styles: generateStyle(id) }) : null, removeScrollBar ? React28.createElement(RemoveScrollBar, { noRelative: props.noRelative, gapMode: props.gapMode }) : null);
+}
+function getOutermostShadowParent(node) {
+  var shadowParent = null;
+  while (node !== null) {
+    if (node instanceof ShadowRoot) {
+      shadowParent = node.host;
+      node = node.host;
+    }
+    node = node.parentNode;
+  }
+  return shadowParent;
+}
+
+// node_modules/react-remove-scroll/dist/es2015/sidecar.js
+var sidecar_default = exportSidecar(effectCar, RemoveScrollSideCar);
+
+// node_modules/react-remove-scroll/dist/es2015/Combination.js
+var ReactRemoveScroll = React29.forwardRef(function(props, ref) {
+  return React29.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: sidecar_default }));
+});
+ReactRemoveScroll.classNames = RemoveScroll.classNames;
+var Combination_default = ReactRemoveScroll;
+
+// node_modules/aria-hidden/dist/es2015/index.js
+var getDefaultParent = function(originalTarget) {
+  if (typeof document === "undefined") {
+    return null;
+  }
+  var sampleTarget = Array.isArray(originalTarget) ? originalTarget[0] : originalTarget;
+  return sampleTarget.ownerDocument.body;
+};
+var counterMap = new WeakMap;
+var uncontrolledNodes = new WeakMap;
+var markerMap = {};
+var lockCount = 0;
+var unwrapHost = function(node) {
+  return node && (node.host || unwrapHost(node.parentNode));
+};
+var correctTargets = function(parent, targets) {
+  return targets.map(function(target) {
+    if (parent.contains(target)) {
+      return target;
+    }
+    var correctedTarget = unwrapHost(target);
+    if (correctedTarget && parent.contains(correctedTarget)) {
+      return correctedTarget;
+    }
+    console.error("aria-hidden", target, "in not contained inside", parent, ". Doing nothing");
+    return null;
+  }).filter(function(x) {
+    return Boolean(x);
+  });
+};
+var applyAttributeToOthers = function(originalTarget, parentNode, markerName, controlAttribute) {
+  var targets = correctTargets(parentNode, Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+  if (!markerMap[markerName]) {
+    markerMap[markerName] = new WeakMap;
+  }
+  var markerCounter = markerMap[markerName];
+  var hiddenNodes = [];
+  var elementsToKeep = new Set;
+  var elementsToStop = new Set(targets);
+  var keep = function(el) {
+    if (!el || elementsToKeep.has(el)) {
+      return;
+    }
+    elementsToKeep.add(el);
+    keep(el.parentNode);
+  };
+  targets.forEach(keep);
+  var deep = function(parent) {
+    if (!parent || elementsToStop.has(parent)) {
+      return;
+    }
+    Array.prototype.forEach.call(parent.children, function(node) {
+      if (elementsToKeep.has(node)) {
+        deep(node);
+      } else {
+        try {
+          var attr = node.getAttribute(controlAttribute);
+          var alreadyHidden = attr !== null && attr !== "false";
+          var counterValue = (counterMap.get(node) || 0) + 1;
+          var markerValue = (markerCounter.get(node) || 0) + 1;
+          counterMap.set(node, counterValue);
+          markerCounter.set(node, markerValue);
+          hiddenNodes.push(node);
+          if (counterValue === 1 && alreadyHidden) {
+            uncontrolledNodes.set(node, true);
+          }
+          if (markerValue === 1) {
+            node.setAttribute(markerName, "true");
+          }
+          if (!alreadyHidden) {
+            node.setAttribute(controlAttribute, "true");
+          }
+        } catch (e) {
+          console.error("aria-hidden: cannot operate on ", node, e);
+        }
+      }
+    });
+  };
+  deep(parentNode);
+  elementsToKeep.clear();
+  lockCount++;
+  return function() {
+    hiddenNodes.forEach(function(node) {
+      var counterValue = counterMap.get(node) - 1;
+      var markerValue = markerCounter.get(node) - 1;
+      counterMap.set(node, counterValue);
+      markerCounter.set(node, markerValue);
+      if (!counterValue) {
+        if (!uncontrolledNodes.has(node)) {
+          node.removeAttribute(controlAttribute);
+        }
+        uncontrolledNodes.delete(node);
+      }
+      if (!markerValue) {
+        node.removeAttribute(markerName);
+      }
+    });
+    lockCount--;
+    if (!lockCount) {
+      counterMap = new WeakMap;
+      counterMap = new WeakMap;
+      uncontrolledNodes = new WeakMap;
+      markerMap = {};
+    }
+  };
+};
+var hideOthers = function(originalTarget, parentNode, markerName) {
+  if (markerName === undefined) {
+    markerName = "data-aria-hidden";
+  }
+  var targets = Array.from(Array.isArray(originalTarget) ? originalTarget : [originalTarget]);
+  var activeParentNode = parentNode || getDefaultParent(originalTarget);
+  if (!activeParentNode) {
+    return function() {
+      return null;
+    };
+  }
+  targets.push.apply(targets, Array.from(activeParentNode.querySelectorAll("[aria-live], script")));
+  return applyAttributeToOthers(targets, activeParentNode, markerName, "aria-hidden");
+};
+
+// node_modules/@radix-ui/react-dialog/dist/index.mjs
 init_dist2();
 var import_jsx_runtime7 = __toESM(require_jsx_runtime(), 1);
 "use client";
@@ -69127,8 +65381,8 @@ var Dialog = (props) => {
     onOpenChange,
     modal = true
   } = props;
-  const triggerRef = React28.useRef(null);
-  const contentRef = React28.useRef(null);
+  const triggerRef = React30.useRef(null);
+  const contentRef = React30.useRef(null);
   const [open, setOpen] = useControllableState({
     prop: openProp,
     defaultProp: defaultOpen ?? false,
@@ -69144,14 +65398,14 @@ var Dialog = (props) => {
     descriptionId: useId(),
     open,
     onOpenChange: setOpen,
-    onOpenToggle: React28.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
+    onOpenToggle: React30.useCallback(() => setOpen((prevOpen) => !prevOpen), [setOpen]),
     modal,
     children
   });
 };
 Dialog.displayName = DIALOG_NAME;
 var TRIGGER_NAME = "DialogTrigger";
-var DialogTrigger = React28.forwardRef((props, forwardedRef) => {
+var DialogTrigger = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...triggerProps } = props;
   const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
   const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
@@ -69174,11 +65428,11 @@ var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME2, {
 var DialogPortal = (props) => {
   const { __scopeDialog, forceMount, children, container } = props;
   const context = useDialogContext(PORTAL_NAME2, __scopeDialog);
-  return /* @__PURE__ */ import_jsx_runtime7.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React28.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime7.jsx(Portal, { asChild: true, container, children: child }) })) });
+  return /* @__PURE__ */ import_jsx_runtime7.jsx(PortalProvider, { scope: __scopeDialog, forceMount, children: React30.Children.map(children, (child) => /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: /* @__PURE__ */ import_jsx_runtime7.jsx(Portal, { asChild: true, container, children: child }) })) });
 };
 DialogPortal.displayName = PORTAL_NAME2;
 var OVERLAY_NAME = "DialogOverlay";
-var DialogOverlay = React28.forwardRef((props, forwardedRef) => {
+var DialogOverlay = React30.forwardRef((props, forwardedRef) => {
   const portalContext = usePortalContext(OVERLAY_NAME, props.__scopeDialog);
   const { forceMount = portalContext.forceMount, ...overlayProps } = props;
   const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
@@ -69186,7 +65440,7 @@ var DialogOverlay = React28.forwardRef((props, forwardedRef) => {
 });
 DialogOverlay.displayName = OVERLAY_NAME;
 var Slot2 = createSlot("DialogOverlay.RemoveScroll");
-var DialogOverlayImpl = React28.forwardRef((props, forwardedRef) => {
+var DialogOverlayImpl = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...overlayProps } = props;
   const context = useDialogContext(OVERLAY_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Combination_default, { as: Slot2, allowPinchZoom: true, shards: [context.contentRef], children: /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.div, {
@@ -69197,18 +65451,18 @@ var DialogOverlayImpl = React28.forwardRef((props, forwardedRef) => {
   }) });
 });
 var CONTENT_NAME = "DialogContent";
-var DialogContent = React28.forwardRef((props, forwardedRef) => {
+var DialogContent = React30.forwardRef((props, forwardedRef) => {
   const portalContext = usePortalContext(CONTENT_NAME, props.__scopeDialog);
   const { forceMount = portalContext.forceMount, ...contentProps } = props;
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Presence, { present: forceMount || context.open, children: context.modal ? /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentModal, { ...contentProps, ref: forwardedRef }) : /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentNonModal, { ...contentProps, ref: forwardedRef }) });
 });
 DialogContent.displayName = CONTENT_NAME;
-var DialogContentModal = React28.forwardRef((props, forwardedRef) => {
+var DialogContentModal = React30.forwardRef((props, forwardedRef) => {
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
-  const contentRef = React28.useRef(null);
+  const contentRef = React30.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, context.contentRef, contentRef);
-  React28.useEffect(() => {
+  React30.useEffect(() => {
     const content = contentRef.current;
     if (content)
       return hideOthers(content);
@@ -69232,10 +65486,10 @@ var DialogContentModal = React28.forwardRef((props, forwardedRef) => {
     onFocusOutside: composeEventHandlers(props.onFocusOutside, (event) => event.preventDefault())
   });
 });
-var DialogContentNonModal = React28.forwardRef((props, forwardedRef) => {
+var DialogContentNonModal = React30.forwardRef((props, forwardedRef) => {
   const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
-  const hasInteractedOutsideRef = React28.useRef(false);
-  const hasPointerDownOutsideRef = React28.useRef(false);
+  const hasInteractedOutsideRef = React30.useRef(false);
+  const hasPointerDownOutsideRef = React30.useRef(false);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(DialogContentImpl, {
     ...props,
     ref: forwardedRef,
@@ -69269,10 +65523,10 @@ var DialogContentNonModal = React28.forwardRef((props, forwardedRef) => {
     }
   });
 });
-var DialogContentImpl = React28.forwardRef((props, forwardedRef) => {
+var DialogContentImpl = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, trapFocus, onOpenAutoFocus, onCloseAutoFocus, ...contentProps } = props;
   const context = useDialogContext(CONTENT_NAME, __scopeDialog);
-  const contentRef = React28.useRef(null);
+  const contentRef = React30.useRef(null);
   const composedRefs = useComposedRefs(forwardedRef, contentRef);
   useFocusGuards();
   return /* @__PURE__ */ import_jsx_runtime7.jsxs(import_jsx_runtime7.Fragment, { children: [
@@ -69300,21 +65554,21 @@ var DialogContentImpl = React28.forwardRef((props, forwardedRef) => {
   ] });
 });
 var TITLE_NAME = "DialogTitle";
-var DialogTitle = React28.forwardRef((props, forwardedRef) => {
+var DialogTitle = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...titleProps } = props;
   const context = useDialogContext(TITLE_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.h2, { id: context.titleId, ...titleProps, ref: forwardedRef });
 });
 DialogTitle.displayName = TITLE_NAME;
 var DESCRIPTION_NAME = "DialogDescription";
-var DialogDescription = React28.forwardRef((props, forwardedRef) => {
+var DialogDescription = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...descriptionProps } = props;
   const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.p, { id: context.descriptionId, ...descriptionProps, ref: forwardedRef });
 });
 DialogDescription.displayName = DESCRIPTION_NAME;
 var CLOSE_NAME = "DialogClose";
-var DialogClose = React28.forwardRef((props, forwardedRef) => {
+var DialogClose = React30.forwardRef((props, forwardedRef) => {
   const { __scopeDialog, ...closeProps } = props;
   const context = useDialogContext(CLOSE_NAME, __scopeDialog);
   return /* @__PURE__ */ import_jsx_runtime7.jsx(Primitive.button, {
@@ -69341,7 +65595,7 @@ var TitleWarning = ({ titleId }) => {
 If you want to hide the \`${titleWarningContext.titleName}\`, you can wrap it with our VisuallyHidden component.
 
 For more information, see https://radix-ui.com/primitives/docs/components/${titleWarningContext.docsSlug}`;
-  React28.useEffect(() => {
+  React30.useEffect(() => {
     if (titleId) {
       const hasTitle = document.getElementById(titleId);
       if (!hasTitle)
@@ -69354,7 +65608,7 @@ var DESCRIPTION_WARNING_NAME = "DialogDescriptionWarning";
 var DescriptionWarning = ({ contentRef, descriptionId }) => {
   const descriptionWarningContext = useWarningContext(DESCRIPTION_WARNING_NAME);
   const MESSAGE = `Warning: Missing \`Description\` or \`aria-describedby={undefined}\` for {${descriptionWarningContext.contentName}}.`;
-  React28.useEffect(() => {
+  React30.useEffect(() => {
     const describedById = contentRef.current?.getAttribute("aria-describedby");
     if (descriptionId && describedById) {
       const hasDescription = document.getElementById(descriptionId);
@@ -69379,13 +65633,13 @@ var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
 "use client";
 var Dialog2 = Root;
 var DialogPortal2 = Portal2;
-var DialogOverlay2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
+var DialogOverlay2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Overlay, {
   ref,
   className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
   ...props
 }, undefined, false, undefined, this));
 DialogOverlay2.displayName = Overlay.displayName;
-var DialogContent2 = React29.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
+var DialogContent2 = React31.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogPortal2, {
   children: [
     /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(DialogOverlay2, {}, undefined, false, undefined, this),
     /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Content, {
@@ -69427,13 +65681,13 @@ var DialogFooter = ({
   ...props
 }, undefined, false, undefined, this);
 DialogFooter.displayName = "DialogFooter";
-var DialogTitle2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
+var DialogTitle2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Title, {
   ref,
   className: cn("text-lg font-semibold leading-none tracking-tight", className),
   ...props
 }, undefined, false, undefined, this));
 DialogTitle2.displayName = Title.displayName;
-var DialogDescription2 = React29.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
+var DialogDescription2 = React31.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ jsx_dev_runtime4.jsxDEV(Description, {
   ref,
   className: cn("text-sm text-muted-foreground", className),
   ...props
@@ -69443,15 +65697,37 @@ DialogDescription2.displayName = Description.displayName;
 // dashboard/src/pages/Dashboard.js
 init_button();
 init_scroll_area();
-init_api();
-var jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
-var ProjectSelector2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
-var ActivityLog2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
-var ChatInterface2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
-var ToolHealthMonitor2 = import_react38.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
-var SwarmVisualizer2 = import_react38.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
-var CodeBrowser2 = import_react38.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
-var FileViewer2 = import_react38.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
+
+// dashboard/src/lib/api.js
+var authenticatedFetch = async (url, options2 = {}) => {
+  const token = localStorage.getItem("authToken");
+  const headers = {
+    ...options2.headers,
+    "Content-Type": "application/json"
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  const response = await fetch(url, {
+    ...options2,
+    headers
+  });
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+};
+var api_default = authenticatedFetch;
+
+// dashboard/src/pages/Dashboard.js
+var jsx_dev_runtime20 = __toESM(require_jsx_dev_runtime(), 1);
+var ProjectSelector2 = import_react39.lazy(() => Promise.resolve().then(() => (init_ProjectSelector(), exports_ProjectSelector)));
+var ActivityLog2 = import_react39.lazy(() => Promise.resolve().then(() => (init_ActivityLog(), exports_ActivityLog)));
+var ChatInterface2 = import_react39.lazy(() => Promise.resolve().then(() => (init_ChatInterface(), exports_ChatInterface)));
+var ToolHealthMonitor2 = import_react39.lazy(() => Promise.resolve().then(() => (init_ToolHealthMonitor(), exports_ToolHealthMonitor)));
+var SwarmVisualizer2 = import_react39.lazy(() => Promise.resolve().then(() => (init_SwarmVisualizer(), exports_SwarmVisualizer)));
+var CodeBrowser2 = import_react39.lazy(() => Promise.resolve().then(() => (init_CodeBrowser(), exports_CodeBrowser)));
+var FileViewer2 = import_react39.lazy(() => Promise.resolve().then(() => (init_FileViewer(), exports_FileViewer)));
 var INITIAL_STATE = {
   logs: [],
   agentActivity: [],
@@ -69468,11 +65744,12 @@ var INITIAL_STATE = {
 };
 var Dashboard = () => {
   const { data, sendMessage } = useWebSocket_default();
-  const [systemState, setSystemState] = import_react38.useState(INITIAL_STATE);
-  const [humanApprovalRequest, setHumanApprovalRequest] = import_react38.useState(null);
-  const [thoughtStream, setThoughtStream] = import_react38.useState([]);
-  const [healthData, setHealthData] = import_react38.useState(null);
-  import_react38.useEffect(() => {
+  const [systemState, setSystemState] = import_react39.useState(INITIAL_STATE);
+  const [humanApprovalRequest, setHumanApprovalRequest] = import_react39.useState(null);
+  const [thoughtStream, setThoughtStream] = import_react39.useState([]);
+  const [healthData, setHealthData] = import_react39.useState(null);
+  const [activeTab, setActiveTab] = import_react39.useState(0);
+  import_react39.useEffect(() => {
     if (data) {
       const { type, payload } = data;
       switch (type) {
@@ -69539,6 +65816,7 @@ var Dashboard = () => {
       isFileContentLoading: true,
       fileContent: ""
     }));
+    setActiveTab(4);
     try {
       const data2 = await api_default(`/api/file-content?path=${encodeURIComponent(filePath)}`);
       setSystemState((prevState) => ({
@@ -69555,23 +65833,23 @@ var Dashboard = () => {
       }));
     }
   };
-  const sidebarContent = /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+  const sidebarContent = /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
     className: "flex flex-col h-full",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Button, {
+      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Button, {
         variant: "outline",
         className: "w-full mb-4",
         children: "+ New Chat"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ProjectSelector2, {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ProjectSelector2, {
           onProjectSelect: handleProjectSelect
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
         className: "mt-4 text-sm text-zinc-400",
         children: "History (coming soon)"
       }, undefined, false, undefined, this)
@@ -69580,42 +65858,42 @@ var Dashboard = () => {
   const rightPanelTabs = [
     {
       label: "Activity",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      content: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ActivityLog2, {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ActivityLog2, {
           agentActivity: systemState.agentActivity
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     },
     {
       label: "Swarm",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      content: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(SwarmVisualizer2, {}, undefined, false, undefined, this)
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(SwarmVisualizer2, {}, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     },
     {
       label: "Health",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      content: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ToolHealthMonitor2, {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ToolHealthMonitor2, {
           healthData
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this)
     },
     {
       label: "Files",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      content: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(CodeBrowser2, {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(CodeBrowser2, {
           files: systemState.files,
           onFileSelect: handleFileSelect,
           selectedFile: systemState.selectedFile,
@@ -69626,11 +65904,11 @@ var Dashboard = () => {
     },
     {
       label: "Viewer",
-      content: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+      content: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
           children: "Loading..."
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(FileViewer2, {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(FileViewer2, {
           filePath: systemState.selectedFile,
           content: systemState.fileContent,
           isLoading: systemState.isFileContentLoading
@@ -69638,51 +65916,51 @@ var Dashboard = () => {
       }, undefined, false, undefined, this)
     }
   ];
-  return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
     className: "dark",
     children: [
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-        fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(jsx_dev_runtime21.Fragment, {}, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Dialog2, {
+      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+        fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(jsx_dev_runtime20.Fragment, {}, undefined, false, undefined, this),
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Dialog2, {
           open: !!humanApprovalRequest,
           onOpenChange: (isOpen) => !isOpen && setHumanApprovalRequest(null),
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(DialogContent2, {
+          children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(DialogContent2, {
             className: "sm:max-w-[600px]",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(DialogHeader, {
+              /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(DialogHeader, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(DialogTitle2, {
+                  /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(DialogTitle2, {
                     children: "Human Approval Required"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(DialogDescription2, {
+                  /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(DialogDescription2, {
                     children: "An agent has paused its execution and requires your input to proceed."
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
                 className: "grid gap-4 py-4",
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("p", {
+                  /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("p", {
                     className: "text-sm font-medium",
                     children: humanApprovalRequest?.message
                   }, undefined, false, undefined, this),
-                  humanApprovalRequest?.data && /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ScrollArea2, {
+                  humanApprovalRequest?.data && /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ScrollArea2, {
                     className: "h-72 w-full rounded-md border p-4",
-                    children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("pre", {
+                    children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("pre", {
                       className: "text-xs whitespace-pre-wrap",
                       children: JSON.stringify(humanApprovalRequest.data, null, 2)
                     }, undefined, false, undefined, this)
                   }, undefined, false, undefined, this)
                 ]
               }, undefined, true, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(DialogFooter, {
+              /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(DialogFooter, {
                 children: [
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Button, {
+                  /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Button, {
                     variant: "destructive",
                     onClick: () => handleApprovalResponse("rejected"),
                     children: "Reject"
                   }, undefined, false, undefined, this),
-                  /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Button, {
+                  /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Button, {
                     variant: "default",
                     onClick: () => handleApprovalResponse("approved"),
                     children: "Approve"
@@ -69693,17 +65971,19 @@ var Dashboard = () => {
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Layout_default, {
+      /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Layout_default, {
         sidebar: sidebarContent,
-        rightPanel: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(Tabs_default, {
-          tabs: rightPanelTabs
+        rightPanel: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(Tabs_default, {
+          tabs: rightPanelTabs,
+          activeTab,
+          onTabChange: setActiveTab
         }, undefined, false, undefined, this),
-        children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(import_react38.Suspense, {
-          fallback: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
+        children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(import_react39.Suspense, {
+          fallback: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV("div", {
             className: "p-4",
             children: "Loading Chat..."
           }, undefined, false, undefined, this),
-          children: /* @__PURE__ */ jsx_dev_runtime21.jsxDEV(ChatInterface2, {
+          children: /* @__PURE__ */ jsx_dev_runtime20.jsxDEV(ChatInterface2, {
             sendMessage,
             engineStatus: systemState.project_status,
             activeProject: systemState.project_path,
@@ -69717,40 +65997,40 @@ var Dashboard = () => {
 var Dashboard_default = Dashboard;
 
 // dashboard/src/components/Login.js
-var import_react39 = __toESM(require_react(), 1);
-var jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
+var import_react40 = __toESM(require_react(), 1);
+var jsx_dev_runtime21 = __toESM(require_jsx_dev_runtime(), 1);
 var Login = ({ onLogin }) => {
-  const [token, setToken] = import_react39.useState("");
-  const [adminToken, setAdminToken] = import_react39.useState("");
+  const [token, setToken] = import_react40.useState("");
+  const [adminToken, setAdminToken] = import_react40.useState("");
   const handleSubmit = (e) => {
     e.preventDefault();
     onLogin(token, adminToken);
   };
-  return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("div", {
+  return /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("div", {
     style: { display: "flex", justifyContent: "center", alignItems: "center", height: "100vh", flexDirection: "column" },
     children: [
-      /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("h2", {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("h2", {
         children: "Stigmergy Login"
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("form", {
+      /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("form", {
         onSubmit: handleSubmit,
         style: { display: "flex", flexDirection: "column", width: "300px" },
         children: [
-          /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("input", {
+          /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("input", {
             type: "password",
             placeholder: "Auth Token",
             value: token,
             onChange: (e) => setToken(e.target.value),
             style: { marginBottom: "10px", padding: "8px" }
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("input", {
+          /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("input", {
             type: "password",
             placeholder: "Admin Token (optional)",
             value: adminToken,
             onChange: (e) => setAdminToken(e.target.value),
             style: { marginBottom: "10px", padding: "8px" }
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime22.jsxDEV("button", {
+          /* @__PURE__ */ jsx_dev_runtime21.jsxDEV("button", {
             type: "submit",
             style: { padding: "10px" },
             children: "Login"
@@ -69763,10 +66043,10 @@ var Login = ({ onLogin }) => {
 var Login_default = Login;
 
 // dashboard/src/App.js
-var jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime22 = __toESM(require_jsx_dev_runtime(), 1);
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = import_react40.useState(false);
-  import_react40.useEffect(() => {
+  const [isAuthenticated, setIsAuthenticated] = import_react41.useState(false);
+  import_react41.useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (token) {
       setIsAuthenticated(true);
@@ -69780,19 +66060,19 @@ function App() {
     setIsAuthenticated(true);
   };
   if (!isAuthenticated) {
-    return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Login_default, {
+    return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Login_default, {
       onLogin: handleLogin
     }, undefined, false, undefined, this);
   }
-  return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
+  return /* @__PURE__ */ jsx_dev_runtime22.jsxDEV(Dashboard_default, {}, undefined, false, undefined, this);
 }
 var App_default = App;
 
 // dashboard/src/components/ErrorBoundary.js
-var import_react41 = __toESM(require_react(), 1);
-var jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
+var import_react42 = __toESM(require_react(), 1);
+var jsx_dev_runtime23 = __toESM(require_jsx_dev_runtime(), 1);
 
-class ErrorBoundary extends import_react41.default.Component {
+class ErrorBoundary extends import_react42.default.Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
@@ -69806,28 +66086,28 @@ class ErrorBoundary extends import_react41.default.Component {
   }
   render() {
     if (this.state.hasError) {
-      return /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+      return /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("div", {
         style: { padding: "20px", color: "white", backgroundColor: "#400000", height: "100vh", fontFamily: "monospace", overflow: "auto" },
         children: [
-          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("h1", {
+          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("h1", {
             children: "Application Error Caught"
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("p", {
+          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("p", {
             children: "The application failed to render. This is the error that was previously silent."
           }, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("hr", {}, undefined, false, undefined, this),
-          /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("details", {
+          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("hr", {}, undefined, false, undefined, this),
+          /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("details", {
             open: true,
             style: { whiteSpace: "pre-wrap" },
             children: [
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("summary", {
+              /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("summary", {
                 style: { fontWeight: "bold", cursor: "pointer" },
                 children: "Error Details"
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("h3", {
+              /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("h3", {
                 children: this.state.error && this.state.error.toString()
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime24.jsxDEV("div", {
+              /* @__PURE__ */ jsx_dev_runtime23.jsxDEV("div", {
                 children: this.state.errorInfo && this.state.errorInfo.componentStack
               }, undefined, false, undefined, this)
             ]
@@ -69841,10 +66121,10 @@ class ErrorBoundary extends import_react41.default.Component {
 var ErrorBoundary_default = ErrorBoundary;
 
 // dashboard/src/index.js
-var jsx_dev_runtime25 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime24 = __toESM(require_jsx_dev_runtime(), 1);
 var root4 = import_client.default.createRoot(document.getElementById("root"));
-root4.render(/* @__PURE__ */ jsx_dev_runtime25.jsxDEV(import_react42.default.StrictMode, {
-  children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(ErrorBoundary_default, {
-    children: /* @__PURE__ */ jsx_dev_runtime25.jsxDEV(App_default, {}, undefined, false, undefined, this)
+root4.render(/* @__PURE__ */ jsx_dev_runtime24.jsxDEV(import_react43.default.StrictMode, {
+  children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(ErrorBoundary_default, {
+    children: /* @__PURE__ */ jsx_dev_runtime24.jsxDEV(App_default, {}, undefined, false, undefined, this)
   }, undefined, false, undefined, this)
 }, undefined, false, undefined, this));
