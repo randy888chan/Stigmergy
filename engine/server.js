@@ -180,11 +180,11 @@ export class Engine {
   setupRoutes() {
     this.app.use("*", cors());
 
-    this.app.get("/health", (c) => c.json({ status: "ok", mode: "restored" }));
+    this.app.get("/health", (c) => c.json({ status: "ok", mode: "local" }));
 
     // Projects & Files API
-    const resolveSafePath = (inputPath) => {
-      if (!inputPath) return this.projectRoot;
+    const resolveSafePath = (inputPath, defaultPath = this.projectRoot) => {
+      if (!inputPath || inputPath === 'undefined' || inputPath === 'null') return defaultPath;
       if (inputPath.startsWith("~")) {
         return path.join(os.homedir(), inputPath.slice(1));
       }
@@ -196,14 +196,20 @@ export class Engine {
 
     this.app.get("/api/projects", async (c) => {
       try {
-        const basePath = resolveSafePath(c.req.query("basePath") || "~");
+        const basePath = resolveSafePath(c.req.query("basePath"), os.homedir());
+        console.log(chalk.blue(`[API] Listing projects in: ${basePath}`));
+
+        if (!await fs.pathExists(basePath)) {
+            return c.json({ error: `Path not found: ${basePath}` }, 404);
+        }
+
         const entries = await fs.readdir(basePath, { withFileTypes: true });
         const directories = entries
-          .filter(entry => entry.isDirectory())
+          .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
           .map(entry => entry.name);
         return c.json(directories);
       } catch (e) {
-        console.error("API Projects Error:", e);
+        console.error(chalk.red("[API] Error listing projects:"), e);
         return c.json({ error: e.message }, 500);
       }
     });
@@ -211,6 +217,8 @@ export class Engine {
     this.app.get("/api/files", async (c) => {
       try {
         const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
+        console.log(chalk.blue(`[API] Listing files in: ${targetPath}`));
+
         const files = await fileSystem.listDirectory({ path: targetPath });
 
         if (typeof files === 'string' && files.startsWith("EXECUTION FAILED")) {
@@ -219,7 +227,27 @@ export class Engine {
 
         return c.json(files);
       } catch (e) {
-        console.error("API Files Error:", e);
+        console.error(chalk.red("[API] Error listing files:"), e);
+        return c.json({ error: e.message }, 500);
+      }
+    });
+
+    this.app.get("/api/file-content", async (c) => {
+      try {
+        const filePath = c.req.query("path");
+        if (!filePath) return c.json({ error: "Path required" }, 400);
+
+        const safePath = resolveSafePath(filePath);
+        console.log(chalk.blue(`[API] Reading file: ${safePath}`));
+
+        if (!await fs.pathExists(safePath)) {
+            return c.json({ error: `File not found: ${safePath}` }, 404);
+        }
+
+        const content = await fs.readFile(safePath, "utf-8");
+        return c.json({ content });
+      } catch (e) {
+        console.error(chalk.red("[API] Error reading file:"), e);
         return c.json({ error: e.message }, 500);
       }
     });
