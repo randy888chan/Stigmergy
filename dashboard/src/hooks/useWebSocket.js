@@ -18,8 +18,13 @@ const useWebSocket = (url) => {
     // Dynamically construct the WebSocket URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.host;
-    // Append the token as a query parameter
-    const wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
+
+    let wsUrl;
+    if (url && url.startsWith('/')) {
+        wsUrl = `${protocol}//${host}${url}?token=${token}`;
+    } else {
+        wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
+    }
 
     // Create WebSocket connection
     ws.current = new WebSocket(wsUrl);

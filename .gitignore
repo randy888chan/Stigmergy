@@ -38,6 +38,8 @@ evaluation/test_results*.json
 .env.test
 
 # Dashboard build artifacts
+dashboard/public/index.js
+dashboard/public/index.css
 dashboard/public/*.bundle.js
 dashboard/public/*.bundle.js.LICENSE.txt
 

@@ -3,7 +3,7 @@ import { Button } from "./ui/button.jsx";
 import { Folder, ArrowUp, Check, Loader2 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area.jsx";
 
-export default function ProjectSelector({ onProjectSelect }) {
+export function ProjectSelector({ onProjectSelect }) {
   const [currentPath, setCurrentPath] = useState("~");
   const [folders, setFolders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -97,3 +97,5 @@ export default function ProjectSelector({ onProjectSelect }) {
     </div>
   );
 }
+
+export default ProjectSelector;

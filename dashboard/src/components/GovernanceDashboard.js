@@ -56,3 +56,5 @@ export const GovernanceDashboard = ({ proposals, isLoading, isAdmin, fetchPropos
     </Card>
   );
 };
+
+export default GovernanceDashboard;
