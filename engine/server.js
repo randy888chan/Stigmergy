@@ -1,17 +1,15 @@
 import { Hono } from "hono";
-import { serve } from "@hono/node-server";
 import { cors } from "hono/cors";
-import { upgradeWebSocket } from "hono/bun";
-import { serveStatic } from "@hono/node-server/serve-static";
+import { createBunWebSocket } from "hono/bun";
+import { serveStatic } from "hono/bun";
 import path from "path";
 import os from "os";
 import chalk from "chalk";
 import fs from "fs-extra";
 import yaml from "js-yaml";
 import { streamText } from "ai";
-import { getEstimatedCost } from "llm-cost-calculator";
 
-// Core Services
+// Fixed Imports (Relative to engine/ folder)
 import { GraphStateManager } from "./infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from "../ai/providers.js";
@@ -20,8 +18,8 @@ import { TrajectoryRecorder } from "../services/trajectory_recorder.js";
 import * as fileSystem from "../tools/file_system.js";
 import { createCoderagTool } from "../tools/coderag_tool.js";
 
-// Disable Tracing for Stability
-const sdk = { shutdown: () => Promise.resolve() };
+// Initialize Bun-native WebSocket
+const { upgradeWebSocket, websocket } = createBunWebSocket();
 
 export class Engine {
   constructor(options = {}) {
@@ -30,42 +28,36 @@ export class Engine {
     this.config = options.config;
 
     if (!this.config) {
-      throw new Error("Engine requires a 'config' object in its constructor options.");
+      throw new Error("Engine requires a 'config' object.");
     }
 
-    // Dependencies for Testing
+    // Dependencies
     this.fs = options._test_fs || fs;
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
     this._test_executorFactory = options._test_executorFactory;
 
-    // Core Services Initialization
+    // Services
     this.unifiedIntelligenceService = this._test_unifiedIntelligenceService || unifiedIntelligenceService;
-
-    // State Manager & Tool Executor Initialization Chains
-    // FIX: Determine ownership. If passed in options, we borrow it (don't close it).
     this.ownsStateManager = !options.stateManager;
 
+    // Initialize State Manager
     this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
     this.stateManagerInitializationPromise = options.stateManager ? Promise.resolve() : this.stateManager.initialize();
 
-    // Initialize AI
+    // AI & Executor
     if (!this._test_streamText) {
       this.ai = getAiProviders(this.config);
     }
 
-    // Initialize Executor Chain
     this.toolExecutorPromise = this.stateManagerInitializationPromise.then(() => {
       this.trajectoryRecorder = options.trajectoryRecorder || new TrajectoryRecorder(this.stateManager);
       return this.initializeToolExecutor();
     });
 
-    // Server Setup
     this.app = new Hono();
     this.port = Number(process.env.STIGMERGY_PORT) || 3010;
     this.clients = new Set();
-    this.pendingApprovals = new Map();
-    this.shouldStartServer = options.startServer !== false;
 
     this.setupRoutes();
   }
@@ -83,32 +75,36 @@ export class Engine {
 
   async triggerAgent(agentId, prompt, options = {}) {
     const { timeout = 300000 } = options;
-    const agentName = agentId.replace("@", "");
-    const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
-    await this.fs.promises.mkdir(workingDirectory, { recursive: true });
 
-    // Simplified trigger logic (No Tracing Spans to prevent deadlocks)
     console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
     await this.toolExecutorPromise;
 
     try {
         const agentName = agentId.replace("@", "");
+        const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+        await this.fs.promises.mkdir(workingDirectory, { recursive: true });
+
         const executeTool = this.toolExecutor;
 
         // 1. Load Agent Definition
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
-        const agentFileContent = await this.fs.promises.readFile(agentPath, "utf-8");
-        const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
         let systemPrompt = "You are a helpful AI assistant.";
 
-        if (yamlMatch && yamlMatch[1]) {
-             const agentDef = yaml.load(yamlMatch[1]);
-             if (agentDef.agent.persona) {
-                systemPrompt = `${agentDef.agent.persona.role} ${agentDef.agent.persona.identity}`;
-             }
-             if(agentDef.agent.core_protocols) {
-                 systemPrompt += `\nProtocols:\n${agentDef.agent.core_protocols.join('\n')}`;
-             }
+        try {
+            const agentFileContent = await this.fs.promises.readFile(agentPath, "utf-8");
+            const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
+
+            if (yamlMatch && yamlMatch[1]) {
+                const agentDef = yaml.load(yamlMatch[1]);
+                if (agentDef.agent.persona) {
+                    systemPrompt = `${agentDef.agent.persona.role} ${agentDef.agent.persona.identity}`;
+                }
+                if(agentDef.agent.core_protocols) {
+                    systemPrompt += `\nProtocols:\n${agentDef.agent.core_protocols.join('\n')}`;
+                }
+            }
+        } catch (e) {
+            console.warn(`[Engine] Could not load definition for ${agentName}, using default prompt.`);
         }
 
         // 2. Prepare Stream
@@ -149,7 +145,7 @@ export class Engine {
                 const toolResults = [];
                 for (const call of toolCalls) {
                     try {
-                        console.log(`[Engine] Executing tool: ${call.toolName} with args: ${JSON.stringify(call.args)} in working directory: ${workingDirectory}`);
+                        console.log(`[Engine] Executing tool: ${call.toolName}`);
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
                         toolResults.push({
                             role: "tool",
@@ -178,11 +174,14 @@ export class Engine {
   }
 
   setupRoutes() {
+    // 1. CORS & Logging Middleware
     this.app.use("*", cors());
+    this.app.use("*", async (c, next) => {
+      console.log(chalk.gray(`[REQ] ${c.req.method} ${c.req.path}`));
+      await next();
+    });
 
-    this.app.get("/health", (c) => c.json({ status: "ok", mode: "local" }));
-
-    // Projects & Files API
+    // Resolve Helper
     const resolveSafePath = (inputPath, defaultPath = this.projectRoot) => {
       if (!inputPath || inputPath === 'undefined' || inputPath === 'null') return defaultPath;
       if (inputPath.startsWith("~")) {
@@ -194,140 +193,86 @@ export class Engine {
       return path.resolve(this.projectRoot, inputPath);
     };
 
+    // 2. Health Check
+    this.app.get("/health", (c) => c.json({ status: "ok", mode: "bun-native" }));
+
+    // 3. Project Listing API
     this.app.get("/api/projects", async (c) => {
       try {
         const basePath = resolveSafePath(c.req.query("basePath"), os.homedir());
         console.log(chalk.blue(`[API] Listing projects in: ${basePath}`));
 
         if (!await fs.pathExists(basePath)) {
-            return c.json({ error: `Path not found: ${basePath}` }, 404);
+            return c.json({ error: "Path does not exist", currentPath: basePath, folders: [] }, 404);
         }
 
         const entries = await fs.readdir(basePath, { withFileTypes: true });
-        const directories = entries
-          .filter(entry => entry.isDirectory() && !entry.name.startsWith('.'))
-          .map(entry => entry.name);
-        return c.json(directories);
+        const folders = entries
+          .filter(e => e.isDirectory() && !e.name.startsWith('.'))
+          .map(e => e.name);
+
+        return c.json({ currentPath: basePath, folders });
       } catch (e) {
-        console.error(chalk.red("[API] Error listing projects:"), e);
+        console.error(chalk.red("[API Error]"), e);
         return c.json({ error: e.message }, 500);
       }
     });
 
+    // 4. File Listing API
     this.app.get("/api/files", async (c) => {
-      try {
-        const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
-        console.log(chalk.blue(`[API] Listing files in: ${targetPath}`));
-
-        const files = await fileSystem.listDirectory({ path: targetPath });
-
-        if (typeof files === 'string' && files.startsWith("EXECUTION FAILED")) {
-            return c.json({ error: files }, 500);
-        }
-
-        return c.json(files);
-      } catch (e) {
-        console.error(chalk.red("[API] Error listing files:"), e);
-        return c.json({ error: e.message }, 500);
-      }
+       try {
+         const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
+         const files = await fileSystem.listDirectory({ path: targetPath });
+         return c.json(files);
+       } catch (e) {
+         return c.json({ error: e.message }, 500);
+       }
     });
 
+    // 5. File Content API
     this.app.get("/api/file-content", async (c) => {
-      try {
         const filePath = c.req.query("path");
-        if (!filePath) return c.json({ error: "Path required" }, 400);
-
-        const safePath = resolveSafePath(filePath);
-        console.log(chalk.blue(`[API] Reading file: ${safePath}`));
-
-        if (!await fs.pathExists(safePath)) {
-            return c.json({ error: `File not found: ${safePath}` }, 404);
+        if (!filePath) return c.json({ error: "No path" }, 400);
+        const fullPath = resolveSafePath(filePath);
+        if (await fs.pathExists(fullPath)) {
+            const content = await fs.readFile(fullPath, "utf-8");
+            return c.json({ content });
         }
-
-        const content = await fs.readFile(safePath, "utf-8");
-        return c.json({ content });
-      } catch (e) {
-        console.error(chalk.red("[API] Error reading file:"), e);
-        return c.json({ error: e.message }, 500);
-      }
-    });
-
-    // API State
-    this.app.get("/api/state", async (c) => {
-        const state = await this.stateManager.getState();
-        return c.json(state);
+        return c.json({ error: "File not found" }, 404);
     });
 
     this.app.post("/api/file-content", async (c) => {
-      try {
         await this.toolExecutorPromise;
-        const { path: filePath, content } = await c.req.json();
-        if (!filePath || typeof content !== 'string') {
-           return c.json({ error: "Missing path or content" }, 400);
-        }
-
-        // Use the existing tool logic to ensure security/path resolution
-        const output = await this.toolExecutor.execute(
-            "file_system.writeFile",
-            { path: filePath, content },
-            "user-ide", // agentId
-            this.projectRoot // workingDirectory
-        );
-
-        return c.json({ success: true, message: "File saved successfully." });
-      } catch (e) {
-        console.error("Save Error:", e);
-        return c.json({ error: e.message }, 500);
-      }
+        const { path: fPath, content } = await c.req.json();
+        await this.toolExecutor.execute("file_system.writeFile", { path: fPath, content }, "user-ide", this.projectRoot);
+        return c.json({ success: true });
     });
 
-    // WebSocket (Placeholder for full implementation)
+    // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
-       onOpen: () => console.log("WS Open"),
+       onOpen: () => console.log("WS Connected"),
        onMessage: () => {},
-       onClose: () => console.log("WS Close")
+       onClose: () => {}
     })));
 
-    // Static Dashboard
+    // 7. Static Files
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
     this.app.get("*", serveStatic({ path: "./dashboard/public/index.html" }));
   }
 
-  broadcastEvent(type, payload) {
-      // Stub for WebSocket broadcasting
-  }
-
   async start() {
-    console.log(chalk.gray(`[Engine] Initializing server...`));
-
-    this.server = serve({
+    console.log(chalk.gray(`[Engine] Initializing...`));
+    this.server = Bun.serve({
       fetch: this.app.fetch,
-      port: this.port
+      port: this.port,
+      websocket: websocket
     });
-
-    console.log(""); // Empty line for spacing
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
-    console.log(""); // Empty line
   }
 
   async stop() {
-    if (this.server) {
-        await this.server.close();
-        this.server = null;
-    }
-
-    // FIX: Only close the driver if we created it.
-    if (this.ownsStateManager && this.stateManager && typeof this.stateManager.closeDriver === 'function') {
-        console.log("GraphStateManager: Closing Neo4j driver (Owner).");
-        await this.stateManager.closeDriver();
-    } else {
-        console.log("GraphStateManager: Skipping driver close (Shared Instance).");
-    }
-
-    // Also close all WebSocket connections
-    for (const client of this.clients) {
-      client.close();
-    }
+    if (this.server) this.server.stop();
+    if (this.ownsStateManager && this.stateManager) await this.stateManager.closeDriver();
   }
 }

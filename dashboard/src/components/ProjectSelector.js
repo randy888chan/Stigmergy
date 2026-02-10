@@ -1,119 +1,99 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "./ui/button.jsx";
-import { Input } from "./ui/input.jsx";
+import { Folder, ArrowUp, Check, Loader2 } from "lucide-react";
 import { ScrollArea } from "./ui/scroll-area.jsx";
-import { Folder, FolderUp, Check } from "lucide-react";
-import path from 'path-browserify';
-import authenticatedFetch from '../lib/api'; // Import the wrapper
 
-export const ProjectSelector = ({ onProjectSelect }) => {
-  const [basePath, setBasePath] = useState('~');
+export default function ProjectSelector({ onProjectSelect }) {
+  const [currentPath, setCurrentPath] = useState("~");
   const [folders, setFolders] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const fetchFolders = useCallback(async (dir) => {
-    setIsLoading(true);
-    setError('');
+  const fetchFolders = async (path) => {
+    setLoading(true);
+    setError(null);
     try {
-      const data = await authenticatedFetch(`/api/projects?basePath=${encodeURIComponent(dir)}`);
-      if (data.error) {
-          setError(data.error);
-          setFolders([]);
-      } else {
-          setFolders(data);
-      }
+      // Use encodeURIComponent to handle slashes correctly
+      const res = await fetch(`/api/projects?basePath=${encodeURIComponent(path)}`);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || "Failed to load");
+
+      setCurrentPath(data.currentPath);
+      setFolders(data.folders);
     } catch (err) {
       setError(err.message);
-      setFolders([]);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-      fetchFolders(basePath);
-  }, []); // Initial fetch
+    fetchFolders(currentPath);
+  }, []); // Run once on mount
 
-  const navigateTo = (newPath) => {
-      setBasePath(newPath);
-      fetchFolders(newPath);
+  const navigateTo = (folderName) => {
+    // If it's absolute, use it. Otherwise join.
+    const separator = currentPath.includes('\\') ? '\\' : '/';
+    const newPath = currentPath.endsWith(separator)
+        ? `${currentPath}${folderName}`
+        : `${currentPath}${separator}${folderName}`;
+    fetchFolders(newPath);
   };
 
   const goUp = () => {
-      const parent = path.dirname(basePath);
-      if (parent !== basePath) {
-          navigateTo(parent);
-      }
-  };
-
-  const selectCurrent = () => {
-      if (onProjectSelect) {
-          onProjectSelect(basePath);
-      }
+    const separator = currentPath.includes('\\') ? '\\' : '/';
+    const parts = currentPath.split(separator);
+    parts.pop(); // Remove last folder
+    const parent = parts.join(separator) || separator; // Handle root
+    fetchFolders(parent);
   };
 
   return (
-    <div className="flex flex-col gap-3 p-4 border rounded-lg bg-zinc-900/50 border-white/10">
+    <div className="w-[300px] flex flex-col gap-2">
+      {/* Header / Current Path */}
       <div className="flex items-center gap-2">
-        <Input
-          type="text"
-          placeholder="Path..."
-          value={basePath}
-          onChange={(e) => setBasePath(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && fetchFolders(basePath)}
-          className="flex-grow font-mono text-xs bg-black/40"
-        />
-        <Button size="sm" onClick={() => fetchFolders(basePath)} disabled={isLoading} variant="secondary">
-          Go
+        <Button variant="outline" size="icon" onClick={goUp} disabled={loading}>
+          <ArrowUp className="w-4 h-4" />
         </Button>
+        <div className="text-xs font-mono truncate bg-zinc-900 p-2 rounded flex-grow text-zinc-400 border border-white/10" title={currentPath}>
+          {currentPath}
+        </div>
       </div>
 
-      <ScrollArea className="h-[200px] rounded-md border border-white/5 bg-black/20 p-2">
-        <div className="flex flex-col gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="justify-start gap-2 h-8 text-zinc-400 hover:text-white"
-            onClick={goUp}
-          >
-            <FolderUp className="w-4 h-4" />
-            ..
-          </Button>
-
-          {folders.map((folder) => (
-            <Button
-              key={folder}
-              variant="ghost"
-              size="sm"
-              className="justify-start gap-2 h-8 text-zinc-300 hover:text-white"
-              onClick={() => navigateTo(path.join(basePath, folder))}
-            >
-              <Folder className="w-4 h-4 text-blue-400" />
-              {folder}
-            </Button>
-          ))}
-
-          {folders.length === 0 && !isLoading && !error && (
-            <div className="p-4 text-center text-xs text-zinc-500 italic">
-              No subdirectories found
+      {/* Folder List */}
+      <div className="border border-white/10 rounded-md bg-zinc-900/50 h-[300px] flex flex-col">
+        {loading ? (
+            <div className="flex items-center justify-center h-full text-zinc-500 gap-2">
+                <Loader2 className="w-4 h-4 animate-spin" /> Loading...
             </div>
-          )}
-        </div>
-      </ScrollArea>
+        ) : error ? (
+            <div className="p-4 text-red-400 text-xs">{error}</div>
+        ) : (
+            <ScrollArea className="flex-grow p-1">
+                {folders.length === 0 && <div className="p-2 text-zinc-500 text-xs">No folders found.</div>}
+                {folders.map(folder => (
+                    <button
+                        key={folder}
+                        onClick={() => navigateTo(folder)}
+                        className="flex items-center gap-2 w-full p-2 hover:bg-white/5 rounded text-left text-sm text-zinc-300 transition-colors"
+                    >
+                        <Folder className="w-4 h-4 text-blue-500 shrink-0" />
+                        <span className="truncate">{folder}</span>
+                    </button>
+                ))}
+            </ScrollArea>
+        )}
+      </div>
 
-      {error && <p className="text-[10px] text-red-500 break-all">{error}</p>}
-
+      {/* Select Button */}
       <Button
-        className="w-full gap-2 bg-green-600 hover:bg-green-500 text-white"
-        onClick={selectCurrent}
-        disabled={isLoading}
+        onClick={() => onProjectSelect(currentPath)}
+        className="w-full bg-green-600 hover:bg-green-500 text-white gap-2"
       >
         <Check className="w-4 h-4" />
-        Select This Folder
+        Select This Project
       </Button>
     </div>
   );
-};
-
-export default ProjectSelector;
+}
