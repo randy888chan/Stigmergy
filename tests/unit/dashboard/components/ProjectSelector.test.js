@@ -61,13 +61,16 @@ describe('ProjectSelector', () => {
   });
 
   it('should fetch and display folders on mount', async () => {
-    const { getByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
+    const { findByText } = render(<ProjectSelector onProjectSelect={() => {}} />);
+    const user = userEvent.setup();
+
+    // Open the dropdown first
+    const trigger = await findByText(/path/i);
+    await user.click(trigger);
 
     // Wait for the component to render the project names from the mock response
-    await waitFor(() => {
-      expect(getByText('project-a')).toBeInTheDocument();
-      expect(getByText('project-b')).toBeInTheDocument();
-    });
+    expect(await findByText('project-a')).toBeInTheDocument();
+    expect(await findByText('project-b')).toBeInTheDocument();
 
     // Verify fetch was called correctly
     expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~');
@@ -75,12 +78,18 @@ describe('ProjectSelector', () => {
 
   it('should call onProjectSelect with current path when Select This Project is clicked', async () => {
     const onSelect = mock(() => {});
-    const { getByText } = render(<ProjectSelector onProjectSelect={onSelect} />);
-
-    await waitFor(() => getByText('project-a'));
-
+    const { findByText } = render(<ProjectSelector onProjectSelect={onSelect} />);
     const user = userEvent.setup();
-    await user.click(getByText('Select This Project'));
+
+    // Open the dropdown
+    const trigger = await findByText(/path/i);
+    await user.click(trigger);
+
+    const projectA = await findByText('project-a');
+    expect(projectA).toBeInTheDocument();
+
+    const selectButton = await findByText('Select This Project');
+    await user.click(selectButton);
 
     expect(onSelect).toHaveBeenCalledWith('/mock/path');
   });

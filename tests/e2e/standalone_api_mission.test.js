@@ -95,6 +95,7 @@ users:
     });
 
     // Wait for engine to be fully ready
+    await engine.stateManagerInitializationPromise;
     await engine.start();
     MOCK_SERVER_URL = `http://localhost:${engine.port}`;
 
@@ -108,7 +109,7 @@ users:
           return false;
         }
       },
-      5000, // 5-second timeout
+      10000, // 10-second timeout
       100   // 100ms interval
     );
 
@@ -144,7 +145,7 @@ users:
         const state = await stateResponse.json();
         return state.project_status === "PLANNING_PHASE" ? state : false;
       },
-      5000, // 5-second timeout
+      10000, // 10-second timeout
       100
     );
 

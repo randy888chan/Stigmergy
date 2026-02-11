@@ -40,7 +40,9 @@ describe("Engine: Agent and Coderag Tool Integration", () => {
 \`\`\`yaml
 agent:
   id: "debugger"
-  engine_tools: ["coderag.*"]
+  engine_tools:
+    - "coderag.*"
+    - "file_system.*"
 \`\`\`
 `;
     await mockFs.promises.writeFile(
