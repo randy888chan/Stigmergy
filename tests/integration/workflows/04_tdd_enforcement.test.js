@@ -24,6 +24,9 @@ describe("TDD Enforcement Workflow", () => {
     vol.reset();
     debuggerDelegationSpy.mockClear();
 
+    mock.module("fs", () => mockFs);
+    mock.module("fs-extra", () => mockFs);
+
     const mockAgentFiles = {
       "dispatcher.md": "```yaml\n" + yaml.dump({ agent: { id: "dispatcher", persona: { role: "test", identity: "test" }, engine_tools: ["stigmergy.task", "file_system.readFile"] } }) + "\n```",
       "executor.md": "```yaml\n" + yaml.dump({ agent: { id: "executor", persona: { role: "test", identity: "test" }, engine_tools: ["file_system.writeFile"] } }) + "\n```",
@@ -95,11 +98,11 @@ describe("TDD Enforcement Workflow", () => {
 
         if (callCount === 1) return { toolCalls: [{ toolName: "stigmergy.task", args: { subagent_type: "@executor", description: "..." } }] };
         if (callCount === 2) return { toolCalls: [{ toolName: "file_system.writeFile", args: { path: "src/feature.js", content: "test" } }] };
-        if (callCount === 3) return { text: JSON.stringify({ compliant: true }) }; // Auditor
-        if (callCount === 4) return { text: "File written." }; // Executor finishes
-        if (callCount === 5) return { toolCalls: [{ toolName: "stigmergy.task", args: { subagent_type: "@qa", description: "..." } }] };
-        if (callCount === 6) return { toolCalls: [{ toolName: 'file_system.pathExists', args: { path: 'src/feature.test.js' } }] };
-        if (callCount === 7) return { toolCalls: [{ toolName: 'stigmergy.task', args: { subagent_type: '@debugger', description: "TDD Violation" } }] };
+        if (callCount === 3) return { text: '{"compliant": true}', finishReason: "stop" }; // Auditor
+        if (callCount === 4) return { text: "File written.", finishReason: "stop" }; // Executor finishes
+        if (callCount === 5) return { toolCalls: [{ toolName: "stigmergy.task", args: { subagent_type: "@qa", description: "..." } }], finishReason: "tool-calls" };
+        if (callCount === 6) return { toolCalls: [{ toolName: 'file_system.pathExists', args: { path: 'src/feature.test.js' } }], finishReason: "tool-calls" };
+        if (callCount === 7) return { toolCalls: [{ toolName: 'stigmergy.task', args: { subagent_type: '@debugger', description: "TDD Violation" } }], finishReason: "tool-calls" };
         if (callCount === 8) return { text: "Debugger acknowledged.", finishReason: "stop" }; // Debugger finishes
 
         return { text: "Unexpected call.", finishReason: "stop" };

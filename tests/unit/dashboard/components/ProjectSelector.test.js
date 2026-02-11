@@ -43,7 +43,10 @@ describe('ProjectSelector', () => {
 
     // Provide a mock implementation for this specific test
     fetchSpy = spyOn(global, 'fetch').mockResolvedValue(
-      new Response(JSON.stringify(['project-a', 'project-b']), {
+      new Response(JSON.stringify({
+          folders: ['project-a', 'project-b'],
+          currentPath: '/mock/path'
+      }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       })
@@ -70,15 +73,15 @@ describe('ProjectSelector', () => {
     expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~', expect.any(Object));
   });
 
-  it('should call onProjectSelect with current path when Select This Folder is clicked', async () => {
+  it('should call onProjectSelect with current path when Select This Project is clicked', async () => {
     const onSelect = mock(() => {});
     const { getByText } = render(<ProjectSelector onProjectSelect={onSelect} />);
 
     await waitFor(() => getByText('project-a'));
 
     const user = userEvent.setup();
-    await user.click(getByText('Select This Folder'));
+    await user.click(getByText('Select This Project'));
 
-    expect(onSelect).toHaveBeenCalledWith('~');
+    expect(onSelect).toHaveBeenCalledWith('/mock/path');
   });
 });
