@@ -254,8 +254,15 @@ export class Engine {
        onClose: () => {}
     })));
 
-    // 7. Static Files
+    // --- STATIC ASSETS ---
+    // Explicitly serve build artifacts to ensure correct MIME types
+    this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
+    this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
+
+    // Serve other assets
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
+
+    // SPA Fallback (Must be last)
     this.app.get("*", serveStatic({ path: "./dashboard/public/index.html" }));
   }
 

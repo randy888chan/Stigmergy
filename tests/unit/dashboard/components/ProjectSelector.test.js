@@ -70,7 +70,7 @@ describe('ProjectSelector', () => {
     });
 
     // Verify fetch was called correctly
-    expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~', expect.any(Object));
+    expect(fetchSpy).toHaveBeenCalledWith('/api/projects?basePath=~');
   });
 
   it('should call onProjectSelect with current path when Select This Project is clicked', async () => {

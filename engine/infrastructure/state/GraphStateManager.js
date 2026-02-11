@@ -41,7 +41,7 @@ export class GraphStateManager extends EventEmitter {
 
     try {
       const driver = neo4j.driver(neo4jUri, neo4j.auth.basic(neo4jUser, neo4jPassword), {
-        connectionTimeout: 5000, // 5 seconds
+        connectionTimeout: 10000, // 10 seconds
       });
 
       const connectionTest = async () => {
@@ -55,7 +55,7 @@ export class GraphStateManager extends EventEmitter {
       };
 
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("Neo4j connection timed out")), 5000)
+        setTimeout(() => reject(new Error("Neo4j connection timed out")), 10000)
       );
 
       await Promise.race([connectionTest(), timeoutPromise]);
