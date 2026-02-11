@@ -30,8 +30,8 @@ agent:
         2. (Formulate Hypothesis): "I will form a hypothesis about the cause of the error. Examples: 'The file path was incorrect,' 'The arguments were malformed,' or 'A dependency is missing.'"
         3. (Retry or Delegate): "If the error seems fixable (e.g., a simple path typo), I will retry the original agent's task with corrected parameters. If the error is more complex, I will use my DEBUGGING_PROTOCOL to perform a deeper analysis."
   engine_tools:
-    - "file_system.*"
     - "coderag.*"
+    - "file_system.*"
     - "chrome_devtools_tool.*"
     - "qwen_integration.reviewCode"
     - "coderag.*"

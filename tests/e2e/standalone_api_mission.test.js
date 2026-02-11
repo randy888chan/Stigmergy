@@ -1,4 +1,3 @@
-// Skipped due to resource contention in CI environment. Core logic covered by 03_execution.test.js.
 import { describe, test, expect, beforeEach, afterEach, mock } from "bun:test";
 import { Engine } from "../../engine/server.js";
 import tmp from "tmp";
@@ -6,8 +5,8 @@ import fs from "fs-extra";
 import path from "path";
 import chalk from "chalk";
 
-const UNIQUE_TEST_PORT = 3099;
-const MOCK_SERVER_URL = `http://localhost:${UNIQUE_TEST_PORT}`;
+const UNIQUE_TEST_PORT = 0;
+let MOCK_SERVER_URL = "";
 
 // Mock config service to prevent external dependencies and ensure consistent port
 mock.module("../../services/config_service.js", () => ({
@@ -97,6 +96,7 @@ users:
 
     // Wait for engine to be fully ready
     await engine.start();
+    MOCK_SERVER_URL = `http://localhost:${engine.port}`;
 
     // Poll the health check endpoint to ensure the server is ready
     await poll(
@@ -112,7 +112,7 @@ users:
       100   // 100ms interval
     );
 
-    console.log(chalk.green(`[E2E Test] Engine running on http://localhost:${UNIQUE_TEST_PORT}`));
+    console.log(chalk.green(`[E2E Test] Engine running on ${MOCK_SERVER_URL}`));
   });
 
   afterEach(async () => {

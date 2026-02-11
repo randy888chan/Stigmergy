@@ -56,7 +56,8 @@ export class Engine {
     });
 
     this.app = new Hono();
-    this.port = Number(process.env.STIGMERGY_PORT) || 3010;
+    const envPort = process.env.STIGMERGY_PORT;
+    this.port = envPort ? Number(envPort) : (this.config?.server?.port !== undefined ? this.config.server.port : 3010);
     this.clients = new Set();
 
     this.setupRoutes();
@@ -196,6 +197,16 @@ export class Engine {
     // 2. Health Check
     this.app.get("/health", (c) => c.json({ status: "ok", mode: "bun-native" }));
 
+    // 2.5 State API
+    this.app.get("/api/state", async (c) => {
+      try {
+        const state = await this.stateManager.getState();
+        return c.json(state);
+      } catch (e) {
+        return c.json({ error: e.message }, 500);
+      }
+    });
+
     // 3. Project Listing API
     this.app.get("/api/projects", async (c) => {
       try {
@@ -273,6 +284,10 @@ export class Engine {
       port: this.port,
       websocket: websocket
     });
+
+    // Update port if 0 was used
+    this.port = this.server.port;
+
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
   }
