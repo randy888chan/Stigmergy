@@ -34,4 +34,5 @@ agent:
     - "coderag.*"
     - "chrome_devtools_tool.*"
     - "qwen_integration.reviewCode"
+    - "coderag.*"
 ```

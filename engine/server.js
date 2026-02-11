@@ -255,7 +255,7 @@ export class Engine {
     })));
 
     // --- STATIC ASSETS ---
-    // Explicitly serve build artifacts to ensure correct MIME types
+    // This MUST be before the "*" route
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
 
