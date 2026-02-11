@@ -130,11 +130,26 @@ export class Engine {
                  model = client(modelName);
             }
 
-            const result = await streamTextFunc({
-                model,
-                messages,
-                tools: await executeTool.getTools(agentName)
-            });
+            let result;
+            let attempts = 0;
+            const maxAttempts = 4;
+
+            while (attempts < maxAttempts) {
+                try {
+                    result = await streamTextFunc({
+                        model,
+                        messages,
+                        tools: await executeTool.getTools(agentName)
+                    });
+                    break; // Success
+                } catch (e) {
+                    attempts++;
+                    if (attempts >= maxAttempts) throw e;
+                    const delay = 1000 * Math.pow(2, attempts - 1); // 1s, 2s, 4s
+                    console.warn(chalk.yellow(`[AI] Error (Attempt ${attempts}): ${e.message}. Retrying in ${delay}ms...`));
+                    await new Promise(r => setTimeout(r, delay));
+                }
+            }
 
             const { toolCalls, finishReason, text } = result;
             lastText = text;
