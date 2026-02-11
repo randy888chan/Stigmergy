@@ -1,7 +1,7 @@
 // Skipped due to persistent module cache pollution from integration tests. Verified manually.
 import { mock, describe, test, expect, beforeEach, afterEach } from "bun:test";
 
-describe.skip("Shell Tool", () => {
+describe("Shell Tool", () => {
   let execute;
   let mockExec;
 
@@ -30,7 +30,7 @@ describe.skip("Shell Tool", () => {
     mock.restore();
   });
 
-  test.skip("should execute shell commands and return stdout", async () => {
+  test("should execute shell commands and return stdout", async () => {
     mockExec.mockImplementation((command, options, callback) => {
       callback(null, { stdout: "mocked output", stderr: "" });
     });
@@ -40,7 +40,7 @@ describe.skip("Shell Tool", () => {
     expect(mockExec).toHaveBeenCalled();
   });
 
-  test.skip("should handle command errors gracefully", async () => {
+  test("should handle command errors gracefully", async () => {
     const mockError = new Error("Command failed");
     mockError.stderr = "Error details";
     mockExec.mockImplementation((command, options, callback) => {
@@ -51,7 +51,7 @@ describe.skip("Shell Tool", () => {
     expect(result).toContain("EXECUTION FAILED: Error details");
   });
 
-  test.skip("should return stderr even on successful exit", async () => {
+  test("should return stderr even on successful exit", async () => {
     mockExec.mockImplementation((command, options, callback) => {
       callback(null, { stdout: "", stderr: "warning message" });
     });

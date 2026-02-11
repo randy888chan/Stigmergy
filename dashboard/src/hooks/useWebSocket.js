@@ -4,16 +4,13 @@ const useWebSocket = (url) => {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isConnected, setIsConnected] = useState(false);
   const ws = useRef(null);
+  const reconnectTimeoutRef = useRef(null);
 
-  useEffect(() => {
+  const connect = () => {
     // Retrieve the token from localStorage
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      setError('No auth token found');
-      setLoading(false);
-      return;
-    }
+    const token = localStorage.getItem('authToken') || 'default-token';
 
     // Dynamically construct the WebSocket URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -26,12 +23,18 @@ const useWebSocket = (url) => {
         wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
     }
 
-    // Create WebSocket connection
+    console.log(`[WS] Connecting to ${wsUrl}`);
     ws.current = new WebSocket(wsUrl);
 
     ws.current.onopen = () => {
-      console.log(`WebSocket connection opened`);
+      console.log(`[WS] Connection opened`);
+      setIsConnected(true);
       setLoading(false);
+      setError(null);
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
     };
 
     ws.current.onmessage = (event) => {
@@ -41,25 +44,41 @@ const useWebSocket = (url) => {
         // Dispatch a global event for testing purposes
         window.dispatchEvent(new MessageEvent('message', { data: event.data }));
       } catch (err) {
-        console.error('Error parsing WebSocket message:', err);
+        console.error('[WS] Error parsing WebSocket message:', err);
         setError('Error parsing WebSocket message');
       }
     };
 
     ws.current.onerror = (err) => {
-      console.error('WebSocket error:', err);
+      console.error('[WS] WebSocket error:', err);
       setError('WebSocket connection error');
       setLoading(false);
+      setIsConnected(false);
     };
 
     ws.current.onclose = () => {
-      console.log('WebSocket connection closed');
+      console.log('[WS] WebSocket connection closed');
+      setIsConnected(false);
+      // Attempt reconnection after 3 seconds
+      if (!reconnectTimeoutRef.current) {
+        reconnectTimeoutRef.current = setTimeout(() => {
+          reconnectTimeoutRef.current = null;
+          connect();
+        }, 3000);
+      }
     };
+  };
+
+  useEffect(() => {
+    connect();
 
     // Clean up function
     return () => {
       if (ws.current) {
         ws.current.close();
+      }
+      if (reconnectTimeoutRef.current) {
+        clearTimeout(reconnectTimeoutRef.current);
       }
     };
   }, [url]);
@@ -70,7 +89,7 @@ const useWebSocket = (url) => {
     }
   };
 
-  return { data, error, loading, sendMessage };
+  return { data, error, loading, isConnected, sendMessage };
 };
 
 export default useWebSocket;

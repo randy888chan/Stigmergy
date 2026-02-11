@@ -31,14 +31,12 @@ const INITIAL_STATE = {
 };
 
 const Dashboard = () => {
-  const { data, sendMessage } = useWebSocket('/ws');
+  const { data, isConnected, sendMessage } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
-  const [isConnected, setIsConnected] = useState(false);
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
 
   useEffect(() => {
     if (data) {
-      setIsConnected(true);
       const { type, payload } = data;
       console.log(`[WS] Received: ${type}`, payload);
 
