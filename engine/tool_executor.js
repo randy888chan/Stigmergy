@@ -79,9 +79,8 @@ function resolvePath(filePath, projectRoot, workingDirectory, config, fsProvider
   return resolvedPath;
 }
 
-let agentConfigCache = new Map();
-
 export async function createExecutor(engine, ai, options = {}, fsProvider = fs) {
+  let agentConfigCache = new Map();
   const { config: engineConfig, unifiedIntelligenceService } = options;
   const config = engineConfig || (await import("../stigmergy.config.js")).default;
   const corePath = engine.corePath;
