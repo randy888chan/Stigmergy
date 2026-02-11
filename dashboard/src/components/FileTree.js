@@ -61,9 +61,9 @@ const FileTree = ({ files, onFileSelect }) => {
   if (!files || !Array.isArray(files)) return null;
 
   const buildTree = (paths) => {
-    const root = {};
+    const root = Object.create(null);
     paths.forEach((path) => {
-      const parts = path.split('/');
+      const parts = path.split('/').filter(Boolean);
       let current = root;
       parts.forEach((part, index) => {
         if (!current[part]) {
@@ -71,7 +71,7 @@ const FileTree = ({ files, onFileSelect }) => {
             name: part,
             path: parts.slice(0, index + 1).join('/'),
             type: index === parts.length - 1 ? 'file' : 'folder',
-            children: {},
+            children: Object.create(null),
           };
         }
         current = current[part].children;
