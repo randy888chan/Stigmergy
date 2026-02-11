@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Button } from "../components/ui/button.jsx";
 import { Loader2, Activity, Wifi } from "lucide-react";
 import { ScrollArea } from "../components/ui/scroll-area.jsx";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx";
 
 // Lazy Components
 const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
@@ -204,13 +205,39 @@ const Dashboard = () => {
         <ResizableHandle withHandle className="bg-zinc-900" />
 
         <ResizablePanel defaultSize={30} minSize={20} className="bg-zinc-950 border-l border-white/10">
-            <div className="h-full overflow-y-auto p-4 space-y-4">
-                <Suspense fallback={null}>
-                    <SystemHealthAlerts healthData={{}} />
-                    <GovernanceDashboard proposals={[]} isAdmin={true} />
-                    <ActivityLog agentActivity={systemState.agentActivity} />
-                </Suspense>
-            </div>
+            <Suspense fallback={<div className="p-4 text-zinc-500 text-sm">Loading Panels...</div>}>
+                <Tabs defaultValue="activity" className="h-full flex flex-col">
+                    <TabsList className="bg-zinc-900/50 border-b border-white/5 w-full justify-start rounded-none p-0 h-10 shrink-0">
+                        <TabsTrigger value="activity" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Activity</TabsTrigger>
+                        <TabsTrigger value="health" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Health</TabsTrigger>
+                        <TabsTrigger value="governance" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Governance</TabsTrigger>
+                    </TabsList>
+
+                    <div className="flex-grow overflow-hidden">
+                        <TabsContent value="activity" className="h-full p-0 m-0">
+                            <ScrollArea className="h-full">
+                                <div className="p-4">
+                                    <ActivityLog agentActivity={systemState.agentActivity} />
+                                </div>
+                            </ScrollArea>
+                        </TabsContent>
+                        <TabsContent value="health" className="h-full p-0 m-0">
+                            <ScrollArea className="h-full">
+                                <div className="p-4">
+                                    <SystemHealthAlerts healthData={{}} />
+                                </div>
+                            </ScrollArea>
+                        </TabsContent>
+                        <TabsContent value="governance" className="h-full p-0 m-0">
+                            <ScrollArea className="h-full">
+                                <div className="p-4">
+                                    <GovernanceDashboard proposals={[]} isAdmin={true} />
+                                </div>
+                            </ScrollArea>
+                        </TabsContent>
+                    </div>
+                </Tabs>
+            </Suspense>
         </ResizablePanel>
 
       </ResizablePanelGroup>

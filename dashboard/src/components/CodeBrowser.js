@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FiFolder, FiFile, FiLoader, FiAlertCircle } from 'react-icons/fi';
+import { FiFile, FiLoader, FiAlertCircle } from 'react-icons/fi';
 import { ScrollArea } from './ui/scroll-area.jsx';
 import { Button } from './ui/button.jsx';
 import { Input } from './ui/input.jsx';
 import { Card, CardHeader, CardTitle, CardContent } from './ui/card.jsx';
 import { cn } from '../lib/utils.js';
+import FileTree from './FileTree.js';
 
 const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoading, error: treeError }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,13 +13,6 @@ const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoadi
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
 
-
-  const handleFileClick = (file) => {
-    if (file.type === 'folder') return;
-    if (onFileSelect) {
-      onFileSelect(file.name);
-    }
-  };
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -47,74 +41,57 @@ const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading: isTreeLoadi
   }
 
   return (
-    <Card className="h-full flex flex-col">
-        <CardHeader>
-            <CardTitle>Code Intelligence</CardTitle>
-            <div className="flex w-full items-center space-x-2 pt-2">
+    <Card className="h-full flex flex-col border-none bg-transparent rounded-none">
+        <CardHeader className="px-4 py-3 shrink-0 space-y-2 border-b border-white/5">
+            <CardTitle className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">Explorer</CardTitle>
+            <div className="flex w-full items-center space-x-2">
                 <Input
                     type="text"
-                    placeholder="Semantic search (e.g., 'user auth logic')"
+                    placeholder="Search files..."
+                    className="h-7 bg-zinc-900/50 border-white/5 text-[11px] focus-visible:ring-1 focus-visible:ring-blue-500/50"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
-                <Button onClick={handleSearch} disabled={isSearchLoading}>
-                    {isSearchLoading ? <FiLoader className="animate-spin" /> : 'Search'}
-                </Button>
                 {searchResults.length > 0 && (
-                    <Button variant="outline" size="sm" onClick={clearSearch}>
+                    <Button variant="ghost" size="sm" className="h-7 px-2 text-[10px]" onClick={clearSearch}>
                         Clear
                     </Button>
                 )}
             </div>
         </CardHeader>
-        <CardContent className="flex-grow p-0">
-            <ScrollArea className="h-full w-full p-2">
-                {isSearchLoading && <div className="flex items-center gap-2 p-2 text-muted-foreground"><FiLoader className="animate-spin" /><span>Searching...</span></div>}
-                {searchError && <div className="flex items-center gap-2 p-2 text-destructive"><FiAlertCircle /><span>{searchError}</span></div>}
+        <CardContent className="flex-grow overflow-hidden p-0">
+            <ScrollArea className="h-full">
+                {isSearchLoading && <div className="flex items-center gap-2 p-4 text-muted-foreground"><FiLoader className="animate-spin" /><span>Searching...</span></div>}
+                {searchError && <div className="flex items-center gap-2 p-4 text-destructive"><FiAlertCircle /><span>{searchError}</span></div>}
 
                 {searchResults.length > 0 ? (
-                    searchResults.map((result, index) => (
-                        <Button
-                            key={index}
-                            variant="ghost"
-                            className={cn(
-                                "w-full justify-start gap-2 px-2 text-left h-auto py-2",
-                                selectedFile === result.node.source_file && "bg-accent"
-                              )}
-                            onClick={() => onFileSelect(result.node.source_file)}
-                        >
-                            <FiFile />
-                            <div className="flex flex-col">
-                                <span className="font-semibold">{result.node.name} ({result.node.type})</span>
-                                <span className="text-xs text-muted-foreground">{result.node.source_file}</span>
-                            </div>
-                        </Button>
-                    ))
-                ) : (
-                    <>
-                        {isTreeLoading && <div className="flex items-center gap-2 p-2 text-muted-foreground"><FiLoader className="animate-spin" /><span>Loading tree...</span></div>}
-                        {treeError && <div className="flex items-center gap-2 p-2 text-destructive"><FiAlertCircle /><span>{treeError}</span></div>}
-                        {!isTreeLoading && !treeError && files.map((item) => {
-                            const isFolder = item.type === 'folder';
-                            const isSelected = selectedFile === item.name;
-                            return (
+                    <div className="p-2 space-y-1">
+                         {searchResults.map((result, index) => (
                             <Button
-                                key={item.name}
+                                key={index}
                                 variant="ghost"
                                 className={cn(
-                                "w-full justify-start gap-2 px-2",
-                                isFolder ? "font-semibold" : "font-normal",
-                                isSelected && "bg-accent"
+                                    "w-full justify-start gap-2 px-2 text-left h-auto py-2 hover:bg-zinc-800",
+                                    selectedFile === result.node.source_file && "bg-zinc-800 text-blue-400"
                                 )}
-                                onClick={() => handleFileClick(item)}
-                                disabled={isFolder}
+                                onClick={() => onFileSelect(result.node.source_file)}
                             >
-                                {isFolder ? <FiFolder /> : <FiFile />}
-                                {item.name}
+                                <FiFile size={14} />
+                                <div className="flex flex-col overflow-hidden">
+                                    <span className="font-semibold text-xs truncate">{result.node.name}</span>
+                                    <span className="text-[10px] text-zinc-500 truncate">{result.node.source_file}</span>
+                                </div>
                             </Button>
-                            );
-                        })}
+                        ))}
+                    </div>
+                ) : (
+                    <>
+                        {isTreeLoading && <div className="flex items-center gap-2 p-4 text-muted-foreground"><FiLoader className="animate-spin" /><span>Loading tree...</span></div>}
+                        {treeError && <div className="flex items-center gap-2 p-4 text-destructive"><FiAlertCircle /><span>{treeError}</span></div>}
+                        {!isTreeLoading && !treeError && files && (
+                            <FileTree files={files} onFileSelect={onFileSelect} />
+                        )}
                     </>
                 )}
             </ScrollArea>

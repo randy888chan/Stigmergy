@@ -247,7 +247,7 @@ export class Engine {
     this.app.get("/api/files", async (c) => {
        try {
          const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
-         const files = await fileSystem.listDirectory({ path: targetPath });
+         const files = await fileSystem.listFiles({ directory: targetPath });
          return c.json(files);
        } catch (e) {
          return c.json({ error: e.message }, 500);
