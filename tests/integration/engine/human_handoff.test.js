@@ -111,6 +111,9 @@ agent:
       _test_executorFactory: testExecutorFactory,
     });
 
+    // Force initialize the map for the test context
+    engine.pendingApprovals = new Map();
+
     broadcastSpy = mock();
     engine.broadcastEvent = broadcastSpy;
   });
