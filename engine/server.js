@@ -66,11 +66,9 @@ export class Engine {
 
   broadcastEvent(type, payload) {
     const message = JSON.stringify({ type, payload });
-    for (const client of this.clients) {
-      try {
-        client.send(message);
-      } catch (e) {
-        this.clients.delete(client);
+    for (const ws of this.clients) {
+      if (ws.readyState === 1) { // WebSocket.OPEN
+        ws.send(message);
       }
     }
   }
@@ -87,9 +85,11 @@ export class Engine {
   }
 
   async triggerAgent(agentId, prompt, options = {}) {
-    const { timeout = 300000 } = options;
+    console.log(chalk.yellow(`[Engine] Triggering agent ${agentId} with prompt: "${prompt.slice(0, 50)}..."`));
 
-    console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
+    // Notify frontend agent started
+    this.broadcastEvent("agent_start", { agentId });
+
     await this.toolExecutorPromise;
 
     try {
@@ -138,8 +138,9 @@ export class Engine {
             // Get Model
             let model = null;
             if (!this._test_streamText) {
-                 const { client, modelName } = this.ai.getModelForTier("reasoning_tier", null, this.config);
-                 model = client(modelName);
+                const tier = agentName === 'analyst' ? 'research_tier' : 'reasoning_tier';
+                const { client, modelName } = this.ai.getModelForTier(tier, null, this.config);
+                model = client(modelName);
             }
 
             let result;
@@ -166,6 +167,9 @@ export class Engine {
             const { toolCalls, finishReason, text } = result;
             lastText = text;
 
+            // Broadcast Thought/Text
+            if (text) this.broadcastEvent("agent_thought", { agentId, text });
+
             if (finishReason === "stop" || finishReason === "length") {
                 isDone = true;
             } else if (toolCalls && toolCalls.length > 0) {
@@ -174,7 +178,9 @@ export class Engine {
                 for (const call of toolCalls) {
                     try {
                         console.log(`[Engine] Executing tool: ${call.toolName}`);
+                        this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
+                        this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
                         toolResults.push({
                             role: "tool",
                             tool_call_id: call.toolCallId,
@@ -197,6 +203,7 @@ export class Engine {
 
     } catch (e) {
         console.error(chalk.red(`[Engine] Agent Error: ${e.message}`));
+        this.broadcastEvent("log", { level: "error", message: e.message });
         throw e;
     }
   }
@@ -296,7 +303,12 @@ export class Engine {
              const data = JSON.parse(event.data);
              console.log(chalk.gray(`[WS] Received: ${data.type}`));
 
-             if (data.type === 'stop_mission') {
+             if (data.type === 'chat_message') {
+               // Trigger the Conductor with the user's message
+               // We don't await this so the socket stays responsive
+               this.triggerAgent("@conductor", data.payload.content)
+                   .catch(e => console.error("Agent failed:", e));
+             } else if (data.type === 'stop_mission') {
                console.log(chalk.red.bold("[Engine] Stop Mission requested."));
                if (this.stateManager) {
                    await this.stateManager.updateStatus({ newStatus: 'Stopped', message: 'User requested stop.' });
