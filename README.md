@@ -1,51 +1,71 @@
-# 🚀 Stigmergy: The Autonomous AI Development Platform
+# 🚀 Stigmergy: The Autonomous Swarm Intelligence Platform
 
-Stigmergy is an enterprise-grade AI development system that lives on your machine. It doesn't just write code; it plans architectures, fixes bugs in existing apps, and answers questions about your codebase using a local Knowledge Graph.
+Stigmergy is an **enterprise-grade, self-improving AI development ecosystem** that lives on your infrastructure. It leverages a decentralized "swarm" of specialized agents to plan, architect, implement, and verify complex software systems with unprecedented autonomy and precision.
+
+## 🌪️ The Stigmergy Swarm
+
+Unlike traditional AI assistants, Stigmergy operates as a collaborative swarm. Our specialized agents work in concert:
+
+*   **🎼 The Conductor:** Strategic orchestration and team composition.
+*   **📝 The Specifier:** Transforms high-level goals into granular, machine-executable execution plans.
+*   **⚡ The Executor:** High-speed code implementation with a focus on enterprise-grade patterns.
+*   **🛡️ Quinn (QA):** Meticulous verification, TDD enforcement, and security auditing.
+*   **📜 The Auditor:** Real-time constitutional compliance and security guardrails.
+*   **🧠 Metis:** The system's memory, performing continuous self-improvement and learning from every mission.
 
 ## ✨ Key Capabilities
 
-*   **🧠 Consultant Mode:** Chat with your codebase. Ask "How does authentication work?" and get an answer based on your actual files.
-*   **🏗️ Enterprise Architect:** Scaffolds production-ready PERN stacks (Postgres, Express, React, Node) with Docker and TypeScript.
-*   **🚑 Rescue Team:** A specialized agent squad designed to analyze and fix bugs in *other* existing projects on your machine.
-*   **⚡ Async Task Queue:** Parallel processing of non-dependent tasks for maximum speed.
-*   **🛡️ Self-Correction:** Includes a "Refiner Loop" where agents critique and fix their own code before saving.
+*   **🌌 Autonomous Development:** Hand off a project description and watch the swarm scaffold, code, and test the entire system.
+*   **🛠️ Self-Improving Engine:** The system analyzes its own performance and refines its internal protocols over time.
+*   **🧠 Deep Code Intelligence:** A local Knowledge Graph (Neo4j) powered by CodeRAG ensures every agent has full architectural context.
+*   **🛡️ Constitutional Security:** Built-in multi-layered security prevents unauthorized access and ensures all actions comply with your defined governance.
+*   **🏗️ Enterprise Scaffolding:** Generate production-ready stacks with Docker, TypeScript, and modern CI/CD patterns out of the box.
 
-## 🛠️ Quick Start (Local)
+## 🛠️ Quick Start
 
 **Prerequisites:**
-*   [Bun](https://bun.sh/) (v1.0+)
-*   [Neo4j Desktop](https://neo4j.com/download/) (running locally on port 7687)
+*   [Bun](https://bun.sh/) (v1.1+) - High-performance runtime.
+*   [Neo4j](https://neo4j.com/) - Graph database for long-term memory.
 
-**1. Setup Environment**
-cp .env.example .env
-# Edit .env and add your OPENROUTER_API_KEY and Neo4j credentials
-
-**2. Install & Build**
+**1. Clone & Initialize**
+```bash
+git clone https://github.com/your-repo/stigmergy.git
+cd stigmergy
 bun install
+```
+
+**2. Configure Environment**
+```bash
+cp .env.example .env
+# Add your API keys (OpenRouter/Mistral) and Neo4j credentials
+```
+
+**3. Build & Launch**
+```bash
 bun run build:dashboard
-
-**3. Launch the Engine**
 bun run engine/main.js
+```
 
-**4. Access Mission Control**
-Open http://localhost:3010 in your browser.
+**4. Enter Mission Control**
+Navigate to `http://localhost:3010` to interact with the Swarm.
 
-## 🎯 How to Use
+## 🎯 Use Cases
 
-### Creating a New App
-In the Dashboard Chat:
-> "Create a new Enterprise SaaS app in /workspace/my-saas-project"
+### 🟢 Greenfield Development
+> "Architect and build a scalable microservices-based e-commerce platform in /workspace/project-alpha"
 
-### Fixing an Existing App
-1. Ensure your broken app is in a folder accessible to Stigmergy.
-2. In the Dashboard Chat:
-> "Fix the database connection error in /workspace/old-legacy-app"
+### 🔴 Legacy Modernization
+> "Analyze the monolithic PHP application in /old-app, identify security vulnerabilities, and propose a migration plan to Node.js."
 
-### Consulting
-> "Consultant: Explain the folder structure of this project."
+### 🔵 Intelligent Consulting
+> "Explain the data flow between the authentication service and the database in this project."
 
-## 🧩 Architecture
+## 🧩 Technical Architecture
 
-*   **Frontend:** React 18 + Tailwind (Glassmorphism UI) + Monaco Editor (IDE).
-*   **Backend:** Hono (High-performance Node server).
-*   **Brain:** LangGraph for agent orchestration + Neo4j for long-term memory.
+*   **Runtime:** Bun-native Hono server for sub-millisecond API responses.
+*   **Orchestration:** Strategic delegation via the Conductor agent and dynamic team bundles.
+*   **Memory:** Hybrid RAG approach using Vector search and Neo4j Graph relationships.
+*   **Frontend:** React 18 with Glassmorphism UI, Monaco Editor integration, and real-time WebSocket telemetry.
+
+---
+*Stigmergy: Building the future of autonomous software engineering.*

@@ -24,10 +24,17 @@ const useWebSocket = (url) => {
     }
 
     console.log(`[WS] Connecting to ${wsUrl}`);
-    ws.current = new WebSocket(wsUrl);
+    try {
+        ws.current = new WebSocket(wsUrl);
+    } catch (e) {
+        console.error(`[WS] Failed to create WebSocket instance:`, e);
+        setError(`Failed to create WebSocket: ${e.message}`);
+        setLoading(false);
+        return;
+    }
 
     ws.current.onopen = (event) => {
-      console.log(`[WS] Connection opened to ${wsUrl}`, event);
+      console.log(`[WS] Connection opened successfully to ${wsUrl}`);
       setIsConnected(true);
       setLoading(false);
       setError(null);
@@ -51,11 +58,11 @@ const useWebSocket = (url) => {
     };
 
     ws.current.onerror = (err) => {
-      console.error('[WS] WebSocket error event:', err);
-      // Detailed logging for the error object if it has useful properties
-      if (err.message) console.error('[WS] Error message:', err.message);
+      console.error('[WS] WebSocket error observed:', err);
 
-      setError('WebSocket connection error');
+      // Attempt to extract more info from the error event if possible
+      const errorMsg = err.message || 'WebSocket connection error';
+      setError(errorMsg);
       setLoading(false);
       setIsConnected(false);
     };

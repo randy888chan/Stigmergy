@@ -28,4 +28,7 @@ engine_tools:
   - "file_system.readFile"
   - "system.stream_thought"
   - "coderag.*"
+  - "shell.execute"
+  - "git_tool.*"
+  - "system.updateStatus"
 ```

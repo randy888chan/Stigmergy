@@ -341,13 +341,17 @@ export class Engine {
     // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
        onOpen: (event, ws) => {
-         console.log(chalk.green("[WS] Connected"));
+         const clientIp = ws.remoteAddress || "unknown";
+         console.log(chalk.green(`[WS] Connected from ${clientIp}`));
          this.clients.add(ws);
 
          // Send initial state asynchronously to avoid blocking the upgrade process
          this.stateManager.getState().then(state => {
              // Only send if the client is still in our active set
-             if (!this.clients.has(ws)) return;
+             if (!this.clients.has(ws)) {
+                 console.log(chalk.yellow("[WS] Client disconnected before initial state could be sent."));
+                 return;
+             }
 
              const payload = {
                  project_path: this.projectRoot,
@@ -355,11 +359,18 @@ export class Engine {
              };
 
              try {
-                ws.send(JSON.stringify({
-                    type: 'state_update',
-                    payload
-                }));
-                console.log(chalk.gray("[WS] Initial state sent:"), payload);
+                // In Bun, ws is a WSContext. We check readyState if possible.
+                const readyState = ws.raw?.readyState;
+                if (readyState === undefined || readyState === 1) { // 1 is OPEN
+                    ws.send(JSON.stringify({
+                        type: 'state_update',
+                        payload
+                    }));
+                    console.log(chalk.gray("[WS] Initial state sent:"), payload);
+                } else {
+                    console.warn(chalk.yellow(`[WS] Cannot send initial state: WebSocket readyState is ${readyState}`));
+                    this.clients.delete(ws);
+                }
              } catch (sendErr) {
                 console.warn(chalk.yellow("[WS] Failed to send initial state (client may have disconnected):"), sendErr.message);
                 this.clients.delete(ws);
