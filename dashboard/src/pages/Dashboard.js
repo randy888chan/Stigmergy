@@ -159,6 +159,14 @@ const Dashboard = () => {
             <div className={`flex items-center gap-1 ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
                 <Wifi className="w-3 h-3" /> {isConnected ? 'Live' : 'Offline'}
             </div>
+            <Button
+                variant="destructive"
+                size="sm"
+                className="h-8 text-[10px] uppercase tracking-wider font-bold"
+                onClick={() => sendMessage({ type: 'stop_mission' })}
+            >
+                Stop Mission
+            </Button>
          </div>
       </div>
 
@@ -176,44 +184,37 @@ const Dashboard = () => {
 
         <ResizableHandle withHandle className="bg-zinc-900" />
 
-        <ResizablePanel defaultSize={50}>
-            <ResizablePanelGroup direction="vertical">
-                 <ResizablePanel defaultSize={60} className="bg-zinc-900/50">
-                    <Suspense fallback={<div className="flex items-center justify-center h-full">Loading Editor...</div>}>
-                        <FileViewer
-                            filePath={systemState.selectedFile}
-                            content={systemState.fileContent}
-                            isLoading={systemState.isFileContentLoading}
-                        />
-                    </Suspense>
-                 </ResizablePanel>
-
-                 <ResizableHandle withHandle className="bg-zinc-900" />
-
-                 <ResizablePanel defaultSize={40} className="bg-black">
-                    <Suspense fallback={null}>
-                        <ChatInterface
-                            activeProject={systemState.project_path}
-                            engineStatus={systemState.project_status}
-                            sendMessage={sendMessage}
-                        />
-                    </Suspense>
-                 </ResizablePanel>
-            </ResizablePanelGroup>
+        <ResizablePanel defaultSize={50} className="bg-zinc-900/50">
+            <Suspense fallback={<div className="flex items-center justify-center h-full">Loading Editor...</div>}>
+                <FileViewer
+                    filePath={systemState.selectedFile}
+                    content={systemState.fileContent}
+                    isLoading={systemState.isFileContentLoading}
+                />
+            </Suspense>
         </ResizablePanel>
 
         <ResizableHandle withHandle className="bg-zinc-900" />
 
         <ResizablePanel defaultSize={30} minSize={20} className="bg-zinc-950 border-l border-white/10">
             <Suspense fallback={<div className="p-4 text-zinc-500 text-sm">Loading Panels...</div>}>
-                <Tabs defaultValue="activity" className="h-full flex flex-col">
+                <Tabs defaultValue="chat" className="h-full flex flex-col">
                     <TabsList className="bg-zinc-900/50 border-b border-white/5 w-full justify-start rounded-none p-0 h-10 shrink-0">
+                        <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Chat</TabsTrigger>
                         <TabsTrigger value="activity" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Activity</TabsTrigger>
                         <TabsTrigger value="health" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Health</TabsTrigger>
                         <TabsTrigger value="governance" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Governance</TabsTrigger>
                     </TabsList>
 
                     <div className="flex-grow overflow-hidden">
+                        <TabsContent value="chat" className="h-full p-0 m-0">
+                            <ChatInterface
+                                activeProject={systemState.project_path}
+                                engineStatus={systemState.project_status}
+                                sendMessage={sendMessage}
+                                thoughtStream={systemState.thoughts}
+                            />
+                        </TabsContent>
                         <TabsContent value="activity" className="h-full p-0 m-0">
                             <ScrollArea className="h-full">
                                 <div className="p-4">

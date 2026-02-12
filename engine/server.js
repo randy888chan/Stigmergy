@@ -59,8 +59,20 @@ export class Engine {
     const envPort = process.env.STIGMERGY_PORT;
     this.port = envPort ? Number(envPort) : (this.config?.server?.port !== undefined ? this.config.server.port : 3010);
     this.clients = new Set();
+    this.pendingApprovals = new Map();
 
     this.setupRoutes();
+  }
+
+  broadcastEvent(type, payload) {
+    const message = JSON.stringify({ type, payload });
+    for (const client of this.clients) {
+      try {
+        client.send(message);
+      } catch (e) {
+        this.clients.delete(client);
+      }
+    }
   }
 
   async initializeToolExecutor() {
@@ -275,9 +287,39 @@ export class Engine {
 
     // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
-       onOpen: () => console.log("WS Connected"),
-       onMessage: () => {},
-       onClose: () => {}
+       onOpen: (event, ws) => {
+         console.log(chalk.gray("[WS] Connected"));
+         this.clients.add(ws);
+       },
+       onMessage: async (event, ws) => {
+         try {
+             const data = JSON.parse(event.data);
+             console.log(chalk.gray(`[WS] Received: ${data.type}`));
+
+             if (data.type === 'stop_mission') {
+               console.log(chalk.red.bold("[Engine] Stop Mission requested."));
+               if (this.stateManager) {
+                   await this.stateManager.updateStatus({ newStatus: 'Stopped', message: 'User requested stop.' });
+               }
+               this.broadcastEvent('state_update', { project_status: 'Stopped' });
+             } else if (data.type === 'human_approval_response') {
+               const { requestId, decision } = data.payload;
+               if (this.pendingApprovals.has(requestId)) {
+                 this.pendingApprovals.get(requestId)(decision);
+                 this.pendingApprovals.delete(requestId);
+               }
+             } else if (data.type === 'set_project') {
+                 this.projectRoot = data.payload.path;
+                 this.broadcastEvent('state_update', { project_path: this.projectRoot });
+             }
+         } catch (e) {
+             console.error(chalk.red("[WS Error]"), e);
+         }
+       },
+       onClose: (event, ws) => {
+         console.log(chalk.gray("[WS] Disconnected"));
+         this.clients.delete(ws);
+       }
     })));
 
     // --- STATIC ASSETS ---
