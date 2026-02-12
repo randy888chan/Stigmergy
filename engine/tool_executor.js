@@ -215,9 +215,14 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
             if(engine.broadcastEvent) engine.broadcastEvent("tool_start", { tool: toolName, args });
 
             // --- RESTORED: Constitutional Audit ---
-            const criticalTools = ["file_system.writeFile", "shell.execute"];
-            if (criticalTools.includes(toolName)) {
-                const auditPrompt = `Audit the following action for constitutional compliance:\n\n- Agent: ${agentId}\n- Tool: ${toolName}\n- Arguments: ${JSON.stringify(args, null, 2)}`;
+            const criticalTools = ["file_system.writeFile", "shell.execute", "git_tool.*"];
+            const isCritical = criticalTools.some(pattern => {
+                if (pattern.endsWith(".*")) return toolName.startsWith(pattern.slice(0, -2) + ".");
+                return toolName === pattern;
+            });
+
+            if (isCritical) {
+                const auditPrompt = `Audit the following action for constitutional compliance:\n\n- Agent: ${agentId}\n- Tool: ${toolName}\n- Arguments: ${JSON.stringify(args, null, 2)}\n- Sandbox: ${workingDirectory}`;
                 console.log(chalk.yellow.bold(`[ConstitutionalAudit] Invoking @auditor for critical tool: ${toolName}`));
 
                 const auditResultText = await engine.triggerAgent("auditor", auditPrompt);
@@ -228,6 +233,18 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
                         console.error(chalk.red.bold(`[ConstitutionalAudit] Action blocked by @auditor: ${auditResult.reason}`));
                         throw new OperationalError(`Action blocked by @auditor: ${auditResult.reason}`);
                     }
+
+                    if (auditResult.requires_human_approval === true) {
+                        console.log(chalk.cyan.bold(`[ConstitutionalAudit] Action requires human approval.`));
+                        const decision = await toolbelt.system.request_human_approval({
+                            message: `The agent is attempting to use ${toolName}. This action requires manual approval per constitutional protocols.`,
+                            data: { agentId, toolName, args }
+                        });
+                        if (decision.toLowerCase().includes('rejected')) {
+                            throw new OperationalError(`Action rejected by human operator.`);
+                        }
+                    }
+
                     if (auditResult.compliant !== true) throw new Error(`Invalid response format from auditor`);
                     console.log(chalk.green.bold(`[ConstitutionalAudit] Action approved by @auditor.`));
                 } catch (e) {
