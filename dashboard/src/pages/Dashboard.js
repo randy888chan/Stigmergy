@@ -17,11 +17,15 @@ const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
+const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
+const MissionPlanner = lazy(() => import('../components/MissionPlanner.js'));
+const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 
 const INITIAL_STATE = {
   logs: [],
   agentActivity: [],
   thoughts: [],
+  chatMessages: [],
   project_status: 'Idle',
   project_path: '',
   files: [],
@@ -50,6 +54,13 @@ const Dashboard = () => {
              break;
         case 'agent_thought':
             setSystemState(prev => ({ ...prev, thoughts: [...prev.thoughts.slice(-50), payload] }));
+            break;
+        case 'agent_response':
+            setSystemState(prev => ({
+                ...prev,
+                chatMessages: [...prev.chatMessages, { id: Date.now().toString(), role: 'assistant', content: payload.text }],
+                thoughts: []
+            }));
             break;
         case 'agent_start':
         case 'tool_start':
@@ -85,6 +96,16 @@ const Dashboard = () => {
   const handleProjectSelect = (path) => {
     fetchFiles(path);
     if (sendMessage) sendMessage({ type: 'set_project', payload: { path } });
+  };
+
+  const handleSendMessage = (content) => {
+      const userMessage = { id: Date.now().toString(), role: 'user', content };
+      setSystemState(prev => ({
+          ...prev,
+          chatMessages: [...prev.chatMessages, userMessage],
+          thoughts: []
+      }));
+      if (sendMessage) sendMessage({ type: 'chat_message', payload: { content } });
   };
 
   const handleFileSelect = async (filePath) => {
@@ -199,21 +220,41 @@ const Dashboard = () => {
         <ResizablePanel defaultSize={30} minSize={20} className="bg-zinc-950 border-l border-white/10">
             <Suspense fallback={<div className="p-4 text-zinc-500 text-sm">Loading Panels...</div>}>
                 <Tabs defaultValue="chat" className="h-full flex flex-col">
-                    <TabsList className="bg-zinc-900/50 border-b border-white/5 w-full justify-start rounded-none p-0 h-10 shrink-0">
+                    <TabsList className="bg-zinc-900/50 border-b border-white/5 w-full justify-start rounded-none p-0 h-10 shrink-0 overflow-x-auto">
                         <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Chat</TabsTrigger>
+                        <TabsTrigger value="plan" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Plan</TabsTrigger>
+                        <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Swarm</TabsTrigger>
                         <TabsTrigger value="activity" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Activity</TabsTrigger>
                         <TabsTrigger value="health" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Health</TabsTrigger>
-                        <TabsTrigger value="governance" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Governance</TabsTrigger>
+                        <TabsTrigger value="governance" className="data-[state=active]:bg-zinc-800/50 data-[state=active]:text-blue-400 rounded-none h-full border-r border-white/5 px-4 text-[10px] uppercase tracking-widest font-bold transition-colors">Gov</TabsTrigger>
                     </TabsList>
 
                     <div className="flex-grow overflow-hidden">
-                        <TabsContent value="chat" className="h-full p-0 m-0">
-                            <ChatInterface
-                                activeProject={systemState.project_path}
-                                engineStatus={systemState.project_status}
-                                sendMessage={sendMessage}
-                                thoughtStream={systemState.thoughts}
-                            />
+                        <TabsContent value="chat" className="h-full p-0 m-0 flex flex-col">
+                            <div className="flex-grow overflow-hidden">
+                                <ChatInterface
+                                    activeProject={systemState.project_path}
+                                    engineStatus={systemState.project_status}
+                                    messages={systemState.chatMessages}
+                                    onSendMessage={handleSendMessage}
+                                    thoughtStream={systemState.thoughts}
+                                />
+                            </div>
+                            <div className="p-4 border-t border-white/5 bg-zinc-950/30">
+                                <DocumentUploader />
+                            </div>
+                        </TabsContent>
+                        <TabsContent value="plan" className="h-full p-0 m-0">
+                            <ScrollArea className="h-full">
+                                <div className="p-4">
+                                    <MissionPlanner />
+                                </div>
+                            </ScrollArea>
+                        </TabsContent>
+                        <TabsContent value="swarm" className="h-full p-0 m-0">
+                            <div className="h-full bg-black/20 relative">
+                                <SwarmVisualizer data={data} />
+                            </div>
                         </TabsContent>
                         <TabsContent value="activity" className="h-full p-0 m-0">
                             <ScrollArea className="h-full">

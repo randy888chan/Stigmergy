@@ -199,6 +199,9 @@ export class Engine {
                 messages.push(...toolResults);
             }
         }
+
+        // Final response broadcast
+        this.broadcastEvent("agent_response", { agentId, text: lastText });
         return lastText;
 
     } catch (e) {
@@ -292,11 +295,55 @@ export class Engine {
         return c.json({ success: true });
     });
 
+    // 5.5 Mission Plan & Upload APIs
+    this.app.get("/api/mission-plan", async (c) => {
+        try {
+            const state = await this.stateManager.getState();
+            return c.json(state.project_manifest || { tasks: [], message: "No active plan." });
+        } catch (e) {
+            return c.json({ error: e.message }, 500);
+        }
+    });
+
+    this.app.post("/api/upload", async (c) => {
+        try {
+            const body = await c.req.parseBody();
+            const file = body['file'];
+            if (!file) return c.json({ error: "No file uploaded" }, 400);
+
+            const uploadDir = path.join(this.projectRoot, "uploads");
+            await fs.ensureDir(uploadDir);
+            const safeFileName = path.basename(file.name);
+            const filePath = path.join(uploadDir, safeFileName);
+
+            const arrayBuffer = await file.arrayBuffer();
+            await fs.writeFile(filePath, Buffer.from(arrayBuffer));
+
+            return c.json({ success: true, message: `File ${file.name} uploaded to ${uploadDir}` });
+        } catch (e) {
+            return c.json({ error: e.message }, 500);
+        }
+    });
+
     // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
-       onOpen: (event, ws) => {
+       onOpen: async (event, ws) => {
          console.log(chalk.gray("[WS] Connected"));
          this.clients.add(ws);
+
+         // Send initial state
+         try {
+             const state = await this.stateManager.getState();
+             ws.send(JSON.stringify({
+                 type: 'state_update',
+                 payload: {
+                     project_path: this.projectRoot,
+                     project_status: state.project_status || 'Idle'
+                 }
+             }));
+         } catch (e) {
+             console.error("Failed to send initial state:", e);
+         }
        },
        onMessage: async (event, ws) => {
          try {

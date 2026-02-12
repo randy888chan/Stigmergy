@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
-import useWebSocket from '../hooks/useWebSocket';
 
-const SwarmVisualizer = () => {
+const SwarmVisualizer = ({ data }) => {
     const canvasRef = useRef(null);
-    const { lastMessage } = useWebSocket();
     const [graph, setGraph] = useState({ nodes: {}, edges: [] });
 
     useEffect(() => {
-        if (lastMessage) {
+        if (data) {
             try {
-                const event = JSON.parse(lastMessage);
-                if (event.type === 'agent_delegation' && event.data) {
-                    const { sourceAgentId, targetAgentId } = event.data;
+                const event = data; // Assuming data is already parsed as per useWebSocket hook
+                if (event.type === 'agent_delegation' && event.payload) {
+                    const { sourceAgentId, targetAgentId } = event.payload;
                     setGraph(prevGraph => {
                         const newNodes = { ...prevGraph.nodes };
                         if (!newNodes[sourceAgentId]) {
@@ -34,7 +32,7 @@ const SwarmVisualizer = () => {
                 console.error('Failed to parse WebSocket message:', error);
             }
         }
-    }, [lastMessage]);
+    }, [data]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
