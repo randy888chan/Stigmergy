@@ -1,0 +1,31 @@
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+🔧 Loading environment configuration for: test
+   Skipping Doppler check in test environment.
+GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+[Engine] Initializing...
+🚀 Stigmergy Engine is Live!
+👉 Dashboard: http://localhost:3018
+[REQ] GET /
+[REQ] GET /index.css
+[REQ] GET /index.js
+[REQ] GET /
+[REQ] GET /index.css
+[REQ] GET /index.js
+[REQ] GET /ws
+[WS] Connected
+[WS] Initial state sent: {
+  project_path: "/app",
+  project_status: "NEEDS_INITIALIZATION",
+}
+[REQ] GET /ws
+[WS] Connected
+[WS] Initial state sent: {
+  project_path: "/app",
+  project_status: "NEEDS_INITIALIZATION",
+}
+[WS] Disconnected (Code: 1001, Reason: none)
+[REQ] GET /api/projects
+[REQ] GET /api/projects
+[WS] Disconnected (Code: 1001, Reason: none)
+SIGTERM received, shutting down gracefully.

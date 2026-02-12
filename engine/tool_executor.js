@@ -270,9 +270,15 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
                      const resolvedPath = resolvePath(originalPath, engine.projectRoot, workingDirectory, config, fsProvider);
                      args[pathKey] = resolvedPath;
 
-                     // Core File Write Protection
-                     if ((funcName === "writeFile" || funcName === "appendFile") && resolvedPath.startsWith(path.join(engine.projectRoot, ".stigmergy-core"))) {
-                        if (agentId !== "@guardian" && agentId !== "@metis") {
+                     // Core File Write Protection (Exclude Sandboxes)
+                     const corePath = engine.corePath || path.join(engine.projectRoot, ".stigmergy-core");
+                     const sandboxPath = path.join(corePath, "sandboxes");
+
+                     if ((funcName === "writeFile" || funcName === "appendFile") &&
+                         resolvedPath.startsWith(corePath) &&
+                         !resolvedPath.startsWith(sandboxPath)) {
+                        const cleanAgentId = agentId.startsWith("@") ? agentId : `@${agentId}`;
+                        if (cleanAgentId !== "@guardian" && cleanAgentId !== "@metis") {
                             throw new OperationalError(`Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '${agentId}' is not authorized.`);
                         }
                      }
@@ -301,6 +307,8 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
             if (namespace === "git_tool") args.workingDirectory = workingDirectory;
 
             if (namespace === "stigmergy" && funcName === "task") {
+                result = await toolFunc(args, agentId);
+            } else if (namespace === "system" && funcName === "promote_from_sandbox") {
                 result = await toolFunc(args, agentId);
             } else {
                 result = await toolFunc(args);

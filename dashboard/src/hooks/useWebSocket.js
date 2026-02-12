@@ -51,7 +51,10 @@ const useWebSocket = (url) => {
     };
 
     ws.current.onerror = (err) => {
-      console.error('[WS] WebSocket error:', err);
+      console.error('[WS] WebSocket error event:', err);
+      // Detailed logging for the error object if it has useful properties
+      if (err.message) console.error('[WS] Error message:', err.message);
+
       setError('WebSocket connection error');
       setLoading(false);
       setIsConnected(false);
@@ -59,10 +62,15 @@ const useWebSocket = (url) => {
 
     ws.current.onclose = (event) => {
       console.log(`[WS] WebSocket connection closed (Code: ${event.code}, Reason: ${event.reason || 'none'}, Clean: ${event.wasClean})`);
+
+      if (event.code === 1006) {
+          console.warn('[WS] Abnormal closure (1006). This often happens if the server drops the connection or if there is a protocol mismatch.');
+      }
+
       setIsConnected(false);
       // Attempt reconnection after 3 seconds
       if (!reconnectTimeoutRef.current) {
-        console.log('[WS] Attempting reconnection in 3 seconds...');
+        console.log('[WS] Scheduling reconnection in 3 seconds...');
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
           connect();
