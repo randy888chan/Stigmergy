@@ -1,5 +1,4 @@
-import React from 'react';
-import { useChat } from '@ai-sdk/react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Textarea } from './ui/textarea.jsx';
@@ -18,20 +17,19 @@ export const BUSY_STATUSES = [
   'Running',
 ];
 
-export const ChatInterface = ({ engineStatus, activeProject, thoughtStream }) => {
-  const { messages, input, handleInputChange, handleSubmit } = useChat({
-    body: {
-      project_path: activeProject,
-    },
-  });
+export const ChatInterface = ({ engineStatus, activeProject, thoughtStream, messages, onSendMessage }) => {
+  const [input, setInput] = useState('');
 
   const isBusy = BUSY_STATUSES.includes(engineStatus);
-  const canSubmit = (input || '').trim() && activeProject && !isBusy;
+  const canSubmit = input.trim() && activeProject && !isBusy;
+
+  const handleInputChange = (e) => setInput(e.target.value);
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
     if (canSubmit) {
-      handleSubmit(e);
+      onSendMessage(input);
+      setInput('');
     }
   };
 
@@ -60,6 +58,19 @@ export const ChatInterface = ({ engineStatus, activeProject, thoughtStream }) =>
             <div className="text-center text-md text-zinc-500 pt-10">
               Start a new mission by selecting a project and defining your objective.
             </div>
+          )}
+          {isBusy && messages.length > 0 && messages[messages.length-1].role === 'user' && (
+              <div className="flex flex-col items-start">
+                  <div className="p-4 bg-white/5 border border-white/10 rounded-2xl rounded-tl-none">
+                      <div className="flex items-center gap-2 text-sm text-zinc-400 mb-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                          Processing Mission...
+                      </div>
+                      {thoughtStream && thoughtStream.length > 0 && (
+                          <ThoughtStream thoughts={thoughtStream} />
+                      )}
+                  </div>
+              </div>
           )}
         </div>
       </ScrollArea>
