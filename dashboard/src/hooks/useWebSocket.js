@@ -47,6 +47,10 @@ const useWebSocket = (url) => {
     ws.current.onmessage = (event) => {
       try {
         const jsonData = JSON.parse(event.data);
+
+        // Handle heartbeat silently
+        if (jsonData.type === 'heartbeat') return;
+
         console.log(`[WS] Message received:`, jsonData);
         setData(jsonData);
         // Dispatch a global event for testing purposes
@@ -58,10 +62,15 @@ const useWebSocket = (url) => {
     };
 
     ws.current.onerror = (err) => {
-      console.error('[WS] WebSocket error observed:', err);
+      // In development, React Strict Mode can cause connections to close quickly.
+      // We only log a full error if the connection was established and then failed unexpectedly.
+      if (ws.current?.readyState === WebSocket.CLOSED || ws.current?.readyState === WebSocket.CLOSING) {
+          console.warn('[WS] WebSocket connection closing/closed.');
+      } else {
+          console.error('[WS] WebSocket error observed:', err);
+      }
 
-      // Attempt to extract more info from the error event if possible
-      const errorMsg = err.message || 'WebSocket connection error';
+      const errorMsg = 'WebSocket connection error';
       setError(errorMsg);
       setLoading(false);
       setIsConnected(false);
