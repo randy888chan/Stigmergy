@@ -53,10 +53,10 @@ agent:
     - "research.deep_dive"
     - "research.evaluate_sources"
     - "research.scrape_and_synthesize"
-    - "document_intelligence.*"
     - "coderag.*"
     - "deepwiki.*"
     - "github_mcp_service.*"
     - "system.stream_thought"
     - "archon_tool.*"
+    - "document_intelligence.*"
 ```
