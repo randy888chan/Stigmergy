@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Input } from './ui/input.jsx';
 import { Button } from './ui/button.jsx';
 import { cn } from '../lib/utils.js';
+import { Upload, FileUp, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const DocumentUploader = () => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -47,27 +48,45 @@ const DocumentUploader = () => {
   };
 
   return (
-    <div className="space-y-2">
-      <Input
-        type="file"
-        onChange={handleFileChange}
-        disabled={isLoading}
-        className="text-sm"
-      />
-      <Button
-        onClick={handleUpload}
-        disabled={!selectedFile || isLoading}
-        className="w-full"
-      >
-        {isLoading ? 'Uploading...' : 'Upload and Process'}
-      </Button>
+    <div className="space-y-3 bg-zinc-900/30 p-3 rounded-lg border border-white/5">
+      <div className="flex items-center gap-2 mb-1">
+        <FileUp className="w-4 h-4 text-blue-400" />
+        <span className="text-[10px] uppercase tracking-widest font-bold text-zinc-400">Knowledge Ingestion</span>
+      </div>
+      <div className="flex gap-2">
+          <Input
+            type="file"
+            onChange={handleFileChange}
+            disabled={isLoading}
+            className="text-xs bg-black/50 border-white/10 h-8 flex-grow cursor-pointer"
+          />
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || isLoading}
+            size="sm"
+            className="h-8 bg-blue-600 hover:bg-blue-500 text-white gap-2 px-4 whitespace-nowrap"
+          >
+            {isLoading ? (
+                <>
+                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Processing...</span>
+                </>
+            ) : (
+                <>
+                    <Upload className="w-3 h-3" />
+                    <span>Upload & Process</span>
+                </>
+            )}
+          </Button>
+      </div>
       {message && (
-        <p className={cn(
-          "text-sm text-center",
-          message.startsWith('Error') ? "text-destructive" : "text-muted-foreground"
+        <div className={cn(
+          "text-[10px] flex items-center gap-2 p-2 rounded bg-black/30",
+          message.startsWith('Error') ? "text-red-400 border border-red-500/20" : "text-green-400 border border-green-500/20"
         )}>
-          {message}
-        </p>
+          {message.startsWith('Error') ? <AlertCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
+          <span className="truncate">{message}</span>
+        </div>
       )}
     </div>
   );

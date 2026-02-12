@@ -238,9 +238,10 @@ const Dashboard = () => {
                                     messages={systemState.chatMessages}
                                     onSendMessage={handleSendMessage}
                                     thoughtStream={systemState.thoughts}
+                                    isConnected={isConnected}
                                 />
                             </div>
-                            <div className="p-4 border-t border-white/5 bg-zinc-950/30">
+                            <div className="px-4 pb-4 bg-zinc-950/30">
                                 <DocumentUploader />
                             </div>
                         </TabsContent>

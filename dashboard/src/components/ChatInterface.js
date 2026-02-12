@@ -17,11 +17,11 @@ export const BUSY_STATUSES = [
   'Running',
 ];
 
-export const ChatInterface = ({ engineStatus, activeProject, thoughtStream, messages, onSendMessage }) => {
+export const ChatInterface = ({ engineStatus, activeProject, thoughtStream, messages, onSendMessage, isConnected }) => {
   const [input, setInput] = useState('');
 
   const isBusy = BUSY_STATUSES.includes(engineStatus);
-  const canSubmit = input.trim() && activeProject && !isBusy;
+  const canSubmit = input.trim() && activeProject && !isBusy && isConnected;
 
   const handleInputChange = (e) => setInput(e.target.value);
 
@@ -79,8 +79,13 @@ export const ChatInterface = ({ engineStatus, activeProject, thoughtStream, mess
           <Textarea
             value={input}
             onChange={handleInputChange}
-            placeholder={!activeProject ? "Please select a project to begin..." : isBusy ? "The agents are working..." : "Describe the mission objective..."}
-            disabled={!activeProject || isBusy}
+            placeholder={
+                !isConnected ? "Reconnecting to engine..." :
+                !activeProject ? "Please select a project to begin..." :
+                isBusy ? "The agents are working..." :
+                "Describe the mission objective..."
+            }
+            disabled={!activeProject || isBusy || !isConnected}
             className="flex-grow bg-transparent border-0 focus:ring-0 focus:outline-none resize-none"
             rows={2}
           />
