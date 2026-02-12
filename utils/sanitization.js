@@ -105,6 +105,41 @@ export const toolSchemas = {
       parameters: z.object({
           thought: z.string()
       })
+  },
+  'document_intelligence.processDocument': {
+    description: 'Processes an uploaded document (PDF, DOCX, TXT, MD) and extracts its content.',
+    parameters: z.object({
+      filePath: z.string().describe('The absolute path to the document to process.'),
+    }),
+  },
+  'archon_tool.healthCheck': {
+    description: 'Checks if the Archon server is running and healthy.',
+    parameters: z.object({}),
+  },
+  'archon_tool.query': {
+    description: 'Queries the Archon advanced RAG system for research.',
+    parameters: z.object({
+      query: z.string().describe('The research query.'),
+    }),
+  },
+  'research.deep_dive': {
+    description: 'Conducts a deep dive research on a topic.',
+    parameters: z.object({
+      query: z.string(),
+      learnings: z.array(z.string()).optional(),
+    }),
+  },
+  'research.evaluate_sources': {
+    description: 'Evaluates the credibility of a list of URLs.',
+    parameters: z.object({
+      urls: z.array(z.string()),
+    }),
+  },
+  'research.scrape_and_synthesize': {
+    description: 'Scrapes a list of URLs and synthesizes the content.',
+    parameters: z.object({
+      urls: z.array(z.string()),
+    }),
   }
 };
 

@@ -17,6 +17,7 @@ import * as documentIntelligence from "../tools/document_intelligence.js";
 import * as continuousExecution from "../tools/continuous_execution.js";
 import * as git_tool from "../tools/git_tool.js";
 import * as github_tool from "../tools/github_tool.js";
+import * as archonTool from "../tools/archon_tool.js";
 import { lightweight_archon_query } from "../services/lightweight_archon.js";
 import { query_deepwiki } from "../services/deepwiki_mcp.js";
 import { clearFileCache } from "./llm_adapter.js";
@@ -110,13 +111,14 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     system: createSystemTools(engine),
     superdesign: superdesignIntegration,
     qwen_integration: qwenIntegration,
-    document_intelligence: documentIntelligence,
     chat_interface: { process_chat_command: createChatProcessor(engine.stateManager) },
+    document_intelligence: documentIntelligence,
     continuous_execution: continuousExecution,
     lightweight_archon: { query: lightweight_archon_query },
     deepwiki: { query: query_deepwiki },
     git_tool: git_tool,
     github_tool: github_tool,
+    archon_tool: archonTool,
     stigmergy: {
       task: async ({ subagent_type, description }, sourceAgentId) => {
         if (!subagent_type || !description) throw new OperationalError("Missing args for stigmergy.task");
