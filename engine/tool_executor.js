@@ -173,14 +173,20 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     const yamlMatch = agentFileContent.match(/```yaml\s*([\s\S]*?)```/);
     if (!yamlMatch) return { engine_tools: [] };
 
-    const parsedConfig = yaml.load(yamlMatch[1]).agent;
-    agentConfigCache.set(agentId, parsedConfig);
-    return parsedConfig;
+    try {
+        const parsedConfig = yaml.load(yamlMatch[1]).agent;
+        agentConfigCache.set(agentId, parsedConfig);
+        return parsedConfig;
+    } catch (e) {
+        console.error(chalk.red(`[Executor] Failed to parse YAML for agent ${agentId}:`), e.message);
+        return { engine_tools: [] };
+    }
   }
 
   const getTools = async (agentId) => {
     const agentConfig = await loadAgentConfig(agentId);
-    const permittedTools = agentConfig.engine_tools || [];
+    // Support both 'engine_tools' and 'tools' keys for flexibility and backward compatibility.
+    const permittedTools = agentConfig.engine_tools || agentConfig.tools || [];
     const isSystemOrDispatcher = agentId === "system" || agentId === "dispatcher";
 
     const formattedTools = {};
@@ -263,25 +269,29 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
             }
 
             // --- RESTORED: Path Security Resolution & Core Protection ---
-            if (namespace === "file_system" || (namespace === "git_tool" && funcName === "init")) {
-                 const pathKey = args.path !== undefined ? "path" : "directory";
-                 if (args[pathKey]) {
-                     const originalPath = args[pathKey];
-                     const resolvedPath = resolvePath(originalPath, engine.projectRoot, workingDirectory, config, fsProvider);
-                     args[pathKey] = resolvedPath;
+            // We apply this to any tool that might interact with the file system via a 'path' or 'directory' argument.
+            const pathKey = args.path !== undefined ? "path" : (args.directory !== undefined ? "directory" : null);
 
-                     // Core File Write Protection (Exclude Sandboxes)
-                     const corePath = engine.corePath || path.join(engine.projectRoot, ".stigmergy-core");
-                     const sandboxPath = path.join(corePath, "sandboxes");
+            if (pathKey && args[pathKey]) {
+                 const originalPath = args[pathKey];
+                 const resolvedPath = resolvePath(originalPath, engine.projectRoot, workingDirectory, config, fsProvider);
+                 args[pathKey] = resolvedPath;
 
-                     if ((funcName === "writeFile" || funcName === "appendFile") &&
-                         resolvedPath.startsWith(corePath) &&
-                         !resolvedPath.startsWith(sandboxPath)) {
+                 // Core File Protection: Block modification of .stigmergy-core outside of sandboxes.
+                 const corePath = path.resolve(engine.projectRoot, engine.corePath || ".stigmergy-core");
+                 const sandboxPath = path.join(corePath, "sandboxes");
+
+                 if (resolvedPath.startsWith(corePath) && !resolvedPath.startsWith(sandboxPath)) {
+                    // Check if the operation is "write-like" or "delete-like"
+                    const isWriteOperation = ["writeFile", "appendFile", "mkdir", "moveFile", "deleteFile", "init"].some(op => funcName.includes(op));
+
+                    if (isWriteOperation) {
                         const cleanAgentId = agentId.startsWith("@") ? agentId : `@${agentId}`;
                         if (cleanAgentId !== "@guardian" && cleanAgentId !== "@metis") {
+                            console.error(chalk.red.bold(`[Security] Blocked unauthorized write to core: ${toolName} by ${agentId}`));
                             throw new OperationalError(`Security Violation: Only the @guardian or @metis agents may modify core system files. Agent '${agentId}' is not authorized.`);
                         }
-                     }
+                    }
                  }
             }
 
