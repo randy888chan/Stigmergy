@@ -67,8 +67,18 @@ export class Engine {
   broadcastEvent(type, payload) {
     const message = JSON.stringify({ type, payload });
     for (const ws of this.clients) {
-      if (ws.readyState === 1) { // WebSocket.OPEN
-        ws.send(message);
+      try {
+        // In Hono/Bun, ws is a WSContext. We try to send and catch failures.
+        // If ws.raw.readyState is available, we use it as a hint.
+        const readyState = ws.raw?.readyState;
+        if (readyState === undefined || readyState === 1) {
+            ws.send(message);
+        } else {
+            this.clients.delete(ws);
+        }
+      } catch (e) {
+        console.error(chalk.red(`[WS] Broadcast failed for a client:`), e.message);
+        this.clients.delete(ws);
       }
     }
   }
@@ -328,27 +338,30 @@ export class Engine {
     // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
        onOpen: async (event, ws) => {
-         console.log(chalk.gray("[WS] Connected"));
+         console.log(chalk.green("[WS] Connected"));
          this.clients.add(ws);
 
          // Send initial state
          try {
+             console.log(chalk.gray("[WS] Sending initial state..."));
              const state = await this.stateManager.getState();
+             const payload = {
+                 project_path: this.projectRoot,
+                 project_status: state.project_status || 'Idle'
+             };
              ws.send(JSON.stringify({
                  type: 'state_update',
-                 payload: {
-                     project_path: this.projectRoot,
-                     project_status: state.project_status || 'Idle'
-                 }
+                 payload
              }));
+             console.log(chalk.gray("[WS] Initial state sent:"), payload);
          } catch (e) {
-             console.error("Failed to send initial state:", e);
+             console.error(chalk.red("[WS] Failed to send initial state:"), e);
          }
        },
        onMessage: async (event, ws) => {
          try {
              const data = JSON.parse(event.data);
-             console.log(chalk.gray(`[WS] Received: ${data.type}`));
+             console.log(chalk.blue(`[WS] Received: ${data.type}`), data.payload || "");
 
              if (data.type === 'chat_message') {
                // Trigger the Conductor with the user's message
@@ -376,8 +389,11 @@ export class Engine {
          }
        },
        onClose: (event, ws) => {
-         console.log(chalk.gray("[WS] Disconnected"));
+         console.log(chalk.yellow(`[WS] Disconnected (Code: ${event.code}, Reason: ${event.reason || 'none'})`));
          this.clients.delete(ws);
+       },
+       onError: (event, ws) => {
+         console.error(chalk.red("[WS] Server-side WebSocket error:"), event);
        }
     })));
 

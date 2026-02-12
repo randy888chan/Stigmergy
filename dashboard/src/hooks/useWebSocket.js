@@ -26,8 +26,8 @@ const useWebSocket = (url) => {
     console.log(`[WS] Connecting to ${wsUrl}`);
     ws.current = new WebSocket(wsUrl);
 
-    ws.current.onopen = () => {
-      console.log(`[WS] Connection opened`);
+    ws.current.onopen = (event) => {
+      console.log(`[WS] Connection opened to ${wsUrl}`, event);
       setIsConnected(true);
       setLoading(false);
       setError(null);
@@ -40,11 +40,12 @@ const useWebSocket = (url) => {
     ws.current.onmessage = (event) => {
       try {
         const jsonData = JSON.parse(event.data);
+        console.log(`[WS] Message received:`, jsonData);
         setData(jsonData);
         // Dispatch a global event for testing purposes
         window.dispatchEvent(new MessageEvent('message', { data: event.data }));
       } catch (err) {
-        console.error('[WS] Error parsing WebSocket message:', err);
+        console.error('[WS] Error parsing WebSocket message:', err, event.data);
         setError('Error parsing WebSocket message');
       }
     };
@@ -56,11 +57,12 @@ const useWebSocket = (url) => {
       setIsConnected(false);
     };
 
-    ws.current.onclose = () => {
-      console.log('[WS] WebSocket connection closed');
+    ws.current.onclose = (event) => {
+      console.log(`[WS] WebSocket connection closed (Code: ${event.code}, Reason: ${event.reason || 'none'}, Clean: ${event.wasClean})`);
       setIsConnected(false);
       // Attempt reconnection after 3 seconds
       if (!reconnectTimeoutRef.current) {
+        console.log('[WS] Attempting reconnection in 3 seconds...');
         reconnectTimeoutRef.current = setTimeout(() => {
           reconnectTimeoutRef.current = null;
           connect();
