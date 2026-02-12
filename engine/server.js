@@ -66,18 +66,21 @@ export class Engine {
 
   broadcastEvent(type, payload) {
     const message = JSON.stringify({ type, payload });
-    for (const ws of this.clients) {
+    // Use a copy to avoid modification during iteration
+    const activeClients = Array.from(this.clients);
+
+    for (const ws of activeClients) {
       try {
-        // In Hono/Bun, ws is a WSContext. We try to send and catch failures.
-        // If ws.raw.readyState is available, we use it as a hint.
+        // In Hono/Bun, ws is a WSContext.
         const readyState = ws.raw?.readyState;
+        // readyState 1 is OPEN. If readyState is undefined, we assume it's okay to try.
         if (readyState === undefined || readyState === 1) {
             ws.send(message);
         } else {
             this.clients.delete(ws);
         }
       } catch (e) {
-        console.error(chalk.red(`[WS] Broadcast failed for a client:`), e.message);
+        console.warn(chalk.yellow(`[WS] Broadcast failed (removing client): ${e.message}`));
         this.clients.delete(ws);
       }
     }
@@ -104,7 +107,7 @@ export class Engine {
 
     try {
         const agentName = agentId.replace("@", "");
-        const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+        const workingDirectory = options.workingDirectory || path.join(this.corePath, "sandboxes", agentName);
         await this.fs.promises.mkdir(workingDirectory, { recursive: true });
 
         const executeTool = this.toolExecutor;
@@ -337,26 +340,33 @@ export class Engine {
 
     // 6. WebSocket
     this.app.get("/ws", upgradeWebSocket((c) => ({
-       onOpen: async (event, ws) => {
+       onOpen: (event, ws) => {
          console.log(chalk.green("[WS] Connected"));
          this.clients.add(ws);
 
-         // Send initial state
-         try {
-             console.log(chalk.gray("[WS] Sending initial state..."));
-             const state = await this.stateManager.getState();
+         // Send initial state asynchronously to avoid blocking the upgrade process
+         this.stateManager.getState().then(state => {
+             // Only send if the client is still in our active set
+             if (!this.clients.has(ws)) return;
+
              const payload = {
                  project_path: this.projectRoot,
                  project_status: state.project_status || 'Idle'
              };
-             ws.send(JSON.stringify({
-                 type: 'state_update',
-                 payload
-             }));
-             console.log(chalk.gray("[WS] Initial state sent:"), payload);
-         } catch (e) {
-             console.error(chalk.red("[WS] Failed to send initial state:"), e);
-         }
+
+             try {
+                ws.send(JSON.stringify({
+                    type: 'state_update',
+                    payload
+                }));
+                console.log(chalk.gray("[WS] Initial state sent:"), payload);
+             } catch (sendErr) {
+                console.warn(chalk.yellow("[WS] Failed to send initial state (client may have disconnected):"), sendErr.message);
+                this.clients.delete(ws);
+             }
+         }).catch(e => {
+             console.error(chalk.red("[WS] Failed to retrieve state for initial broadcast:"), e);
+         });
        },
        onMessage: async (event, ws) => {
          try {

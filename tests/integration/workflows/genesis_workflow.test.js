@@ -220,7 +220,7 @@ agent:
 
     await engine.triggerAgent("@genesis", prompt);
 
-    const agentSandboxPath = path.join(projectRoot, ".stigmergy", "sandboxes", "genesis");
+    const agentSandboxPath = path.join(projectRoot, ".stigmergy-core", "sandboxes", "genesis");
 
     // Verify directory creation (The assertion that was failing)
     let dirExists = false;

@@ -149,8 +149,9 @@ promote_from_sandbox: async ({ filePath }, agentId) => {
         throw new Error("The 'agentId' is required for this tool and must be provided by the executor.");
     }
 
+    const agentName = agentId.replace("@", "");
     const projectRoot = engine.projectRoot;
-    const sandboxPath = path.join(projectRoot, '.stigmergy-core', 'sandboxes', agentId, filePath);
+    const sandboxPath = path.join(engine.corePath, 'sandboxes', agentName, filePath);
     const destinationPath = path.join(projectRoot, filePath);
 
     // Security check: ensure the source exists and the destination is within the project

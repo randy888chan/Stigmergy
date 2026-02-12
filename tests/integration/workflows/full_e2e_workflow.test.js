@@ -206,7 +206,7 @@ agent:
 
     await engine.triggerAgent("@specifier", "Create a plan.");
     await engine.triggerAgent("@qa", "Review the plan.");
-    const dispatcherSandbox = path.join(projectRoot, ".stigmergy", "sandboxes", "dispatcher");
+    const dispatcherSandbox = path.join(projectRoot, ".stigmergy-core", "sandboxes", "dispatcher");
     await mockFs.ensureDir(dispatcherSandbox);
     await engine.triggerAgent("@dispatcher", "The plan is approved. Please write the file.", { workingDirectory: dispatcherSandbox });
 
