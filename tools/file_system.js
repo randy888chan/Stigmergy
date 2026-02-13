@@ -42,7 +42,23 @@ export async function listDirectory({ path: dirPath }, fs = defaultFs) {
 export async function listFiles({ directory }, fs = defaultFs) {
     try {
         // This tool now expects `directory` to be a secure, absolute path.
-        return glob("**/*", { cwd: directory, nodir: true, fs });
+        return glob("**/*", {
+            cwd: directory,
+            nodir: true,
+            fs,
+            ignore: [
+                '**/node_modules/**',
+                '**/.git/**',
+                '**/dist/**',
+                '**/build/**',
+                '**/target/**',
+                '**/vendor/**',
+                '**/.next/**',
+                '**/.cache/**',
+                '**/coverage/**',
+                '**/*.log'
+            ]
+        });
     } catch (error) {
         return `EXECUTION FAILED: ${error.message}`;
     }

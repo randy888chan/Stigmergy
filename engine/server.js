@@ -16,6 +16,7 @@ import { getAiProviders } from "../ai/providers.js";
 import { unifiedIntelligenceService } from "../services/unified_intelligence.js";
 import { TrajectoryRecorder } from "../services/trajectory_recorder.js";
 import * as fileSystem from "../tools/file_system.js";
+import * as swarmTools from "../tools/swarm_intelligence_tools.js";
 import { createCoderagTool } from "../tools/coderag_tool.js";
 
 // Initialize Bun-native WebSocket
@@ -247,6 +248,15 @@ export class Engine {
     // 2. Health Check
     this.app.get("/health", (c) => c.json({ status: "ok", mode: "bun-native" }));
 
+    this.app.get("/api/health", async (c) => {
+      try {
+        const health = await swarmTools.get_system_health_overview();
+        return c.json(health);
+      } catch (e) {
+        return c.json({ error: e.message }, 500);
+      }
+    });
+
     // 2.5 State API
     this.app.get("/api/state", async (c) => {
       try {
@@ -282,7 +292,14 @@ export class Engine {
     this.app.get("/api/files", async (c) => {
        try {
          const targetPath = resolveSafePath(c.req.query("path") || this.projectRoot);
-         const files = await fileSystem.listFiles({ directory: targetPath });
+         let files = await fileSystem.listFiles({ directory: targetPath });
+
+         // Safety cap: limit to 5000 files to prevent frontend explosion
+         if (Array.isArray(files) && files.length > 5000) {
+             console.warn(chalk.yellow(`[API] Truncating file list from ${files.length} to 5000 for path: ${targetPath}`));
+             files = files.slice(0, 5000);
+         }
+
          return c.json(files);
        } catch (e) {
          return c.json({ error: e.message }, 500);
@@ -404,7 +421,9 @@ export class Engine {
                }
              } else if (data.type === 'set_project') {
                  this.projectRoot = data.payload.path;
+                 // Broadcast both state_update (standard) and project_switched (legacy/convenience)
                  this.broadcastEvent('state_update', { project_path: this.projectRoot });
+                 this.broadcastEvent('project_switched', { path: this.projectRoot });
              }
          } catch (e) {
              console.error(chalk.red("[WS Error]"), e);

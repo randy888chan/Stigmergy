@@ -15,6 +15,8 @@ const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
 const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
+const AgentPerformanceMonitor = lazy(() => import('../components/AgentPerformanceMonitor.js'));
+const ToolHealthMonitor = lazy(() => import('../components/ToolHealthMonitor.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
 const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
@@ -39,6 +41,22 @@ const Dashboard = () => {
   const { data, isConnected, sendMessage } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
   const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
+  const [healthData, setHealthData] = useState({});
+
+  useEffect(() => {
+    const fetchHealth = async () => {
+      try {
+        const res = await fetch('/api/health');
+        const data = await res.json();
+        setHealthData(data);
+      } catch (e) {
+        console.error("Failed to fetch health data:", e);
+      }
+    };
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 10000); // Every 10s
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (data) {
@@ -83,13 +101,13 @@ const Dashboard = () => {
     if (!targetPath) return;
     setSystemState(prev => ({ ...prev, isFileListLoading: true, files: [] }));
     try {
-        const res = await fetch(`/api/files?path=${encodeURIComponent(targetPath)}`);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const files = await res.json();
-        setSystemState(prev => ({ ...prev, files, project_path: targetPath, isFileListLoading: false }));
+      const res = await fetch(`/api/files?path=${encodeURIComponent(targetPath)}`);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const files = await res.json();
+      setSystemState(prev => ({ ...prev, files, project_path: targetPath, isFileListLoading: false }));
     } catch (e) {
-        console.error("[HTTP] File fetch error:", e);
-        setSystemState(prev => ({ ...prev, isFileListLoading: false }));
+      console.error("[HTTP] File fetch error:", e);
+      setSystemState(prev => ({ ...prev, isFileListLoading: false }));
     }
   };
 
@@ -99,13 +117,13 @@ const Dashboard = () => {
   };
 
   const handleSendMessage = (content) => {
-      const userMessage = { id: Date.now().toString(), role: 'user', content };
-      setSystemState(prev => ({
-          ...prev,
-          chatMessages: [...prev.chatMessages, userMessage],
-          thoughts: []
-      }));
-      if (sendMessage) sendMessage({ type: 'chat_message', payload: { content } });
+    const userMessage = { id: Date.now().toString(), role: 'user', content };
+    setSystemState(prev => ({
+      ...prev,
+      chatMessages: [...prev.chatMessages, userMessage],
+      thoughts: []
+    }));
+    if (sendMessage) sendMessage({ type: 'chat_message', payload: { content } });
   };
 
   const handleFileSelect = async (filePath) => {
@@ -266,8 +284,10 @@ const Dashboard = () => {
                         </TabsContent>
                         <TabsContent value="health" className="h-full p-0 m-0">
                             <ScrollArea className="h-full">
-                                <div className="p-4">
-                                    <SystemHealthAlerts healthData={{}} />
+                                <div className="p-4 space-y-4">
+                                    <SystemHealthAlerts healthData={healthData} />
+                                    <AgentPerformanceMonitor healthData={healthData} />
+                                    <ToolHealthMonitor healthData={healthData} />
                                 </div>
                             </ScrollArea>
                         </TabsContent>
