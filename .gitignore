@@ -31,6 +31,9 @@ server.log
 
 # Evaluation and Test Results
 evaluation/test_results*.json
+evaluation/results.json
+evaluation/results_diagnostics.json
+dist/team-*.txt
 
 # Local environment configurations
 .env.development

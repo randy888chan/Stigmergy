@@ -1,31 +1,12 @@
-[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
-🔧 Loading environment configuration for: test
-   Skipping Doppler check in test environment.
-GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
-[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
-[Engine] Initializing...
-🚀 Stigmergy Engine is Live!
-👉 Dashboard: http://localhost:3018
-[REQ] GET /
-[REQ] GET /index.css
-[REQ] GET /index.js
-[REQ] GET /
-[REQ] GET /index.css
-[REQ] GET /index.js
-[REQ] GET /ws
-[WS] Connected
-[WS] Initial state sent: {
-  project_path: "/app",
-  project_status: "NEEDS_INITIALIZATION",
-}
-[REQ] GET /ws
-[WS] Connected
-[WS] Initial state sent: {
-  project_path: "/app",
-  project_status: "NEEDS_INITIALIZATION",
-}
-[WS] Disconnected (Code: 1001, Reason: none)
-[REQ] GET /api/projects
-[REQ] GET /api/projects
-[WS] Disconnected (Code: 1001, Reason: none)
-SIGTERM received, shutting down gracefully.
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+🔧 Loading environment configuration for: development
+   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.
+Failed to start the Stigmergy Engine: 341 |       },
+342 |     };
+343 |
+344 |     const validation = this._validateConfig(dynamicConfig);
+345 |     if (!validation.isValid) {
+346 |       throw new Error(`Configuration validation failed: ${validation.errors.join(", ")}`);
+                  ^
+error: Configuration validation failed: At least one AI provider must be configured (e.g., GOOGLE_API_KEY or OPENROUTER_API_KEY from .env or Doppler).
+      at _loadAndValidate (/app/services/config_service.js:346:13)

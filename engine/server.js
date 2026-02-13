@@ -346,10 +346,18 @@ export class Engine {
          this.clients.add(ws);
 
          // Send initial state asynchronously to avoid blocking the upgrade process
-         this.stateManager.getState().then(state => {
-             // Only send if the client is still in our active set
-             if (!this.clients.has(ws)) {
-                 console.log(chalk.yellow("[WS] Client disconnected before initial state could be sent."));
+         this.stateManagerInitializationPromise.then(() => this.stateManager.getState()).then(state => {
+             const readyState = ws.raw?.readyState;
+
+             // Only send if the client is still in our active set and is OPEN (readyState 1)
+             // If readyState is undefined, we are in a non-standard environment (like some tests), so we try to send.
+             if (!this.clients.has(ws) || (readyState !== undefined && readyState !== 1)) {
+                 if (readyState === 3) { // CLOSED
+                    this.clients.delete(ws);
+                 } else if (readyState !== undefined) {
+                    console.warn(chalk.yellow(`[WS] Skipping initial state: WebSocket readyState is ${readyState}`));
+                    this.clients.delete(ws);
+                 }
                  return;
              }
 
@@ -359,18 +367,11 @@ export class Engine {
              };
 
              try {
-                // In Bun, ws is a WSContext. We check readyState if possible.
-                const readyState = ws.raw?.readyState;
-                if (readyState === undefined || readyState === 1) { // 1 is OPEN
-                    ws.send(JSON.stringify({
-                        type: 'state_update',
-                        payload
-                    }));
-                    console.log(chalk.gray("[WS] Initial state sent:"), payload);
-                } else {
-                    console.warn(chalk.yellow(`[WS] Cannot send initial state: WebSocket readyState is ${readyState}`));
-                    this.clients.delete(ws);
-                }
+                ws.send(JSON.stringify({
+                    type: 'state_update',
+                    payload
+                }));
+                console.log(chalk.gray("[WS] Initial state sent:"), payload);
              } catch (sendErr) {
                 console.warn(chalk.yellow("[WS] Failed to send initial state (client may have disconnected):"), sendErr.message);
                 this.clients.delete(ws);
@@ -410,7 +411,8 @@ export class Engine {
          }
        },
        onClose: (event, ws) => {
-         console.log(chalk.yellow(`[WS] Disconnected (Code: ${event.code}, Reason: ${event.reason || 'none'})`));
+         const color = (event.code === 1000 || event.code === 1001) ? chalk.gray : chalk.yellow;
+         console.log(color(`[WS] Disconnected (Code: ${event.code}, Reason: ${event.reason || 'none'})`));
          this.clients.delete(ws);
        },
        onError: (event, ws) => {
@@ -441,11 +443,22 @@ export class Engine {
     // Update port if 0 was used
     this.port = this.server.port;
 
+    // Start heartbeat to keep connections alive and prune stale ones
+    this.startHeartbeat();
+
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
   }
 
+  startHeartbeat() {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = setInterval(() => {
+      this.broadcastEvent("heartbeat", { timestamp: Date.now() });
+    }, 30000); // 30s heartbeat
+  }
+
   async stop() {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
     if (this.server) this.server.stop();
     if (this.ownsStateManager && this.stateManager) await this.stateManager.closeDriver();
   }

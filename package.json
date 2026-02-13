@@ -39,10 +39,10 @@
     "build": "bun run build:dashboard && bun run build:agents",
     "build:dashboard": "npx tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css && bun build ./dashboard/src/index.js --outdir ./dashboard/public",
     "watch:dashboard": "concurrently \"tailwindcss -c ./dashboard/tailwind.config.js -i ./dashboard/src/index.css -o ./dashboard/public/index.css -w\" \"bun build ./dashboard/src/index.js --outdir ./dashboard/public --watch\"",
-    "build:agents": "bun run cli/commands/build.js",
+    "build:agents": "bun run packages/stigmergy-cli/cli/commands/build.js",
     "health-check": "bun run scripts/health-check.js",
     "validate": "bun run packages/stigmergy-cli/cli/index.js validate",
-    "init": "bun run cli/index.js init"
+    "init": "bun run packages/stigmergy-cli/cli/index.js init"
   },
   "dependencies": {
     "@ai-sdk/google": "^2.0.26",
