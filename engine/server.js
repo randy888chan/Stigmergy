@@ -23,6 +23,7 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
+    // Priority: Options -> Env Var -> Default
     this.corePath = options.corePath || process.env.STIGMERGY_CORE_PATH || path.join(process.cwd(), ".stigmergy-core");
     this.config = options.config;
 
