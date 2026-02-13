@@ -87,6 +87,7 @@ users:
     await configService.initialize();
     const config = configService.getConfig();
 
+    process.env.STIGMERGY_PORT = 0;
     engine = new Engine({
       config,
       startServer: true,
