@@ -53,6 +53,7 @@ export class Engine {
     this.app = new Hono();
     this.port = Number(process.env.STIGMERGY_PORT) || 3010;
     this.clients = new Set();
+    this.pendingApprovals = new Map();
 
     this.setupRoutes();
   }
@@ -79,6 +80,7 @@ export class Engine {
 
   // --- AGENT TRIGGER LOGIC ---
   async triggerAgent(agentId, prompt, options = {}) {
+    const { timeout = 300000 } = options;
     console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
     this.broadcastEvent("agent_start", { agentId });
 
@@ -89,63 +91,133 @@ export class Engine {
     await this.fs.promises.mkdir(workingDirectory, { recursive: true });
 
     try {
-        // Load Definition
+        // 1. Load Definition
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
-        if (await this.fs.pathExists(agentPath)) {
-            const content = await this.fs.readFile(agentPath, "utf-8");
-            const match = content.match(/```yaml\s*([\s\S]*?)```/);
-            if (match) {
-                const def = yaml.load(match[1]);
-                if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
-                if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
-            }
-        }
-
-        // Retry Loop ("The Bouncer")
-        let attempts = 0;
-        let lastText = "";
-        while (attempts < 3) {
-            try {
-                const streamTextFunc = this._test_streamText || streamText;
-                let model = null;
-                if (!this._test_streamText) {
-                    const tier = agentName === 'analyst' ? 'research_tier' : 'reasoning_tier';
-                    const { client, modelName } = this.ai.getModelForTier(tier, null, this.config);
-                    model = client(modelName);
+        try {
+            if (await this.fs.pathExists(agentPath)) {
+                const content = await this.fs.readFile(agentPath, "utf-8");
+                const match = content.match(/```yaml\s*([\s\S]*?)```/);
+                if (match) {
+                    const def = yaml.load(match[1]);
+                    if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
+                    if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
+            }
+        } catch (e) { console.warn("Failed to load agent def:", e.message); }
 
-                const result = await streamTextFunc({
-                    model,
-                    messages: [{ role: "system", content: systemPrompt }, { role: "user", content: prompt }],
-                    tools: await executeTool.getTools(agentName)
-                });
+        // 2. Prepare Conversation History
+        const messages = [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: prompt }
+        ];
 
-                const { toolCalls, text } = result;
-                lastText = text;
+        // 3. Multi-Turn Loop ("The Brain")
+        let isDone = false;
+        let turnCount = 0;
+        let lastText = "";
+
+        while (!isDone && turnCount < 15) {
+            turnCount++;
+
+            // --- RETRY BLOCK (The Bouncer) ---
+            let attempts = 0;
+            let result = null;
+            while(attempts < 3) {
+                try {
+                    const streamTextFunc = this._test_streamText || streamText;
+                    let model = null;
+                    if (!this._test_streamText) {
+                        const tier = agentName === 'analyst' ? 'research_tier' : 'reasoning_tier';
+                        const { client, modelName } = this.ai.getModelForTier(tier, null, this.config);
+                        model = client(modelName);
+                    }
+
+                    result = await streamTextFunc({
+                        model,
+                        messages,
+                        tools: await executeTool.getTools(agentName)
+                    });
+                    break; // Success
+                } catch(e) {
+                    attempts++;
+                    console.warn(`[AI] Error ${attempts}: ${e.message}`);
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
+                    if(attempts === 3) throw e;
+                }
+            }
+
+            const text = await result.text;
+            const toolCalls = await result.toolCalls;
+            const finishReason = await result.finishReason;
+            lastText = text;
+
+            if (text || (toolCalls && toolCalls.length > 0)) {
                 if (text) this.broadcastEvent("agent_thought", { agentId, text });
+                messages.push({
+                    role: "assistant",
+                    content: text || "",
+                    tool_calls: toolCalls?.length > 0 ? toolCalls : undefined
+                });
+            }
 
-                if (toolCalls?.length > 0) {
-                    for (const call of toolCalls) {
-                        this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
+            if (finishReason === "stop" || finishReason === "length") {
+                isDone = true;
+            } else if (toolCalls && toolCalls.length > 0) {
+                const toolResults = [];
+                for (const call of toolCalls) {
+                    this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
+                    try {
+                        // --- Special Handling for Human Approval ---
+                        if (call.toolName === 'system.request_human_approval') {
+                            const requestId = `req_${Date.now()}`;
+                            this.broadcastEvent("human_approval_request", {
+                                requestId,
+                                message: call.args.message,
+                                data: call.args.data
+                            });
+
+                            // Pause and wait for resolution
+                            const decision = await new Promise((resolve) => {
+                                this.pendingApprovals.set(requestId, resolve);
+                            });
+
+                            const output = decision === 'approved' ? "Approved" : "Rejected";
+                            toolResults.push({ role: "tool", tool_call_id: call.toolCallId, tool_name: call.toolName, content: output });
+                            this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
+                            continue; // Move to next tool
+                        }
+
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
+                        toolResults.push({
+                            role: "tool",
+                            tool_call_id: call.toolCallId,
+                            tool_name: call.toolName,
+                            content: JSON.stringify(output)
+                        });
                         this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
+                    } catch (e) {
+                        toolResults.push({
+                            role: "tool",
+                            tool_call_id: call.toolCallId,
+                            tool_name: call.toolName,
+                            content: `Error: ${e.message}`
+                        });
+                        this.broadcastEvent("tool_end", { tool: call.toolName, error: e.message });
                     }
                 }
-                break;
-            } catch (e) {
-                attempts++;
-                console.warn(`[AI] Retry ${attempts}: ${e.message}`);
-                await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
-                if (attempts === 3) throw e;
+                messages.push(...toolResults);
+                isDone = false; // Continue loop to process tool results
             }
         }
         this.broadcastEvent("agent_response", { agentId, text: lastText });
         return lastText;
+
     } catch (e) {
-        console.error(chalk.red(`[Engine] Error: ${e.message}`));
+        console.error(chalk.red(`[Engine] Agent Error: ${e.message}`));
         this.broadcastEvent("log", { level: "error", message: e.message });
-        throw e;
+        // Don't throw in production loop, just return error text
+        return `Error: ${e.message}`;
     }
   }
 
@@ -171,11 +243,19 @@ export class Engine {
                         this.triggerAgent("@conductor", data.payload.content).catch(e => console.error(e));
                     } else if (data.type === 'stop_mission') {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
+                    } else if (data.type === 'human_approval_response') {
+                        const { requestId, decision } = data.payload;
+                        if (this.pendingApprovals.has(requestId)) {
+                            this.pendingApprovals.get(requestId)(decision);
+                            this.pendingApprovals.delete(requestId);
+                        }
                     } else if (data.type === 'set_project') {
                         console.log(`[WS] Project Context: ${data.payload.path}`);
                         this.projectRoot = data.payload.path;
-                        // Auto-scan docs on project switch
-                        this.triggerAgent("@system", `Scan for documentation in ${data.payload.path} and summarize key files.`, { timeout: 30000 }).catch(()=>{});
+                        // Force create the directory if it doesn't exist (Greenfield support)
+                        await this.fs.ensureDir(data.payload.path);
+
+                        this.triggerAgent("@system", `Scan for documentation (PDF, MD, TXT) in ${data.payload.path}. If none found, create a placeholder docs/requirements.md file.`, { timeout: 30000 }).catch(()=>{});
                     }
                 } catch (e) { console.error("WS Error:", e); }
             },
