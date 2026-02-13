@@ -56,6 +56,7 @@ export class Engine {
       return this.initializeToolExecutor();
     });
 
+    this.explicitlySetProject = false;
     this.app = new Hono();
     const envPort = process.env.STIGMERGY_PORT;
     this.port = envPort ? Number(envPort) : (this.config?.server?.port !== undefined ? this.config.server.port : 3010);
@@ -335,6 +336,25 @@ export class Engine {
         }
     });
 
+    this.app.get("/api/proposals", async (c) => {
+        try {
+            // Placeholder: In a full implementation, this might fetch from Neo4j or a local cache
+            return c.json([]);
+        } catch (e) {
+            return c.json({ error: e.message }, 500);
+        }
+    });
+
+    this.app.post("/api/proposals/:id/:decision", async (c) => {
+        try {
+            const { id, decision } = c.req.param();
+            console.log(chalk.blue(`[API] Proposal ${id} ${decision}`));
+            return c.json({ success: true, id, decision });
+        } catch (e) {
+            return c.json({ error: e.message }, 500);
+        }
+    });
+
     this.app.post("/api/upload", async (c) => {
         try {
             const body = await c.req.parseBody();
@@ -379,7 +399,7 @@ export class Engine {
              }
 
              const payload = {
-                 project_path: this.projectRoot,
+                 project_path: this.explicitlySetProject ? this.projectRoot : '',
                  project_status: state.project_status || 'Idle'
              };
 
@@ -421,6 +441,7 @@ export class Engine {
                }
              } else if (data.type === 'set_project') {
                  this.projectRoot = data.payload.path;
+                 this.explicitlySetProject = true;
                  // Broadcast both state_update (standard) and project_switched (legacy/convenience)
                  this.broadcastEvent('state_update', { project_path: this.projectRoot });
                  this.broadcastEvent('project_switched', { path: this.projectRoot });

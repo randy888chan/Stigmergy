@@ -220,7 +220,7 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     const tracer = trace.getTracer("stigmergy-tool-executor");
     return tracer.startActiveSpan(`executeTool:${toolName}`, async (span) => {
         try {
-            if(engine.broadcastEvent) engine.broadcastEvent("tool_start", { tool: toolName, args });
+            if(engine.broadcastEvent) engine.broadcastEvent("tool_start", { agentId, tool: toolName, args });
 
             // --- RESTORED: Constitutional Audit ---
             const criticalTools = ["file_system.writeFile", "shell.execute", "git_tool.*"];
@@ -229,7 +229,9 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
                 return toolName === pattern;
             });
 
-            if (isCritical) {
+            const skipAudit = ["auditor", "guardian", "metis", "system", "dispatcher"].includes(agentId);
+
+            if (isCritical && !skipAudit) {
                 const auditPrompt = `Audit the following action for constitutional compliance:\n\n- Agent: ${agentId}\n- Tool: ${toolName}\n- Arguments: ${JSON.stringify(args, null, 2)}\n- Sandbox: ${workingDirectory}`;
                 console.log(chalk.yellow.bold(`[ConstitutionalAudit] Invoking @auditor for critical tool: ${toolName}`));
 
@@ -324,10 +326,10 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
                 result = await toolFunc(args);
             }
 
-            if(engine.broadcastEvent) engine.broadcastEvent("tool_end", { tool: toolName, result });
+            if(engine.broadcastEvent) engine.broadcastEvent("tool_end", { agentId, tool: toolName, result });
             return JSON.stringify(result, null, 2);
         } catch (e) {
-            if(engine.broadcastEvent) engine.broadcastEvent("tool_end", { tool: toolName, error: e.message });
+            if(engine.broadcastEvent) engine.broadcastEvent("tool_end", { agentId, tool: toolName, error: e.message });
             throw e;
         } finally {
             span.end();

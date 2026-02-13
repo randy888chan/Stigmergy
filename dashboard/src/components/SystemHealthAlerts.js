@@ -16,8 +16,8 @@ const SystemHealthAlerts = ({ healthData }) => {
           alerts.map((alert, index) => (
             <Alert key={index}>
               <Terminal className="h-4 w-4" />
-              <AlertTitle>{alert.title}</AlertTitle>
-              <AlertDescription>{alert.description}</AlertDescription>
+              <AlertTitle>{typeof alert === 'string' ? 'System Alert' : alert.title}</AlertTitle>
+              <AlertDescription>{typeof alert === 'string' ? alert : alert.description}</AlertDescription>
             </Alert>
           ))
         ) : (

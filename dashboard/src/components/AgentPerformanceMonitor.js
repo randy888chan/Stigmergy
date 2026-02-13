@@ -3,7 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 const AgentPerformanceMonitor = ({ healthData }) => {
-  const agents = healthData?.metrics?.performance?.metrics?.agents || [];
+  const agentsData = healthData?.metrics?.performance?.metrics?.agents || {};
+  const agents = Object.entries(agentsData).map(([name, stats]) => ({
+    name,
+    successRate: `${stats.success_rate}%`,
+    tasks: stats.total_tasks,
+    avgTime: `${stats.avg_time}ms`
+  }));
 
   return (
     <Card>
