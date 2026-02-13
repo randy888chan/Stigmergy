@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 
 const ToolHealthMonitor = ({ healthData }) => {
-  const tools = healthData?.metrics?.performance?.metrics?.tools || [];
+  const toolsData = healthData?.metrics?.toolUsage?.stats?.tools || {};
+  const tools = Object.entries(toolsData).map(([name, stats]) => ({
+    name,
+    frequency: stats.total_calls,
+    successRate: `${stats.success_rate}%`
+  }));
 
   return (
     <Card>

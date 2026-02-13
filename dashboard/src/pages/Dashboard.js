@@ -35,6 +35,7 @@ const INITIAL_STATE = {
   selectedFile: null,
   fileContent: '',
   isFileContentLoading: false,
+  proposals: [],
 };
 
 const Dashboard = () => {
@@ -53,9 +54,26 @@ const Dashboard = () => {
         console.error("Failed to fetch health data:", e);
       }
     };
+
+    const fetchProposals = async () => {
+        try {
+            const res = await fetch('/api/proposals');
+            const data = await res.json();
+            setSystemState(prev => ({ ...prev, proposals: data }));
+        } catch (e) {
+            console.error("Failed to fetch proposals:", e);
+        }
+    };
+
     fetchHealth();
-    const interval = setInterval(fetchHealth, 10000); // Every 10s
-    return () => clearInterval(interval);
+    fetchProposals();
+    const healthInterval = setInterval(fetchHealth, 10000); // Every 10s
+    const proposalsInterval = setInterval(fetchProposals, 5000); // Every 5s
+
+    return () => {
+        clearInterval(healthInterval);
+        clearInterval(proposalsInterval);
+    };
   }, []);
 
   useEffect(() => {
@@ -294,7 +312,15 @@ const Dashboard = () => {
                         <TabsContent value="governance" className="h-full p-0 m-0">
                             <ScrollArea className="h-full">
                                 <div className="p-4">
-                                    <GovernanceDashboard proposals={[]} isAdmin={true} />
+                                    <GovernanceDashboard
+                                        proposals={systemState.proposals}
+                                        isAdmin={true}
+                                        fetchProposals={() => {
+                                            fetch('/api/proposals')
+                                                .then(res => res.json())
+                                                .then(data => setSystemState(prev => ({ ...prev, proposals: data })));
+                                        }}
+                                    />
                                 </div>
                             </ScrollArea>
                         </TabsContent>

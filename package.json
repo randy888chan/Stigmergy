@@ -111,6 +111,7 @@
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.0.10",
+    "@playwright/test": "^1.58.2",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
