@@ -72,15 +72,13 @@ export class Engine {
   broadcastEvent(type, payload) {
     const message = JSON.stringify({ type, payload });
     for (const ws of this.clients) {
-        const readyState = ws.raw?.readyState;
-        if (readyState === 1) ws.send(message);
-        else if (readyState === 3) this.clients.delete(ws);
+        if (ws.readyState === 1) ws.send(message);
+        else if (ws.readyState === 3) this.clients.delete(ws);
     }
   }
 
   // --- AGENT TRIGGER LOGIC ---
   async triggerAgent(agentId, prompt, options = {}) {
-    const { timeout = 300000 } = options;
     console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
     this.broadcastEvent("agent_start", { agentId });
 
@@ -91,20 +89,33 @@ export class Engine {
     await this.fs.promises.mkdir(workingDirectory, { recursive: true });
 
     try {
-        // 1. Load Definition
+        // 1. Load Definition (FIXED LOGIC)
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
         try {
             if (await this.fs.pathExists(agentPath)) {
                 const content = await this.fs.readFile(agentPath, "utf-8");
+                // Relaxed Regex matches yaml block even if there are extra spaces
                 const match = content.match(/```yaml\s*([\s\S]*?)```/);
-                if (match) {
+
+                if (match && match[1]) {
                     const def = yaml.load(match[1]);
-                    if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
-                    if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
+                    if (def && def.agent) {
+                        if (def.agent.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
+                        if (def.agent.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
+                    } else {
+                        console.warn(`[Engine] Warning: Agent definition for ${agentName} missing 'agent' root key.`);
+                    }
+                } else {
+                    console.warn(`[Engine] Warning: Could not parse YAML from ${agentName}.md`);
+                    console.warn(`[Engine] Content snippet: ${content.substring(0, 100)}...`);
                 }
+            } else {
+                console.warn(`[Engine] Warning: Agent file not found: ${agentPath}`);
             }
-        } catch (e) { console.warn("Failed to load agent def:", e.message); }
+        } catch (e) {
+            console.warn(`[Engine] Failed to load agent def: ${e.message}`);
+        }
 
         // 2. Prepare Conversation History
         const messages = [
@@ -147,6 +158,7 @@ export class Engine {
                 }
             }
 
+            // Await promises from result (Crucial for AI SDK compatibility)
             const text = await result.text;
             const toolCalls = await result.toolCalls;
             const finishReason = await result.finishReason;
@@ -168,7 +180,6 @@ export class Engine {
                 for (const call of toolCalls) {
                     this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
                     try {
-                        // --- Special Handling for Human Approval ---
                         if (call.toolName === 'system.request_human_approval') {
                             const requestId = `req_${Date.now()}`;
                             this.broadcastEvent("human_approval_request", {
@@ -177,7 +188,6 @@ export class Engine {
                                 data: call.args.data
                             });
 
-                            // Pause and wait for resolution
                             const decision = await new Promise((resolve) => {
                                 this.pendingApprovals.set(requestId, resolve);
                             });
@@ -185,7 +195,7 @@ export class Engine {
                             const output = decision === 'approved' ? "Approved" : "Rejected";
                             toolResults.push({ role: "tool", tool_call_id: call.toolCallId, tool_name: call.toolName, content: output });
                             this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
-                            continue; // Move to next tool
+                            continue;
                         }
 
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
@@ -207,7 +217,7 @@ export class Engine {
                     }
                 }
                 messages.push(...toolResults);
-                isDone = false; // Continue loop to process tool results
+                isDone = false;
             }
         }
         this.broadcastEvent("agent_response", { agentId, text: lastText });
@@ -216,69 +226,28 @@ export class Engine {
     } catch (e) {
         console.error(chalk.red(`[Engine] Agent Error: ${e.message}`));
         this.broadcastEvent("log", { level: "error", message: e.message });
-        // Don't throw in production loop, just return error text
-        return `Error: ${e.message}`;
+        throw e;
     }
   }
 
   setupRoutes() {
     this.app.use("*", cors());
 
-    // --- STABILIZED WEBSOCKET ---
-    this.app.get("/ws", upgradeWebSocket((c) => {
-        return {
-            onOpen: (_event, ws) => {
-                console.log(chalk.green("[WS] Client Connected"));
-                this.clients.add(ws);
-            },
-            onMessage: async (event, ws) => {
-                if (event.data === "ping") {
-                    ws.send("pong"); // Heartbeat Response
-                    return;
-                }
-                try {
-                    const data = JSON.parse(event.data);
-                    console.log(chalk.blue("[WS] Received:"), data.type);
-                    if (data.type === 'chat_message') {
-                        this.triggerAgent("@conductor", data.payload.content).catch(e => console.error(e));
-                    } else if (data.type === 'stop_mission') {
-                        this.broadcastEvent("state_update", { project_status: "Stopped" });
-                    } else if (data.type === 'human_approval_response') {
-                        const { requestId, decision } = data.payload;
-                        if (this.pendingApprovals.has(requestId)) {
-                            this.pendingApprovals.get(requestId)(decision);
-                            this.pendingApprovals.delete(requestId);
-                        }
-                    } else if (data.type === 'set_project') {
-                        console.log(`[WS] Project Context: ${data.payload.path}`);
-                        this.projectRoot = data.payload.path;
-                        // Force create the directory if it doesn't exist (Greenfield support)
-                        await this.fs.ensureDir(data.payload.path);
+    // --- 1. API ROUTES (MUST COME FIRST) ---
 
-                        this.triggerAgent("@system", `Scan for documentation (PDF, MD, TXT) in ${data.payload.path}. If none found, create a placeholder docs/requirements.md file.`, { timeout: 30000 }).catch(()=>{});
-                    }
-                } catch (e) { console.error("WS Error:", e); }
-            },
-            onClose: (_event, ws) => {
-                console.log("[WS] Disconnected");
-                this.clients.delete(ws);
-            },
-        };
-    }));
-
-    // Resolvers
+    // Resolve Helper
     const resolveSafePath = (p) => {
         if (!p || p === 'undefined') return this.projectRoot;
         if (p.startsWith("~")) return path.join(os.homedir(), p.slice(1));
         return path.resolve(this.projectRoot, p);
     };
 
-    // APIs
     this.app.get("/health", (c) => c.json({ status: "ok" }));
 
     this.app.get("/api/projects", async (c) => {
         try {
             const basePath = resolveSafePath(c.req.query("basePath") || "~");
+            console.log(`[API] Projects at ${basePath}`);
             if (!await fs.pathExists(basePath)) return c.json({error: "Path not found"}, 404);
             const ent = await fs.readdir(basePath, {withFileTypes:true});
             const folders = ent.filter(e=>e.isDirectory()&&!e.name.startsWith('.')).map(e=>e.name);
@@ -288,6 +257,7 @@ export class Engine {
 
     this.app.get("/api/files", async (c) => {
         try {
+            // Use listFiles for recursive list as expected by the dashboard
             const files = await fileSystem.listFiles({ directory: resolveSafePath(c.req.query("path")) });
             return c.json(files);
         } catch (e) { return c.json({error:e.message}, 500); }
@@ -347,7 +317,45 @@ export class Engine {
         } catch (e) { return c.json({ error: e.message }, 500); }
     });
 
-    // Static Assets
+    // --- 2. WEBSOCKET ---
+    this.app.get("/ws", upgradeWebSocket((c) => {
+        return {
+            onOpen: (_event, ws) => {
+                console.log(chalk.green("[WS] Client Connected"));
+                this.clients.add(ws);
+            },
+            onMessage: async (event, ws) => {
+                if (event.data === "ping") { ws.send("pong"); return; }
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log(chalk.blue("[WS] Received:"), data.type);
+                    if (data.type === 'chat_message') {
+                        this.triggerAgent("@conductor", data.payload.content).catch(e => console.error(e));
+                    } else if (data.type === 'stop_mission') {
+                        this.broadcastEvent("state_update", { project_status: "Stopped" });
+                    } else if (data.type === 'set_project') {
+                        console.log(`[WS] Project Context: ${data.payload.path}`);
+                        this.projectRoot = data.payload.path;
+                        await fs.ensureDir(data.payload.path);
+                        this.triggerAgent("@system", `Scan for documentation in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
+                    } else if (data.type === 'human_approval_response') {
+                        const { requestId, decision } = data.payload;
+                        const resolve = this.pendingApprovals.get(requestId);
+                        if (resolve) {
+                            resolve(decision);
+                            this.pendingApprovals.delete(requestId);
+                        }
+                    }
+                } catch (e) { console.error("WS Error:", e); }
+            },
+            onClose: (_event, ws) => {
+                console.log("[WS] Disconnected");
+                this.clients.delete(ws);
+            },
+        };
+    }));
+
+    // --- 3. STATIC FILES (MUST BE LAST) ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
