@@ -128,6 +128,7 @@ agent:
 
     mockEngine = new Engine({
       projectRoot,
+      corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager,
       config, // Inject the dynamically imported mock config
       startServer: false,

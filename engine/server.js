@@ -23,8 +23,7 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    // Allow override via options, otherwise look in current dir
-    this.corePath = options.corePath || path.join(process.cwd(), ".stigmergy-core");
+    this.corePath = options.corePath || process.env.STIGMERGY_CORE_PATH || path.join(process.cwd(), ".stigmergy-core");
     this.config = options.config;
 
     if (!this.config) throw new Error("Engine requires config.");
@@ -72,7 +71,6 @@ export class Engine {
     const message = JSON.stringify({ type, payload });
     for (const ws of this.clients) {
         if (ws.readyState === 1) ws.send(message);
-        else if (ws.readyState === 3) this.clients.delete(ws);
     }
   }
 
@@ -87,10 +85,10 @@ export class Engine {
 
     try {
         await this.fs.promises.mkdir(workingDirectory, { recursive: true });
-    } catch(e) { /* Ignore if exists */ }
+    } catch(e) { /* Ignore */ }
 
     try {
-        // 1. Load Definition (Hardened)
+        // 1. Load Definition
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
 
@@ -103,12 +101,8 @@ export class Engine {
                     if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
                     if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
-            } else {
-                console.warn(`[Engine] Agent definition not found at: ${agentPath}. Using default prompt.`);
             }
-        } catch (e) {
-            console.warn(`[Engine] Failed to load agent def: ${e.message}. Using default prompt.`);
-        }
+        } catch (e) { console.warn(`Failed to load definition for ${agentName}`); }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -119,11 +113,13 @@ export class Engine {
         let turnCount = 0;
         let lastText = "";
 
+        // 2. Multi-Turn Execution Loop
         while (!isDone && turnCount < 15) {
             turnCount++;
             let attempts = 0;
             let result = null;
 
+            // Retry Logic ("The Bouncer")
             while(attempts < 3) {
                 try {
                     const streamTextFunc = this._test_streamText || streamText;
@@ -148,28 +144,31 @@ export class Engine {
                 }
             }
 
-            // Await promises from result (Crucial for AI SDK compatibility)
+            // FIXED: Await Promises (from AI SDK) to fix "undefined" errors
             const text = await result.text;
             const toolCalls = await result.toolCalls;
             const finishReason = await result.finishReason;
             lastText = text;
 
-            if (text || (toolCalls && toolCalls.length > 0)) {
-                if (text) this.broadcastEvent("agent_thought", { agentId, text });
-                messages.push({
-                    role: "assistant",
-                    content: text || "",
-                    tool_calls: toolCalls?.length > 0 ? toolCalls : undefined
-                });
+            // Handle Text AND Tools (Critical Fix: Do not use else-if)
+            if (text) {
+                this.broadcastEvent("agent_thought", { agentId, text });
             }
 
-            if (finishReason === "stop" || finishReason === "length") {
-                isDone = true;
-            } else if (toolCalls && toolCalls.length > 0) {
+            // Construct message history correctly for next turn
+            const assistantMsg = { role: "assistant", content: text || "" };
+            if (toolCalls && toolCalls.length > 0) {
+                assistantMsg.tool_calls = toolCalls;
+            }
+            messages.push(assistantMsg);
+
+            // Execute Tools
+            if (toolCalls && toolCalls.length > 0) {
                 const toolResults = [];
                 for (const call of toolCalls) {
                     this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
                     try {
+                        // Human Approval Interception
                         if (call.toolName === 'system.request_human_approval') {
                             const requestId = `req_${Date.now()}`;
                             this.broadcastEvent("human_approval_request", { requestId, message: call.args.message, data: call.args.data });
@@ -189,9 +188,12 @@ export class Engine {
                     }
                 }
                 messages.push(...toolResults);
-                isDone = false;
+                isDone = false; // Force loop to process results
+            } else if (finishReason === "stop" || finishReason === "length") {
+                isDone = true;
             }
         }
+
         this.broadcastEvent("agent_response", { agentId, text: lastText });
         return lastText;
 
@@ -205,15 +207,17 @@ export class Engine {
   setupRoutes() {
     this.app.use("*", cors());
 
-    // Resolve Helper
     const resolveSafePath = (p) => {
         if (!p || p === 'undefined') return this.projectRoot;
         if (p.startsWith("~")) return path.join(os.homedir(), p.slice(1));
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- API ROUTES ---
+    // --- 1. API ROUTES ---
     this.app.get("/api/health", (c) => c.json({ status: "ok" }));
+
+    // RESTORED: State Endpoint
+    this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
 
     this.app.get("/api/projects", async (c) => {
         try {
@@ -221,15 +225,16 @@ export class Engine {
             console.log(`[API] Projects at ${basePath}`);
             if (!await fs.pathExists(basePath)) return c.json({error: "Path not found"}, 404);
             const ent = await fs.readdir(basePath, {withFileTypes:true});
-            const folders = ent.filter(e=>e.isDirectory()&&!e.name.startsWith('.')).map(e=>e.name);
-            return c.json({ currentPath: basePath, folders });
+            return c.json({
+                currentPath: basePath,
+                folders: ent.filter(e=>e.isDirectory()&&!e.name.startsWith('.')).map(e=>e.name)
+            });
         } catch(e) { return c.json({error: e.message}, 500); }
     });
 
     this.app.get("/api/files", async (c) => {
         try {
-            // Use listFiles for recursive list as expected by the dashboard
-            const files = await fileSystem.listFiles({ directory: resolveSafePath(c.req.query("path")) });
+            const files = await fileSystem.listDirectory({ path: resolveSafePath(c.req.query("path")) });
             return c.json(files);
         } catch (e) { return c.json({error:e.message}, 500); }
     });
@@ -250,45 +255,7 @@ export class Engine {
         } catch(e) { return c.json({error:e.message}, 500); }
     });
 
-    this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
-
-    this.app.get("/api/mission-plan", async (c) => {
-        try {
-            const state = await this.stateManager.getState();
-            return c.json(state.project_manifest || { tasks: [], message: "No active plan." });
-        } catch (e) { return c.json({ error: e.message }, 500); }
-    });
-
-    this.app.get("/api/proposals", async (c) => {
-        try {
-            const proposalsDir = path.join(this.corePath, 'proposals');
-            if (!await fs.pathExists(proposalsDir)) return c.json([]);
-            const files = await fs.readdir(proposalsDir);
-            const proposals = await Promise.all(
-                files.filter(f => f.endsWith('.json')).map(async f => {
-                    try { return await fs.readJson(path.join(proposalsDir, f)); } catch (e) { return null; }
-                })
-            );
-            return c.json(proposals.filter(p => p !== null));
-        } catch (e) { return c.json({ error: e.message }, 500); }
-    });
-
-    this.app.post("/api/upload", async (c) => {
-        try {
-            const body = await c.req.parseBody();
-            const file = body['file'];
-            if (!file) return c.json({ error: "No file uploaded" }, 400);
-            const uploadDir = path.join(this.projectRoot, "uploads");
-            await fs.ensureDir(uploadDir);
-            const safeFileName = path.basename(file.name);
-            const filePath = path.join(uploadDir, safeFileName);
-            const arrayBuffer = await file.arrayBuffer();
-            await fs.writeFile(filePath, Buffer.from(arrayBuffer));
-            return c.json({ success: true, message: `File ${file.name} uploaded to ${uploadDir}` });
-        } catch (e) { return c.json({ error: e.message }, 500); }
-    });
-
-    // --- WEBSOCKET ---
+    // --- 2. WEBSOCKET ---
     this.app.get("/ws", upgradeWebSocket((c) => {
         return {
             onOpen: (_event, ws) => {
@@ -304,10 +271,23 @@ export class Engine {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
                     } else if (data.type === 'set_project') {
                         console.log(`[WS] Switching to: ${data.payload.path}`);
-                        this.projectRoot = data.payload.path;
-                        await fs.ensureDir(data.payload.path);
 
-                        // FIX: Broadcast the switch back to the client so it knows to load files
+                        // FIXED: Proper Context Switch with Cleanup
+                        if (this.stateManager && this.ownsStateManager) {
+                            await this.stateManager.closeDriver().catch(e => console.warn(`Error closing state manager: ${e.message}`));
+                        }
+
+                        this.projectRoot = data.payload.path;
+                        this.stateManager = new GraphStateManager(this.projectRoot);
+                        await this.stateManager.initialize();
+                        this.ownsStateManager = true;
+
+                        // Update dependent services
+                        this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
+                        this.toolExecutorPromise = this.initializeToolExecutor();
+                        await this.toolExecutorPromise;
+
+                        await fs.ensureDir(data.payload.path);
                         this.broadcastEvent("project_switched", { path: data.payload.path });
 
                         this.triggerAgent("@system", `Scan docs in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
@@ -327,7 +307,7 @@ export class Engine {
         };
     }));
 
-    // --- STATIC FILES ---
+    // --- 3. STATIC FILES ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
