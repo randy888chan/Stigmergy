@@ -92,6 +92,7 @@ agent:
     engine = new Engine({
       broadcastEvent: mock(),
       projectRoot: projectRoot,
+      corePath: process.env.STIGMERGY_CORE_PATH,
       stateManager,
       config: mockConfig, // Inject the complete mock config
       startServer: false,
