@@ -23,7 +23,6 @@ const useWebSocket = (url) => {
         wsUrl = url || `${protocol}//${host}/ws?token=${token}`;
     }
 
-    console.log(`[WS] Connecting to ${wsUrl}`);
     try {
         ws.current = new WebSocket(wsUrl);
     } catch (e) {
@@ -64,8 +63,9 @@ const useWebSocket = (url) => {
     ws.current.onerror = (err) => {
       // In development, React Strict Mode can cause connections to close quickly.
       // We only log a full error if the connection was established and then failed unexpectedly.
-      if (ws.current?.readyState === WebSocket.CLOSED || ws.current?.readyState === WebSocket.CLOSING) {
-          console.warn('[WS] WebSocket connection closing/closed.');
+      const readyState = ws.current?.readyState;
+      if (readyState === WebSocket.CLOSED || readyState === WebSocket.CLOSING) {
+          // Silent in this case as it's often a side effect of a controlled close or re-render
       } else {
           console.error('[WS] WebSocket error observed:', err);
       }

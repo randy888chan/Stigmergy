@@ -230,8 +230,14 @@ export class Engine {
     // 1. CORS & Logging Middleware
     this.app.use("*", cors());
     this.app.use("*", async (c, next) => {
-      console.log(chalk.gray(`[REQ] ${c.req.method} ${c.req.path}`));
+      const start = Date.now();
+      const method = c.req.method;
+      const path = c.req.path;
+      console.log(chalk.gray(`[REQ] ${method} ${path}`));
       await next();
+      const duration = Date.now() - start;
+      const color = c.res.status >= 400 ? chalk.red : chalk.green;
+      console.log(chalk.gray(`[RES] ${method} ${path} `) + color(c.res.status) + chalk.gray(` (${duration}ms)`));
     });
 
     // Resolve Helper
@@ -338,9 +344,25 @@ export class Engine {
 
     this.app.get("/api/proposals", async (c) => {
         try {
-            // Placeholder: In a full implementation, this might fetch from Neo4j or a local cache
-            return c.json([]);
+            const proposalsDir = path.join(this.corePath, 'proposals');
+            if (!await fs.pathExists(proposalsDir)) {
+                return c.json([]);
+            }
+            const files = await fs.readdir(proposalsDir);
+            const proposals = await Promise.all(
+                files
+                    .filter(f => f.endsWith('.json'))
+                    .map(async f => {
+                        try {
+                            return await fs.readJson(path.join(proposalsDir, f));
+                        } catch (e) {
+                            return null;
+                        }
+                    })
+            );
+            return c.json(proposals.filter(p => p !== null));
         } catch (e) {
+            console.error(chalk.red("[API Error] /api/proposals:"), e);
             return c.json({ error: e.message }, 500);
         }
     });
@@ -464,6 +486,9 @@ export class Engine {
     // This MUST be before the "*" route
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
+
+    // Silencing Chrome DevTools annoying 404
+    this.app.get("/.well-known/appspecific/com.chrome.devtools.json", (c) => c.json({}));
 
     // Serve other assets
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));

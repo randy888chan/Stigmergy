@@ -8,8 +8,6 @@ import { Send } from 'lucide-react';
 import ThoughtStream from './ThoughtStream.js';
 
 export const BUSY_STATUSES = [
-  'ENRICHMENT_PHASE',
-  'PLANNING_PHASE',
   'CODING_PHASE',
   'TESTING_PHASE',
   'DEBUGGING_PHASE',
