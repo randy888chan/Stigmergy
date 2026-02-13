@@ -58,7 +58,14 @@ mockFs.readdir = promisifyWithCallback(mockFs.promises.readdir);
 mockFs.ensureDir = promisifyWithCallback((path, options) =>
   mockFs.promises.mkdir(path, { recursive: true, ...options })
 );
-mockFs.pathExists = promisifyWithCallback(mockFs.promises.exists);
+mockFs.pathExists = async (p) => {
+  try {
+    await mockFs.promises.access(p);
+    return true;
+  } catch {
+    return false;
+  }
+};
 mockFs.writeJson = promisifyWithCallback(async (file, obj, options) => {
   const content = JSON.stringify(obj, null, options?.spaces);
   await mockFs.promises.writeFile(file, content, "utf8");

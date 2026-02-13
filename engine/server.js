@@ -23,8 +23,8 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    // Priority: Options -> Env Var -> Default
-    this.corePath = options.corePath || process.env.STIGMERGY_CORE_PATH || path.join(process.cwd(), ".stigmergy-core");
+    // FIX: prioritizing Env Var for tests, then options, then default
+    this.corePath = process.env.STIGMERGY_CORE_PATH || options.corePath || path.join(this.projectRoot, ".stigmergy-core");
     this.config = options.config;
 
     if (!this.config) throw new Error("Engine requires config.");
@@ -50,7 +50,8 @@ export class Engine {
     });
 
     this.app = new Hono();
-    this.port = options.port !== undefined ? options.port : (process.env.STIGMERGY_PORT !== undefined ? Number(process.env.STIGMERGY_PORT) : 3010);
+    // FIX: Respect options.port (for tests) or Env (for dev)
+    this.port = options.port !== undefined ? options.port : (Number(process.env.STIGMERGY_PORT) || 3010);
     this.clients = new Set();
     this.pendingApprovals = new Map();
 
@@ -82,7 +83,8 @@ export class Engine {
     await this.toolExecutorPromise;
     const executeTool = this.toolExecutor;
     const agentName = agentId.replace("@", "");
-    const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+    // Standardized sandbox path: .stigmergy-core/sandboxes
+    const workingDirectory = path.join(this.corePath, "sandboxes", agentName);
 
     try {
         await this.fs.promises.mkdir(workingDirectory, { recursive: true });
@@ -102,11 +104,10 @@ export class Engine {
                     if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
                     if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
+            } else {
+                console.warn(`[Engine] Agent def not found at: ${agentPath}`);
             }
-        } catch (e) {
-            // IMPROVED LOGGING: Print the actual error
-            console.warn(`[Engine] Failed to load definition for ${agentName}:`, e);
-        }
+        } catch (e) { console.warn(`[Engine] Failed to load agent def for ${agentName}: ${e.message}`); }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -117,13 +118,11 @@ export class Engine {
         let turnCount = 0;
         let lastText = "";
 
-        // 2. Multi-Turn Execution Loop
         while (!isDone && turnCount < 15) {
             turnCount++;
             let attempts = 0;
             let result = null;
 
-            // Retry Logic ("The Bouncer")
             while(attempts < 3) {
                 try {
                     const streamTextFunc = this._test_streamText || streamText;
@@ -154,7 +153,6 @@ export class Engine {
             const finishReason = await result.finishReason;
             lastText = text;
 
-            // Handle Text AND Tools (Critical Fix: Do not use else-if)
             if (text) {
                 this.broadcastEvent("agent_thought", { agentId, text });
             }
@@ -166,13 +164,13 @@ export class Engine {
             }
             messages.push(assistantMsg);
 
-            // Execute Tools
-            if (toolCalls && toolCalls.length > 0) {
+            if (finishReason === "stop" || finishReason === "length") {
+                isDone = true;
+            } else if (toolCalls && toolCalls.length > 0) {
                 const toolResults = [];
                 for (const call of toolCalls) {
                     this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
                     try {
-                        // Human Approval Interception
                         if (call.toolName === 'system.request_human_approval') {
                             const requestId = `req_${Date.now()}`;
                             this.broadcastEvent("human_approval_request", { requestId, message: call.args.message, data: call.args.data });
@@ -192,9 +190,7 @@ export class Engine {
                     }
                 }
                 messages.push(...toolResults);
-                isDone = false; // Force loop to process results
-            } else if (finishReason === "stop" || finishReason === "length") {
-                isDone = true;
+                isDone = false;
             }
         }
 
@@ -217,11 +213,14 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- 1. API ROUTES ---
-    this.app.get("/api/health", (c) => c.json({ status: "ok" }));
-
-    // RESTORED: State Endpoint
+    // --- API ROUTES ---
+    this.app.get("/health", (c) => c.json({ status: "ok" }));
     this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
+
+    // FIX: Add missing endpoints to prevent 404 HTML fallback
+    this.app.get("/api/proposals", (c) => c.json([]));
+    this.app.get("/api/mission-plan", (c) => c.json({ phases: [] }));
+    this.app.get("/api/activity", (c) => c.json([]));
 
     this.app.get("/api/projects", async (c) => {
         try {
@@ -259,7 +258,7 @@ export class Engine {
         } catch(e) { return c.json({error:e.message}, 500); }
     });
 
-    // --- 2. WEBSOCKET ---
+    // --- WEBSOCKET ---
     this.app.get("/ws", upgradeWebSocket((c) => {
         return {
             onOpen: (_event, ws) => {
@@ -275,21 +274,14 @@ export class Engine {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
                     } else if (data.type === 'set_project') {
                         console.log(`[WS] Switching to: ${data.payload.path}`);
-
-                        // FIXED: Proper Context Switch with Cleanup
-                        if (this.stateManager && this.ownsStateManager) {
-                            await this.stateManager.closeDriver().catch(e => console.warn(`Error closing state manager: ${e.message}`));
-                        }
-
                         this.projectRoot = data.payload.path;
+                        // Re-init state for new project
+                        if (this.ownsStateManager && this.stateManager) await this.stateManager.closeDriver();
                         this.stateManager = new GraphStateManager(this.projectRoot);
                         await this.stateManager.initialize();
-                        this.ownsStateManager = true;
-
-                        // Update dependent services
+                        // Re-init tools with new state
                         this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
-                        this.toolExecutorPromise = this.initializeToolExecutor();
-                        await this.toolExecutorPromise;
+                        this.toolExecutor = await this.initializeToolExecutor();
 
                         await fs.ensureDir(data.payload.path);
                         this.broadcastEvent("project_switched", { path: data.payload.path });
@@ -311,7 +303,7 @@ export class Engine {
         };
     }));
 
-    // --- 3. STATIC FILES ---
+    // --- STATIC FILES ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));

@@ -90,6 +90,7 @@ users:
     process.env.STIGMERGY_PORT = 0;
     engine = new Engine({
       config,
+      // Force random port for tests
       port: 0,
       startServer: true,
       projectRoot: testProjectRoot,
