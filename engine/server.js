@@ -50,7 +50,7 @@ export class Engine {
     });
 
     this.app = new Hono();
-    this.port = Number(process.env.STIGMERGY_PORT) || 3010;
+    this.port = options.port !== undefined ? options.port : (process.env.STIGMERGY_PORT !== undefined ? Number(process.env.STIGMERGY_PORT) : 3010);
     this.clients = new Set();
     this.pendingApprovals = new Map();
 
@@ -103,7 +103,10 @@ export class Engine {
                     if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
             }
-        } catch (e) { console.warn(`Failed to load definition for ${agentName}`); }
+        } catch (e) {
+            // IMPROVED LOGGING: Print the actual error
+            console.warn(`[Engine] Failed to load definition for ${agentName}:`, e);
+        }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -318,6 +321,7 @@ export class Engine {
   async start() {
     console.log(chalk.gray(`[Engine] Initializing...`));
     this.server = Bun.serve({ fetch: this.app.fetch, port: this.port, websocket: websocket });
+    this.port = this.server.port; // Capture actual port if 0 was used
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
   }

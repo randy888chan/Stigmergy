@@ -1,12 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronRight, ChevronDown, File, Folder } from 'lucide-react';
 import { cn } from "../lib/utils.js";
 import { ScrollArea } from "./ui/scroll-area.jsx";
 
-// Recursive Tree Component
 const TreeItem = ({ name, data, depth, onFileSelect, selectedFile, pathPrefix }) => {
-  const [isOpen, setIsOpen] = useState(depth < 1); // Expand root folders by default
-  const isFolder = typeof data === 'object';
+  const [isOpen, setIsOpen] = useState(depth < 1);
+  const isFolder = typeof data === 'object' && data !== null;
   const fullPath = pathPrefix ? `${pathPrefix}/${name}` : name;
   const isSelected = selectedFile === fullPath;
 
@@ -16,8 +15,7 @@ const TreeItem = ({ name, data, depth, onFileSelect, selectedFile, pathPrefix })
         onClick={() => onFileSelect(fullPath)}
         className={cn(
           "flex items-center gap-2 py-1 px-2 cursor-pointer hover:bg-white/5 text-sm transition-colors",
-          isSelected ? "bg-blue-600/20 text-blue-400" : "text-zinc-400",
-          `pl-[${depth * 12 + 12}px]`
+          isSelected ? "bg-blue-600/20 text-blue-400" : "text-zinc-400"
         )}
         style={{ paddingLeft: `${depth * 12 + 12}px` }}
       >
@@ -33,7 +31,6 @@ const TreeItem = ({ name, data, depth, onFileSelect, selectedFile, pathPrefix })
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex items-center gap-2 py-1 px-2 cursor-pointer hover:bg-white/5 text-sm text-zinc-300 font-medium",
-          `pl-[${depth * 12}px]`
         )}
         style={{ paddingLeft: `${depth * 12}px` }}
       >
@@ -61,20 +58,21 @@ const TreeItem = ({ name, data, depth, onFileSelect, selectedFile, pathPrefix })
 };
 
 const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading }) => {
-  // Defensive Tree Builder
   const fileTree = useMemo(() => {
     const tree = {};
-    if (!Array.isArray(files)) return tree; // Safety Guard
+    // SAFETY: Ensure files is an array
+    const safeFiles = Array.isArray(files) ? files : [];
 
-    files.forEach(filePath => {
-      if (typeof filePath !== 'string') return; // Safety Guard
+    safeFiles.forEach(filePath => {
+      // SAFETY: Ensure filePath is a string
+      if (typeof filePath !== 'string') return;
 
-      const parts = filePath.split('/'); // The line that was crashing
+      const parts = filePath.split('/');
       let current = tree;
 
       parts.forEach((part, index) => {
         if (index === parts.length - 1) {
-          current[part] = true; // File
+          current[part] = true;
         } else {
           current[part] = current[part] || {};
           current = current[part];
@@ -84,13 +82,8 @@ const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading }) => {
     return tree;
   }, [files]);
 
-  if (isLoading) {
-    return <div className="p-4 text-xs text-zinc-500 animate-pulse">Scanning file system...</div>;
-  }
-
-  if (!files || files.length === 0) {
-    return <div className="p-4 text-xs text-zinc-500">No files found. Select a project.</div>;
-  }
+  if (isLoading) return <div className="p-4 text-xs text-zinc-500 animate-pulse">Scanning...</div>;
+  if (!files || files.length === 0) return <div className="p-4 text-xs text-zinc-500">No files found.</div>;
 
   return (
     <ScrollArea className="h-full">

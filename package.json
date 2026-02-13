@@ -33,7 +33,7 @@
     "test:unit": "bun test tests/unit/ai/** tests/unit/tools/** tests/unit/utils/** tests/unit/HttpStorageAdapter.test.js tests/unit/localization.test.js tests/unit/system_validator.test.js",
     "test:unit:frontend": "bun test --preload ./tests/setup-dom.js tests/unit/dashboard/**",
     "test:integration": "bun test tests/integration/**",
-    "test:e2e": "bun run tests/e2e/standalone_api_mission.test.js",
+    "test:e2e": "bun test tests/e2e/standalone_api_mission.test.js",
     "test:e2e:ci": "bun run start:mock & wait-on http://localhost:3011 && npx playwright test tests/e2e/**",
     "test:watch": "bun test --watch",
     "build": "bun run build:dashboard && bun run build:agents",
