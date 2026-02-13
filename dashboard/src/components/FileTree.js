@@ -58,29 +58,33 @@ const FileTreeItem = ({ item, onFileSelect, depth = 0 }) => {
 };
 
 const FileTree = ({ files, onFileSelect }) => {
-  if (!files || !Array.isArray(files)) return null;
+  const tree = React.useMemo(() => {
+    if (!files || !Array.isArray(files)) return {};
 
-  const buildTree = (paths) => {
-    const root = Object.create(null);
-    paths.forEach((path) => {
-      const parts = path.split('/').filter(Boolean);
-      let current = root;
-      parts.forEach((part, index) => {
-        if (!current[part]) {
-          current[part] = {
-            name: part,
-            path: parts.slice(0, index + 1).join('/'),
-            type: index === parts.length - 1 ? 'file' : 'folder',
-            children: Object.create(null),
-          };
-        }
-        current = current[part].children;
+    const buildTree = (paths) => {
+      const root = Object.create(null);
+      paths.forEach((path) => {
+        const parts = path.split('/').filter(Boolean);
+        let current = root;
+        parts.forEach((part, index) => {
+          if (!current[part]) {
+            current[part] = {
+              name: part,
+              path: parts.slice(0, index + 1).join('/'),
+              type: index === parts.length - 1 ? 'file' : 'folder',
+              children: Object.create(null),
+            };
+          }
+          current = current[part].children;
+        });
       });
-    });
-    return root;
-  };
+      return root;
+    };
 
-  const tree = buildTree(files);
+    return buildTree(files);
+  }, [files]);
+
+  if (!files || !Array.isArray(files)) return null;
 
   return (
     <div className="py-2 select-none">
