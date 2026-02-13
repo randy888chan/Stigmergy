@@ -4,7 +4,7 @@ import { Button } from './ui/button.jsx';
 import { cn } from '../lib/utils.js';
 import { Upload, FileUp, CheckCircle2, AlertCircle } from 'lucide-react';
 
-const DocumentUploader = () => {
+const DocumentUploader = ({ onUploadSuccess }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -37,6 +37,7 @@ const DocumentUploader = () => {
       if (response.ok) {
         setMessage(`Success: ${result.message}`);
         setSelectedFile(null); // Clear the file input
+        if (onUploadSuccess) onUploadSuccess(result);
       } else {
         throw new Error(result.error || 'Unknown error occurred.');
       }

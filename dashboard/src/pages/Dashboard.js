@@ -293,7 +293,7 @@ const Dashboard = () => {
                                 />
                             </div>
                             <div className="px-4 pb-4 bg-zinc-950/30">
-                                <DocumentUploader />
+                                <DocumentUploader onUploadSuccess={() => fetchFiles(systemState.project_path)} />
                             </div>
                         </TabsContent>
                         <TabsContent value="plan" className="h-full p-0 m-0">

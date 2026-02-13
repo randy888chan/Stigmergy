@@ -61,14 +61,16 @@ const useWebSocket = (url) => {
     };
 
     ws.current.onerror = (err) => {
-      // In development, React Strict Mode can cause connections to close quickly.
+      // In development, React Strict Mode or HMR can cause connections to close or fail quickly.
       // We only log a full error if the connection was established and then failed unexpectedly.
+      // We use numeric readyState values for maximum compatibility: 2 (CLOSING), 3 (CLOSED).
       const readyState = ws.current?.readyState;
-      if (readyState === WebSocket.CLOSED || readyState === WebSocket.CLOSING) {
+      if (readyState === 2 /* CLOSING */ || readyState === 3 /* CLOSED */) {
           // Silent in this case as it's often a side effect of a controlled close or re-render
-      } else {
-          console.error('[WS] WebSocket error observed:', err);
+          return;
       }
+
+      console.error('[WS] WebSocket error observed:', err);
 
       const errorMsg = 'WebSocket connection error';
       setError(errorMsg);

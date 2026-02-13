@@ -52,3 +52,7 @@ dashboard/public/*.bundle.js.LICENSE.txt
 .DS_Store
 .env
 .logs
+
+# Verification and Uploads
+verification/
+uploads/
