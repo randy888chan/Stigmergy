@@ -23,18 +23,17 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    this.corePath = options.corePath || path.join(this.projectRoot, ".stigmergy-core");
+    // Allow override via options, otherwise look in current dir
+    this.corePath = options.corePath || path.join(process.cwd(), ".stigmergy-core");
     this.config = options.config;
 
     if (!this.config) throw new Error("Engine requires config.");
 
-    // Dependencies
     this.fs = options._test_fs || fs;
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
     this._test_executorFactory = options._test_executorFactory;
 
-    // Services
     this.unifiedIntelligenceService = this._test_unifiedIntelligenceService || unifiedIntelligenceService;
     this.ownsStateManager = !options.stateManager;
 
@@ -77,7 +76,6 @@ export class Engine {
     }
   }
 
-  // --- AGENT TRIGGER LOGIC ---
   async triggerAgent(agentId, prompt, options = {}) {
     console.log(chalk.yellow(`[Engine] Triggering agent ${agentId}`));
     this.broadcastEvent("agent_start", { agentId });
@@ -86,54 +84,46 @@ export class Engine {
     const executeTool = this.toolExecutor;
     const agentName = agentId.replace("@", "");
     const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
-    await this.fs.promises.mkdir(workingDirectory, { recursive: true });
 
     try {
-        // 1. Load Definition (FIXED LOGIC)
+        await this.fs.promises.mkdir(workingDirectory, { recursive: true });
+    } catch(e) { /* Ignore if exists */ }
+
+    try {
+        // 1. Load Definition (Hardened)
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
+
         try {
             if (await this.fs.pathExists(agentPath)) {
                 const content = await this.fs.readFile(agentPath, "utf-8");
-                // Relaxed Regex matches yaml block even if there are extra spaces
                 const match = content.match(/```yaml\s*([\s\S]*?)```/);
-
-                if (match && match[1]) {
+                if (match) {
                     const def = yaml.load(match[1]);
-                    if (def && def.agent) {
-                        if (def.agent.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
-                        if (def.agent.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
-                    } else {
-                        console.warn(`[Engine] Warning: Agent definition for ${agentName} missing 'agent' root key.`);
-                    }
-                } else {
-                    console.warn(`[Engine] Warning: Could not parse YAML from ${agentName}.md`);
-                    console.warn(`[Engine] Content snippet: ${content.substring(0, 100)}...`);
+                    if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
+                    if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
             } else {
-                console.warn(`[Engine] Warning: Agent file not found: ${agentPath}`);
+                console.warn(`[Engine] Agent definition not found at: ${agentPath}. Using default prompt.`);
             }
         } catch (e) {
-            console.warn(`[Engine] Failed to load agent def: ${e.message}`);
+            console.warn(`[Engine] Failed to load agent def: ${e.message}. Using default prompt.`);
         }
 
-        // 2. Prepare Conversation History
         const messages = [
             { role: "system", content: systemPrompt },
             { role: "user", content: prompt }
         ];
 
-        // 3. Multi-Turn Loop ("The Brain")
         let isDone = false;
         let turnCount = 0;
         let lastText = "";
 
         while (!isDone && turnCount < 15) {
             turnCount++;
-
-            // --- RETRY BLOCK (The Bouncer) ---
             let attempts = 0;
             let result = null;
+
             while(attempts < 3) {
                 try {
                     const streamTextFunc = this._test_streamText || streamText;
@@ -149,7 +139,7 @@ export class Engine {
                         messages,
                         tools: await executeTool.getTools(agentName)
                     });
-                    break; // Success
+                    break;
                 } catch(e) {
                     attempts++;
                     console.warn(`[AI] Error ${attempts}: ${e.message}`);
@@ -182,16 +172,8 @@ export class Engine {
                     try {
                         if (call.toolName === 'system.request_human_approval') {
                             const requestId = `req_${Date.now()}`;
-                            this.broadcastEvent("human_approval_request", {
-                                requestId,
-                                message: call.args.message,
-                                data: call.args.data
-                            });
-
-                            const decision = await new Promise((resolve) => {
-                                this.pendingApprovals.set(requestId, resolve);
-                            });
-
+                            this.broadcastEvent("human_approval_request", { requestId, message: call.args.message, data: call.args.data });
+                            const decision = await new Promise((resolve) => { this.pendingApprovals.set(requestId, resolve); });
                             const output = decision === 'approved' ? "Approved" : "Rejected";
                             toolResults.push({ role: "tool", tool_call_id: call.toolCallId, tool_name: call.toolName, content: output });
                             this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
@@ -199,20 +181,10 @@ export class Engine {
                         }
 
                         const output = await executeTool.execute(call.toolName, call.args, agentName, workingDirectory);
-                        toolResults.push({
-                            role: "tool",
-                            tool_call_id: call.toolCallId,
-                            tool_name: call.toolName,
-                            content: JSON.stringify(output)
-                        });
+                        toolResults.push({ role: "tool", tool_call_id: call.toolCallId, tool_name: call.toolName, content: JSON.stringify(output) });
                         this.broadcastEvent("tool_end", { tool: call.toolName, result: output });
                     } catch (e) {
-                        toolResults.push({
-                            role: "tool",
-                            tool_call_id: call.toolCallId,
-                            tool_name: call.toolName,
-                            content: `Error: ${e.message}`
-                        });
+                        toolResults.push({ role: "tool", tool_call_id: call.toolCallId, tool_name: call.toolName, content: `Error: ${e.message}` });
                         this.broadcastEvent("tool_end", { tool: call.toolName, error: e.message });
                     }
                 }
@@ -233,8 +205,6 @@ export class Engine {
   setupRoutes() {
     this.app.use("*", cors());
 
-    // --- 1. API ROUTES (MUST COME FIRST) ---
-
     // Resolve Helper
     const resolveSafePath = (p) => {
         if (!p || p === 'undefined') return this.projectRoot;
@@ -242,7 +212,8 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    this.app.get("/health", (c) => c.json({ status: "ok" }));
+    // --- API ROUTES ---
+    this.app.get("/api/health", (c) => c.json({ status: "ok" }));
 
     this.app.get("/api/projects", async (c) => {
         try {
@@ -317,27 +288,29 @@ export class Engine {
         } catch (e) { return c.json({ error: e.message }, 500); }
     });
 
-    // --- 2. WEBSOCKET ---
+    // --- WEBSOCKET ---
     this.app.get("/ws", upgradeWebSocket((c) => {
         return {
             onOpen: (_event, ws) => {
-                console.log(chalk.green("[WS] Client Connected"));
                 this.clients.add(ws);
             },
             onMessage: async (event, ws) => {
                 if (event.data === "ping") { ws.send("pong"); return; }
                 try {
                     const data = JSON.parse(event.data);
-                    console.log(chalk.blue("[WS] Received:"), data.type);
                     if (data.type === 'chat_message') {
                         this.triggerAgent("@conductor", data.payload.content).catch(e => console.error(e));
                     } else if (data.type === 'stop_mission') {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
                     } else if (data.type === 'set_project') {
-                        console.log(`[WS] Project Context: ${data.payload.path}`);
+                        console.log(`[WS] Switching to: ${data.payload.path}`);
                         this.projectRoot = data.payload.path;
                         await fs.ensureDir(data.payload.path);
-                        this.triggerAgent("@system", `Scan for documentation in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
+
+                        // FIX: Broadcast the switch back to the client so it knows to load files
+                        this.broadcastEvent("project_switched", { path: data.payload.path });
+
+                        this.triggerAgent("@system", `Scan docs in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
                     } else if (data.type === 'human_approval_response') {
                         const { requestId, decision } = data.payload;
                         const resolve = this.pendingApprovals.get(requestId);
@@ -349,13 +322,12 @@ export class Engine {
                 } catch (e) { console.error("WS Error:", e); }
             },
             onClose: (_event, ws) => {
-                console.log("[WS] Disconnected");
                 this.clients.delete(ws);
             },
         };
     }));
 
-    // --- 3. STATIC FILES (MUST BE LAST) ---
+    // --- STATIC FILES ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
