@@ -106,6 +106,19 @@ const Dashboard = () => {
         case 'project_switched':
           fetchFiles(payload.path);
           break;
+        case 'proposal_updated':
+          setSystemState(prev => {
+              const id = payload.id || payload.proposal_id;
+              const index = prev.proposals.findIndex(p => (p.id || p.proposal_id) === id);
+              if (index !== -1) {
+                  const newProposals = [...prev.proposals];
+                  newProposals[index] = payload;
+                  return { ...prev, proposals: newProposals };
+              } else {
+                  return { ...prev, proposals: [...prev.proposals, payload] };
+              }
+          });
+          break;
         case 'human_approval_request':
           setHumanApprovalRequest(payload);
           break;
@@ -130,7 +143,9 @@ const Dashboard = () => {
   };
 
   const handleProjectSelect = (path) => {
-    fetchFiles(path);
+    // We don't call fetchFiles(path) here anymore because the server will
+    // broadcast a 'project_switched' event back to us (and all other clients),
+    // which is already handled in the WebSocket useEffect.
     if (sendMessage) sendMessage({ type: 'set_project', payload: { path } });
   };
 
