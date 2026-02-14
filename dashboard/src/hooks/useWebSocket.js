@@ -34,8 +34,10 @@ const useWebSocket = (path) => {
       }
     };
 
-    ws.current.onclose = () => {
-      console.log('WS Disconnected. Reconnecting...');
+    ws.current.onclose = (event) => {
+      if (event.code !== 1006) {
+        console.log('WS Disconnected. Reconnecting...');
+      }
       setIsConnected(false);
       if (pingInterval.current) clearInterval(pingInterval.current);
       setTimeout(connect, 3000); // Retry after 3s

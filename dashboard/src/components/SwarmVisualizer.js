@@ -1,80 +1,51 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
+import { Bot, Terminal, CheckCircle, AlertCircle } from 'lucide-react';
 
-const SwarmVisualizer = ({ data }) => {
-    const canvasRef = useRef(null);
-    const [graph, setGraph] = useState({ nodes: {}, edges: [] });
-
-    useEffect(() => {
-        if (data) {
-            try {
-                const event = data; // Assuming data is already parsed as per useWebSocket hook
-                if (event.type === 'agent_delegation' && event.payload) {
-                    const { sourceAgentId, targetAgentId } = event.payload;
-                    setGraph(prevGraph => {
-                        const newNodes = { ...prevGraph.nodes };
-                        if (!newNodes[sourceAgentId]) {
-                            newNodes[sourceAgentId] = { id: sourceAgentId, x: Math.random() * 500 + 50, y: Math.random() * 300 + 50 };
-                        }
-                        if (!newNodes[targetAgentId]) {
-                            newNodes[targetAgentId] = { id: targetAgentId, x: Math.random() * 500 + 50, y: Math.random() * 300 + 50 };
-                        }
-
-                        const newEdges = [...prevGraph.edges];
-                        const edgeId = `${sourceAgentId}->${targetAgentId}`;
-                        if (!newEdges.find(e => e.id === edgeId)) {
-                            newEdges.push({ id: edgeId, source: sourceAgentId, target: targetAgentId });
-                        }
-
-                        return { nodes: newNodes, edges: newEdges };
-                    });
-                }
-            } catch (error) {
-                console.error('Failed to parse WebSocket message:', error);
-            }
-        }
-    }, [data]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        const context = canvas.getContext('2d');
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-
-        context.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw edges
-        context.strokeStyle = '#cccccc';
-        context.lineWidth = 1;
-        graph.edges.forEach(edge => {
-            const sourceNode = graph.nodes[edge.source];
-            const targetNode = graph.nodes[edge.target];
-            if (sourceNode && targetNode) {
-                context.beginPath();
-                context.moveTo(sourceNode.x, sourceNode.y);
-                context.lineTo(targetNode.x, targetNode.y);
-                context.stroke();
-            }
-        });
-
-        // Draw nodes
-        context.fillStyle = '#4a90e2';
-        context.textAlign = 'center';
-        context.textBaseline = 'middle';
-        Object.values(graph.nodes).forEach(node => {
-            context.beginPath();
-            context.arc(node.x, node.y, 20, 0, 2 * Math.PI);
-            context.fill();
-            context.fillStyle = 'white';
-            context.font = '10px sans-serif';
-            context.fillText(node.id.replace('@', ''), node.x, node.y);
-            context.fillStyle = '#4a90e2';
-        });
-
-    }, [graph]);
-
+const SwarmVisualizer = ({ activity }) => {
+  if (!activity || activity.length === 0) {
     return (
-        <canvas ref={canvasRef} style={{ width: '100%', height: '100%' }} />
+      <div className="flex flex-col items-center justify-center h-full text-zinc-500 space-y-2">
+        <Bot className="w-12 h-12 opacity-20" />
+        <p className="text-sm">No swarm activity yet.</p>
+        <p className="text-xs">Start a mission to see agents in action.</p>
+      </div>
     );
+  }
+
+  return (
+    <div className="p-4 space-y-4">
+      {activity.map((item) => (
+        <div key={item.id} className="flex gap-3 items-start border-b border-white/5 pb-3 last:border-0">
+          <div className="mt-1">
+            {item.type === 'agent_start' && <Bot className="w-4 h-4 text-blue-400" />}
+            {item.type === 'tool_start' && <Terminal className="w-4 h-4 text-yellow-400" />}
+            {item.type === 'tool_end' && <CheckCircle className="w-4 h-4 text-green-400" />}
+            {item.type === 'error' && <AlertCircle className="w-4 h-4 text-red-400" />}
+          </div>
+          <div className="overflow-hidden">
+            <div className="text-xs text-zinc-500 font-mono mb-1">
+              {new Date(item.id || Date.now()).toLocaleTimeString()}
+            </div>
+            <div className="text-sm text-zinc-300 font-medium">
+              {item.type === 'agent_start' && `Activated: ${item.agentId}`}
+              {item.type === 'tool_start' && `Running: ${item.tool}`}
+              {item.type === 'tool_end' && `Finished: ${item.tool}`}
+            </div>
+            {item.args && (
+              <pre className="text-xs text-zinc-500 mt-1 bg-black/20 p-1 rounded overflow-x-auto">
+                {JSON.stringify(item.args, null, 2)}
+              </pre>
+            )}
+            {item.result && (
+               <div className="text-xs text-green-500/50 mt-1 truncate">
+                 Result: {typeof item.result === 'string' ? item.result : 'Object'}
+               </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default SwarmVisualizer;
