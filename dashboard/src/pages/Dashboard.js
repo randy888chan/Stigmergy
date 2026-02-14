@@ -143,9 +143,8 @@ const Dashboard = () => {
   };
 
   const handleProjectSelect = (path) => {
-    // We don't call fetchFiles(path) here anymore because the server will
-    // broadcast a 'project_switched' event back to us (and all other clients),
-    // which is already handled in the WebSocket useEffect.
+    // FIX: Optimistically load files immediately
+    fetchFiles(path);
     if (sendMessage) sendMessage({ type: 'set_project', payload: { path } });
   };
 

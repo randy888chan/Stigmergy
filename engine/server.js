@@ -9,7 +9,6 @@ import fs from "fs-extra";
 import yaml from "js-yaml";
 import { streamText } from "ai";
 
-// Infrastructure
 import { GraphStateManager } from "./infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from "../ai/providers.js";
@@ -23,12 +22,10 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    // FIX: prioritizing Env Var for tests, then options, then default
     this.corePath = process.env.STIGMERGY_CORE_PATH || options.corePath || path.join(this.projectRoot, ".stigmergy-core");
-    this.config = options.config;
+    this.config = options.config || {}; // Robust default
 
-    if (!this.config) throw new Error("Engine requires config.");
-
+    // Dependencies
     this.fs = options._test_fs || fs;
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
@@ -40,7 +37,7 @@ export class Engine {
     this.stateManager = options.stateManager || new GraphStateManager(this.projectRoot);
     this.stateManagerInitializationPromise = options.stateManager ? Promise.resolve() : this.stateManager.initialize();
 
-    if (!this._test_streamText) {
+    if (!this._test_streamText && this.config.model_tiers) {
       this.ai = getAiProviders(this.config);
     }
 
@@ -50,7 +47,6 @@ export class Engine {
     });
 
     this.app = new Hono();
-    // FIX: Respect options.port (for tests) or Env (for dev)
     this.port = options.port !== undefined ? options.port : (Number(process.env.STIGMERGY_PORT) || 3010);
     this.clients = new Set();
     this.pendingApprovals = new Map();
@@ -83,15 +79,11 @@ export class Engine {
     await this.toolExecutorPromise;
     const executeTool = this.toolExecutor;
     const agentName = agentId.replace("@", "");
-    // Standardized sandbox path: .stigmergy-core/sandboxes
-    const workingDirectory = path.join(this.corePath, "sandboxes", agentName);
+    const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+
+    try { await this.fs.promises.mkdir(workingDirectory, { recursive: true }); } catch(e) {}
 
     try {
-        await this.fs.promises.mkdir(workingDirectory, { recursive: true });
-    } catch(e) { /* Ignore */ }
-
-    try {
-        // 1. Load Definition
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
 
@@ -104,10 +96,8 @@ export class Engine {
                     if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
                     if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
                 }
-            } else {
-                console.warn(`[Engine] Agent def not found at: ${agentPath}`);
             }
-        } catch (e) { console.warn(`[Engine] Failed to load agent def for ${agentName}: ${e.message}`); }
+        } catch (e) { console.warn(`[Engine] Failed to load def: ${e.message}`); }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -127,7 +117,7 @@ export class Engine {
                 try {
                     const streamTextFunc = this._test_streamText || streamText;
                     let model = null;
-                    if (!this._test_streamText) {
+                    if (!this._test_streamText && this.ai) { // Guard for missing AI
                         const tier = agentName === 'analyst' ? 'research_tier' : 'reasoning_tier';
                         const { client, modelName } = this.ai.getModelForTier(tier, null, this.config);
                         model = client(modelName);
@@ -147,7 +137,6 @@ export class Engine {
                 }
             }
 
-            // FIXED: Await Promises (from AI SDK) to fix "undefined" errors
             const text = await result.text;
             const toolCalls = await result.toolCalls;
             const finishReason = await result.finishReason;
@@ -213,11 +202,11 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- API ROUTES ---
+    // --- 1. API ROUTES (Missing Ones Added!) ---
     this.app.get("/health", (c) => c.json({ status: "ok" }));
     this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
 
-    // FIX: Add missing endpoints to prevent 404 HTML fallback
+    // THE FIX: Stubs for missing endpoints
     this.app.get("/api/proposals", (c) => c.json([]));
     this.app.get("/api/mission-plan", (c) => c.json({ phases: [] }));
     this.app.get("/api/activity", (c) => c.json([]));
@@ -237,8 +226,8 @@ export class Engine {
 
     this.app.get("/api/files", async (c) => {
         try {
-            const files = await fileSystem.listDirectory({ path: resolveSafePath(c.req.query("path")) });
-            return c.json(files);
+            const files = await fileSystem.listFiles({ directory: resolveSafePath(c.req.query("path")) });
+            return c.json(files.slice(0, 5000));
         } catch (e) { return c.json({error:e.message}, 500); }
     });
 
@@ -258,12 +247,10 @@ export class Engine {
         } catch(e) { return c.json({error:e.message}, 500); }
     });
 
-    // --- WEBSOCKET ---
+    // --- 2. WEBSOCKET ---
     this.app.get("/ws", upgradeWebSocket((c) => {
         return {
-            onOpen: (_event, ws) => {
-                this.clients.add(ws);
-            },
+            onOpen: (_event, ws) => { this.clients.add(ws); },
             onMessage: async (event, ws) => {
                 if (event.data === "ping") { ws.send("pong"); return; }
                 try {
@@ -274,18 +261,18 @@ export class Engine {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
                     } else if (data.type === 'set_project') {
                         console.log(`[WS] Switching to: ${data.payload.path}`);
+                        // Update Root & State
                         this.projectRoot = data.payload.path;
-                        // Re-init state for new project
                         if (this.ownsStateManager && this.stateManager) await this.stateManager.closeDriver();
                         this.stateManager = new GraphStateManager(this.projectRoot);
                         await this.stateManager.initialize();
-                        // Re-init tools with new state
                         this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
                         this.toolExecutor = await this.initializeToolExecutor();
 
                         await fs.ensureDir(data.payload.path);
                         this.broadcastEvent("project_switched", { path: data.payload.path });
 
+                        // Async Doc Scan
                         this.triggerAgent("@system", `Scan docs in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
                     } else if (data.type === 'human_approval_response') {
                         const { requestId, decision } = data.payload;
@@ -297,13 +284,11 @@ export class Engine {
                     }
                 } catch (e) { console.error("WS Error:", e); }
             },
-            onClose: (_event, ws) => {
-                this.clients.delete(ws);
-            },
+            onClose: (_event, ws) => { this.clients.delete(ws); },
         };
     }));
 
-    // --- STATIC FILES ---
+    // --- 3. STATIC FILES ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
@@ -313,7 +298,6 @@ export class Engine {
   async start() {
     console.log(chalk.gray(`[Engine] Initializing...`));
     this.server = Bun.serve({ fetch: this.app.fetch, port: this.port, websocket: websocket });
-    this.port = this.server.port; // Capture actual port if 0 was used
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
   }
