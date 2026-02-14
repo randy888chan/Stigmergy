@@ -53,13 +53,13 @@ const Dashboard = () => {
 
           case 'agent_thought':
           case 'agent_response':
-            if (!payload.text || payload.text.trim() === "") return prev;
+            if (!payload.text || String(payload.text).trim() === "") return prev;
             return {
                 ...prev,
                 messages: [...prev.messages, {
                     id: Date.now(),
                     role: 'assistant',
-                    content: payload.text,
+                    content: String(payload.text),
                     agent: payload.agentId
                 }]
             };
@@ -131,11 +131,20 @@ const Dashboard = () => {
   };
 
   const handleUserMessage = (text) => {
+      if (!text || String(text).trim() === "") return;
+
       setSystemState(prev => ({
           ...prev,
-          messages: [...prev.messages, { id: Date.now(), role: 'user', content: text }]
+          messages: [...(prev.messages || []), {
+              id: Date.now(),
+              role: 'user',
+              content: String(text)
+          }]
       }));
-      if (sendMessage) sendMessage({ type: 'chat_message', payload: { content: text } });
+
+      if (sendMessage) {
+          sendMessage({ type: 'chat_message', payload: { content: String(text) } });
+      }
   };
 
   // --- DOCUMENT UPLOAD LOGIC ---
@@ -237,7 +246,7 @@ const Dashboard = () => {
                     <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Chat</TabsTrigger>
                     <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Swarm</TabsTrigger>
                     <TabsTrigger value="logs" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Logs</TabsTrigger>
-                    <TabsTrigger value="admin" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Admin</TabsTrigger>
+                    <TabsTrigger value="system" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">System</TabsTrigger>
                 </TabsList>
 
                 <div className="flex-grow overflow-hidden relative">
@@ -262,7 +271,7 @@ const Dashboard = () => {
                         </Suspense>
                     </TabsContent>
 
-                    <TabsContent value="admin" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
+                    <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
                             <div className="p-4 space-y-4">
                                 <SystemHealthAlerts healthData={systemState.healthData} />

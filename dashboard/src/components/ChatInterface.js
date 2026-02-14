@@ -5,6 +5,7 @@ import { Input } from "./ui/input.jsx";
 import { ScrollArea } from "./ui/scroll-area.jsx";
 
 const ChatInterface = ({ messages = [], onSendMessage }) => {
+  console.log("Chat Render:", messages);
   const [input, setInput] = useState("");
   const scrollRef = useRef(null);
 
@@ -26,33 +27,38 @@ const ChatInterface = ({ messages = [], onSendMessage }) => {
     <div className="flex flex-col h-full bg-black">
       <ScrollArea className="flex-grow p-4">
         <div className="space-y-4">
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              {/* SYSTEM MESSAGE (TOOL) */}
-              {msg.role === 'system' && (
-                  <div className="w-full flex justify-center my-2">
-                      <div className="text-xs text-zinc-500 font-mono bg-zinc-900/50 px-2 py-1 rounded border border-white/5 flex items-center gap-2">
-                          <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
-                          {msg.content}
-                      </div>
-                  </div>
-              )}
+          {messages.map((msg, idx) => {
+            const role = msg?.role || 'assistant';
+            const content = msg?.content || '...';
 
-              {/* NORMAL MESSAGE */}
-              {msg.role !== 'system' && (
-                  <div
-                    className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap ${
-                      msg.role === 'user'
-                        ? 'bg-blue-600 text-white rounded-tr-none'
-                        : 'bg-zinc-800 text-zinc-200 rounded-tl-none border border-white/10'
-                    }`}
-                  >
-                    {msg.agent && <div className="text-xs text-zinc-500 mb-1 font-bold">{msg.agent}</div>}
-                    {msg.content}
-                  </div>
-              )}
-            </div>
-          ))}
+            return (
+              <div key={msg?.id || idx} className={`flex ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                {/* SYSTEM MESSAGE (TOOL) */}
+                {role === 'system' && (
+                    <div className="w-full flex justify-center my-2">
+                        <div className="text-xs text-zinc-500 font-mono bg-zinc-900/50 px-2 py-1 rounded border border-white/5 flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></span>
+                            {content}
+                        </div>
+                    </div>
+                )}
+
+                {/* NORMAL MESSAGE */}
+                {role !== 'system' && (
+                    <div
+                      className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap ${
+                        role === 'user'
+                          ? 'bg-blue-600 text-white rounded-tr-none'
+                          : 'bg-zinc-800 text-zinc-200 rounded-tl-none border border-white/10'
+                      }`}
+                    >
+                      {msg?.agent && <div className="text-xs text-zinc-500 mb-1 font-bold">{msg.agent}</div>}
+                      {content}
+                    </div>
+                )}
+              </div>
+            );
+          })}
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
