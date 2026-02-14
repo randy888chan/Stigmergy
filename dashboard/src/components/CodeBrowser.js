@@ -60,16 +60,12 @@ const TreeItem = ({ name, data, depth, onFileSelect, selectedFile, pathPrefix })
 const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading }) => {
   const fileTree = useMemo(() => {
     const tree = {};
-    // SAFETY: Ensure files is an array
-    const safeFiles = Array.isArray(files) ? files : [];
+    if (!Array.isArray(files)) return tree;
 
-    safeFiles.forEach(filePath => {
-      // SAFETY: Ensure filePath is a string
+    files.forEach(filePath => {
       if (typeof filePath !== 'string') return;
-
       const parts = filePath.split('/');
       let current = tree;
-
       parts.forEach((part, index) => {
         if (index === parts.length - 1) {
           current[part] = true;
@@ -83,7 +79,7 @@ const CodeBrowser = ({ files, onFileSelect, selectedFile, isLoading }) => {
   }, [files]);
 
   if (isLoading) return <div className="p-4 text-xs text-zinc-500 animate-pulse">Scanning...</div>;
-  if (!files || files.length === 0) return <div className="p-4 text-xs text-zinc-500">No files found.</div>;
+  if (!files || !Array.isArray(files) || files.length === 0) return <div className="p-4 text-xs text-zinc-500">No files found.</div>;
 
   return (
     <ScrollArea className="h-full">

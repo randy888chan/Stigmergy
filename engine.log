@@ -1,12 +1,14 @@
-[dotenv@17.2.3] injecting env (0) from .env -- tip: 🗂️ backup and recover secrets: https://dotenvx.com/ops
-🔧 Loading environment configuration for: development
-   ℹ️ No Doppler token found. Skipping Doppler and looking for .env files.
-[dotenv@17.2.3] injecting env (1) from .env -- tip: 🔐 prevent building .env in docker: https://dotenvx.com/prebuild
-   ✅ Loaded: .env
+$ NODE_ENV=test USE_MOCK_AI=true USE_MOCK_SWARM=true STIGMERGY_PORT=3011 OPENROUTER_API_KEY=mock-key OPENROUTER_BASE_URL=http://localhost/mock bun run engine/main.js
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+🔧 Loading environment configuration for: test
+   Skipping Doppler check in test environment.
 GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
 [TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
 [Engine] Initializing...
 🚀 Stigmergy Engine is Live!
-👉 Dashboard: http://localhost:3010
+👉 Dashboard: http://localhost:3011
 [API] Projects at /home/jules
 [API] Projects at /home/jules
+[API] Projects at /home/jules
+[API] Projects at /home/jules
+SIGTERM received, shutting down gracefully.

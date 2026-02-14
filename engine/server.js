@@ -9,6 +9,7 @@ import fs from "fs-extra";
 import yaml from "js-yaml";
 import { streamText } from "ai";
 
+// Infrastructure
 import { GraphStateManager } from "./infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from "../ai/providers.js";
@@ -23,9 +24,8 @@ export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
     this.corePath = process.env.STIGMERGY_CORE_PATH || options.corePath || path.join(this.projectRoot, ".stigmergy-core");
-    this.config = options.config || {}; // Robust default
+    this.config = options.config || {};
 
-    // Dependencies
     this.fs = options._test_fs || fs;
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
@@ -117,7 +117,7 @@ export class Engine {
                 try {
                     const streamTextFunc = this._test_streamText || streamText;
                     let model = null;
-                    if (!this._test_streamText && this.ai) { // Guard for missing AI
+                    if (!this._test_streamText && this.ai) {
                         const tier = agentName === 'analyst' ? 'research_tier' : 'reasoning_tier';
                         const { client, modelName } = this.ai.getModelForTier(tier, null, this.config);
                         model = client(modelName);
@@ -155,7 +155,7 @@ export class Engine {
 
             if (finishReason === "stop" || finishReason === "length") {
                 isDone = true;
-            } else if (toolCalls && toolCalls.length > 0) {
+            } else if (toolCalls?.length > 0) {
                 const toolResults = [];
                 for (const call of toolCalls) {
                     this.broadcastEvent("tool_start", { tool: call.toolName, args: call.args });
@@ -202,11 +202,11 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- 1. API ROUTES (Missing Ones Added!) ---
+    // --- 1. PRIORITY API ROUTES ---
     this.app.get("/health", (c) => c.json({ status: "ok" }));
     this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
 
-    // THE FIX: Stubs for missing endpoints
+    // Stubs to prevent 404 HTML fallback
     this.app.get("/api/proposals", (c) => c.json([]));
     this.app.get("/api/mission-plan", (c) => c.json({ phases: [] }));
     this.app.get("/api/activity", (c) => c.json([]));
@@ -261,7 +261,6 @@ export class Engine {
                         this.broadcastEvent("state_update", { project_status: "Stopped" });
                     } else if (data.type === 'set_project') {
                         console.log(`[WS] Switching to: ${data.payload.path}`);
-                        // Update Root & State
                         this.projectRoot = data.payload.path;
                         if (this.ownsStateManager && this.stateManager) await this.stateManager.closeDriver();
                         this.stateManager = new GraphStateManager(this.projectRoot);
@@ -272,7 +271,6 @@ export class Engine {
                         await fs.ensureDir(data.payload.path);
                         this.broadcastEvent("project_switched", { path: data.payload.path });
 
-                        // Async Doc Scan
                         this.triggerAgent("@system", `Scan docs in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
                     } else if (data.type === 'human_approval_response') {
                         const { requestId, decision } = data.payload;
@@ -288,7 +286,7 @@ export class Engine {
         };
     }));
 
-    // --- 3. STATIC FILES ---
+    // --- 3. STATIC FILES (LAST) ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
