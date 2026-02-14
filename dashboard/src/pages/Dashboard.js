@@ -1,8 +1,8 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect, lazy, Suspense, useRef } from 'react';
 import useWebSocket from '../hooks/useWebSocket.js';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx";
-import { Loader2, Wifi, FileText, RefreshCw } from "lucide-react";
+import { Loader2, Wifi, Upload, RefreshCw } from "lucide-react";
 import { Button } from "../components/ui/button.jsx";
 
 // Lazy Components
@@ -13,6 +13,7 @@ const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
 const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
+const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
 
 const INITIAL_STATE = {
   messages: [],
@@ -30,6 +31,7 @@ const Dashboard = () => {
   const { data, sendMessage } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
   const [isConnected, setIsConnected] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (data) {
@@ -43,9 +45,7 @@ const Dashboard = () => {
 
           case 'agent_thought':
           case 'agent_response':
-            // FIX: Filter out empty messages to prevent JSON bubbles
             if (!payload.text || payload.text.trim() === "") return prev;
-
             return {
                 ...prev,
                 messages: [...prev.messages, {
@@ -56,16 +56,25 @@ const Dashboard = () => {
                 }]
             };
 
-          case 'agent_start':
           case 'tool_start':
-          case 'tool_end':
+            // FIX: Show tool usage in Chat so user knows something is happening
             return {
                 ...prev,
-                agentActivity: [
-                    { id: Date.now(), type, ...payload },
-                    ...prev.agentActivity.slice(0, 49)
-                ]
+                messages: [...prev.messages, {
+                    id: Date.now(),
+                    role: 'system', // New role for UI
+                    content: `Executing: ${payload.tool}`,
+                    details: payload.args
+                }],
+                agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
             };
+
+          case 'tool_end':
+             // Optional: Show result or just update activity log
+             return {
+                ...prev,
+                agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
+             };
 
           case 'project_switched':
             fetchFiles(payload.path);
@@ -115,11 +124,35 @@ const Dashboard = () => {
       if (sendMessage) sendMessage({ type: 'chat_message', payload: { content: text } });
   };
 
-  const triggerDocScan = () => {
-      if (sendMessage && systemState.project_path) {
-          sendMessage({ type: 'set_project', payload: { path: systemState.project_path } }); // Re-trigger scan
-          alert("Document scan initiated.");
-      }
+  // --- DOCUMENT UPLOAD LOGIC ---
+  const handleUploadClick = () => fileInputRef.current?.click();
+
+  const handleFileChange = async (e) => {
+      const file = e.target.files[0];
+      if (!file || !systemState.project_path) return;
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+          const content = event.target.result;
+          const fileName = file.name;
+
+          try {
+              // Upload via existing file-content API (Create file in root of project)
+              await fetch('/api/file-content', {
+                  method: 'POST',
+                  body: JSON.stringify({ path: fileName, content })
+              });
+
+              alert("File uploaded. Telling agent to read it...");
+              fetchFiles(systemState.project_path); // Refresh tree
+
+              // Trigger analysis
+              handleUserMessage(`I just uploaded ${fileName}. Please read it and analyze the contents.`);
+          } catch(err) {
+              alert("Upload failed: " + err.message);
+          }
+      };
+      reader.readAsText(file); // For now, handle text/code/md
   };
 
   return (
@@ -146,9 +179,15 @@ const Dashboard = () => {
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="bg-zinc-950 border-r border-white/10 flex flex-col">
              <div className="p-2 border-b border-white/10 flex justify-between items-center bg-zinc-900/50">
                  <span className="text-xs font-bold text-zinc-400 pl-2">EXPLORER</span>
-                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={triggerDocScan} title="Rescan Documents">
-                    <RefreshCw className="w-3 h-3" />
-                 </Button>
+                 <div className="flex gap-1">
+                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
+                     <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-blue-900/20" onClick={handleUploadClick} title="Upload Document">
+                        <Upload className="w-3 h-3 text-blue-400" />
+                     </Button>
+                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => fetchFiles(systemState.project_path)} title="Refresh">
+                        <RefreshCw className="w-3 h-3" />
+                     </Button>
+                 </div>
              </div>
              <div className="flex-grow overflow-hidden">
                 <Suspense fallback={null}>
@@ -207,6 +246,7 @@ const Dashboard = () => {
                             <div className="p-4 space-y-4">
                                 <SystemHealthAlerts healthData={{}} />
                                 <GovernanceDashboard proposals={[]} isAdmin={true} />
+                                <ActivityLog agentActivity={systemState.agentActivity} />
                             </div>
                         </Suspense>
                     </TabsContent>
