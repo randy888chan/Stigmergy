@@ -1,19 +1,21 @@
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import useWebSocket from '../hooks/useWebSocket.js';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../components/ui/resizable.jsx";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx"; // Ensure this import exists or use standard UI
-import { Loader2, Wifi } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx";
+import { Loader2, Wifi, FileText, RefreshCw } from "lucide-react";
+import { Button } from "../components/ui/button.jsx";
 
 // Lazy Components
 const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
 const FileViewer = lazy(() => import('../components/FileViewer.js'));
-const ActivityLog = lazy(() => import('../components/ActivityLog.js'));
-const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js')); // Ensure this is implemented
+const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
+const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
+const SwarmVisualizer = lazy(() => import('../components/SwarmVisualizer.js'));
 
 const INITIAL_STATE = {
-  messages: [], // Unified chat history
+  messages: [],
   agentActivity: [],
   project_status: 'Idle',
   project_path: '',
@@ -25,31 +27,31 @@ const INITIAL_STATE = {
 };
 
 const Dashboard = () => {
-  const { data, isConnected, sendMessage } = useWebSocket('/ws');
+  const { data, sendMessage } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (data) {
+      setIsConnected(true);
       const { type, payload } = data;
-      console.log(`[WS Logic] Processing: ${type}`, payload);
 
       setSystemState(prev => {
-        const newState = { ...prev };
-
         switch (type) {
           case 'state_update':
             return { ...prev, ...payload };
 
           case 'agent_thought':
           case 'agent_response':
-            // FIX: Map agent events to Chat Messages
-            // Avoid duplicates if possible, or just append
+            // FIX: Filter out empty messages to prevent JSON bubbles
+            if (!payload.text || payload.text.trim() === "") return prev;
+
             return {
                 ...prev,
                 messages: [...prev.messages, {
                     id: Date.now(),
                     role: 'assistant',
-                    content: payload.text || JSON.stringify(payload), // Fallback to avoid empty bubble
+                    content: payload.text,
                     agent: payload.agentId
                 }]
             };
@@ -61,7 +63,7 @@ const Dashboard = () => {
                 ...prev,
                 agentActivity: [
                     { id: Date.now(), type, ...payload },
-                    ...prev.agentActivity.slice(0, 49) // Keep last 50, newest first
+                    ...prev.agentActivity.slice(0, 49)
                 ]
             };
 
@@ -106,12 +108,18 @@ const Dashboard = () => {
   };
 
   const handleUserMessage = (text) => {
-      // Optimistic Update
       setSystemState(prev => ({
           ...prev,
           messages: [...prev.messages, { id: Date.now(), role: 'user', content: text }]
       }));
       if (sendMessage) sendMessage({ type: 'chat_message', payload: { content: text } });
+  };
+
+  const triggerDocScan = () => {
+      if (sendMessage && systemState.project_path) {
+          sendMessage({ type: 'set_project', payload: { path: systemState.project_path } }); // Re-trigger scan
+          alert("Document scan initiated.");
+      }
   };
 
   return (
@@ -135,15 +143,23 @@ const Dashboard = () => {
 
       <ResizablePanelGroup direction="horizontal" className="flex-grow">
         {/* Left: Files */}
-        <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="bg-zinc-950 border-r border-white/10">
-             <Suspense fallback={null}>
-                 <CodeBrowser
-                     files={systemState.files}
-                     onFileSelect={handleFileSelect}
-                     selectedFile={systemState.selectedFile}
-                     isLoading={systemState.isFileListLoading}
-                 />
-             </Suspense>
+        <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="bg-zinc-950 border-r border-white/10 flex flex-col">
+             <div className="p-2 border-b border-white/10 flex justify-between items-center bg-zinc-900/50">
+                 <span className="text-xs font-bold text-zinc-400 pl-2">EXPLORER</span>
+                 <Button variant="ghost" size="icon" className="h-6 w-6" onClick={triggerDocScan} title="Rescan Documents">
+                    <RefreshCw className="w-3 h-3" />
+                 </Button>
+             </div>
+             <div className="flex-grow overflow-hidden">
+                <Suspense fallback={null}>
+                    <CodeBrowser
+                        files={systemState.files}
+                        onFileSelect={handleFileSelect}
+                        selectedFile={systemState.selectedFile}
+                        isLoading={systemState.isFileListLoading}
+                    />
+                </Suspense>
+             </div>
         </ResizablePanel>
 
         <ResizableHandle withHandle className="bg-zinc-900" />
@@ -161,19 +177,18 @@ const Dashboard = () => {
 
         <ResizableHandle withHandle className="bg-zinc-900" />
 
-        {/* Right: Tabs (Chat / Swarm / Logs) */}
+        {/* Right: Tabs */}
         <ResizablePanel defaultSize={30} minSize={20} className="bg-zinc-950 border-l border-white/10">
             <Tabs defaultValue="chat" className="h-full flex flex-col">
                 <TabsList className="bg-zinc-900 border-b border-white/10 w-full justify-start rounded-none p-0 h-10">
-                    <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4">Chat</TabsTrigger>
-                    <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4">Swarm</TabsTrigger>
-                    <TabsTrigger value="logs" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4">Activity</TabsTrigger>
+                    <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Chat</TabsTrigger>
+                    <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Swarm</TabsTrigger>
+                    <TabsTrigger value="system" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">System</TabsTrigger>
                 </TabsList>
 
                 <div className="flex-grow overflow-hidden relative">
                     <TabsContent value="chat" className="h-full p-0 m-0 absolute inset-0">
                         <Suspense fallback={null}>
-                            {/* Pass normalized messages */}
                             <ChatInterface
                                 messages={systemState.messages}
                                 onSendMessage={handleUserMessage}
@@ -187,9 +202,12 @@ const Dashboard = () => {
                         </Suspense>
                     </TabsContent>
 
-                    <TabsContent value="logs" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto">
+                    <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
-                            <ActivityLog agentActivity={systemState.agentActivity} />
+                            <div className="p-4 space-y-4">
+                                <SystemHealthAlerts healthData={{}} />
+                                <GovernanceDashboard proposals={[]} isAdmin={true} />
+                            </div>
                         </Suspense>
                     </TabsContent>
                 </div>
