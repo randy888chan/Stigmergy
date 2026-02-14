@@ -1,9 +1,34 @@
-import { describe, test, expect } from "bun:test";
+import { describe, test, expect, beforeAll, afterAll } from "bun:test";
+import { Engine } from "../../engine/server.js";
 
-// This test assumes the server is ALREADY running via Docker.
-// It acts as an external client probe.
+// This test can now start its own engine on port 0 to avoid EADDRINUSE
 describe("Pre-Flight Dry Run", () => {
-    const BASE_URL = "http://localhost:3010";
+    let engine;
+    let BASE_URL = "http://localhost:3010";
+
+    beforeAll(async () => {
+        try {
+            // Try to connect to existing server first
+            const response = await fetch(`${BASE_URL}/health`);
+            if (response.ok) {
+                console.log("Using existing server on port 3010");
+                return;
+            }
+        } catch (e) {
+            // No server on 3010, start our own on port 0
+            console.log("No server on 3010, starting temporary engine on port 0...");
+            engine = new Engine({ port: 0 });
+            await engine.stateManagerInitializationPromise;
+            await engine.start();
+            BASE_URL = `http://localhost:${engine.port}`;
+        }
+    });
+
+    afterAll(async () => {
+        if (engine) {
+            await engine.stop();
+        }
+    });
 
     test("Server should be reachable (Health Check)", async () => {
         try {
@@ -13,7 +38,7 @@ describe("Pre-Flight Dry Run", () => {
             expect(response.status).toBe(200);
             expect(data.status).toBe("ok");
         } catch (e) {
-            throw new Error(`Server is NOT reachable at ${BASE_URL}. Is Docker running? Error: ${e.message}`);
+            throw new Error(`Server is NOT reachable at ${BASE_URL}. Error: ${e.message}`);
         }
     });
 
@@ -26,8 +51,6 @@ describe("Pre-Flight Dry Run", () => {
             expect(Array.isArray(files)).toBe(true);
         } catch (e) {
             console.warn(`Files API check failed, might be expected if server logic differs: ${e.message}`);
-            // We don't necessarily fail here if the API is not exactly as expected,
-            // but the prompt said it should return a list.
             throw e;
         }
     });

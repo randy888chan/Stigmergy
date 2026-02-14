@@ -87,11 +87,11 @@ users:
     await configService.initialize();
     const mockConfig = configService.getConfig();
 
-    process.env.STIGMERGY_PORT = 0;
+    process.env.STIGMERGY_PORT = UNIQUE_TEST_PORT;
     engine = new Engine({
       projectRoot: testDir,
       config: mockConfig,
-      port: 0,
+      port: UNIQUE_TEST_PORT,
       corePath: mockCorePath
     });
 
@@ -110,7 +110,7 @@ users:
           return false;
         }
       },
-      10000, // 10-second timeout
+      60000, // 60-second timeout to allow Neo4j to spin up
       100   // 100ms interval
     );
 
@@ -146,12 +146,12 @@ users:
         const state = await stateResponse.json();
         return state.project_status === "PLANNING_PHASE" ? state : false;
       },
-      10000, // 10-second timeout
+      60000, // 60-second timeout
       100
     );
 
     expect(finalState).toBeTruthy();
     expect(finalState.project_status).toBe("PLANNING_PHASE");
     expect(finalState.message).toBe("Handoff to @specifier complete.");
-  }, 60000); // 60-second timeout for the entire test
+  }, 60000); // 60-second timeout to allow Neo4j to spin up
 });

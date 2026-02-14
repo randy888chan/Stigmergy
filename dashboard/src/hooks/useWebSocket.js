@@ -21,7 +21,7 @@ const useWebSocket = (path) => {
         if (ws.current?.readyState === WebSocket.OPEN) {
             ws.current.send("ping");
         }
-      }, 10000); // 10 seconds
+      }, 5000); // 5 seconds
     };
 
     ws.current.onmessage = (event) => {
