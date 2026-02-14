@@ -15,7 +15,7 @@ describe("Genesis Agent Workflow", () => {
     vol.reset();
     mockStreamText.mockClear();
 
-    projectRoot = path.resolve("/test-genesis-project");
+    projectRoot = path.resolve("/test-genesis-" + Date.now());
     await vol.promises.mkdir(projectRoot, { recursive: true });
 
     // --- 1. Robust Mocks ---

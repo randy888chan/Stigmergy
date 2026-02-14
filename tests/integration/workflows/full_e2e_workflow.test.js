@@ -15,7 +15,7 @@ describe("Full E-to-E Workflow (Isolated)", () => {
     vol.reset(); // PRISTINE STATE
     mockStreamText.mockClear();
 
-    projectRoot = path.resolve("/test-project");
+    projectRoot = path.resolve("/test-project-" + Date.now());
     await vol.promises.mkdir(projectRoot, { recursive: true });
 
     // DEFINITIVE FIX: Mock all services BEFORE importing any application code
@@ -47,7 +47,6 @@ describe("Full E-to-E Workflow (Isolated)", () => {
     const toolExecutorModule = await import("../../../engine/tool_executor.js");
     const realCreateExecutor = toolExecutorModule.createExecutor;
 
-    projectRoot = path.resolve("/test-project");
     process.env.STIGMERGY_CORE_PATH = path.join(projectRoot, ".stigmergy-core");
     const agentDir = path.join(process.env.STIGMERGY_CORE_PATH, "agents");
     await mockFs.ensureDir(agentDir);
