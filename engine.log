@@ -1,0 +1,45 @@
+$ NODE_ENV=test USE_MOCK_AI=true USE_MOCK_SWARM=true STIGMERGY_PORT=3011 OPENROUTER_API_KEY=mock-key OPENROUTER_BASE_URL=http://localhost/mock bun run engine/main.js
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+🔧 Loading environment configuration for: test
+   Skipping Doppler check in test environment.
+GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+[Engine] Initializing...
+🚀 Stigmergy Engine is Live!
+👉 Dashboard: http://localhost:3011
+[WS] Switching to: /home/jules
+GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+[Engine] Triggering agent @system
+error: Unable to connect. Is the computer able to access the url?
+  path: "http://localhost/mock/responses",
+ errno: 0,
+  code: "ConnectionRefused"
+
+
+[Engine] Agent Error: No output generated. Check the stream for errors.
+[Engine] Triggering agent @conductor
+error: Unable to connect. Is the computer able to access the url?
+  path: "http://localhost/mock/responses",
+ errno: 0,
+  code: "ConnectionRefused"
+
+
+[Engine] Agent Error: No output generated. Check the stream for errors.
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:249:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4759:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4756:19)
+      at finalize (5:73)
