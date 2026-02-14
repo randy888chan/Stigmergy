@@ -1,5 +1,30 @@
 import { z } from 'zod';
 
+const qwenGenerateSchema = {
+  description: 'Generate code using Qwen AI',
+  parameters: z.object({
+    prompt: z.string(),
+    language: z.string().optional(),
+    context: z.string().optional(),
+  }),
+};
+
+const qwenReviewSchema = {
+  description: 'Review code using Qwen AI',
+  parameters: z.object({
+    code: z.string(),
+    language: z.string().optional(),
+  }),
+};
+
+const qwenExplainSchema = {
+  description: 'Explain code using Qwen AI',
+  parameters: z.object({
+    code: z.string(),
+    language: z.string().optional(),
+  }),
+};
+
 export const toolSchemas = {
   'file_system.writeFile': {
     description: 'Write content to a file',
@@ -140,7 +165,23 @@ export const toolSchemas = {
     parameters: z.object({
       urls: z.array(z.string()),
     }),
-  }
+  },
+  'gemini.query': {
+    description: 'Execute a prompt using the local Gemini CLI',
+    parameters: z.object({
+      prompt: z.string().describe('The prompt to send to Gemini'),
+    }),
+  },
+  'gemini.health_check': {
+    description: 'Check if Gemini CLI is responsive',
+    parameters: z.object({}),
+  },
+  'qwen.qwen_generate_code': qwenGenerateSchema,
+  'qwen.qwen_review_code': qwenReviewSchema,
+  'qwen.qwen_explain_code': qwenExplainSchema,
+  'qwen_integration.qwen_generate_code': qwenGenerateSchema,
+  'qwen_integration.qwen_review_code': qwenReviewSchema,
+  'qwen_integration.qwen_explain_code': qwenExplainSchema
 };
 
 export function sanitizeToolCall(toolName, args) {
