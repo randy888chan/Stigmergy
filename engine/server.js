@@ -22,13 +22,12 @@ const { upgradeWebSocket, websocket } = createBunWebSocket();
 export class Engine {
   constructor(options = {}) {
     this.projectRoot = options.projectRoot || process.cwd();
-    this.corePath = process.env.STIGMERGY_CORE_PATH || options.corePath || path.join(this.projectRoot, ".stigmergy-core");
+    // FIX: Prioritize options.corePath (for tests) over Env Var
+    this.corePath = options.corePath || process.env.STIGMERGY_CORE_PATH || path.join(this.projectRoot, ".stigmergy-core");
     this.config = options.config || {};
 
-    // FS dependency injection (normalize to promises)
     this.fs = options._test_fs || fs;
     this.fsPromises = this.fs.promises || this.fs;
-
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
     this._test_executorFactory = options._test_executorFactory;
@@ -49,6 +48,7 @@ export class Engine {
     });
 
     this.app = new Hono();
+    // FIX: Use random port (0) if options.port is explicitly 0, else fallback to Env/3010
     this.port = options.port !== undefined ? options.port : (Number(process.env.STIGMERGY_PORT) || 3010);
     this.clients = new Set();
     this.pendingApprovals = new Map();
@@ -83,31 +83,22 @@ export class Engine {
     const agentName = agentId.replace("@", "");
     const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
 
-    // Create Dir (Try/Catch for safety)
     try { await this.fsPromises.mkdir(workingDirectory, { recursive: true }); } catch(e) {}
 
     try {
-        // 1. Load Definition (FIXED: Standard FS check)
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
 
-        let fileContent = null;
         try {
-            fileContent = await this.fsPromises.readFile(agentPath, "utf-8");
-        } catch (e) {
-            console.warn(`[Engine] Could not read agent def ${agentPath}: ${e.code || e.message}`);
-        }
-
-        if (fileContent) {
-            const match = fileContent.match(/```yaml\s*([\s\S]*?)```/);
+            // Use this.fs (which handles mocks) instead of fs directly
+            const content = await this.fsPromises.readFile(agentPath, "utf-8");
+            const match = content.match(/```yaml\s*([\s\S]*?)```/);
             if (match) {
-                try {
-                    const def = yaml.load(match[1]);
-                    if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
-                    if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
-                } catch (e) { console.error("YAML Parse Error:", e); }
+                const def = yaml.load(match[1]);
+                if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
+                if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
             }
-        }
+        } catch (e) { console.warn(`[Engine] Failed to load def for ${agentName}: ${e.message}`); }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -141,13 +132,12 @@ export class Engine {
                     break;
                 } catch(e) {
                     attempts++;
-                    console.warn(`[AI] Error ${attempts}: ${e.message}`);
                     await new Promise(r => setTimeout(r, 1000 * Math.pow(2, attempts)));
                     if(attempts === 3) throw e;
                 }
             }
 
-            // Restore explicit awaits for compatibility with promise-based getters
+            // Explicitly await results for compatibility with Vercel AI SDK
             const text = await result.text;
             const toolCalls = await result.toolCalls;
             const finishReason = await result.finishReason;
@@ -213,11 +203,10 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- 1. API ROUTES (Explicit Priority) ---
+    // APIs
     this.app.get("/health", (c) => c.json({ status: "ok" }));
-    this.app.get("/api/health", (c) => c.json({ status: "ok" })); // FIX: Alias
+    this.app.get("/api/health", (c) => c.json({ status: "ok" }));
     this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
-
     this.app.get("/api/proposals", (c) => c.json([]));
     this.app.get("/api/mission-plan", (c) => c.json({ phases: [] }));
     this.app.get("/api/activity", (c) => c.json([]));
@@ -225,15 +214,11 @@ export class Engine {
     this.app.get("/api/projects", async (c) => {
         try {
             const basePath = resolveSafePath(c.req.query("basePath") || "~");
-            console.log(`[API] Projects at ${basePath}`);
-
-            // Standard FS check using access instead of pathExists
             try {
                 await this.fsPromises.access(basePath);
             } catch (e) {
                 return c.json({error: "Path not found"}, 404);
             }
-
             const ent = await this.fsPromises.readdir(basePath, {withFileTypes:true});
             return c.json({
                 currentPath: basePath,
@@ -253,8 +238,6 @@ export class Engine {
     this.app.get("/api/file-content", async (c) => {
         try {
             const p = resolveSafePath(c.req.query("path"));
-
-            // Standard FS check using access
             try {
                 await this.fsPromises.access(p);
                 return c.json({ content: await this.fsPromises.readFile(p, 'utf-8') });
@@ -272,7 +255,7 @@ export class Engine {
         } catch(e) { return c.json({error:e.message}, 500); }
     });
 
-    // --- 2. WEBSOCKET ---
+    // WEBSOCKET (Heartbeat 10s)
     this.app.get("/ws", upgradeWebSocket((c) => {
         return {
             onOpen: (_event, ws) => { this.clients.add(ws); },
@@ -293,7 +276,6 @@ export class Engine {
                         this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
                         this.toolExecutor = await this.initializeToolExecutor();
 
-                        // Standard FS: ensureDir replacement
                         try {
                             await this.fsPromises.mkdir(data.payload.path, { recursive: true });
                         } catch (e) {}
@@ -304,10 +286,7 @@ export class Engine {
                     } else if (data.type === 'human_approval_response') {
                         const { requestId, decision } = data.payload;
                         const resolve = this.pendingApprovals.get(requestId);
-                        if (resolve) {
-                            resolve(decision);
-                            this.pendingApprovals.delete(requestId);
-                        }
+                        if (resolve) { resolve(decision); this.pendingApprovals.delete(requestId); }
                     }
                 } catch (e) { console.error("WS Error:", e); }
             },
@@ -315,7 +294,7 @@ export class Engine {
         };
     }));
 
-    // --- 3. STATIC FILES ---
+    // STATIC
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
@@ -325,6 +304,7 @@ export class Engine {
   async start() {
     console.log(chalk.gray(`[Engine] Initializing...`));
     this.server = Bun.serve({ fetch: this.app.fetch, port: this.port, websocket: websocket });
+    this.port = this.server.port;
     console.log(chalk.green.bold(`🚀 Stigmergy Engine is Live!`));
     console.log(chalk.blue(`👉 Dashboard: `) + chalk.white.bold.underline(`http://localhost:${this.port}`));
   }
