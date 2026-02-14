@@ -9,7 +9,6 @@ import fs from "fs-extra";
 import yaml from "js-yaml";
 import { streamText } from "ai";
 
-// Infrastructure
 import { GraphStateManager } from "./infrastructure/state/GraphStateManager.js";
 import { createExecutor } from "./tool_executor.js";
 import { getAiProviders } from "../ai/providers.js";
@@ -26,7 +25,10 @@ export class Engine {
     this.corePath = process.env.STIGMERGY_CORE_PATH || options.corePath || path.join(this.projectRoot, ".stigmergy-core");
     this.config = options.config || {};
 
+    // FS dependency injection (normalize to promises)
     this.fs = options._test_fs || fs;
+    this.fsPromises = this.fs.promises || this.fs;
+
     this._test_streamText = options._test_streamText;
     this._test_unifiedIntelligenceService = options._test_unifiedIntelligenceService;
     this._test_executorFactory = options._test_executorFactory;
@@ -81,23 +83,31 @@ export class Engine {
     const agentName = agentId.replace("@", "");
     const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
 
-    try { await this.fs.promises.mkdir(workingDirectory, { recursive: true }); } catch(e) {}
+    // Create Dir (Try/Catch for safety)
+    try { await this.fsPromises.mkdir(workingDirectory, { recursive: true }); } catch(e) {}
 
     try {
+        // 1. Load Definition (FIXED: Standard FS check)
         const agentPath = path.join(this.corePath, "agents", `${agentName}.md`);
         let systemPrompt = "You are a helpful AI assistant.";
 
+        let fileContent = null;
         try {
-            if (await this.fs.pathExists(agentPath)) {
-                const content = await this.fs.readFile(agentPath, "utf-8");
-                const match = content.match(/```yaml\s*([\s\S]*?)```/);
-                if (match) {
+            fileContent = await this.fsPromises.readFile(agentPath, "utf-8");
+        } catch (e) {
+            console.warn(`[Engine] Could not read agent def ${agentPath}: ${e.code || e.message}`);
+        }
+
+        if (fileContent) {
+            const match = fileContent.match(/```yaml\s*([\s\S]*?)```/);
+            if (match) {
+                try {
                     const def = yaml.load(match[1]);
                     if (def.agent?.persona) systemPrompt = `${def.agent.persona.role} ${def.agent.persona.identity}`;
                     if (def.agent?.core_protocols) systemPrompt += `\nProtocols:\n${def.agent.core_protocols.join('\n')}`;
-                }
+                } catch (e) { console.error("YAML Parse Error:", e); }
             }
-        } catch (e) { console.warn(`[Engine] Failed to load def: ${e.message}`); }
+        }
 
         const messages = [
             { role: "system", content: systemPrompt },
@@ -137,6 +147,7 @@ export class Engine {
                 }
             }
 
+            // Restore explicit awaits for compatibility with promise-based getters
             const text = await result.text;
             const toolCalls = await result.toolCalls;
             const finishReason = await result.finishReason;
@@ -146,7 +157,7 @@ export class Engine {
                 this.broadcastEvent("agent_thought", { agentId, text });
             }
 
-            // Construct message history correctly for next turn
+            // Consolidate text and tool_calls into a single assistant message
             const assistantMsg = { role: "assistant", content: text || "" };
             if (toolCalls && toolCalls.length > 0) {
                 assistantMsg.tool_calls = toolCalls;
@@ -202,11 +213,11 @@ export class Engine {
         return path.resolve(this.projectRoot, p);
     };
 
-    // --- 1. PRIORITY API ROUTES ---
+    // --- 1. API ROUTES (Explicit Priority) ---
     this.app.get("/health", (c) => c.json({ status: "ok" }));
+    this.app.get("/api/health", (c) => c.json({ status: "ok" })); // FIX: Alias
     this.app.get("/api/state", async(c) => c.json(await this.stateManager.getState()));
 
-    // Stubs to prevent 404 HTML fallback
     this.app.get("/api/proposals", (c) => c.json([]));
     this.app.get("/api/mission-plan", (c) => c.json({ phases: [] }));
     this.app.get("/api/activity", (c) => c.json([]));
@@ -215,8 +226,15 @@ export class Engine {
         try {
             const basePath = resolveSafePath(c.req.query("basePath") || "~");
             console.log(`[API] Projects at ${basePath}`);
-            if (!await fs.pathExists(basePath)) return c.json({error: "Path not found"}, 404);
-            const ent = await fs.readdir(basePath, {withFileTypes:true});
+
+            // Standard FS check using access instead of pathExists
+            try {
+                await this.fsPromises.access(basePath);
+            } catch (e) {
+                return c.json({error: "Path not found"}, 404);
+            }
+
+            const ent = await this.fsPromises.readdir(basePath, {withFileTypes:true});
             return c.json({
                 currentPath: basePath,
                 folders: ent.filter(e=>e.isDirectory()&&!e.name.startsWith('.')).map(e=>e.name)
@@ -226,7 +244,8 @@ export class Engine {
 
     this.app.get("/api/files", async (c) => {
         try {
-            const files = await fileSystem.listFiles({ directory: resolveSafePath(c.req.query("path")) });
+            // Restore listFiles for flat array and cap at 5000
+            const files = await fileSystem.listFiles({ directory: resolveSafePath(c.req.query("path")) }, this.fs);
             return c.json(files.slice(0, 5000));
         } catch (e) { return c.json({error:e.message}, 500); }
     });
@@ -234,8 +253,14 @@ export class Engine {
     this.app.get("/api/file-content", async (c) => {
         try {
             const p = resolveSafePath(c.req.query("path"));
-            if(await fs.pathExists(p)) return c.json({ content: await fs.readFile(p, 'utf-8') });
-            return c.json({error:"Not found"}, 404);
+
+            // Standard FS check using access
+            try {
+                await this.fsPromises.access(p);
+                return c.json({ content: await this.fsPromises.readFile(p, 'utf-8') });
+            } catch (e) {
+                return c.json({error:"Not found"}, 404);
+            }
         } catch(e) { return c.json({error:e.message}, 500); }
     });
 
@@ -268,7 +293,11 @@ export class Engine {
                         this.trajectoryRecorder = new TrajectoryRecorder(this.stateManager);
                         this.toolExecutor = await this.initializeToolExecutor();
 
-                        await fs.ensureDir(data.payload.path);
+                        // Standard FS: ensureDir replacement
+                        try {
+                            await this.fsPromises.mkdir(data.payload.path, { recursive: true });
+                        } catch (e) {}
+
                         this.broadcastEvent("project_switched", { path: data.payload.path });
 
                         this.triggerAgent("@system", `Scan docs in ${data.payload.path}`, { timeout: 30000 }).catch(()=>{});
@@ -286,7 +315,7 @@ export class Engine {
         };
     }));
 
-    // --- 3. STATIC FILES (LAST) ---
+    // --- 3. STATIC FILES ---
     this.app.get("/index.js", serveStatic({ path: "./dashboard/public/index.js" }));
     this.app.get("/index.css", serveStatic({ path: "./dashboard/public/index.css" }));
     this.app.use("/*", serveStatic({ root: "./dashboard/public" }));
