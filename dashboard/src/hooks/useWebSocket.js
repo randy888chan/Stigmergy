@@ -43,8 +43,8 @@ const useWebSocket = (path) => {
       setTimeout(connect, 3000); // Retry after 3s
     };
 
-    ws.current.onerror = (err) => {
-      console.error('WS Error:', err);
+    ws.current.onerror = () => {
+      console.log('WS Disconnected, retrying...');
       ws.current.close();
     };
   }, [path]);

@@ -260,7 +260,12 @@ export class Engine {
         return {
             onOpen: (_event, ws) => { this.clients.add(ws); },
             onMessage: async (event, ws) => {
-                if (event.data === "ping") { ws.send("pong"); return; }
+                // Heartbeat must be handled first, before any other logic.
+                if (event.data?.toString() === "ping") {
+                    ws.send("pong");
+                    return;
+                }
+
                 try {
                     const data = JSON.parse(event.data);
                     if (data.type === 'chat_message') {

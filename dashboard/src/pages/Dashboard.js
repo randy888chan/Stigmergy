@@ -25,6 +25,8 @@ const INITIAL_STATE = {
   selectedFile: null,
   fileContent: '',
   isFileContentLoading: false,
+  proposals: [],
+  healthData: {},
 };
 
 const Dashboard = () => {
@@ -32,6 +34,12 @@ const Dashboard = () => {
   const [systemState, setSystemState] = useState(INITIAL_STATE);
   const [isConnected, setIsConnected] = useState(false);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    // Initial data fetch
+    fetch('/api/proposals').then(res => res.json()).then(proposals => setSystemState(prev => ({ ...prev, proposals: Array.isArray(proposals) ? proposals : [] }))).catch(() => {});
+    fetch('/api/health').then(res => res.json()).then(healthData => setSystemState(prev => ({ ...prev, healthData: healthData || {} }))).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (data) {
@@ -79,6 +87,12 @@ const Dashboard = () => {
           case 'project_switched':
             fetchFiles(payload.path);
             return { ...prev, project_path: payload.path };
+
+          case 'proposal_updated':
+            return {
+                ...prev,
+                proposals: [payload, ...prev.proposals.filter(p => p.id !== payload.id)]
+            };
 
           default:
             return prev;
@@ -222,7 +236,8 @@ const Dashboard = () => {
                 <TabsList className="bg-zinc-900 border-b border-white/10 w-full justify-start rounded-none p-0 h-10">
                     <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Chat</TabsTrigger>
                     <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Swarm</TabsTrigger>
-                    <TabsTrigger value="system" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">System</TabsTrigger>
+                    <TabsTrigger value="logs" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Logs</TabsTrigger>
+                    <TabsTrigger value="admin" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Admin</TabsTrigger>
                 </TabsList>
 
                 <div className="flex-grow overflow-hidden relative">
@@ -241,12 +256,17 @@ const Dashboard = () => {
                         </Suspense>
                     </TabsContent>
 
-                    <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
+                    <TabsContent value="logs" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
+                        <Suspense fallback={null}>
+                            <ActivityLog agentActivity={systemState.agentActivity} />
+                        </Suspense>
+                    </TabsContent>
+
+                    <TabsContent value="admin" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
                             <div className="p-4 space-y-4">
-                                <SystemHealthAlerts healthData={{}} />
-                                <GovernanceDashboard proposals={[]} isAdmin={true} />
-                                <ActivityLog agentActivity={systemState.agentActivity} />
+                                <SystemHealthAlerts healthData={systemState.healthData} />
+                                <GovernanceDashboard proposals={systemState.proposals} isAdmin={true} />
                             </div>
                         </Suspense>
                     </TabsContent>

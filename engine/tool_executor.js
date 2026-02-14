@@ -13,6 +13,7 @@ import * as businessVerification from "../tools/business_verification.js";
 import * as privilegedCoreTools from "../tools/core_tools.js";
 import * as superdesignIntegration from "../tools/superdesign_integration.js";
 import * as qwenIntegration from "../tools/qwen_integration.js";
+import * as geminiIntegration from "../tools/gemini_tool.js";
 import * as documentIntelligence from "../tools/document_intelligence.js";
 import * as continuousExecution from "../tools/continuous_execution.js";
 import * as git_tool from "../tools/git_tool.js";
@@ -110,7 +111,9 @@ export async function createExecutor(engine, ai, options = {}, fsProvider = fs) 
     core: privilegedCoreTools,
     system: createSystemTools(engine),
     superdesign: superdesignIntegration,
+    qwen: qwenIntegration,
     qwen_integration: qwenIntegration,
+    gemini: geminiIntegration,
     chat_interface: { process_chat_command: createChatProcessor(engine.stateManager) },
     document_intelligence: documentIntelligence,
     continuous_execution: continuousExecution,
