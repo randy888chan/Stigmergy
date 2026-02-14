@@ -81,7 +81,7 @@ export class Engine {
     await this.toolExecutorPromise;
     const executeTool = this.toolExecutor;
     const agentName = agentId.replace("@", "");
-    const workingDirectory = path.join(this.projectRoot, ".stigmergy/sandboxes", agentName);
+    const workingDirectory = options.workingDirectory || path.join(this.corePath, "sandboxes", agentName);
 
     try { await this.fsPromises.mkdir(workingDirectory, { recursive: true }); } catch(e) {}
 
