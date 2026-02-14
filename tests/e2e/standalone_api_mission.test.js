@@ -58,10 +58,10 @@ describe("Standalone API Mission Test (Mocked)", () => {
   beforeEach(async () => {
     console.log(chalk.blue("[E2E Test] Setting up..."));
     tempDir = tmp.dirSync({ unsafeCleanup: true });
-    const testProjectRoot = tempDir.name;
+    const testDir = tempDir.name;
 
     // Setup mock .stigmergy-core structure
-    const mockCorePath = path.join(testProjectRoot, ".stigmergy-core");
+    const mockCorePath = path.join(testDir, ".stigmergy-core");
     const mockAgentsPath = path.join(mockCorePath, "agents");
     await fs.ensureDir(mockAgentsPath);
     // Copy real agent definitions
@@ -85,16 +85,14 @@ users:
 
     const { configService } = await import("../../services/config_service.js");
     await configService.initialize();
-    const config = configService.getConfig();
+    const mockConfig = configService.getConfig();
 
     process.env.STIGMERGY_PORT = 0;
     engine = new Engine({
-      config,
-      // Force random port for tests
+      projectRoot: testDir,
+      config: mockConfig,
       port: 0,
-      startServer: true,
-      projectRoot: testProjectRoot,
-      corePath: mockCorePath,
+      corePath: mockCorePath
     });
 
     // Wait for engine to be fully ready
