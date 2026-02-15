@@ -70,7 +70,14 @@ export class Engine {
   broadcastEvent(type, payload) {
     const message = JSON.stringify({ type, payload });
     for (const ws of this.clients) {
-        if (ws.readyState === 1) ws.send(message);
+        try {
+            // Bun/Hono WSContext doesn't always have readyState 1.
+            // We trust the Set since we manage onOpen/onClose.
+            ws.send(message);
+        } catch (e) {
+            console.error(`[Engine] Failed to broadcast to a client: ${e.message}`);
+            this.clients.delete(ws);
+        }
     }
   }
 
@@ -253,6 +260,44 @@ export class Engine {
             await this.toolExecutor.execute("file_system.writeFile", {path:p, content}, "user-ide", this.projectRoot);
             return c.json({success:true});
         } catch(e) { return c.json({error:e.message}, 500); }
+    });
+
+    this.app.post("/api/upload", async (c) => {
+        try {
+            const formData = await c.req.formData();
+            const file = formData.get("file");
+            const target = c.req.query("target") || "global"; // 'project' or 'global'
+
+            if (!file || !(file instanceof Blob)) {
+                return c.json({ error: "No file uploaded" }, 400);
+            }
+
+            const buffer = await file.arrayBuffer();
+            // SECURITY: Sanitize fileName to prevent path traversal
+            const fileName = path.basename(file.name);
+
+            let uploadDir;
+            if (target === 'project') {
+                uploadDir = path.join(this.projectRoot, "uploads");
+            } else {
+                uploadDir = path.join(this.corePath, "uploads");
+            }
+
+            await this.fsPromises.mkdir(uploadDir, { recursive: true });
+            const filePath = path.join(uploadDir, fileName);
+            await this.fsPromises.writeFile(filePath, new Uint8Array(buffer));
+
+            console.log(chalk.green(`[Engine] File uploaded: ${fileName} -> ${filePath}`));
+
+            return c.json({
+                success: true,
+                message: `File ${fileName} uploaded successfully to ${target} storage.`,
+                path: filePath
+            });
+        } catch (e) {
+            console.error(chalk.red(`[Engine] Upload Error: ${e.message}`));
+            return c.json({ error: e.message }, 500);
+        }
     });
 
     // WEBSOCKET (Heartbeat 10s)
