@@ -31,4 +31,5 @@ engine_tools:
   - "shell.execute"
   - "git_tool.*"
   - "system.updateStatus"
+  - "document_intelligence.*"
 ```

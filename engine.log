@@ -1,0 +1,90 @@
+[dotenv@17.2.3] injecting env (0) from .env -- tip: ✅ audit secrets and track compliance: https://dotenvx.com/ops
+🔧 Loading environment configuration for: development
+   Skipping Doppler check in test environment.
+GraphStateManager: Neo4j credentials not fully set. Falling back to in-memory state management.
+[TrajectoryRecorder] Neo4j driver is not available. Trajectory graph logging will be disabled.
+[Engine] Initializing...
+🚀 Stigmergy Engine is Live!
+👉 Dashboard: http://localhost:3010
+[Engine] Triggering agent @conductor
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_APICallError: Incorrect API key provided: mock. You can find your API key at https://platform.openai.com/account/api-keys.
+      cause: undefined,
+        url: "https://api.openai.com/v1/responses",
+ requestBodyValues: {
+  model: "deepseek/deepseek-chat-v3.1:free",
+  input: [
+    [Object ...], [Object ...]
+  ],
+  temperature: undefined,
+  top_p: undefined,
+  max_output_tokens: undefined,
+  max_tool_calls: undefined,
+  metadata: undefined,
+  parallel_tool_calls: undefined,
+  previous_response_id: undefined,
+  store: undefined,
+  user: undefined,
+  instructions: undefined,
+  service_tier: undefined,
+  include: undefined,
+  prompt_cache_key: undefined,
+  safety_identifier: undefined,
+  top_logprobs: undefined,
+  truncation: undefined,
+  tools: undefined,
+  tool_choice: undefined,
+  stream: true,
+},
+ statusCode: 401,
+ responseHeaders: {
+  "alt-svc": "h3=\":443\"; ma=86400",
+  "cf-cache-status": "DYNAMIC",
+  "cf-ray": "9ce3ce65fb80e80d-ORD",
+  connection: "keep-alive",
+  "content-length": "233",
+  "content-type": "application/json",
+  date: "Sun, 15 Feb 2026 09:33:53 GMT",
+  "openai-processing-ms": "17",
+  "openai-version": "2020-10-01",
+  server: "cloudflare",
+  "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+  "www-authenticate": "Bearer realm=\"OpenAI API\"",
+  "x-content-type-options": "nosniff",
+  "x-request-id": "req_06d8094dde214e73876674e2eb28c750",
+  "set-cookie": "_cfuvid=79G29zrrWxv8Rkm9GaLKENGotVGFPApwfC3kJEe1aWc-1771148032.9580243-1.0.1.1-7Fh3uqdZy1T33UyKRxYGXc3Eu9apPpd2TSEOsP8QUAY; HttpOnly; SameSite=None; Secure; Path=/; Domain=api.openai.com",
+},
+ responseBody: "{\n  \"error\": {\n    \"message\": \"Incorrect API key provided: mock. You can find your API key at https://platform.openai.com/account/api-keys.\",\n    \"type\": \"invalid_request_error\",\n    \"param\": null,\n    \"code\": \"invalid_api_key\"\n  }\n}",
+ isRetryable: false,
+       data: {
+  error: [Object ...],
+},
+ vercel.ai.error: true,
+ vercel.ai.error.AI_APICallError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+
+[Engine] Agent Error: No output generated. Check the stream for errors.
+14 |   constructor({
+15 |     name: name14,
+16 |     message,
+17 |     cause
+18 |   }) {
+19 |     super(message);
+         ^
+AI_NoOutputGeneratedError: No output generated. Check the stream for errors.
+      cause: undefined,
+ vercel.ai.error: true,
+ vercel.ai.error.AI_NoOutputGeneratedError: true,
+
+      at new _AISDKError (/app/node_modules/@ai-sdk/provider/dist/index.mjs:19:5)
+      at new NoOutputGeneratedError (/app/node_modules/ai/dist/index.mjs:249:5)
+      at flush (/app/node_modules/ai/dist/index.mjs:4759:27)
+      at flush (/app/node_modules/ai/dist/index.mjs:4756:19)
+      at finalize (5:73)
