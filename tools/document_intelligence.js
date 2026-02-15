@@ -28,14 +28,65 @@ async function processPlainText(filePath) {
     };
 }
 
+async function processDirectory(dirPath) {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    const results = [];
+
+    for (const entry of entries) {
+        const fullPath = path.join(dirPath, entry.name);
+
+        // Skip common hidden/system directories
+        if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'dist') continue;
+
+        if (entry.isDirectory()) {
+            const subDirResults = await processDirectory(fullPath);
+            if (subDirResults.results && subDirResults.results.length > 0) {
+                results.push(...subDirResults.results);
+            }
+        } else {
+            const ext = path.extname(entry.name).toLowerCase();
+            if (['.pdf', '.docx', '.txt', '.md'].includes(ext)) {
+                try {
+                    const result = await processDocument({ filePath: fullPath });
+                    results.push({
+                        fileName: entry.name,
+                        path: fullPath,
+                        ...result
+                    });
+                } catch (e) {
+                    results.push({
+                        fileName: entry.name,
+                        path: fullPath,
+                        error: e.message
+                    });
+                }
+            }
+        }
+    }
+
+    return {
+        type: 'directory_report',
+        path: dirPath,
+        filesProcessed: results.length,
+        results: results
+    };
+}
+
 /**
- * Processes an uploaded document, extracts its text content, and provides metadata.
+ * Processes an uploaded document or a whole directory, extracts text content, and provides metadata.
  * @param {object} args
- * @param {string} args.filePath - The absolute path to the document to process.
+ * @param {string} args.filePath - The absolute path to the document or directory to process.
  */
 export async function processDocument({ filePath }) {
     if (!await fs.pathExists(filePath)) {
-        throw new Error(`Document not found at path: ${filePath}`);
+        throw new Error(`Path not found: ${filePath}`);
+    }
+
+    const stats = await fs.stat(filePath);
+
+    if (stats.isDirectory()) {
+        console.log(`[DocIntel] Processing directory: ${filePath}`);
+        return await processDirectory(filePath);
     }
 
     const ext = path.extname(filePath).toLowerCase();
