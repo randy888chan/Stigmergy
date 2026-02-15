@@ -12,6 +12,7 @@ import { ScrollArea } from "../components/ui/scroll-area.jsx";
 const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
 const CodeBrowser = lazy(() => import('../components/CodeBrowser.js'));
 const ChatInterface = lazy(() => import('../components/ChatInterface.js'));
+const DocumentUploader = lazy(() => import('../components/DocumentUploader.js'));
 const FileViewer = lazy(() => import('../components/FileViewer.js'));
 const SystemHealthAlerts = lazy(() => import('../components/SystemHealthAlerts.js'));
 const GovernanceDashboard = lazy(() => import('../components/GovernanceDashboard.js'));
@@ -49,6 +50,11 @@ const Dashboard = () => {
           case 'agent_thought':
           case 'agent_response':
             if (!payload.text) return prev;
+            // Avoid duplicate identical messages (e.g. if thought and response are the same)
+            const lastMessage = prev.messages[prev.messages.length - 1];
+            if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content === payload.text && lastMessage.agent === (payload.agentId || 'System')) {
+                return prev;
+            }
             return {
                 ...prev,
                 messages: [...prev.messages, {
@@ -58,6 +64,31 @@ const Dashboard = () => {
                     agent: payload.agentId || 'System'
                 }]
             };
+
+          case 'thought_stream':
+            return {
+                ...prev,
+                messages: [...prev.messages, {
+                    id: Date.now() + Math.random(),
+                    role: 'system',
+                    content: payload.thought,
+                    agent: 'ThoughtStream'
+                }]
+            };
+
+          case 'log':
+            if (payload.level === 'error') {
+                return {
+                    ...prev,
+                    messages: [...prev.messages, {
+                        id: Date.now() + Math.random(),
+                        role: 'system',
+                        content: `Error: ${payload.message}`,
+                        agent: 'System'
+                    }]
+                };
+            }
+            return prev;
 
           case 'tool_start':
             // CRITICAL RESTORATION: Show tools in chat
@@ -142,17 +173,21 @@ const Dashboard = () => {
   const handleFileChange = async (e) => {
       const file = e.target.files[0];
       if (!file || !systemState.project_path) return;
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-          const content = event.target.result;
-          try {
-              await fetch('/api/file-content', { method: 'POST', body: JSON.stringify({ path: file.name, content }) });
-              alert("File uploaded. Telling agent...");
-              fetchFiles(systemState.project_path);
-              handleUserMessage(`I uploaded ${file.name}. Please analyze it.`);
-          } catch(err) { alert("Upload failed: " + err.message); }
-      };
-      reader.readAsText(file);
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+          const response = await fetch('/api/upload?target=project', {
+              method: 'POST',
+              body: formData
+          });
+          if (!response.ok) throw new Error(await response.text());
+
+          alert("File uploaded. Telling agent...");
+          fetchFiles(systemState.project_path);
+          handleUserMessage(`I uploaded ${file.name}. Please analyze it.`);
+      } catch(err) { alert("Upload failed: " + err.message); }
   };
 
   return (
@@ -226,6 +261,7 @@ const Dashboard = () => {
                     <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
                             <div className="p-4 space-y-4">
+                                <DocumentUploader onUploadSuccess={() => fetchFiles(systemState.project_path)} />
                                 <SystemHealthAlerts healthData={{}} />
                                 <GovernanceDashboard proposals={[]} isAdmin={true} />
                                 <ActivityLog agentActivity={systemState.agentActivity} />

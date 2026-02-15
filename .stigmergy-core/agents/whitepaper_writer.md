@@ -22,4 +22,5 @@ agent:
     - "file_system.readFile"
     - "file_system.writeFile"
     - "research.deep_dive"
+    - "document_intelligence.*"
 ```

@@ -79,7 +79,7 @@ const ChatInterface = ({ messages = [], onSendMessage }) => {
             placeholder="Type instructions here..."
             className="bg-black border-white/10 text-zinc-300 focus-visible:ring-blue-500"
           />
-          <Button type="submit" size="icon" className="bg-blue-600 hover:bg-blue-500">
+          <Button type="submit" size="icon" className="bg-blue-600 hover:bg-blue-500" aria-label="Send Message">
             <Send className="w-4 h-4" />
           </Button>
         </form>

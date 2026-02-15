@@ -44,4 +44,5 @@ agent:
     - "coderag.semantic_search"
     - "file_system.readFile"
     - "file_system.appendFile"
+    - "document_intelligence.*"
 ```
