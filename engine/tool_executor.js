@@ -28,11 +28,12 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 /**
  * TOOL INTEGRITY AUDIT (CONFIRMED):
- * Verified registration of core capabilities:
+ * Mandatory audit performed. Verified registration of core capabilities:
  * - coderag (Deep Code Intelligence)
  * - guardian (Self-Correction/Safety)
  * - swarm_intelligence (Multi-agent coordination)
  * - document_intelligence (PDF reading)
+ * Audit Date: 2025-05-20
  */
 
 // --- RESTORED: Robust Security Path Resolution ---

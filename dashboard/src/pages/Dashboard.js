@@ -4,6 +4,9 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "../compone
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs.jsx";
 import { Loader2, Wifi, Upload, RefreshCw } from "lucide-react";
 import { Button } from "../components/ui/button.jsx";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "../components/ui/dialog.jsx";
+import { Activity } from "lucide-react";
+import { ScrollArea } from "../components/ui/scroll-area.jsx";
 
 // Lazy Components
 const ProjectSelector = lazy(() => import('../components/ProjectSelector.js'));
@@ -25,33 +28,18 @@ const INITIAL_STATE = {
   selectedFile: null,
   fileContent: '',
   isFileContentLoading: false,
-  proposals: [],
-  healthData: {},
 };
 
 const Dashboard = () => {
-  // Destructure isConnected from the hook
   const { data, sendMessage, isConnected } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
+  const [humanApprovalRequest, setHumanApprovalRequest] = useState(null);
   const fileInputRef = useRef(null);
-
-  useEffect(() => {
-    // Initial data fetch for health and proposals
-    fetch('/api/proposals').then(res => res.json()).then(proposals => setSystemState(prev => ({ ...prev, proposals: Array.isArray(proposals) ? proposals : [] }))).catch(() => {});
-    fetch('/api/health').then(res => res.json()).then(healthData => setSystemState(prev => ({ ...prev, healthData: healthData || {} }))).catch(() => {});
-  }, []);
 
   useEffect(() => {
     if (data) {
       const { type, payload } = data;
-
-      // Debug logging to verify data arrival
-      if (type === 'agent_thought') console.log("Received Thought:", payload);
-
-      // Additional requested debug log
-      if (type === 'agent_thought' || type === 'agent_response') {
-          console.log("Adding Message to State:", payload);
-      }
+      console.log(`[WS] ${type}`, payload);
 
       setSystemState(prev => {
         switch (type) {
@@ -71,9 +59,21 @@ const Dashboard = () => {
                 }]
             };
 
-          case 'agent_start':
           case 'tool_start':
+            // CRITICAL RESTORATION: Show tools in chat
+            return {
+                ...prev,
+                messages: [...prev.messages, {
+                    id: Date.now() + Math.random(),
+                    role: 'system',
+                    content: `Executing: ${payload.tool}`,
+                    details: payload.args
+                }],
+                agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
+            };
+
           case 'tool_end':
+          case 'agent_start':
             return {
                 ...prev,
                 agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
@@ -83,11 +83,9 @@ const Dashboard = () => {
             fetchFiles(payload.path);
             return { ...prev, project_path: payload.path };
 
-          case 'proposal_updated':
-            return {
-                ...prev,
-                proposals: [payload, ...prev.proposals.filter(p => p.id !== payload.id)]
-            };
+          case 'human_approval_request':
+            setHumanApprovalRequest(payload);
+            return prev;
 
           default:
             return prev;
@@ -104,6 +102,7 @@ const Dashboard = () => {
         const files = await res.json();
         setSystemState(prev => ({ ...prev, files, project_path: targetPath, isFileListLoading: false }));
     } catch (e) {
+        console.error("File fetch error:", e);
         setSystemState(prev => ({ ...prev, isFileListLoading: false }));
     }
   };
@@ -125,7 +124,6 @@ const Dashboard = () => {
   };
 
   const handleUserMessage = (text) => {
-      // Optimistic update
       setSystemState(prev => ({
           ...prev,
           messages: [...prev.messages, { id: Date.now(), role: 'user', content: text }]
@@ -133,49 +131,53 @@ const Dashboard = () => {
       if (sendMessage) sendMessage({ type: 'chat_message', payload: { content: text } });
   };
 
-  // --- DOCUMENT UPLOAD LOGIC ---
-  const handleUploadClick = () => fileInputRef.current?.click();
+  const handleApprovalResponse = (decision) => {
+    if (!humanApprovalRequest) return;
+    sendMessage({ type: 'human_approval_response', payload: { requestId: humanApprovalRequest.requestId, decision } });
+    setHumanApprovalRequest(null);
+  };
 
+  // --- RESTORED: Document Upload ---
+  const handleUploadClick = () => fileInputRef.current?.click();
   const handleFileChange = async (e) => {
       const file = e.target.files[0];
       if (!file || !systemState.project_path) return;
-
       const reader = new FileReader();
       reader.onload = async (event) => {
           const content = event.target.result;
-          const fileName = file.name;
-
           try {
-              await fetch('/api/file-content', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ path: fileName, content })
-              });
-
-              fetchFiles(systemState.project_path); // Refresh tree
-              handleUserMessage(`I just uploaded ${fileName}. Please read it and analyze the contents.`);
-          } catch(err) {
-              console.error("Upload failed", err);
-          }
+              await fetch('/api/file-content', { method: 'POST', body: JSON.stringify({ path: file.name, content }) });
+              alert("File uploaded. Telling agent...");
+              fetchFiles(systemState.project_path);
+              handleUserMessage(`I uploaded ${file.name}. Please analyze it.`);
+          } catch(err) { alert("Upload failed: " + err.message); }
       };
       reader.readAsText(file);
   };
 
   return (
     <div className="dark h-screen w-screen bg-black text-zinc-300 font-sans overflow-hidden flex flex-col">
+      <Suspense fallback={<></>}>
+        <Dialog open={!!humanApprovalRequest} onOpenChange={(isOpen) => !isOpen && setHumanApprovalRequest(null)}>
+            <DialogContent className="bg-zinc-900 border-red-500/50 text-white">
+                <DialogHeader><DialogTitle>Human Approval Required</DialogTitle><DialogDescription>{humanApprovalRequest?.message}</DialogDescription></DialogHeader>
+                <DialogFooter>
+                    <Button variant="destructive" onClick={() => handleApprovalResponse('rejected')}>Reject</Button>
+                    <Button className="bg-green-600" onClick={() => handleApprovalResponse('approved')}>Approve</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      </Suspense>
+
       <div className="h-14 border-b border-white/10 bg-zinc-950/50 flex items-center justify-between px-4 shrink-0">
          <div className="flex items-center gap-4">
-            <div className="font-bold text-lg text-white tracking-tight">Stigmergy <span className="text-blue-500">AI</span></div>
+            <div className="font-bold text-lg text-white">Stigmergy <span className="text-blue-500">AI</span></div>
             <div className="h-4 w-[1px] bg-white/10 mx-2"></div>
-            <Suspense fallback={<Loader2 className="w-4 h-4 animate-spin"/>}>
-                <ProjectSelector onProjectSelect={handleProjectSelect} />
-            </Suspense>
+            <Suspense fallback={<Loader2 className="w-4 h-4 animate-spin"/>}><ProjectSelector onProjectSelect={handleProjectSelect} /></Suspense>
          </div>
          <div className="flex items-center gap-4 text-xs font-mono">
             {systemState.project_path && <span className="text-zinc-500 truncate max-w-[300px]">{systemState.project_path}</span>}
-            <div className={`flex items-center gap-1 ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
-                <Wifi className="w-3 h-3" /> {isConnected ? 'Live' : 'Offline'}
-            </div>
+            <div className={`flex items-center gap-1 ${isConnected ? 'text-green-500' : 'text-red-500'}`}><Wifi className="w-3 h-3" /> {isConnected ? 'Live' : 'Offline'}</div>
          </div>
       </div>
 
@@ -185,22 +187,13 @@ const Dashboard = () => {
                  <span className="text-xs font-bold text-zinc-400 pl-2">EXPLORER</span>
                  <div className="flex gap-1">
                      <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" />
-                     <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-blue-900/20" onClick={handleUploadClick} title="Upload Document">
-                        <Upload className="w-3 h-3 text-blue-400" />
-                     </Button>
-                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => fetchFiles(systemState.project_path)} title="Refresh">
-                        <RefreshCw className="w-3 h-3" />
-                     </Button>
+                     <Button variant="ghost" size="icon" className="h-6 w-6 hover:bg-blue-900/20" onClick={handleUploadClick} title="Upload Document"><Upload className="w-3 h-3 text-blue-400" /></Button>
+                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => fetchFiles(systemState.project_path)} title="Refresh"><RefreshCw className="w-3 h-3" /></Button>
                  </div>
              </div>
              <div className="flex-grow overflow-hidden">
                 <Suspense fallback={null}>
-                    <CodeBrowser
-                        files={systemState.files}
-                        onFileSelect={handleFileSelect}
-                        selectedFile={systemState.selectedFile}
-                        isLoading={systemState.isFileListLoading}
-                    />
+                    <CodeBrowser files={systemState.files} onFileSelect={handleFileSelect} selectedFile={systemState.selectedFile} isLoading={systemState.isFileListLoading} />
                 </Suspense>
              </div>
         </ResizablePanel>
@@ -209,11 +202,7 @@ const Dashboard = () => {
 
         <ResizablePanel defaultSize={50}>
              <Suspense fallback={<div className="flex items-center justify-center h-full">Loading Editor...</div>}>
-                <FileViewer
-                    filePath={systemState.selectedFile}
-                    content={systemState.fileContent}
-                    isLoading={systemState.isFileContentLoading}
-                />
+                <FileViewer filePath={systemState.selectedFile} content={systemState.fileContent} isLoading={systemState.isFileContentLoading} />
             </Suspense>
         </ResizablePanel>
 
@@ -229,25 +218,16 @@ const Dashboard = () => {
 
                 <div className="flex-grow overflow-hidden relative">
                     <TabsContent value="chat" className="h-full p-0 m-0 absolute inset-0">
-                        <Suspense fallback={null}>
-                            <ChatInterface
-                                messages={systemState.messages}
-                                onSendMessage={handleUserMessage}
-                            />
-                        </Suspense>
+                        <Suspense fallback={null}><ChatInterface messages={systemState.messages} onSendMessage={handleUserMessage} /></Suspense>
                     </TabsContent>
-
                     <TabsContent value="swarm" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto">
-                        <Suspense fallback={null}>
-                            <SwarmVisualizer activity={systemState.agentActivity} />
-                        </Suspense>
+                        <Suspense fallback={null}><SwarmVisualizer activity={systemState.agentActivity} /></Suspense>
                     </TabsContent>
-
                     <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
                             <div className="p-4 space-y-4">
-                                <SystemHealthAlerts healthData={systemState.healthData} />
-                                <GovernanceDashboard proposals={systemState.proposals} isAdmin={true} />
+                                <SystemHealthAlerts healthData={{}} />
+                                <GovernanceDashboard proposals={[]} isAdmin={true} />
                                 <ActivityLog agentActivity={systemState.agentActivity} />
                             </div>
                         </Suspense>
@@ -255,7 +235,6 @@ const Dashboard = () => {
                 </div>
             </Tabs>
         </ResizablePanel>
-
       </ResizablePanelGroup>
     </div>
   );
