@@ -27,6 +27,12 @@ const ChatInterface = ({ messages = [], onSendMessage }) => {
     <div className="flex flex-col h-full bg-black">
       <ScrollArea className="flex-grow p-4">
         <div className="space-y-4">
+          {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-64 text-zinc-500 space-y-2">
+                  <div className="text-sm font-medium">No messages yet</div>
+                  <div className="text-xs opacity-50 text-center px-8">Ask a question or give a command to begin.</div>
+              </div>
+          )}
           {messages.map((msg, idx) => {
             const role = msg?.role || 'assistant';
             const content = msg?.content || '...';
@@ -46,14 +52,16 @@ const ChatInterface = ({ messages = [], onSendMessage }) => {
                 {/* NORMAL MESSAGE */}
                 {role !== 'system' && (
                     <div
-                      className={`max-w-[85%] rounded-lg p-3 text-sm whitespace-pre-wrap ${
+                      className={`max-w-[85%] rounded-lg p-3 text-sm ${
                         role === 'user'
                           ? 'bg-blue-600 text-white rounded-tr-none'
                           : 'bg-zinc-800 text-zinc-200 rounded-tl-none border border-white/10'
                       }`}
                     >
                       {msg?.agent && <div className="text-xs text-zinc-500 mb-1 font-bold">{msg.agent}</div>}
-                      {content}
+                      <pre className="whitespace-pre-wrap font-sans">
+                        {content}
+                      </pre>
                     </div>
                 )}
               </div>

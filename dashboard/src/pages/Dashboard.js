@@ -30,21 +30,28 @@ const INITIAL_STATE = {
 };
 
 const Dashboard = () => {
-  const { data, sendMessage } = useWebSocket('/ws');
+  // Destructure isConnected from the hook
+  const { data, sendMessage, isConnected } = useWebSocket('/ws');
   const [systemState, setSystemState] = useState(INITIAL_STATE);
-  const [isConnected, setIsConnected] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    // Initial data fetch
+    // Initial data fetch for health and proposals
     fetch('/api/proposals').then(res => res.json()).then(proposals => setSystemState(prev => ({ ...prev, proposals: Array.isArray(proposals) ? proposals : [] }))).catch(() => {});
     fetch('/api/health').then(res => res.json()).then(healthData => setSystemState(prev => ({ ...prev, healthData: healthData || {} }))).catch(() => {});
   }, []);
 
   useEffect(() => {
     if (data) {
-      setIsConnected(true);
       const { type, payload } = data;
+
+      // Debug logging to verify data arrival
+      if (type === 'agent_thought') console.log("Received Thought:", payload);
+
+      // Additional requested debug log
+      if (type === 'agent_thought' || type === 'agent_response') {
+          console.log("Adding Message to State:", payload);
+      }
 
       setSystemState(prev => {
         switch (type) {
@@ -53,36 +60,24 @@ const Dashboard = () => {
 
           case 'agent_thought':
           case 'agent_response':
-            if (!payload.text || String(payload.text).trim() === "") return prev;
+            if (!payload.text) return prev;
             return {
                 ...prev,
                 messages: [...prev.messages, {
-                    id: Date.now(),
+                    id: Date.now() + Math.random(),
                     role: 'assistant',
-                    content: String(payload.text),
-                    agent: payload.agentId
+                    content: payload.text,
+                    agent: payload.agentId || 'System'
                 }]
             };
 
+          case 'agent_start':
           case 'tool_start':
-            // FIX: Show tool usage in Chat so user knows something is happening
+          case 'tool_end':
             return {
                 ...prev,
-                messages: [...prev.messages, {
-                    id: Date.now(),
-                    role: 'system', // New role for UI
-                    content: `Executing: ${payload.tool}`,
-                    details: payload.args
-                }],
                 agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
             };
-
-          case 'tool_end':
-             // Optional: Show result or just update activity log
-             return {
-                ...prev,
-                agentActivity: [{ id: Date.now(), type, ...payload }, ...prev.agentActivity.slice(0, 49)]
-             };
 
           case 'project_switched':
             fetchFiles(payload.path);
@@ -109,7 +104,6 @@ const Dashboard = () => {
         const files = await res.json();
         setSystemState(prev => ({ ...prev, files, project_path: targetPath, isFileListLoading: false }));
     } catch (e) {
-        console.error("File fetch error:", e);
         setSystemState(prev => ({ ...prev, isFileListLoading: false }));
     }
   };
@@ -131,20 +125,12 @@ const Dashboard = () => {
   };
 
   const handleUserMessage = (text) => {
-      if (!text || String(text).trim() === "") return;
-
+      // Optimistic update
       setSystemState(prev => ({
           ...prev,
-          messages: [...(prev.messages || []), {
-              id: Date.now(),
-              role: 'user',
-              content: String(text)
-          }]
+          messages: [...prev.messages, { id: Date.now(), role: 'user', content: text }]
       }));
-
-      if (sendMessage) {
-          sendMessage({ type: 'chat_message', payload: { content: String(text) } });
-      }
+      if (sendMessage) sendMessage({ type: 'chat_message', payload: { content: text } });
   };
 
   // --- DOCUMENT UPLOAD LOGIC ---
@@ -160,27 +146,23 @@ const Dashboard = () => {
           const fileName = file.name;
 
           try {
-              // Upload via existing file-content API (Create file in root of project)
               await fetch('/api/file-content', {
                   method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
                   body: JSON.stringify({ path: fileName, content })
               });
 
-              alert("File uploaded. Telling agent to read it...");
               fetchFiles(systemState.project_path); // Refresh tree
-
-              // Trigger analysis
               handleUserMessage(`I just uploaded ${fileName}. Please read it and analyze the contents.`);
           } catch(err) {
-              alert("Upload failed: " + err.message);
+              console.error("Upload failed", err);
           }
       };
-      reader.readAsText(file); // For now, handle text/code/md
+      reader.readAsText(file);
   };
 
   return (
     <div className="dark h-screen w-screen bg-black text-zinc-300 font-sans overflow-hidden flex flex-col">
-      {/* Header */}
       <div className="h-14 border-b border-white/10 bg-zinc-950/50 flex items-center justify-between px-4 shrink-0">
          <div className="flex items-center gap-4">
             <div className="font-bold text-lg text-white tracking-tight">Stigmergy <span className="text-blue-500">AI</span></div>
@@ -198,7 +180,6 @@ const Dashboard = () => {
       </div>
 
       <ResizablePanelGroup direction="horizontal" className="flex-grow">
-        {/* Left: Files */}
         <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="bg-zinc-950 border-r border-white/10 flex flex-col">
              <div className="p-2 border-b border-white/10 flex justify-between items-center bg-zinc-900/50">
                  <span className="text-xs font-bold text-zinc-400 pl-2">EXPLORER</span>
@@ -226,7 +207,6 @@ const Dashboard = () => {
 
         <ResizableHandle withHandle className="bg-zinc-900" />
 
-        {/* Center: IDE */}
         <ResizablePanel defaultSize={50}>
              <Suspense fallback={<div className="flex items-center justify-center h-full">Loading Editor...</div>}>
                 <FileViewer
@@ -239,13 +219,11 @@ const Dashboard = () => {
 
         <ResizableHandle withHandle className="bg-zinc-900" />
 
-        {/* Right: Tabs */}
         <ResizablePanel defaultSize={30} minSize={20} className="bg-zinc-950 border-l border-white/10">
             <Tabs defaultValue="chat" className="h-full flex flex-col">
                 <TabsList className="bg-zinc-900 border-b border-white/10 w-full justify-start rounded-none p-0 h-10">
                     <TabsTrigger value="chat" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Chat</TabsTrigger>
                     <TabsTrigger value="swarm" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Swarm</TabsTrigger>
-                    <TabsTrigger value="logs" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">Logs</TabsTrigger>
                     <TabsTrigger value="system" className="data-[state=active]:bg-zinc-800 rounded-none h-full border-r border-white/10 px-4 flex-1">System</TabsTrigger>
                 </TabsList>
 
@@ -265,17 +243,12 @@ const Dashboard = () => {
                         </Suspense>
                     </TabsContent>
 
-                    <TabsContent value="logs" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
-                        <Suspense fallback={null}>
-                            <ActivityLog agentActivity={systemState.agentActivity} />
-                        </Suspense>
-                    </TabsContent>
-
                     <TabsContent value="system" className="h-full p-0 m-0 absolute inset-0 overflow-y-auto bg-black">
                         <Suspense fallback={null}>
                             <div className="p-4 space-y-4">
                                 <SystemHealthAlerts healthData={systemState.healthData} />
                                 <GovernanceDashboard proposals={systemState.proposals} isAdmin={true} />
+                                <ActivityLog agentActivity={systemState.agentActivity} />
                             </div>
                         </Suspense>
                     </TabsContent>
